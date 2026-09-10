@@ -44,8 +44,11 @@ APP_BASE = f"http://127.0.0.1:{APP_PORT}"
 WORKER_BASE = f"http://127.0.0.1:{WORKER_HEALTH_PORT}"
 
 DATE_UTC = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
-RUN_ID = ("E-AB-" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-          + "-" + secrets.token_hex(4))  # 随机后缀：同秒并发 run 标签不冲突
+#: 入口可用 E_ACCEPTANCE_RUN_ID 显式绑定 RUN_ID（a-reverify 由 run.sh 入口生成并传入，
+#: 使哨兵/证据路径与本次驱动 rc 真绑定）；未设置时按时间戳+随机后缀自动生成。
+RUN_ID = os.environ.get("E_ACCEPTANCE_RUN_ID") or (
+    "E-AB-" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    + "-" + secrets.token_hex(4))
 REPORTS = ROOT / "reports" / RUN_ID
 FORMAL_EVIDENCE = ROOT / "evidence" / f"A-baseline-{DATE_UTC}"
 LOGS = FORMAL_EVIDENCE / "logs"  # 兼容旧引用；真实输出目录由 set_output_mode 决定

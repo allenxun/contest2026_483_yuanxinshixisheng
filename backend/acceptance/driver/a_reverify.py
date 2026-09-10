@@ -290,10 +290,12 @@ def rv5_auth(s1: dict) -> tuple[str, list]:
         s2_structured = vv is True
         caps.append(_capture(body3, "rv5-other"))
     else:
-        err = body3.get("error") or {}
-        s2_structured = code3 in (401, 404) and bool(err.get("code")) \
-            and bool(body3.get("requestId"))
-        why3 = f"{code3}/{err.get('code')}"
+        # 非 200：基本错误信封检查（status + error.code 非空 + requestId 非空）。
+        # 局限：OAS 错误响应 schema 未复用 validate_responses（该机制只解析 echo-view 200），
+        # 故此处不是严格 schema 校验，如实标注。
+        s2_structured = (code3 in (401, 404) and bool((body3.get("error") or {}).get("code"))
+                         and bool(body3.get("requestId")))
+        why3 = f"{code3}/{(body3.get('error') or {}).get('code')}（基本错误信封检查）"
     detail.append(f"accounts_differ={accounts_differ} s1_valid={s1_valid} s2_valid={s2_valid} "
                   f"other={why3}")
     v, why = rv5_verdict(accounts_differ, s1_valid, s2_valid, code3, s2_structured)
@@ -305,8 +307,8 @@ def rv5_auth(s1: dict) -> tuple[str, list]:
         status = "PASS"
     _add("RV-5", "认证/归属边界：无 token/伪造 401 通过；真跨账号读取的可见性政策"
                  "待总协调裁定 → INFO（附条件）", status,
-         "GET echo job：no-token/forged/真第二账号（独立身份）", f"{code}/{code2}/{code3}",
-         f"{' | '.join(detail)} || {why}")
+         "GET echo job：no-token/forged/真第二账号（独立身份）；非 200 分支=基本错误信封检查",
+         f"{code}/{code2}/{code3}", f"{' | '.join(detail)} || {why}")
     return status, caps
 
 
