@@ -1,0 +1,479 @@
+[
+  {
+    "id": "M1-A01",
+    "module": "M1",
+    "module_title": "成员身份与访问授权",
+    "title": "人脸授权查看本人资料",
+    "http": "POST /api/v1/member-access-grants",
+    "scenarios": [
+      "SC-00-02",
+      "SC-05-01",
+      "SC-05-02",
+      "SC-05-05",
+      "SC-C-01",
+      "SC-C-05"
+    ]
+  },
+  {
+    "id": "M1-A02",
+    "module": "M1",
+    "module_title": "成员身份与访问授权",
+    "title": "查询当前账号已有成员访问关系〔查询导航配套〕",
+    "http": "GET /api/v1/me/member-access-grants",
+    "scenarios": [
+      "SC-00-02",
+      "SC-05-03",
+      "SC-C-01",
+      "SC-R-04"
+    ]
+  },
+  {
+    "id": "M1-A03",
+    "module": "M1",
+    "module_title": "成员身份与访问授权",
+    "title": "撤销当前账号与某个人脸对应成员的查看关联",
+    "http": "DELETE /api/v1/me/member-access-grants/{grantId}",
+    "scenarios": [
+      "SC-05-04",
+      "SC-05-06",
+      "SC-C-01"
+    ]
+  },
+  {
+    "id": "M2-A01",
+    "module": "M2",
+    "module_title": "云台与微晶管理",
+    "title": "云台认证或恢复连接后重新认证",
+    "http": "POST /api/v1/gimbal-sessions",
+    "scenarios": [
+      "SC-00-01",
+      "SC-00-04",
+      "SC-01-02",
+      "SC-01-09",
+      "SC-01-13",
+      "SC-C-01"
+    ]
+  },
+  {
+    "id": "M2-A02",
+    "module": "M2",
+    "module_title": "云台与微晶管理",
+    "title": "上报心跳和云台已知工作状态",
+    "http": "POST /api/v1/gimbals/{gimbalId}/heartbeats",
+    "scenarios": [
+      "SC-01-10",
+      "SC-01-11",
+      "SC-01-13",
+      "SC-01-15",
+      "SC-C-01"
+    ]
+  },
+  {
+    "id": "M2-A03",
+    "module": "M2",
+    "module_title": "云台与微晶管理",
+    "title": "查询云台状态",
+    "http": "GET /api/v1/gimbals/{gimbalId}/status",
+    "scenarios": [
+      "SC-01-11",
+      "SC-01-12",
+      "SC-01-18",
+      "SC-C-01"
+    ]
+  },
+  {
+    "id": "M2-A04",
+    "module": "M2",
+    "module_title": "云台与微晶管理",
+    "title": "登记已连接微晶的能力与状态观察",
+    "http": "POST /api/v1/microcrystal-observations",
+    "scenarios": [
+      "SC-00-02",
+      "SC-03-04",
+      "SC-03-05",
+      "SC-07-01",
+      "SC-C-01"
+    ]
+  },
+  {
+    "id": "M2-A05",
+    "module": "M2",
+    "module_title": "云台与微晶管理",
+    "title": "读取后端已登记微晶能力〔能力查询配套〕",
+    "http": "GET /api/v1/microcrystals/{microcrystalId}/capabilities",
+    "scenarios": [
+      "SC-03-04",
+      "SC-03-06",
+      "SC-C-01"
+    ]
+  },
+  {
+    "id": "M2-A06",
+    "module": "M2",
+    "module_title": "云台与微晶管理",
+    "title": "用户主动绑定云台到当前账号",
+    "http": "PUT /api/v1/me/gimbal-bindings/{gimbalId}",
+    "scenarios": [
+      "SC-01-01",
+      "SC-01-02",
+      "SC-01-03",
+      "SC-01-04",
+      "SC-01-05",
+      "SC-01-06",
+      "SC-01-07",
+      "SC-01-08",
+      "SC-05-07",
+      "SC-C-01",
+      "SC-R-01",
+      "SC-R-02",
+      "SC-R-03",
+      "SC-R-05"
+    ]
+  },
+  {
+    "id": "M2-A07",
+    "module": "M2",
+    "module_title": "云台与微晶管理",
+    "title": "配网时查询云台绑定状态",
+    "http": "GET /api/v1/gimbals/{gimbalId}/binding-status",
+    "scenarios": [
+      "SC-C-01",
+      "SC-R-01",
+      "SC-R-02"
+    ]
+  },
+  {
+    "id": "M2-A08",
+    "module": "M2",
+    "module_title": "云台与微晶管理",
+    "title": "原账号解除云台绑定",
+    "http": "DELETE /api/v1/me/gimbal-bindings/{gimbalId}",
+    "scenarios": [
+      "SC-C-01",
+      "SC-R-03",
+      "SC-R-04",
+      "SC-R-05"
+    ]
+  },
+  {
+    "id": "M3-A01",
+    "module": "M3",
+    "module_title": "测肤任务与报告",
+    "title": "提交三视角测肤任务",
+    "http": "POST /api/v1/skin-assessment-tasks",
+    "scenarios": [
+      "SC-00-01",
+      "SC-00-04",
+      "SC-02-01",
+      "SC-02-02",
+      "SC-02-03",
+      "SC-02-04",
+      "SC-02-06",
+      "SC-C-01",
+      "SC-C-02",
+      "SC-C-05",
+      "SC-R-08",
+      "SC-R-09",
+      "SC-R-11",
+      "SC-R-12",
+      "SC-R-13"
+    ]
+  },
+  {
+    "id": "M3-A02",
+    "module": "M3",
+    "module_title": "测肤任务与报告",
+    "title": "补拍并提交新照片版本",
+    "http": "PUT /api/v1/skin-assessment-tasks/{taskId}/photo-versions/{photoVersion}",
+    "scenarios": [
+      "SC-02-08",
+      "SC-02-09",
+      "SC-C-01",
+      "SC-C-02",
+      "SC-C-05",
+      "SC-R-08",
+      "SC-R-10"
+    ]
+  },
+  {
+    "id": "M3-A03",
+    "module": "M3",
+    "module_title": "测肤任务与报告",
+    "title": "查询测肤任务及补拍要求",
+    "http": "GET /api/v1/skin-assessment-tasks/{taskId}",
+    "scenarios": [
+      "SC-00-01",
+      "SC-00-04",
+      "SC-02-01",
+      "SC-02-03",
+      "SC-02-05",
+      "SC-02-06",
+      "SC-02-07",
+      "SC-02-08",
+      "SC-02-09",
+      "SC-02-10",
+      "SC-02-11",
+      "SC-03-09",
+      "SC-C-01",
+      "SC-C-03",
+      "SC-C-04",
+      "SC-R-06",
+      "SC-R-10"
+    ]
+  },
+  {
+    "id": "M3-A04",
+    "module": "M3",
+    "module_title": "测肤任务与报告",
+    "title": "列出可访问报告〔查询导航配套〕",
+    "http": "GET /api/v1/members/{memberId}/skin-reports",
+    "scenarios": [
+      "SC-00-02",
+      "SC-03-01",
+      "SC-03-09",
+      "SC-05-05",
+      "SC-05-07",
+      "SC-C-01",
+      "SC-R-10",
+      "SC-R-11"
+    ]
+  },
+  {
+    "id": "M3-A05",
+    "module": "M3",
+    "module_title": "测肤任务与报告",
+    "title": "APP 查询报告或云台获取本次报告",
+    "http": "GET /api/v1/skin-reports/{reportId}?view={view}",
+    "scenarios": [
+      "SC-00-01",
+      "SC-02-07",
+      "SC-03-01",
+      "SC-03-02",
+      "SC-03-03",
+      "SC-03-09",
+      "SC-05-05",
+      "SC-C-01",
+      "SC-C-05",
+      "SC-R-06",
+      "SC-R-10"
+    ]
+  },
+  {
+    "id": "M3-A06",
+    "module": "M3",
+    "module_title": "测肤任务与报告",
+    "title": "云台恢复后端保存的当前测肤任务",
+    "http": "GET /api/v1/gimbals/{gimbalId}/current-assessment",
+    "scenarios": [
+      "SC-C-01",
+      "SC-R-04",
+      "SC-R-06",
+      "SC-R-07",
+      "SC-R-08",
+      "SC-R-09",
+      "SC-R-11",
+      "SC-R-13",
+      "SC-R-14"
+    ]
+  },
+  {
+    "id": "M4-A01",
+    "module": "M4",
+    "module_title": "护理管理",
+    "title": "列出本人方案与生成状态",
+    "http": "GET /api/v1/members/{memberId}/care-plans",
+    "scenarios": [
+      "SC-00-02",
+      "SC-03-03",
+      "SC-03-04",
+      "SC-03-07",
+      "SC-03-08",
+      "SC-03-09",
+      "SC-05-05",
+      "SC-05-07",
+      "SC-C-01",
+      "SC-C-02",
+      "SC-C-03",
+      "SC-C-04",
+      "SC-R-11"
+    ]
+  },
+  {
+    "id": "M4-A02",
+    "module": "M4",
+    "module_title": "护理管理",
+    "title": "查询方案完整版",
+    "http": "GET /api/v1/care-plans/{planId}?view=full",
+    "scenarios": [
+      "SC-00-02",
+      "SC-03-03",
+      "SC-03-07",
+      "SC-03-08",
+      "SC-03-09",
+      "SC-05-05",
+      "SC-C-01"
+    ]
+  },
+  {
+    "id": "M4-A03",
+    "module": "M4",
+    "module_title": "护理管理",
+    "title": "当前人脸核验、取得本人方案并登记新执行",
+    "http": "POST /api/v1/care-executions",
+    "scenarios": [
+      "SC-00-01",
+      "SC-00-02",
+      "SC-00-03",
+      "SC-03-08",
+      "SC-04-01",
+      "SC-04-02",
+      "SC-04-03",
+      "SC-04-04",
+      "SC-04-05",
+      "SC-04-09",
+      "SC-04-10",
+      "SC-06-07",
+      "SC-07-01",
+      "SC-07-05",
+      "SC-C-01",
+      "SC-C-05",
+      "SC-R-06",
+      "SC-R-07",
+      "SC-R-10",
+      "SC-R-11",
+      "SC-R-13"
+    ]
+  },
+  {
+    "id": "M4-A04",
+    "module": "M4",
+    "module_title": "护理管理",
+    "title": "使用者连续性失效后重新核验恢复条件",
+    "http": "POST /api/v1/care-executions/{executionId}/revalidations",
+    "scenarios": [
+      "SC-04-07",
+      "SC-04-08",
+      "SC-04-09",
+      "SC-04-10",
+      "SC-07-03",
+      "SC-C-01",
+      "SC-R-06",
+      "SC-R-10"
+    ]
+  },
+  {
+    "id": "M4-A05",
+    "module": "M4",
+    "module_title": "护理管理",
+    "title": "同步实际状态与有效完成记录",
+    "http": "POST /api/v1/care-executions/{executionId}/observations",
+    "scenarios": [
+      "SC-00-01",
+      "SC-00-02",
+      "SC-00-03",
+      "SC-01-13",
+      "SC-04-06",
+      "SC-06-01",
+      "SC-06-02",
+      "SC-06-03",
+      "SC-06-04",
+      "SC-06-05",
+      "SC-06-06",
+      "SC-06-07",
+      "SC-07-02",
+      "SC-07-03",
+      "SC-C-01",
+      "SC-R-07",
+      "SC-R-12"
+    ]
+  },
+  {
+    "id": "M4-A06",
+    "module": "M4",
+    "module_title": "护理管理",
+    "title": "确认本地已停止并完成执行收尾",
+    "http": "POST /api/v1/care-executions/{executionId}/closure-confirmations",
+    "scenarios": [
+      "SC-00-03",
+      "SC-04-10",
+      "SC-07-02",
+      "SC-07-04",
+      "SC-07-05",
+      "SC-07-06",
+      "SC-C-01",
+      "SC-R-12"
+    ]
+  },
+  {
+    "id": "M4-A07",
+    "module": "M4",
+    "module_title": "护理管理",
+    "title": "查询执行及恢复联网后的对账状态",
+    "http": "GET /api/v1/care-executions/{executionId}",
+    "scenarios": [
+      "SC-01-13",
+      "SC-04-05",
+      "SC-05-05",
+      "SC-06-06",
+      "SC-07-07",
+      "SC-C-01",
+      "SC-R-10"
+    ]
+  },
+  {
+    "id": "M4-A08",
+    "module": "M4",
+    "module_title": "护理管理",
+    "title": "查询方案累计进度",
+    "http": "GET /api/v1/care-plans/{planId}/progress",
+    "scenarios": [
+      "SC-00-01",
+      "SC-00-03",
+      "SC-04-06",
+      "SC-05-05",
+      "SC-06-01",
+      "SC-06-04",
+      "SC-06-08",
+      "SC-C-01",
+      "SC-R-04",
+      "SC-R-07",
+      "SC-R-10"
+    ]
+  },
+  {
+    "id": "M4-A09",
+    "module": "M4",
+    "module_title": "护理管理",
+    "title": "查看本人护理记录",
+    "http": "GET /api/v1/members/{memberId}/care-executions",
+    "scenarios": [
+      "SC-00-02",
+      "SC-05-05",
+      "SC-05-07",
+      "SC-06-09",
+      "SC-C-01"
+    ]
+  },
+  {
+    "id": "M5-A01",
+    "module": "M5",
+    "module_title": "消息通知",
+    "title": "登记本 APP 安装实例的通知投递目标",
+    "http": "PUT /api/v1/me/notification-destinations/{installationId}",
+    "scenarios": [
+      "SC-00-04",
+      "SC-01-01",
+      "SC-01-02",
+      "SC-01-03",
+      "SC-01-08",
+      "SC-01-14",
+      "SC-01-15",
+      "SC-01-16",
+      "SC-01-17",
+      "SC-01-18",
+      "SC-C-01",
+      "SC-C-04",
+      "SC-R-03"
+    ]
+  }
+]
