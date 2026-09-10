@@ -5,7 +5,8 @@
 单点出错：
 - 场景恰 94 条、ID 唯一；分节计数、P0/P1 计数与文档声明一致；
 - 每条字段齐全、status=dependency_pending、blocked_by 含 A-baseline、
-  pending_reason 非空、owner_package 映射符合 M1/M2/M5→B、M3→C、M4→D；
+  pending_reason 非空、owner_package 符合 API 级归属（M1/M2/M5→B；M3→D；
+  M4-A01/A02→D；M4-A03..A09→C，场景取并集）；
 - API 恰 27 条；scenarios↔apis 双向一致，并与文档"覆盖汇总"表交叉核对
   （文档表未展开 SC-C-01 的"全部 27 个 API"，本矩阵按 27 个展开）。
 """
@@ -120,9 +121,15 @@ def test_required_fields_and_pending_status():
 
 
 def test_owner_package_mapping():
-    mod2pkg = {"M1": "B", "M2": "B", "M3": "C", "M4": "D", "M5": "B"}
+    """API 级归属（总协调 2026-09-10 权威澄清）：M1/M2/M5→B；M3→D；
+    M4-A01/M4-A02→D（方案生成 Worker 相关）；M4-A03..A09→C（执行/记账 HTTP）。
+    场景 owner_package = 关联 API 归属并集（升序）。"""
+    def owner(aid: str) -> str:
+        if aid in ("M4-A01", "M4-A02"):
+            return "D"
+        return {"M1": "B", "M2": "B", "M3": "D", "M4": "C", "M5": "B"}[aid[:2]]
     for s in scenarios:
-        expect = sorted({mod2pkg[a[:2]] for a in s["apis"]})
+        expect = sorted({owner(a) for a in s["apis"]})
         assert s["owner_package"] == expect, f"{s['id']} owner_package {s['owner_package']} != {expect}"
 
 

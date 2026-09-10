@@ -25,8 +25,15 @@ DOC_DIR = ROOT.parent / "doc"                              # backend/doc
 SCENARIO_DOC = DOC_DIR / "测试场景清单-V1-五模块与双控制.md"
 API_DOC = DOC_DIR / "后端API接口设计-V1-五模块与流程对应.md"
 
-# 模块 → 业务工作包：M1/M2/M5→B(identity/devices/notifications)，M3→C(care)，M4→D(assessments)
-MODULE_TO_PACKAGE = {"M1": "B", "M2": "B", "M3": "C", "M4": "D", "M5": "B"}
+# API → 负责工作包（总协调 2026-09-10 权威澄清；此前 M3→C/M4→D 为负责人归属错误）：
+#   B = identity/devices/notifications：M1、M2、M5
+#   D = assessments：M3（测肤 Java + 测肤/归档 Worker）、M4-A01/M4-A02（方案生成 Worker 相关）
+#   C = care：M4-A03..M4-A09（执行/记账 HTTP）
+# 场景 owner_package = 其关联 API 归属的并集（升序，跨包场景可为 B/C/D 组合）。
+def api_owner(api_id: str) -> str:
+    if api_id in ("M4-A01", "M4-A02"):
+        return "D"
+    return {"M1": "B", "M2": "B", "M3": "D", "M4": "C", "M5": "B"}[api_id[:2]]
 
 # 验证范围 → 自动化分层
 SCOPE_TO_TIER = {
@@ -117,7 +124,7 @@ def parse_scenarios(all_api_ids: list[str]) -> list[dict]:
             sys.exit(f"场景 {sid} 优先级异常：{priority}")
         if scope not in SCOPE_TO_TIER:
             sys.exit(f"场景 {sid} 验证范围异常：{scope}")
-        packages = sorted({MODULE_TO_PACKAGE[a[:2]] for a in apis})
+        packages = sorted({api_owner(a) for a in apis})
         tier = SCOPE_TO_TIER[scope]
         reason = BASE_PENDING_REASON + TIER_EXTRA_REASON[tier]
         if deps:
