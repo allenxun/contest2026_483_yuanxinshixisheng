@@ -365,8 +365,8 @@ def _settle(pass_n=0, fail_n=0, blocked_n=0, info_n=0, expected=52, rows=None,
             "pass": pass_n, "fail": fail_n, "blocked": blocked_n, "info": info_n}
 
 
-def test_ab_final_exit_policy_e2e_five_scenarios():
-    """端到端（跨 final_exit→conclusion）五场景，不止纯函数。"""
+def test_ab_conclusion_policy_unit_five_scenarios():
+    """结论政策单元测试（跨 final_exit→conclusion_line，非真实运行）。"""
     from driver import a_baseline as ab
     # (a) 51 PASS + 1 BLOCKED 结算完整 → exit≠0 且结论无“通过（无附条件）”
     sa = _settle(pass_n=51, blocked_n=1)
@@ -409,6 +409,49 @@ def test_ab_settlement_counts_sum_and_info():
     assert ab.settlement_complete(st) is True
     bad = _settle(pass_n=50, fail_n=1, info_n=1, rows=53)  # 计数和 != 行数
     assert ab.settlement_complete(bad) is False
+
+
+def test_ab_settlement_to_summary_integration(tmp_path, monkeypatch):
+    """集成：真实结果行 → settlement() → write_outputs() → 读回 summary.md/results.json。"""
+    from driver import a_baseline as ab
+    from driver import infra as I
+
+    class FakeRows:
+        def __init__(self, rows):
+            self.rows = rows
+
+        def count(self, status):
+            return sum(1 for r in self.rows if r["status"] == status)
+
+    def make_rows(*statuses):
+        return [{"id": f"X-{i}", "title": f"t{i}", "status": s, "command": "cmd", "rc": "0",
+                 "excerpt": ""} for i, s in enumerate(statuses)]
+
+    def run_case(statuses, extra=()):
+        R = FakeRows(make_rows(*statuses))
+        monkeypatch.setattr(ab, "R", R)
+        monkeypatch.setattr(ab, "REPORTS", tmp_path / "reports")
+        ev = tmp_path / ("ev-" + "_".join(statuses) + ("-x" if extra else ""))
+        I.set_output_mode(True, formal_dir=ev, reports=tmp_path)
+        ids = [r["id"] for r in R.rows]
+        settle = ab.settlement(expected=frozenset(ids) | set(extra))
+        rc = ab.final_exit(True, settle)
+        ab.write_outputs(True, settle, rc)
+        return rc, (ev / "summary.md").read_text(encoding="utf-8"), \
+            json.loads((ev / "results.json").read_text(encoding="utf-8"))
+
+    rc, text, res = run_case(["PASS", "PASS"])
+    assert rc == 0 and "结论：通过" in text and "未通过" not in text
+    assert res["counts"]["pass"] == 2 and res["final_exit"] == 0
+    rc, text, _ = run_case(["PASS", "FAIL"])
+    assert rc == 1 and "未通过" in text
+    rc, text, _ = run_case(["PASS", "BLOCKED"])
+    assert rc == 1 and "未通过" in text, "BLOCKED 结算完整也不得称通过"
+    rc, text, res = run_case(["PASS", "INFO"])
+    assert rc == 0 and "通过（附条件）" in text and "INFO" in text
+    rc, text, _ = run_case(["PASS"], extra=("MISSING-1",))
+    assert rc == 4 and "未通过" in text
+    I.set_output_mode(True)
 
 
 def test_ab_expected_checks_cover_all_items():

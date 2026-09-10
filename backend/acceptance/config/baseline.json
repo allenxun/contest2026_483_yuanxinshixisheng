@@ -8,6 +8,16 @@
     "a_oracle": "round-3 PASS-with-notes",
     "synced_at": "2026-09-10T12:32:08Z"
   },
+  "new_a_candidate": {
+    "code": "f6e500e474954781d3438188b6fdd389e61682e7",
+    "report": "cf390e1a37f1575d7b0d4772a51246f9188b67b3",
+    "dev": "f2755ab1741b5ee4f384fa66e73a2e669614ada9",
+    "integrated": "d495a7d7c43aab3baae9afcf8774ae9850e6e41f",
+    "a_oracle": "round-6 PASS (blockingFindings=[])，修复链 bfd2dc3→1ba984e→f6e500e",
+    "reverify": "pass: settled 11/11, {PASS:11, FAIL:0, BLOCKED:0, INFO:0}, exit=0; evidence/A-reverify-2026-09-10/E-AB-20260910T152407Z-62cd1bee/",
+    "note": "有界定向复验（RV-1..RV-9 + CLEANUP），非全量 52 项；A-baseline-2026-09-10 正式证据未被覆盖（逐文件 0 变更）；echo lastError 已收敛为 closed enum，N2-http 原缺陷复验通过。",
+    "synced_at": "2026-09-10T15:20:00Z"
+  },
   "gate": "closed",
   "e_acceptance": {
     "stage": "A-baseline",
