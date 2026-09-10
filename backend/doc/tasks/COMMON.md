@@ -37,3 +37,15 @@
 ## 面板维护
 
 各包监督任务维护自己的精简 status.json，可增加 completedItems（已验证完成项），测试和下一步应及时更新。总协调统一生成 backend/doc/tasks/panels/ 下总览与 A—E 面板；各 feature 不直接修改其他包或主工作树面板。半小时巡检和里程碑时刷新，只有证据支持才标记完成。
+
+## Oracle 审查门禁（用户新增要求）
+
+每个业务模块完成后，必须由 OpenCode 的 Oracle 审查。A 公共基础、E 验收框架也遵循此门禁。B 按 M1/M2/M5 分别给结论；C 对 M4 执行与记账给结论；D 对 M3 和 M4 方案生成 Worker 给结论，最终由 E 验证 M4 跨包链路。
+
+流程：实施与自测 → 提交候选代码 → Orchestrator 实际调用已安装 Oracle → 修复阻塞 → Oracle 复审最终代码 → E 独立验收 → 总协调确认集成。为让 E 执行测试，可以集成候选到隔离 dev；在 Oracle 与 E 均通过前，不开放下一阶段、不声称已验收。
+
+监督任务核实实际 Oracle 名称与调用结果，不擅自换模型，不用 Codex 自己审查冒充 Oracle。Oracle 不可用、调用失败或没有结论时记录 blocked；有阻塞问题时不通过。审查至少覆盖需求/任务清单、模块边界、API/数据库契约、权限、幂等与并发、恢复路径、测试证据和生产接入限制。只给 Oracle 相关设计及代码范围，监督任务只读精简报告，不搬运完整对话。
+
+报告保存 backend/handoffs/<包>-oracle.md，包含模块、审查代码 SHA、结论、问题严重度/位置/复现方式、修复与复审结果、残留限制。报告可以单独提交；必须标明被审查代码提交，后续代码变化需复审，纯报告提交不必循环审查自身。
+
+本包 status.json 增加 oracleReview：status（pending/running/changes_requested/passed/blocked）、reviewedCommit、report、blockingFindings。增加 taskProgress，以 checklists.json 的稳定编号为键，每项记录 status（pending/in_progress/blocked/done）和 evidence。只有 done 且有证据的项才在面板勾选。不要因整体 phase=complete 就自动勾选所有任务。
