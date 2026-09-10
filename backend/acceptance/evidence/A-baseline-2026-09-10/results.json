@@ -1,6 +1,6 @@
 {
   "schema": "e-acceptance-a-baseline/1",
-  "run_id": "E-AB-20260910T130740Z",
+  "run_id": "E-AB-20260910T132207Z-629be89e",
   "mode": "formal",
   "baseline": {
     "sha": null,
@@ -17,7 +17,7 @@
   "extra": [],
   "duplicates": [],
   "counts": {
-    "pass": 51,
+    "pass": 50,
     "fail": 1,
     "blocked": 0
   },
@@ -47,7 +47,7 @@
       "status": "PASS",
       "command": "mvn -B -q test -Dtest=SchemaVersionBoundaryTest,ProductionFailClosedTest",
       "rc": 0,
-      "excerpt": "21:07:50.352 [main] ERROR cn.yuanxin.mvp.web.config.ProductionFailClosedValidator -- production fail-closed: unsafe production configuration -> [SessionProvider=absent, SmsCodeProvider=absent, DeviceCredentialProvider=absent, FaceProvider=absent, StoragePort=absent] (configure app.providers.mode=rea",
+      "excerpt": "21:22:18.166 [main] ERROR cn.yuanxin.mvp.web.config.ProductionFailClosedValidator -- production fail-closed: unsafe production configuration -> [SessionProvider=absent, SmsCodeProvider=absent, DeviceCredentialProvider=absent, FaceProvider=absent, StoragePort=absent] (configure app.providers.mode=rea",
       "doubles": "doubles_pass"
     },
     {
@@ -110,7 +110,7 @@
       "status": "PASS",
       "command": "java -jar (SERVER_PORT=18081, db=mvp_e_dev)",
       "rc": "0",
-      "excerpt": "first pid=3396297",
+      "excerpt": "first pid=3423010",
       "doubles": "doubles_pass"
     },
     {
@@ -142,20 +142,20 @@
     },
     {
       "id": "AB-02b",
-      "title": "worker 运行循环 + /healthz /readyz UP（18082）",
+      "title": "worker 运行循环 + /healthz /readyz UP（健康绑定本 run 子进程存活）",
       "status": "PASS",
       "command": "python -m mvp_worker (loop)",
       "rc": "0",
-      "excerpt": "healthz=True readyz=True",
+      "excerpt": "healthz=UP readyz=UP",
       "doubles": "doubles_pass"
     },
     {
       "id": "AB-02c",
-      "title": "worker SIGTERM 优雅停机",
+      "title": "SIGTERM 优雅停机：真实 Popen wait 后 returncode==0 且日志见停机行",
       "status": "PASS",
-      "command": "kill -TERM worker",
-      "rc": "0",
-      "excerpt": "",
+      "command": "proc.send_signal(SIGTERM) → proc.wait()",
+      "rc": 0,
+      "excerpt": "graceful_log=True（未依赖已清空变量）",
       "doubles": "doubles_pass"
     },
     {
@@ -164,7 +164,7 @@
       "status": "PASS",
       "command": "pytest -q tests/test_claim.py tests/test_renew.py tests/test_expire.py tests/test_complete.py tests/test_attempt_ceiling.py tests/test_unsupported.py",
       "rc": 0,
-      "excerpt": "passed=26 : 26 passed in 5.55s",
+      "excerpt": "passed=26 : 26 passed in 4.94s",
       "doubles": "doubles_pass"
     },
     {
@@ -263,7 +263,7 @@
       "status": "PASS",
       "command": "GET /me/member-access-grants",
       "rc": 401,
-      "excerpt": "{\"requestId\": \"91419e92-3c93-4866-b7ea-26d3bab59cb2\", \"error\": {\"code\": \"AUTH_REQUIRED\", \"message\": \"missing bearer token\", \"retryable\": false}}",
+      "excerpt": "{\"requestId\": \"22b7859a-0f37-400d-bba3-4e25196f164c\", \"error\": {\"code\": \"AUTH_REQUIRED\", \"message\": \"missing bearer token\", \"retryable\": false}}",
       "doubles": "doubles_pass"
     },
     {
@@ -272,7 +272,7 @@
       "status": "PASS",
       "command": "GET with forged token",
       "rc": 401,
-      "excerpt": "{\"requestId\": \"224846dc-9295-4955-92cf-cc76a3356117\", \"error\": {\"code\": \"SESSION_INVALID\", \"message\": \"session token invalid or expired\", \"retryable\": false}}",
+      "excerpt": "{\"requestId\": \"e26436f6-f349-48b1-bdb2-0375aa93f0ed\", \"error\": {\"code\": \"SESSION_INVALID\", \"message\": \"session token invalid or expired\", \"retryable\": false}}",
       "doubles": "doubles_pass"
     },
     {
@@ -281,7 +281,7 @@
       "status": "PASS",
       "command": "POST sms-challenges→sessions",
       "rc": 200,
-      "excerpt": "accountId=883c6d83-d789-4363-82e4-bc5847578dc2 前置有效码=501",
+      "excerpt": "accountId=c6643b7d-f760-4e72-9c09-731059ed91cd 前置有效码=501",
       "doubles": "doubles_pass"
     },
     {
@@ -290,7 +290,7 @@
       "status": "PASS",
       "command": "POST session-refreshes (old reused)",
       "rc": "200/401",
-      "excerpt": "{\"requestId\": \"f89b5add-7511-4fce-9a53-3d055363e4db\", \"error\": {\"code\": \"SESSION_INVALID\", \"message\": \"refresh credential invalid or rotated\", \"retryable\": false}}",
+      "excerpt": "{\"requestId\": \"8761e903-d795-4275-b1c7-12974674b9b7\", \"error\": {\"code\": \"SESSION_INVALID\", \"message\": \"refresh credential invalid or rotated\", \"retryable\": false}}",
       "doubles": "doubles_pass"
     },
     {
@@ -299,7 +299,7 @@
       "status": "PASS",
       "command": "独立会话 → 变更真实 accountId → GET",
       "rc": "501->401",
-      "excerpt": "rows_changed=1 account=883c6d83",
+      "excerpt": "rows_changed=1 account=c6643b7d",
       "doubles": "doubles_pass"
     },
     {
@@ -308,7 +308,7 @@
       "status": "PASS",
       "command": "独立会话 → 变更真实 accountId → GET",
       "rc": "501->401",
-      "excerpt": "rows_changed=1 account=883c6d83",
+      "excerpt": "rows_changed=1 account=c6643b7d",
       "doubles": "doubles_pass"
     },
     {
@@ -335,7 +335,7 @@
       "status": "PASS",
       "command": "POST /system/echo-jobs (Idempotency-Key)",
       "rc": 200,
-      "excerpt": "{\"requestId\": \"bf91a0d1-4dbf-452b-aca9-b407a22d852f\", \"data\": {\"jobId\": \"8d6e71b7-f8e2-4934-98a2-d33dc265379f\", \"dedupKey\": \"system:echo:781f7d07-fafb-45c1-8230-5afa4702b22d\", \"status\": \"queued\"}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-10",
+      "excerpt": "{\"requestId\": \"3bc99d43-e6bd-4a73-b8ef-6503f296b6ef\", \"data\": {\"jobId\": \"21df876e-3254-4963-a365-7c209e47dda0\", \"dedupKey\": \"system:echo:5d911530-abbe-4338-99e2-d3ea186af87c\", \"status\": \"queued\"}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-10",
       "doubles": "doubles_pass"
     },
     {
@@ -353,7 +353,7 @@
       "status": "PASS",
       "command": "POST same key/different content",
       "rc": 409,
-      "excerpt": "{\"requestId\": \"60bf2f7b-1359-4318-9f76-f44d63e4e0f9\", \"error\": {\"code\": \"IDEMPOTENCY_CONTENT_CONFLICT\", \"message\": \"Idempotency-Key reused with different request content; use a new key for a new logic",
+      "excerpt": "{\"requestId\": \"b6483233-81a3-4c6f-8870-54f0282846c3\", \"error\": {\"code\": \"IDEMPOTENCY_CONTENT_CONFLICT\", \"message\": \"Idempotency-Key reused with different request content; use a new key for a new logic",
       "doubles": "doubles_pass"
     },
     {
@@ -362,7 +362,7 @@
       "status": "PASS",
       "command": "python -m mvp_worker --once",
       "rc": 0,
-      "excerpt": "job=8d6e71b7 status=succeeded",
+      "excerpt": "job=21df876e status=succeeded",
       "doubles": "doubles_pass"
     },
     {
@@ -376,11 +376,11 @@
     },
     {
       "id": "AB-11a",
-      "title": "非法输入 → 400 INVALID_INPUT 信封，body.requestId==X-Request-Id",
+      "title": "非法输入 → 400 INVALID_INPUT 信封，X-Request-Id==body.requestId（均非空）",
       "status": "PASS",
       "command": "POST /system/echo-jobs {}",
       "rc": 400,
-      "excerpt": "rid_hdr=f4faa3ec-e149-444e-bcc8-9b99eb9bad10 rid_body=f4faa3ec-e149-444e-bcc8-9b99eb9bad10",
+      "excerpt": "rid_hdr=abd68293-0f7f-4df2-aedd-7dfac2056a45 rid_body=abd68293-0f7f-4df2-aedd-7dfac2056a45",
       "doubles": "doubles_pass"
     },
     {
@@ -389,7 +389,7 @@
       "status": "PASS",
       "command": "GET /me/member-access-grants",
       "rc": 501,
-      "excerpt": "{\"requestId\": \"6f59d4eb-b131-42bb-8bc5-16c841ad1f31\", \"error\": {\"code\": \"NOT_IMPLEMENTED\", \"message\": \"business endpoint is contract-only and not implemented yet\", \"retryable\": false, \"details\": {\"api",
+      "excerpt": "{\"requestId\": \"b48114fc-42b7-4a19-85bd-b97dd228ec3d\", \"error\": {\"code\": \"NOT_IMPLEMENTED\", \"message\": \"business endpoint is contract-only and not implemented yet\", \"retryable\": false, \"details\": {\"api",
       "doubles": "doubles_pass"
     },
     {
@@ -398,16 +398,16 @@
       "status": "PASS",
       "command": "GET /system/echo-jobs/<random>",
       "rc": 404,
-      "excerpt": "{\"requestId\": \"8f6c9646-5701-4a71-a031-64a3a87ccbee\", \"error\": {\"code\": \"RESOURCE_NOT_VISIBLE\", \"message\": \"job not visible\", \"retryable\": false}}",
+      "excerpt": "{\"requestId\": \"a403a09d-0236-45bd-a21e-b586cd7f3632\", \"error\": {\"code\": \"RESOURCE_NOT_VISIBLE\", \"message\": \"job not visible\", \"retryable\": false}}",
       "doubles": "doubles_pass"
     },
     {
       "id": "N2-http",
       "title": "诊断列 HTTP 投影：须脱敏/限大小/不原样返回（实测 data.lastError）",
       "status": "FAIL",
-      "command": "GET /system/echo-jobs/{id} 观察 data.lastError",
+      "command": "诊断 UPDATE RETURNING count==1 + GET 断言 200/目标 job → 判定",
       "rc": "200/200",
-      "excerpt": "marker_echoed=True raw_lastError_len=4058 raw_projected=True；A 缺陷最小复现见 logs/n2-http-repro.txt",
+      "excerpt": "marker: marker 原样回显（len=95） | long: 未限大小（len=4058 > 1000）",
       "doubles": "n/a"
     },
     {
@@ -416,7 +416,7 @@
       "status": "PASS",
       "command": "真实上传者主体 GET /media/{id}/content",
       "rc": "404/404",
-      "excerpt": "uploader_self_404=True no_403=True uploader=883c6d83",
+      "excerpt": "uploader_self_404=True no_403=True uploader=c6643b7d",
       "doubles": "doubles_pass"
     },
     {
@@ -452,7 +452,7 @@
       "status": "PASS",
       "command": "worker --once 处理坏版本 job",
       "rc": "0/1",
-      "excerpt": "0901c1:failed/UNSUPPORTED_CONTRACT 0901c1:failed/UNSUPPORTED_CONTRACT 0901c1:failed/UNSUPPORTED_CONTRACT",
+      "excerpt": "a1bf77:failed/UNSUPPORTED_CONTRACT a1bf77:failed/UNSUPPORTED_CONTRACT a1bf77:failed/UNSUPPORTED_CONTRACT",
       "doubles": "doubles_pass"
     },
     {
@@ -466,11 +466,11 @@
     },
     {
       "id": "N2-codereview",
-      "title": "诊断列消费点分类检视（23 处，客户端投影/写入/人工检视）",
-      "status": "PASS",
-      "command": "grep Java/Python src + 分类记录",
+      "title": "诊断列消费点分类检视（23 处，待人工复核 9 处，客户端投影=True）",
+      "status": "INFO",
+      "command": "grep Java/Python src + file:line/片段/分类记录",
       "rc": 0,
-      "excerpt": "hits=23 详见 logs/n2-code-review.md",
+      "excerpt": "hits=23 uncertain=9 详见 logs/n2-code-review.md（有未判定项，降为 INFO，不作为 PASS 依据）",
       "doubles": "doubles_pass"
     },
     {
