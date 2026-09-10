@@ -69,6 +69,10 @@ class WorkerConfig:
             "MVP_WORKER_RENEW_INTERVAL_SECONDS", DEFAULT_RENEW_INTERVAL_SECONDS
         )
     )
+    # retry_max_attempts：入队默认 max_attempts 的跨语言镜像值——权威写入点是
+    # Java app.jobs.max-attempts（env JOB_MAX_ATTEMPTS，默认同 5）；本值供
+    # enqueue 助手/测试镜像该默认（conftest 引用），运行期领取/重试判定一律以
+    # async_jobs 行的 max_attempts 列为准（claim/recover/complete 均已强制上限）。
     retry_max_attempts: int = field(
         default_factory=lambda: _env_int(
             "MVP_WORKER_RETRY_MAX_ATTEMPTS", DEFAULT_RETRY_MAX_ATTEMPTS

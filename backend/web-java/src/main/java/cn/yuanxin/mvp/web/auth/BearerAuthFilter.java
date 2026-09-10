@@ -47,10 +47,13 @@ public class BearerAuthFilter extends OncePerRequestFilter {
             "POST /api/v1/gimbal-sessions");
 
     private final SessionProvider sessionProvider;
+    private final PrincipalRevalidator revalidator;
     private final ObjectMapper objectMapper;
 
-    public BearerAuthFilter(SessionProvider sessionProvider, ObjectMapper objectMapper) {
+    public BearerAuthFilter(SessionProvider sessionProvider, PrincipalRevalidator revalidator,
+                            ObjectMapper objectMapper) {
         this.sessionProvider = sessionProvider;
+        this.revalidator = revalidator;
         this.objectMapper = objectMapper;
     }
 
@@ -74,6 +77,13 @@ public class BearerAuthFilter extends OncePerRequestFilter {
             return;
         }
         AuthenticatedPrincipal p = principal.get();
+        // 快照不是充分认证依据：账号 disabled / auth_revision 递增 / credential_version
+        // 轮换 → 旧 token 立即失效（oracle B2，单行查询无 JOIN/锁）。
+        if (!revalidator.stillValid(p)) {
+            reject(response, ErrorCode.SESSION_INVALID,
+                    "session no longer valid against local account/device state");
+            return;
+        }
         String requestId = String.valueOf(
                 request.getAttribute(RequestIdFilter.ATTR_REQUEST_ID) == null
                         ? "" : request.getAttribute(RequestIdFilter.ATTR_REQUEST_ID));

@@ -2,6 +2,11 @@
 提交后才允许做 handler/外部调用（DD 9.2、ARCH 8.2）。
 
 只锁 T12 行本身，立即提交；绝不持 T12 等业务行（DD 8.1）。
+
+重试上限（oracle M7）：领取条件必须 `attempt_count < max_attempts`——
+到期重排队/过期回收回来的任务若已达上限，不再被领取，只能由恢复器
+（expire.recover_expired）落终态 failed，杜绝"崩溃→租约过期→再领取"
+循环突破 max_attempts。
 """
 from __future__ import annotations
 
@@ -15,6 +20,7 @@ SELECT id, job_type, owner_type, owner_id, input_revision, dedup_key, payload,
        attempt_count, max_attempts, lease_revision
 FROM async_jobs
 WHERE status = 'queued' AND available_at <= CURRENT_TIMESTAMP
+  AND attempt_count < max_attempts
 ORDER BY available_at, id
 LIMIT :batch
 FOR UPDATE SKIP LOCKED

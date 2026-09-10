@@ -22,7 +22,9 @@ services:
       retries: 10
       start_period: 15s
     ports:
-      - "${PG_PORT:-5432}:5432"
+      # 宿主绑定默认 55432（隔离）：绝不能占宿主 5432（共享 pgvector18）。仅绑 127.0.0.1。
+      # 变量与 deploy/dev 脚本一致；compose 内部 web/worker 仍走 pg:5432 容器网络。
+      - "127.0.0.1:${MVP_A_PG_HOST_PORT:-55432}:5432"
 
   web:
     build:

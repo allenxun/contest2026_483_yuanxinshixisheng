@@ -67,6 +67,13 @@ app:
     image-max-bytes: ${APP_IMAGE_MAX_BYTES:10485760}
   idempotency:
     lease-seconds: ${APP_IDEMPOTENCY_LEASE_SECONDS:30}
+  media:
+    # dev 联调显式 opt-in：任意已认证主体可读媒体。默认 false = owner-based
+    # （仅上传者）；app.env=production 时置 true 会拒绝启动（fail closed）。
+    allow-any-authenticated: ${APP_MEDIA_ALLOW_ANY_AUTHENTICATED:false}
+  jobs:
+    # JobEnqueuer 写 async_jobs.max_attempts 的默认值（与 worker 退避/上限语义对齐）
+    max-attempts: ${JOB_MAX_ATTEMPTS:5}
   testdouble:
     sms:
       fixed-code: ${APP_DOUBLE_SMS_CODE:123456}

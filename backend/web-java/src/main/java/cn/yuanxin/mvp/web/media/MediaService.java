@@ -96,7 +96,7 @@ public class MediaService {
                         + " storage_metadata = ?::jsonb, last_error = NULL, updated_at = now()"
                         + " WHERE id = ? AND state = 'pending'",
                 contentType, byteSize, contentSha256Hex,
-                "{\"upgraded_by\":\"foundation-media\"}", mediaId);
+                "{\"schema_version\":1,\"upgraded_by\":\"foundation-media\"}", mediaId);
         if (updated == 0) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_VISIBLE, "media object not found");
         }

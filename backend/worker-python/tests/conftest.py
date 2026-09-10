@@ -18,6 +18,7 @@ import psycopg
 import pytest
 from sqlalchemy import Engine, text
 
+from mvp_worker.config import WorkerConfig
 from mvp_worker.db import create_db_engine
 
 WORKER_DIR = Path(__file__).resolve().parents[1]
@@ -70,7 +71,8 @@ def enqueue(
     input_revision: int = 0,
     payload: Optional[dict[str, Any]] = None,
     available_at_delay_seconds: Optional[float] = None,  # 相对 now 的偏移（正值=未来）
-    max_attempts: int = 5,
+    # 默认镜像 Java app.jobs.max-attempts（JOB_MAX_ATTEMPTS，见 WorkerConfig.retry_max_attempts）
+    max_attempts: int = WorkerConfig().retry_max_attempts,
 ) -> tuple[str, bool]:
     """镜像 Java JobEnqueuer 的去重语义：dedup_key 冲突 = 同一逻辑任务重放，
     返回既有 id（不是错误）。返回 (job_id, replayed)。"""

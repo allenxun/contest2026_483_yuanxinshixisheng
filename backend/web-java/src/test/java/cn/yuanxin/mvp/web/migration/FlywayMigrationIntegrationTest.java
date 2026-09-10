@@ -188,11 +188,12 @@ class FlywayMigrationIntegrationTest {
     void doubleOccupancyRejected() throws SQLException {
         Fixture f = newFixture();
         String e1 = newExecution(f, null);
-        // 第二个未收尾执行：microcrystal_id 相同
+        // 第二个未收尾执行：microcrystal_id 相同（合法控制端形状——归属 CHECK 由 (g) 单独覆盖）
         try {
             insert("INSERT INTO care_executions (id, plan_id, member_id, microcrystal_id,"
-                            + " controller_type, controller_account_id, assessment_id_at_start, source_request_id)"
-                            + " VALUES (?, ?, ?, ?, 'app', ?, ?, ?)",
+                            + " controller_type, controller_account_id, controller_installation_id,"
+                            + " assessment_id_at_start, source_request_id)"
+                            + " VALUES (?, ?, ?, ?, 'app', ?, 'inst-2', ?, ?)",
                     uuid(), f.planId(), f.memberId(), f.microId(), f.accountId(),
                     f.assessmentId(), newIdempotencyRequest());
             fail("expected uq_execution_open_microcrystal violation");
@@ -229,8 +230,8 @@ class FlywayMigrationIntegrationTest {
         Fixture f = newFixture();
         String e = newExecution(f, null);
         String rec = "INSERT INTO care_records (id, execution_id, client_record_id, plan_id, member_id,"
-                + " microcrystal_id, count_delta, source_epoch, source_seq, payload_hash)"
-                + " VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, 'sha256:x')";
+                + " microcrystal_id, count_delta, source_epoch, source_seq, payload_hash, payload)"
+                + " VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, 'sha256:x', '{\"schema_version\":1}')";
         insert(rec, uuid(), e, "client-1", f.planId(), f.memberId(), f.microId(), "ep1", 1L);
         assertRejected("uq_record_source", rec, uuid(), e, "client-2", f.planId(), f.memberId(),
                 f.microId(), "ep1", 1L);
@@ -238,9 +239,89 @@ class FlywayMigrationIntegrationTest {
                 f.microId(), "ep1", 2L);
         assertRejected("ck_record_count_delta",
                 "INSERT INTO care_records (id, execution_id, client_record_id, plan_id, member_id,"
-                        + " microcrystal_id, count_delta, source_epoch, source_seq, payload_hash)"
-                        + " VALUES (?, ?, ?, ?, ?, ?, 0, ?, 9, 'sha256:x')",
+                        + " microcrystal_id, count_delta, source_epoch, source_seq, payload_hash, payload)"
+                        + " VALUES (?, ?, ?, ?, ?, ?, 0, ?, 9, 'sha256:x', '{\"schema_version\":1}')",
                 uuid(), e, "client-3", f.planId(), f.memberId(), f.microId(), "ep1");
+    }
+
+    @Test
+    @DisplayName("(g) care_executions 控制端归属 CHECK：app 必须 account+installation、gimbal 必须只带 gimbal")
+    void controllerOwnershipCheck() throws SQLException {
+        Fixture f = newFixture();
+        // app 但缺 account → 拒绝（oracle B3 的非法形状）
+        assertRejected("ck_execution_controller_ownership",
+                "INSERT INTO care_executions (id, plan_id, member_id, microcrystal_id,"
+                        + " controller_type, assessment_id_at_start, source_request_id)"
+                        + " VALUES (?, ?, ?, ?, 'app', ?, ?)",
+                uuid(), f.planId(), f.memberId(), f.microId(), f.assessmentId(),
+                newIdempotencyRequest());
+        // app 有 account 缺 installation → 拒绝
+        assertRejected("ck_execution_controller_ownership",
+                "INSERT INTO care_executions (id, plan_id, member_id, microcrystal_id,"
+                        + " controller_type, controller_account_id, assessment_id_at_start,"
+                        + " source_request_id) VALUES (?, ?, ?, ?, 'app', ?, ?, ?)",
+                uuid(), f.planId(), f.memberId(), f.microId(), f.accountId(),
+                f.assessmentId(), newIdempotencyRequest());
+        // gimbal 混入 account → 拒绝
+        assertRejected("ck_execution_controller_ownership",
+                "INSERT INTO care_executions (id, plan_id, member_id, microcrystal_id,"
+                        + " controller_type, controller_account_id, controller_gimbal_id,"
+                        + " assessment_id_at_start, source_request_id)"
+                        + " VALUES (?, ?, ?, ?, 'gimbal', ?, ?, ?, ?)",
+                uuid(), f.planId(), f.memberId(), f.microId(), f.accountId(), f.gimbalId(),
+                f.assessmentId(), newIdempotencyRequest());
+        newExecution(f, null);        // 合法 app 形状
+        newExecutionGimbal(f);        // 合法 gimbal 形状（另一微晶避免占用冲突）
+    }
+
+    private static void newExecutionGimbal(Fixture f) throws SQLException {
+        insert("INSERT INTO care_executions (id, plan_id, member_id, microcrystal_id,"
+                        + " controller_type, controller_gimbal_id, assessment_id_at_start,"
+                        + " source_request_id) VALUES (?, ?, ?, ?, 'gimbal', ?, ?, ?)",
+                uuid(), f.planId(), f.memberId(), newMicro(), f.gimbalId(),
+                f.assessmentId(), newIdempotencyRequest());
+    }
+
+    @Test
+    @DisplayName("(h) notification_destinations active 必须有非空 registration；registration 有值须带 schema_version")
+    void destinationRegistrationChecks() throws SQLException {
+        Fixture f = newFixture();
+        assertRejected("ck_destination_active_fields",
+                "INSERT INTO notification_destinations (id, installation_id, account_id,"
+                        + " status, session_ref) VALUES (?, 'inst-ck-1', ?, 'active', 'sess-1')",
+                uuid(), f.accountId());
+        assertRejected("ck_destination_active_fields",
+                "INSERT INTO notification_destinations (id, installation_id, account_id,"
+                        + " status, session_ref, registration) VALUES (?, 'inst-ck-2', ?, 'active',"
+                        + " 'sess-1', '{}'::jsonb)",
+                uuid(), f.accountId());
+        assertRejected("ck_destination_registration_schema",
+                "INSERT INTO notification_destinations (id, installation_id, account_id,"
+                        + " status, session_ref, registration) VALUES (?, 'inst-ck-3', ?, 'active',"
+                        + " 'sess-1', '{\"token\":\"x\"}'::jsonb)",
+                uuid(), f.accountId());
+        // 合法：active + 非空带版本
+        insert("INSERT INTO notification_destinations (id, installation_id, account_id,"
+                        + " status, session_ref, registration) VALUES (?, 'inst-ck-4', ?, 'active',"
+                        + " 'sess-1', '{\"schema_version\":1,\"token\":\"x\"}'::jsonb)",
+                uuid(), f.accountId());
+        // 合法：inactive 可空 registration（默认 '{}'）
+        insert("INSERT INTO notification_destinations (id, installation_id, status)"
+                        + " VALUES (?, 'inst-ck-5', 'invalid')",
+                uuid());
+    }
+
+    @Test
+    @DisplayName("(i) JSONB schema_version CHECK：媒体 storage_metadata 非空必须带版本；pending 空占位合法")
+    void mediaStorageMetadataSchema() throws SQLException {
+        assertRejected("ck_media_storage_metadata_schema",
+                "INSERT INTO media_objects (id, bucket, object_key, purpose, state, storage_metadata)"
+                        + " VALUES (?, 'b', 'dev/x/1', 'assessment_source', 'pending',"
+                        + " '{\"upgraded_by\":\"y\"}'::jsonb)",
+                uuid());
+        // 空占位（默认 '{}'）合法
+        insert("INSERT INTO media_objects (id, bucket, object_key, purpose, state)"
+                + " VALUES (?, 'b', 'dev/x/2', 'assessment_source', 'pending')", uuid());
     }
 
     @Test

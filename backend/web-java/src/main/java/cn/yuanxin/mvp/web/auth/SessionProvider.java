@@ -15,13 +15,20 @@ import java.util.UUID;
  */
 public interface SessionProvider {
 
-    /** token → 主体快照；非本提供方签发/已撤销/过期 → empty。 */
+    /** token → 主体快照（须含签发时刻的 accounts.auth_revision /
+     *  gimbals.credential_version，服务端每请求与本地行复核）；非本提供方签发/
+     *  已撤销/过期 → empty。 */
     Optional<AuthenticatedPrincipal> authenticate(String accessToken);
 
-    /** 手机号会话签发（challenge+code 验证并 find-or-create 本地账号后调用）。 */
-    IssuedAppSession createAppSession(UUID accountId, String installationId);
+    /**
+     * 手机号会话签发（challenge+code 验证并 find-or-create 本地账号后调用）。
+     * authRevision = 调用方刚读取的 accounts.auth_revision 快照：账号 disabled 由
+     * 调用方（AuthController）先行拒绝；后续 revision 递增即令本会话失效。
+     */
+    IssuedAppSession createAppSession(UUID accountId, String installationId, long authRevision);
 
-    /** 刷新：旧凭据换新凭据（轮换与旧凭据撤销由提供方协议保证）。 */
+    /** 刷新：旧凭据换新凭据（轮换与旧凭据撤销由提供方协议保证）。
+     *  本地账号已 disabled 时必须返回 empty（替身直读 T14 行）。 */
     Optional<IssuedAppSession> refreshAppSession(String refreshCredential);
 
     /** 撤销当前会话（退出登录）。返回被撤销会话的主体信息供 T09 失效。 */

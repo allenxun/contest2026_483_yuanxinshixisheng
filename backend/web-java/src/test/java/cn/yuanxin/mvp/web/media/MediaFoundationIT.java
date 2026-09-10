@@ -84,7 +84,7 @@ class MediaFoundationIT extends AbstractWebIT {
     @DisplayName("MediaIntakeService：逐 part 摘要→pending→storage→available；实际格式嗅探")
     void intakeFlow() {
         var principal = cn.yuanxin.mvp.web.auth.PrincipalContext.forApp(
-                cn.yuanxin.mvp.web.auth.AuthenticatedPrincipal.app(UUID.randomUUID(), "inst", "s"),
+                cn.yuanxin.mvp.web.auth.AuthenticatedPrincipal.app(UUID.randomUUID(), "inst", "s", 1L),
                 "req-1");
         Map<String, MediaIntakeService.IngestedMedia> out = intakeService.ingest(
                 principal, MediaPurpose.ASSESSMENT_SOURCE, null, Map.of("front", PNG));
@@ -100,35 +100,62 @@ class MediaFoundationIT extends AbstractWebIT {
     }
 
     @Test
-    @DisplayName("GET content：token+available → 200 no-store nosniff；pending/未知 → 404；无 token → 401")
+    @DisplayName("GET content：owner-based——仅上传者 200（no-store/nosniff）；他人 principal、同账号换安装、pending、未知 → 一律 404 RESOURCE_NOT_VISIBLE（绝不 403，不泄露存在性）；无 token → 401")
     void controlledRead() throws Exception {
-        String token = loginApp(newPhone());
-        var principal = cn.yuanxin.mvp.web.auth.PrincipalContext.forApp(
-                cn.yuanxin.mvp.web.auth.AuthenticatedPrincipal.app(UUID.randomUUID(), "inst", "s"),
+        String ownerPhone = newPhone();
+        LoginResult owner = loginAppWithInstallation(ownerPhone, "inst-owner-1");
+        var ownerPrincipal = cn.yuanxin.mvp.web.auth.PrincipalContext.forApp(
+                cn.yuanxin.mvp.web.auth.AuthenticatedPrincipal.app(
+                        UUID.fromString(owner.accountId()), "inst-owner-1", "s-owner", 1L),
                 "req-2");
         MediaIntakeService.IngestedMedia ing = intakeService.ingest(
-                principal, MediaPurpose.GRANT_FACE, null, Map.of("face", PNG))
+                ownerPrincipal, MediaPurpose.GRANT_FACE, null, Map.of("face", PNG))
                 .values().iterator().next();
 
+        // 上传者本人 → 200
         MvcResult r = mockMvc.perform(get("/api/v1/media/" + ing.media().id() + "/content")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + owner.accessToken()))
                 .andReturn();
-        assertEquals(200, r.getResponse().getStatus());
+        assertEquals(200, r.getResponse().getStatus(), r.getResponse().getContentAsString());
         assertEquals("no-store", r.getResponse().getHeader("Cache-Control"));
         assertEquals("nosniff", r.getResponse().getHeader("X-Content-Type-Options"));
         assertEquals("image/png", r.getResponse().getContentType());
         assertEquals(PNG.length, r.getResponse().getContentAsByteArray().length);
         assertNotNullHeader(r);
 
+        // 其他已认证 principal → 404（与"不存在"完全一致；绝不 403/403 泄露存在性）
+        LoginResult other = loginAppWithInstallation(newPhone(), "inst-other-1");
+        MvcResult denied = mockMvc.perform(get("/api/v1/media/" + ing.media().id() + "/content")
+                        .header("Authorization", "Bearer " + other.accessToken()))
+                .andReturn();
+        assertEquals(404, denied.getResponse().getStatus());
+        assertEquals("RESOURCE_NOT_VISIBLE", JSON.readTree(denied.getResponse().getContentAsString())
+                .path("error").path("code").asText());
+
+        // 同账号、不同 installation（uploader_ref 含安装标识）→ 同样 404
+        LoginResult sameAcctOtherInst = loginAppWithInstallation(ownerPhone, "inst-owner-2");
+        MvcResult denied2 = mockMvc.perform(get("/api/v1/media/" + ing.media().id() + "/content")
+                        .header("Authorization", "Bearer " + sameAcctOtherInst.accessToken()))
+                .andReturn();
+        assertEquals(404, denied2.getResponse().getStatus());
+        assertEquals("RESOURCE_NOT_VISIBLE", JSON.readTree(denied2.getResponse().getContentAsString())
+                .path("error").path("code").asText());
+
         // pending 不可读
         MediaObject pending = mediaService.createPending(MediaPurpose.ASSESSMENT_SOURCE,
                 "app_account", "a:1", null);
         MvcResult nf = mockMvc.perform(get("/api/v1/media/" + pending.id() + "/content")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + owner.accessToken()))
                 .andReturn();
         assertEquals(404, nf.getResponse().getStatus());
         JsonNode err = JSON.readTree(nf.getResponse().getContentAsString());
         assertEquals("RESOURCE_NOT_VISIBLE", err.path("error").path("code").asText());
+
+        // 未知 id → 404；无 token → 401
+        MvcResult unknown = mockMvc.perform(get("/api/v1/media/" + UUID.randomUUID() + "/content")
+                        .header("Authorization", "Bearer " + owner.accessToken()))
+                .andReturn();
+        assertEquals(404, unknown.getResponse().getStatus());
 
         MvcResult anon = mockMvc.perform(get("/api/v1/media/" + ing.media().id() + "/content"))
                 .andReturn();

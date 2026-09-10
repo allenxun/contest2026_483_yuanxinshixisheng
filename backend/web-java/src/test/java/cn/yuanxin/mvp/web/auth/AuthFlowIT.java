@@ -138,12 +138,14 @@ class AuthFlowIT extends AbstractWebIT {
         String sessionRef = sessionIdOf(refreshedToken);
         assertNotNull(sessionRef);
         jdbc.update("INSERT INTO notification_destinations (id, installation_id, account_id,"
-                        + " destination_revision, status, session_ref)"
-                        + " VALUES (?::uuid, 'inst-lifecycle', ?::uuid, 1, 'active', ?)",
+                        + " destination_revision, status, session_ref, registration)"
+                        + " VALUES (?::uuid, 'inst-lifecycle', ?::uuid, 1, 'active', ?,"
+                        + " '{\"schema_version\":1,\"token\":\"t1\"}'::jsonb)",
                 UUID.randomUUID().toString(), accountId, sessionRef);
         jdbc.update("INSERT INTO notification_destinations (id, installation_id, account_id,"
-                        + " destination_revision, status, session_ref)"
-                        + " VALUES (?::uuid, 'inst-other-device', ?::uuid, 1, 'active', 'other-session')",
+                        + " destination_revision, status, session_ref, registration)"
+                        + " VALUES (?::uuid, 'inst-other-device', ?::uuid, 1, 'active', 'other-session',"
+                        + " '{\"schema_version\":1,\"token\":\"t2\"}'::jsonb)",
                 UUID.randomUUID().toString(), accountId);
 
         // 退出：204；该 session_ref 的 T09 目标 invalid；其他安装实例不受影响

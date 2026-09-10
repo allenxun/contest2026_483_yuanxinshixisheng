@@ -35,8 +35,13 @@ APP_PORT="${ACCEPT_APP_PORT:-18080}"
 
 SUFFIX="$(openssl rand -hex 4)"
 ACCEPT_DB="mvp_a_accept_${SUFFIX}"
-STORAGE_ROOT="/tmp/mvp-a-accept-storage-${SUFFIX}"
-TMP="$(mktemp -d "/tmp/mvp-a-accept-${SUFFIX}.XXXX")"
+# 运行/存储临时目录：worktree 内专用目录（backend/tests/.work/，非 /tmp）。
+# trap 仅清理本轮自建且路径前缀归属明确的目录；可用 ACCEPT_RUN_BASE 覆盖。
+RUN_BASE="${ACCEPT_RUN_BASE:-$SCRIPT_DIR/.work}"
+mkdir -p "$RUN_BASE"
+STORAGE_ROOT="$RUN_BASE/storage-${SUFFIX}"
+TMP="$RUN_BASE/run-${SUFFIX}"
+mkdir -p "$TMP"
 JAR="$WEBJAVA/target/web-java-0.0.1-SNAPSHOT.jar"
 
 # ---------------- 颜色与结果登记 ----------------
@@ -115,7 +120,10 @@ cleanup() {
 SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$ACCEPT_DB' AND pid<>pg_backend_pid();
 DROP DATABASE IF EXISTS $ACCEPT_DB;
 SQL
-  rm -rf "$STORAGE_ROOT" "$TMP"
+  # 仅清理本轮创建且归属明确的目录（RUN_BASE 前缀校验；绝不动其他路径）
+  case "$TMP" in "$RUN_BASE"/run-*) rm -rf "$TMP" ;; esac
+  case "$STORAGE_ROOT" in "$RUN_BASE"/storage-*) rm -rf "$STORAGE_ROOT" ;; esac
+  rmdir "$RUN_BASE" 2>/dev/null
 }
 trap cleanup EXIT
 
@@ -151,7 +159,9 @@ check a "全新库迁移=14 表；重复 migrate 无破坏" "验收：全新 PG 
 # =====================================================================
 step_b_seed() {
   docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$ACCEPT_DB" -v ON_ERROR_STOP=1 -f - <<'SQL'
--- 最小父链种子：6 个 T13 行 + 成员 + 云台 + 测肤 + 方案 + 微晶 + 执行1 + 记录1
+-- 最小父链种子：6 个 T13 行 + 账号 + 成员 + 云台 + 测肤 + 方案 + 微晶 + 执行1 + 记录1
+-- 控制端形状必须满足 V1 ck_execution_controller_ownership（DATA T07）：
+--   app → account_id + installation_id 双全且 gimbal_id NULL；gimbal → 反之。
 INSERT INTO idempotency_requests (id, principal_type, principal_id, operation, idempotency_key, payload_hash) VALUES
  ('11111111-1111-4111-8111-111111111101','app_account','accept-seed','seed.op','k-asm-1','0000000000000000000000000000000000000000000000000000000000000000'),
  ('11111111-1111-4111-8111-111111111102','app_account','accept-seed','seed.op','k-exec-1','0000000000000000000000000000000000000000000000000000000000000000'),
@@ -159,6 +169,8 @@ INSERT INTO idempotency_requests (id, principal_type, principal_id, operation, i
  ('11111111-1111-4111-8111-111111111104','app_account','accept-seed','seed.op','k-exec-3','0000000000000000000000000000000000000000000000000000000000000000'),
  ('11111111-1111-4111-8111-111111111105','app_account','accept-seed','seed.op','k-asm-2','0000000000000000000000000000000000000000000000000000000000000000'),
  ('11111111-1111-4111-8111-111111111106','app_account','accept-seed','seed.op','k-asm-3','0000000000000000000000000000000000000000000000000000000000000000');
+INSERT INTO accounts (id, login_provider, login_subject)
+ VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1','phone','+8613900000001');
 INSERT INTO members (id, identity_namespace, face_subject_ref)
  VALUES ('22222222-2222-4222-8222-222222222201','accept-ns','face-seed-1');
 INSERT INTO gimbals (id, serial_no, auth_subject_ref)
@@ -169,28 +181,45 @@ INSERT INTO care_plans (id, assessment_id, member_id)
  VALUES ('55555555-5555-4555-8555-555555555501','44444444-4444-4444-8444-444444444401','22222222-2222-4222-8222-222222222201');
 INSERT INTO microcrystals (id, serial_no)
  VALUES ('66666666-6666-4666-8666-666666666601','MC-ACCEPT-SEED');
-INSERT INTO care_executions (id, plan_id, member_id, microcrystal_id, controller_type, assessment_id_at_start, source_request_id)
- VALUES ('77777777-7777-4777-8777-777777777701','55555555-5555-4555-8555-555555555501','22222222-2222-4222-8222-222222222201','66666666-6666-4666-8666-666666666601','app','44444444-4444-4444-8444-444444444401','11111111-1111-4111-8111-111111111102');
-INSERT INTO care_records (id, execution_id, client_record_id, plan_id, member_id, microcrystal_id, count_delta, source_epoch, source_seq, payload_hash)
- VALUES ('99999999-9999-4999-8999-999999999901','77777777-7777-4777-8777-777777777701','rec-a','55555555-5555-4555-8555-555555555501','22222222-2222-4222-8222-222222222201','66666666-6666-4666-8666-666666666601',1,'epoch-1',1,'a0000000000000000000000000000000000000000000000000000000000000001');
+INSERT INTO care_executions (id, plan_id, member_id, microcrystal_id, controller_type,
+                             controller_account_id, controller_installation_id,
+                             assessment_id_at_start, source_request_id)
+ VALUES ('77777777-7777-4777-8777-777777777701','55555555-5555-4555-8555-555555555501','22222222-2222-4222-8222-222222222201','66666666-6666-4666-8666-666666666601','app','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1','inst-seed-owner','44444444-4444-4444-8444-444444444401','11111111-1111-4111-8111-111111111102');
+INSERT INTO care_records (id, execution_id, client_record_id, plan_id, member_id, microcrystal_id,
+                          count_delta, source_epoch, source_seq, payload_hash, payload)
+ VALUES ('99999999-9999-4999-8999-999999999901','77777777-7777-4777-8777-777777777701','rec-a','55555555-5555-4555-8555-555555555501','22222222-2222-4222-8222-222222222201','66666666-6666-4666-8666-666666666601',1,'epoch-1',1,'a0000000000000000000000000000000000000000000000000000000000000001','{"schema_version":1}');
 SQL
-  vlog "种子父行插入完成（执行1 open、记录1 已占位）"
+  vlog "种子父行插入完成（合法 app 控制端形状；执行1 open、记录1 已占位）"
 }
-check b0 "约束负例的最小父链种子（SQL 见脚本注释）" "验收：约束拒绝（前置）" step_b_seed
+check b0 "约束负例的最小父链种子（合法控制端形状）" "验收：约束拒绝（前置）" step_b_seed
 
 step_b1() {
   expect_sql_error "同一微晶双 open 执行" "$ACCEPT_DB" \
-    "INSERT INTO care_executions (id, plan_id, member_id, microcrystal_id, controller_type, assessment_id_at_start, source_request_id) VALUES ('77777777-7777-4777-8777-777777777702','55555555-5555-4555-8555-555555555501','22222222-2222-4222-8222-222222222201','66666666-6666-4666-8666-666666666601','app','44444444-4444-4444-8444-444444444401','11111111-1111-4111-8111-111111111103')" \
+    "INSERT INTO care_executions (id, plan_id, member_id, microcrystal_id, controller_type, controller_account_id, controller_installation_id, assessment_id_at_start, source_request_id) VALUES ('77777777-7777-4777-8777-777777777702','55555555-5555-4555-8555-555555555501','22222222-2222-4222-8222-222222222201','66666666-6666-4666-8666-666666666601','app','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1','inst-seed-owner-2','44444444-4444-4444-8444-444444444401','11111111-1111-4111-8111-111111111103')" \
     "uq_execution_open_microcrystal"
 }
 check b1 "同一微晶第二个未收尾执行 → 拒绝（双占用）" "验收：约束拒绝双占用" step_b1
 
 step_b2() {
   expect_sql_error "重复 (execution_id,source_epoch,source_seq)" "$ACCEPT_DB" \
-    "INSERT INTO care_records (id, execution_id, client_record_id, plan_id, member_id, microcrystal_id, count_delta, source_epoch, source_seq, payload_hash) VALUES ('99999999-9999-4999-8999-999999999902','77777777-7777-4777-8777-777777777701','rec-b','55555555-5555-4555-8555-555555555501','22222222-2222-4222-8222-222222222201','66666666-6666-4666-8666-666666666601',1,'epoch-1',1,'a0000000000000000000000000000000000000000000000000000000000000002')" \
+    "INSERT INTO care_records (id, execution_id, client_record_id, plan_id, member_id, microcrystal_id, count_delta, source_epoch, source_seq, payload_hash, payload) VALUES ('99999999-9999-4999-8999-999999999902','77777777-7777-4777-8777-777777777701','rec-b','55555555-5555-4555-8555-555555555501','22222222-2222-4222-8222-222222222201','66666666-6666-4666-8666-666666666601',1,'epoch-1',1,'a0000000000000000000000000000000000000000000000000000000000000002','{\"schema_version\":1}')" \
     "uq_record_source"
 }
 check b2 "同一执行重复源三元组记录 → 拒绝（双记录）" "验收：约束拒绝双记录" step_b2
+
+step_b7() {
+  expect_sql_error "app 控制端缺 account/installation" "$ACCEPT_DB" \
+    "INSERT INTO care_executions (id, plan_id, member_id, microcrystal_id, controller_type, assessment_id_at_start, source_request_id) VALUES ('77777777-7777-4777-8777-777777777703','55555555-5555-4555-8555-555555555501','22222222-2222-4222-8222-222222222201','66666666-6666-4666-8666-666666666601','app','44444444-4444-4444-8444-444444444401','11111111-1111-4111-8111-111111111104')" \
+    "ck_execution_controller_ownership"
+}
+check b7 "care_executions 控制端归属 CHECK → 非法形状拒绝（oracle B3）" "交付2：检查条件（DATA T07）" step_b7
+
+step_b8() {
+  expect_sql_error "active 目标无 registration" "$ACCEPT_DB" \
+    "INSERT INTO notification_destinations (id, installation_id, account_id, status, session_ref) VALUES ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb8','inst-b8','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1','active','sess-b8')" \
+    "ck_destination_active_fields"
+}
+check b8 "notification_destinations active 必须非空 registration → 拒绝（oracle M5）" "交付2：检查条件（DD T09）" step_b8
 
 step_b3() {
   expect_sql_error "重复 Idempotency-Key" "$ACCEPT_DB" \
@@ -227,7 +256,7 @@ step_c1() { ( cd "$CONTRACTS" && "$CPY" scripts/jcs.py selftest ); }
 check c1 "jcs.py selftest（ES6 Number::toString 权威数对）" "验收：精简 JSON 样例跨语言一致" step_c1
 
 step_c2() { ( cd "$CONTRACTS" && "$CPY" scripts/validate_samples.py | tail -1 ); }
-check c2 "validate_samples.py（样例+15 向量重算）" "验收：精简 JSON 样例跨语言一致" step_c2
+check c2 "validate_samples.py（样例+16 向量重算）" "验收：精简 JSON 样例跨语言一致" step_c2
 
 step_c3() {
   ( cd "$CONTRACTS" && "$CPY" -c "
@@ -267,8 +296,9 @@ check e "worker pytest（T12 运行时全量）" "验收：Java/Python 测试通
 # =====================================================================
 # f) 实时 E2E：app:18080（accept 库）+ worker --once
 # =====================================================================
-step_f0_boot() {
-  mkdir -p "$STORAGE_ROOT"
+# --- app 生命周期辅助（f0 重启周期 & f10 停止共用）---
+_app_launch() { # _app_launch <logfile>
+  local logf="$1"
   nohup env \
     SERVER_PORT="$APP_PORT" \
     SPRING_PROFILES_ACTIVE=dev \
@@ -276,18 +306,41 @@ step_f0_boot() {
     SPRING_DATASOURCE_USERNAME="$PG_USER" \
     SPRING_DATASOURCE_PASSWORD="$PG_PASSWORD" \
     APP_STORAGE_DEV_DIR="$STORAGE_ROOT" \
-    java -jar "$JAR" >"$TMP/java-app.log" 2>&1 &
+    java -jar "$JAR" >"$logf" 2>&1 &
   echo $! > "$TMP/app.pid"
-  local i ok=0
+}
+_app_wait_health() { # _app_wait_health <logfile>
+  local logf="$1" i ok=0
   for i in $(seq 1 120); do
     if curl -sS --noproxy '*' -o "$TMP/health" "http://127.0.0.1:${APP_PORT}/actuator/health" 2>/dev/null \
        && grep -q '"status":"UP"' "$TMP/health"; then ok=1; break; fi
     sleep 1
   done
-  [[ $ok -eq 1 ]] || { tail -n 20 "$TMP/java-app.log"; fail "app 未在 120s 内 UP"; }
-  vlog "web-java UP：pid=$(cat "$TMP/app.pid") port=$APP_PORT db=$ACCEPT_DB storage=$STORAGE_ROOT"
+  [[ $ok -eq 1 ]] || { tail -n 20 "$logf"; fail "app 未在 120s 内 UP"; }
 }
-check f0 "app 启动（dev profile→accept 库）+ health UP" "交付1：可构建、启动" step_f0_boot
+_app_stop() {
+  [[ -f "$TMP/app.pid" ]] || return 0
+  local pid i; pid=$(cat "$TMP/app.pid")
+  kill "$pid" 2>/dev/null || true
+  for i in $(seq 1 30); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+  if kill -0 "$pid" 2>/dev/null; then kill -9 "$pid" 2>/dev/null || true; fail "app 未在 30s 内退出"; fi
+  rm -f "$TMP/app.pid"
+}
+
+step_f0_boot() {
+  mkdir -p "$STORAGE_ROOT"
+  _app_launch "$TMP/java-app-1.log"
+  _app_wait_health "$TMP/java-app-1.log"
+  vlog "第一次启动 UP：pid=$(cat "$TMP/app.pid") port=$APP_PORT db=$ACCEPT_DB"
+  # “重复启动无破坏”：SIGTERM 停止 → 再次启动 → health UP + Flyway no-op
+  _app_stop
+  _app_launch "$TMP/java-app-2.log"
+  _app_wait_health "$TMP/java-app-2.log"
+  grep -q "No migration necessary" "$TMP/java-app-2.log" \
+    || fail "第二次启动 Flyway 应为 no-op（日志缺 'No migration necessary'）"
+  vlog "第二次启动 UP：pid=$(cat "$TMP/app.pid")；Flyway no-op 已确认（重复启动无破坏）"
+}
+check f0 "app 启动→健康→SIGTERM 停止→再启动（Flyway no-op）" "验收：重复启动无破坏（交付1）" step_f0_boot
 
 step_f1_noauth() {
   call GET "http://127.0.0.1:${APP_PORT}/api/v1/me/member-access-grants"
@@ -406,11 +459,8 @@ PYEOF
 check f9 "存储替身互操作：Java↔Python 同 root 同 key 互读" "交付6：媒体/存储适配基础" step_f9_storage
 
 step_f10_stop() {
-  local pid i; pid=$(cat "$TMP/app.pid")
-  kill "$pid"
-  for i in $(seq 1 30); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
-  kill -0 "$pid" 2>/dev/null && { kill -9 "$pid" 2>/dev/null; fail "app 未在 30s 内退出"; } || true
-  vlog "app 已停止"
+  _app_stop
+  vlog "app 已停止（SIGTERM 优雅停机）"
 }
 check f10 "app 优雅停止（SIGTERM）" "交付1：启动/停止" step_f10_stop
 

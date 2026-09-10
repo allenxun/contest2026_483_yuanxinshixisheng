@@ -50,9 +50,24 @@ public class FoundationConfig {
         };
     }
 
+    /**
+     * 媒体授权默认 = OwnerBasedMediaAccessPolicy（仅上传者本人可读，被拒/缺失
+     * 统一 404，不泄露存在性）。仅 dev 联调可显式
+     * {@code app.media.allow-any-authenticated=true} 打开"任意已认证可读"；
+     * app.env=production 时该开关被拒绝（启动失败，fail closed）。
+     * B/C/D 业务授权实现以 @Primary 覆盖本默认。
+     */
     @Bean
     @ConditionalOnMissingBean(MediaAccessPolicy.class)
-    public MediaAccessPolicy devMediaAccessPolicy() {
-        return new AllowAuthenticatedMediaAccessPolicy();
+    public MediaAccessPolicy mediaAccessPolicy(AppProperties props) {
+        if (props.media().allowAnyAuthenticated()) {
+            if ("production".equals(props.env())) {
+                throw new IllegalStateException("production fail-closed:"
+                        + " app.media.allow-any-authenticated=true is refused in"
+                        + " production (open media read bypasses owner/business authorization)");
+            }
+            return new AllowAuthenticatedMediaAccessPolicy();
+        }
+        return new cn.yuanxin.mvp.web.media.OwnerBasedMediaAccessPolicy();
     }
 }
