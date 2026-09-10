@@ -19,6 +19,8 @@ REPORTS = ROOT / "reports"
 LAST_RUN_FILE = REPORTS / ".last-reverify-run"   # 仅信息用途，不作为校验依据
 EXPECTED_TARGETED = frozenset({f"RV-{i}" for i in range(1, 10)}
                               | {"CLEANUP", "CLEANUP-ports"})
+EXPECTED_RV5 = frozenset({f"RV5-{i}" for i in range(1, 9)}
+                         | {"CLEANUP", "CLEANUP-ports"})
 KNOWN = ("pass", "fail", "blocked", "info")
 
 
@@ -28,14 +30,16 @@ def expected_exit(counts: dict, complete: bool) -> int:
     return 0 if complete else 4
 
 
-def write_sentinel(run_id: str, settle: dict, rc: int, reports_dir: pathlib.Path | None = None) -> pathlib.Path:
+def write_sentinel(run_id: str, settle: dict, rc: int, reports_dir: pathlib.Path | None = None,
+                   mode: str = "targeted-reverify",
+                   expected: frozenset = EXPECTED_TARGETED) -> pathlib.Path:
     reports_dir = reports_dir or REPORTS
     counts = {k: int(settle["counts"].get(k, 0)) for k in KNOWN}
     complete = (not settle.get("missing") and not settle.get("extra")
                 and not settle.get("duplicates") and not settle.get("unknown_status")
                 and sum(counts.values()) == settle.get("rows") == settle.get("settled"))
-    data = {"run_id": run_id, "mode": "targeted-reverify", "settled": settle["settled"],
-            "expected": len(EXPECTED_TARGETED), "missing": settle.get("missing", []),
+    data = {"run_id": run_id, "mode": mode, "settled": settle["settled"],
+            "expected": len(expected), "missing": settle.get("missing", []),
             "extra": settle.get("extra", []), "duplicates": settle.get("duplicates", []),
             "unknown_status": settle.get("unknown_status", []), "counts": counts,
             "counts_sum": sum(counts.values()), "rows": settle.get("rows"),
@@ -49,7 +53,8 @@ def write_sentinel(run_id: str, settle: dict, rc: int, reports_dir: pathlib.Path
 
 
 def verify(run_id: str, reports_dir: pathlib.Path | None = None,
-           driver_rc: int | None = None) -> tuple[bool, str]:
+           driver_rc: int | None = None, mode: str = "targeted-reverify",
+           expected: frozenset = EXPECTED_TARGETED) -> tuple[bool, str]:
     reports_dir = reports_dir or REPORTS
     p = reports_dir / run_id / "reverify-sentinel.json"
     if not p.exists():
@@ -60,9 +65,9 @@ def verify(run_id: str, reports_dir: pathlib.Path | None = None,
         return False, f"哨兵不可读：{exc}"
     if d.get("run_id") != run_id:
         return False, f"run_id 不匹配：{d.get('run_id')} != 入口 {run_id}"
-    if d.get("mode") != "targeted-reverify":
-        return False, f"mode 非法：{d.get('mode')}"
-    if d.get("settled") != len(EXPECTED_TARGETED) or d.get("expected") != len(EXPECTED_TARGETED):
+    if d.get("mode") != mode:
+        return False, f"mode 非法：{d.get('mode')} != {mode}"
+    if d.get("settled") != len(expected) or d.get("expected") != len(expected):
         return False, f"结算数不符：settled={d.get('settled')} expected={d.get('expected')}"
     for k in ("missing", "extra", "duplicates", "unknown_status"):
         if d.get(k):
@@ -75,16 +80,18 @@ def verify(run_id: str, reports_dir: pathlib.Path | None = None,
         return False, f"哨兵 final_exit={d.get('final_exit')} 与政策 {want} 不一致"
     if driver_rc is not None and d.get("final_exit") != driver_rc:
         return False, f"哨兵 final_exit={d.get('final_exit')} != 本次驱动 rc={driver_rc}"
-    return True, f"OK run_id={run_id} settled={d['settled']} counts={counts} exit={d['final_exit']}"
+    return True, f"OK run_id={run_id} mode={mode} settled={d['settled']} counts={counts} exit={d['final_exit']}"
 
 
 def main(argv: list[str]) -> int:
     if not argv:
-        print("usage: verify_reverify_sentinel.py <run_id> [driver_rc]", file=sys.stderr)
+        print("usage: verify_reverify_sentinel.py <run_id> [driver_rc] [mode] [expected_count]", file=sys.stderr)
         return 2
     rid = argv[0]
     rc = int(argv[1]) if len(argv) > 1 else None
-    ok, msg = verify(rid, driver_rc=rc)
+    mode = argv[2] if len(argv) > 2 else "targeted-reverify"
+    exp = EXPECTED_RV5 if mode == "rv5-reverify" else EXPECTED_TARGETED
+    ok, msg = verify(rid, driver_rc=rc, mode=mode, expected=exp)
     print(("REVERIFY_SENTINEL_OK " if ok else "REVERIFY_SENTINEL_FAIL ") + msg)
     return 0 if ok else 1
 

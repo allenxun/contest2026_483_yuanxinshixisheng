@@ -18,6 +18,16 @@
     "note": "有界定向复验（RV-1..RV-9 + CLEANUP），非全量 52 项；既有四证据目录 62cd1bee/934529f1/2fc691d7/c94a0bf2 与 A-baseline-2026-09-10 均未覆盖；echo lastError 收敛 closed enum 复验通过；RV-5 INFO 待裁定。",
     "synced_at": "2026-09-10T15:20:00Z"
   },
+  "a_rv5_candidate": {
+    "code": "561c338137aaa1da7c8e00969da3c5381207b194",
+    "report": "5ae53b6",
+    "dev": "9b3e4a1",
+    "integrated": "e1d54b92e8b6b20a1e1b5631cc17be95b8d5e2a1",
+    "a_oracle": "round-9 PASS-with-notes @561c338（blockingFindings=[]）",
+    "rv5_reverify": "pass: settled 10/10, {PASS:10,FAIL:0,BLOCKED:0,INFO:0}, exit=0; evidence/A-rv5-2026-09-10-561c338/E-AB-20260910T190853Z-89a36459/",
+    "note": "RV-5 有界复验（RV5-1..RV5-8 + CLEANUP，非全量）；echo 创建者归属 + GET/POST 统一 404 + dedup 碰撞（T13 rejected）实测闭合；整体意见由总协调形成。",
+    "synced_at": "2026-09-10T19:10:00Z"
+  },
   "gate": "closed",
   "e_acceptance": {
     "stage": "A-baseline",
