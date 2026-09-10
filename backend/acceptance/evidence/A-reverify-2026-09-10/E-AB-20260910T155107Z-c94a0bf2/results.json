@@ -1,0 +1,128 @@
+{
+  "schema": "e-acceptance-a-reverify/1",
+  "run_id": "E-AB-20260910T155107Z-c94a0bf2",
+  "mode": "targeted-reverify",
+  "scope": "PARTIAL (not full 52)",
+  "a_candidate": {
+    "code": "f6e500e474954781d3438188b6fdd389e61682e7",
+    "report": "cf390e1a37f1575d7b0d4772a51246f9188b67b3",
+    "dev": "f2755ab1741b5ee4f384fa66e73a2e669614ada9",
+    "integrated": "d495a7d7c43aab3baae9afcf8774ae9850e6e41f"
+  },
+  "expected": 11,
+  "settled": 11,
+  "missing": [],
+  "extra": [],
+  "duplicates": [],
+  "unknown_status": [],
+  "counts": {
+    "pass": 10,
+    "fail": 0,
+    "blocked": 0,
+    "info": 1
+  },
+  "counts_sum": 11,
+  "rows": 11,
+  "final_exit": 0,
+  "results": [
+    {
+      "id": "RV-1",
+      "title": "从当前源码重建：A 源码==f6e500e（git diff 空）+ 构建 jar + 启动健康",
+      "status": "PASS",
+      "command": "git diff f6e500e -- web-java worker-python contracts; mvn -DskipTests package; java -jar",
+      "rc": 0,
+      "excerpt": "diff_empty=True HEAD=2a595cfb1a22 jar=web-java-0.0.1-SNAPSHOT.jar sha256[:16]=25d33dd6fab14461 health_up=True；同源各自重建，jar 哈希可能因构建元数据不同而非字节一致（不作可复现构建声明）",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV-2",
+      "title": "marker 变体闭合：jobId 关联 + 投影仅 null 或 {reason∈枚举,retryable:bool}，marker/原始 code/message 缺席",
+      "status": "PASS",
+      "command": "UPDATE RETURNING count==1 + GET echo job (断言 data.jobId==请求)",
+      "rc": 200,
+      "excerpt": "sql_ok=True verdict=True jobId 匹配; lastError={'reason': 'internal', 'retryable': True}",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV-3",
+      "title": "4000 字符长变体闭合：jobId 关联 + 响应无长内容且投影为枚举映射（非截断）",
+      "status": "PASS",
+      "command": "UPDATE repeat('L',4000) RETURNING count==1 + GET",
+      "rc": 200,
+      "excerpt": "sql_ok=True verdict=True jobId 匹配; lastError={'reason': 'internal', 'retryable': True}",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV-4",
+      "title": "正常投影：queued→jobId 关联 + status/lastError/finishedAt 显式校验；可映射 reason（unsupported_contract）",
+      "status": "PASS",
+      "command": "GET queued job + 未知 job_type→worker 失败→GET",
+      "rc": "200/200",
+      "excerpt": "queued: jobId 匹配; status=queued; lastError=null; finishedAt=null | mapped: jobId 匹配; lastError={'reason': 'unsupported_contract', 'retryable': False} reason=unsupported_contract",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV-5",
+      "title": "认证/归属边界：无 token/伪造 401 通过；真跨账号读取的可见性政策待总协调裁定 → INFO（附条件）",
+      "status": "INFO",
+      "command": "GET echo job：no-token/forged/真第二账号（独立身份）",
+      "rc": "401/401/200",
+      "excerpt": "no-token: 401/AUTH_REQUIRED | forged: 401/SESSION_INVALID | accounts_differ=True s1_valid=True s2_valid=True other=jobId 匹配; lastError=None || 跨账号可读（200+严格投影）；契约未要求创建者过滤，可见性政策待总协调书面裁定 → INFO",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV-6",
+      "title": "严格响应契约：selftest 10/10 + samples 48 + OpenAPI + 实时响应逐个严格校验 + 负例 rc=1",
+      "status": "PASS",
+      "command": "validate_responses --selftest; validate_samples; openapi; validate_responses <captured>; 负例",
+      "rc": "0/1",
+      "excerpt": "selftest=True samples=True oas=True captured=True negs=True neg-extra-message:rc=1 neg-illegal-enum:rc=1 neg-null-jobid:rc=1 neg-missing-retryable:rc=1",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV-7",
+      "title": "有界范围披露：decisions-notes.md 36 处路径外历史 nullable 属 A follow-up，本次不改契约（已在 summary 披露段列明）",
+      "status": "PASS",
+      "command": "grep decisions-notes.md nullable",
+      "rc": 0,
+      "excerpt": "36 处路径外历史 nullable 不计入本次通过项；详见 summary 披露段",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV-8",
+      "title": "9 处诊断消费点复核：预写审查结论+片段定位存在性检查（非自动代码审查）（10 行，缺陷 0、残项 0）",
+      "status": "PASS",
+      "command": "逐项定位当前 file:line/片段（实质判定依据=人工记录+oracle round-9 核验）",
+      "rc": "PASS",
+      "excerpt": "compliant=10 defects=0 residue=0 详见 n2-codereview-manual.md",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV-9",
+      "title": "旧证据复用台账：未变部分（worker 运行时/迁移/其余端点）引用 26d97fb 正式验收证据，列明来源 SHA+范围，不计入本次新通过项",
+      "status": "PASS",
+      "command": "检查 A-baseline-2026-09-10 证据存在 + summary 台账段",
+      "rc": "0",
+      "excerpt": "source_evidence=A-baseline-2026-09-10 exists=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CLEANUP",
+      "title": "停进程并按 run 标签删除 mvp-e-pg",
+      "status": "PASS",
+      "command": "docker rm -f -v",
+      "rc": "0",
+      "excerpt": "",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CLEANUP-ports",
+      "title": "端口释放",
+      "status": "PASS",
+      "command": "ss",
+      "rc": "0",
+      "excerpt": "",
+      "doubles": "doubles_pass"
+    }
+  ]
+}
