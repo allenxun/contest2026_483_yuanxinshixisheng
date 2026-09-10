@@ -6,13 +6,22 @@
 from __future__ import annotations
 
 import json
+import os
 import pathlib
+import subprocess
 
 import pytest
 
 from framework import client, doubles, gate, isolation
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+
+
+def _run(cmd: list[str], env_extra: dict[str, str], timeout: int = 300) -> subprocess.CompletedProcess:
+    # 先清空继承的 PYTEST_ADDOPTS，守卫子进程的选项集只能由用例显式指定。
+    env = {**os.environ, "PYTEST_ADDOPTS": "", **env_extra}
+    return subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True,
+                          text=True, timeout=timeout)
 
 
 # ---------- baseline 门控 ----------
@@ -148,3 +157,126 @@ def test_scenario_nodes_have_full_markers():
                     assert "deps" in marks, f"{sid} 有 deps 却无 deps marker"
                 seen.add(sid)
     assert seen == set(m), f"节点覆盖缺口：{sorted(set(m) - seen)}"
+
+
+# ---------- 发现1守卫：matrix 零场景/残缺收集绝不假 0（插件层，防 PYTEST_ADDOPTS 绕过） ----------
+
+NESTED = {"E_SELFCHECK_NESTED": "1"}  # 嵌套运行中守卫用例直接返回，防递归
+
+
+def test_matrix_guard_zero_scenario_collection_still_fails():
+    """精确复现 oracle 命令：--ignore 掉 94 场景后 matrix 必须非 0（结算不完整=4）。"""
+    if os.environ.get("E_SELFCHECK_NESTED"):
+        return
+    r = _run(["./run.sh", "matrix"],
+             {**NESTED, "PYTEST_ADDOPTS": "-p no:cacheprovider --ignore=tests/scenarios"})
+    out = r.stdout + r.stderr
+    assert r.returncode == 4, f"期望结算不完整退出码 4，实际 {r.returncode}：\n{out[-1500:]}"
+    assert "DEPENDENCY_PENDING=0" in out, out[-800:]
+    assert "SETTLEMENT_INCOMPLETE" in out, "守卫必须在汇总中显式报告缺失"
+
+
+def test_matrix_guard_deselect_scenarios_still_fails():
+    """-m 'not sc_id' 整体反选场景也必须非 0（deselected 计入守卫）。"""
+    if os.environ.get("E_SELFCHECK_NESTED"):
+        return
+    r = _run(["./run.sh", "matrix"],
+             {**NESTED, "PYTEST_ADDOPTS": "-m 'not sc_id'"})
+    out = r.stdout + r.stderr
+    assert r.returncode == 4, f"期望 4，实际 {r.returncode}：\n{out[-1500:]}"
+    assert "SETTLEMENT_INCOMPLETE" in out
+
+
+def test_full_matrix_settles_exactly_94():
+    """完整 matrix 运行必须恰好结算 94 且维持真实状态（当前=3/pending 94）。"""
+    if os.environ.get("E_SELFCHECK_NESTED"):
+        return
+    r = _run(["./run.sh", "matrix"], NESTED)
+    out = r.stdout + r.stderr
+    assert "SETTLED=94/94" in out, out[-800:]
+    assert "SETTLEMENT_OK" in out, out[-800:]
+    assert "DEPENDENCY_PENDING=94" in out, out[-800:]
+    assert r.returncode == 3, f"gate=closed 时完整矩阵应为 3，实际 {r.returncode}"
+
+
+# ---------- 发现2：证据默认无条件脱敏凭据头 ----------
+
+def test_evidence_redacts_credentials_by_default(tmp_path):
+    class FakeResp:
+        status_code = 200
+        text = '{"ok":true}'
+        headers = {}
+
+    class FakeSession:
+        def request(self, method, url, **kw):
+            return FakeResp()
+
+    c = client.BlackBoxClient("http://example.invalid", run_id="E-redact-00000000",
+                              evidence_dir=tmp_path)
+    c._session = FakeSession()  # type: ignore[assignment]  # 无网络：只验证证据序列化路径
+    c.get("/api/v1/me/gimbal-bindings/G1", auth_header="Bearer SUPER-SECRET-TOKEN",
+          headers={"Cookie": "sess=abc", "X-Api-Key": "key-123",
+                   "Proxy-Authorization": "Basic zzz", "My-Extra": "hide-me"})
+    files = list((tmp_path / "E-redact-00000000").glob("*.json"))
+    assert len(files) == 1
+    blob = files[0].read_text(encoding="utf-8")
+    for secret in ("SUPER-SECRET-TOKEN", "sess=abc", "key-123", "Basic zzz"):
+        assert secret not in blob, f"证据泄露凭据：{secret}"
+    assert client.REDACTED in blob
+    # 调用方只能追加、不能移除默认脱敏：
+    again = client.safe_headers({"Authorization": "Bearer t2", "My-Extra": "v"},
+                                ())  # 故意不声明额外项
+    assert again["Authorization"] == client.REDACTED
+
+
+# ---------- 发现3：sc_id 节点 passed 必须绑定证据与替身声明 ----------
+
+def _spawn_mini_suite(body: str, name: str) -> tuple[int, str]:
+    """在 acceptance 树内（reports/_selfcheck/，git 忽略）生成最小场景文件并运行。
+
+    rootdir/插件由向上搜索的 pytest.ini + 顶层 conftest 保证；模式用 selfcheck
+    （结算守卫不启用），单独验证"passed 绑定证据"机制本身。
+    """
+    work = ROOT / "reports" / "_selfcheck" / name
+    work.mkdir(parents=True, exist_ok=True)
+    (work / "test_mini.py").write_text(body, encoding="utf-8")
+    r = subprocess.run(["../../../.venv/bin/pytest", "test_mini.py", "-q"],
+                       cwd=work, env={**os.environ, "PYTEST_ADDOPTS": "",
+                                       "E_ACCEPTANCE_MODE": "selfcheck",
+                                       "E_SELFCHECK_NESTED": "1"},
+                       capture_output=True, text=True, timeout=120)
+    return r.returncode, r.stdout + r.stderr
+
+
+def test_bare_pass_without_evidence_is_flipped_to_fail():
+    if os.environ.get("E_SELFCHECK_NESTED"):
+        return
+    body = (
+        "import pytest\n\n"
+        '@pytest.mark.sc_id("SC-00-01")\n'
+        "def test_fake_bare_pass():\n"
+        "    assert True\n"
+    )
+    rc, out = _spawn_mini_suite(body, "bare")
+    assert rc == 1, f"带 sc_id 的裸通过必须被插件改判 fail：\n{out[-1200:]}"
+    assert "pass without evidence" in out, out[-1200:]
+
+
+def test_pass_with_sealed_evidence_and_doubles_is_allowed():
+    if os.environ.get("E_SELFCHECK_NESTED"):
+        return
+    body = (
+        "import pytest\n\n"
+        '@pytest.mark.sc_id("SC-00-02")\n'
+        "def test_fake_with_evidence(scenario_evidence):\n"
+        "    se = scenario_evidence\n"
+        "    se.doubles.add('oss', 'real')\n"
+        "    se.seal()\n"
+        "    se.record_raw(method='GET', path='/healthz', status=200, request_id='r1',\n"
+        "                  request_headers={}, request_json=None, response_excerpt='{}',\n"
+        "                  started_at=0.0, elapsed_ms=0.0)\n"
+        "    assert True\n"
+    )
+    rc, out = _spawn_mini_suite(body, "sealed")
+    assert rc == 0, f"已提交证据并封存替身声明的通过应正常判定：\n{out[-1200:]}"
+    assert "1 passed" in out

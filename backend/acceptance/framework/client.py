@@ -3,8 +3,10 @@
 
 只通过对外 HTTP API 观察系统行为，不做任何业务逻辑、不 import 被测实现。
 证据目录约定：reports/evidence/<run-id>/<序号>-<METHOD>-<路径摘要>.json，
-内容含请求（除凭据头）、响应状态与响应体摘要、时间戳、requestId。
-真实凭据一律来自环境变量（见 config/acceptance.env.example），不落盘。
+内容含请求（**默认脱敏**）、响应状态与响应体摘要、时间戳、requestId。
+证据序列化时无条件遮蔽 Authorization / Cookie / Proxy-Authorization / X-Api-Key
+（含云台/会话凭据的任何头都不落盘）；调用方 redact_headers 只能**追加**脱敏项，
+不能移除默认项。真实凭据一律来自环境变量（见 config/acceptance.env.example）。
 """
 from __future__ import annotations
 
@@ -21,9 +23,19 @@ HEADER_REQUEST_ID = "X-Request-Id"
 DEFAULT_TIMEOUT_S = 10.0
 USER_AGENT = "e-acceptance-blackbox/0.1"
 
+#: 证据落盘前无条件遮蔽的请求头（小写匹配；调用方只能追加，不能移除）
+DEFAULT_REDACT_HEADERS = ("authorization", "cookie", "proxy-authorization", "x-api-key")
+REDACTED = "***REDACTED***"
+
 
 def _path_slug(method: str, path: str) -> str:
     return re.sub(r"[^0-9A-Za-z]+", "_", f"{method}_{path}").strip("_")[:120]
+
+
+def safe_headers(headers: dict[str, str], extra_redact: tuple[str, ...] = ()) -> dict[str, str]:
+    """返回可落盘的请求头：默认敏感项值替换为 ***REDACTED***，其余原样。"""
+    redact = {h.lower() for h in DEFAULT_REDACT_HEADERS} | {h.lower() for h in extra_redact}
+    return {k: (REDACTED if k.lower() in redact else v) for k, v in headers.items()}
 
 
 class EvidenceRecorder:
@@ -32,10 +44,12 @@ class EvidenceRecorder:
     def __init__(self, evidence_dir: pathlib.Path, run_id: str) -> None:
         self.dir = pathlib.Path(evidence_dir) / run_id
         self._seq = 0
+        self.count = 0
 
     def record(self, entry: dict[str, Any]) -> pathlib.Path:
         self.dir.mkdir(parents=True, exist_ok=True)
         self._seq += 1
+        self.count += 1
         name = f"{self._seq:05d}-{_path_slug(entry['method'], entry['path'])}.json"
         p = self.dir / name
         p.write_text(json.dumps(entry, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -69,6 +83,7 @@ class BlackBoxClient:
 
     def request(self, method: str, path: str, *, auth_header: str | None = None,
                 redact_headers: tuple[str, ...] = (), **kwargs) -> requests.Response:
+        """redact_headers 仅可追加脱敏项；默认敏感头遮蔽不可关闭。"""
         rid = kwargs.pop("request_id", None) or str(uuid.uuid4())
         override = kwargs.pop("headers", None) or {}
         headers = {"User-Agent": USER_AGENT, HEADER_REQUEST_ID: rid,
@@ -87,8 +102,7 @@ class BlackBoxClient:
                 "started_at": started,
                 "elapsed_ms": round((time.time() - started) * 1000, 1),
                 "status": resp.status_code,
-                "request_headers": {k: v for k, v in headers.items()
-                                    if not any(s.lower() in k.lower() for s in redact_headers)},
+                "request_headers": safe_headers(headers, redact_headers),
                 "request_json": kwargs.get("json"),
                 "response_excerpt": resp.text[:4000],
             })

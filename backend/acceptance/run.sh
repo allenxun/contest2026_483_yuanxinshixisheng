@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # E 黑盒验收一键入口：setup-venv | selfcheck | matrix
-# 退出码：setup/selfcheck 0=成功 1=失败；matrix 0=全通过 1=有失败 3=存在 dependency_pending。
+# 退出码：setup/selfcheck 0=成功 1=失败；
+# matrix：0=94 场景全部真实通过（证据齐） 1=有失败 3=存在 dependency_pending
+#         4=结算不完整（场景缺失/未收集/被 deselect/重复/普通 skipped——插件层守卫，
+#         PYTEST_ADDOPTS/--ignore 无法绕过，见 framework/conftest.py）。
 set -u
 cd "$(dirname "$0")"
 VENV=.venv
@@ -32,7 +35,7 @@ case "${1:-}" in
     ensure_venv
     E_ACCEPTANCE_MODE=matrix "$PYTEST" tests/
     rc=$?
-    echo "matrix exit=$rc (0=全部真实通过 1=有失败 3=存在 dependency_pending)"
+    echo "matrix exit=$rc (0=94全真实通过 1=有失败 3=存在dependency_pending 4=结算不完整)"
     exit $rc;;
   *)
     echo "用法: $0 {setup-venv|selfcheck|matrix}"; exit 2;;

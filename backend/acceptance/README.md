@@ -12,7 +12,7 @@ E 工作包的机器可执行验收框架：**纯黑盒、HTTP 驱动**，只通
 A 基线（公共构建、14 表迁移、认证主体上下文、幂等/代次公共设施、外部适配端口）**尚未
 交付**：`config/baseline.json` 为 `{"gate":"closed","a_baseline":{"sha":null}}`，
 **全部 94 个场景节点状态为 `dependency_pending`**。框架把这类挂起与普通 skip 分开统
-计，matrix 模式最终退出码为 **3（绝不返回 0）**——不允许以全 skip 冒充通过。
+计；matrix 模式另有一层结算守卫：94 个场景必须逐一唯一结算，否则退出码 4——**任何情况下绝不返回 0**，不允许以全 skip、空收集或改命令行选项冒充通过。
 
 ## 目录
 
@@ -25,9 +25,9 @@ A 基线（公共构建、14 表迁移、认证主体上下文、幂等/代次�
 | `matrix/scenarios.json` | 94 条场景追踪矩阵（字段含 status/blocked_by/pending_reason 等） |
 | `matrix/apis.json` | 27 个 API 反向索引（与 scenarios 双向一致） |
 | `matrix/generate_matrix.py` | 文档 → JSON 再生成脚本 |
-| `framework/conftest.py` | pytest 插件：markers 注册、dependency_pending 统计、退出码 3 |
+| `framework/conftest.py` | pytest 插件：markers 注册、dependency_pending 统计、94 场景结算守卫（退出码 4）、passed 绑定证据强制 |
 | `framework/gate.py` | 基线门控与 94 个场景测试节点工厂 |
-| `framework/client.py` | 黑盒 HTTP 客户端（requestId/超时/reports/ 证据落盘） |
+| `framework/client.py` | 黑盒 HTTP 客户端（requestId/超时/reports/ 证据落盘；Authorization 等默认无条件脱敏） |
 | `framework/isolation.py` | run-id 前缀、E 专用 DB/端口约定、fail-closed 校验、清理计划 |
 | `framework/doubles.py` | 替身声明与 `doubles_pass`/`real_pass` 证据分级（仅结构与标签） |
 | `plans/A-baseline-plan.md` | A 基础验收计划（逐条可执行检查） |
@@ -42,18 +42,27 @@ A 基线（公共构建、14 表迁移、认证主体上下文、幂等/代次�
 cd backend/acceptance
 ./run.sh setup-venv   # 首次：建 .venv 并装依赖（或在仓库根: backend/acceptance/run.sh setup-venv）
 ./run.sh selfcheck    # 只跑框架/矩阵自检 → 期望退出码 0
-./run.sh matrix       # 全量 24 自检 + 94 场景 → 当前期望退出码 3
+./run.sh matrix       # 全量（自检 + 94 场景，共 124 节点）→ 当前期望退出码 3
 ```
 
-退出码语义：`0` 全部真实通过；`1` 存在失败；`3` matrix 模式下存在 dependency_pending
-（或有失败时仍为 1）。终端摘要固定输出
-`PASSED=n DEPENDENCY_PENDING=m FAILED=k SKIPPED_OTHER=s MODE=...`。
+退出码语义：`0` 94 场景全部真实通过且证据齐备；`1` 存在失败；`3` matrix 模式下存在
+dependency_pending；**`4` 结算不完整（matrix 守卫）**——94 个 sc_id 未逐一唯一结算
+（缺失/未收集/被 `--ignore`/`-m` deselect/重复异常），或存在普通 skipped
+（SKIPPED_OTHER>0）。守卫在 pytest 插件层（framework/conftest.py），经
+`PYTEST_ADDOPTS` 操纵收集范围**无法绕过**，未注入模式时默认按 matrix 处理（fail-safe）。
+终端摘要固定输出
+`PASSED=n DEPENDENCY_PENDING=m FAILED=k SKIPPED_OTHER=s MODE=... RUN_ID=...` 与
+`SETTLED=x/94 EVIDENCE_TAGS ...`。
 
 ## 状态语义
 
-- **passed**：场景步骤真实执行并通过，`reports/evidence/<run-id>/` 有请求/响应证据，
-  且证据标签（doubles.py）与结论匹配。
-- **failed**：执行了但行为不符合清单检查要点 → 记录 requestId、响应与差异，报总协调。
+- **passed**：场景步骤真实执行并通过，且**passed 与证据强绑定**：插件强制要求该
+  sc_id 节点经 `scenario_evidence` 夹具记录 ≥1 条 HTTP 证据（reports/evidence/）并
+  显式 `seal()` 替身声明；缺失即被改判 fail（"pass without evidence"）。证据标签按
+  `no_externals`/`doubles_pass`/`mixed`/`real_pass` 分类计数输出，禁止以替身结果申报
+  real_pass。
+- **failed**：执行了但行为不符合清单检查要点（含裸通过被判 fail）→ 记录 requestId、
+  响应与差异，报总协调。
 - **dependency_pending**：因 A 基线未交付而无法执行。skip reason 固定前缀
   `dependency_pending: `，原因逐条来自矩阵 `pending_reason`，不是通过。
 

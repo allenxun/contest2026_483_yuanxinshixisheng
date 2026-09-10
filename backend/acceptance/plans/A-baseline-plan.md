@@ -12,20 +12,27 @@
 
 ---
 
-## AB-01 Java Web 可构建、可启动、可重复启动
+## AB-01 Java Web 可构建、可启动、可重复启动 + Java 测试通过
 
-- 前置：A 的 `backend/web-java` 与镜像/启动说明存在；E 专用端口空闲。
-- 执行命令（占位）：`<A 构建命令，见 handoffs/A.md> && docker compose -f backend/deploy/<E 覆盖文件> up -d web-java && curl -fsS $E_ACCEPTANCE_BASE_URL/healthz`
+- 前置：A 的 `backend/web-java` 与镜像/启动说明存在（含 A 交付的 Java 测试命令）；E 专用端口空闲。
+- 执行命令（占位）：
+  ① 先运行 **A 交付的 Java 测试命令**（如 `<backend/web-java> mvn -q test`，以
+  handoffs/A.md 为准）并**记录退出码**；
+  ② `<A 构建命令> && docker compose -f backend/deploy/<E 覆盖文件> up -d web-java && curl -fsS $E_ACCEPTANCE_BASE_URL/healthz`
   重复启动：再次 `up -d --force-recreate` 后 healthz 仍 200，PG 数据无破坏（行数核对）。
-- 证据：两次启动日志摘要、healthz 响应（含 requestId 头约定）、启动前后
+- 证据：Java 测试命令、退出码与摘要日志；两次启动日志摘要、healthz 响应、启动前后
   `\dt`/关键表行数对比，存 `reports/evidence/<run-id>/`。
 - 当前状态：**dependency_pending**（A 基线未提供，无被测工程）。
 
-## AB-02 Python Worker 可构建、可启动、重启续跑
+## AB-02 Python Worker 可构建、可启动、重启续跑 + Python 测试通过
 
-- 前置：A 的 `backend/worker-python` 交付；PG 任务表已由 AB-03 迁移。
-- 执行命令（占位）：`<A Worker 启动命令>`；启动→SIGTERM→再启动，观察任务领取日志序号连续。
-- 证据：启动/退出日志、任务表状态在重启前后不丢（pending 仍 pending，processing 租约到期后可再领取）。
+- 前置：A 的 `backend/worker-python` 交付（含 A 交付的 Python 测试命令）；PG 任务表已由 AB-03 迁移。
+- 执行命令（占位）：
+  ① 先运行 **A 交付的 Python 测试命令**（如 `<backend/worker-python> pytest -q`，以
+  handoffs/A.md 为准）并**记录退出码**；
+  ② `<A Worker 启动命令>`；启动→SIGTERM→再启动，观察任务领取日志序号连续。
+- 证据：Python 测试命令与退出码；启动/退出日志；任务表状态在重启前后不丢
+  （pending 仍 pending，processing 租约到期后可再领取）。
 - 当前状态：**dependency_pending**。
 
 ## AB-03 全新 PG 可迁移（真实 PG，非 SQLite）
@@ -51,7 +58,8 @@
 - 前置：A 提供认证/会话与云台凭据协议（D01 对接项，A 侧适配端口）。
 - 执行命令（占位）：黑盒负例矩阵——无凭据、伪造 `accountId`、伪造 `installationId`、
   过期会话、其他账号 ID 越权，分别打 M2-A06/M5-A01/M3-A04 等代表端点。
-- 证据：全部得到 401/403/404（按 A 契约）而非 2xx；不产生业务写入（前后表计数对比）。
+- 证据：全部得到 401/403/404（按 A 契约）而非 2xx，且每个拒绝响应满足 AB-11 的
+  结构化错误体与 requestId 关联；不产生业务写入（前后表计数对比）。
   特别核对：未实现业务接口不得给假 200（A-foundation 范围 3）。
 - 当前状态：**dependency_pending**。
 
@@ -96,10 +104,24 @@
 - 证据：两种配置的启动日志与探针结果。
 - 当前状态：**dependency_pending**。
 
+## AB-11 结构化错误响应契约与 requestId 关联
+
+- 前置：A 交付错误体 Schema/字段说明与 requestId 约定（A-foundation 范围 1：
+  结构化错误与 requestId；统一约束 4：认证主体）。
+- 执行命令（占位）：对代表端点主动制造错误并采集响应：
+  ① `curl -i $E_ACCEPTANCE_BASE_URL/api/v1/me/gimbal-bindings/UNKNOWN`（无效凭据→401/403）；
+  ② 合法主体提交非法字段（400/422）；③ 制造内部错误路径（若 A 提供注入开关，5xx）。
+  每个请求携带/捕获 `X-Request-Id`（framework/client.py 自动生成）。
+- 证据要求：错误响应体为**结构化 JSON**（含稳定错误码、人类可读信息、requestId 字段
+  或其等价物，具体字段名以 A 契约为准）；错误体中 requestId 与响应头/日志可关联，
+  能在服务端日志检索到同一请求；错误体不泄露堆栈/凭据/他人资源存在性；未实现业务
+  接口返回明确"未实现"类错误而非假 200。
+- 当前状态：**dependency_pending**。
+
 ---
 
 ## 出口条件
 
-- AB-01..AB-10 全部 passed 且证据齐 → 报告总协调"A 基线验收通过"，B/C/D 场景验收开闸。
+- AB-01..AB-11 全部 passed 且证据齐（含 A 的 Java/Python 测试退出码记录）→ 报告总协调"A 基线验收通过"，B/C/D 场景验收开闸。
 - 任一 failed → 附 requestId/日志/差异报可复现缺陷，阻塞包名=A，不自行修改 A 实现。
 - A 未提供基线前，本计划所有条目维持 dependency_pending——这是当前事实，不伪装。
