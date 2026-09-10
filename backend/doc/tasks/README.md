@@ -11,3 +11,7 @@
 | E | .worktrees/mvp-e / feature/mvp-acceptance | 立即启动，先准备验收 | [E](E-acceptance.md) |
 
 先读 [公共规则](COMMON.md)。主协调在当前任务中进行，集成工作树为 .worktrees/integration。任务书不改变已有业务范围，真实供应商/设备证明/合规未落实时如实报告，不能伪造已经可上线。
+
+## 任务面板
+
+[查看五个工作包的当前进度](panels/README.md)。每个包独立面板，显示阶段、最新进展时间、提交、测试、阻塞与下一步。总协调每次巡检和收到里程碑报告后运行 `python3 backend/doc/tasks/update-panels.py` 刷新；不读取完整 OpenCode 输出。
