@@ -199,3 +199,49 @@ RV-5"他主体"实为同账号、哨兵未绑定本次 run、报告/复核措辞
   A 整体无条件通过，也不自动授权 B/C/D）。
 - 94 业务场景仍 dependency_pending（blocked_by=B/C/D）；全部证据为测试替身形态
   doubles_pass，不宣称真实供应商/生产就绪；定向 PARTIAL 结果不冒充新 SHA 全量。
+
+---
+
+## RV-5 最终有界复验（PARTIAL）——A 561c338（2026-09-10 已执行；**第十二轮 oracle 审查 BLOCKED 待补**）
+
+> 总协调已书面裁定 RV-5 并交付 A 最终实施：A 链 f6e500e→334a9c4（创建者归属
+> 持久化+GET 仅创建者可见+统一 404）→199b2f6（POST dedup 创建者/类型事务内门槛+
+> T13 rejected-replay）→**561c338**（POST '404' 声明+RESOURCE_NOT_VISIBLE 入错误
+> 码表；A oracle round9 PASS-with-notes，blockingFindings=[]），A 报告 `5ae53b6`、
+> dev `9b3e4a1`、集成 HEAD `e1d54b9`。本节为 **RV-5 有界复验（PARTIAL），非新
+> SHA 全量验收**；整体意见按组合结构由总协调形成。
+
+### 执行结果（E 代码 03b8dfb；实施跑 89a36459 与协调者复跑 dd48513a 双跑一致）
+
+| 命令 | 退出码 | 结果 |
+| --- | --- | --- |
+| `backend/acceptance/run.sh selfcheck` | **0** | 53 passed（+2 哨兵/结论回归） |
+| `backend/acceptance/run.sh matrix` | **3** | PASSED=53 DEPENDENCY_PENDING=94 FAILED=0；SETTLED=94/94 |
+| `backend/acceptance/run.sh a-rv5` | **0** | settled=10/10：**10 PASS / 0 FAIL / 0 BLOCKED / 0 INFO**；REVERIFY_SENTINEL_OK（RUN_ID 入口绑定、mode=rv5-reverify、final_exit==驱动 rc） |
+
+结论原文："**RV-5 有界复验（PARTIAL）结果：通过**——10 PASS / 0 FAIL / 0 BLOCKED。
+组合意见：本次有限验证 + 历史适用证据（A-baseline 26d97fb / A-reverify f6e500e），
+整体验收意见由总协调形成；本报告不输出全量通过或 A 基础验收结论。"
+
+关键实测：RV5-1 从当前源码重建（git diff 561c338 空、jar 重建、健康 UP、未用旧
+镜像）；RV5-2 创建者 GET 可见+泄漏点抽查回归（jobId 关联、封闭枚举投影、marker
+缺席）；RV5-3 三态统一 404 不可区分（外来账号【真第二身份+accounts_differ】/非
+echo 行/不存在 UUID→requestId 外 error 子树逐字节等值、RESOURCE_NOT_VISIBLE、无
+owner/type 泄露）；RV5-4 未认证/伪造 401（基本信封检查，如实分类）；RV5-5 POST
+dedup 碰撞六步（无键碰撞 404 且不投影外来 id/status/payload/owner/type、keyed#1
+404+T13 rejected|RESOURCE_NOT_VISIBLE SQL 查证、同键重放同一拒绝边界、原 A 行全
+字段快照一致、碰撞零 B 属行、同主体正例同 jobId 成功语义保留）；RV5-6 有界严格
+契约（selftest 10/10、samples 50 checks、OAS VALID、200 捕获体严格 schema、404/401
+如实标注基本信封）；RV5-7 已接受 availability-oracle 限制披露（碰撞 404 vs 新键
+200 仅揭示 dedup 键不可用；不扩展实现、不宣称生产完备）；RV5-8 历史台账零变更+
+SHA 适用范围（f6e500e..561c338 消费点文件未变→9 处复核台账仍适用）。
+
+### 审查状态（诚实披露）
+
+- **第十二轮 oracle 审查：BLOCKED（不可用）**——原 oracle 会话（ses_f7592f1b…/
+  ora-1）两次调用均返回 "usage limit reached"（含等待后重试一次）。按门禁规则
+  **oracle 调用失败必须 BLOCKED，绝不视为通过**：E 代码 `03b8dfb` 尚未独立审查，
+  本节执行结果不构成审查通过；组合意见与 B/C/D 建议待 oracle 配额恢复、第十二轮
+  结论补记后形成。
+- 证据目录：`evidence/A-rv5-2026-09-10-561c338/`（2 run，独立 RUN_ID）；既有
+  A-baseline-2026-09-10 与 A-reverify-2026-09-10 全部历史证据零覆盖。
