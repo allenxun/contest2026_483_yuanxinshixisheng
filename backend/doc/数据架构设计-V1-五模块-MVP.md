@@ -106,7 +106,7 @@ erDiagram
 - 计数字段用 `bigint`，`N > 0`、`K >= 0`、`count_delta > 0`；接口显式处理大整数编码，不依赖浏览器浮点数隐式精度。
 - 默认主键、归属、状态字段必填；允许为空的阶段性字段在下文说明。所有表有 `created_at`，可变表另有 `updated_at`。流水表不通过更新改变已确认的业务载荷。
 - 高频过滤字段使用普通列并按实际查询建 B-tree 索引。MVP 不给所有 JSONB 默认建 GIN 索引；需要按其中某个字段检索时再评估提列或建针对性索引。
-- 所有 JSONB 有 `schema_version`，结构由服务端校验。结构版本用于数据格式演进，不等于产品的“多个方案版本”。PostgreSQL 支持 JSONB 检索，但仍应控制单个文档大小和更新争用，见[官方 JSON 类型说明](https://www.postgresql.org/docs/16/datatype-json.html)。
+- 业务 JSONB 的非空载荷有 `schema_version`，由服务端按 JSON 整数版本校验；空占位与 SQL NULL 按列生命周期允许。仅 `async_jobs.last_error`、`media_objects.last_error`、`notifications.last_error`、`skin_assessments.failure_detail`、`care_plans.failure_detail` 五个内部诊断列可不带版本，不用于业务决策或跨服务任务协议，并须脱敏、限制大小、不向客户端原样返回。数据库当前校验对象及 number 类型，不替代 Java/Python 写入边界的整数版本校验。结构版本用于数据格式演进，不等于产品的“多个方案版本”。PostgreSQL 支持 JSONB 检索，但仍应控制单个文档大小和更新争用，见[官方 JSON 类型说明](https://www.postgresql.org/docs/16/datatype-json.html)。
 - 领域内部采用数据库外键；跨模块同库也保留必要外键。`member_id`、任务与方案的重复归属用组合唯一键及组合外键校验，或在持锁事务中严格校验，迁移设计时明确实现；不能允许报告属甲而方案属乙。
 - 引用业务数据默认禁止级联物理删除。撤销授权、解绑、替换当前任务均不删除历史档案。图片清理必须确认无有效引用，不给业务主表统一套用含义不清的软删除规则。
 
