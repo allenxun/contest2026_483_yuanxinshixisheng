@@ -1,9 +1,9 @@
 # A-oracle.md — A 包 oracle 独立审查报告
 
-- **reviewedCommit（最终代码 SHA）**：待 round-6 复审通过后绑定（当前代码链最新=`1ba984e3825b9a0d0d35a4a0970df4ebdd63cd24` 契约修订，其 round-5 复审 FAIL → round-6 有界修复进行中；round-4 PASS-with-notes @bfd2dc3 与 round-3 全量 PASS-with-notes @26d97fb 对未变更部分继续有效；branch `feature/mvp-foundation`；本文件仅随 report-only commit 提交，不改代码）
-- 审查者：本机 OpenCode omo-slim 配置的 `oracle` 子代理（会话 `ses_f7523570cffeGdu61d3BzOYo94`，只读，**六轮**：round-1 @f7e75c1 = FAIL(blocked)，round-2 @bf393aa = FAIL，round-3 @26d97fb = PASS-with-notes，round-4 @bfd2dc3 = PASS-with-notes（blockingFindings 空，有界复审），round-5 @1ba984e = FAIL（1 BLOCKER：校验器转换不严格），round-6 @SHA-X = 进行中）
+- **reviewedCommit（最终代码 SHA）**：`f6e500e474954781d3438188b6fdd389e61682e7`（round-6 有界复审 **PASS**，Findings=[]、blockingFindings=[]；round-5 FAIL @1ba984e 的 BLOCKER 经 f6e500e 修复并由 round-6 确认有效闭合；round-4 PASS-with-notes @bfd2dc3 与 round-3 全量 PASS-with-notes @26d97fb 对各自未变更部分继续有效；branch `feature/mvp-foundation`；本文件仅随 report-only commit 提交，不改代码）
+- 审查者：本机 OpenCode omo-slim 配置的 `oracle` 子代理（会话 `ses_f7523570cffeGdu61d3BzOYo94`，只读，**六轮**：round-1 @f7e75c1 = FAIL(blocked)，round-2 @bf393aa = FAIL，round-3 @26d97fb = PASS-with-notes，round-4 @bfd2dc3 = PASS-with-notes（blockingFindings 空，有界复审），round-5 @1ba984e = FAIL（1 BLOCKER：校验器转换不严格），round-6 @f6e500e = **PASS（blockingFindings=[]）**）
 - 审查依据：backend/doc/tasks/A-foundation.md、COMMON.md、技术/数据/详细设计、API 设计、测试需求决策记录、交付代码、真实测试证据（orchestrator 在对应 SHA 实际执行；oracle 只读评估）
-- 代码提交链：`2b786f7`（实现 159 文件）→ `f7e75c1`（清理误提交 LSP 工件）→ `bf393aa`（round-1 修复 38 文件 +965/−123）→ `26d97fb`（round-2 修复 29 文件 +828/−176）→ `bfd2dc3`（round-4 E 驱动有界修复 4 文件 +256/−12）→ `1ba984e`（契约修订：严格 OAS 3.0.3 nullable + 严格响应校验 10 文件 +332/−20）→ round-6 修复提交（待）；报告提交：`fc4b311`（首版）→ `617354d`（修订）→ `6bae22f`（round-4 报告）→ 本次（report-only，SHA 见 git log，均不含代码改动）
+- 代码提交链：`2b786f7`（实现 159 文件）→ `f7e75c1`（清理误提交 LSP 工件）→ `bf393aa`（round-1 修复 38 文件 +965/−123）→ `26d97fb`（round-2 修复 29 文件 +828/−176）→ `bfd2dc3`（round-4 E 驱动有界修复 4 文件 +256/−12）→ `1ba984e`（契约修订：严格 OAS 3.0.3 nullable + 严格响应校验 10 文件 +332/−20）→ `f6e500e`（round-6 修复：转换器严格化+旧/新形判别回归+finishedAt/leaseRevision 内联+harness 硬化，3 文件 +124/−24，**最终代码 SHA**）；报告提交：`fc4b311`（首版）→ `617354d`（修订）→ `6bae22f`（round-4 报告）→ `08e5e3f`（round-5/6 报告）→ 本次（头部一致性修订，report-only，SHA 见 git log，均不含代码改动）
 
 ---
 
