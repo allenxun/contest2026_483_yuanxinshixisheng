@@ -158,12 +158,40 @@ INTERNAL ONLY——绝不原样返回，必须经有界安全投影/尺寸约束
 落地：`GET /api/v1/system/echo-jobs/{jobId}` 的 `data.lastError` 现强制
 有界投影（仅 reason 枚举 + retryable bool），raw code / message / stack /
 retry_after_seconds 永不投影；未知/畸形 code 归一 `reason=internal`
-（有界投影，非截断）。**（oracle round-4 IMPORTANT 修正）**该字段改为严格
-OAS 3.0.3 内联表示（`type: object` + `nullable: true` 同一 Schema Object；
-此前 `allOf:[$ref]`+nullable 在严格消费者下可能拒绝合法的 `null`），并新增
-严格响应 schema 校验 `scripts/validate_responses.py`（从 openapi.yaml 解析
-实际响应 schema，不再只靠结构校验）：正例含真实 `lastError: null`，反例
-覆盖额外字段 / 非法 enum 并被拒绝，已纳入 `validate_samples.py`。
+（有界投影，非截断）。**（oracle round-4 修正 / round-5 收紧）**`lastError`
+及同路径 `finishedAt`、`leaseRevision` 改为严格 OAS 3.0.3 内联表示（`type`
+与 `nullable` 同一 Schema Object；`allOf:[$ref]`+nullable 无本地 `type` 时
+nullable 不生效，严格消费者会拒绝合法 `null`）。新增
+`scripts/validate_responses.py`：这是 **BOUNDED 严格-nullable 响应校验**——
+解析 openapi.yaml 实际 echo-jobs view schema（document-resolved），含
+old/new nullable 形状判别回归，强制 key 集 / enum / required /
+additionalProperties；正例含真实 `lastError:null`，反例额外字段 / 非法 enum
+被拒；已纳入 `validate_samples.py`。**边界（诚实声明）**：它**不是**完整 OAS
+校验；`format`（uuid/date-time）注解不强制；当前仅覆盖 echo-view 路径。
+`nullable` 为 true 但无本地 `type` 的旧式写法一律按严格语义处理（不并 null）。
+
+**遗留跟随项（off-path，本次未改，待下次授权的契约修订）**：全文档仍有
+**36 处** `allOf/oneOf/anyOf + nullable` 且无本地 `type` 的旧式 schema
+（审计见 round-6 报告；严格校验当前只覆盖 echo-view 路径，这些路径在严格
+消费者下同样可能错误拒绝合法 `null`）：
+`SystemEchoJobRequest.jobId`、`Verification.validUntil`、
+`Progress.targetCount`、`Progress.completedAt`、
+`ProgressWithSync.allOf[1].lastSyncedAt`、`GimbalHeartbeatRequest.taskId`、
+`GimbalHeartbeatRequest.executionId`、`GimbalStatusView.lastSeenAt`、
+`MicrocrystalCapabilitiesView.observedAt`、`MicrocrystalCapabilitiesView.receivedAt`、
+`AssessmentTaskAccepted.currentAssessmentRevision`、`AssessmentTaskView.reportId`、
+`SkinReportView.memberId`、`SkinReportView.reportReadyAt`、
+`GimbalCurrentAssessmentView.currentAssessment.reportId`、`CarePlanListItem.progress`、
+`CarePlanFullView.progress`、`M4A03Metadata.planId`、`M4A03Metadata.currentTaskId`、
+`M4A03Metadata.currentAssessmentRevision`、`ControllerRef.gimbalId`、
+`CareExecutionAdmission.memberId`、`CareExecutionAdmission.planId`、
+`CareExecutionRevalidation.planId`、`ExecutionObservation.verificationRevision`、
+`ExecutionObservationSyncRequest.observation`、`ExecutionObservationAck.progress`、
+`ExecutionClosureResult.closedAt`、`CareExecutionView.controller`、
+`CareExecutionView.memberId`、`CareExecutionView.planId`、
+`CareExecutionView.microcrystalId`、`CareExecutionView.latestObservation`、
+`CareExecutionView.closedAt`、`CareExecutionView.progress`、
+`CareExecutionListItem.closedAt`。
 
 **媒体授权语义（oracle round-2 R2-1）**：A 包生产安全默认 =
 **deny-all**（`DenyAllMediaAccessPolicy`，`app.media.access-mode=deny-all`）：
