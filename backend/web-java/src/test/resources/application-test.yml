@@ -1,0 +1,12 @@
+# test profile：隔离存储目录与固定 dev 验证码；数据源由 @DynamicPropertySource 注入
+app:
+  env: test
+  storage:
+    dev-dir: /tmp/mvp-a-test-storage
+    bucket: mvp-a-test
+  testdouble:
+    sms:
+      fixed-code: "123456"
+logging:
+  level:
+    cn.yuanxin.mvp.web: INFO

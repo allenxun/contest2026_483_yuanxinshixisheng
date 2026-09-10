@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mvp:contracts:schemas:payload-system-echo.json",
+  "title": "payload：system.echo（跨语言最小测试任务，decisions #4）",
+  "description": "Java 契约夹具 → Python handler 校验并成功（正确租约代次）的测试 payload。stale-generation 完成必须失败。",
+  "$comment": "payload 只放 JSON 数据与受控资源引用：禁止 pickle/Python 对象/Java 类名/可执行代码/照片（或 base64）/签名 URL/运行凭据（DD 9.1）。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "message",
+    "numbers_as_strings"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "结构版本固定 1（JSON 整数）"
+    },
+    "message": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 512,
+      "description": "回声文本，允许中文；服务端原样返回不解释语义"
+    },
+    "numbers_as_strings": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string"
+      },
+      "description": "验证 bigint-as-string 跨语言一致"
+    }
+  },
+  "x-owner-package": "A"
+}

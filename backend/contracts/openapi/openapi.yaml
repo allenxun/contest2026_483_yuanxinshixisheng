@@ -1,0 +1,2776 @@
+openapi: 3.0.3
+info:
+  title: AI 皮肤护理系统（openvela 竞赛 · 元心实习生队 contest2026_483_yuanxinshixisheng）后端 MVP 基础契约
+  version: 0.1.0
+  description: >-
+    工程基础与公共契约（工作包 A）。MVP foundation contract — business
+    endpoints are contract-only.
+
+
+    本文件冻结两类接口：(1) 27 个业务 API（M1-A01…M5-A01，与
+    backend/doc/后端API接口设计-V1-五模块与流程对应.md 一一对应，标记
+    `x-implementation: contract-only`，由 B/C/D 业务包实现）；(2) 基础协议端点
+    （`x-foundation: true`，不计入 27：手机号会话认证、云台设备会话、受控媒体
+    读取），由 A 包 Java 基础实现。
+
+
+    未实现的业务接口一律返回 HTTP 501 + 标准错误信封（code
+    `NOT_IMPLEMENTED`），绝不伪造 200 假成功。
+
+
+    公共契约规则（backend/doc/后端详细设计-V1-MVP.md 第 3、9、10 节）：
+
+    - HTTP JSON 字段一律 camelCase；数据库/任务 payload 一律 snake_case。
+
+    - 服务端资源 ID 为 UUID 字符串；bigint（N/K/revision/seq/计数）在 JSON
+      中一律十进制字符串，pattern `^(0|[1-9][0-9]*)$`；schema_version 用 JSON 整数。
+
+    - 时间为 RFC 3339 UTC（例如 2026-09-10T04:00:00Z）。
+
+    - 每个响应（含错误、含 204）携带 X-Request-Id 头；每次 HTTP 尝试生成
+      requestId（信封内），与 T13 稳定逻辑请求 ID 区分。
+
+    - 成功信封 `{requestId, data, meta:{replayed, serverTime}}`（204 无响应
+      体）；列表 `data = {items: [], nextCursor: string|null}`；错误信封
+      `{requestId, error:{code, message, retryable, details}}`。
+
+    - 分页：limit 默认 20、上限 100；cursor 绑定排序值+ID+筛选摘要，非法游标
+      400 INVALID_INPUT；不默认返回总数。
+
+    - 业务写接口（除 M2-A01 认证握手、M2-A02 心跳以 epoch/seq 去重外）要求
+      `Idempotency-Key` 头，服务端走 T13（principal 作用域 =
+      accountId+installationId 或 gimbalId）。相同键相同内容重放返回原结果
+      （meta.replayed=true）；相同键不同内容 409
+      IDEMPOTENCY_CONTENT_CONFLICT；处理中 409 REQUEST_IN_PROGRESS +
+      Retry-After。payload_hash 规范化见
+      backend/contracts/canonicalization.md（RFC 8785 JCS + SHA-256）。
+
+    - multipart 上传：`metadata` part 为 application/json，图片为二进制
+      part；无独立直传 OSS 接口。成员敏感数据与图片响应
+      `Cache-Control: no-store`。
+
+    - 认证头 `Authorization: Bearer …`；请求体不能声明自己是哪个账号/云台，
+      主体身份一律由服务端从会话派生。APP 使用手机号会话签发的 APP session
+      token；云台使用 `POST /api/v1/gimbal-sessions` 签发的 gimbal device
+      session token。
+
+    - 每个操作的 `x-error-codes` 列出该端点适用的业务错误码（DD 3.2 错误码
+      表 + NOT_IMPLEMENTED）。
+  contact:
+    name: yuanxin MVP backend contracts
+servers:
+  - url: /
+    description: 同源相对路径（生产经 Nginx HTTPS 入口转发到 Java Web）
+  - url: http://127.0.0.1:8080
+    description: 本地开发实例示例（Java web 默认端口；不是生产地址）
+tags:
+  - name: M1-成员身份与访问授权
+  - name: M2-云台与微晶管理
+  - name: M3-测肤任务与报告
+  - name: M4-护理管理
+  - name: M5-消息通知
+  - name: foundation-auth
+    description: 基础认证协议端点（不计入 27 个业务 API）
+  - name: foundation-media
+    description: 受控媒体读取基础协议端点（不计入 27 个业务 API）
+  - name: foundation-system
+    description: 系统级跨语言 E2E 验收桥端点（不计入 27 个业务 API）
+security:
+  - bearerAuth: []
+paths:
+  # ================= M1 成员身份与访问授权 =================
+  /api/v1/member-access-grants:
+    post:
+      operationId: m1A01CreateMemberAccessGrant
+      tags: [M1-成员身份与访问授权]
+      summary: M1-A01 人脸授权查看本人资料
+      x-api-id: M1-A01
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, UPLOAD_TOO_LARGE, UNSUPPORTED_IMAGE, FACE_QUALITY_REJECTED, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, GRANT_REVOKED, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：APP（Bearer = APP session token，手机号会话签发）。multipart：
+        metadata part（capture + consentEvidenceRef）+ `face` 图片二进制
+        part。成功 201 新建 active 关系；已存在 active 或幂等重放返回 200
+        （meta.replayed）。不创建新成员、不授予他人查看权、不提供护理启动
+        许可；无可靠匹配只返回“未能确认本人/暂无可关联资料”语义，不返回候选
+        列表。旧请求指向已撤销关系返回 GRANT_REVOKED。图片保存/读取失败不得
+        当作核验成功（DEPENDENCY_UNAVAILABLE / DEPENDENCY_TIMEOUT）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [metadata, face]
+              additionalProperties: false
+              properties:
+                metadata:
+                  $ref: '#/components/schemas/M1A01Metadata'
+                face:
+                  type: string
+                  format: binary
+                  description: 当前人脸采集图片（单图 ≤10MiB 开发初值）
+            encoding:
+              metadata:
+                contentType: application/json
+      responses:
+        '201':
+          description: 新授权关系建立成功
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/MemberAccessGrantResult' }
+        '200':
+          description: 已存在 active 关系或幂等重放（返回同一 grantId，不刷新核验有效性）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/MemberAccessGrantResult' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+        '415': { $ref: '#/components/responses/UnsupportedMediaType' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/me/member-access-grants:
+    get:
+      operationId: m1A02ListMemberAccessGrants
+      tags: [M1-成员身份与访问授权]
+      summary: M1-A02 查询当前账号已有成员访问关系
+      x-api-id: M1-A02
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：APP（APP session token）。仅返回当前账号尚未撤销（active）的
+        查看关联；授权不自动过期；不提供全库成员检索；空列表为 items=[]。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: 列表页（data.items[].grantId 可用于 M1-A03 撤销）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/MemberAccessGrantListData' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/me/member-access-grants/{grantId}:
+    delete:
+      operationId: m1A03RevokeMemberAccessGrant
+      tags: [M1-成员身份与访问授权]
+      summary: M1-A03 撤销当前账号与某成员查看关联
+      x-api-id: M1-A03
+      x-implementation: contract-only
+      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：APP 中已登录的关联所属账号（APP session token）。成功 204 无
+        响应体（X-Request-Id 头仍返回）；同一账号重复撤销已撤销关联也返回
+        204。他人 grant 返回 404 RESOURCE_NOT_VISIBLE。只撤查看关联，不删除
+        成员/人脸档案/报告/护理记录。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/GrantId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '204': { $ref: '#/components/responses/NoContent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  # ================= M2 云台与微晶管理 =================
+  /api/v1/gimbal-sessions:
+    post:
+      operationId: m2A01CreateGimbalSession
+      tags: [M2-云台与微晶管理, foundation-auth]
+      summary: M2-A01 云台认证或恢复连接后重新认证（基础协议实现）
+      x-api-id: M2-A01
+      x-foundation: true
+      x-implementation: foundation-auth
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, IDEMPOTENCY_CONTENT_CONFLICT, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT]
+      description: >-
+        调用方：云台设备（无 Bearer；凭设备凭据证明，DeviceCredentialProvider
+        适配端口）。验证设备凭据后签发云台设备会话 token（绑定
+        gimbalId/credentialVersion/会话 ID）。不创建或改变云台归属；凭据失败
+        不登记为可信在线；重复认证不创建护理执行。本端点按 .coordination/A
+        decisions #7 由 A 包 Java 基础实现（薄控制器 + 隔离测试替身），同时
+        占用 27 个业务 API 编号 M2-A01（“27 业务 + 6 基础”中它是唯一双属性
+        端点，说明见 contracts/decisions-notes.md）。设备凭据不使用
+        Idempotency-Key 缓存可重放的秘密凭据（DD M2-A01）；认证握手走提供方
+        防重放协议。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GimbalSessionRequest' }
+      responses:
+        '200':
+          description: 会话签发成功（不返回成员资料）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/GimbalSession' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/gimbals/{gimbalId}/heartbeats:
+    post:
+      operationId: m2A02ReportGimbalHeartbeat
+      tags: [M2-云台与微晶管理]
+      summary: M2-A02 上报心跳和云台已知工作状态
+      x-api-id: M2-A02
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, TASK_REPLACED, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：已认证云台（gimbal device session token）。心跳去重/顺序依据
+        为 body 内 observationEpoch/observationSeq（非 Idempotency-Key 头）：
+        重复旧心跳不延长在线时间、不覆盖新状态。执行状态摘要可供对账，但不
+        累计完成量、不自动创建执行、不仅凭心跳释放占用。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/GimbalId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GimbalHeartbeatRequest' }
+      responses:
+        '200':
+          description: 接收确认 + 后端记录时间
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/GimbalHeartbeatAck' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/gimbals/{gimbalId}/status:
+    get:
+      operationId: m2A03GetGimbalStatus
+      tags: [M2-云台与微晶管理]
+      summary: M2-A03 查询云台状态
+      x-api-id: M2-A03
+      x-implementation: contract-only
+      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：APP（绑定该云台的账号，APP session token）或已认证云台自身
+        （gimbal device session token）。T03 单表读，按绑定账号或本云台裁剪；
+        云台离线不代表微晶停止；不得伪装成云台当前实时状态。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/GimbalId'
+      responses:
+        '200':
+          description: 已知状态投影
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/GimbalStatusView' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/microcrystal-observations:
+    post:
+      operationId: m2A04ReportMicrocrystalObservation
+      tags: [M2-云台与微晶管理]
+      summary: M2-A04 登记已连接微晶的能力与状态观察
+      x-api-id: M2-A04
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, UNSUPPORTED_CONTRACT, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：APP 或云台（各自 session token），携带 connectionProof（绑定
+        控制端+微晶+当前连接；不接受仅序列号）。登记不等于首次绑定授权；不
+        允许以请求体覆盖他人归属或执行占用；禁止以观察抢占 T07；同一能力
+        版本重复上报不重复触发方案生成。能力具体参数名/单位必须来自已验证的
+        微晶协议（契约未冻结，x-detail: skeleton）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MicrocrystalObservationRequest' }
+      responses:
+        '200':
+          description: 登记受理
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/MicrocrystalObservationAck' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/microcrystals/{microcrystalId}/capabilities:
+    get:
+      operationId: m2A05GetMicrocrystalCapabilities
+      tags: [M2-云台与微晶管理]
+      summary: M2-A05 读取后端已登记微晶能力
+      x-api-id: M2-A05
+      x-implementation: contract-only
+      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：APP 或云台（各自 session token），携带合法 connectionProof /
+        已验证连接上下文。能力存在不意味着微晶空闲或现场就绪；占用在执行
+        申请时检查。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/MicrocrystalId'
+        - name: X-Connection-Proof
+          in: header
+          required: false
+          schema: { type: string }
+          description: >-
+            连接证明；必填性取决于调用方上下文（云台当前连接可隐含）。证明
+            放认证上下文/请求头，具体协议由设备团队冻结前为开发建议。
+            x-detail: skeleton
+      responses:
+        '200':
+          description: 已登记能力
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/MicrocrystalCapabilitiesView' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/me/gimbal-bindings/{gimbalId}:
+    put:
+      operationId: m2A06BindGimbal
+      tags: [M2-云台与微晶管理]
+      summary: M2-A06 用户主动绑定云台到当前账号
+      x-api-id: M2-A06
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, BOUND_TO_OTHER, BINDING_CHANGED, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：已登录且正在协助该云台联网的 APP（APP session token + 可验证
+        pairingProof）。用户主动点击才调用；配网不自动绑定；原子校验未绑定或
+        已绑定本人，不能覆盖他人；相同账号重复绑定幂等。云台绑定只决定异常
+        通知账号，不授予成员资料查看权。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/GimbalId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GimbalBindingRequest' }
+      responses:
+        '200':
+          description: 绑定关系（已属本人且代次相符时不重复写）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/GimbalBindingResult' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+    delete:
+      operationId: m2A08UnbindGimbal
+      tags: [M2-云台与微晶管理]
+      summary: M2-A08 原账号解除云台绑定
+      x-api-id: M2-A08
+      x-implementation: contract-only
+      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, BINDING_CHANGED, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：当前绑定所属账号的已登录 APP（APP session token）。建议
+        `If-Match: "binding-{revision}"`。成功 204；已解绑的原请求可重放
+        （仍 204）；拒绝跨代次解绑（BINDING_CHANGED）。解绑不撤销成员授权、
+        不删报告/方案/记录、不改变云台当前任务、不发停止指令。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/GimbalId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - name: If-Match
+          in: header
+          required: false
+          schema: { type: string }
+          description: 建议携带 `binding-{bindingRevision}` 预期代次（DD M2-A08）
+      responses:
+        '204': { $ref: '#/components/responses/NoContent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/gimbals/{gimbalId}/binding-status:
+    get:
+      operationId: m2A07GetGimbalBindingStatus
+      tags: [M2-云台与微晶管理]
+      summary: M2-A07 配网时查询云台绑定状态
+      x-api-id: M2-A07
+      x-implementation: contract-only
+      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：已登录且持有本次合法配对上下文的 APP（APP session token +
+        请求头配对证明）。仅用于配网界面决定是否显示绑定按钮；不建立绑定；
+        不能仅凭任意云台 ID 探查。不返回其他账号姓名/联系方式/账号 ID。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/GimbalId'
+        - name: X-Pairing-Proof
+          in: header
+          required: true
+          schema: { type: string }
+          description: >-
+            本次合法配对上下文证明（绑定云台+账号/安装+purpose+nonce+有效期+
+            可验证签名）。证明放认证上下文/请求头，协议由开发确定；头名为
+            开发建议。x-detail: skeleton
+      responses:
+        '200':
+          description: unbound / self / other 三态 + 当前绑定代次
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/GimbalBindingStatusView' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  # ================= M3 测肤任务与报告 =================
+  /api/v1/skin-assessment-tasks:
+    post:
+      operationId: m3A01CreateSkinAssessmentTask
+      tags: [M3-测肤任务与报告]
+      summary: M3-A01 提交三视角测肤任务
+      x-api-id: M3-A01
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, UPLOAD_TOO_LARGE, UNSUPPORTED_IMAGE, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, TASK_REPLACED, DEVICE_OCCUPIED, STOP_NOT_CONFIRMED, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：已认证云台（gimbal device session token）；APP 测肤不开放
+        （APP token 调用返回 CALLER_NOT_ALLOWED）。multipart：metadata part
+        （photoVersion/captureSessionId/consentEvidenceRef）+ `front`/`left`/
+        `right` 三个图片二进制 part（三图合计 ≤32MiB 开发初值）。受理成功
+        202 返回任务引用与 queued 状态；先校验云台身份与照片归属，再处理
+        去重；云台控制的原护理执行未实际停止/收尾时拒绝（DEVICE_OCCUPIED /
+        STOP_NOT_CONFIRMED），不自动停止护理。新任务受理与当前任务指针替换
+        原子完成；旧请求重放返回原 taskId + replaced 语义，不返回旧结果、
+        不恢复指针。缺失/格式失败不受理、不切指针。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [metadata, front, left, right]
+              additionalProperties: false
+              properties:
+                metadata: { $ref: '#/components/schemas/M3A01Metadata' }
+                front: { type: string, format: binary, description: 正面视角照片 }
+                left: { type: string, format: binary, description: 左侧视角照片 }
+                right: { type: string, format: binary, description: 右侧视角照片 }
+            encoding:
+              metadata:
+                contentType: application/json
+      responses:
+        '202':
+          description: 已受理（处理状态不等于图片已可用）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AssessmentTaskAccepted' }
+        '200':
+          description: 同一逻辑请求重放（返回已受理任务，不重复建任务）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AssessmentTaskAccepted' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+        '415': { $ref: '#/components/responses/UnsupportedMediaType' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/skin-assessment-tasks/{taskId}/photo-versions/{photoVersion}:
+    put:
+      operationId: m3A02SubmitAssessmentPhotoVersion
+      tags: [M3-测肤任务与报告]
+      summary: M3-A02 补拍并提交新照片版本
+      x-api-id: M3-A02
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, UPLOAD_TOO_LARGE, UNSUPPORTED_IMAGE, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, TASK_REPLACED, PHOTO_VERSION_CONFLICT, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：该任务所属且仍以该任务为当前任务的已认证云台（gimbal device
+        session token）。multipart：metadata part（expectedPhotoVersion +
+        replacedViews 清单）+ 本次更换视角的 `front`/`left`/`right` 图片
+        part，未更换视角由后端沿用。补拍沿用原任务；同版本同内容幂等，
+        异内容 PHOTO_VERSION_CONFLICT；新版本触发重分析；needs_retake 之外
+        （如 report_ready）拒绝补拍；不得通过补拍历史任务恢复访问入口。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/PhotoVersion'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [metadata]
+              additionalProperties: false
+              properties:
+                metadata: { $ref: '#/components/schemas/M3A02Metadata' }
+                front: { type: string, format: binary, description: 更换的正面视角照片（可选） }
+                left: { type: string, format: binary, description: 更换的左侧视角照片（可选） }
+                right: { type: string, format: binary, description: 更换的右侧视角照片（可选） }
+            encoding:
+              metadata:
+                contentType: application/json
+      responses:
+        '202':
+          description: 新版本已受理（taskId 不变，processing_revision 增加）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AssessmentTaskAccepted' }
+        '200':
+          description: 同请求重放（不增加版本）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AssessmentTaskAccepted' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+        '415': { $ref: '#/components/responses/UnsupportedMediaType' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/skin-assessment-tasks/{taskId}:
+    get:
+      operationId: m3A03GetSkinAssessmentTask
+      tags: [M3-测肤任务与报告]
+      summary: M3-A03 查询测肤任务及补拍要求
+      x-api-id: M3-A03
+      x-implementation: contract-only
+      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, TASK_REPLACED, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：当前任务所属已认证云台（gimbal token，仅当 taskId 仍是该云台
+        当前任务）；或已获对应成员查看权的 APP（APP token；尚未可靠归档的
+        任务不因 APP 声称成员身份而开放）。纯查询不触发分析或新建任务；被
+        替换的旧任务对云台返回 TASK_REPLACED/404 受限结果。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          description: 任务状态与补拍要求
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AssessmentTaskView' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/members/{memberId}/skin-reports:
+    get:
+      operationId: m3A04ListMemberSkinReports
+      tags: [M3-测肤任务与报告]
+      summary: M3-A04 列出可访问报告
+      x-api-id: M3-A04
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, GRANT_REVOKED, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：已获对应成员查看权的 APP（APP token）；不向云台开放（云台
+        token 一律拒绝），即使报告来自该云台或人脸相同。只列有权成员报告；
+        无正式报告返回空数组；不触发测肤。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/MemberId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: 报告摘要列表页
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/SkinReportListData' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/skin-reports/{reportId}:
+    get:
+      operationId: m3A05GetSkinReport
+      tags: [M3-测肤任务与报告]
+      summary: M3-A05 查询报告（APP full / 云台 brief）
+      x-api-id: M3-A05
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, TASK_REPLACED, GRANT_REVOKED, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：已授权 APP 取 view=full（APP token）；本次任务所属云台仅取
+        view=brief（gimbal token，仅当前任务对应报告；传 full 不扩大权限，
+        云台 full 请求拒绝）。查询检查成员访问权（APP/T02）或唯一当前任务
+        （云台/T03）。图片与正文使用相同访问范围：images[].contentUrl 指向
+        `GET /api/v1/media/{mediaId}/content` 鉴权代理，不返回永久或算法临时
+        地址冒充已归档结果。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+        - name: view
+          in: query
+          required: false
+          schema: { type: string, enum: [full, brief], default: full }
+          description: >-
+            full|brief；默认 APP full、云台 brief（仍受调用角色限制）。
+            完整/简版是同一数据的受控视图。
+      responses:
+        '200':
+          description: 报告受控投影
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/SkinReportView' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/gimbals/{gimbalId}/current-assessment:
+    get:
+      operationId: m3A06GetGimbalCurrentAssessment
+      tags: [M3-测肤任务与报告]
+      summary: M3-A06 云台恢复后端保存的当前测肤任务
+      x-api-id: M3-A06
+      x-implementation: contract-only
+      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：该云台自身（gimbal device session token；路径 gimbalId 必须
+        与认证主体一致，不要求绑定 APP 账号）。返回唯一当前任务引用或
+        currentAssessment=null；不提供历史任务列表，不按人脸搜索旧任务；
+        恢复任务不自动开始/恢复护理。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/GimbalId'
+      responses:
+        '200':
+          description: 当前任务指针（无任务时 currentAssessment 为 null）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/GimbalCurrentAssessmentView' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  # ================= M4 护理管理 =================
+  /api/v1/members/{memberId}/care-plans:
+    get:
+      operationId: m4A01ListMemberCarePlans
+      tags: [M4-护理管理]
+      summary: M4-A01 列出本人方案与生成状态
+      x-api-id: M4-A01
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, GRANT_REVOKED, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：已授权 APP（APP token）。检查当前账号的成员查看权限；
+        不触发生成；无方案行返回空数组；waiting_inputs/failed 也表达状态。
+        云台不能调用本接口（云台执行前取得方案走 M4-A03）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/MemberId'
+        - name: reportId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+          description: 可按已有报告引用筛选（API 文档 M4-A01 输入要素）
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: 方案列表页
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CarePlanListData' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/care-plans/{planId}:
+    get:
+      operationId: m4A02GetCarePlan
+      tags: [M4-护理管理]
+      summary: M4-A02 查询方案完整版
+      x-api-id: M4-A02
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, PLAN_NOT_READY, GRANT_REVOKED, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：已授权 APP（APP token，view=full）。查到方案不等于获准启动；
+        GET 不生成、不登记执行、不累计进度；云台不可借 full 查询取方案
+        （执行简版由 M4-A03/A04 返回）。未就绪时返回公开失败/等待原因。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - name: view
+          in: query
+          required: false
+          schema: { type: string, enum: [full], default: full }
+          description: 本接口视图仅 full（API 文档 M4-A02）
+      responses:
+        '200':
+          description: 方案完整投影（ready 时含 Plan 与 Progress）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CarePlanFullView' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/care-executions:
+    post:
+      operationId: m4A03CreateCareExecution
+      tags: [M4-护理管理]
+      summary: M4-A03 人脸核验、取得方案并登记新执行
+      x-api-id: M4-A03
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, UPLOAD_TOO_LARGE, UNSUPPORTED_IMAGE, FACE_QUALITY_REJECTED, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, FACE_NOT_VERIFIED, RESOURCE_NOT_VISIBLE, DEVICE_OCCUPIED, PLAN_NOT_READY, PLAN_COMPLETED, TASK_REPLACED, BINDING_CHANGED, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：APP（APP token；metadata 提供有权使用的 planId）或云台
+        （gimbal token；metadata 提供 currentTaskId/currentAssessmentRevision，
+        方案由后端从当前任务确定）。multipart：metadata part（microcrystalId、
+        connectionProof、capture、consentEvidenceRef、planId 或任务上下文）+
+        `face` 图片二进制 part。服务端确定控制端身份（请求体 memberId/controller
+        不决定归属）；核验当前使用者、检查微晶能力、方案就绪/K<N/占用；互斥
+        检查与登记原子保证。成功 201 返回“已登记/待端侧确认”（status=
+        admitted），不宣称已运行。重放 200：返回同一执行与重放标记，不产生
+        新的核验有效性、不视为首次启动响应。换人不返回原成员方案。照片保存/
+        读取失败不得返回本轮核验通过。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [metadata, face]
+              additionalProperties: false
+              properties:
+                metadata: { $ref: '#/components/schemas/M4A03Metadata' }
+                face: { type: string, format: binary, description: 当前人脸照片（绑定本轮请求与控制端上下文） }
+            encoding:
+              metadata:
+                contentType: application/json
+      responses:
+        '201':
+          description: 新执行登记成功（admitted，未声称硬件运行）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CareExecutionAdmission' }
+        '200':
+          description: 重复同请求返回同一执行（meta.replayed=true；不得当作首次启动许可）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CareExecutionAdmission' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+        '415': { $ref: '#/components/responses/UnsupportedMediaType' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/care-executions/{executionId}/revalidations:
+    post:
+      operationId: m4A04RevalidateCareExecution
+      tags: [M4-护理管理]
+      summary: M4-A04 使用者连续性失效后重新核验恢复条件
+      x-api-id: M4-A04
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, UPLOAD_TOO_LARGE, UNSUPPORTED_IMAGE, FACE_QUALITY_REJECTED, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, FACE_NOT_VERIFIED, RESOURCE_NOT_VISIBLE, EXECUTION_NOT_RESUMABLE, TASK_REPLACED, RECORD_CONFLICT, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：原执行的 APP 或云台控制端（原 accountId+installationId 或原
+        controller_gimbal_id 的有效会话）。multipart：metadata part
+        （expectedVerificationRevision、capture、consentEvidenceRef）+ `face`
+        图片二进制 part。同一成员、原执行仍可恢复（paused 且 K<N）时沿用原
+        方案与进度；执行不会自动变 running；unknown 须先经 M4-A05 收到新鲜
+        paused 观察；stopped/closed 不恢复（EXECUTION_NOT_RESUMABLE）；重放
+        不刷新核验有效期。云台还须确认方案属于其当前任务。图片失败不得恢复
+        护理，旧图片引用不得绕过本轮连续性检查。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ExecutionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [metadata, face]
+              additionalProperties: false
+              properties:
+                metadata: { $ref: '#/components/schemas/M4A04Metadata' }
+                face: { type: string, format: binary, description: 新一轮当前人脸照片 }
+            encoding:
+              metadata:
+                contentType: application/json
+      responses:
+        '200':
+          description: 恢复条件判定结果（保留进度 + 新 Verification；执行不自动变 running）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CareExecutionRevalidation' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+        '415': { $ref: '#/components/responses/UnsupportedMediaType' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/care-executions/{executionId}/observations:
+    post:
+      operationId: m4A05SyncExecutionObservationAndRecords
+      tags: [M4-护理管理]
+      summary: M4-A05 同步实际状态与有效完成记录
+      x-api-id: M4-A05
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, RECORD_CONFLICT, BINDING_CHANGED, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：原执行的合法控制端（APP 或云台会话；允许该控制端补传历史执行
+        记录）。批次 Idempotency-Key 必携。observation 与实际 records 是两条
+        独立递增序列（DD 6.3）；相同记录重传不重复计数；同 ID/同序号不同内容
+        批次整体 409 RECORD_CONFLICT 且不确认新记录；乱序旧状态忽略但同批合法
+        新明细仍入账；已撤销查看关系的原端只返回本执行最小确认信息。启动/
+        指令发送不计完成；上报 K 不是覆盖总量的权力。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ExecutionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExecutionObservationSyncRequest' }
+      responses:
+        '200':
+          description: 逐记录处置 + 后端累计
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ExecutionObservationAck' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/care-executions/{executionId}/closure-confirmations:
+    post:
+      operationId: m4A06ConfirmCareExecutionClosure
+      tags: [M4-护理管理]
+      summary: M4-A06 确认本地已停止并完成执行收尾
+      x-api-id: M4-A06
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, STOP_NOT_CONFIRMED, CLOSURE_GAPS, RECORD_CONFLICT, EXECUTION_NOT_RESUMABLE, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：原执行控制端（APP 或云台会话）。Idempotency-Key 必携。这是
+        停止后的确认，不是远程停止命令；以后端收到的“微晶已停止”观察为依据
+        （stopObservationSeq），核对记录流 1..finalRecordSeq 无缺口且增量总和
+        等于 finalCount（DD 6.4）；不满足返回 409（STOP_NOT_CONFIRMED /
+        CLOSURE_GAPS，缺口输出有上限的 missingRanges + more 标志）。关闭成功
+        释放占用；相同原收尾请求重放不修改 manifest；状态未知拒绝抢占；
+        迟到合法记录不改 closed。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ExecutionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExecutionClosureRequest' }
+      responses:
+        '200':
+          description: 关闭结果（closed=true、占用释放）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ExecutionClosureResult' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/care-executions/{executionId}:
+    get:
+      operationId: m4A07GetCareExecution
+      tags: [M4-护理管理]
+      summary: M4-A07 查询执行及恢复联网后的对账状态
+      x-api-id: M4-A07
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, GRANT_REVOKED, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：原执行控制端（最小对账投影：status、acceptedCount、记录水位/
+        ID 确认、closedAt；即使查看关系已撤销仍可返回，但不含成员资料/方案
+        正文/跨执行总进度）；或具备成员查看权的 APP（完整摘要，按权限裁剪，
+        no-store）。只读；重连或查询不自动开始/恢复。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ExecutionId'
+        - name: recordsAfterSeq
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/BigintString' }
+          description: 对账用——列出该记录序号之后的确认状态
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 执行投影（按调用角色裁剪）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CareExecutionView' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/care-plans/{planId}/progress:
+    get:
+      operationId: m4A08GetCarePlanProgress
+      tags: [M4-护理管理]
+      summary: M4-A08 查询方案累计进度
+      x-api-id: M4-A08
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, PLAN_NOT_READY, TASK_REPLACED, GRANT_REVOKED, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：已授权 APP（APP token）；或具备当前已核验执行上下文的云台
+        （gimbal token + query executionId/verificationRevision；只返回
+        Progress，不返回计划正文；过期/不适用核验不开放）。后端持久保存去重
+        累计 K，重启和换绑不清零；离线未上传量不伪装成已知数据；查询不增加
+        K。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - name: executionId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+          description: 云台调用者必填——当前已核验执行上下文
+        - name: verificationRevision
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/BigintString' }
+          description: 云台调用者必填——本轮核验代次上下文
+      responses:
+        '200':
+          description: Progress（N、已同步 K、剩余 max(N-K,0)、完成 K>=N、最后同步信息）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ProgressWithSync' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/members/{memberId}/care-executions:
+    get:
+      operationId: m4A09ListMemberCareExecutions
+      tags: [M4-护理管理]
+      summary: M4-A09 查看本人护理记录
+      x-api-id: M4-A09
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, GRANT_REVOKED, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：已授权 APP（APP token）。执行结束与方案达标分别表达；不混用
+        不同成员/方案的记录；历史内容取冻结快照，不按每行回查方案。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/MemberId'
+        - name: planId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - name: from
+          in: query
+          required: false
+          schema: { type: string, format: date-time }
+          description: 日期筛选起点（RFC3339 UTC，仅筛选/诊断用途）
+        - name: to
+          in: query
+          required: false
+          schema: { type: string, format: date-time }
+          description: 日期筛选终点
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: 执行历史列表页
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CareExecutionListData' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  # ================= M5 消息通知 =================
+  /api/v1/me/notification-destinations/{installationId}:
+    put:
+      operationId: m5A01RegisterNotificationDestination
+      tags: [M5-消息通知]
+      summary: M5-A01 登记本 APP 安装实例的通知投递目标
+      x-api-id: M5-A01
+      x-implementation: contract-only
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      description: >-
+        调用方：已登录 APP（APP session token；installationId 必须属于当前
+        会话绑定安装，不能仅凭 installationId 抢占或替他人登记）。本接口只
+        登记目标，不发送消息；具体推送通道未选定（x-detail: skeleton）；
+        不回传完整推送 token；相同内容不增代次；首次
+        expectedDestinationRevision 为 "0"，并发首建依赖 T09
+        installation_id 唯一约束。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/InstallationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NotificationDestinationRequest' }
+      responses:
+        '200':
+          description: 已登记的本人投递目标
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/NotificationDestinationView' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  # ================= Foundation（不计入 27） =================
+  /api/v1/auth/sms-challenges:
+    post:
+      operationId: f01CreateSmsChallenge
+      tags: [foundation-auth]
+      summary: 基础协议——发起手机号登录挑战
+      x-foundation: true
+      x-implementation: foundation-auth
+      x-error-codes: [INVALID_INPUT, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT]
+      description: >-
+        调用方：未登录 APP（无 Bearer）。phone + purpose=login → challengeId
+        + retryAfter。验证码生命周期与风控由认证提供方负责；不泄露账号是否
+        已存在。提供方未选定——A 包 SmsCodeProvider/SessionProvider 适配端口 +
+        隔离测试替身实现，生产缺能力 fail closed（503 DEPENDENCY_UNAVAILABLE
+        或启动失败），绝不假装真实接入完成。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SmsChallengeRequest' }
+      responses:
+        '200':
+          description: 挑战已创建
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/SmsChallenge' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/auth/sessions:
+    post:
+      operationId: f02CreateAppSession
+      tags: [foundation-auth]
+      summary: 基础协议——验证码换取 APP 会话
+      x-foundation: true
+      x-implementation: foundation-auth
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT]
+      description: >-
+        调用方：未登录 APP（无 Bearer）。challengeId + code + 安装绑定材料 →
+        会话凭据 + 本地 accountId。验证成功后按 (login_provider,
+        login_subject) 并发唯一映射到本地账号（T14）；不可仅接受裸
+        installationId；请求体手机号不作为认证结果。与 M2-A01 云台设备会话
+        并存、命名空间区分（digest gap 10）。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AppSessionRequest' }
+      responses:
+        '200':
+          description: 会话签发
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AppSession' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/auth/session-refreshes:
+    post:
+      operationId: f03RefreshAppSession
+      tags: [foundation-auth]
+      summary: 基础协议——刷新 APP 会话
+      x-foundation: true
+      x-implementation: foundation-auth
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT]
+      description: >-
+        调用方：APP（真实刷新凭据在请求体；本端点不用 Bearer 会话头认证
+        自身）。新凭据签发与旧凭据撤销轮换由选定会话协议保证。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SessionRefreshRequest' }
+      responses:
+        '200':
+          description: 新会话凭据
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AppSession' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/auth/sessions/current:
+    delete:
+      operationId: f04RevokeCurrentAppSession
+      tags: [foundation-auth]
+      summary: 基础协议——撤销当前 APP 会话（退出登录）
+      x-foundation: true
+      x-implementation: foundation-auth
+      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT]
+      description: >-
+        调用方：已登录 APP（APP session token）。204 无响应体。先撤销会话，
+        再按 session_ref 条件失效 T09 当前目标（幂等补偿；不影响其他安装
+        实例；不得失效后来新登录的目标）。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { $ref: '#/components/responses/NoContent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/media/{mediaId}/content:
+    get:
+      operationId: f05GetMediaContent
+      tags: [foundation-media]
+      summary: 基础协议——受控读取媒体对象内容
+      x-foundation: true
+      x-implementation: foundation-media
+      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT]
+      description: >-
+        调用方：APP 或云台（对应 session token）。二进制基础协议，不占用
+        M1—M5 编号（DD 10.2）。逐次鉴权：认证主体 → T11 状态/用途/归属 →
+        仅业务报告投影公开的展示图片（检查 T05 冻结报告确实引用该 mediaId；
+        核验图、临时未归档图不可凭上传者身份直接下载）→ APP 查 T02 有效
+        关系、云台查 T03 当前任务 → 通过后流式读取私有 OSS。不可见/不存在
+        统一 404 RESOURCE_NOT_VISIBLE（不泄露存在性，不返回内部
+        bucket/key）。响应 no-store + X-Content-Type-Options: nosniff；
+        不重定向至长效签名地址；本版可不支持 Range，请求不因此绕过鉴权。
+        available ≠ 可访问；鉴权发生在读取时，已下载字节无法远程收回。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/MediaId'
+      responses:
+        '200':
+          description: 图片二进制内容（实际图片 MIME）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+            Cache-Control: { $ref: '#/components/headers/CacheNoStore' }
+            X-Content-Type-Options:
+              schema: { type: string, enum: [nosniff] }
+              description: 恒定 nosniff（DD 10.2）
+          content:
+            image/jpeg:
+              schema: { type: string, format: binary }
+            image/png:
+              schema: { type: string, format: binary }
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/system/echo-jobs:
+    post:
+      operationId: f06CreateSystemEchoJob
+      tags: [foundation-system]
+      summary: 基础协议——入队 system.echo 跨语言最小测试任务
+      x-foundation: true
+      x-implementation: foundation-system
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT]
+      description: >-
+        调用方：已认证主体（APP 或云台 session token 均可）。A 包 E2E 验收桥：
+        body {message, numbersAsStrings[], jobId?} → 经 JobEnqueuer 入队
+        job_type=system.echo（dedup_key=system:echo:<jobId 或服务端 UUID>，
+        owner_type=system，owner_id=UUIDv5(FIXED_NS, dedup_key)，payload 带
+        schema_version=1、bigint 一律十进制字符串），返回受理信封
+        {jobId, dedupKey, status:"queued"}。Idempotency-Key 可选：提供时走
+        T13（operation=system.echo.create），同键同内容重放返回同一 jobId 与
+        meta.replayed=true；同键异内容 409
+        IDEMPOTENCY_CONTENT_CONFLICT；处理中 409 REQUEST_IN_PROGRESS +
+        Retry-After。Python worker（B/P 包）以正确租约代次完成该任务后，
+        GET 本资源投影可见状态变化。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema: { type: string, minLength: 1, maxLength: 128 }
+          description: 可选逻辑写去重键（本验收桥端点区别于强制要求的业务写接口）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SystemEchoJobRequest' }
+      responses:
+        '200':
+          description: 受理/重放（data.status 为投影的当前任务状态，新入队为 queued）
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/SystemEchoJobAccepted' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+  /api/v1/system/echo-jobs/{jobId}:
+    get:
+      operationId: f07GetSystemEchoJob
+      tags: [foundation-system]
+      summary: 基础协议——查询 system.echo 任务投影（E2E 验收用）
+      x-foundation: true
+      x-implementation: foundation-system
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT]
+      description: >-
+        调用方：已认证主体。从 async_jobs（T12）投影 {jobId, status,
+        attemptCount, leaseRevision, finishedAt, lastError}；计数/代次按
+        bigint 十进制字符串传输（契约通用规则）。状态由 Python worker 的
+        claim/renew/complete 推进；本端点只读，不改变任务。不存在统一
+        404 RESOURCE_NOT_VISIBLE。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+          description: 任务引用（T12.id，即受理响应中的 jobId）
+      responses:
+        '200':
+          description: 任务当前投影
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/SystemEchoJobView' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '504': { $ref: '#/components/responses/DependencyTimeout' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: >-
+        APP session token（手机号会话签发：POST /api/v1/auth/sessions）或
+        gimbal device session token（云台设备会话签发：
+        POST /api/v1/gimbal-sessions）。主体身份只由 token 决定；请求体不能
+        声明自己是哪个账号/云台。各端点描述标明期望的 token 类型。
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 1, maxLength: 128 }
+      description: >-
+        逻辑写请求去重键（T13：principal_type+principal_id+operation+
+        idempotency_key）。同逻辑重试保持键和内容不变；更换照片/业务内容
+        使用新键。M2-A01 认证握手与 M2-A02 心跳（epoch/seq 去重）不适用；
+        foundation 认证端点不使用。
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      description: 分页大小；默认 20、上限 100；不默认返回总数。
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema: { type: string }
+      description: >-
+        不透明游标，绑定排序值+ID+筛选摘要；非法游标 400 INVALID_INPUT。
+        缺省表示第一页。
+    GrantId:
+      name: grantId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      description: 成员查看授权关系 ID（T02.id，公开 grantId）
+    GimbalId:
+      name: gimbalId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      description: 云台引用（T03.id）
+    MicrocrystalId:
+      name: microcrystalId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      description: 微晶引用（T04.id）
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      description: 测肤任务引用（T05.id）
+    PhotoVersion:
+      name: photoVersion
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/BigintString' }
+      description: 照片版本号（bigint 即十进制字符串；新版本 = 旧版本 + 1）
+    MemberId:
+      name: memberId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      description: 成员引用（T01.id）
+    ReportId:
+      name: reportId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      description: 报告引用（T05.report_id）
+    PlanId:
+      name: planId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      description: 方案引用（T06.id）
+    ExecutionId:
+      name: executionId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      description: 护理执行引用（T07.id）
+    InstallationId:
+      name: installationId
+      in: path
+      required: true
+      schema: { type: string, minLength: 1, maxLength: 128 }
+      description: APP 安装实例 ID（客户端生成，≤128 字符）
+    MediaId:
+      name: mediaId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      description: 媒体对象引用（T11.id）
+  headers:
+    XRequestId:
+      schema: { type: string, format: uuid }
+      description: 每次 HTTP 尝试生成的 requestId（区别于 T13 稳定逻辑请求 ID）
+    CacheNoStore:
+      schema: { type: string, enum: [no-store] }
+      description: 成员敏感数据与图片响应恒定 no-store
+    RetryAfter:
+      schema: { type: integer, minimum: 0 }
+      description: REQUEST_IN_PROGRESS / RATE_LIMITED 时建议等待秒数
+  responses:
+    NoContent:
+      description: 成功且无响应体（204）；requestId 只在 X-Request-Id 头返回
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+    BadRequest:
+      description: 400 INVALID_INPUT——输入无效（含非法游标/枚举）；details 列出违规字段
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    Unauthorized:
+      description: 401 AUTH_REQUIRED / SESSION_INVALID——重新认证
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    Forbidden:
+      description: 403 CALLER_NOT_ALLOWED / FACE_NOT_VERIFIED——不授予权限
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    NotFound:
+      description: 404 RESOURCE_NOT_VISIBLE——不泄露资源是否存在；不能换 ID 探测
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    Conflict:
+      description: >-
+        409 业务冲突：IDEMPOTENCY_CONTENT_CONFLICT、REQUEST_IN_PROGRESS
+        （携带 Retry-After）、BINDING_CHANGED、TASK_REPLACED、
+        PHOTO_VERSION_CONFLICT、DEVICE_OCCUPIED、PLAN_NOT_READY、
+        PLAN_COMPLETED、EXECUTION_NOT_RESUMABLE、RECORD_CONFLICT、
+        CLOSURE_GAPS、STOP_NOT_CONFIRMED、BOUND_TO_OTHER。details 只含
+        调用方可见的冲突字段/缺失序号。
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+        Retry-After: { $ref: '#/components/headers/RetryAfter' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    PayloadTooLarge:
+      description: 413 UPLOAD_TOO_LARGE（开发初值：单图 10MiB / 三图 32MiB）
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    UnsupportedMediaType:
+      description: 415 UNSUPPORTED_IMAGE——图片格式不支持（实际格式校验，非仅 MIME）
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    UnprocessableEntity:
+      description: 422 FACE_QUALITY_REJECTED——人脸质量/视角不合格（新逻辑请求用新键）
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    TooManyRequests:
+      description: 429 RATE_LIMITED——受限重试
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+        Retry-After: { $ref: '#/components/headers/RetryAfter' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    InternalError:
+      description: 500 INTERNAL——未知/未映射异常；仅 requestId 可诊断，不外泄堆栈
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    NotImplemented:
+      description: >-
+        501 NOT_IMPLEMENTED——业务端点为 contract-only 占位
+        （x-implementation: contract-only），由 B/C/D 包实现；未实现前一律
+        返回本信封，绝不伪造 200 假成功。客户端须容忍 details 未来新增字段。
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/NotImplementedEnvelope' }
+    DependencyUnavailable:
+      description: 503 DEPENDENCY_UNAVAILABLE——外部依赖不可用；绝不默认核验通过
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    DependencyTimeout:
+      description: 504 DEPENDENCY_TIMEOUT——外部依赖超时；retryable=true 时同键重试
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+  schemas:
+    # ---------- 信封与通用 ----------
+    BigintString:
+      type: string
+      pattern: '^(0|[1-9][0-9]*)$'
+      description: >-
+        无符号 64 位整数的十进制字符串（N/K、revision、seq、计数）。服务端在
+        数据库做 bigint 运算并检查溢出；signed 变体 `^-?(0|[1-9][0-9]*)$`
+        在 MVP 契约中不使用。
+    Rfc3339Utc:
+      type: string
+      format: date-time
+      description: RFC 3339 UTC 时间，例如 2026-09-10T04:00:00Z；客户端时间只供诊断
+    EnvelopeMeta:
+      type: object
+      required: [replayed, serverTime]
+      additionalProperties: true
+      description: 客户端必须容忍响应新增字段
+      properties:
+        replayed:
+          type: boolean
+          description: true 表示本响应来自 T13 幂等重放（原业务结果，不重做写入）
+        serverTime: { $ref: '#/components/schemas/Rfc3339Utc' }
+    SuccessEnvelope:
+      type: object
+      required: [requestId, data, meta]
+      additionalProperties: false
+      description: 成功响应信封（204 无响应体，requestId 走 X-Request-Id 头）
+      properties:
+        requestId:
+          type: string
+          format: uuid
+          description: 本次 HTTP 尝试 ID（与 X-Request-Id 头一致；≠T13.id）
+        data:
+          type: object
+          description: 业务数据（各端点以 allOf 覆盖具体 schema）
+        meta: { $ref: '#/components/schemas/EnvelopeMeta' }
+    ListData:
+      type: object
+      required: [items, nextCursor]
+      description: 列表响应 data 形状；具体端点用 allOf 收紧 items 元素类型
+      properties:
+        items:
+          type: array
+          items: {}
+        nextCursor:
+          type: string
+          nullable: true
+          description: 不透明游标；null 表示无后续页
+    ErrorCode:
+      type: string
+      description: 稳定业务原因码（DD 3.2 错误码表 + NOT_IMPLEMENTED 基础层扩展）
+      enum:
+        - INVALID_INPUT
+        - UPLOAD_TOO_LARGE
+        - UNSUPPORTED_IMAGE
+        - FACE_QUALITY_REJECTED
+        - AUTH_REQUIRED
+        - SESSION_INVALID
+        - RESOURCE_NOT_VISIBLE
+        - CALLER_NOT_ALLOWED
+        - FACE_NOT_VERIFIED
+        - IDEMPOTENCY_CONTENT_CONFLICT
+        - BINDING_CHANGED
+        - TASK_REPLACED
+        - PHOTO_VERSION_CONFLICT
+        - DEVICE_OCCUPIED
+        - PLAN_NOT_READY
+        - PLAN_COMPLETED
+        - EXECUTION_NOT_RESUMABLE
+        - RECORD_CONFLICT
+        - CLOSURE_GAPS
+        - STOP_NOT_CONFIRMED
+        - REQUEST_IN_PROGRESS
+        - RATE_LIMITED
+        - DEPENDENCY_UNAVAILABLE
+        - DEPENDENCY_TIMEOUT
+        - GRANT_REVOKED
+        - BOUND_TO_OTHER
+        - UNSUPPORTED_CONTRACT
+        - NOT_IMPLEMENTED
+        - INTERNAL
+    ErrorEnvelope:
+      type: object
+      required: [requestId, error]
+      additionalProperties: false
+      description: >-
+        错误信封。message 为人类可读摘要，不泄露供应商密钥/堆栈/人脸候选；
+        details 只含调用方可见的冲突字段/缺失序号。各端点适用码见操作级
+        x-error-codes。
+      properties:
+        requestId: { type: string, format: uuid }
+        error:
+          type: object
+          required: [code, message, retryable]
+          additionalProperties: false
+          properties:
+            code: { $ref: '#/components/schemas/ErrorCode' }
+            message: { type: string }
+            retryable: { type: boolean }
+            details:
+              type: object
+              nullable: true
+              additionalProperties: true
+    NotImplementedEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/ErrorEnvelope'
+        - type: object
+          properties:
+            error:
+              type: object
+              properties:
+                code: { type: string, enum: [NOT_IMPLEMENTED] }
+                retryable: { type: boolean }
+                details:
+                  type: object
+                  additionalProperties: true
+                  description: 可含 apiId、plannedPackage 等调用方可见提示
+    # ---------- 通用业务结构（DD 6.x） ----------
+    Capture:
+      type: object
+      description: >-
+        采集与核验关联（DD 6.2）。capturedAt/captureId/图片哈希由客户端
+        提交，不单独证明新鲜性；服务端派生 actor 与 task/plan/execution
+        上下文并与证据绑定。x-detail: skeleton（活体/采集凭据待设备与
+        SDK 协议）。purpose 仅 grant/admission/revalidation；云台三视角
+        采集为 assessment（后端派生）。
+      x-detail: skeleton
+      required: [captureId, capturedAt, clientContinuityId, purpose]
+      additionalProperties: false
+      properties:
+        captureId: { type: string, minLength: 1, maxLength: 128, description: 客户端采集标识（去重/引用） }
+        capturedAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+        clientContinuityId: { type: string, minLength: 1, maxLength: 128, description: 客户端使用者连续性标识 }
+        purpose: { type: string, enum: [grant, admission, revalidation] }
+        captureProofRef: { type: string, nullable: true, description: 采集证明引用（可选） }
+    Verification:
+      type: object
+      description: >-
+        核验结果（DD 6.2）。validUntil 是本响应可用于端侧首次启动/恢复的
+        时间边界；时间未到也不能无视换人——端侧连续性失效立即作废。
+      required: [verificationRevision, captureId, clientContinuityId, verifiedAt, applicablePurpose, replayed]
+      additionalProperties: true
+      properties:
+        verificationRevision: { $ref: '#/components/schemas/BigintString' }
+        captureId: { type: string }
+        clientContinuityId: { type: string }
+        verifiedAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+        validUntil: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        applicablePurpose: { type: string, enum: [grant, admission, revalidation, assessment] }
+        replayed: { type: boolean, description: 重放响应不获得新的启动有效性 }
+    Progress:
+      type: object
+      description: >-
+        方案进度（DD 6.1 示例）。未 ready 时 targetCount/isCompleted 可为
+        null，不用 0 表示“已完成”；剩余 = max(N-K,0)；完成条件 K>=N；
+        K 不截断。bigint 全为字符串。
+      required: [completedCount, remainingCount, progressRevision]
+      additionalProperties: false
+      properties:
+        targetCount: { allOf: [{ $ref: '#/components/schemas/BigintString' }], nullable: true }
+        completedCount: { $ref: '#/components/schemas/BigintString' }
+        remainingCount: { $ref: '#/components/schemas/BigintString' }
+        isCompleted: { type: boolean, nullable: true }
+        progressRevision: { $ref: '#/components/schemas/BigintString' }
+        completedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+    ProgressWithSync:
+      allOf:
+        - $ref: '#/components/schemas/Progress'
+        - type: object
+          description: >-
+            M4-A08 附加最后同步信息（从业务更新时间/入账摘要取得，不伪造
+            设备实时值）。x-detail: skeleton
+          x-detail: skeleton
+          properties:
+            lastSyncedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+    # ---------- M1 ----------
+    M1A01Metadata:
+      type: object
+      description: >-
+        M1-A01 multipart `metadata` part（application/json）。不得提交目标
+        memberId 强制授权；未知业务写字段拒绝（additionalProperties false）。
+      required: [capture, consentEvidenceRef]
+      additionalProperties: false
+      properties:
+        capture: { $ref: '#/components/schemas/Capture' }
+        consentEvidenceRef: { type: string, minLength: 1, maxLength: 128, description: 人脸同意证据引用（合规前提见 DD 14 节） }
+    MemberAccessGrantResult:
+      type: object
+      description: M1-A01 输出（DD：grantId、memberId、status、grantedAt；无匹配不返回候选列表）
+      required: [grantId, memberId, status, grantedAt]
+      additionalProperties: false
+      properties:
+        grantId: { type: string, format: uuid }
+        memberId: { type: string, format: uuid }
+        status: { type: string, enum: [active] }
+        grantedAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+    MemberAccessGrantListItem:
+      type: object
+      description: >-
+        M1-A02 items 元素（DD）：grantId、memberId、grantedAt、memberSummary。
+        展示摘要来自 T02 本行，结构未冻结（x-detail: skeleton）。
+      x-detail: skeleton
+      required: [grantId, memberId, grantedAt]
+      additionalProperties: false
+      properties:
+        grantId: { type: string, format: uuid }
+        memberId: { type: string, format: uuid }
+        grantedAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+        memberSummary: { type: object, additionalProperties: true, description: 成员展示摘要（结构未冻结） }
+    MemberAccessGrantListData:
+      allOf:
+        - $ref: '#/components/schemas/ListData'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/MemberAccessGrantListItem' }
+    # ---------- M2 ----------
+    GimbalSessionRequest:
+      type: object
+      description: >-
+        M2-A01 输入：设备凭据、credentialVersion、认证提供方要求的
+        nonce/proof。设备签名算法/密钥预置由设备团队对接——字段为占位
+        （x-detail: skeleton），协议冻结前不得当作最终格式。
+      x-detail: skeleton
+      required: [credential, credentialVersion, proof]
+      additionalProperties: false
+      properties:
+        credential: { type: string, description: 设备凭据（格式待定） }
+        credentialVersion: { $ref: '#/components/schemas/BigintString' }
+        proof: { type: string, description: 提供方要求的 nonce/proof（格式待定） }
+    GimbalSession:
+      type: object
+      description: >-
+        M2-A01 输出（DD：gimbalId、会话凭据、expiresAt、serverTime；不返回
+        成员资料）。凭据字段名待会话协议冻结（x-detail: skeleton）。
+      x-detail: skeleton
+      required: [gimbalId, sessionToken, expiresAt, serverTime]
+      additionalProperties: false
+      properties:
+        gimbalId: { type: string, format: uuid }
+        sessionToken: { type: string, description: 云台设备会话 token（后续请求 Bearer 使用） }
+        expiresAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+        serverTime: { $ref: '#/components/schemas/Rfc3339Utc' }
+    GimbalHeartbeatRequest:
+      type: object
+      description: >-
+        M2-A02 输入（DD）：observationEpoch、observationSeq、observedAt、
+        powerState、可选 taskId/executionId 与 incidents[]。epoch/seq 为心跳
+        去重与顺序依据；异常枚举/严重度/频率待定（x-detail: skeleton）。
+      x-detail: skeleton
+      required: [observationEpoch, observationSeq, observedAt, powerState]
+      additionalProperties: false
+      properties:
+        observationEpoch: { type: string, minLength: 1, maxLength: 128 }
+        observationSeq: { $ref: '#/components/schemas/BigintString' }
+        observedAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+        powerState: { type: string, enum: [awake, asleep], description: 清醒/休眠；扩展枚举待定 }
+        taskId: { allOf: [{ type: string, format: uuid }], nullable: true }
+        executionId: { allOf: [{ type: string, format: uuid }], nullable: true }
+        incidents:
+          type: array
+          description: 云台可检测并上报的异常代码与摘要（枚举待定）
+          items: { type: object, additionalProperties: true }
+    GimbalHeartbeatAck:
+      type: object
+      description: M2-A02 输出（DD）：接收确认、后端记录时间；可提示需对账，不下发动作命令
+      required: [accepted, lastSeenAt, statusRevision, serverTime]
+      additionalProperties: false
+      properties:
+        accepted: { type: boolean, description: 本次心跳是否推进了后端状态（旧序号=false 但仍确认收到） }
+        lastSeenAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+        statusRevision: { $ref: '#/components/schemas/BigintString' }
+        serverTime: { $ref: '#/components/schemas/Rfc3339Utc' }
+    GimbalStatusView:
+      type: object
+      description: >-
+        M2-A03 输出（DD）：connectionStatus、powerState、lastSeenAt、isStale、
+        statusRevision、已知异常摘要。在线/离线等枚举编码未冻结
+        （x-detail: skeleton）。
+      x-detail: skeleton
+      required: [connectionStatus, isStale, statusRevision]
+      additionalProperties: false
+      properties:
+        connectionStatus: { type: string, description: 在线/离线/未知标记（编码待定） }
+        powerState: { type: string, nullable: true, description: 清醒/休眠（编码待定） }
+        lastSeenAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        isStale: { type: boolean, description: 状态是否过期/未知（不得伪装成实时） }
+        statusRevision: { $ref: '#/components/schemas/BigintString' }
+        incidents:
+          type: array
+          items: { type: object, additionalProperties: true }
+          description: 已知异常摘要（结构待定）
+    MicrocrystalObservationRequest:
+      type: object
+      description: >-
+        M2-A04 输入（DD）：microcrystalSerial、connectionProof、
+        capabilities{schemaVersion,revision,parameterRanges,...}、
+        observationEpoch/Seq、observedAt、state。能力参数名/单位必须来自
+        已验证的微晶协议——capabilities/state 具体结构待定
+        （x-detail: skeleton）。未知业务写字段拒绝。
+      x-detail: skeleton
+      required: [microcrystalSerial, connectionProof, capabilities, observationEpoch, observationSeq, observedAt, state]
+      additionalProperties: false
+      properties:
+        microcrystalSerial: { type: string, minLength: 1, maxLength: 128 }
+        connectionProof: { type: string, description: 绑定控制端+微晶+当前连接的证明（不接受仅序列号） }
+        capabilities:
+          type: object
+          required: [schemaVersion, revision]
+          additionalProperties: true
+          properties:
+            schemaVersion: { type: integer, minimum: 1 }
+            revision: { $ref: '#/components/schemas/BigintString' }
+        observationEpoch: { type: string, minLength: 1, maxLength: 128 }
+        observationSeq: { $ref: '#/components/schemas/BigintString' }
+        observedAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+        state: { type: object, additionalProperties: true, description: 实际观察状态（结构待定） }
+    MicrocrystalObservationAck:
+      type: object
+      description: M2-A04 输出（DD）：microcrystalId、accepted、capabilityRevision、receivedAt（可信归属校验结果体现在状态码）
+      required: [microcrystalId, accepted, capabilityRevision, receivedAt]
+      additionalProperties: false
+      properties:
+        microcrystalId: { type: string, format: uuid }
+        accepted: { type: boolean }
+        capabilityRevision: { $ref: '#/components/schemas/BigintString' }
+        receivedAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+    MicrocrystalCapabilitiesView:
+      type: object
+      description: >-
+        M2-A05 输出（DD）：capabilities、capabilityRevision、observedAt、
+        receivedAt、isStale。capabilities 结构来自微晶协议
+        （x-detail: skeleton）。
+      x-detail: skeleton
+      required: [capabilities, capabilityRevision, isStale]
+      additionalProperties: false
+      properties:
+        capabilities: { type: object, additionalProperties: true }
+        capabilityRevision: { $ref: '#/components/schemas/BigintString' }
+        observedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        receivedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        isStale: { type: boolean }
+    GimbalBindingRequest:
+      type: object
+      description: M2-A06 输入（DD）：expectedBindingRevision、pairingProof
+      required: [expectedBindingRevision, pairingProof]
+      additionalProperties: false
+      properties:
+        expectedBindingRevision: { $ref: '#/components/schemas/BigintString' }
+        pairingProof: { type: string, description: 可验证配对证明（绑定云台+账号/安装+purpose+nonce+有效期+签名；格式待设备协议） }
+    GimbalBindingResult:
+      type: object
+      description: M2-A06 输出（DD）：bindingStatus=self、gimbalId、bindingRevision、boundAt
+      required: [bindingStatus, gimbalId, bindingRevision, boundAt]
+      additionalProperties: false
+      properties:
+        bindingStatus: { type: string, enum: [self] }
+        gimbalId: { type: string, format: uuid }
+        bindingRevision: { $ref: '#/components/schemas/BigintString' }
+        boundAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+    GimbalBindingStatusView:
+      type: object
+      description: M2-A07 输出（DD）：bindingStatus=unbound/self/other、bindingRevision；不返回他人账号 ID/手机号
+      required: [bindingStatus, bindingRevision]
+      additionalProperties: false
+      properties:
+        bindingStatus: { type: string, enum: [unbound, self, other] }
+        bindingRevision: { $ref: '#/components/schemas/BigintString' }
+    # ---------- M3 ----------
+    M3A01Metadata:
+      type: object
+      description: >-
+        M3-A01 multipart `metadata` part。三图 part 名固定 front/left/right；
+        photoVersion 首次为 "1"；captureSessionId 为云台本轮采集会话标识
+        （客户端去重/关联字段）。
+      required: [photoVersion, captureSessionId, consentEvidenceRef]
+      additionalProperties: false
+      properties:
+        photoVersion: { $ref: '#/components/schemas/BigintString' }
+        captureSessionId: { type: string, minLength: 1, maxLength: 128 }
+        consentEvidenceRef: { type: string, minLength: 1, maxLength: 128 }
+    M3A02Metadata:
+      type: object
+      description: >-
+        M3-A02 multipart `metadata` part。replacedViews 为本次更换视角清单；
+        新版本完整视角清单由服务端构造，未更换视角沿用本任务已接纳图片。
+      required: [expectedPhotoVersion, replacedViews]
+      additionalProperties: false
+      properties:
+        expectedPhotoVersion: { $ref: '#/components/schemas/BigintString' }
+        replacedViews:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: { type: string, enum: [front, left, right] }
+    AssessmentTaskAccepted:
+      type: object
+      description: M3-A01/M3-A02 受理输出（DD）：taskId、status=queued、photoVersion、currentAssessmentRevision
+      required: [taskId, status, photoVersion]
+      additionalProperties: false
+      properties:
+        taskId: { type: string, format: uuid }
+        status: { type: string, enum: [queued] }
+        photoVersion: { $ref: '#/components/schemas/BigintString' }
+        currentAssessmentRevision: { allOf: [{ $ref: '#/components/schemas/BigintString' }], nullable: true }
+    AssessmentTaskView:
+      type: object
+      description: >-
+        M3-A03 输出（DD）：taskId、status、photoVersion、requiredViews[]、
+        可公开 failureCode/retryable；ready 时 reportId；方案任务可查询关联
+        提示。云台仅当前任务可读；APP 按独立成员查看授权读取。
+      x-detail: skeleton
+      required: [taskId, status, photoVersion, requiredViews]
+      additionalProperties: false
+      properties:
+        taskId: { type: string, format: uuid }
+        status: { type: string, enum: [queued, analyzing, needs_retake, report_ready, failed] }
+        photoVersion: { $ref: '#/components/schemas/BigintString' }
+        requiredViews:
+          type: array
+          items: { type: string, enum: [front, left, right] }
+          description: 需补拍视角
+        failureCode: { type: string, nullable: true, description: 可公开失败编码 }
+        retryable: { type: boolean, nullable: true }
+        reportId: { allOf: [{ type: string, format: uuid }], nullable: true }
+        planAvailability: { type: string, nullable: true, description: 方案任务可查询关联/状态提示（结构未冻结） }
+    SkinReportListItem:
+      type: object
+      description: M3-A04 items 元素（DD）：reportId、reportReadyAt、reportSummary（摘要结构未冻结）
+      x-detail: skeleton
+      required: [reportId, reportReadyAt]
+      additionalProperties: false
+      properties:
+        reportId: { type: string, format: uuid }
+        reportReadyAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+        reportSummary: { type: object, additionalProperties: true }
+    SkinReportListData:
+      allOf:
+        - $ref: '#/components/schemas/ListData'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/SkinReportListItem' }
+    SkinReportView:
+      type: object
+      description: >-
+        M3-A05 报告受控投影。白名单/指标名称未冻结（DD 6.1：指标、区域枚举
+        必须来自测肤协议契约，不能由大模型自由发明；x-detail: skeleton）。
+        full/brief 是同一数据的受控视图；images[].contentUrl 指向鉴权代理
+        `GET /api/v1/media/{mediaId}/content`（同源 URL），不返回永久或算法
+        临时地址。
+      x-detail: skeleton
+      required: [reportId, view]
+      additionalProperties: true
+      properties:
+        reportId: { type: string, format: uuid }
+        view: { type: string, enum: [full, brief] }
+        memberId: { allOf: [{ type: string, format: uuid }], nullable: true, description: 仅 full（APP）视图 }
+        reportReadyAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        conclusion: { type: string, nullable: true, description: 简要结论（brief 允许） }
+        metrics:
+          type: array
+          items: { type: object, additionalProperties: true }
+          description: 结构化指标（白名单未冻结）
+        description: { type: string, nullable: true, description: 已验证说明 }
+        images:
+          type: array
+          description: 允许展示的图片描述（受控访问引用）
+          items:
+            type: object
+            required: [mediaId, contentUrl]
+            additionalProperties: false
+            properties:
+              mediaId: { type: string, format: uuid }
+              contentUrl: { type: string, description: 同源鉴权代理 URL }
+        planStatus: { type: string, nullable: true, description: 关联方案生成状态/任务引用（报告不等待方案） }
+    GimbalCurrentAssessmentView:
+      type: object
+      description: M3-A06 输出（DD）：currentAssessment=null 或 {taskId,status,photoVersion,reportId?}、currentAssessmentRevision
+      required: [currentAssessment, currentAssessmentRevision]
+      additionalProperties: false
+      properties:
+        currentAssessment:
+          type: object
+          nullable: true
+          required: [taskId, status, photoVersion]
+          additionalProperties: false
+          properties:
+            taskId: { type: string, format: uuid }
+            status: { type: string, enum: [queued, analyzing, needs_retake, report_ready, failed] }
+            photoVersion: { $ref: '#/components/schemas/BigintString' }
+            reportId: { allOf: [{ type: string, format: uuid }], nullable: true }
+        currentAssessmentRevision: { $ref: '#/components/schemas/BigintString' }
+    # ---------- M4 ----------
+    CarePlanListItem:
+      type: object
+      description: M4-A01 items 元素（DD）：planId、generationStatus、planSummary、progress?；就绪方案可附 N、K 和达标状态
+      x-detail: skeleton
+      required: [planId, generationStatus]
+      additionalProperties: false
+      properties:
+        planId: { type: string, format: uuid }
+        generationStatus: { type: string, enum: [waiting_inputs, generating, ready, failed] }
+        planSummary: { type: object, additionalProperties: true, nullable: true }
+        progress: { allOf: [{ $ref: '#/components/schemas/Progress' }], nullable: true }
+    CarePlanListData:
+      allOf:
+        - $ref: '#/components/schemas/ListData'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/CarePlanListItem' }
+    CarePlanFullView:
+      type: object
+      description: >-
+        M4-A02 输出（DD）：generationStatus、ready 时 Plan 与 Progress、
+        未就绪时公开失败/等待原因。Plan 正文（说明/步骤/区域/参数/N）必须
+        来自批准白名单与冻结输入快照——结构未冻结（x-detail: skeleton）。
+      x-detail: skeleton
+      required: [planId, generationStatus]
+      additionalProperties: false
+      properties:
+        planId: { type: string, format: uuid }
+        generationStatus: { type: string, enum: [waiting_inputs, generating, ready, failed] }
+        plan:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: 统一方案（结构未冻结；禁止返回供应商原始响应/提示词）
+        progress: { allOf: [{ $ref: '#/components/schemas/Progress' }], nullable: true }
+        waitingReason: { type: string, nullable: true, description: 未就绪公开原因（等待能力/生成失败等） }
+    M4A03Metadata:
+      type: object
+      description: >-
+        M4-A03 multipart `metadata` part。控制端身份由服务端会话派生；
+        APP 提供有权使用的 planId；云台提供 currentTaskId +
+        currentAssessmentRevision（方案由后端从当前任务确定）——按调用角色
+        校验二选一；请求体 memberId/controller 不决定归属。connectionProof
+        绑定控制端+微晶+当前连接。
+      x-detail: skeleton
+      required: [microcrystalId, connectionProof, capture, consentEvidenceRef]
+      additionalProperties: false
+      properties:
+        microcrystalId: { type: string, format: uuid }
+        connectionProof: { type: string }
+        capture: { $ref: '#/components/schemas/Capture' }
+        consentEvidenceRef: { type: string, minLength: 1, maxLength: 128 }
+        planId: { allOf: [{ type: string, format: uuid }], nullable: true, description: APP 调用者提供 }
+        currentTaskId: { allOf: [{ type: string, format: uuid }], nullable: true, description: 云台调用者提供 }
+        currentAssessmentRevision: { allOf: [{ $ref: '#/components/schemas/BigintString' }], nullable: true, description: 云台调用者提供——当前任务代次 }
+    ControllerRef:
+      type: object
+      description: 固定控制端（服务端确定）。类型与 T13 principal_type 一致：app_account / gimbal。
+      x-detail: skeleton
+      required: [controllerType]
+      additionalProperties: false
+      properties:
+        controllerType: { type: string, enum: [app_account, gimbal] }
+        installationId: { type: string, nullable: true, description: APP 控制端安装实例 }
+        gimbalId: { allOf: [{ type: string, format: uuid }], nullable: true, description: 云台控制端 }
+    CareExecutionAdmission:
+      type: object
+      description: >-
+        M4-A03 输出（DD）：executionId、status=admitted、固定控制端、已核验
+        成员关联、方案执行投影、N/已有 K/剩余量（Progress）、Verification、
+        本次核验关联；“已登记/待端侧确认”，不宣称已运行。方案执行简版结构
+        未冻结（x-detail: skeleton）。
+      x-detail: skeleton
+      required: [executionId, status, controller, progress, verification]
+      additionalProperties: false
+      properties:
+        executionId: { type: string, format: uuid }
+        status: { type: string, enum: [admitted] }
+        controller: { $ref: '#/components/schemas/ControllerRef' }
+        memberId: { allOf: [{ type: string, format: uuid }], nullable: true, description: 已核验成员关联（本人会话可见） }
+        planId: { allOf: [{ type: string, format: uuid }], nullable: true }
+        planExecution: { type: object, nullable: true, additionalProperties: true, description: 执行必需步骤/区域/参数（微晶协议白名单，未冻结） }
+        progress: { $ref: '#/components/schemas/Progress' }
+        verification: { $ref: '#/components/schemas/Verification' }
+        recordStreamEpoch: { type: string, nullable: true, description: 后端以 executionId 派生并返回的记录流 epoch（DD 6.3） }
+    M4A04Metadata:
+      type: object
+      description: M4-A04 multipart `metadata` part（DD）：expectedVerificationRevision、capture、consentEvidenceRef；face 为独立图片 part
+      required: [expectedVerificationRevision, capture, consentEvidenceRef]
+      additionalProperties: false
+      properties:
+        expectedVerificationRevision: { $ref: '#/components/schemas/BigintString' }
+        capture: { $ref: '#/components/schemas/Capture' }
+        consentEvidenceRef: { type: string, minLength: 1, maxLength: 128 }
+        reportedMicrocrystalState: { type: object, nullable: true, additionalProperties: true, description: "客户端上报的微晶实际状态（结构待定，x-detail: skeleton）" }
+    CareExecutionRevalidation:
+      type: object
+      description: >-
+        M4-A04 输出（DD）：原 executionId、保留进度（同成员且仍可恢复时
+        原方案 + Progress）、更新后的 Verification 和允许投影；执行不会
+        自动变 running。不允许恢复以 409 EXECUTION_NOT_RESUMABLE 表达。
+      x-detail: skeleton
+      required: [executionId, status, progress, verification]
+      additionalProperties: false
+      properties:
+        executionId: { type: string, format: uuid }
+        status: { type: string, enum: [admitted, running, paused, unknown, stopped, closed], description: 当前执行状态（重验不自动改变） }
+        planId: { allOf: [{ type: string, format: uuid }], nullable: true }
+        planExecution: { type: object, nullable: true, additionalProperties: true, description: 沿用原方案的执行简版投影（结构未冻结） }
+        progress: { $ref: '#/components/schemas/Progress' }
+        verification: { $ref: '#/components/schemas/Verification' }
+    ExecutionObservation:
+      type: object
+      description: >-
+        实际状态观察（DD 6.3）：仅接受匹配执行流且 seq 更大的观察；同 seq
+        同内容忽略、异内容冲突；观察序号与记录序号是两条独立递增序列。
+      required: [epoch, seq, state, occurredAt]
+      additionalProperties: false
+      properties:
+        epoch: { type: string, minLength: 1, maxLength: 128, description: 记录/观察流 epoch（后端派生并返回） }
+        seq: { $ref: '#/components/schemas/BigintString' }
+        state: { type: string, enum: [running, paused, unknown, stopped] }
+        occurredAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+        verificationRevision: { allOf: [{ $ref: '#/components/schemas/BigintString' }], nullable: true }
+        continuityValid: { type: boolean, nullable: true, description: 客户端使用者连续性是否仍成立 }
+    ExecutionRecord:
+      type: object
+      description: >-
+        有效完成记录（DD 6.3）：recordId 为客户端稳定去重标识（≤128）；
+        sourceSeq 从 1 连续递增；countDelta 为正增量（bigint 字符串）；
+        所有记录为不重叠增量。记录归属从 T07 派生，不由客户端填写。
+      required: [recordId, sourceEpoch, sourceSeq, countDelta, occurredAt]
+      additionalProperties: false
+      properties:
+        recordId: { type: string, minLength: 1, maxLength: 128 }
+        sourceEpoch: { type: string, minLength: 1, maxLength: 128 }
+        sourceSeq: { $ref: '#/components/schemas/BigintString' }
+        countDelta: { $ref: '#/components/schemas/BigintString' }
+        occurredAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+    ExecutionObservationSyncRequest:
+      type: object
+      description: M4-A05 输入（DD）：可选 observation + records[]（可为空）；批次 Idempotency-Key 在请求头
+      required: [records]
+      additionalProperties: false
+      properties:
+        observation: { allOf: [{ $ref: '#/components/schemas/ExecutionObservation' }], nullable: true }
+        records:
+          type: array
+          maxItems: 200
+          description: 记录批次上限 200（开发初值 DD 12.1）
+          items: { $ref: '#/components/schemas/ExecutionRecord' }
+    AcknowledgedRecord:
+      type: object
+      description: M4-A05 逐记录处置结果（DD：接收/重复/拒绝）
+      required: [recordId, disposition]
+      additionalProperties: false
+      properties:
+        recordId: { type: string }
+        disposition: { type: string, enum: [accepted, duplicate, rejected] }
+        rejectReason: { type: string, nullable: true, description: 仅调用方可见原因（结构未冻结） }
+    ExecutionObservationAck:
+      type: object
+      description: >-
+        M4-A05 输出（DD）：acknowledgedRecords、executionStatus、
+        acceptedCount（后端累计 K）；有读取权限才附 Progress；剩余
+        max(N-K,0) 与完成状态在 Progress 内。
+      required: [acknowledgedRecords, executionStatus, acceptedCount]
+      additionalProperties: false
+      properties:
+        acknowledgedRecords:
+          type: array
+          items: { $ref: '#/components/schemas/AcknowledgedRecord' }
+        executionStatus: { type: string, enum: [admitted, running, paused, unknown, stopped, closed] }
+        acceptedCount: { $ref: '#/components/schemas/BigintString' }
+        progress: { allOf: [{ $ref: '#/components/schemas/Progress' }], nullable: true, description: 仅具备读取权限时附带 }
+    ExecutionClosureRequest:
+      type: object
+      description: >-
+        M4-A06 输入（DD 6.4 示例）：stopObservationSeq、reason、
+        recordStreamEpoch、finalRecordSeq、finalCount。finalRecordSeq=W
+        表示记录流承诺范围 1..W；W=0 时要求无记录且 finalCount=0。
+      required: [stopObservationSeq, reason, recordStreamEpoch, finalRecordSeq, finalCount]
+      additionalProperties: false
+      properties:
+        stopObservationSeq: { $ref: '#/components/schemas/BigintString' }
+        reason: { type: string, description: "结束原因（枚举未冻结，如 user_finished；x-detail: skeleton）" }
+        recordStreamEpoch: { type: string, minLength: 1, maxLength: 128 }
+        finalRecordSeq: { $ref: '#/components/schemas/BigintString' }
+        finalCount: { $ref: '#/components/schemas/BigintString' }
+    MissingRange:
+      type: object
+      required: [from, to]
+      additionalProperties: false
+      description: 记录缺口范围（有上限输出；不生成与巨大 W 成比例的数组）
+      properties:
+        from: { $ref: '#/components/schemas/BigintString' }
+        to: { $ref: '#/components/schemas/BigintString' }
+    ExecutionClosureResult:
+      type: object
+      description: M4-A06 输出（DD）：closed/closedAt/occupancyReleased；409 时经 details 返回最小对账信息
+      required: [closed, occupancyReleased]
+      additionalProperties: false
+      properties:
+        closed: { type: boolean }
+        closedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        occupancyReleased: { type: boolean }
+        pendingReconciliation: { type: boolean, nullable: true, description: 仍待实际状态确认/记录对账 }
+        missingRanges:
+          type: array
+          nullable: true
+          items: { $ref: '#/components/schemas/MissingRange' }
+        more: { type: boolean, nullable: true, description: 缺口超出输出上限标志 }
+    CareExecutionView:
+      type: object
+      description: >-
+        M4-A07 输出（DD）：固定成员/微晶/方案/控制端、已知实际状态及新鲜度、
+        记录确认状态、是否已关闭；按权限裁剪——原端最小对账投影不含成员
+        资料/方案正文/跨执行总进度（x-detail: skeleton，裁剪矩阵见 DD 4.3/6.1）。
+      x-detail: skeleton
+      required: [executionId, status, acceptedCount]
+      additionalProperties: false
+      properties:
+        executionId: { type: string, format: uuid }
+        status: { type: string, enum: [admitted, running, paused, unknown, stopped, closed] }
+        controller: { allOf: [{ $ref: '#/components/schemas/ControllerRef' }], nullable: true }
+        memberId: { allOf: [{ type: string, format: uuid }], nullable: true, description: 仅具备成员查看权时返回 }
+        planId: { allOf: [{ type: string, format: uuid }], nullable: true, description: 仅具备成员查看权时返回 }
+        microcrystalId: { allOf: [{ type: string, format: uuid }], nullable: true }
+        acceptedCount: { $ref: '#/components/schemas/BigintString' }
+        latestObservation: { allOf: [{ $ref: '#/components/schemas/ExecutionObservation' }], nullable: true, description: 已知实际状态及新鲜度（原端最小投影可省略） }
+        recordWatermark:
+          type: object
+          nullable: true
+          additionalProperties: false
+          properties:
+            epoch: { type: string }
+            maxSourceSeq: { $ref: '#/components/schemas/BigintString' }
+            acceptedCount: { $ref: '#/components/schemas/BigintString' }
+        acknowledgedRecordIds:
+          type: array
+          nullable: true
+          items: { type: string }
+          description: 进度同步确认范围（客户端只清理已确认部分）
+        closedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        progress: { allOf: [{ $ref: '#/components/schemas/Progress' }], nullable: true, description: 仅具备查看权时返回跨执行总进度 }
+    CareExecutionListItem:
+      type: object
+      description: M4-A09 items 元素（DD）：executionId、status、createdAt、closedAt、acceptedCount、planSnapshotSummary（快照摘要结构未冻结）
+      x-detail: skeleton
+      required: [executionId, status, createdAt, acceptedCount]
+      additionalProperties: false
+      properties:
+        executionId: { type: string, format: uuid }
+        status: { type: string, enum: [admitted, running, paused, unknown, stopped, closed] }
+        createdAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+        closedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        acceptedCount: { $ref: '#/components/schemas/BigintString' }
+        planSnapshotSummary: { type: object, additionalProperties: true, nullable: true }
+    CareExecutionListData:
+      allOf:
+        - $ref: '#/components/schemas/ListData'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/CareExecutionListItem' }
+    # ---------- M5 ----------
+    NotificationDestinationRequest:
+      type: object
+      description: >-
+        M5-A01 输入（DD）：provider、platform=android、registration、
+        expectedDestinationRevision（首次 "0"）。推送通道未选定——
+        registration 结构待定（x-detail: skeleton）；服务端不回传完整
+        推送 token。
+      x-detail: skeleton
+      required: [provider, platform, registration, expectedDestinationRevision]
+      additionalProperties: false
+      properties:
+        provider: { type: string, minLength: 1, maxLength: 64, description: 推送通道提供方（未选定） }
+        platform: { type: string, enum: [android] }
+        registration: { type: object, additionalProperties: true, description: 通道目标资料（字段待定） }
+        expectedDestinationRevision: { $ref: '#/components/schemas/BigintString' }
+    NotificationDestinationView:
+      type: object
+      description: M5-A01 输出（DD）：destinationId、destinationRevision、status；不回传完整推送 token
+      required: [destinationId, destinationRevision, status]
+      additionalProperties: false
+      properties:
+        destinationId: { type: string, format: uuid }
+        destinationRevision: { $ref: '#/components/schemas/BigintString' }
+        status: { type: string, enum: [active, disabled, invalid] }
+    # ---------- Foundation 认证 ----------
+    SmsChallengeRequest:
+      type: object
+      description: "基础协议输入：phone + purpose=login。E.164 格式为开发建议（x-detail: skeleton）。"
+      x-detail: skeleton
+      required: [phone, purpose]
+      additionalProperties: false
+      properties:
+        phone: { type: string, pattern: '^\+[1-9][0-9]{6,14}$', description: 手机号（E.164 建议；服务端规范化后送提供方） }
+        purpose: { type: string, enum: [login] }
+    SmsChallenge:
+      type: object
+      description: 基础协议输出：challengeId + retryAfter；不泄露账号是否已存在
+      x-detail: skeleton
+      required: [challengeId, retryAfter]
+      additionalProperties: false
+      properties:
+        challengeId: { type: string, minLength: 1, maxLength: 128 }
+        retryAfter: { type: integer, minimum: 0, description: 建议重试等待秒数 }
+    AppSessionRequest:
+      type: object
+      description: >-
+        基础协议输入：challengeId、code、安装绑定材料。真实提供方会话与
+        安装绑定协议未选定（x-detail: skeleton）；不可仅接受裸
+        installationId。
+      x-detail: skeleton
+      required: [challengeId, code, installationId]
+      additionalProperties: false
+      properties:
+        challengeId: { type: string }
+        code: { type: string, description: 短信验证码（不写日志） }
+        installationId: { type: string, minLength: 1, maxLength: 128 }
+        installBindingMaterial: { type: object, additionalProperties: true, nullable: true, description: 提供方要求的安装绑定材料（格式待定） }
+    SessionRefreshRequest:
+      type: object
+      description: "基础协议输入：真实刷新凭据（名称/格式随选定会话协议，x-detail: skeleton）"
+      x-detail: skeleton
+      required: [refreshCredential]
+      additionalProperties: false
+      properties:
+        refreshCredential: { type: string, description: 刷新凭据（不写日志；不得存明文于 T09/T13） }
+        installationId: { type: string, minLength: 1, maxLength: 128, nullable: true }
+    AppSession:
+      type: object
+      description: >-
+        基础协议输出：会话凭据 + 本地 accountId。token 字段名为开发建议
+        （不建会话存储表；不返回供应商内部诊断，x-detail: skeleton）。
+      x-detail: skeleton
+      required: [accountId, accessToken, tokenType, expiresAt]
+      additionalProperties: false
+      properties:
+        accountId: { type: string, format: uuid, description: 本地账号 ID（T14.id） }
+        accessToken: { type: string, description: APP session token（后续 Bearer 使用） }
+        refreshToken: { type: string, nullable: true, description: 轮换刷新凭据（提供方协议决定） }
+        tokenType: { type: string, enum: [Bearer] }
+        expiresAt: { $ref: '#/components/schemas/Rfc3339Utc' }
+    # ---------- Foundation system（echo-jobs） ----------
+    SystemEchoJobRequest:
+      type: object
+      description: >-
+        f06 输入：message（≤512，允许中文）、numbersAsStrings（≤32 项，
+        bigint 十进制字符串）、jobId 可选客户端 UUID（作为 dedup_key 后缀，
+        缺省由服务端生成）。未知字段拒绝。
+      required: [message, numbersAsStrings]
+      additionalProperties: false
+      properties:
+        message: { type: string, minLength: 0, maxLength: 512 }
+        numbersAsStrings:
+          type: array
+          maxItems: 32
+          items: { $ref: '#/components/schemas/BigintString' }
+        jobId: { allOf: [{ type: string, format: uuid }], nullable: true }
+    SystemEchoJobAccepted:
+      type: object
+      description: f06 输出：受理/重放的任务标识（status 为投影当前状态；新入队为 queued）
+      required: [jobId, dedupKey, status]
+      additionalProperties: false
+      properties:
+        jobId: { type: string, format: uuid }
+        dedupKey: { type: string, description: "system:echo:<uuid>（T12 唯一去重键）" }
+        status: { type: string, enum: [queued, running, succeeded, failed, cancelled] }
+    SystemEchoJobView:
+      type: object
+      description: >-
+        f07 输出：async_jobs 行投影；attemptCount/leaseRevision 为 bigint
+        十进制字符串；finishedAt/lastError 未到终态时为 null。
+      required: [jobId, status, attemptCount, leaseRevision, finishedAt, lastError]
+      additionalProperties: false
+      properties:
+        jobId: { type: string, format: uuid }
+        status: { type: string, enum: [queued, running, succeeded, failed, cancelled] }
+        attemptCount: { $ref: '#/components/schemas/BigintString' }
+        leaseRevision: { allOf: [{ $ref: '#/components/schemas/BigintString' }], nullable: true }
+        finishedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        lastError:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: 可诊断失败摘要（结构随 worker 回写；不含凭据/堆栈）

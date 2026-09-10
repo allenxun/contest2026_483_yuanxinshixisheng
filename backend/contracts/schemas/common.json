@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mvp:contracts:schemas:common.json",
+  "title": "MVP 共享基础类型（DB 相邻 / async_jobs payload 层，snake_case）",
+  "description": "本目录 JSON Schema 治理数据库相邻的任务交接 JSON（snake_case），不治理 HTTP JSON（HTTP 为 camelCase，契约在 openapi/openapi.yaml）。bigint 一律十进制字符串；schema_version 一律 JSON 整数（.coordination/A decisions #9/#10）。",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+      "description": "UUID 文本（服务端生成，任意版本含 UUIDv5；落库/日志使用小写规范形式）"
+    },
+    "bigint_string": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "description": "无符号 64 位整数的十进制字符串（revision/seq/计数）。signed 变体 ^-?(0|[1-9][0-9]*)$ 在 MVP 契约中不使用。"
+    },
+    "rfc3339_utc": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$",
+      "description": "RFC 3339 UTC 时间（Z 结尾）；跨语言一致"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "payload 结构版本，JSON 整数（非 bigint 字符串）；各 payload schema 用 const 收紧"
+    }
+  }
+}

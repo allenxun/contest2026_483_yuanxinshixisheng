@@ -1,0 +1,195 @@
+package cn.yuanxin.mvp.web.system;
+
+import cn.yuanxin.mvp.web.auth.PrincipalContext;
+import cn.yuanxin.mvp.web.error.ApiException;
+import cn.yuanxin.mvp.web.error.ErrorCode;
+import cn.yuanxin.mvp.web.idempotency.BeginOutcome;
+import cn.yuanxin.mvp.web.idempotency.CanonicalObjectBuilder;
+import cn.yuanxin.mvp.web.idempotency.IdempotencyHandle;
+import cn.yuanxin.mvp.web.idempotency.IdempotencyService;
+import cn.yuanxin.mvp.web.jobs.JobEnqueuer;
+import cn.yuanxin.mvp.web.web.EnvelopeSupport;
+import cn.yuanxin.mvp.web.web.SuccessEnvelope;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * 基础系统端点（跨语言 E2E 验收桥，x-foundation / x-implementation:
+ * foundation-system；不计入 27）：
+ *
+ * <ul>
+ *   <li>POST /api/v1/system/echo-jobs：已认证主体（APP 或 GIMBAL）提交回声
+ *       任务 → 经 JobEnqueuer 入队 system.echo（owner=system，
+ *       owner_id=uuid5(FIXED_NS, dedup_key)，payload 带 schema_version=1、
+ *       bigint 字符串）。Idempotency-Key 可选：提供时走 T13
+ *       （operation=system.echo.create），重放同 jobId + meta.replayed=true。</li>
+ *   <li>GET /api/v1/system/echo-jobs/{jobId}：投影 async_jobs 当前状态
+ *       （attemptCount/leaseRevision 为 bigint 字符串）。</li>
+ * </ul>
+ *
+ * <p>本端点是 B/C/D 接线 T13 + JobEnqueuer + PrincipalContext 的参照实现。</p>
+ */
+@RestController
+@RequestMapping("/api/v1/system/echo-jobs")
+public class SystemEchoController {
+
+    /** 契约固定 operation（canonicalObject 首键）。 */
+    public static final String OPERATION = "system.echo.create";
+    public static final String JOB_TYPE = "system.echo";
+
+    private final JobEnqueuer jobEnqueuer;
+    private final IdempotencyService idempotencyService;
+    private final TransactionTemplate txTemplate;
+    private final JdbcTemplate jdbc;
+    private final EnvelopeSupport envelopes;
+
+    public SystemEchoController(JobEnqueuer jobEnqueuer, IdempotencyService idempotencyService,
+                                TransactionTemplate txTemplate, JdbcTemplate jdbc,
+                                EnvelopeSupport envelopes) {
+        this.jobEnqueuer = jobEnqueuer;
+        this.idempotencyService = idempotencyService;
+        this.txTemplate = txTemplate;
+        this.jdbc = jdbc;
+        this.envelopes = envelopes;
+    }
+
+    public record EchoJobRequestBody(
+            @NotBlank @Size(max = 512) String message,
+            @Size(max = 32) List<@Pattern(regexp = "^(0|[1-9][0-9]*)$",
+                    message = "numbersAsStrings items must be unsigned decimal bigint strings") String>
+                    numbersAsStrings,
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
+                    + "[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    message = "jobId must be a UUID string") String jobId) {
+    }
+
+    public record EchoJobAcceptedData(String jobId, String dedupKey, String status) {
+    }
+
+    public record EchoJobViewData(String jobId, String status, String attemptCount,
+                                  String leaseRevision, String finishedAt, Object lastError) {
+    }
+
+    @PostMapping
+    public ResponseEntity<SuccessEnvelope> create(@Valid @RequestBody EchoJobRequestBody body,
+                                                  @RequestHeader(value = "Idempotency-Key",
+                                                          required = false)
+                                                  @Size(max = 128) String idempotencyKey,
+                                                  PrincipalContext principal,
+                                                  HttpServletRequest request) {
+        List<String> numbers = body.numbersAsStrings() == null ? List.of() : body.numbersAsStrings();
+        String dedupKey = "system:echo:"
+                + (body.jobId() != null ? body.jobId().toLowerCase(java.util.Locale.ROOT)
+                        : UUID.randomUUID().toString());
+
+        // canonical：message + numbersAsStrings（有序数组保持原序）+ jobId（缺省展开为 null）
+        Map<String, Object> fields = new LinkedHashMap<>();
+        fields.put("message", body.message());
+        fields.put("numbersAsStrings", numbers);
+        fields.put("jobId", body.jobId() == null ? null : body.jobId().toLowerCase(java.util.Locale.ROOT));
+        String payloadHash = CanonicalObjectBuilder.forOperation(OPERATION)
+                .fields(fields)
+                .payloadHash();
+
+        IdempotencyHandle handle = null;
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            BeginOutcome outcome = idempotencyService.begin(principal.t13PrincipalType(),
+                    principal.t13PrincipalId(), OPERATION, idempotencyKey, payloadHash);
+            switch (outcome) {
+                case BeginOutcome.ReplaySucceeded replay -> {
+                    request.setAttribute(EnvelopeSupport.ATTR_REPLAYED, Boolean.TRUE);
+                    EchoJobAcceptedData data = projectReplay(replay, dedupKeyOf(replay));
+                    return ResponseEntity.ok(envelopes.ok(request, data, true));
+                }
+                case BeginOutcome.ReplayRejected rejected ->
+                        throw IdempotencyService.replayedRejection(rejected);
+                case BeginOutcome.NewAttempt fresh -> handle = fresh.handle();
+            }
+        }
+
+        // 受理 + 入队 + T13 succeeded 同一事务（digest §4：提交即完成交接）
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("schema_version", 1);
+        payload.put("message", body.message());
+        payload.put("numbers_as_strings", numbers);
+        final UUID serverJobId = UUID.randomUUID();
+        final IdempotencyHandle h = handle;
+        JobEnqueuer.JobEnqueueResult result = txTemplate.execute(status -> {
+            JobEnqueuer.JobEnqueueResult r = jobEnqueuer.enqueue(JOB_TYPE, "system",
+                    JobEnqueuer.systemOwnerFor(dedupKey), 0, payload, dedupKey);
+            if (h != null) {
+                idempotencyService.completeSuccess(h, "async_job", r.jobId(),
+                        Map.of("jobId", r.jobId().toString(), "dedupKey", dedupKey));
+            }
+            return r;
+        });
+        return ResponseEntity.ok(envelopes.ok(request,
+                new EchoJobAcceptedData(result.jobId().toString(), dedupKey, result.status())));
+    }
+
+    @GetMapping("/{jobId}")
+    public SuccessEnvelope get(@PathVariable("jobId") UUID jobId, PrincipalContext principal,
+                               HttpServletRequest request) {
+        var rows = jdbc.query("SELECT id, status, attempt_count, lease_revision, finished_at,"
+                        + " last_error::text AS last_error"
+                        + " FROM async_jobs WHERE id = ?",
+                (rs, i) -> new EchoJobViewData(
+                        rs.getObject("id", UUID.class).toString(),
+                        rs.getString("status"),
+                        String.valueOf(rs.getLong("attempt_count")),
+                        String.valueOf(rs.getLong("lease_revision")),
+                        rs.getTimestamp("finished_at") == null ? null
+                                : EnvelopeSupport.rfc3339(rs.getTimestamp("finished_at").toInstant()),
+                        parseError(rs.getString("last_error"))),
+                jobId);
+        if (rows.isEmpty()) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_VISIBLE, "job not visible");
+        }
+        return envelopes.ok(request, rows.get(0));
+    }
+
+    private Object parseError(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper().readTree(raw);
+        } catch (Exception e) {
+            return raw;
+        }
+    }
+
+    private static String dedupKeyOf(BeginOutcome.ReplaySucceeded replay) {
+        return replay.resultSummary().path("dedupKey").asText(null);
+    }
+
+    /** succeeded 重放：只定位原资源，按当前 DB 状态投影（不重复入队）。 */
+    private EchoJobAcceptedData projectReplay(BeginOutcome.ReplaySucceeded replay, String dedupKey) {
+        if (!"async_job".equals(replay.resourceType()) || replay.resourceId() == null) {
+            throw new ApiException(ErrorCode.INTERNAL, "unexpected replay resource");
+        }
+        var statuses = jdbc.query("SELECT status FROM async_jobs WHERE id = ?",
+                (rs, i) -> rs.getString("status"), replay.resourceId());
+        String status = statuses.isEmpty() ? "unknown" : statuses.get(0);
+        return new EchoJobAcceptedData(replay.resourceId().toString(), dedupKey, status);
+    }
+}
