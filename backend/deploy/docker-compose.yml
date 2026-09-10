@@ -46,6 +46,8 @@ services:
       APP_STORAGE_BUCKET: ${APP_STORAGE_BUCKET:-mvp-a-media}
       APP_IMAGE_MAX_BYTES: ${APP_IMAGE_MAX_BYTES:-10485760}
       APP_IDEMPOTENCY_LEASE_SECONDS: ${APP_IDEMPOTENCY_LEASE_SECONDS:-30}
+      # 入队权威：写 async_jobs.max_attempts 的默认（与 worker 重试配置对齐）
+      JOB_MAX_ATTEMPTS: ${JOB_MAX_ATTEMPTS:-5}
     volumes:
       - media:/var/lib/mvp-a/media
     # web 健康检查由镜像 Dockerfile HEALTHCHECK 提供（eclipse-temurin:21-jre 内已
@@ -77,8 +79,12 @@ services:
       MVP_WORKER_HEALTH_PORT: ${MVP_WORKER_HEALTH_PORT:-8081}
       MVP_WORKER_ENVIRONMENT: ${MVP_WORKER_ENVIRONMENT:-dev}
       MVP_A_STORAGE_DEV_DIR: /var/lib/mvp-a/media                  # 与 web 共享同一存储根
+      # 契约目录（payload 校验只读引用）：镜像不含 contracts，用只读 bind mount 提供，
+      # 使 system.echo 等 payload 校验在容器内可用（MVP_CONTRACTS_DIR 指向挂载点）。
+      MVP_CONTRACTS_DIR: /app/contracts
     volumes:
       - media:/var/lib/mvp-a/media
+      - ../contracts:/app/contracts:ro
     healthcheck:
       # 零依赖探测：容器内 python urllib → 127.0.0.1:8081/healthz
       test: ["CMD", "python", "-c", "import os,urllib.request as u; u.urlopen('http://127.0.0.1:'+os.environ.get('MVP_WORKER_HEALTH_PORT','8081')+'/healthz', timeout=3)"]
@@ -88,6 +94,9 @@ services:
       start_period: 15s
     depends_on:
       pg:
+        condition: service_healthy
+      # web 负责 Flyway 建表：等其健康再领取，避免启动期 relation 不存在噪声
+      web:
         condition: service_healthy
 
   nginx:

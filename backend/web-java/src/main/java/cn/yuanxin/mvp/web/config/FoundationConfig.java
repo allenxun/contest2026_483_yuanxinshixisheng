@@ -51,23 +51,27 @@ public class FoundationConfig {
     }
 
     /**
-     * 媒体授权默认 = OwnerBasedMediaAccessPolicy（仅上传者本人可读，被拒/缺失
-     * 统一 404，不泄露存在性）。仅 dev 联调可显式
-     * {@code app.media.allow-any-authenticated=true} 打开"任意已认证可读"；
-     * app.env=production 时该开关被拒绝（启动失败，fail closed）。
-     * B/C/D 业务授权实现以 @Primary 覆盖本默认。
+     * 媒体授权默认 = {@link cn.yuanxin.mvp.web.media.DenyAllMediaAccessPolicy}
+     * （生产安全默认：任何 GET 统一 404，直到 B/C/D 安装业务 @Primary 实现）。
+     * dev/test 可经 {@code app.media.access-mode=owner-dev} 启用仅上传者本人
+     * 便利（核验用途仍拒绝）或 {@code any-authenticated}/{@code
+     * allow-any-authenticated=true} 显式开放。
+     *
+     * <p>production 的拒绝<b>不在此处</b>（@ConditionalOnMissingBean 在存在
+     * 其它 policy bean 时会被整体跳过）：由无声明的
+     * {@link ProductionFailClosedValidator} 无条件执行，无论哪个 bean 获胜。</p>
      */
     @Bean
     @ConditionalOnMissingBean(MediaAccessPolicy.class)
     public MediaAccessPolicy mediaAccessPolicy(AppProperties props) {
-        if (props.media().allowAnyAuthenticated()) {
-            if ("production".equals(props.env())) {
-                throw new IllegalStateException("production fail-closed:"
-                        + " app.media.allow-any-authenticated=true is refused in"
-                        + " production (open media read bypasses owner/business authorization)");
-            }
+        AppProperties.Media media = props.media();
+        if (media.allowAnyAuthenticated()
+                || AppProperties.MEDIA_MODE_ANY_AUTHENTICATED.equals(media.accessModeOrDefault())) {
             return new AllowAuthenticatedMediaAccessPolicy();
         }
-        return new cn.yuanxin.mvp.web.media.OwnerBasedMediaAccessPolicy();
+        if (AppProperties.MEDIA_MODE_OWNER_DEV.equals(media.accessModeOrDefault())) {
+            return new cn.yuanxin.mvp.web.media.OwnerBasedMediaAccessPolicy();
+        }
+        return new cn.yuanxin.mvp.web.media.DenyAllMediaAccessPolicy();
     }
 }

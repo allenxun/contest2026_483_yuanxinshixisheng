@@ -31,9 +31,11 @@ public class ProductionFailClosedValidator implements SmartInitializingSingleton
     private static final Logger log = LoggerFactory.getLogger(ProductionFailClosedValidator.class);
 
     private final ApplicationContext context;
+    private final AppProperties props;
 
-    public ProductionFailClosedValidator(ApplicationContext context) {
+    public ProductionFailClosedValidator(ApplicationContext context, AppProperties props) {
         this.context = context;
+        this.props = props;
     }
 
     @Override
@@ -44,10 +46,20 @@ public class ProductionFailClosedValidator implements SmartInitializingSingleton
         requireReal(problems, "DeviceCredentialProvider", DeviceCredentialProvider.class);
         requireReal(problems, "FaceProvider", FaceProvider.class);
         requireReal(problems, "StoragePort", StoragePort.class);
+        // 媒体授权 fail closed（oracle round-2 R2-1/R2-6）：无条件执行，独立于
+        // MediaAccessPolicy bean 装配（@ConditionalOnMissingBean 可能被覆盖跳过）。
+        if (props.media().allowAnyAuthenticated()) {
+            problems.add("app.media.allow-any-authenticated=true (open media read is refused in production)");
+        }
+        if (!props.media().defaultMode()) {
+            problems.add("app.media.access-mode=" + props.media().accessModeOrDefault()
+                    + " (production requires deny-all until a business @Primary MediaAccessPolicy is installed)");
+        }
         if (!problems.isEmpty()) {
-            String msg = "production fail-closed: real capability provider(s) missing -> " + problems
-                    + " (configure app.providers.mode=real with production implementations;"
-                    + " test doubles may never serve production)";
+            String msg = "production fail-closed: unsafe production configuration -> " + problems
+                    + " (configure app.providers.mode=real with production implementations and"
+                    + " app.media.access-mode=deny-all; test doubles may never serve production,"
+                    + " and open/owner media reads need a business @Primary MediaAccessPolicy)";
             log.error(msg);
             throw new IllegalStateException(msg);
         }

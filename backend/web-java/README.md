@@ -15,7 +15,8 @@ Spring Boot 3.5.16（Boot BOM 锁定：Flyway 11.7.2、PG driver 42.7.11、Hikar
   列表 data=`{items, nextCursor}`；错误 `{requestId, error:{code,message,retryable,details}}`。
 - 幂等：T13 `IdempotencyService`（见下）；媒体：T11 + StoragePort；任务：T12 `JobEnqueuer`。
 - 跨语言规范化：`idempotency/Jcs`（RFC 8785，**行为基准=contracts/scripts/jcs.py**，
-  14 向量字节一致复现；解析启用 Jackson STRICT_DUPLICATE_DETECTION 拒重复键；
+  17 向量字节一致复现（含 UTF-16 code unit 键序判别向量）；解析启用 Jackson
+  STRICT_DUPLICATE_DETECTION 拒重复键；
   注意：jcs.py 对 1e-4≤|v|<1 非整值 double 有已知小数点缺陷，Java 侧为字节兼容忠实复现，
   已上报总协调待契约 lane 修订——本项目契约数据不落入该区间）。
 
@@ -29,7 +30,7 @@ Spring Boot 3.5.16（Boot BOM 锁定：Flyway 11.7.2、PG driver 42.7.11、Hikar
 | `testdouble/` | 仅 dev/test 的隔离替身：InMemorySessionDouble、SmsCodeDouble（固定码 123456）、DeviceCredentialDouble（对照 gimbals 行）、FaceProviderDouble、FileSystemStorageDouble |
 | `idempotency/` | Jcs、CanonicalObjectBuilder、IdempotencyService（begin/completeSuccess/completeRejected、StaleAttemptException） |
 | `jobs/` | JobEnqueuer（dedup 冲突=重放，savepoint 保调用方事务存活）、Uuid5（FIXED_NS=f988d041-6031-5120-8075-f90b6b05553e） |
-| `media/` | StoragePort、MediaService（pending/available/failed + 白名单/限额）、MediaIntakeService（multipart 逐 part 摘要→存储→available）、MediaAccessPolicy + dev 默认、MediaController(`GET /api/v1/media/{mediaId}/content`) |
+| `media/` | StoragePort、MediaService（pending/available/failed + 白名单/限额）、MediaIntakeService（multipart 逐 part 摘要→存储→available）、MediaAccessPolicy 三实现（DenyAll 生产默认 / OwnerBased dev 便利 / AllowAuthenticated dev opt-in）、MediaController(`GET /api/v1/media/{mediaId}/content`) |
 | `system/` | SystemEchoController（echo-jobs POST/GET，T13+T12 接线参照实现） |
 | `stub/` | NotYetImplementedController：26 个 contract-only 端点 → 501 NOT_IMPLEMENTED（在 Bearer 之后：无 token 先 401） |
 | `config/` | AppProperties、FoundationConfig（Jackson 严格解析/TransactionTemplate/参数解析器/媒体授权默认）、TestDoubleProvidersConfig（@Profile dev/test）、DisabledProvidersConfig（mode=disabled→503）、ProductionFailClosedValidator |
@@ -62,8 +63,11 @@ Spring Boot 3.5.16（Boot BOM 锁定：Flyway 11.7.2、PG driver 42.7.11、Hikar
    REQUEST_IN_PROGRESS + Retry-After）。principal 用 `PrincipalContext.t13PrincipalType()/t13PrincipalId()`。
 3. **multipart 受理**：`MediaIntakeService.digest/partDigests` → `begin` →
    `ingest(principal, purpose, t13RequestId, parts)` → 受理事务补 T11 归属列 +
-   `completeSuccess`。available≠可访问：读取授权在 `MediaAccessPolicy` 实现替换
-   （提供 @Primary bean 即覆盖 dev 默认），按 DD 10.2 检查 T05 冻结报告引用/T02/T03。
+   `completeSuccess`。available≠可访问：A 生产默认是 **deny-all**
+   （`DenyAllMediaAccessPolicy`，任何 GET 统一 404）；dev/test 上传者便利用
+   `APP_MEDIA_ACCESS_MODE=owner-dev`（核验用途仍拒绝）。业务读取授权提供
+   `@Primary MediaAccessPolicy` bean 即覆盖默认，按 DD 10.2 检查 T05 冻结报告
+   引用/T02/T03。production 下任何非默认模式均启动失败（fail closed）。
 4. **入队**：业务事务内 `jobEnqueuer.enqueue(jobType, ownerType, ownerId, inputRevision,
    payload(snake_case+schema_version), dedupKey)`；owner_id 用
    `JobEnqueuer.systemOwnerFor/identityNamespaceOwnerFor`（UUIDv5/FIXED_NS）。
@@ -87,7 +91,7 @@ Spring Boot 3.5.16（Boot BOM 锁定：Flyway 11.7.2、PG driver 42.7.11、Hikar
 
 ```bash
 cd backend/web-java
-mvn test          # 75 个：Flyway 迁移 9 + JCS 向量 19 + 单元/上下文 + 真实 PG 集成（*IT）
+mvn test          # 124 个：Flyway 迁移 13 + JCS 向量 45 + 单元/上下文 + 真实 PG 集成（*IT）
 ```
 
 集成测试对隔离容器 `mvp-a-pg`（127.0.0.1:55432）每次运行创建临时库
@@ -115,6 +119,8 @@ curl --noproxy '*' http://127.0.0.1:18080/actuator/health/readiness
 | APP_STORAGE_BUCKET | mvp-a-media | T11 bucket 标记 |
 | APP_IMAGE_MAX_BYTES | 10485760 | 单图上限 |
 | APP_IDEMPOTENCY_LEASE_SECONDS | 30 | T13 processing 租约 |
+| APP_MEDIA_ACCESS_MODE | deny-all | 媒体读取模式：deny-all / owner-dev / any-authenticated（仅 dev/test；production 非默认即拒绝启动） |
+| APP_MEDIA_ALLOW_ANY_AUTHENTICATED | false | 旧显式开关，等价 any-authenticated（production 拒绝） |
 | APP_DOUBLE_SMS_CODE | 123456 | 替身固定验证码 |
 | APP_DOUBLE_FACE | MATCHED | 替身人脸分类结果 |
 

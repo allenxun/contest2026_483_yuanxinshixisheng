@@ -218,13 +218,29 @@ public class IdempotencyService {
     }
 
     /**
-     * result_summary 必须携带 schema_version（V1 ck_idem_result_summary_schema；
-     * DATA §4"所有 JSONB 有 schema_version"）。调用方未显式给出时服务端注入 1。
+     * result_summary 必须携带 <b>JSON 整数</b> schema_version（V1
+     * ck_idem_result_summary_schema 经 jsonb_typeof 类型加固；DATA §4）：
+     * <ul>
+     *   <li>顶层非对象 → 400 INVALID_INPUT（不能序列化为带版本的摘要）；</li>
+     *   <li>缺少 schema_version → 服务端注入整数 1（调用方不需关心）；</li>
+     *   <li>存在但非整数（null / 字符串 / 小数 / 对象 / 数组）→ 400
+     *       INVALID_INPUT；绝不静默改写调用方显式给出的版本。</li>
+     * </ul>
+     * 边界由 SchemaVersionBoundaryTest 锁定。
      */
-    private static void ensureSchemaVersion(JsonNode summary) {
-        if (summary instanceof com.fasterxml.jackson.databind.node.ObjectNode obj
-                && !obj.has("schema_version")) {
+    static void ensureSchemaVersion(JsonNode summary) {
+        if (!(summary instanceof com.fasterxml.jackson.databind.node.ObjectNode obj)) {
+            throw new ApiException(ErrorCode.INVALID_INPUT,
+                    "result summary must be a JSON object carrying schema_version");
+        }
+        JsonNode version = obj.get("schema_version");
+        if (version == null || version.isMissingNode()) {
             obj.put("schema_version", 1);
+            return;
+        }
+        if (!version.isIntegralNumber()) {
+            throw new ApiException(ErrorCode.INVALID_INPUT,
+                    "result summary schema_version must be a JSON integer");
         }
     }
 

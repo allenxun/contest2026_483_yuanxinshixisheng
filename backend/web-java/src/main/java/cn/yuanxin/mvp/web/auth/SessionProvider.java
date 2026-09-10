@@ -27,8 +27,15 @@ public interface SessionProvider {
      */
     IssuedAppSession createAppSession(UUID accountId, String installationId, long authRevision);
 
-    /** 刷新：旧凭据换新凭据（轮换与旧凭据撤销由提供方协议保证）。
-     *  本地账号已 disabled 时必须返回 empty（替身直读 T14 行）。 */
+    /**
+     * 刷新：旧凭据换新凭据（轮换与旧凭据撤销由提供方协议保证）。
+     *
+     * <p><b>不变量（所有实现必须遵守，oracle round-2 R2-2）</b>：刷新必须把
+     * 会话<b>签发时的 auth_revision 快照</b>与当前 {@code accounts.auth_revision}
+     * 比对；不一致（代次已递增 = 全端登出/撤销）或账号已 disabled/行缺失 →
+     * 返回 empty，并连带撤销该会话。实现<b>绝不</b>重新捕获当前 revision 来
+     * “复活”一个已失效代次的会话（那会让全端登出与逐请求复核形同虚设）。</p>
+     */
     Optional<IssuedAppSession> refreshAppSession(String refreshCredential);
 
     /** 撤销当前会话（退出登录）。返回被撤销会话的主体信息供 T09 失效。 */

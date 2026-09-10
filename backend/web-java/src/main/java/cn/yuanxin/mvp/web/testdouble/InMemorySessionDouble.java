@@ -23,8 +23,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * 无 PG 会话表（14 表设计不含；真实提供方未选定，见 digest gap 2）。</p>
  *
  * <p>会话快照携带签发时刻的 accounts.auth_revision（经 jdbc 单行读取）；
- * refresh 直读 T14 行：账号 disabled/行不存在 → empty（控制器映射
- * 401 SESSION_INVALID）。每请求与本地状态的复核在 PrincipalRevalidator。</p>
+ * refresh 直读 T14 行并与<b>签发快照</b>比对：账号 disabled/行不存在/revision
+ * 已递增 → empty（控制器映射 401 SESSION_INVALID），绝不重新捕获当前 revision
+ * 复活旧代次（oracle round-2 R2-2）。每请求与本地状态的复核在
+ * PrincipalRevalidator。</p>
  */
 public class InMemorySessionDouble implements SessionProvider {
 
@@ -83,21 +85,25 @@ public class InMemorySessionDouble implements SessionProvider {
         if (old == null || !old.alive()) {
             return Optional.empty();
         }
-        // 刷新前复核本地账号状态并重新捕获 auth_revision（单行查询，无 JOIN）
-        long authRevision = old.authRevision();
+        // 刷新前复核本地账号状态，并与<b>会话签发快照</b>比对 auth_revision：
+        // 账号 disabled，或 revision 已递增（全端登出协议）→ 拒绝刷新且撤销本会话。
+        // 绝不重新捕获当前 revision 复活一个已被撤销的代次（oracle round-2 R2-2）。
         if (jdbc != null) {
-            List<long[]> snapshot = jdbc.query(
-                    "SELECT auth_revision FROM accounts WHERE id = ? AND status = 'active'",
-                    (rs, i) -> new long[]{rs.getLong("auth_revision")}, old.accountId());
-            if (snapshot.isEmpty()) {
-                revokeBySessionId(sessionId);   // 账号已 disabled：旧会话连带撤销
+            List<Object[]> snapshot = jdbc.query(
+                    "SELECT status, auth_revision FROM accounts WHERE id = ?",
+                    (rs, i) -> new Object[]{rs.getString("status"), rs.getLong("auth_revision")},
+                    old.accountId());
+            boolean stillSameGeneration = !snapshot.isEmpty()
+                    && "active".equals(snapshot.get(0)[0])
+                    && ((Long) snapshot.get(0)[1]).longValue() == old.authRevision();
+            if (!stillSameGeneration) {
+                revokeBySessionId(sessionId);   // 账号 disabled 或代次已变：旧会话连带撤销
                 return Optional.empty();
             }
-            authRevision = snapshot.get(0)[0];
         }
-        // 轮换：撤销旧 access token，签发新对
+        // 轮换：撤销旧 access token，签发新对（新会话沿用同一 revision 快照）
         revokeBySessionId(sessionId);
-        return Optional.of(createAppSession(old.accountId(), old.installationId(), authRevision));
+        return Optional.of(createAppSession(old.accountId(), old.installationId(), old.authRevision()));
     }
 
     @Override

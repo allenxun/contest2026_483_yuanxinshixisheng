@@ -256,7 +256,7 @@ step_c1() { ( cd "$CONTRACTS" && "$CPY" scripts/jcs.py selftest ); }
 check c1 "jcs.py selftest（ES6 Number::toString 权威数对）" "验收：精简 JSON 样例跨语言一致" step_c1
 
 step_c2() { ( cd "$CONTRACTS" && "$CPY" scripts/validate_samples.py | tail -1 ); }
-check c2 "validate_samples.py（样例+16 向量重算）" "验收：精简 JSON 样例跨语言一致" step_c2
+check c2 "validate_samples.py（样例+17 向量重算）" "验收：精简 JSON 样例跨语言一致" step_c2
 
 step_c3() {
   ( cd "$CONTRACTS" && "$CPY" -c "

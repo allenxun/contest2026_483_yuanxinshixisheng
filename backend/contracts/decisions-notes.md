@@ -109,18 +109,25 @@ contract-only）。统计：业务操作 27 + 基础操作 6 = 33 标记、**去
   接线方）、notification.deliver=B、media.cleanup=D（标注 B/C 人脸媒体由
   总协调定稿）。
 
-## 10. JSONB schema_version 列决策 + 媒体归属 + 每请求认证复核（oracle round-1）
+## 10. JSONB schema_version 列决策 + 媒体授权 + 每请求认证复核（oracle round-1/2）
 
 **背景**：DATA §4「所有 JSONB 有 schema_version，结构由服务端校验」。
-V1 现以列级 CHECK 机器执行，三种形态（文件头有同款注释）：
+V1 现以列级 CHECK 机器执行，三种形态（文件头有同款注释；`k = 'schema_version'`）：
 
-- **F 形态** `col = '{}'::jsonb OR jsonb_exists(col,'schema_version')`：
-  NOT NULL DEFAULT '{}' 的阶段性摘要/观测列（空 = 尚未写入；一旦写入
-  非空即必须带 schema_version）。
-- **N 形态** `col IS NULL OR jsonb_exists(col,'schema_version')`：可空业务内容列。
-- **S 形态** `jsonb_exists(col,'schema_version')`：建行即须有内容的事实载荷。
+- **F 形态** `col = '{}'::jsonb OR (jsonb_typeof(col)='object' AND col ? k AND
+  jsonb_typeof(col->k)='number')`：NOT NULL DEFAULT '{}' 的阶段性摘要/观测列
+  （空 = 尚未写入；一旦写入非空即必须是对象且版本为数字）。
+- **N 形态** `col IS NULL OR (jsonb_typeof(col)='object' AND col ? k AND
+  jsonb_typeof(col->k)='number')`：可空业务内容列。
+- **S 形态** `(jsonb_typeof(col)='object' AND col ? k AND
+  jsonb_typeof(col->k)='number')`：建行即须有内容的事实载荷。
 
-逐列决策（26 个列级 CHECK；约束名即 `ck_<表>_<列>_schema`）：
+> 类型加固（oracle round-2 R2-4）：仅 `jsonb_exists` 存在性不足——数组可含
+> 字符串 `"schema_version"`，对象可含 `null`/字符串版本。非占位分支一律要求
+> 对象、键存在（`col ? 'schema_version'`，否则缺键时 `jsonb_typeof(NULL)` 传播
+> 为 NULL 会被 CHECK 放过）且版本为 JSON number（`schema_version: 1` 整数）。
+
+逐列决策（27 个列级 CHECK；约束名即 `ck_<表>_<列>_schema`）：
 
 | 表 | 列 | 形态 | 依据 |
 |---|---|---|---|
@@ -145,15 +152,22 @@ V1 现以列级 CHECK 机器执行，三种形态（文件头有同款注释）�
 **例外（自由格式，不加版本 CHECK）**：`async_jobs.last_error`、
 `media_objects.last_error`、`notifications.last_error`、
 `skin_assessments.failure_detail`、`care_plans.failure_detail`——诊断错误
-快照，非演进业务载荷。
+快照，非演进业务载荷。**（A 包建议，待总协调确认——本例外为实施层约定，
+不代表已获准偏离 DATA §4 的「所有 JSONB 有 schema_version」字面要求。）**
 
-**媒体归属语义（oracle B1）**：A 默认 `OwnerBasedMediaAccessPolicy` =
-仅上传者本人可读，归属列为 `uploader_type`（主体类型小写 app/gimbal）+
-`uploader_ref`（T13 规范主体文本，app 含 installation）。被拒与不存在
-**统一 404 RESOURCE_NOT_VISIBLE**（绝不 403，不泄露存在性）。业务授权读
+**媒体授权语义（oracle round-2 R2-1）**：A 包生产安全默认 =
+**deny-all**（`DenyAllMediaAccessPolicy`，`app.media.access-mode=deny-all`）：
+任何媒体 GET 一律统一 404 `RESOURCE_NOT_VISIBLE`，直到 B/C/D 安装业务
+`@Primary MediaAccessPolicy`。上传者本人可读是**显式 dev/test 便利**
+（`app.media.access-mode=owner-dev`，仅 dev/test 生效）；`grant_face` /
+`execution_face` / `revalidation_face` 等核验用途**即使对上传者也不经此便利
+放行**（保留给 B/C/D 业务策略）。`app.env=production` 下任何非默认
+access-mode 或 `app.media.allow-any-authenticated=true` →
+`ProductionFailClosedValidator` 无条件拒绝启动（与 bean 装配无关）。dev
+联调如需任意已认证可读，用 `access-mode=any-authenticated` 或
+`allow-any-authenticated=true`（production 一律拒绝）。业务授权读
 （DD 10.2 第 2–3 条：T05 冻结报告引用 / T02 有效关系 / T03 当前任务）由
-B/C/D 以 `@Primary MediaAccessPolicy` 覆盖。dev 联调可
-`app.media.allow-any-authenticated=true` 显式开放（production 拒绝启动）。
+B/C/D 以 `@Primary MediaAccessPolicy` 覆盖。
 
 **每请求认证复核成本（oracle B2）**：BearerAuthFilter 在
 SessionProvider.authenticate 后经 `PrincipalRevalidator` 复核本地状态，
