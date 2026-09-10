@@ -573,3 +573,61 @@ def test_n2_http_verdict_wording_boundaries():
     assert "不构成通用脱敏保证" in why_ok
     _, why_missing = ab.n2_http_verdict(200, job, {"data": {"jobId": job}})
     assert "保守" in why_missing and "BLOCKED" in why_missing
+
+
+# ---------- 第九轮：RV jobId 关联判定 + RV-5 INFO 语义 + 哨兵绑定 ----------
+
+def test_rv_projection_verdict_requires_jobid_match():
+    from driver import a_reverify as rv
+    job = "job-1"
+    assert rv.proj_verdict(200, job, {"data": {"jobId": "other", "lastError": None}}, "M")[0] is False
+    assert rv.proj_verdict(200, job, {"data": {"lastError": None}}, "M")[0] is not True
+    assert rv.proj_verdict(200, job, {"data": {"jobId": job}}, "M")[0] is not True
+    assert rv.proj_verdict(200, job, {"data": {"jobId": job,
+                              "lastError": {"reason": "internal", "retryable": True}}}, "M")[0] is True
+    assert rv.proj_verdict(200, job, {"data": {"jobId": job,
+                              "lastError": {"reason": "E_DIAG_MARKER", "retryable": True}}}, "M")[0] is False
+    assert rv.proj_verdict(200, job, {"data": {"jobId": job, "lastError": {
+        "reason": "internal", "retryable": True, "message": "x"}}}, "M")[0] is False
+
+
+def test_rv_queued_verdict_explicit_null_and_jobid():
+    from driver import a_reverify as rv
+    job = "j"
+    ok = {"data": {"jobId": job, "status": "queued", "lastError": None, "finishedAt": None}}
+    assert rv.queued_verdict(200, job, ok)[0] is True
+    assert rv.queued_verdict(200, job, {"data": {"jobId": job, "status": "queued",
+                              "lastError": None}})[0] is False          # 缺 finishedAt 字段
+    assert rv.queued_verdict(200, job, {"data": {"jobId": "x", "status": "queued",
+                              "lastError": None, "finishedAt": None}})[0] is False
+    assert rv.queued_verdict(200, job, {"data": {"jobId": job, "status": "succeeded",
+                              "lastError": None, "finishedAt": None}})[0] is False
+
+
+def test_rv5_verdict_info_not_unconditional_pass():
+    from driver import a_reverify as rv
+    assert rv.rv5_verdict(False, True, True, 200, True)[0] is False   # 同账号 → FAIL
+    assert rv.rv5_verdict(True, False, True, 200, True)[0] is False   # 会话无效
+    assert rv.rv5_verdict(True, True, True, 200, True)[0] is None     # 跨账号可读 → INFO 待裁定
+    assert rv.rv5_verdict(True, True, True, 404, True)[0] is None     # 被拒 → INFO 待裁定
+    assert rv.rv5_verdict(True, True, True, 500, False)[0] is False   # 非法形态
+
+
+def test_reverify_sentinel_bound_to_run(tmp_path):
+    from driver import verify_reverify_sentinel as vs
+    good = {"counts": {"pass": 10, "fail": 0, "blocked": 0, "info": 1},
+            "missing": [], "extra": [], "duplicates": [], "unknown_status": [],
+            "rows": 11, "settled": 11}
+    vs.write_sentinel("run-1", good, 0, reports_dir=tmp_path)
+    assert vs.verify("run-1", reports_dir=tmp_path)[0] is True
+    assert vs.verify("run-2", reports_dir=tmp_path)[0] is False       # 错 run_id
+    vs.write_sentinel("run-3", {**good, "missing": ["RV-9"], "settled": 10, "rows": 10}, 4,
+                      reports_dir=tmp_path)
+    assert vs.verify("run-3", reports_dir=tmp_path)[0] is False       # 缺项
+    vs.write_sentinel("run-4", {**good, "counts": {"pass": 9, "fail": 0, "blocked": 0,
+                                                   "info": 1}}, 0, reports_dir=tmp_path)
+    assert vs.verify("run-4", reports_dir=tmp_path)[0] is False       # 计数和!=rows
+    bad5 = {**good, "counts": {"pass": 10, "fail": 1, "blocked": 0, "info": 0},
+            "settled": 11, "rows": 11}
+    vs.write_sentinel("run-5", bad5, 0, reports_dir=tmp_path)
+    assert vs.verify("run-5", reports_dir=tmp_path)[0] is False       # final_exit 与政策不一致
