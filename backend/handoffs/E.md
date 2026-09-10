@@ -22,10 +22,15 @@
 - `plans/A-baseline-plan.md`（AB-01..AB-11）、`plans/isolation-and-doubles.md`
 - `driver/`（A 基线验收参数化驱动：`a_baseline.py`/`infra.py`/`seed_ab04.sql`；
   E 专用 mvp-e-pg@55433、Java@18081、worker@18082；flock 常驻锁、run 标签归属清理、
-  模式化输出目录【诊断→reports/，正式→evidence/】、52 项完整结算哨兵）
+  模式化输出目录【诊断→reports/，正式→evidence/】、52 项完整结算哨兵；
+  `a_reverify.py` 定向复验 RV-1..RV-9【11 项结算】、`verify_reverify_sentinel.py`
+  RUN_ID 入口绑定哨兵【run_id/mode/settled/计数和/final_exit==驱动 rc，不符→4】）
 - `evidence/A-baseline-2026-09-10/`（summary.md 逐项证据、results.json 哨兵、
   logs/ 摘录与 A 缺陷可执行复现）
-- `backend/handoffs/E-A-acceptance.md`（A 基线独立验收报告：结论、A 缺陷、处置建议）
+- `evidence/A-reverify-2026-09-10/`（6 个 run 目录：定向复验证据，含
+  n2-codereview-manual.md 人工复核 10 行、捕获响应与负例；旧正式证据零覆盖）
+- `backend/handoffs/E-A-acceptance.md`（A 基线独立验收报告：26d97fb 历史轮【未通过】
+  + f6e500e 定向复验闭合节 + 整体意见结构与 RV-5 裁定请求）
 
 ## 矩阵统计（逐行提取，与文档声明核对）
 
@@ -100,7 +105,7 @@ gate 打开后未编写步骤的节点会直接 fail（防"开闸空跑冒充通
 | `run.sh matrix` | **3** | collected 127；`PASSED=33 DEPENDENCY_PENDING=94 FAILED=0 SKIPPED_OTHER=0`；`SETTLED=94/94 SETTLEMENT_OK`；哨兵 `reports/<RUN_ID>/settlement.json` 存在且 settled_unique=94、counts 与汇总一致 |
 | `md5sum matrix/scenarios.json` | 0 | `8d2c4e41…` 仍与最初提取一致 |
 
-## A 基线验收（2026-09-10 已执行，结论：未通过——待 A 修复）
+## A 基线验收（2026-09-10 已执行，历史——绑定 26d97fb：未通过，A 已修复 f6e500e 并经定向复验闭合，见下节）
 
 A 基线已由总协调同步（集成 df0fa32、A 代码 26d97fb、A oracle round-3
 PASS-with-notes）。E 以参数化驱动 `run.sh a-baseline` 执行独立验收（E 专用资源：
@@ -123,29 +128,47 @@ mvp-e-pg@55433/Java@18081/worker@18082；未修改 A 源码；未执行 A 固定
 - E 侧 oracle 门禁第五至八轮：f389078/440516b/707670a BLOCKED → 逐项修复 →
   **85c2f33 PASS**（E 侧 blockingFindings 无；详见 `backend/handoffs/E-oracle.md`）。
 
-## 待 A 修复后的执行流程（定向重验）
+## 定向复验（PARTIAL，2026-09-10 已执行——通过（附条件））
 
-1. 总协调安排 A 修复缺陷并提供新 A SHA → 同步本工作树、更新 `config/baseline.json`。
-2. E 绑定新 A SHA 定向重验：两类诊断样本、正常投影、认证与受影响契约；其余未变
-   证据注明来源 SHA 与适用范围后复用；不得以 PARTIAL 冒充全量验收。
-3. 同轮完成第八轮遗留：回归称谓修正、tmp_path 集成测试（settlement()→
-   write_outputs()→summary 落盘断言）、INFO 9 处人工复核（或总协调明确接受）。
-4. A 验收通过且 B/C/D 集成后开闸（gate=open），按矩阵补写并运行场景步骤
-   （P0 优先），证据严格区分 `doubles_pass` / `real_pass`
-   （见 `plans/isolation-and-doubles.md`）。
+A 修复已同步（新 A 代码 f6e500e、报告 cf390e1、dev f2755ab、集成 d495a7d）。
+E 以 `run.sh a-reverify` 执行定向复验（RV-1..RV-9+CLEANUP=11 项，独立 RUN_ID
+入口绑定与证据目录，旧正式证据零覆盖；实施跑与协调者复跑双跑一致）：
+
+| 命令 | 退出码 | 结果 |
+| --- | --- | --- |
+| `backend/acceptance/run.sh selfcheck` | **0** | 51 passed |
+| `backend/acceptance/run.sh a-reverify` | **0** | settled=11/11：**10 PASS / 0 FAIL / 0 BLOCKED / 1 INFO（RV-5 待裁定）** |
+
+- 原 A 缺陷（system.echo 原样公开 last_error）在 f6e500e **闭合**：投影仅封闭
+  reason 枚举+retryable，marker/长内容/原始 code 均不外泄（RV-2/3/4 实测，强制
+  目标 jobId 关联）；严格响应契约 RV-6 实测（selftest 10/10、48 样例、4 负例 rc=1）。
+- INFO 1 项 = RV-5 系统诊断资源**跨账号可见性政策待总协调书面裁定**（含 GET 是否
+  应限定 system.echo 任务类型）；若裁定须过滤→交 A 实施、E 定向重验。
+- 第八轮遗留全部同轮完成：tmp_path 集成测试、"端到端"称谓修正、INFO 9 处人工
+  复核（9/9 合规、缺陷 0、残项 0，oracle 第九轮独立核验）。
+- 详情与整体意见结构见 `backend/handoffs/E-A-acceptance.md` 定向复验节。
+
+## 待 RV-5 裁定后的执行流程
+
+1. 总协调书面裁定系统诊断可见性 → 若确认接受当前边界，RV-5 转 PASS，整体意见按
+   组合证据形成；若要求创建者/任务类型过滤 → 交 A 实施，E 绑定更新 A SHA 定向重验。
+2. 总协调按三部分结构（26d97fb 旧台账未变证据 + f6e500e 定向闭合 + RV-5 裁定）
+   形成 A 基础验收整体意见，并决定是否启动 B/C/D。
+3. B/C/D 集成后开闸（gate=open），按矩阵补写并运行场景步骤（P0 优先），证据严格
+   区分 `doubles_pass` / `real_pass`（见 `plans/isolation-and-doubles.md`）。
 
 ## 状态
 
-- blocker：**A 缺陷待修复**（system.echo GET 原样公开诊断列 last_error → A 基础
-  验收未通过 1 FAIL），处置权在总协调；94 业务场景 dependency_pending
-  （blocked_by=归属 B/C/D 包，A 基线已到达）。
-- nextAction：**waiting_dependency**（等总协调交 A 修复 → E 绑定新 A SHA 定向
-  重验并同轮完成第八轮遗留项）。
+- blocker：**RV-5 系统诊断可见性政策待总协调书面裁定**（原 A 缺陷已修复并在
+  f6e500e 经定向复验闭合）；94 业务场景 dependency_pending（blocked_by=归属
+  B/C/D 包）。
+- nextAction：**waiting_dependency**（等总协调裁定 RV-5 → 形成 A 基础验收整体
+  意见并决定是否启动 B/C/D；若裁定须过滤 → 交 A 实施、E 定向重验）。
 - 未修改 `backend/doc/**`、A 源码/契约/迁移/构建配置；未访问兄弟工作树；E 专用
   资源（mvp-e-pg@55433/18081/18082）已清理，未触碰 A 容器/端口。
 - 提交状态：本包已本地提交（实施 cea01f7 → 修复链 6b0a234/cc33abe/61f6329/
-  f389078/440516b/707670a/85c2f33 + 报告/证据刷新提交），由总协调负责集成，
-  未推送远端。
-- E 代码经 oracle 第八轮复审 PASS（reviewedCommit `85c2f33`，E 侧
-  blockingFindings 无）；全部结果为测试替身形态（doubles_pass），不构成业务
-  验收通过或真实供应商接入声明。
+  f389078/440516b/707670a/85c2f33 → 定向复验 07617a4/2a595cf/**1fb5a5f** +
+  证据刷新 baa809b/abaa6a9/ded4034 及报告提交），由总协调负责集成，未推送远端。
+- E 代码经 oracle 第十一轮复审 PASS（reviewedCommit `1fb5a5f`，blockingFindings
+  无）；全部结果为测试替身形态（doubles_pass），不构成业务验收通过或真实供应商
+  接入声明；定向 PARTIAL 不冒充新 SHA 全量。
