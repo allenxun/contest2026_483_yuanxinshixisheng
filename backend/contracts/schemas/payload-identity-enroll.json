@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mvp:contracts:schemas:payload-identity-enroll.json",
+  "title": "payload：identity.enroll（跨系统身份登记协调，DD 9.1/9.3）",
+  "description": "async_jobs.job_type=identity.enroll 的 payload 契约骨架（A 包公共契约；业务细节由 D 包扩展时保持向后兼容并升 schema_version）。",
+  "$comment": "字段直接转录 DD 9.1 identity.enroll 内部 payload 示例；登记对账/namespace 串行协调细节属 D 包。 payload 只放 JSON 数据与受控资源引用：禁止 pickle/Python 对象/Java 类名/可执行代码/照片（或 base64）/签名 URL/运行凭据（DD 9.1）。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "correlation_id",
+    "assessment_id",
+    "photo_version",
+    "processing_revision",
+    "images",
+    "provider_config_revision"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "结构版本固定 1（JSON 整数）"
+    },
+    "correlation_id": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid",
+      "description": "逻辑请求关联 ID（DD 9.1 示例）"
+    },
+    "assessment_id": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid"
+    },
+    "photo_version": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string"
+    },
+    "processing_revision": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string",
+      "description": "候选任务版本输入（DD 9.1：输入含候选任务版本）"
+    },
+    "images": {
+      "type": "object",
+      "required": [
+        "front",
+        "left",
+        "right"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "front": {
+          "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid"
+        },
+        "left": {
+          "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid"
+        },
+        "right": {
+          "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid"
+        }
+      },
+      "description": "受控 media_objects 引用（T11.id），不是照片内容或 URL"
+    },
+    "provider_config_revision": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string",
+      "description": "供应商配置代次（对账用）"
+    }
+  },
+  "x-owner-package": "D",
+  "x-detail": "skeleton"
+}

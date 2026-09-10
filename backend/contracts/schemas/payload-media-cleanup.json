@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mvp:contracts:schemas:payload-media-cleanup.json",
+  "title": "payload：media.cleanup（媒体清理补偿，DD 9.1/10.3）",
+  "description": "async_jobs.job_type=media.cleanup 的 payload 契约骨架（A 包公共契约；业务细节由 D 包扩展时保持向后兼容并升 schema_version）。",
+  "$comment": "骨架仅含标识字段；引用检查锁顺序属 A 基础，各业务用途保留策略属 B/C/D，由总协调定稿。 payload 只放 JSON 数据与受控资源引用：禁止 pickle/Python 对象/Java 类名/可执行代码/照片（或 base64）/签名 URL/运行凭据（DD 9.1）。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "media_object_id",
+    "cleanup_revision"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "结构版本固定 1（JSON 整数）"
+    },
+    "media_object_id": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid",
+      "description": "T11.id；dedup_key = media:{id}:cleanup:{revision}"
+    },
+    "cleanup_revision": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string",
+      "description": "清理代次，与行 input_revision 一致"
+    }
+  },
+  "x-owner-package": "D",
+  "x-detail": "skeleton"
+}

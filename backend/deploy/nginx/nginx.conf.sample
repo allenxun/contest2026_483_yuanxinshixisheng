@@ -1,0 +1,60 @@
+# Nginx 反向代理样例（HTTP；生产 HTTPS 见下方注释）。
+# 挂载：docker-compose 中把本文件挂到 /etc/nginx/nginx.conf（覆盖主配置）。
+# 生产 HTTPS：证书经 env/挂载注入（如 /etc/nginx/certs/{fullchain.pem,privkey.pem}），
+# 取消 server 段 listen 443 ssl 注释并配置 ssl_certificate/ssl_certificate_key；
+# 80 端口改为 redirect 到 443。本样例不内置真实证书。
+
+worker_processes auto;
+events { worker_connections 1024; }
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+
+    upstream web_java { server web:8080; }
+
+    # 样例 HTTP 入口（compose 映射到宿主 8088）；生产应仅保留 HTTPS 并 301 跳转。
+    server {
+        listen 8088;
+        server_name _;
+
+        # 业务 API：全部转发到 Java Web 后端（保留 /api 前缀）。
+        location /api/ {
+            proxy_pass http://web_java;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            # 上传测肤/核验图片：单图 10MiB/三图 32MiB（DD 开发初值），留出余量。
+            client_max_body_size 40m;
+        }
+
+        # 媒体内容端点：鉴权代理返回的图片一律禁缓存（DATA/DD：敏感数据 no-store）。
+        location ~ ^/api/v1/media/[^/]+/content {
+            add_header Cache-Control "no-store" always;
+            proxy_pass http://web_java;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location = /healthz {
+            proxy_pass http://web_java/actuator/health;
+        }
+
+        location / {
+            return 404;
+        }
+    }
+
+    # 生产 HTTPS 样例（需证书挂载后启用；同时把上面 server 改为 listen 8088 重定向）：
+    # server {
+    #     listen 8443 ssl;              # compose 映射 8443
+    #     ssl_certificate     /etc/nginx/certs/fullchain.pem;   # 通过 volume 挂载
+    #     ssl_certificate_key /etc/nginx/certs/privkey.pem;     # 路径/口令走 env/挂载，不入仓库
+    #     ... 同上 location 配置 ...
+    # }
+}
