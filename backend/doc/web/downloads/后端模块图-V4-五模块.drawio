@@ -1,0 +1,202 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" version="24.7.17" type="device">
+  <diagram id="p1" name="01 · 五模块职责分解">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="2180" pageHeight="1420" dx="2180" dy="1420">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="&lt;b&gt;后端模块图 V4｜M4—M6 合并为护理管理&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=30;spacing=0;">
+          <mxGeometry as="geometry" x="50" y="25" width="2080" height="55" />
+        </mxCell>
+        <mxCell id="sub" value="实现职责视图：5 个顶层模块；对应接口仅列 APP／云台调用的对外 HTTP API。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=18;spacing=0;">
+          <mxGeometry as="geometry" x="50" y="95" width="2080" height="40" />
+        </mxCell>
+        <mxCell id="system" value="" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;fillColor=#fcfdff;strokeWidth=2;">
+          <mxGeometry as="geometry" x="35" y="180" width="2100" height="740" />
+        </mxCell>
+        <mxCell id="bl" value="&lt;b&gt;后端业务实现&lt;/b&gt; · 新 M4 = 旧 M4＋M5＋M6；新 M5 = 旧 M7" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=20;spacing=0;">
+          <mxGeometry as="geometry" x="60" y="195" width="2040" height="40" />
+        </mxCell>
+        <mxCell id="M1" value="&lt;b&gt;M1 成员身份与访问授权&lt;/b&gt;&lt;br&gt;原 M1" vertex="1" parent="system" style="swimlane;startSize=75;horizontal=1;html=1;whiteSpace=wrap;fontFamily=Microsoft YaHei;fontSize=18;fillColor=#eaf2ff;swimlaneFillColor=#ffffff;strokeColor=#688abb;strokeWidth=2;">
+          <mxGeometry as="geometry" x="25" y="80" width="330" height="635" />
+        </mxCell>
+        <mxCell id="M1-part0" value="成员身份&lt;br&gt;授权照片保存 OSS、校验归属&lt;br&gt;匹配与可靠自动建档" vertex="1" parent="M1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="95" width="300" height="115" />
+        </mxCell>
+        <mxCell id="M1-part1" value="&lt;b&gt;访问授权&lt;/b&gt;&lt;br&gt;&lt;br&gt;查看关联永久有效&lt;br&gt;APP 可主动撤销" vertex="1" parent="M1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="225" width="300" height="115" />
+        </mxCell>
+        <mxCell id="M1-part2" value="&lt;b&gt;当前执行核验&lt;/b&gt;&lt;br&gt;&lt;br&gt;执行申请中核验当前使用者&lt;br&gt;客户端入口：M4-A03/A04" vertex="1" parent="M1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="355" width="300" height="115" />
+        </mxCell>
+        <mxCell id="M1-api" value="&lt;b&gt;对外 HTTP API：3 个&lt;/b&gt;&lt;br&gt;M1-A01—M1-A03&lt;br&gt;授权、关联查询、主动撤销" vertex="1" parent="M1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=15;">
+          <mxGeometry as="geometry" x="15" y="500" width="300" height="110" />
+        </mxCell>
+        <mxCell id="M2" value="&lt;b&gt;M2 云台与微晶管理&lt;/b&gt;&lt;br&gt;原 M2" vertex="1" parent="system" style="swimlane;startSize=75;horizontal=1;html=1;whiteSpace=wrap;fontFamily=Microsoft YaHei;fontSize=18;fillColor=#eaf2ff;swimlaneFillColor=#ffffff;strokeColor=#688abb;strokeWidth=2;">
+          <mxGeometry as="geometry" x="375" y="80" width="330" height="635" />
+        </mxCell>
+        <mxCell id="M2-part0" value="云台认证与通知绑定&lt;br&gt;先查询、主动绑定、原账号解绑&lt;br&gt;不授予成员资料查看权" vertex="1" parent="M2" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="95" width="300" height="115" />
+        </mxCell>
+        <mxCell id="M2-part1" value="&lt;b&gt;微晶连接与能力&lt;/b&gt;&lt;br&gt;&lt;br&gt;仅一种微晶；记录连接与状态" vertex="1" parent="M2" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="225" width="300" height="115" />
+        </mxCell>
+        <mxCell id="M2-part2" value="&lt;b&gt;云台在线监测&lt;/b&gt;&lt;br&gt;&lt;br&gt;心跳、休眠、离线提醒" vertex="1" parent="M2" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="355" width="300" height="115" />
+        </mxCell>
+        <mxCell id="M2-api" value="对外 HTTP API：8 个&lt;br&gt;M2-A01—M2-A08" vertex="1" parent="M2" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=15;">
+          <mxGeometry as="geometry" x="15" y="500" width="300" height="110" />
+        </mxCell>
+        <mxCell id="M3" value="&lt;b&gt;M3 测肤任务与报告&lt;/b&gt;&lt;br&gt;原 M3" vertex="1" parent="system" style="swimlane;startSize=75;horizontal=1;html=1;whiteSpace=wrap;fontFamily=Microsoft YaHei;fontSize=18;fillColor=#eaf2ff;swimlaneFillColor=#ffffff;strokeColor=#688abb;strokeWidth=2;">
+          <mxGeometry as="geometry" x="725" y="80" width="330" height="635" />
+        </mxCell>
+        <mxCell id="M3-part0" value="测肤任务与当前关联&lt;br&gt;云台只保留最新任务&lt;br&gt;受理即替换、失败不回退" vertex="1" parent="M3" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="95" width="300" height="115" />
+        </mxCell>
+        <mxCell id="M3-part1" value="分析与报告归档&lt;br&gt;原图/结果图保存 OSS&lt;br&gt;PG 保存引用及任务/成员归属" vertex="1" parent="M3" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="225" width="300" height="115" />
+        </mxCell>
+        <mxCell id="M3-part2" value="结果获取与恢复&lt;br&gt;APP 按授权查询历史&lt;br&gt;云台只取本次，重启可恢复" vertex="1" parent="M3" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="355" width="300" height="115" />
+        </mxCell>
+        <mxCell id="M3-api" value="对外 HTTP API：6 个&lt;br&gt;M3-A01—M3-A06" vertex="1" parent="M3" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=15;">
+          <mxGeometry as="geometry" x="15" y="500" width="300" height="110" />
+        </mxCell>
+        <mxCell id="M4" value="&lt;b&gt;M4 护理管理&lt;/b&gt;&lt;br&gt;原 M4＋M5＋M6" vertex="1" parent="system" style="swimlane;startSize=75;horizontal=1;html=1;whiteSpace=wrap;fontFamily=Microsoft YaHei;fontSize=18;fillColor=#eaf6ee;swimlaneFillColor=#ffffff;strokeColor=#72a17f;strokeWidth=2;">
+          <mxGeometry as="geometry" x="1075" y="80" width="630" height="635" />
+        </mxCell>
+        <mxCell id="M4-part0" value="&lt;b&gt;方案管理〔原 M4〕&lt;/b&gt;&lt;br&gt;&lt;br&gt;报告与护理规则 → 方案&lt;br&gt;仅一个方案版本、目标 N 与查询" vertex="1" parent="M4" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf6ee;strokeColor=#72a17f;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="95" width="600" height="115" />
+        </mxCell>
+        <mxCell id="M4-part1" value="执行管理&lt;br&gt;核验照片保存 OSS、固定控制端&lt;br&gt;微晶占用与结束确认" vertex="1" parent="M4" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf6ee;strokeColor=#72a17f;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="225" width="600" height="115" />
+        </mxCell>
+        <mxCell id="M4-part2" value="&lt;b&gt;记录与进度〔原 M6〕&lt;/b&gt;&lt;br&gt;&lt;br&gt;以 APP／云台上报次数为准，去重累计 K&lt;br&gt;K ≥ N 即完成；剩余 max(N - K, 0)" vertex="1" parent="M4" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf6ee;strokeColor=#72a17f;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="355" width="600" height="115" />
+        </mxCell>
+        <mxCell id="M4-api" value="&lt;b&gt;对外 HTTP API：9 个&lt;/b&gt;&lt;br&gt;M4-A01—M4-A09&lt;br&gt;详见配套接口文档" vertex="1" parent="M4" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=15;">
+          <mxGeometry as="geometry" x="15" y="500" width="600" height="110" />
+        </mxCell>
+        <mxCell id="M5" value="&lt;b&gt;M5 消息通知&lt;/b&gt;&lt;br&gt;原 M7" vertex="1" parent="system" style="swimlane;startSize=75;horizontal=1;html=1;whiteSpace=wrap;fontFamily=Microsoft YaHei;fontSize=18;fillColor=#fff3df;swimlaneFillColor=#ffffff;strokeColor=#bf9b5c;strokeWidth=2;">
+          <mxGeometry as="geometry" x="1725" y="80" width="350" height="635" />
+        </mxCell>
+        <mxCell id="M5-part0" value="通知任务&lt;br&gt;云台离线及已上报异常" vertex="1" parent="M5" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#fff3df;strokeColor=#bf9b5c;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="95" width="320" height="115" />
+        </mxCell>
+        <mxCell id="M5-part1" value="接收范围与重复抑制&lt;br&gt;通知实际绑定账号；无绑定不通知" vertex="1" parent="M5" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#fff3df;strokeColor=#bf9b5c;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="225" width="320" height="115" />
+        </mxCell>
+        <mxCell id="M5-part2" value="&lt;b&gt;通知投递&lt;/b&gt;&lt;br&gt;&lt;br&gt;通道适配、投递结果与重试" vertex="1" parent="M5" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#fff3df;strokeColor=#bf9b5c;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="15" y="355" width="320" height="115" />
+        </mxCell>
+        <mxCell id="M5-api" value="&lt;b&gt;对外 HTTP API：1 个&lt;/b&gt;&lt;br&gt;M5-A01&lt;br&gt;详见配套接口文档" vertex="1" parent="M5" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=15;">
+          <mxGeometry as="geometry" x="15" y="500" width="320" height="110" />
+        </mxCell>
+        <mxCell id="uses-title" value="&lt;b&gt;各模块对外 HTTP 入口&lt;/b&gt; · 共 27 个；方法、路径、请求与响应详见配套文档" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=20;spacing=0;">
+          <mxGeometry as="geometry" x="55" y="965" width="2060" height="40" />
+        </mxCell>
+        <mxCell id="u0" value="&lt;b&gt;M1 · 3 个&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="55" y="1025" width="320" height="46" />
+        </mxCell>
+        <mxCell id="ut0" value="人脸查看授权、本人关联查询、主动撤销；查看授权永久有效直至撤销。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="390" y="1025" width="1720" height="46" />
+        </mxCell>
+        <mxCell id="u1" value="M2 · 8 个" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="55" y="1076" width="320" height="46" />
+        </mxCell>
+        <mxCell id="ut1" value="认证/心跳/状态/能力；M2-A07 查绑定、M2-A06 主动绑定、M2-A08 原账号解绑。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="390" y="1076" width="1720" height="46" />
+        </mxCell>
+        <mxCell id="u2" value="M3 · 6 个" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="55" y="1127" width="320" height="46" />
+        </mxCell>
+        <mxCell id="ut2" value="提交与补拍、任务状态、APP 报告列表及详情、M3-A06 恢复云台当前任务。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="390" y="1127" width="1720" height="46" />
+        </mxCell>
+        <mxCell id="u3" value="&lt;b&gt;M4 · 9 个&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="55" y="1178" width="320" height="46" />
+        </mxCell>
+        <mxCell id="ut3" value="方案列表/详情、执行申请、APP／云台重验、实际记录同步、结束确认、执行详情、进度及历史。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="390" y="1178" width="1720" height="46" />
+        </mxCell>
+        <mxCell id="note" value="OSS 是共享存储组件，不新增业务模块：M1 授权照片、M3 测肤原图/结果图、M4 执行核验照片。&lt;br&gt;PG 保存图片引用及业务归属；图片访问服从 APP 成员授权或云台当前任务范围。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=16;spacing=0;">
+          <mxGeometry as="geometry" x="55" y="1320" width="2060" height="65" />
+        </mxCell>
+        <mxCell id="u4" value="&lt;b&gt;M5 · 1 个&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="55" y="1229" width="320" height="46" />
+        </mxCell>
+        <mxCell id="ut4" value="已登录 APP 登记通知目标；异常通知绑定账号，未登录配网不新增绑定/目标。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;">
+          <mxGeometry as="geometry" x="390" y="1229" width="1720" height="46" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="p2" name="02 · 原流程与 API 对照">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="2180" pageHeight="1510" dx="2180" dy="1510">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="&lt;b&gt;流程 → API 对照｜按原流程图 00—07 页定位&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=30;spacing=0;">
+          <mxGeometry as="geometry" x="50" y="25" width="2080" height="55" />
+        </mxCell>
+        <mxCell id="sub" value="仅列 APP／云台调用的 HTTP API；“端侧”是本地动作；自动分析、生成与通知不单列接口。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=18;spacing=0;">
+          <mxGeometry as="geometry" x="50" y="95" width="2080" height="40" />
+        </mxCell>
+        <mxCell id="f0" value="&lt;b&gt;00 总流程&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;fontSize=19;">
+          <mxGeometry as="geometry" x="55" y="190" width="355" height="122" />
+        </mxCell>
+        <mxCell id="chain0" value="&lt;b&gt;M2 认证/能力 → M3 测肤/报告 → M4 方案/执行/进度&lt;/b&gt;&lt;br&gt;&lt;br&gt;APP 查看先 M1-A01；分析归档、方案生成自动完成；客户端查询结果。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=17;">
+          <mxGeometry as="geometry" x="430" y="190" width="1675" height="122" />
+        </mxCell>
+        <mxCell id="f1" value="&lt;b&gt;01 设备、保活与通知&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;fontSize=19;">
+          <mxGeometry as="geometry" x="55" y="327" width="355" height="122" />
+        </mxCell>
+        <mxCell id="chain1" value="M2-A07 查绑定 → 主动 M2-A06；M2-A08 原账号解绑&lt;br&gt;M2-A01/A02 认证心跳；M5-A01 登记目标；通知绑定账号，与成员授权独立。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=17;">
+          <mxGeometry as="geometry" x="430" y="327" width="1675" height="122" />
+        </mxCell>
+        <mxCell id="f2" value="&lt;b&gt;02 测肤、归档与报告&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;fontSize=19;">
+          <mxGeometry as="geometry" x="55" y="464" width="355" height="122" />
+        </mxCell>
+        <mxCell id="chain2" value="M3-A01 新测肤受理即替换当前任务；M3-A02 原任务补拍&lt;br&gt;M3-A06 重启恢复当前任务；M3-A03/A05 只取本次结果；云台无历史列表。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=17;">
+          <mxGeometry as="geometry" x="430" y="464" width="1675" height="122" />
+        </mxCell>
+        <mxCell id="f3" value="&lt;b&gt;03 两端报告与方案&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;fontSize=19;">
+          <mxGeometry as="geometry" x="55" y="601" width="355" height="122" />
+        </mxCell>
+        <mxCell id="chain3" value="APP M3-A04/A05 查报告；云台 M3-A03/A05 仅取当前任务结果&lt;br&gt;APP M4-A01/A02 查方案；云台 M4-A03 核验领取；结果图片保存 OSS 后受控读取。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=17;">
+          <mxGeometry as="geometry" x="430" y="601" width="1675" height="122" />
+        </mxCell>
+        <mxCell id="f4" value="&lt;b&gt;04 云台核验与追踪&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;fontSize=19;">
+          <mxGeometry as="geometry" x="55" y="738" width="355" height="122" />
+        </mxCell>
+        <mxCell id="chain4" value="&lt;b&gt;M4-A03 核验登记 → 端侧检查并运行 → M4-A05 同步&lt;/b&gt;&lt;br&gt;&lt;br&gt;追丢先本地暂停/停止 → 联网后 M4-A04 重验；无网不恢复，已结束执行不重开。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf6ee;strokeColor=#72a17f;strokeWidth=1.5;spacing=14;align=left;fontSize=17;">
+          <mxGeometry as="geometry" x="430" y="738" width="1675" height="122" />
+        </mxCell>
+        <mxCell id="f5" value="&lt;b&gt;05 APP 人脸查看授权&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;fontSize=19;">
+          <mxGeometry as="geometry" x="55" y="875" width="355" height="122" />
+        </mxCell>
+        <mxCell id="chain5" value="&lt;b&gt;M1-A01 永久查看授权 → M1-A02 查询关联 → 报告/方案查询&lt;/b&gt;&lt;br&gt;&lt;br&gt;M1-A03 主动撤销后不可查看该成员资料；撤销分支已补入原流程 05 页。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=17;">
+          <mxGeometry as="geometry" x="430" y="875" width="1675" height="122" />
+        </mxCell>
+        <mxCell id="f6" value="&lt;b&gt;06 目标 N 与实际 K&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;fontSize=19;">
+          <mxGeometry as="geometry" x="55" y="1012" width="355" height="122" />
+        </mxCell>
+        <mxCell id="chain6" value="&lt;b&gt;M4-A02 查询方案；M4-A03/A04 获取执行数据；M4-A05 上报次数&lt;/b&gt;&lt;br&gt;&lt;br&gt;N、K 均为次数；后端按上报记录去重累计。M4-A08 返回 K ≥ N 的完成结论及剩余次数。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf6ee;strokeColor=#72a17f;strokeWidth=1.5;spacing=14;align=left;fontSize=17;">
+          <mxGeometry as="geometry" x="430" y="1012" width="1675" height="122" />
+        </mxCell>
+        <mxCell id="f7" value="&lt;b&gt;07 APP 直接控制微晶&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;fontSize=19;">
+          <mxGeometry as="geometry" x="55" y="1149" width="355" height="122" />
+        </mxCell>
+        <mxCell id="chain7" value="&lt;b&gt;M2-A04 能力 → M4-A03 核验登记 → 本地操作 → M4-A05 次数&lt;/b&gt;&lt;br&gt;&lt;br&gt;换人/断网参照云台，恢复复用 M4-A04；停止后 M4-A06 收尾。锁屏/关闭时处理暂不展开。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf6ee;strokeColor=#72a17f;strokeWidth=1.5;spacing=14;align=left;fontSize=17;">
+          <mxGeometry as="geometry" x="430" y="1149" width="1675" height="122" />
+        </mxCell>
+        <mxCell id="scope" value="&lt;b&gt;一个 HTTP 申请可覆盖多个业务判断：&lt;/b&gt;M4-A03 统一完成核验、微晶就绪条件、占用检查和登记。&lt;br&gt;暂停/停止是端侧动作；M4-A06 接收已停止后的收尾确认，不发送停止指令。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=18;spacing=0;">
+          <mxGeometry as="geometry" x="55" y="1320" width="2060" height="80" />
+        </mxCell>
+        <mxCell id="source" value="依据：原流程图 V4、用例图 V8、角色边界说明。完整 HTTP 方法、路径、调用方、输入/输出及流程节点映射见配套 Markdown。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=14;spacing=0;">
+          <mxGeometry as="geometry" x="55" y="1440" width="2060" height="40" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
