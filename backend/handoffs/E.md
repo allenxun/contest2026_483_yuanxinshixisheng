@@ -1,7 +1,8 @@
 # E 工作包交接（backend/acceptance）
 
 分支 `feature/mvp-acceptance`。本包为纯黑盒验收框架（HTTP 驱动），无任何业务实现。
-本文件由 E 于 2026-09-10 生成；提交由总协调执行（本包不 commit/push）。
+本文件由 E 于 2026-09-10 生成。本包实施产物已由本包本地提交（实施提交 `cea01f7`，
+含 backend/acceptance 全部产物与本交接文档）；集成合入由总协调负责，本包不推送远端。
 
 ## 产物清单
 
@@ -29,7 +30,7 @@
 
 | 命令 | 退出码 | 结果 |
 | --- | --- | --- |
-| `python3 -m venv backend/acceptance/.venv && .venv/bin/pip install -r requirements.txt` | 0 | pytest 9.1.1 / requests 2.34.2 |
+| `python3 -m venv backend/acceptance/.venv && backend/acceptance/.venv/bin/pip install -r backend/acceptance/requirements.txt`（工作树根执行） | 0 | pytest 9.1.1 / requests 2.34.2 |
 | `backend/acceptance/run.sh selfcheck` | **0** | 24 passed（矩阵完整性 + 框架自检） |
 | `backend/acceptance/run.sh matrix` | **3** | `PASSED=24 DEPENDENCY_PENDING=94 FAILED=0`，collected 118 |
 
@@ -54,5 +55,8 @@ gate 打开后未编写步骤的节点会直接 fail（防"开闸空跑冒充通
 - blocker：**A 基线未提供**（无已提交的可构建 Java/Python、迁移、认证、幂等、
   适配端口），94 场景全部 dependency_pending，原因逐条见 `matrix/scenarios.json`。
 - nextAction：**waiting_dependency**（等待协调者提供 A 基线 SHA 并更新门控）。
-- 未修改 `backend/doc/**`、生产实现、迁移、Schema、A 构建配置；未访问兄弟工作树；
-  未 commit/push。
+- 未修改 `backend/doc/**`、生产实现、迁移、Schema、A 构建配置；未访问兄弟工作树。
+- 提交状态：本包已本地提交（实施提交 `cea01f7`；本交接说明的事实性修正另以独立
+  提交记录），由总协调负责集成，未推送远端。
+- 监督已独立复核上表自检结果（selfcheck exit=0、matrix exit=3）；该结果为框架
+  自检与依赖挂起状态，不构成业务验收通过。
