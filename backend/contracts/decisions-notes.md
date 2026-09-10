@@ -152,8 +152,13 @@ V1 现以列级 CHECK 机器执行，三种形态（文件头有同款注释；`
 **例外（自由格式，不加版本 CHECK）**：`async_jobs.last_error`、
 `media_objects.last_error`、`notifications.last_error`、
 `skin_assessments.failure_detail`、`care_plans.failure_detail`——诊断错误
-快照，非演进业务载荷。**（A 包建议，待总协调确认——本例外为实施层约定，
-不代表已获准偏离 DATA §4 的「所有 JSONB 有 schema_version」字面要求。）**
+快照，非演进业务载荷。**（已确认 by 总协调 2026-09-10：诊断 JSON 列为
+INTERNAL ONLY——绝不原样返回，必须经有界安全投影/尺寸约束后外传；业务版本
+列（schema_version）仍保留服务端/ schema 层整数校验，不受本例外影响。）**
+落地：`GET /api/v1/system/echo-jobs/{jobId}` 的 `data.lastError` 现强制
+有界投影（`EchoJobLastError`：仅 reason 枚举 + retryable bool），raw code /
+message / stack / retry_after_seconds 永不投影；未知/畸形 code 归一
+`reason=internal`（有界投影，非截断）。
 
 **媒体授权语义（oracle round-2 R2-1）**：A 包生产安全默认 =
 **deny-all**（`DenyAllMediaAccessPolicy`，`app.media.access-mode=deny-all`）：

@@ -2770,7 +2770,22 @@ components:
         leaseRevision: { allOf: [{ $ref: '#/components/schemas/BigintString' }], nullable: true }
         finishedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
         lastError:
-          type: object
+          allOf: [{ $ref: '#/components/schemas/EchoJobLastError' }]
           nullable: true
-          additionalProperties: true
-          description: 可诊断失败摘要（结构随 worker 回写；不含凭据/堆栈）
+          description: >-
+            有界安全失败投影；无失败（last_error 为 NULL）时为 null。
+            内部诊断（raw code/message/stack/retry_after_seconds）绝不投影。
+    EchoJobLastError:
+      type: object
+      description: >-
+        Bounded, sanitized job-failure projection. Internal diagnostics (raw
+        code, message, stack, retry_after_seconds) are NEVER projected;
+        unknown/malformed codes normalize to reason=internal. Sanitization is
+        by bounded projection, not truncation.
+      required: [reason, retryable]
+      additionalProperties: false
+      properties:
+        reason:
+          type: string
+          enum: [unsupported_contract, retry_limit_exceeded, handler_failed, internal]
+        retryable: { type: boolean }
