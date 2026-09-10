@@ -99,6 +99,18 @@ case "${1:-}" in
     rc=$?
     echo "matrix exit=$rc (0=94全真实通过 1=有失败 3=存在dependency_pending 4=结算不完整/入口篡改)"
     exit $rc;;
+  a-baseline)
+    # E 独立 A 基线验收驱动（真实 PG/Java/worker；E 专用端口 55433/18081/18082）
+    if [ ! -x ".venv-driver/bin/python" ]; then
+      python3 -m venv .venv-driver || exit 1
+    fi
+    .venv-driver/bin/pip install -q 'sqlalchemy>=2.0,<3.0' 'psycopg[binary]>=3.2,<4.0' \
+      'pydantic>=2.7,<3.0' 'jsonschema>=4.21,<5.0' requests pyyaml \
+      openapi-spec-validator 'pytest>=8.0' || exit 1
+    .venv-driver/bin/python driver/a_baseline.py
+    rc=$?
+    echo "a-baseline exit=$rc (0=无 FAIL；BLOCKED 项见 evidence summary)"
+    exit $rc;;
   *)
-    echo "用法: $0 {setup-venv|selfcheck|matrix}"; exit 2;;
+    echo "用法: $0 {setup-venv|selfcheck|matrix|a-baseline}"; exit 2;;
 esac

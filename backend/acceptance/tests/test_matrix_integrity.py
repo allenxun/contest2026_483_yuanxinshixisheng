@@ -4,7 +4,8 @@
 用独立解析器从设计文档原文重新提取，与 matrix/*.json 逐项比对，防止生成脚本
 单点出错：
 - 场景恰 94 条、ID 唯一；分节计数、P0/P1 计数与文档声明一致；
-- 每条字段齐全、status=dependency_pending、blocked_by 含 A-baseline、
+- 每条字段齐全、status=dependency_pending、blocked_by=B/C/D 业务包（A 基线已交付，
+  pending_reason 反映"业务实现未集成、端点 501 stub"）、
   pending_reason 非空、owner_package 符合 API 级归属（M1/M2/M5→B；M3→D；
   M4-A01/A02→D；M4-A03..A09→C，场景取并集）；
 - API 恰 27 条；scenarios↔apis 双向一致，并与文档"覆盖汇总"表交叉核对
@@ -113,7 +114,9 @@ def test_required_fields_and_pending_status():
         for k in REQUIRED:
             assert k in s, f"{s.get('id')} 缺字段 {k}"
         assert s["status"] == "dependency_pending", s["id"]
-        assert "A-baseline" in s["blocked_by"], s["id"]
+        # A 基线已交付；真实阻塞 = 场景归属的 B/C/D 业务包未集成（端点 501 stub）。
+        assert s["blocked_by"] == s["owner_package"], s["id"]
+        assert set(s["blocked_by"]) <= {"B", "C", "D"} and s["blocked_by"], s["id"]
         assert s["pending_reason"].strip(), s["id"]
         assert s["priority"] in ("P0", "P1") and s["scope"] in ("后端", "集成", "联调")
         assert s["automation_tier"] in ("现在可自动", "需替身", "需真实设备或APP")

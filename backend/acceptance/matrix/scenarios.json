@@ -22,11 +22,13 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "C",
+      "D"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代"
   },
   {
     "id": "SC-00-02",
@@ -53,11 +55,13 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "C",
+      "D"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代"
   },
   {
     "id": "SC-00-03",
@@ -79,11 +83,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
   },
   {
     "id": "SC-00-04",
@@ -107,11 +111,12 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "D"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02"
   },
   {
     "id": "SC-01-01",
@@ -132,11 +137,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02"
   },
   {
     "id": "SC-01-02",
@@ -157,11 +162,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01"
   },
   {
     "id": "SC-01-03",
@@ -181,11 +186,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-01-04",
@@ -204,11 +209,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-01-05",
@@ -227,11 +232,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-01-06",
@@ -250,11 +255,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-01-07",
@@ -273,11 +278,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01"
   },
   {
     "id": "SC-01-08",
@@ -298,11 +303,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02"
   },
   {
     "id": "SC-01-09",
@@ -321,11 +326,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-01-10",
@@ -345,11 +350,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D03、D04"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D03、D04"
   },
   {
     "id": "SC-01-11",
@@ -369,11 +374,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D03"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D03"
   },
   {
     "id": "SC-01-12",
@@ -392,11 +397,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-01-13",
@@ -419,11 +424,12 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
   },
   {
     "id": "SC-01-14",
@@ -442,11 +448,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02"
   },
   {
     "id": "SC-01-15",
@@ -467,11 +473,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02、D03"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02、D03"
   },
   {
     "id": "SC-01-16",
@@ -491,11 +497,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02、D03"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02、D03"
   },
   {
     "id": "SC-01-17",
@@ -514,11 +520,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02"
   },
   {
     "id": "SC-01-18",
@@ -538,11 +544,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02"
   },
   {
     "id": "SC-02-01",
@@ -562,11 +568,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06"
   },
   {
     "id": "SC-02-02",
@@ -586,11 +592,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01、D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D06"
   },
   {
     "id": "SC-02-03",
@@ -610,11 +616,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06"
   },
   {
     "id": "SC-02-04",
@@ -633,11 +639,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D04"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04"
   },
   {
     "id": "SC-02-05",
@@ -656,11 +662,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06"
   },
   {
     "id": "SC-02-06",
@@ -680,11 +686,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06"
   },
   {
     "id": "SC-02-07",
@@ -704,11 +710,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06"
   },
   {
     "id": "SC-02-08",
@@ -728,11 +734,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06"
   },
   {
     "id": "SC-02-09",
@@ -753,11 +759,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D04、D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D04、D06"
   },
   {
     "id": "SC-02-10",
@@ -777,11 +783,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07"
   },
   {
     "id": "SC-02-11",
@@ -800,11 +806,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-03-01",
@@ -824,11 +830,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-03-02",
@@ -845,11 +851,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-03-03",
@@ -870,11 +876,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D07"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D07"
   },
   {
     "id": "SC-03-04",
@@ -897,11 +903,12 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07"
   },
   {
     "id": "SC-03-05",
@@ -921,11 +928,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01、D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D06"
   },
   {
     "id": "SC-03-06",
@@ -945,11 +952,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01、D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D06"
   },
   {
     "id": "SC-03-07",
@@ -970,11 +977,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07"
   },
   {
     "id": "SC-03-08",
@@ -996,11 +1003,12 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C",
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-03-09",
@@ -1021,11 +1029,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-04-01",
@@ -1045,11 +1053,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D06"
   },
   {
     "id": "SC-04-02",
@@ -1068,11 +1076,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06"
   },
   {
     "id": "SC-04-03",
@@ -1091,11 +1099,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06"
   },
   {
     "id": "SC-04-04",
@@ -1114,11 +1122,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
   },
   {
     "id": "SC-04-05",
@@ -1139,11 +1147,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D04、D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D04、D05"
   },
   {
     "id": "SC-04-06",
@@ -1163,11 +1171,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
   },
   {
     "id": "SC-04-07",
@@ -1186,11 +1194,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
   },
   {
     "id": "SC-04-08",
@@ -1210,11 +1218,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05、D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05、D06"
   },
   {
     "id": "SC-04-09",
@@ -1234,11 +1242,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
   },
   {
     "id": "SC-04-10",
@@ -1260,11 +1268,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05、D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05、D06"
   },
   {
     "id": "SC-05-01",
@@ -1284,11 +1292,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01、D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D06"
   },
   {
     "id": "SC-05-02",
@@ -1308,11 +1316,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01、D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D06"
   },
   {
     "id": "SC-05-03",
@@ -1329,11 +1337,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-05-04",
@@ -1350,11 +1358,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-05-05",
@@ -1380,11 +1388,13 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "C",
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-05-06",
@@ -1401,11 +1411,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代"
   },
   {
     "id": "SC-05-07",
@@ -1427,11 +1437,13 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "C",
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-06-01",
@@ -1449,11 +1461,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-06-02",
@@ -1472,11 +1484,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D04"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04"
   },
   {
     "id": "SC-06-03",
@@ -1495,11 +1507,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-06-04",
@@ -1517,11 +1529,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-06-05",
@@ -1540,11 +1552,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D04"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D04"
   },
   {
     "id": "SC-06-06",
@@ -1562,11 +1574,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-06-07",
@@ -1584,11 +1596,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-06-08",
@@ -1605,11 +1617,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-06-09",
@@ -1628,11 +1640,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D08"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D08"
   },
   {
     "id": "SC-07-01",
@@ -1654,11 +1666,12 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D06"
   },
   {
     "id": "SC-07-02",
@@ -1678,11 +1691,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
   },
   {
     "id": "SC-07-03",
@@ -1702,11 +1715,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
   },
   {
     "id": "SC-07-04",
@@ -1725,11 +1738,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
   },
   {
     "id": "SC-07-05",
@@ -1749,11 +1762,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
   },
   {
     "id": "SC-07-06",
@@ -1773,11 +1786,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D04、D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04、D05"
   },
   {
     "id": "SC-07-07",
@@ -1796,11 +1809,11 @@
       "C"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
   },
   {
     "id": "SC-C-01",
@@ -1849,11 +1862,13 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "C",
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01、D04、D08"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D04、D08"
   },
   {
     "id": "SC-C-02",
@@ -1874,11 +1889,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D07"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D07"
   },
   {
     "id": "SC-C-03",
@@ -1898,11 +1913,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D07"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D07"
   },
   {
     "id": "SC-C-04",
@@ -1925,11 +1940,12 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D07、D02"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D07、D02"
   },
   {
     "id": "SC-C-05",
@@ -1955,11 +1971,13 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "C",
+      "D"
     ],
     "automation_tier": "需替身",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07"
   },
   {
     "id": "SC-R-01",
@@ -1979,11 +1997,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01"
   },
   {
     "id": "SC-R-02",
@@ -2003,11 +2021,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-R-03",
@@ -2029,11 +2047,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02"
   },
   {
     "id": "SC-R-04",
@@ -2055,11 +2073,13 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B",
+      "C",
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-R-05",
@@ -2079,11 +2099,11 @@
       "B"
     ],
     "blocked_by": [
-      "A-baseline"
+      "B"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D04"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04"
   },
   {
     "id": "SC-R-06",
@@ -2107,11 +2127,12 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C",
+      "D"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
   },
   {
     "id": "SC-R-07",
@@ -2134,11 +2155,12 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C",
+      "D"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
   },
   {
     "id": "SC-R-08",
@@ -2159,11 +2181,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D07"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D07"
   },
   {
     "id": "SC-R-09",
@@ -2183,11 +2205,11 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D04"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04"
   },
   {
     "id": "SC-R-10",
@@ -2214,11 +2236,12 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C",
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-R-11",
@@ -2240,11 +2263,12 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C",
+      "D"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代"
   },
   {
     "id": "SC-R-12",
@@ -2266,11 +2290,12 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C",
+      "D"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
   },
   {
     "id": "SC-R-13",
@@ -2292,11 +2317,12 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "C",
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D05"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
   },
   {
     "id": "SC-R-14",
@@ -2315,10 +2341,10 @@
       "D"
     ],
     "blocked_by": [
-      "A-baseline"
+      "D"
     ],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   }
 ]
