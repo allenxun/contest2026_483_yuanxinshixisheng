@@ -122,6 +122,10 @@ public class SystemEchoController {
                                  EchoJobViewData view) {
     }
 
+    /** POST 入队结果 + 是否因 dedup 目标越权而被拒（RV-7 门禁）。 */
+    private record EnqueueOutcome(JobEnqueuer.JobEnqueueResult job, boolean rejected) {
+    }
+
     /**
      * 创建者归属类型（RV-5 裁定）：APP 账号任务用 {@code app_account}，云台任务用
      * {@code gimbal}。落到 A 属主列 async_jobs.owner_type。
@@ -145,6 +149,17 @@ public class SystemEchoController {
         return JOB_TYPE.equals(row.jobType())
                 && creatorOwnerType(principal).equals(row.ownerType())
                 && ownerId != null && ownerId.equals(row.ownerId());
+    }
+
+    /**
+     * dedup 返回的持久化行是否属于当前 principal 且为 system.echo（RV-7 门禁）。
+     * 单表查询，谓词与 GET 完全一致；不匹配由调用方统一转同一 404。
+     */
+    private boolean ownsRow(UUID jobId, PrincipalContext principal) {
+        var rows = jdbc.query("SELECT job_type, owner_type, owner_id FROM async_jobs WHERE id = ?",
+                (rs, i) -> new LoadedEchoJob(rs.getString("job_type"), rs.getString("owner_type"),
+                        rs.getObject("owner_id", UUID.class), null, null), jobId);
+        return !rows.isEmpty() && creatorOwns(rows.get(0), principal);
     }
 
     private static ApiException notVisible() {
@@ -194,21 +209,36 @@ public class SystemEchoController {
         payload.put("schema_version", 1);
         payload.put("message", body.message());
         payload.put("numbers_as_strings", numbers);
-        final UUID serverJobId = UUID.randomUUID();
         final IdempotencyHandle h = handle;
         final String ownerType = creatorOwnerType(principal);
         final UUID ownerId = creatorOwnerId(principal);
-        JobEnqueuer.JobEnqueueResult result = txTemplate.execute(status -> {
+        // RV-7 门禁：JobEnqueuer 命中全局 UNIQUE(dedup_key)（同显式 body jobId）会返回
+        // 既有行；必须在本事务内、记录 T13 成功之前，按 creator/type 复核该持久化行。
+        // 非创建者/非 echo → 与 GET 完全相同的 404，且（有 Idempotency-Key 时）把 T13
+        // 记为 rejected，使同键重试重放原拒绝，绝不 succeeded-vs-foreign-job。
+        EnqueueOutcome outcome = txTemplate.execute(status -> {
             JobEnqueuer.JobEnqueueResult r = jobEnqueuer.enqueue(JOB_TYPE, ownerType,
                     ownerId, 0, payload, dedupKey);
+            if (!ownsRow(r.jobId(), principal)) {
+                if (h != null) {
+                    idempotencyService.completeRejected(h, ErrorCode.RESOURCE_NOT_VISIBLE,
+                            ErrorCode.RESOURCE_NOT_VISIBLE.defaultStatus().value(),
+                            "job not visible", false, null);
+                }
+                return new EnqueueOutcome(r, true);
+            }
             if (h != null) {
                 idempotencyService.completeSuccess(h, "async_job", r.jobId(),
                         Map.of("jobId", r.jobId().toString(), "dedupKey", dedupKey));
             }
-            return r;
+            return new EnqueueOutcome(r, false);
         });
+        if (outcome.rejected()) {
+            throw notVisible();
+        }
         return ResponseEntity.ok(envelopes.ok(request,
-                new EchoJobAcceptedData(result.jobId().toString(), dedupKey, result.status())));
+                new EchoJobAcceptedData(outcome.job().jobId().toString(), dedupKey,
+                        outcome.job().status())));
     }
 
     @GetMapping("/{jobId}")

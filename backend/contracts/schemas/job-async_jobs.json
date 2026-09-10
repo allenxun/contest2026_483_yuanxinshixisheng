@@ -56,13 +56,15 @@
         "notification",
         "media",
         "identity_namespace",
-        "system"
+        "system",
+        "app_account",
+        "gimbal"
       ],
-      "description": "decisions #3 固定枚举"
+      "description": "decisions #3 固定枚举 + RV-5/RV-7 创建者归属（app_account=APP 账号，gimbal=云台；foundation system.echo 使用，installation 不入 owner_id）"
     },
     "owner_id": {
       "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid",
-      "description": "owner 主键文本（多态无外键，服务端校验归属）。identity_namespace owner = UUIDv5(FIXED_NS, \"<identity_namespace>:<face_subject_ref>\")；system owner = UUIDv5(FIXED_NS, dedup_key)；FIXED_NS 见 contracts/decisions-notes.md"
+      "description": "owner 主键文本（多态无外键，服务端校验归属）。identity_namespace owner = UUIDv5(FIXED_NS, \"<identity_namespace>:<face_subject_ref>\")；system owner = UUIDv5(FIXED_NS, dedup_key)；app_account owner = accountUuid；gimbal owner = gimbalUuid（RV-5/RV-7）；FIXED_NS 见 contracts/decisions-notes.md"
     },
     "input_revision": {
       "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string",
