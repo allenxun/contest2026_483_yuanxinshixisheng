@@ -159,16 +159,20 @@ E 以 `run.sh a-reverify` 执行定向复验（RV-1..RV-9+CLEANUP=11 项，独�
 
 ## 状态
 
-- blocker：**RV-5 系统诊断可见性政策待总协调书面裁定**（原 A 缺陷已修复并在
-  f6e500e 经定向复验闭合）；94 业务场景 dependency_pending（blocked_by=归属
-  B/C/D 包）。
-- nextAction：**waiting_dependency**（等总协调裁定 RV-5 → 形成 A 基础验收整体
-  意见并决定是否启动 B/C/D；若裁定须过滤 → 交 A 实施、E 定向重验）。
+- blocker：**第十二轮 oracle 审查不可用（usage limit，原会话两次调用失败）**——
+  RV-5 最终候选（A 561c338）有界复验已执行（`run.sh a-rv5` 双跑 settled 10/10=
+  10 PASS、exit=0，哨兵入口绑定 OK），E 代码已提交 **03b8dfb** 但**未审，不得
+  视为通过**；94 业务场景 dependency_pending（blocked_by=归属 B/C/D 包）。
+- nextAction：**waiting_dependency**（oracle 配额恢复后重试第十二轮【原会话，
+  不切换模型/不代替审查】→ 补记 E-oracle.md/E-A-acceptance.md 第十二轮结论 →
+  组合意见与 B/C/D 启动建议由总协调形成；若审查发现阻塞→修复后再审）。
 - 未修改 `backend/doc/**`、A 源码/契约/迁移/构建配置；未访问兄弟工作树；E 专用
-  资源（mvp-e-pg@55433/18081/18082）已清理，未触碰 A 容器/端口。
-- 提交状态：本包已本地提交（实施 cea01f7 → 修复链 6b0a234/cc33abe/61f6329/
-  f389078/440516b/707670a/85c2f33 → 定向复验 07617a4/2a595cf/**1fb5a5f** +
-  证据刷新 baa809b/abaa6a9/ded4034 及报告提交），由总协调负责集成，未推送远端。
-- E 代码经 oracle 第十一轮复审 PASS（reviewedCommit `1fb5a5f`，blockingFindings
-  无）；全部结果为测试替身形态（doubles_pass），不构成业务验收通过或真实供应商
-  接入声明；定向 PARTIAL 不冒充新 SHA 全量。
+  资源（mvp-e-pg@55433/18081/18082）已清理，未触碰 A 容器/端口；临时输出限
+  E 路径（未用 /tmp/opencode）。
+- 提交状态：本包已本地提交（实施 cea01f7 → 修复链 … → 85c2f33【R8 PASS】→
+  07617a4/2a595cf/1fb5a5f【R9-R11，R11 PASS】→ **03b8dfb**【RV-5 有界复验驱动，
+  R12 BLOCKED 待补】+ 证据刷新 baa809b/abaa6a9/ded4034/824d953 及报告提交），
+  由总协调负责集成，未推送远端。
+- E 代码经 oracle 第十一轮复审 PASS（reviewedCommit `1fb5a5f`）；03b8dfb 待第十二
+  轮；全部结果为测试替身形态（doubles_pass），不构成业务验收通过或真实供应商
+  接入声明；PARTIAL 不冒充新 SHA 全量。

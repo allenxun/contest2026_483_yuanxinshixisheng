@@ -198,14 +198,29 @@ PYTEST_ADDOPTS 入口命令均 exit=4，实际输出均为"拒绝外部 PYTEST_A
 | `backend/acceptance/run.sh selfcheck` | **0** | 33 passed |
 | `backend/acceptance/run.sh matrix` | **3** | PASSED=33 DEPENDENCY_PENDING=94 FAILED=0 SKIPPED_OTHER=0；SETTLED=94/94 SETTLEMENT_OK |
 
+## 第十二轮审查（RV-5 最终候选有界复验轮，2026-09-10）→ **BLOCKED（oracle 不可用，待补记）**
+
+- reviewedCommit 候选：`03b8dfb7745e51820861b553ebe22e9a655d3c3d`（RV-5 有界复验
+  驱动 a_rv5.py + 哨兵 mode/expected 参数化 + run.sh a-rv5 入口绑定 + 2 回归；
+  HEAD=824d953 仅为协调者复跑证据刷新，无代码变更）。
+- **oracle 会话两次调用失败："The usage limit has been reached"**（第二次为等待
+  ~2.5 分钟后重试）。按既定门禁规则：oracle 不可用/调用失败必须 BLOCKED，绝不能
+  视为通过——**03b8dfb 尚未经第十二轮独立审查**；本轮结论待配额恢复后补记，不
+  切换模型、不以其他审查者代替、不新建重复会话。
+- E 侧已完成执行结果（协调者独立复核，供第十二轮审查引用）：selfcheck RC=0/
+  53 passed；matrix RC=3（94 pending、SETTLED 94/94）；a-rv5 双跑（实施
+  E-AB-20260910T190853Z-89a36459 / 协调者于 03b8dfb 复跑
+  E-AB-20260910T191019Z-dd48513a）一致：settled 10/10=10 PASS/0 FAIL/0 BLOCKED/
+  0 INFO、exit=0、REVERIFY_SENTINEL_OK（RUN_ID 入口绑定、mode=rv5-reverify、
+  final_exit==驱动 rc）；既有全部历史证据目录 git 零变更。
+
 ## 状态
 
-- A 修复候选 f6e500e 已到达，E 定向复验（PARTIAL）已执行：11/11=10 PASS+
-  1 INFO（RV-5 可见性待裁定），原缺陷闭合；E 代码经第十一轮 oracle 终审 PASS
-  （1fb5a5f，blockingFindings 无）。第八轮 SUGGESTION（tmp_path 集成测试+称谓
-  修正）与 INFO 9 处人工复核（9/9 合规、第九轮独立核验）均同轮完成（closed）。
+- RV-5 裁定已由 A 实施（最终代码 561c338，A oracle round9 PASS-with-notes）并经
+  E 有界复验执行：a-rv5 双跑 10/10 PASS、exit=0；E 代码已提交 **03b8dfb**。
+  **第十二轮 oracle 审查 BLOCKED（usage limit，两次调用失败）——03b8dfb 未审，
+  不得视为通过**；组合意见（26d97fb 基础验收历史轮 + f6e500e 泄漏闭合 + 561c338
+  RV-5 闭合 + 已接受限制）与 B/C/D 建议待第十二轮结论补记后交总协调形成。
 - 94 业务场景仍 dependency_pending（blocked_by=归属 B/C/D 业务包）。
-- nextAction：**waiting_dependency** —— 总协调书面裁定 RV-5 系统诊断可见性
-  （跨账号读取；GET 是否限 system.echo 类型）→ 按三部分结构形成 A 基础验收
-  整体意见并决定是否启动 B/C/D；若裁定须过滤 → 交 A 实施、E 绑定更新 A SHA
-  定向重验。
+- nextAction：**waiting_dependency** —— oracle 配额恢复后重试第十二轮（原会话
+  ora-1）→ 补记本轮结论与报告 → 总协调形成整体意见并决定是否启动 B/C/D。
