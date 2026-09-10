@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mvp:contracts:schemas:payload-notification-deliver.json",
+  "title": "payload：notification.deliver（通知投递，DD 9.1 owner=notification）",
+  "description": "async_jobs.job_type=notification.deliver 的 payload 契约骨架（A 包公共契约；业务细节由 B 包扩展时保持向后兼容并升 schema_version）。",
+  "$comment": "投递前绑定/目标/会话重检与结果编码属 B 包（账号、设备与通知）。 payload 只放 JSON 数据与受控资源引用：禁止 pickle/Python 对象/Java 类名/可执行代码/照片（或 base64）/签名 URL/运行凭据（DD 9.1）。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "notification_id"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "结构版本固定 1（JSON 整数）"
+    },
+    "notification_id": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid",
+      "description": "T10.id；dedup_key = notification:{id}"
+    }
+  },
+  "x-owner-package": "B",
+  "x-detail": "skeleton"
+}

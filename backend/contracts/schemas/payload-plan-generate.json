@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mvp:contracts:schemas:payload-plan-generate.json",
+  "title": "payload：plan.generate（方案生成，DD 9.1 owner=plan/input_revision=generation_revision）",
+  "description": "async_jobs.job_type=plan.generate 的 payload 契约骨架（A 包公共契约；业务细节由 D 包扩展时保持向后兼容并升 schema_version）。",
+  "$comment": "骨架仅含标识字段；冻结报告/能力快照/白名单校验细节属 D 包（handler），执行准入接线属 C 包。 payload 只放 JSON 数据与受控资源引用：禁止 pickle/Python 对象/Java 类名/可执行代码/照片（或 base64）/签名 URL/运行凭据（DD 9.1）。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "plan_id",
+    "generation_revision"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "结构版本固定 1（JSON 整数）"
+    },
+    "plan_id": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid",
+      "description": "T06.id"
+    },
+    "generation_revision": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string",
+      "description": "与行 input_revision 一致；只写生成字段/N，不写 K/completed_at"
+    }
+  },
+  "x-owner-package": "D",
+  "x-detail": "skeleton"
+}
