@@ -1,8 +1,8 @@
-# E 独立 A 基线验收证据（2026-09-10，run E-AB-20260910T132207Z-629be89e）
+# E 独立 A 基线验收证据（2026-09-10，run E-AB-20260910T132526Z-e8b053e8）
 
 候选基线（config/baseline.json）：code=26d97fbe908cb93c1fe366e28ba54a91c21b497c report=617354d0634c55b9420a3256c619186a1177b3c3 dev=24232d3ccb203d50acfb6aed6b6e74e336654cb0 integrated=df0fa32ee42310d8adfa779f215c8b7a8da80fc7 oracle=round-3 PASS-with-notes
 
-环境：E 专用 PG `mvp-e-pg`@127.0.0.1:55433（label mvp.e.run=E-AB-20260910T132207Z-629be89e，镜像 postgres:16），Java@18081，worker 健康@18082；94 业务场景保持 dependency_pending（B/C/D 未集成）。
+环境：E 专用 PG `mvp-e-pg`@127.0.0.1:55433（label mvp.e.run=E-AB-20260910T132526Z-e8b053e8，镜像 postgres:16），Java@18081，worker 健康@18082；94 业务场景保持 dependency_pending（B/C/D 未集成）。
 
 **测试替身标注**：A dev/test 形态使用隔离替身（InMemory 会话 / SMS 固定码 123456 / DB 对照云台凭据 / 文件系统存储），结果均为 `doubles_pass` 语义，**不宣称真实供应商或真实设备接入**。
 
@@ -18,20 +18,20 @@
 |---|---|---|---|---|
 | SETUP-pg | 启动 E 专用 PG（mvp-e-pg@55433，label=本 run） | **PASS** | docker run --label mvp.e.run=... postgres:16 / 0 | UP |
 | AB-01a | Java 构建（-DskipTests package）产出可运行 jar | **PASS** | mvn -B -q -DskipTests package / 0 |  |
-| AB-09a/N1j | Java 目标测试（真实类）：SchemaVersionBoundaryTest（N1 服务层整数校验） + ProductionFailClosedTest（N3 fail-closed，targeted） | **PASS** | mvn -B -q test -Dtest=SchemaVersionBoundaryTest,ProductionFailClosedTest / 0 | 21:22:18.166 [main] ERROR cn.yuanxin.mvp.web.config.ProductionFailClosedValidator -- production fail-closed: unsafe production configuration -> [SessionProvider=absent, SmsCodeProvider=absent, DeviceCredentialProvider=absent, FaceProvider=absent, StoragePort=absent] (configure app.providers.mode=rea |
+| AB-09a/N1j | Java 目标测试（真实类）：SchemaVersionBoundaryTest（N1 服务层整数校验） + ProductionFailClosedTest（N3 fail-closed，targeted） | **PASS** | mvn -B -q test -Dtest=SchemaVersionBoundaryTest,ProductionFailClosedTest / 0 | 21:25:38.182 [main] ERROR cn.yuanxin.mvp.web.config.ProductionFailClosedValidator -- production fail-closed: unsafe production configuration -> [SessionProvider=absent, SmsCodeProvider=absent, DeviceCredentialProvider=absent, FaceProvider=absent, StoragePort=absent] (configure app.providers.mode=rea |
 | AB-09b | jcs.py selftest（17 向量权威数对） | **PASS** | scripts/jcs.py selftest / 0 | selftest: PASS (26 checks, 23 number pairs) |
 | AB-09c | validate_samples.py（样例+向量重算） | **PASS** | scripts/validate_samples.py / 0 | RESULT: PASS — all samples valid, all canonicalization vectors match |
 | AB-09d | openapi_spec_validator（基础契约） | **PASS** | python -c validate(openapi.yaml) / 0 | OPENAPI VALID |
 | AB-10a | fail-closed black-box：prod+doubles 启动被拒且日志含具体原因行 | **PASS** | java -jar (SPRING_PROFILES_ACTIVE=prod, prod+doubles) / 1 | exited=True reason_line=True : SessionProvider=doubles/disabled only |
 | AB-10b | fail-closed black-box：prod+owner-dev 启动被拒且日志含具体原因行 | **PASS** | java -jar (SPRING_PROFILES_ACTIVE=prod, prod+owner-dev) / 1 | exited=True reason_line=True : app.media.access-mode=owner-dev |
 | AB-10c | fail-closed black-box：prod+allow-any 启动被拒且日志含具体原因行 | **PASS** | java -jar (SPRING_PROFILES_ACTIVE=prod, prod+allow-any) / 1 | exited=True reason_line=True : app.media.allow-any-authenticated=true |
-| AB-01b | Java dev 启动 + /actuator/health UP（健康绑定子进程存活） | **PASS** | java -jar (SERVER_PORT=18081, db=mvp_e_dev) / 0 | first pid=3423010 |
+| AB-01b | Java dev 启动 + /actuator/health UP（健康绑定子进程存活） | **PASS** | java -jar (SERVER_PORT=18081, db=mvp_e_dev) / 0 | first pid=3429129 |
 | AB-01c | SIGTERM 停止 → 再启动 UP；Flyway no-op（重复启动无破坏） | **PASS** | restart cycle / 0 | second UP=True; flyway_noop=True |
 | AB-03 | 全新 E 库 Flyway V1+V2 迁移：14 表（实际 14），版本=1,2 | **PASS** | fresh db migrate via app start / 15 | missing=[] extra=[] history=1,2 success_rows=2 |
 | AB-02a | worker --check 连通自检（E 库） | **PASS** | python -m mvp_worker --check / 0 | PostgreSQL server_version: 16.15 (Debian 16.15-1.pgdg13+2) |
 | AB-02b | worker 运行循环 + /healthz /readyz UP（健康绑定本 run 子进程存活） | **PASS** | python -m mvp_worker (loop) / 0 | healthz=UP readyz=UP |
 | AB-02c | SIGTERM 优雅停机：真实 Popen wait 后 returncode==0 且日志见停机行 | **PASS** | proc.send_signal(SIGTERM) → proc.wait() / 0 | graceful_log=True（未依赖已清空变量） |
-| AB-02d | E 定向执行 worker pytest（claim/renew/expire/complete/attempt-ceiling/unsupported；E 专属 PG 临时库，绝不混 A 库） | **PASS** | pytest -q tests/test_claim.py tests/test_renew.py tests/test_expire.py tests/test_complete.py tests/test_attempt_ceiling.py tests/test_unsupported.py / 0 | passed=26 : 26 passed in 4.94s |
+| AB-02d | E 定向执行 worker pytest（claim/renew/expire/complete/attempt-ceiling/unsupported；E 专属 PG 临时库，绝不混 A 库） | **PASS** | pytest -q tests/test_claim.py tests/test_renew.py tests/test_expire.py tests/test_complete.py tests/test_attempt_ceiling.py tests/test_unsupported.py / 0 | passed=26 : 26 passed in 4.47s |
 | N1-db | JSONB 写入边界（DB object+number CHECK）：非对象/null/字符串/bool/缺键拒绝，整数接受；小数/负数 DB 放行=已知限制（服务层兜底） | **PASS** | psql INSERT async_jobs.payload 变体 / 0/1 | array:rej null_version:rej string_version:rej bool_version:rej missing_key:rej int1:accept fractional:accept negative:accept |
 | AB-04a | 约束负例最小父链种子 | **PASS** | psql seed / 0 | INSERT 0 6 INSERT 0 1 INSERT 0 1 INSERT 0 1 INSERT 0 1 INSERT 0 1 INSERT 0 1 INSERT 0 1 INSERT 0 1 |
 | AB-04b | 同一微晶第二个未收尾执行 → 拒绝（双占用）（拒因含 uq_execution_open_microcrystal） | **PASS** | psql negative INSERT / 1 | constraint_seen=True |
@@ -42,28 +42,28 @@
 | AB-04g | members (identity_namespace,face_subject_ref) 双非空重复 → 拒绝（拒因含 uq_members_identity） | **PASS** | psql negative INSERT / 1 | constraint_seen=True |
 | AB-04h | skin_assessments 非法 status → CHECK 拒绝（拒因含 ck_assessment_status） | **PASS** | psql negative INSERT / 1 | constraint_seen=True |
 | AB-04i | skin_assessments current_photo_version=0 → CHECK 拒绝（拒因含 ck_assessment_current_photo_version） | **PASS** | psql negative INSERT / 1 | constraint_seen=True |
-| AB-05a | 无 token → 401 AUTH_REQUIRED 信封 | **PASS** | GET /me/member-access-grants / 401 | {"requestId": "22b7859a-0f37-400d-bba3-4e25196f164c", "error": {"code": "AUTH_REQUIRED", "message": "missing bearer token", "retryable": false}} |
-| AB-05b | 伪造 Bearer → 401 SESSION_INVALID | **PASS** | GET with forged token / 401 | {"requestId": "e26436f6-f349-48b1-bdb2-0375aa93f0ed", "error": {"code": "SESSION_INVALID", "message": "session token invalid or expired", "retryable": false}} |
-| AB-05c | 手机号会话建立（SMS 替身 123456 + installationId） | **PASS** | POST sms-challenges→sessions / 200 | accountId=c6643b7d-f760-4e72-9c09-731059ed91cd 前置有效码=501 |
-| AB-05d | refresh 轮换后旧 refresh token → 401 SESSION_INVALID（独立会话） | **PASS** | POST session-refreshes (old reused) / 200/401 | {"requestId": "8761e903-d795-4275-b1c7-12974674b9b7", "error": {"code": "SESSION_INVALID", "message": "refresh credential invalid or rotated", "retryable": false}} |
-| AB-05e | 账号 disabled 后旧 token → 401 SESSION_INVALID（每请求复核） | **PASS** | 独立会话 → 变更真实 accountId → GET / 501->401 | rows_changed=1 account=c6643b7d |
-| AB-05f | auth_revision 递增后旧 token → 401（撤销代次不可复活） | **PASS** | 独立会话 → 变更真实 accountId → GET / 501->401 | rows_changed=1 account=c6643b7d |
+| AB-05a | 无 token → 401 AUTH_REQUIRED 信封 | **PASS** | GET /me/member-access-grants / 401 | {"requestId": "7bab834a-c6af-437d-84d2-fb92f8760a7f", "error": {"code": "AUTH_REQUIRED", "message": "missing bearer token", "retryable": false}} |
+| AB-05b | 伪造 Bearer → 401 SESSION_INVALID | **PASS** | GET with forged token / 401 | {"requestId": "1542e51d-6465-411d-89f1-5213425f2f97", "error": {"code": "SESSION_INVALID", "message": "session token invalid or expired", "retryable": false}} |
+| AB-05c | 手机号会话建立（SMS 替身 123456 + installationId） | **PASS** | POST sms-challenges→sessions / 200 | accountId=09048e86-35b9-4905-9ec1-bdfa9eeb8482 前置有效码=501 |
+| AB-05d | refresh 轮换后旧 refresh token → 401 SESSION_INVALID（独立会话） | **PASS** | POST session-refreshes (old reused) / 200/401 | {"requestId": "cc8234f5-f2da-4c4f-adcc-4b9c06135928", "error": {"code": "SESSION_INVALID", "message": "refresh credential invalid or rotated", "retryable": false}} |
+| AB-05e | 账号 disabled 后旧 token → 401 SESSION_INVALID（每请求复核） | **PASS** | 独立会话 → 变更真实 accountId → GET / 501->401 | rows_changed=1 account=09048e86 |
+| AB-05f | auth_revision 递增后旧 token → 401（撤销代次不可复活） | **PASS** | 独立会话 → 变更真实 accountId → GET / 501->401 | rows_changed=1 account=09048e86 |
 | AB-05g | revision 变更后重新登录成功且新会话有效（非仅返回 200） | **PASS** | POST sessions again + GET / 200 | new_session_valid=True |
 | AB-05h | 云台凭据轮换后旧云台 token → 401（独立云台会话，影响行数=1） | **PASS** | gimbal-sessions → rotate → old token GET / 200/501->401 | rows_changed=1 |
-| AB-06a | echo POST → 200 queued + jobId | **PASS** | POST /system/echo-jobs (Idempotency-Key) / 200 | {"requestId": "3bc99d43-e6bd-4a73-b8ef-6503f296b6ef", "data": {"jobId": "21df876e-3254-4963-a365-7c209e47dda0", "dedupKey": "system:echo:5d911530-abbe-4338-99e2-d3ea186af87c", "status": "queued"}, "meta": {"replayed": false, "serverTime": "2026-09-10 |
+| AB-06a | echo POST → 200 queued + jobId | **PASS** | POST /system/echo-jobs (Idempotency-Key) / 200 | {"requestId": "bf404fbd-664e-48d7-ac72-085c7844bd3a", "data": {"jobId": "63cad49b-89ae-4a8d-a574-617273ccb8ac", "dedupKey": "system:echo:49d67093-b5c1-4c60-bcbe-9e9b0b710f4f", "status": "queued"}, "meta": {"replayed": false, "serverTime": "2026-09-10 |
 | AB-08a | T13 同 Idempotency-Key 同内容重放 → 同 jobId + meta.replayed=true | **PASS** | POST same key/content / 200 | replayed=True same_job=True |
-| AB-08b | T13 同键不同内容 → 409 冲突（非 200/假成功） | **PASS** | POST same key/different content / 409 | {"requestId": "b6483233-81a3-4c6f-8870-54f0282846c3", "error": {"code": "IDEMPOTENCY_CONTENT_CONFLICT", "message": "Idempotency-Key reused with different request content; use a new key for a new logic |
-| AB-06b | worker --once 领取并处理本次 enqueued job（日志含 jobId 或状态推进） | **PASS** | python -m mvp_worker --once / 0 | job=21df876e status=succeeded |
+| AB-08b | T13 同键不同内容 → 409 冲突（非 200/假成功） | **PASS** | POST same key/different content / 409 | {"requestId": "b0396d0d-3fee-4588-a835-84dab89f821d", "error": {"code": "IDEMPOTENCY_CONTENT_CONFLICT", "message": "Idempotency-Key reused with different request content; use a new key for a new logic |
+| AB-06b | worker --once 领取并处理本次 enqueued job（日志含 jobId 或状态推进） | **PASS** | python -m mvp_worker --once / 0 | job=63cad49b status=succeeded |
 | AB-06c | GET echo job → succeeded + attemptCount=1 + leaseRevision=1 | **PASS** | GET /system/echo-jobs/{id} / 200 | status=succeeded attempt=1 lease=1 |
-| AB-11a | 非法输入 → 400 INVALID_INPUT 信封，X-Request-Id==body.requestId（均非空） | **PASS** | POST /system/echo-jobs {} / 400 | rid_hdr=abd68293-0f7f-4df2-aedd-7dfac2056a45 rid_body=abd68293-0f7f-4df2-aedd-7dfac2056a45 |
-| AB-11b | 业务 stub（有 token）→ 501 NOT_IMPLEMENTED，不给假 200 | **PASS** | GET /me/member-access-grants / 501 | {"requestId": "b48114fc-42b7-4a19-85bd-b97dd228ec3d", "error": {"code": "NOT_IMPLEMENTED", "message": "business endpoint is contract-only and not implemented yet", "retryable": false, "details": {"api |
-| AB-11c | 未知资源 → 404 结构化信封（含 requestId） | **PASS** | GET /system/echo-jobs/<random> / 404 | {"requestId": "a403a09d-0236-45bd-a21e-b586cd7f3632", "error": {"code": "RESOURCE_NOT_VISIBLE", "message": "job not visible", "retryable": false}} |
+| AB-11a | 非法输入 → 400 INVALID_INPUT 信封，X-Request-Id==body.requestId（均非空） | **PASS** | POST /system/echo-jobs {} / 400 | rid_hdr=881b7b27-93b2-4b1e-8a78-7a58ecc6efd0 rid_body=881b7b27-93b2-4b1e-8a78-7a58ecc6efd0 |
+| AB-11b | 业务 stub（有 token）→ 501 NOT_IMPLEMENTED，不给假 200 | **PASS** | GET /me/member-access-grants / 501 | {"requestId": "fe6ef872-ea08-4f0a-8be8-46d581209d86", "error": {"code": "NOT_IMPLEMENTED", "message": "business endpoint is contract-only and not implemented yet", "retryable": false, "details": {"api |
+| AB-11c | 未知资源 → 404 结构化信封（含 requestId） | **PASS** | GET /system/echo-jobs/<random> / 404 | {"requestId": "44731c91-54f4-4fd1-8b21-d05389e1a7f7", "error": {"code": "RESOURCE_NOT_VISIBLE", "message": "job not visible", "retryable": false}} |
 | N2-http | 诊断列 HTTP 投影：须脱敏/限大小/不原样返回（实测 data.lastError） | **FAIL** | 诊断 UPDATE RETURNING count==1 + GET 断言 200/目标 job → 判定 / 200/200 | marker: marker 原样回显（len=95） | long: 未限大小（len=4058 > 1000） |
-| N3-media | 媒体 deny-all：任何 GET 统一 404（含 face purpose、含真实上传者本人、无 403 泄露） | **PASS** | 真实上传者主体 GET /media/{id}/content / 404/404 | uploader_self_404=True no_403=True uploader=c6643b7d |
+| N3-media | 媒体 deny-all：任何 GET 统一 404（含 face purpose、含真实上传者本人、无 403 泄露） | **PASS** | 真实上传者主体 GET /media/{id}/content / 404/404 | uploader_self_404=True no_403=True uploader=09048e86 |
 | AB-07a | 过期 running 租约回收 → queued + lease_revision+1 + 释放 owner（条件更新） | **PASS** | worker --recover / 0 | status=queued lease_revision=2 owner=NULL |
 | AB-06d | 陈旧代次同事务回滚 + 重试上限（运行时边界集成，非 HTTP；受控回调在 E 驱动内） | **PASS** | python ab06d_runtime.py（真实 mvp_worker runtime + E 专属 PG） / 0 | ceiling={'claimed': True, 'recovered': 1, 'status': 'failed', 'attempt': 1, 'max': 1, 'code': 'RETRY_LIMIT_EXCEEDED', 'retryable': False, 'second_recover': 0} stale={'raised': 'StaleGeneration', 'sentinel_rows': 0, 'old_revision': 1} |
 | N1-py-schema | Python echo payload schema：string/null/bool/1.5/-2/不支持版本/数组/缺字段拒绝 | **PASS** | python -c EchoHandler().validate(变体) / 0 | string:REJECT null:REJECT bool:REJECT fractional:REJECT negative:REJECT unsupported:REJECT array:REJECT missing:REJECT |
-| N1-py-runtime | Python 运行时拒绝非法 schema_version（failed/UNSUPPORTED_CONTRACT，不循环） | **PASS** | worker --once 处理坏版本 job / 0/1 | a1bf77:failed/UNSUPPORTED_CONTRACT a1bf77:failed/UNSUPPORTED_CONTRACT a1bf77:failed/UNSUPPORTED_CONTRACT |
+| N1-py-runtime | Python 运行时拒绝非法 schema_version（failed/UNSUPPORTED_CONTRACT，不循环） | **PASS** | worker --once 处理坏版本 job / 0/1 | cc8468:failed/UNSUPPORTED_CONTRACT cc8468:failed/UNSUPPORTED_CONTRACT cc8468:failed/UNSUPPORTED_CONTRACT |
 | N2-db | 五诊断列豁免：无 schema_version 可写；CHECK 定义不含这些诊断列 | **PASS** | UPDATE async_jobs.last_error 无版本 + 查 pg_constraint / 0 | no_check_on_diag_cols=True |
 | N2-codereview | 诊断列消费点分类检视（23 处，待人工复核 9 处，客户端投影=True） | **INFO** | grep Java/Python src + file:line/片段/分类记录 / 0 | hits=23 uncertain=9 详见 logs/n2-code-review.md（有未判定项，降为 INFO，不作为 PASS 依据） |
 | CLEANUP | 停 Java/worker、按 run 标签删除本 run 的 mvp-e-pg | **PASS** | docker rm -f -v mvp-e-pg (label mvp.e.run) / 0 |  |
@@ -81,6 +81,6 @@
 - AB-02d：E 定向执行与基础/恢复/版本直接相关的 worker 测试文件（见命令），DSN 指向 E 专属 PG 临时库（MVP_A_PG_CONTAINER=mvp-e-pg / HOST_PORT=55433），绝不混用 A 库/容器；与本轮无关的全量重跑按'避免重复无关单测'排除。
 - AB-06d：运行时边界集成验证（claim/recover/complete 公共运行时 + E PG + E 驱动内受控 business_tx 哨兵），非 HTTP；未改 A 源码。
 - AB-10 黑盒启动拒绝（缺真实提供方/unsafe media）与 targeted ProductionFailClosedTest（媒体开关）在 AB-10a-c 与 AB-09a/N1j 分列陈述。
-- 证据日志：reports/E-AB-20260910T132207Z-629be89e/ 与 logs/ 摘录（非空）。
+- 证据日志：reports/E-AB-20260910T132526Z-e8b053e8/ 与 logs/ 摘录（非空）。
 - A 缺陷：见上表 FAIL 项与上方“A 缺陷清单”；本轮未修 A 源码。
 - 清理：按 label 归属删除 mvp-e-pg，Java/worker 进程与端口释放。
