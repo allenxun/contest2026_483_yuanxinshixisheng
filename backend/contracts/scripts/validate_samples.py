@@ -172,11 +172,13 @@ def main() -> int:
     reg = jsonschema_registry()
     for fname, uri in JOB_PAYLOAD_MAP.items():
         validate_with_jsonschema(load_json(SAMPLES / "jobs" / fname), uri, reg, f"samples/jobs/{fname}")
-    validate_with_jsonschema(
-        load_json(SAMPLES / "jobs" / "job-handoff-example.json"),
-        "urn:mvp:contracts:schemas:job-async_jobs.json", reg,
-        "samples/jobs/job-handoff-example.json",
-    )
+    for handoff in ("job-handoff-example.json", "echo-handoff-app-created.json",
+                    "echo-handoff-gimbal-created.json"):
+        validate_with_jsonschema(
+            load_json(SAMPLES / "jobs" / handoff),
+            "urn:mvp:contracts:schemas:job-async_jobs.json", reg,
+            f"samples/jobs/{handoff}",
+        )
 
     print("== OpenAPI components/schemas envelope & metadata samples ==")
     oreg = openapi_registry()

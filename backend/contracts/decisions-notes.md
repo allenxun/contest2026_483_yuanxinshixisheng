@@ -32,6 +32,11 @@ system}`；`owner_id` 为 UUID 文本（多态无外键，服务端校验归属�
 - `identity_namespace` 的 `owner_id` =
   **UUIDv5(FIXED_NS, `"<identity_namespace>:<face_subject_ref>"`)**
 - `system` 的 `owner_id` = **UUIDv5(FIXED_NS, dedup_key)**
+- 例外（RV-5 裁定，见 §11）：foundation `system.echo`
+  （`/api/v1/system/echo-jobs`）改用创建者身份做归属——APP
+  `owner_type=app_account`/`owner_id=accountUuid`，GIMBAL
+  `owner_type=gimbal`/`owner_id=gimbalUuid`；`system` 约定仍适用于 system
+  属主任务（如 identity_namespace）。
 
 ## 4. FIXED_NS 计算值（两侧硬编码，禁止各算各的输入差异）
 
@@ -214,3 +219,34 @@ SessionProvider.authenticate 后经 `PrincipalRevalidator` 复核本地状态，
 `SELECT credential_version FROM gimbals WHERE id=?`。会话快照携带签发时刻
 auth_revision / credential_version；disabled、revision 递增、版本轮换或行
 缺失 → 401 SESSION_INVALID。
+
+## 11. E RV-5 裁定：system.echo 创建者归属 + GET 仅创建者可读（oracle round-7）
+
+- `GET /api/v1/system/echo-jobs/{jobId}` **只服务创建者本人**：不存在 /
+  `job_type≠system.echo` / 非创建者 三类一律返回**完全相同**的
+  404 `RESOURCE_NOT_VISIBLE`（不泄露存在性、归属、类型；未认证仍由
+  BearerAuthFilter 先 401）。该端点不得作为任意 `async_jobs` 的通用查询入口。
+- 归属存储复用 A 属主列 `async_jobs.owner_type/owner_id`（**无新表、无迁移、
+  无新列**），由 `JobEnqueuer` 在创建者业务事务内原子写入：APP
+  `app_account`+`accountUuid`，GIMBAL `gimbal`+`gimbalUuid`。`installation`
+  只属 T13 作用域、**不进 owner_id**（同账号跨安装可读本账号任务）。理由：
+  echo 是账号级诊断端点，T13 作用域仍为 account+installation。
+- POST 重放：同 principal 同键重放返回原 jobId（`meta.replayed=true`）；不同
+  principal 即使同键也是不同 T13 作用域（键去重不跨主体）。
+- **显式 body jobId 的全局 dedup 边界（RV-7）**：`dedup_key` 全局唯一；
+  JobEnqueuer 命中的既有行若非本人所有或非 `system.echo`，POST 在记录 T13
+  成功**之前**即按 creator/type 复核，并返回与 GET **完全相同**的
+  404 `RESOURCE_NOT_VISIBLE`（不泄露该行 id/status/归属/类型）；有
+  Idempotency-Key 时该次 T13 记为 `rejected`，同键重试重放同一拒绝（绝不
+  succeeded 指向外来 job）。同 principal 命中自有 echo 行 = 合法 dedup 重放。
+- 契约同步：`schemas/job-async_jobs.json` 的 `owner_type` 枚举扩展
+  `app_account`/`gimbal`；新增 `samples/jobs/echo-handoff-app-created.json` 与
+  `echo-handoff-gimbal-created.json`（实际 POST 插入形状）并纳入
+  `validate_samples.py`。GET 每次从持久化行派生创建者并比对；T13 重放投影亦
+  复核归属（防御性）。
+- POST 响应映射亦声明 `'404'`（`#/components/responses/NotFound`）且
+  `x-error-codes` 含 `RESOURCE_NOT_VISIBLE`——与 RV-7 全局 dedup 边界的
+  404 行为及描述一致（oracle round-8 IMPORTANT 闭合：此前仅描述未声明）。
+- Worker 领取/续租/回收/完成**不读取** `owner_type/owner_id` 做行为分支
+  （仅进入日志字段），归属变更不影响 T12 运行时；worker 测试镜像改为
+  `app_account` 形状（测试专用，非运行时语义）。

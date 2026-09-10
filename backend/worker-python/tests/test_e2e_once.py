@@ -6,22 +6,22 @@ import uuid
 
 from sqlalchemy import Engine, text
 
-from conftest import FIXED_NS, echo_owner_id
+from conftest import FIXED_NS
 from mvp_worker.__main__ import main
 
 
 def _seed_java_shape_echo(engine: Engine, sample: dict) -> str:
-    """镜像 Java JobEnqueuer 的插入（decisions #4）：
-    owner_type='system', owner_id=uuid5(FIXED_NS, dedup_key),
-    input_revision=0（bigint）, payload=契约样例原文。"""
+    """镜像 Java JobEnqueuer 的插入（RV-5 创建者归属）：
+    owner_type='app_account', owner_id=创建者 accountUuid（测试用随机 UUID），
+    input_revision=0（bigint）, payload=契约样例原文。worker 领取不看 owner。"""
     dedup_key = f"system:echo:{uuid.uuid4()}"
-    owner_id = echo_owner_id(dedup_key)
+    owner_id = uuid.uuid4()
     with engine.begin() as conn:
         row = conn.execute(
             text(
                 "INSERT INTO async_jobs (job_type, dedup_key, owner_type, owner_id,"
                 " input_revision, payload, status, available_at, attempt_count, max_attempts)"
-                " VALUES ('system.echo', :k, 'system', :o, 0, CAST(:p AS jsonb),"
+                " VALUES ('system.echo', :k, 'app_account', :o, 0, CAST(:p AS jsonb),"
                 " 'queued', CURRENT_TIMESTAMP, 0, 5) RETURNING id"
             ),
             {

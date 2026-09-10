@@ -1,6 +1,7 @@
 package cn.yuanxin.mvp.web.system;
 
 import cn.yuanxin.mvp.web.auth.PrincipalContext;
+import cn.yuanxin.mvp.web.auth.PrincipalType;
 import cn.yuanxin.mvp.web.error.ApiException;
 import cn.yuanxin.mvp.web.error.ErrorCode;
 import cn.yuanxin.mvp.web.idempotency.BeginOutcome;
@@ -40,14 +41,19 @@ import java.util.UUID;
  *
  * <ul>
  *   <li>POST /api/v1/system/echo-jobs：已认证主体（APP 或 GIMBAL）提交回声
- *       任务 → 经 JobEnqueuer 入队 system.echo（owner=system，
- *       owner_id=uuid5(FIXED_NS, dedup_key)，payload 带 schema_version=1、
- *       bigint 字符串）。Idempotency-Key 可选：提供时走 T13
+ *       任务 → 经 JobEnqueuer 入队 system.echo。<b>创建者身份</b>写入 A 属主列
+ *       （RV-5 裁定）：APP → owner_type='app_account', owner_id=accountUuid；
+ *       GIMBAL → owner_type='gimbal', owner_id=gimbalUuid。installation 只属 T13
+ *       作用域，不进 owner_id（同账号不同安装可读自己账号的任务）。payload 带
+ *       schema_version=1、bigint 字符串。Idempotency-Key 可选：提供时走 T13
  *       （operation=system.echo.create），重放同 jobId + meta.replayed=true。</li>
- *   <li>GET /api/v1/system/echo-jobs/{jobId}：投影 async_jobs 当前状态
- *       （attemptCount/leaseRevision 为 bigint 字符串）。lastError 是<b>有界
- *       安全投影</b>：仅 {reason 枚举, retryable bool}，内部诊断列
- *       （raw code/message/stack）绝不外泄（见 {@link #projectError}）。</li>
+ *   <li>GET /api/v1/system/echo-jobs/{jobId}：<b>仅创建者本人</b>可读自己的
+ *       system.echo 任务。不存在 / job_type≠system.echo / 非创建者 → 同一
+ *       404 RESOURCE_NOT_VISIBLE（不泄露存在性/归属/类型；沿用 Bearer 认证，
+ *       未认证先 401）。投影 async_jobs 当前状态（attemptCount/leaseRevision 为
+ *       bigint 字符串）。lastError 是<b>有界安全投影</b>：仅 {reason 枚举,
+ *       retryable bool}，内部诊断列（raw code/message/stack）绝不外泄
+ *       （见 {@link #projectError}）。</li>
  * </ul>
  *
  * <p>本端点是 B/C/D 接线 T13 + JobEnqueuer + PrincipalContext 的参照实现。</p>
@@ -111,6 +117,56 @@ public class SystemEchoController {
     /** 契约保留值：system.echo 当前无 JobFailed code（见 handlers/system_echo.py）。 */
     private static final String REASON_HANDLER_FAILED = "handler_failed";
 
+    /** GET 行装载：含归属列（仅内部 creator 判定，绝不投影给客户端）。 */
+    private record LoadedEchoJob(String jobType, String ownerType, UUID ownerId, String status,
+                                 EchoJobViewData view) {
+    }
+
+    /** POST 入队结果 + 是否因 dedup 目标越权而被拒（RV-7 门禁）。 */
+    private record EnqueueOutcome(JobEnqueuer.JobEnqueueResult job, boolean rejected) {
+    }
+
+    /**
+     * 创建者归属类型（RV-5 裁定）：APP 账号任务用 {@code app_account}，云台任务用
+     * {@code gimbal}。落到 A 属主列 async_jobs.owner_type。
+     */
+    private static String creatorOwnerType(PrincipalContext principal) {
+        return principal.principalType() == PrincipalType.APP ? "app_account" : "gimbal";
+    }
+
+    /** 创建者归属 id：APP=accountUuid（installation 不进 owner_id），GIMBAL=gimbalUuid。 */
+    private static UUID creatorOwnerId(PrincipalContext principal) {
+        return principal.principalType() == PrincipalType.APP
+                ? principal.accountUuid() : principal.gimbalUuid();
+    }
+
+    /**
+     * 行是否属于当前创建者且是 echo 类型。三要素全部来自持久化行 + 认证主体，
+     * 不信任任何请求输入；不匹配由调用方统一转 404。
+     */
+    private static boolean creatorOwns(LoadedEchoJob row, PrincipalContext principal) {
+        UUID ownerId = creatorOwnerId(principal);
+        return JOB_TYPE.equals(row.jobType())
+                && creatorOwnerType(principal).equals(row.ownerType())
+                && ownerId != null && ownerId.equals(row.ownerId());
+    }
+
+    /**
+     * dedup 返回的持久化行是否属于当前 principal 且为 system.echo（RV-7 门禁）。
+     * 单表查询，谓词与 GET 完全一致；不匹配由调用方统一转同一 404。
+     */
+    private boolean ownsRow(UUID jobId, PrincipalContext principal) {
+        var rows = jdbc.query("SELECT job_type, owner_type, owner_id FROM async_jobs WHERE id = ?",
+                (rs, i) -> new LoadedEchoJob(rs.getString("job_type"), rs.getString("owner_type"),
+                        rs.getObject("owner_id", UUID.class), null, null), jobId);
+        return !rows.isEmpty() && creatorOwns(rows.get(0), principal);
+    }
+
+    private static ApiException notVisible() {
+        // 不存在 / 非 echo / 非创建者：完全相同的错误（不泄露存在性/归属/类型）
+        return new ApiException(ErrorCode.RESOURCE_NOT_VISIBLE, "job not visible");
+    }
+
     @PostMapping
     public ResponseEntity<SuccessEnvelope> create(@Valid @RequestBody EchoJobRequestBody body,
                                                   @RequestHeader(value = "Idempotency-Key",
@@ -139,7 +195,7 @@ public class SystemEchoController {
             switch (outcome) {
                 case BeginOutcome.ReplaySucceeded replay -> {
                     request.setAttribute(EnvelopeSupport.ATTR_REPLAYED, Boolean.TRUE);
-                    EchoJobAcceptedData data = projectReplay(replay, dedupKeyOf(replay));
+                    EchoJobAcceptedData data = projectReplay(replay, dedupKeyOf(replay), principal);
                     return ResponseEntity.ok(envelopes.ok(request, data, true));
                 }
                 case BeginOutcome.ReplayRejected rejected ->
@@ -153,40 +209,61 @@ public class SystemEchoController {
         payload.put("schema_version", 1);
         payload.put("message", body.message());
         payload.put("numbers_as_strings", numbers);
-        final UUID serverJobId = UUID.randomUUID();
         final IdempotencyHandle h = handle;
-        JobEnqueuer.JobEnqueueResult result = txTemplate.execute(status -> {
-            JobEnqueuer.JobEnqueueResult r = jobEnqueuer.enqueue(JOB_TYPE, "system",
-                    JobEnqueuer.systemOwnerFor(dedupKey), 0, payload, dedupKey);
+        final String ownerType = creatorOwnerType(principal);
+        final UUID ownerId = creatorOwnerId(principal);
+        // RV-7 门禁：JobEnqueuer 命中全局 UNIQUE(dedup_key)（同显式 body jobId）会返回
+        // 既有行；必须在本事务内、记录 T13 成功之前，按 creator/type 复核该持久化行。
+        // 非创建者/非 echo → 与 GET 完全相同的 404，且（有 Idempotency-Key 时）把 T13
+        // 记为 rejected，使同键重试重放原拒绝，绝不 succeeded-vs-foreign-job。
+        EnqueueOutcome outcome = txTemplate.execute(status -> {
+            JobEnqueuer.JobEnqueueResult r = jobEnqueuer.enqueue(JOB_TYPE, ownerType,
+                    ownerId, 0, payload, dedupKey);
+            if (!ownsRow(r.jobId(), principal)) {
+                if (h != null) {
+                    idempotencyService.completeRejected(h, ErrorCode.RESOURCE_NOT_VISIBLE,
+                            ErrorCode.RESOURCE_NOT_VISIBLE.defaultStatus().value(),
+                            "job not visible", false, null);
+                }
+                return new EnqueueOutcome(r, true);
+            }
             if (h != null) {
                 idempotencyService.completeSuccess(h, "async_job", r.jobId(),
                         Map.of("jobId", r.jobId().toString(), "dedupKey", dedupKey));
             }
-            return r;
+            return new EnqueueOutcome(r, false);
         });
+        if (outcome.rejected()) {
+            throw notVisible();
+        }
         return ResponseEntity.ok(envelopes.ok(request,
-                new EchoJobAcceptedData(result.jobId().toString(), dedupKey, result.status())));
+                new EchoJobAcceptedData(outcome.job().jobId().toString(), dedupKey,
+                        outcome.job().status())));
     }
 
     @GetMapping("/{jobId}")
     public SuccessEnvelope get(@PathVariable("jobId") UUID jobId, PrincipalContext principal,
                                HttpServletRequest request) {
-        var rows = jdbc.query("SELECT id, status, attempt_count, lease_revision, finished_at,"
-                        + " last_error::text AS last_error"
+        var rows = jdbc.query("SELECT id, job_type, owner_type, owner_id, status, attempt_count,"
+                        + " lease_revision, finished_at, last_error::text AS last_error"
                         + " FROM async_jobs WHERE id = ?",
-                (rs, i) -> new EchoJobViewData(
-                        rs.getObject("id", UUID.class).toString(),
-                        rs.getString("status"),
-                        String.valueOf(rs.getLong("attempt_count")),
-                        String.valueOf(rs.getLong("lease_revision")),
-                        rs.getTimestamp("finished_at") == null ? null
-                                : EnvelopeSupport.rfc3339(rs.getTimestamp("finished_at").toInstant()),
-                        projectError(rs.getString("last_error"))),
+                (rs, i) -> new LoadedEchoJob(
+                        rs.getString("job_type"), rs.getString("owner_type"),
+                        rs.getObject("owner_id", UUID.class), rs.getString("status"),
+                        new EchoJobViewData(
+                                rs.getObject("id", UUID.class).toString(),
+                                rs.getString("status"),
+                                String.valueOf(rs.getLong("attempt_count")),
+                                String.valueOf(rs.getLong("lease_revision")),
+                                rs.getTimestamp("finished_at") == null ? null
+                                        : EnvelopeSupport.rfc3339(
+                                                rs.getTimestamp("finished_at").toInstant()),
+                                projectError(rs.getString("last_error")))),
                 jobId);
-        if (rows.isEmpty()) {
-            throw new ApiException(ErrorCode.RESOURCE_NOT_VISIBLE, "job not visible");
+        if (rows.isEmpty() || !creatorOwns(rows.get(0), principal)) {
+            throw notVisible();
         }
-        return envelopes.ok(request, rows.get(0));
+        return envelopes.ok(request, rows.get(0).view());
     }
 
     /**
@@ -229,14 +306,25 @@ public class SystemEchoController {
         return replay.resultSummary().path("dedupKey").asText(null);
     }
 
-    /** succeeded 重放：只定位原资源，按当前 DB 状态投影（不重复入队）。 */
-    private EchoJobAcceptedData projectReplay(BeginOutcome.ReplaySucceeded replay, String dedupKey) {
+    /**
+     * succeeded 重放：只定位原资源，按当前 DB 状态投影（不重复入队）。T13 作用域
+     * 已含 principal，故重放行按构造即同创建者；此处仍显式复核 creator 归属
+     * （防御性，绝不因重放而跨主体暴露），不匹配统一 404。
+     */
+    private EchoJobAcceptedData projectReplay(BeginOutcome.ReplaySucceeded replay, String dedupKey,
+                                              PrincipalContext principal) {
         if (!"async_job".equals(replay.resourceType()) || replay.resourceId() == null) {
             throw new ApiException(ErrorCode.INTERNAL, "unexpected replay resource");
         }
-        var statuses = jdbc.query("SELECT status FROM async_jobs WHERE id = ?",
-                (rs, i) -> rs.getString("status"), replay.resourceId());
-        String status = statuses.isEmpty() ? "unknown" : statuses.get(0);
-        return new EchoJobAcceptedData(replay.resourceId().toString(), dedupKey, status);
+        var rows = jdbc.query("SELECT job_type, owner_type, owner_id, status"
+                        + " FROM async_jobs WHERE id = ?",
+                (rs, i) -> new LoadedEchoJob(
+                        rs.getString("job_type"), rs.getString("owner_type"),
+                        rs.getObject("owner_id", UUID.class), rs.getString("status"), null),
+                replay.resourceId());
+        if (rows.isEmpty() || !creatorOwns(rows.get(0), principal)) {
+            throw notVisible();
+        }
+        return new EchoJobAcceptedData(replay.resourceId().toString(), dedupKey, rows.get(0).status());
     }
 }
