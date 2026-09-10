@@ -1,8 +1,8 @@
 # MVP 任务进度总览
 
-最近刷新：2026-09-10 16:17:50 +08:00
+最近刷新：2026-09-10 16:27:13 +08:00
 
-执行顺序：A 完成并通过 E 验收 → 集成 dev → B/C/D 并行 → E 持续验收。
+执行顺序：A 实施 → Oracle 审查与修复复审 → E 验收 → 集成 dev → B/C/D 并行；各模块同样经过 Oracle 与 E 验收。
 
 不使用估算百分比；“实施中”“等待依赖”和“验收通过”分别展示，避免把自检当交付。
 
@@ -12,7 +12,7 @@
 | [B · 身份、设备与通知](B.md) | 等待 A 验收通过 | A 尚未完成验收与集成，按计划等待 |
 | [C · 方案执行与次数记录](C.md) | 等待 A 验收通过 | A 尚未完成验收与集成，按计划等待 |
 | [D · 测肤与方案生成](D.md) | 等待 A 验收通过 | A 尚未完成验收与集成，按计划等待 |
-| [E · 全程验收与联调](E.md) | 等待依赖 | A integrated baseline SHA and runnable foundation not provided |
+| [E · 全程验收与联调](E.md) | 实施中 | A integrated baseline SHA and runnable foundation not provided |
 
 ## 刷新规则
 

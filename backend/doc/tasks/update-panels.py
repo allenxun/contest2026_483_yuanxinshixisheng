@@ -26,6 +26,7 @@ def fmt(value):
 
 def main():
  registry=read(ROOT/'.coordination/registry.json')
+ checklists=read(Path(__file__).resolve().parent/'checklists.json')
  now=datetime.now(ZoneInfo('Asia/Shanghai')).strftime('%Y-%m-%d %H:%M:%S +08:00')
  OUT.mkdir(exist_ok=True)
  rows=[]
@@ -38,7 +39,21 @@ def main():
   blocker=status.get('blocker') or ('A 尚未完成验收与集成，按计划等待' if waiting else '最近状态未报告阻塞；不代表已完成验收')
   next_action=status.get('nextAction',status.get('next_action')) or ('A 验收并合入 dev 后，创建独立任务和工作树' if waiting else '由监督任务补充下一步')
   tests=status.get('tests')
-  lines=[f'# {key} · {title}', '', '[返回总览](README.md) · [任务书](../'+card+')', '', f'> 面板生成时间：{now}。这是状态快照，不是实时日志；以“最近进展时间”判断信息新旧。', '', '## 当前进度', '', '| 项目 | 当前信息 |','|---|---|',f'| 阶段 | {fmt(label)} |',f'| 最近进展时间 | {fmt(status.get("lastProgressAt",status.get("last_progress_at")))} |',f'| 最近报告提交（不等于验收通过） | {fmt(status.get("commit"))} |',f'| 分支 | {fmt(status.get("branch",registered.get("branch")))} |',f'| 阻塞 / 等待条件 | {fmt(blocker)} |',f'| 下一步 | {fmt(next_action)} |', '', '## 本包范围','',scope,'','## 已完成与验收证据','']
+  lines=[f'# {key} · {title}', '', '[返回总览](README.md) · [任务书](../'+card+')', '', f'> 面板生成时间：{now}。这是状态快照，不是实时日志；以“最近进展时间”判断信息新旧。', '', '## 当前进度', '', '| 项目 | 当前信息 |','|---|---|',f'| 阶段 | {fmt(label)} |',f'| 最近进展时间 | {fmt(status.get("lastProgressAt",status.get("last_progress_at")))} |',f'| 最近报告提交（不等于验收通过） | {fmt(status.get("commit"))} |',f'| 分支 | {fmt(status.get("branch",registered.get("branch")))} |',f'| 阻塞 / 等待条件 | {fmt(blocker)} |',f'| 下一步 | {fmt(next_action)} |', '', '## 本包范围','',scope,'','## 进度说明','']
+  lines += ['逐项清单中，勾选表示该项已提供证据；未勾选不一定未开始，也可能尚未逐项核对。', '', '## 任务清单', '']
+  progress=status.get('taskProgress', {})
+  section=None
+  for item in checklists.get(key, []):
+   if item['section'] != section:
+    section=item['section']; lines += ['### '+section, '']
+   record=progress.get(item['id'], {})
+   if not isinstance(record,dict): record={}
+   verified=record.get('status')=='done' and bool(record.get('evidence'))
+   tag={'in_progress':'进行中','blocked':'阻塞','done':'已报告完成，待证据'}.get(record.get('status'),'未逐项确认')
+   lines += [f"- [{'x' if verified else ' '}] **{item['id']}** {item['title']} — {'已完成' if verified else tag}" + ('；证据：'+fmt(record['evidence']) if record.get('evidence') else '')]
+  review=status.get('oracleReview') or {}
+  if not isinstance(review,dict): review={}
+  lines += ['', '## Oracle 审查门禁', '', '| 项目 | 记录 |', '|---|---|', '| 状态 | '+fmt(review.get('status') or '尚未提供 Oracle 审查结论')+' |', '| 审查代码 SHA | '+fmt(review.get('reviewedCommit'))+' |', '| 审查报告 | '+fmt(review.get('report'))+' |', '| 阻塞问题 | '+fmt(review.get('blockingFindings'))+' |', '', 'Oracle 必须由 OpenCode 实际调用。未审查、不可用或仍有阻塞均不可按通过交付；实现改变后需复审。B 包按 M1/M2/M5 分别给结论，D 包覆盖 M3 与方案生成 Worker。E 的框架自检仍不能代替业务验收。', '', '## 已报告完成与测试证据', '']
   completed=status.get('completedItems',status.get('completed_items',[]))
   if completed:
    lines += ['- '+fmt(x) for x in completed]
@@ -55,6 +70,6 @@ def main():
   lines += ['', '业务验收结论仅由 E 的验收证据和总协调确认；框架自检通过不代表业务场景通过。', '', '## 更新方式', '', '监督任务写入本项目 `.coordination/'+key+'/status.json` 的精简状态；总协调刷新本面板。允许补充 `completedItems` 数组，仅填写已验证事项。面板不读取会话全文、审批密码或业务源码。','']
   (OUT/f'{key}.md').write_text('\n'.join(lines))
   rows.append(f'| [{key} · {title}]({key}.md) | {fmt(label)} | {fmt(blocker)} |')
- (OUT/'README.md').write_text('\n'.join(['# MVP 任务进度总览','',f'最近刷新：{now}','', '执行顺序：A 完成并通过 E 验收 → 集成 dev → B/C/D 并行 → E 持续验收。','', '不使用估算百分比；“实施中”“等待依赖”和“验收通过”分别展示，避免把自检当交付。','', '| 工作包 | 当前阶段 | 阻塞 / 等待条件 |','|---|---|---|',*rows,'','## 刷新规则','','总协调每次半小时巡检后，以及收到完成或阻塞报告时，运行：','','```bash','python3 backend/doc/tasks/update-panels.py','```','','脚本只读取 `.coordination/registry.json` 和各包 `status.json`，不会调用模型或 OpenCode。巡检依赖电脑与任务正常运行；时间未更新时应视为旧快照。','','首次面板纳入 Git；后续快照按里程碑提交，避免每次巡检产生一个提交。托管文档站点是发布快照，不会自动同步这些本地任务面板。','']))
+ (OUT/'README.md').write_text('\n'.join(['# MVP 任务进度总览','',f'最近刷新：{now}','', '执行顺序：A 实施 → Oracle 审查与修复复审 → E 验收 → 集成 dev → B/C/D 并行；各模块同样经过 Oracle 与 E 验收。','', '不使用估算百分比；“实施中”“等待依赖”和“验收通过”分别展示，避免把自检当交付。','', '| 工作包 | 当前阶段 | 阻塞 / 等待条件 |','|---|---|---|',*rows,'','## 刷新规则','','总协调每次半小时巡检后，以及收到完成或阻塞报告时，运行：','','```bash','python3 backend/doc/tasks/update-panels.py','```','','脚本只读取 `.coordination/registry.json` 和各包 `status.json`，不会调用模型或 OpenCode。巡检依赖电脑与任务正常运行；时间未更新时应视为旧快照。','','首次面板纳入 Git；后续快照按里程碑提交，避免每次巡检产生一个提交。托管文档站点是发布快照，不会自动同步这些本地任务面板。','']))
 
 if __name__=='__main__': main()
