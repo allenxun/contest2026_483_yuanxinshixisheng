@@ -1,0 +1,28 @@
+{
+  "id": "11aa22bb-33cc-44dd-95ee-66ff77aa88bb",
+  "job_type": "system.echo",
+  "dedup_key": "system:echo:2f6a2b0e-3c1e-4d2b-9b57-1f4c3a5b6d78",
+  "owner_type": "system",
+  "owner_id": "b13b43dc-cfb1-5e89-8be2-72564704de79",
+  "input_revision": "0",
+  "payload": {
+    "schema_version": 1,
+    "message": "回声测试：跨语言契约样例 ✓（中文）",
+    "numbers_as_strings": [
+      "0",
+      "42",
+      "9007199254740991"
+    ]
+  },
+  "status": "running",
+  "available_at": "2026-09-10T07:00:00Z",
+  "attempt_count": "1",
+  "max_attempts": "5",
+  "lease_owner": "worker-mvp-a-1",
+  "lease_until": "2026-09-10T07:01:00Z",
+  "lease_revision": "1",
+  "last_error": null,
+  "finished_at": null,
+  "created_at": "2026-09-10T07:00:00Z",
+  "updated_at": "2026-09-10T07:00:15Z"
+}

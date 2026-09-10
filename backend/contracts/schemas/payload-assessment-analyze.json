@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mvp:contracts:schemas:payload-assessment-analyze.json",
+  "title": "payload：assessment.analyze（测肤分析，DD 9.1 owner=assessment/input_revision=processing_revision）",
+  "description": "async_jobs.job_type=assessment.analyze 的 payload 契约骨架（A 包公共契约；业务细节由 D 包扩展时保持向后兼容并升 schema_version）。",
+  "$comment": "骨架仅含 DD 9.1 可推导的标识字段；质量/同人/归档细节属 D 包，扩展时升 schema_version。 payload 只放 JSON 数据与受控资源引用：禁止 pickle/Python 对象/Java 类名/可执行代码/照片（或 base64）/签名 URL/运行凭据（DD 9.1）。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "assessment_id",
+    "processing_revision"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "结构版本固定 1（JSON 整数）"
+    },
+    "assessment_id": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid",
+      "description": "T05.id"
+    },
+    "processing_revision": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string",
+      "description": "与行 input_revision 一致；写回结果时复核，旧代次不发布"
+    }
+  },
+  "x-owner-package": "D",
+  "x-detail": "skeleton"
+}

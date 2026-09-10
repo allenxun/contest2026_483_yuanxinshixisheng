@@ -1,0 +1,178 @@
+[
+  {
+    "name": "empty-object",
+    "input": {},
+    "expected_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  {
+    "name": "chinese-text-and-key-values",
+    "input": {
+      "成员姓名": "张三",
+      "note": "报告已就绪，含全角标点：「，。」",
+      "status": "report_ready"
+    },
+    "expected_sha256": "b701dec34c779d3f2d888ed5fb725ff855eeb7944117d6a0d1d0d664975bb813"
+  },
+  {
+    "name": "nested-out-of-order-keys-a",
+    "input": {
+      "z": {
+        "b": {
+          "y": 2,
+          "x": 1
+        },
+        "a": "甲"
+      },
+      "a": [
+        {
+          "q": 1,
+          "p": 2
+        },
+        true,
+        null
+      ]
+    },
+    "expected_sha256": "44e7765a7d005dc923e040f156e1399a0a95206102d24886504fd72ed2cda56c"
+  },
+  {
+    "name": "nested-out-of-order-keys-b-equal-hash-to-a",
+    "input": {
+      "a": [
+        {
+          "p": 2,
+          "q": 1
+        },
+        true,
+        null
+      ],
+      "z": {
+        "a": "甲",
+        "b": {
+          "x": 1,
+          "y": 2
+        }
+      }
+    },
+    "expected_sha256": "44e7765a7d005dc923e040f156e1399a0a95206102d24886504fd72ed2cda56c"
+  },
+  {
+    "name": "defaults-expanded-canonical-request",
+    "input": {
+      "captureId": "cap-1",
+      "purpose": "admission",
+      "clientContinuityId": "cont-1",
+      "captureProofRef": null,
+      "consentEvidenceRef": "ce-1"
+    },
+    "expected_sha256": "71db76cdcc425147ae132767e9d88cb5ef120c2488a759ec15bdf9feaf5135a9"
+  },
+  {
+    "name": "defaults-expanded-equal-pair-a",
+    "input": {
+      "captureId": "cap-1",
+      "clientContinuityId": null,
+      "purpose": "admission"
+    },
+    "expected_sha256": "32cc3ee972f555a7a534e26fc44c9ca8858e29221fa9798909ccf6135212429e"
+  },
+  {
+    "name": "defaults-expanded-equal-pair-b-equal-hash-to-a",
+    "input": {
+      "purpose": "admission",
+      "clientContinuityId": null,
+      "captureId": "cap-1"
+    },
+    "expected_sha256": "32cc3ee972f555a7a534e26fc44c9ca8858e29221fa9798909ccf6135212429e"
+  },
+  {
+    "name": "bigint-as-string-fields",
+    "input": {
+      "targetCount": "10",
+      "completedCount": "0",
+      "progressRevision": "123456789012345",
+      "note": "计数以字符串传输，带引号即字符串语义，不进入 JCS 数字序列化"
+    },
+    "expected_sha256": "f46740d44a6134cdd83057ac4df302ebbab9dad3a418fab54e7b90eea819af17"
+  },
+  {
+    "name": "array-order-significant-front-left-right",
+    "input": {
+      "views": [
+        "front",
+        "left",
+        "right"
+      ]
+    },
+    "expected_sha256": "eedc6af9200a4a1933af56176323996ca531e3328ef9199c1fba0fe3a0ea86ef"
+  },
+  {
+    "name": "array-order-significant-reversed-different-hash",
+    "input": {
+      "views": [
+        "right",
+        "left",
+        "front"
+      ]
+    },
+    "expected_sha256": "a447c2e334b25e66c992c8804de5843e37f323ad9a1e970b86a7dfda8a278a49"
+  },
+  {
+    "name": "near-collision-closure-final-count-3",
+    "input": {
+      "executionId": "8f14e45f-ceea-467f-a1b6-2e4b1c2d3e4f",
+      "recordStreamEpoch": "exec-stream-1",
+      "finalRecordSeq": "3",
+      "finalCount": "3"
+    },
+    "expected_sha256": "ba669324f01c6d1bbf5ea518cef12dbcce0ea09bf5babbeaefa2db7ebfc41208"
+  },
+  {
+    "name": "near-collision-closure-final-count-4-different-hash",
+    "input": {
+      "executionId": "8f14e45f-ceea-467f-a1b6-2e4b1c2d3e4f",
+      "recordStreamEpoch": "exec-stream-1",
+      "finalRecordSeq": "3",
+      "finalCount": "4"
+    },
+    "expected_sha256": "74a9abcbe7148b5f383f0c3ec0d416e885ce16028a8b2df4ff3d828ba75d6233"
+  },
+  {
+    "name": "key-sort-utf16-code-unit-order",
+    "input": {
+      "10": "ten",
+      "9": "nine",
+      "B": "bee",
+      "a": "aye",
+      "中": "zh",
+      "~": "tilde"
+    },
+    "expected_sha256": "f4af1b038c06a02b78977d9a623538d19b2917cffaa4b1603641ae6d787234ac"
+  },
+  {
+    "name": "small-numbers-json-integers-and-doubles",
+    "input": {
+      "schemaVersion": 1,
+      "count": 42,
+      "ratio": 0.5,
+      "offset": -7
+    },
+    "expected_sha256": "189ebce58c71b947e4ae47bbf3f00e19bb31215d0beb890bef9947b7e4976c79"
+  },
+  {
+    "name": "fractional-doubles-es6-serialization",
+    "input": {
+      "half": 0.5,
+      "negHalf": -0.5,
+      "tinyPlain": 0.000123,
+      "expNeg5": 1e-05,
+      "expNeg7": 1e-07,
+      "pi": 3.14159,
+      "plain20": 1e+20,
+      "exp21": 1e+21,
+      "twoPow53": 9007199254740992.0,
+      "maxDouble": 1.7976931348623157e+308,
+      "negZero": -0.0
+    },
+    "expected_sha256": "e85face7e65d9a37762b7304b2fe38f49c84a40ceeda41c1a9b9cb2a9710ca28"
+  }
+]

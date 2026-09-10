@@ -1,0 +1,103 @@
+# Docker Compose：管 4 个自建组件（PG + Web + Worker + Nginx）。OSS 对象存储为外部组件，不在此。
+# 所有口令仅经环境变量注入（见 .env.sample）；真实凭据不入库。
+# 校验：docker compose --env-file .env.sample config（.env.sample 即完整占位变量集）
+# 形态：本 compose 是 dev/doubles 联调示例（测试替身）；production 必须真实提供方，
+#       否则 web 镜像内 ProductionFailClosedValidator 拒绝启动（fail closed，属预期）。
+name: mvp-a
+
+services:
+  pg:
+    image: postgres:16
+    container_name: mvp-a-compose-pg
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-mvp_a_dev}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mvp_a_dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    ports:
+      - "${PG_PORT:-5432}:5432"
+
+  web:
+    build:
+      context: ../web-java
+      dockerfile: ../deploy/web-java/Dockerfile
+    image: mvp-a/web-java:local
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://pg:5432/${POSTGRES_DB:-mvp_a_dev}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      SERVER_PORT: "8080"
+      DB_POOL_MAX: ${DB_POOL_MAX:-10}
+      DB_POOL_MIN: ${DB_POOL_MIN:-2}
+      APP_ENV: ${APP_ENV:-dev}
+      APP_PROVIDERS_MODE: ${APP_PROVIDERS_MODE:-doubles}
+      # 存储替身布局约定 = <root>/<object_key>（与 worker 完全一致，共享 media 卷）
+      APP_STORAGE_DEV_DIR: /var/lib/mvp-a/media
+      APP_STORAGE_BUCKET: ${APP_STORAGE_BUCKET:-mvp-a-media}
+      APP_IMAGE_MAX_BYTES: ${APP_IMAGE_MAX_BYTES:-10485760}
+      APP_IDEMPOTENCY_LEASE_SECONDS: ${APP_IDEMPOTENCY_LEASE_SECONDS:-30}
+    volumes:
+      - media:/var/lib/mvp-a/media
+    # web 健康检查由镜像 Dockerfile HEALTHCHECK 提供（eclipse-temurin:21-jre 内已
+    # 安装 curl 探测 /actuator/health）；compose 不重复定义。
+    depends_on:
+      pg:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+
+  worker:
+    build:
+      context: ../worker-python
+      dockerfile: ../deploy/worker-python/Dockerfile
+    image: mvp-a/worker-python:local
+    # 入口 = T12 运行循环（python -m mvp_worker 无参数默认 loop）；
+    # 单周期/自检/回收用 docker compose run --rm worker --once|--check|--recover
+    environment:
+      MVP_WORKER_PG_DSN: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@pg:5432/${POSTGRES_DB:-mvp_a_dev}
+      MVP_WORKER_POOL_SIZE: ${MVP_WORKER_POOL_SIZE:-5}
+      MVP_WORKER_CLAIM_BATCH: ${MVP_WORKER_CLAIM_BATCH:-5}
+      MVP_WORKER_LEASE_SECONDS: ${MVP_WORKER_LEASE_SECONDS:-60}
+      MVP_WORKER_RENEW_INTERVAL_SECONDS: ${MVP_WORKER_RENEW_INTERVAL_SECONDS:-15}
+      MVP_WORKER_RETRY_MAX_ATTEMPTS: ${MVP_WORKER_RETRY_MAX_ATTEMPTS:-5}
+      MVP_WORKER_BACKOFF_BASE_SECONDS: ${MVP_WORKER_BACKOFF_BASE_SECONDS:-5}
+      MVP_WORKER_BACKOFF_CAP_SECONDS: ${MVP_WORKER_BACKOFF_CAP_SECONDS:-300}
+      MVP_WORKER_POLL_INTERVAL_SECONDS: ${MVP_WORKER_POLL_INTERVAL_SECONDS:-2}
+      MVP_WORKER_HEALTH_HOST: ${MVP_WORKER_HEALTH_HOST:-0.0.0.0}   # 容器内监听全部接口；探测走 127.0.0.1
+      MVP_WORKER_HEALTH_PORT: ${MVP_WORKER_HEALTH_PORT:-8081}
+      MVP_WORKER_ENVIRONMENT: ${MVP_WORKER_ENVIRONMENT:-dev}
+      MVP_A_STORAGE_DEV_DIR: /var/lib/mvp-a/media                  # 与 web 共享同一存储根
+    volumes:
+      - media:/var/lib/mvp-a/media
+    healthcheck:
+      # 零依赖探测：容器内 python urllib → 127.0.0.1:8081/healthz
+      test: ["CMD", "python", "-c", "import os,urllib.request as u; u.urlopen('http://127.0.0.1:'+os.environ.get('MVP_WORKER_HEALTH_PORT','8081')+'/healthz', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      pg:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/nginx.conf.sample:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+    ports:
+      - "${NGINX_HTTPS_PORT:-8443}:8443"
+      - "${NGINX_HTTP_PORT:-8088}:8088"
+
+volumes:
+  pgdata:
+  media:
