@@ -16,8 +16,12 @@ import java.util.UUID;
 /**
  * GET /api/v1/media/{mediaId}/content —— 受控读取基础协议（DD 10.2；
  * x-foundation，不占 27 编号）：逐次鉴权（PrincipalContext →
- * MediaAccessPolicy）、no-store + nosniff、不重定向长效签名 URL；
- * 不存在/未 available/存储缺对象统一 404 RESOURCE_NOT_VISIBLE。
+ * MediaAccessPolicy）、no-store + nosniff、不重定向长效签名 URL。
+ *
+ * <p><b>统一 404</b>：不存在、非 available、授权拒绝一律
+ * 404 RESOURCE_NOT_VISIBLE——绝不返回 403（oracle B1：状态差异会泄露
+ * 资源存在性与归属形状）。真实读取授权（T05 报告引用/T02 关系/T03 当前
+ * 任务）由 B/C/D @Primary MediaAccessPolicy 实现；A 默认 owner-based。</p>
  */
 @RestController
 @RequestMapping("/api/v1/media")
@@ -39,7 +43,8 @@ public class MediaController {
             throw new ApiException(ErrorCode.RESOURCE_NOT_VISIBLE, "media not visible");
         }
         if (!accessPolicy.canAccess(principal, media)) {
-            throw new ApiException(ErrorCode.CALLER_NOT_ALLOWED, "caller not allowed for this media");
+            // 与"不存在"同一信封同一状态码（不泄露存在性）
+            throw new ApiException(ErrorCode.RESOURCE_NOT_VISIBLE, "media not visible");
         }
         InputStream in = mediaService.openContent(media);
         if (in == null) {

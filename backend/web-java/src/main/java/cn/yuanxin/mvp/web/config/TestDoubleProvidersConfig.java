@@ -28,8 +28,8 @@ import org.springframework.web.context.annotation.RequestScope;
 public class TestDoubleProvidersConfig {
 
     @Bean
-    public SessionProvider sessionProvider() {
-        return new InMemorySessionDouble();
+    public SessionProvider sessionProvider(JdbcTemplate jdbc) {
+        return new InMemorySessionDouble(jdbc);
     }
 
     @Bean

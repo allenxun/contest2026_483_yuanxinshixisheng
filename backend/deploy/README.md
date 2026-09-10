@@ -128,7 +128,7 @@ docker build -f deploy/worker-python/Dockerfile -t mvp-a/worker-python:local wor
 | 变量 | 默认/样例 | 用途 |
 |---|---|---|
 | POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB | postgres / change-me / mvp_a_dev | compose pg 初始化 |
-| PG_PORT | 5432 | compose pg 宿主映射（compose 内部网络用，开发隔离走 mvp-a-pg@55432） |
+| PG_PORT → MVP_A_PG_HOST_PORT | 55432 | compose pg 宿主映射（**绝不默认 5432**：宿主 5432 为共享 pgvector18；compose 内部仍 pg:5432，开发隔离走 mvp-a-pg@127.0.0.1:55432） |
 | SPRING_PROFILES_ACTIVE | dev | Java profile（prod→app.env=production fail closed） |
 | SPRING_DATASOURCE_URL/USERNAME/PASSWORD | jdbc:postgresql://127.0.0.1:55432/mvp_a_dev / postgres / mvp_a_local | Java 应用数据源 |
 | SERVER_PORT / WEB_PORT | 8080（本机占用时 18080） | Java HTTP 端口 |

@@ -1966,6 +1966,7 @@ components:
         - BOUND_TO_OTHER
         - UNSUPPORTED_CONTRACT
         - NOT_IMPLEMENTED
+        - INTERNAL
     ErrorEnvelope:
       type: object
       required: [requestId, error]

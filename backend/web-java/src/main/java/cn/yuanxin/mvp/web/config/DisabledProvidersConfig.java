@@ -41,7 +41,8 @@ public class DisabledProvidersConfig {
             }
 
             @Override
-            public IssuedAppSession createAppSession(UUID accountId, String installationId) {
+            public IssuedAppSession createAppSession(UUID accountId, String installationId,
+                                                     long authRevision) {
                 throw disabled("session");
             }
 

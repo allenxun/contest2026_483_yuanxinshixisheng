@@ -144,6 +144,7 @@ public class IdempotencyService {
     public void completeSuccess(IdempotencyHandle handle, String resourceType, UUID resourceId,
                                 Map<String, Object> resultSummary) {
         JsonNode summary = Jcs.toNode(resultSummary);
+        ensureSchemaVersion(summary);
         int updated = jdbc.update(
                 "UPDATE idempotency_requests"
                         + " SET status = 'succeeded', resource_type = ?, resource_id = ?,"
@@ -166,6 +167,7 @@ public class IdempotencyService {
         summary.put("message", message);
         summary.put("retryable", retryable);
         summary.set("details", details == null ? null : Jcs.toNode(details));
+        ensureSchemaVersion(summary);
         int updated = jdbc.update(
                 "UPDATE idempotency_requests"
                         + " SET status = 'rejected', result_summary = ?::jsonb,"
@@ -212,6 +214,17 @@ public class IdempotencyService {
         } catch (JsonProcessingException e) {
             log.warn("unparseable idempotency result_summary ignored");
             return Jcs.objectNode();
+        }
+    }
+
+    /**
+     * result_summary 必须携带 schema_version（V1 ck_idem_result_summary_schema；
+     * DATA §4"所有 JSONB 有 schema_version"）。调用方未显式给出时服务端注入 1。
+     */
+    private static void ensureSchemaVersion(JsonNode summary) {
+        if (summary instanceof com.fasterxml.jackson.databind.node.ObjectNode obj
+                && !obj.has("schema_version")) {
+            obj.put("schema_version", 1);
         }
     }
 

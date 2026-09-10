@@ -105,8 +105,11 @@ public class AuthController {
                 .orElseThrow(() -> new ApiException(ErrorCode.AUTH_REQUIRED,
                         "challenge or code invalid"));
         UUID accountId = findOrCreateAccount(loginSubject);
+        // 签发前复核本地账号状态并捕获 auth_revision 快照（单行查询，无 JOIN/锁）：
+        // disabled 账号不得续命新会话（oracle B2）
+        long authRevision = queryActiveAccountRevision(accountId);
         SessionProvider.IssuedAppSession session =
-                sessionProvider.createAppSession(accountId, body.installationId());
+                sessionProvider.createAppSession(accountId, body.installationId(), authRevision);
         return envelopes.ok(request, toAppSessionData(session));
     }
 
@@ -140,8 +143,7 @@ public class AuthController {
     }
 
     /** (login_provider='phone', login_subject) 并发唯一映射（T14 UNIQUE）。 */
-    private UUID findOrCreateAccount(String loginSubject) {
-        Optional<UUID> existing = queryAccountId(loginSubject);
+    private UUID findOrCreateAccount(String loginSubject) {        Optional<UUID> existing = queryAccountId(loginSubject);
         if (existing.isPresent()) {
             touchLogin(existing.get());
             return existing.get();
@@ -162,6 +164,21 @@ public class AuthController {
         var rows = jdbc.query("SELECT id FROM accounts WHERE login_provider = ? AND login_subject = ?",
                 (rs, i) -> rs.getObject("id", UUID.class), LOGIN_PROVIDER, loginSubject);
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+    }
+
+    /**
+     * 单行查询（无 JOIN/锁）：账号必须存在且 active；返回 auth_revision 快照。
+     * disabled → 401 SESSION_INVALID（拒绝为停用账号续签会话，oracle B2）。
+     */
+    private long queryActiveAccountRevision(UUID accountId) {
+        var rows = jdbc.query(
+                "SELECT status, auth_revision FROM accounts WHERE id = ?",
+                (rs, i) -> new Object[]{rs.getString("status"), rs.getLong("auth_revision")},
+                accountId);
+        if (rows.isEmpty() || !"active".equals(rows.get(0)[0])) {
+            throw new ApiException(ErrorCode.SESSION_INVALID, "account is not active");
+        }
+        return (Long) rows.get(0)[1];
     }
 
     private void touchLogin(UUID accountId) {

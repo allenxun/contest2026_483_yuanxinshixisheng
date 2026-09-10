@@ -41,16 +41,23 @@ public class JobEnqueuer {
 
     private final JdbcTemplate jdbc;
     private final ObjectMapper objectMapper;
+    private final cn.yuanxin.mvp.web.config.AppProperties props;
 
-    public JobEnqueuer(JdbcTemplate jdbc, ObjectMapper objectMapper) {
+    public JobEnqueuer(JdbcTemplate jdbc, ObjectMapper objectMapper,
+                       cn.yuanxin.mvp.web.config.AppProperties props) {
         this.jdbc = jdbc;
         this.objectMapper = objectMapper;
+        this.props = props;
     }
 
     public record JobEnqueueResult(UUID jobId, String dedupKey, String status, boolean replayed) {
     }
 
-    /** 初值：status=queued、available_at=now、attempt_count=0、max_attempts=5、lease_revision=0。 */
+    /**
+     * 初值：status=queued、available_at=now、attempt_count=0、
+     * max_attempts=app.jobs.max-attempts（env JOB_MAX_ATTEMPTS，默认 5；oracle M8）、
+     * lease_revision=0。
+     */
     public JobEnqueueResult enqueue(String jobType, String ownerType, UUID ownerId, long inputRevision,
                                     Map<String, Object> payload, String dedupKey) {
         String payloadJson;
@@ -74,7 +81,7 @@ public class JobEnqueuer {
                             "INSERT INTO async_jobs (id, job_type, dedup_key, owner_type, owner_id,"
                                     + " input_revision, payload, status, available_at, attempt_count,"
                                     + " max_attempts, lease_revision)"
-                                    + " VALUES (?, ?, ?, ?, ?, ?, ?::jsonb, 'queued', now(), 0, 5, 0)")) {
+                                    + " VALUES (?, ?, ?, ?, ?, ?, ?::jsonb, 'queued', now(), 0, ?, 0)")) {
                         ps.setObject(1, id);
                         ps.setObject(2, jobType);
                         ps.setObject(3, dedupKey);
@@ -82,6 +89,7 @@ public class JobEnqueuer {
                         ps.setObject(5, ownerId);
                         ps.setObject(6, inputRevision);
                         ps.setObject(7, payloadJson);
+                        ps.setObject(8, props.jobs().maxAttemptsOrDefault());
                         ps.executeUpdate();
                     }
                     return new JobEnqueueResult(id, dedupKey, "queued", false);

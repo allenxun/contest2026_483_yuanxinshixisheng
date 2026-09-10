@@ -28,27 +28,30 @@ bash backend/tests/run-acceptance.sh   # 退出码非 0 = 存在 FAIL
 ```
 
 每次运行使用一次性资源并在退出时（trap）清理：新库
-`mvp_a_accept_<hex8>`、独立存储根 `/tmp/mvp-a-accept-storage-<hex8>`、
-临时目录 `/tmp/mvp-a-accept-<hex8>.*`，可重复执行。所有 HTTP 检查走
-`curl --noproxy '*'`。
+`mvp_a_accept_<hex8>`、worktree 内独立存储根与运行目录
+`backend/tests/.work/storage-<hex8>`、`backend/tests/.work/run-<hex8>`
+（非 /tmp；trap 仅清理本轮自建且前缀归属明确的目录，`ACCEPT_RUN_BASE`
+可覆盖基目录），可重复执行。所有 HTTP 检查走 `curl --noproxy '*'`。
 
 ## 步骤 ↔ 验收映射
 
 | 步骤 | 内容 | A-foundation 验收/交付 |
 |---|---|---|
 | a  | `createdb.sh`→`migrate.sh`→psql 断言 14 张 public 业务表→再次 `migrate.sh` 无破坏（MIG2_NOOP：成功且 flyway_schema_history 行数不变） | 全新 PG 可迁移并重复启动无破坏（交付2） |
-| b0 | 种最小父链（6×T13、成员、云台、测肤、方案、微晶、执行、记录——SQL 在脚本内注释） | 约束拒绝（前置） |
+| b0 | 种最小父链（6×T13、账号、成员、云台、测肤、方案、微晶、执行、记录；控制端形状合法——DATA T07） | 约束拒绝（前置） |
 | b1 | 同一微晶第二个未收尾 `care_executions` → 必须报 `uq_execution_open_microcrystal` | 约束拒绝**双占用** |
 | b2 | 同一执行重复 `(execution_id,source_epoch,source_seq)` → `uq_record_source` | 约束拒绝**双记录** |
 | b3 | T13 `(principal,operation,key)` 重复 → `uq_idem_principal` | 交付2 唯一约束 |
 | b4 | members `(identity_namespace,face_subject_ref)` 双非空重复 → `uq_members_identity` | 交付2 部分唯一索引 |
 | b5/b6 | `ck_assessment_status`、`ck_assessment_current_photo_version` CHECK 拒绝 | 交付2 检查条件 |
+| b7 | app 控制端缺 account/installation → `ck_execution_controller_ownership` | 交付2 检查条件（DATA T07，oracle B3） |
+| b8 | active 目标空 `registration` → `ck_destination_active_fields` | 交付2 检查条件（DD T09，oracle M5） |
 | c1 | `jcs.py selftest`（ES6 Number::toString 23 组权威数对+结构规则） | 精简 JSON 样例跨语言一致 |
-| c2 | `validate_samples.py`（全部样例 + 15 条规范化向量用参考实现重算） | 同上（交付3） |
-| c3 | openapi-spec-validator 校验 openapi.yaml | 交付3 OpenAPI 基础契约 |
-| d  | `mvn package`：Java 全量测试（≥75，含 JCS 向量/ES6 数对/迁移 IT）并产出 jar | Java 测试通过（交付1） |
-| e  | worker `pytest -q`（≥43：T12 claim/renew/recover/complete/代次/backoff） | Python 测试通过 |
-| f0 | jar 启动（dev profile → accept 库、storage=/tmp 独立根）→ `/actuator/health` UP | 交付1 可构建、启动 |
+| c2 | `validate_samples.py`（全部样例 + 16 条规范化向量用参考实现重算） | 同上（交付3） |
+| c3 | openapi-spec-validator 校验 openapi.yaml（ErrorCode 含 INTERNAL） | 交付3 OpenAPI 基础契约 |
+| d  | `mvn package`：Java 全量测试（≥75，含 JCS 向量/ES6 数对/迁移 IT/认证复核）并产出 jar | Java 测试通过（交付1） |
+| e  | worker `pytest -q`（≥43：T12 claim/renew/recover/complete/代次/backoff/尝试上限） | Python 测试通过 |
+| f0 | jar 启动→health UP→**SIGTERM 停止→再次启动**→health UP + Flyway no-op（重复启动无破坏，oracle M10） | 交付1 + **验收：重复启动无破坏** |
 | f1 | 业务 stub 无 token → 401 `AUTH_REQUIRED` 信封 | **无效认证拒绝** |
 | f2 | `POST /auth/sms-challenges` → `POST /auth/sessions`（固定验证码替身 123456 + installationId）→ accessToken | 交付4 认证端口+隔离替身 |
 | f3 | 有 token 访问业务 stub → 501 `NOT_IMPLEMENTED`（不给假 200） | 交付3 |

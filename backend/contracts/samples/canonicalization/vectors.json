@@ -174,5 +174,15 @@
       "negZero": -0.0
     },
     "expected_sha256": "e85face7e65d9a37762b7304b2fe38f49c84a40ceeda41c1a9b9cb2a9710ca28"
+  },
+  {
+    "name": "supplementary-plane-key-utf16-order",
+    "input": {
+      "😀": "grinning",
+      "b": "ascii-b",
+      "🅱": "regional-b",
+      "😣": "weary-first-cu-D83D-DE23"
+    },
+    "expected_sha256": "8f52175e88ff419dda774dfb02b4cea74d2ea114ba676898f2b825baf59003d9"
   }
 ]
