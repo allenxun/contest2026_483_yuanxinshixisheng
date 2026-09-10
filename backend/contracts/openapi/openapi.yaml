@@ -2767,8 +2767,19 @@ components:
         jobId: { type: string, format: uuid }
         status: { type: string, enum: [queued, running, succeeded, failed, cancelled] }
         attemptCount: { $ref: '#/components/schemas/BigintString' }
-        leaseRevision: { allOf: [{ $ref: '#/components/schemas/BigintString' }], nullable: true }
-        finishedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        leaseRevision:
+          # Strict OAS 3.0.3: nullable needs a local `type`; inline the pattern
+          # (mirrors BigintString) instead of the allOf+$ref+nullable form.
+          type: string
+          pattern: '^(0|[1-9][0-9]*)$'
+          nullable: true
+          description: 租约代次（bigint 十进制字符串）；null 表示无租约
+        finishedAt:
+          # Strict OAS 3.0.3: inline type+nullable (no allOf+$ref+nullable).
+          type: string
+          format: date-time
+          nullable: true
+          description: RFC3339 UTC 完成时间；未到终态为 null
         lastError:
           # Strict OAS 3.0.3: `nullable` only applies alongside `type` in the SAME
           # Schema Object, so this is inline (no allOf+$ref+nullable, which strict

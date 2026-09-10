@@ -103,9 +103,10 @@ def convert(node: Any, doc: Any, seen: tuple[str, ...] = ()) -> Any:
         elif isinstance(declared, list):
             if "null" not in declared:
                 out["type"] = declared + ["null"]
-        else:
-            # No explicit type in the same Schema Object -> union with null.
-            return {"anyOf": [out, {"type": "null"}]}
+        # else: OAS 3.0.3 `nullable` has NO effect without a `type` in this same
+        # Schema Object (e.g. allOf/oneOf/anyOf + $ref + nullable). Do NOT broaden
+        # to `{"anyOf": [..., null]}` — that masks the exact defect this validator
+        # must catch: such schemas must REJECT null.
     return out
 
 
@@ -127,18 +128,67 @@ def build_validator() -> Draft202012Validator:
     return Draft202012Validator(echo_response_schema())
 
 
-def validate_path(path: pathlib.Path, validator: Draft202012Validator) -> tuple[bool, str]:
+STATUS_VALID = "valid"
+STATUS_SCHEMA_INVALID = "schema_invalid"
+STATUS_LOAD_ERROR = "load_error"
+
+
+def validate_path(path: pathlib.Path, validator: Draft202012Validator) -> tuple[str, str]:
+    """Returns (status, detail) with status in valid|schema_invalid|load_error.
+
+    load_error (unreadable/malformed JSON) is a HARNESS failure, never a schema
+    rejection: callers must NOT count it as a discriminating negative.
+    """
     try:
         instance = json.loads(pathlib.Path(path).read_text("utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        return False, f"cannot read/parse JSON: {exc}"
+        return STATUS_LOAD_ERROR, f"cannot read/parse JSON: {exc}"
     errors = sorted(validator.iter_errors(instance), key=lambda e: list(e.absolute_path))
     if not errors:
-        return True, ""
+        return STATUS_VALID, ""
     detail = "; ".join(
         f"{e.json_path or '$'}: {e.validator or 'schema'} violated" for e in errors[:4]
     )
-    return False, detail
+    return STATUS_SCHEMA_INVALID, detail
+
+
+def _accepts(schema: Any, instance: Any) -> bool:
+    return Draft202012Validator(schema).is_valid(instance)
+
+
+def run_discrimination(emit) -> tuple[int, int]:
+    """Prove the converter distinguishes the OLD broken nullable shape from the
+    correct inline one. OAS 3.0.3: allOf+$ref+nullable WITHOUT local type must
+    REJECT null (no null union); inline type+nullable must ACCEPT null."""
+    old_doc = {"components": {"schemas": {"X": {
+        "type": "object", "properties": {"a": {"type": "string"}},
+        "required": ["a"], "additionalProperties": False}}}}
+    old_schema = convert(
+        {"allOf": [{"$ref": "#/components/schemas/X"}], "nullable": True}, old_doc)
+    new_schema = convert(
+        {"type": "object", "nullable": True, "properties": {"a": {"type": "string"}},
+         "required": ["a"], "additionalProperties": False}, {})
+
+    passed = failed = 0
+
+    def check(label: str, condition: bool) -> None:
+        nonlocal passed, failed
+        if condition:
+            passed += 1
+            emit(label, True, "")
+        else:
+            failed += 1
+            emit(label, False, "discrimination broken")
+
+    check("nullable-shape: old allOf+$ref+nullable REJECTS null",
+          not _accepts(old_schema, None))
+    check("nullable-shape: old allOf+$ref+nullable ACCEPTS conforming object",
+          _accepts(old_schema, {"a": "x"}))
+    check("nullable-shape: new inline type+nullable ACCEPTS null",
+          _accepts(new_schema, None))
+    check("nullable-shape: new inline type+nullable ACCEPTS conforming object",
+          _accepts(new_schema, {"a": "x"}))
+    return passed, failed
 
 
 def run_selftest(emit) -> tuple[int, int]:
@@ -146,23 +196,30 @@ def run_selftest(emit) -> tuple[int, int]:
     validator = build_validator()
     passed = failed = 0
     for name in POSITIVES:
-        ok, detail = validate_path(RESPONSES_DIR / name, validator)
-        if ok:
+        status, detail = validate_path(RESPONSES_DIR / name, validator)
+        if status == STATUS_VALID:
             passed += 1
             emit(f"responses/{name} (positive accepted)", True, "")
         else:
             failed += 1
-            emit(f"responses/{name} (positive accepted)", False, detail)
+            emit(f"responses/{name} (positive accepted)", False,
+                 detail if status == STATUS_SCHEMA_INVALID
+                 else f"HARNESS: fixture did not load/parse ({detail})")
     for name in NEGATIVES:
-        ok, detail = validate_path(RESPONSES_DIR / name, validator)
-        if not ok:
+        status, detail = validate_path(RESPONSES_DIR / name, validator)
+        if status == STATUS_SCHEMA_INVALID:
             passed += 1
             emit(f"responses/{name} (negative rejected)", True, "")
+        elif status == STATUS_LOAD_ERROR:
+            failed += 1
+            emit(f"responses/{name} (negative rejected)", False,
+                 f"HARNESS: fixture did not load/parse ({detail})")
         else:
             failed += 1
             emit(f"responses/{name} (negative rejected)", False,
                  "validator ACCEPTED an invalid body (no discrimination)")
-    return passed, failed
+    dpassed, dfailed = run_discrimination(emit)
+    return passed + dpassed, failed + dfailed
 
 
 def _cli_selftest() -> int:
@@ -171,7 +228,8 @@ def _cli_selftest() -> int:
 
     passed, failed = run_selftest(emit)
     print(f"\nselftest: {passed} checks passed, {failed} failed "
-          f"({len(POSITIVES)} positives, {len(NEGATIVES)} negatives)")
+          f"({len(POSITIVES)} positives, {len(NEGATIVES)} negatives, "
+          f"4 nullable-shape discrimination)")
     print("RESULT: " + ("PASS" if failed == 0 else "FAIL"))
     return 0 if failed == 0 else 1
 
@@ -186,9 +244,12 @@ def main(argv: list[str]) -> int:
     rc = 0
     for raw in argv:
         path = pathlib.Path(raw)
-        ok, detail = validate_path(path, validator)
-        if ok:
+        status, detail = validate_path(path, validator)
+        if status == STATUS_VALID:
             print(f"ok   {path}")
+        elif status == STATUS_LOAD_ERROR:
+            print(f"FAIL {path}: HARNESS load error: {detail}")
+            rc = 1
         else:
             print(f"FAIL {path}: {detail}")
             rc = 1
