@@ -4,18 +4,28 @@
 - 审查者：`oracle`（本机已安装 omo-slim 的真实子代理，mode=subagent，沿用其现有模型配置；
   未以协调者/Codex 代替，未更换模型）
 - 调用证据标识：task/session `ses_f7592f1b7ffe3L7KfP3jp79PRd`（调度板别名 ora-1），
-  同一会话共 4 轮调用：初审 93363ee → 复审 6b0a234 → 终审 cc33abe →
-  owner 映射再审 61f6329
-- **reviewedCommit（最终被审代码 SHA）：`61f6329e8b4e9885b410297c12708e0301c56285`**
-  （分支 feature/mvp-acceptance，工作树干净；本报告为独立后续文档提交，不含代码变更）
+  同一会话共 8 轮调用：初审 93363ee → 复审 6b0a234 → 终审 cc33abe →
+  owner 映射再审 61f6329 → A 验收轮 f389078 → 440516b → 707670a → 85c2f33
+- **reviewedCommit（最终被审代码 SHA）：`85c2f338b1fcbf922fc9348bf84335f55318957a`**
+  （分支 feature/mvp-acceptance，工作树干净；本报告为独立后续文档提交，不含代码变更；
+  HEAD=63763f2 仅为协调者独立复跑后的证据刷新）
 - 实施链：cea01f7（框架+矩阵+计划+交接）→ 93363ee（E.md 事实修正）→
   6b0a234（第一轮修复）→ cc33abe（第二轮加固，第三轮 PASS）→
-  7f4938f（本报告文字纠偏，无代码变更）→ 61f6329（owner 映射纠正，第四轮 PASS）
+  7f4938f（本报告文字纠偏）→ 61f6329（owner 映射纠正，第四轮 PASS）→
+  f389078（A 验收驱动+证据，第五轮 BLOCKED）→ 440516b（第五轮修复，第六轮 BLOCKED）→
+  707670a（第六轮修复，第七轮 BLOCKED）→ 85c2f33（第七轮修复，**第八轮 E 代码 PASS**）；
+  证据刷新 1dced90/8c7276a/297c176/63763f2（仅报告/证据，无代码）
 
-## 总体结论：**PASS**（第四轮复审 61f6329；blockingFindings：无）
+## 总体结论：**E 代码 PASS**（第八轮复审 85c2f33；E 侧 blockingFindings：无）
 
-审查性质：对 E 验收准备交付的门禁补审。当前 selfcheck/matrix 结果仅为框架自检与
-依赖挂起状态，**不代表 A 或任何业务验收通过**。
+**A 基础验收：未通过**——正式结算 52/52 中 1 FAIL=A 缺陷（`system.echo` GET 原样
+公开内部诊断列 `async_jobs.last_error`，未脱敏未限大小；oracle 自第六轮起独立裁定
+成立=A 验收 BLOCKER；A 代码未改，处置权在总协调）。50 PASS+1 INFO（9 处待人工
+复核）构成有效基础覆盖；**暂不建议开放 B/C/D**。详见 `E-A-acceptance.md`。
+
+审查性质：第 1—4 轮=E 验收准备门禁补审；第 5—8 轮=A 基线验收驱动与证据审查。
+框架自检与 matrix 结果仍不代表任何业务场景通过（94 场景 dependency_pending，
+blocked_by=B/C/D）。
 
 ## 分项结论（第三轮终审 cc33abe，历史记录）
 
@@ -78,6 +88,50 @@
 - 第三轮遗留 MINOR（record_raw run_id 元数据）维持原排期，本轮未扩大。
 - 修正后 owner 分布：B=28 B+C=2 B+C+D=7 B+D=3 C=26 C+D=7 D=21（合计 94）。
 
+## 第五至八轮审查（A 基线验收轮，2026-09-10）
+
+### 第五轮（f389078，A 验收驱动初审）→ BLOCKED，修复于 440516b
+- **BLOCKER** AB-05e/f 认证撤销检查假阳性（复用 refresh 轮换后已撤销旧 token + SQL 改固定种子账号而非真实登录账号——删除 A 每请求复核也会 PASS）。
+- **BLOCKER** N2-http 硬编码 PASS 无真实检查，且结论与 A 代码相反（SystemEchoController 实际投影 last_error）。
+- **BLOCKER** a-baseline 无完整结算门禁（E_AB_ONLY 部分运行写正式证据；退出码在清理前求值，清理 FAIL 仍 0）。
+- **MAJOR** 清理缺 run 所有权保护（可误删他用容器；RUN_ID 秒精度；worker 健康未绑子进程）。
+- **MAJOR** 弱断言（AB-06b `or True`；媒体 uploader_ref 用 token[:8]；production 启动接受任意含 fail 非零退出，摘录空文件）。
+- **MINOR** 框架摘要/README 仍称"A 基线未交付"。
+- 处置：全部修复（独立会话+真实 accountId+行数断言+501→401 转变证据；N2-http 实测→**暴露 A 缺陷**；EXPECTED 52 结算+哨兵+清理后退出码+诊断模式隔离；label/锁/端口/存活绑定；断言强化；文案同步）。AB-02d/AB-06d 按总协调纠偏从 BLOCKED 转真实验证（E 隔离定向 worker pytest 26 passed；真实 mvp_worker 运行时+受控回调验证 RETRY_LIMIT_EXCEEDED 与陈旧代次哨兵 0，标注非 HTTP 链路）。
+
+### 第六轮（440516b）→ BLOCKED，修复于 707670a
+- **BLOCKER E-1** N2-http 在 SQL 失败/HTTP 错误响应下可假 PASS（UPDATE 未校验行数；非 200 无 marker 被判 PASS）。
+- **BLOCKER E-2** 诊断模式仍覆盖正式 evidence（LOGS 恒指正式目录；阶段函数直写）。
+- **MAJOR E-3** 锁 exists/read/write 非原子+RUN_ID 秒精度+worker 健康未绑 Popen、AB-02c 检查已清空变量。
+- **MAJOR E-4** N2 消费点检视按文件名自动分类、丢行号、待检视项仍 PASS。
+- **MAJOR E-5** AB-11 requestId 断言退化（None==None 可 PASS）。
+- **A 缺陷独立裁定：成立，A 基础验收 BLOCKER**（合成 marker 非真实凭据泄露；已证实范围限 system.echo GET，不得成为 B/C/D 接入范例）。
+- 处置：全部修复（n2_http_verdict 纯函数判定+六变体回归；set_output_mode 入口一次决定全部目录；flock 原子锁+随机后缀+Popen 绑定+真实 returncode 断言；file:line+片段分类检视、9 处待复核诚实降 INFO；requestId 双侧非空且相等+负例）。
+
+### 第七轮（707670a）→ BLOCKED，修复于 85c2f33
+- **BLOCKER** BLOCKED/结算不完整仍可宣称"A基础验收通过"（final_exit 不查 blocked；write_outputs 仅 fail>0 判通过；完整 BLOCKED 运行可 exit 0）。
+- **MAJOR** flock 释放后 unlink → inode 竞态破坏单实例保证。
+- **MAJOR** INFO 未进汇总计数（哨兵 settled=52 但 counts 和=51）。
+- **MINOR** 超长变体复现 SQL 截断不可执行。
+- 处置：全部修复（通过条件=结算完整+0 FAIL+0 BLOCKED，未知状态→4；INFO 附条件接受政策明文化且强制显式披露；锁文件常驻绝不 unlink；counts 含 info+和==settled 断言；repeat('L',4000) 完整可执行复现；五场景结论回归；N2-http 三条边界措辞固化——null=本样本未暴露、缺字段=保守 BLOCKED、样本通过≠通用脱敏保证）。
+
+### 第八轮（85c2f33）→ E 代码 PASS
+- 第七轮 findings 全部 RESOLVED；既有门禁（matrix 哨兵/PYTEST_ADDOPTS 拒绝/pass-requires-evidence/脱敏/AB-05 独立会话/AB-02d/AB-06d）未破坏；settlement_complete 在正式调用链上无假通过路径。
+- E 侧 blockingFindings：**无**。遗留 **SUGGESTION（MINOR，非阻塞）**：五场景回归实为"结论政策单元测试"（未经 settlement()→write_outputs() 落盘链路），称谓需修正。处置：与 A 修复后定向重验同轮补 tmp_path 集成测试+INFO 9 处人工复核。
+- A 缺陷裁定不变（A 代码未变），增强复现（完整可执行 SQL+两变体响应摘录）足以交 A 定位修复；重放需替换有效 jobId、Bearer 用运行时测试会话。
+- 处置建议（最终决定权总协调）：交 A 修复诊断投影及受影响契约 → E 绑定新 A SHA 定向重验（两类诊断样本、正常投影、认证、受影响契约），未变证据复用须注明来源 SHA 与范围，不得以 PARTIAL 冒充全量。
+
+## 第五至八轮测试命令与退出码（协调者于 85c2f33 真实执行，2026-09-10）
+
+| 命令 | 退出码 | 结果 |
+| --- | --- | --- |
+| `backend/acceptance/run.sh selfcheck` | **0** | 45 passed（框架+矩阵+门禁/驱动回归） |
+| `backend/acceptance/run.sh matrix` | **3** | PASSED=45 DEPENDENCY_PENDING=94 FAILED=0；SETTLED=94/94 |
+| `backend/acceptance/run.sh a-baseline` | **1** | mode=formal settled=52/52；50 PASS / 1 FAIL（N2-http=A 缺陷）/ 0 BLOCKED / 1 INFO；counts_sum=52、unknown=[]；结论"A 基础验收：未通过" |
+
+实施跑与协调者独立复跑（于 85c2f33）两跑一致；逐项证据见
+`backend/acceptance/evidence/A-baseline-2026-09-10/` 与 `backend/handoffs/E-A-acceptance.md`。
+
 ## 第三轮测试命令与退出码（协调者于 cc33abe 真实执行，2026-09-10）
 
 | 命令 | 退出码 | 结果 |
@@ -107,8 +161,11 @@ PYTEST_ADDOPTS 入口命令均 exit=4，实际输出均为"拒绝外部 PYTEST_A
 
 ## 状态
 
-- owner 归属映射已按总协调权威裁决纠正并通过第四轮复审（61f6329）；矩阵/API
-  编号与业务语义未改变。
-- 剩余依赖：**A 集成基线未提供**（blocker 不变），94 场景 dependency_pending。
-- nextAction：**waiting_dependency** —— 协调者提供 A 基线 SHA → 更新
-  config/baseline.json 开闸 → 按 AB-01..AB-11 执行基础验收（含第三轮遗留 MINOR 修复）。
+- A 基线已到达（集成 df0fa32 / A 代码 26d97fb），E 独立基础验收已执行：
+  **未通过**（1 FAIL=A 缺陷 system.echo lastError 原样投影；50 PASS / 1 INFO）；
+  E 代码经第八轮 oracle 复审 PASS（85c2f33，E 侧 blockingFindings 无）。
+- 第三轮遗留 MINOR（record_raw run_id）已于 f389078 修复并回归（closed）。
+- 94 业务场景仍 dependency_pending（blocked_by=归属 B/C/D 业务包）。
+- nextAction：**waiting_dependency** —— 总协调交 A 修复缺陷 → E 绑定新 A SHA
+  定向重验（同轮完成第八轮 SUGGESTION：称谓修正+tmp_path 集成测试+INFO 9 处
+  人工复核）→ 总协调决定是否开放 B/C/D。
