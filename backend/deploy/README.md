@@ -113,9 +113,16 @@ docker build -f deploy/worker-python/Dockerfile -t mvp-a/worker-python:local wor
 - **worker 入口已接管 T12 运行循环**：镜像 ENTRYPOINT `python -m mvp_worker`
   无参数 = 常驻循环（不再是打印帮助后退出）；一次性操作走
   `docker compose run --rm worker --once` / `--check` / `--recover`。
-- web/worker 共享命名卷 `media`（存储替身根，见上文布局约定）。
+- web/worker 共享命名卷 `media`（存储替身根，见上文布局约定）。worker 另以只读
+  bind mount 提供契约目录 `../contracts` → `/app/contracts`（`MVP_CONTRACTS_DIR`）：
+  镜像本身不含 contracts，挂载后 payload 契约校验（如 system.echo）在容器内可用。
+  worker `depends_on: web healthy`（等 Flyway 建表后再领取，避免启动期关系不存在噪声）。
 - production 形态：`SPRING_PROFILES_ACTIVE=prod + APP_PROVIDERS_MODE=real` 且
   无真实提供方时 web 启动即失败（fail closed，预期行为；真实接入归 B/C/D+部署）。
+- **端口隔离（M9 运行注意）**：compose `pg` 服务默认映射宿主 `127.0.0.1:55432`，
+  与开发隔离容器 `mvp-a-pg` 相同——**两者绝不能并发运行**（端口冲突/连错库）。
+  compose 冒烟必须覆盖 `MVP_A_PG_HOST_PORT`（例如 `55434`）或先停止 `mvp-a-pg`；
+  任何情况下不得使用宿主 5432。
 
 ## Nginx
 
@@ -139,7 +146,9 @@ docker build -f deploy/worker-python/Dockerfile -t mvp-a/worker-python:local wor
 | APP_STORAGE_DEV_DIR ↔ MVP_A_STORAGE_DEV_DIR | /tmp/mvp-a-storage | 存储替身根（两侧等效互通，布局 `<root>/<object_key>`） |
 | APP_STORAGE_BUCKET | mvp-a-media | media_objects.bucket 逻辑桶名 |
 | APP_IMAGE_MAX_BYTES | 10485760 | 单图字节上限 |
+| APP_MEDIA_ACCESS_MODE | deny-all | 媒体读取模式（deny-all/owner-dev/any-authenticated；production 非默认即拒绝启动） |
 | APP_IDEMPOTENCY_LEASE_SECONDS | 30 | T13 processing 租约（过期 takeover） |
+| JOB_MAX_ATTEMPTS | 5 | **enqueue authority for async_jobs.max_attempts**（Java JobEnqueuer 写入的默认；与 worker retry 上限对齐） |
 | APP_DOUBLE_SMS_CODE / APP_DOUBLE_FACE | 123456 / MATCHED | dev/test 认证替身行为 |
 | MVP_WORKER_PG_DSN | postgresql://postgres:change-me@pg:5432/mvp_a_dev | Worker 运行时连接（→MVP_A_PG_DSN→dev 默认） |
 | MVP_WORKER_POOL_SIZE / CLAIM_BATCH / LEASE_SECONDS | 5 / 5 / 60 | 池（max_overflow 固定 0）、每周期领取、租约 |

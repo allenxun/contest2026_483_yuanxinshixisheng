@@ -73,6 +73,32 @@ class RevocationIT extends AbstractWebIT {
     }
 
     @Test
+    @DisplayName("R2-2 刷新不复活已撤销代次：login→bump auth_revision(status 仍 active)→原 refresh token→401；旧 access→401；新登录成功")
+    void refreshDoesNotResurrectRevokedGeneration() throws Exception {
+        String phone = newPhone();
+        LoginResult login = loginAppWithInstallation(phone, "inst-gen-refresh");
+        jdbc.update("UPDATE accounts SET auth_revision = auth_revision + 1 WHERE id = ?::uuid",
+                login.accountId());
+        // 账号仍 active，仅代次递增（模拟全端登出/撤销，而非停用）
+        assertEquals("active", jdbc.queryForObject(
+                "SELECT status FROM accounts WHERE id = ?::uuid", String.class, login.accountId()));
+
+        MvcResult refresh = mockMvc.perform(post("/api/v1/auth/session-refreshes")
+                        .contentType("application/json")
+                        .content("{\"refreshCredential\":\"" + login.refreshToken()
+                                + "\",\"installationId\":\"inst-gen-refresh\"}"))
+                .andReturn();
+        assertEquals(401, refresh.getResponse().getStatus(), refresh.getResponse().getContentAsString());
+        assertEquals("SESSION_INVALID", JSON.readTree(refresh.getResponse().getContentAsString())
+                .path("error").path("code").asText());
+        // 旧 access token 仍失效
+        assertEquals(401, probe(login.accessToken()).getResponse().getStatus());
+        // 全新 SMS 登录捕获新代次 → 可用
+        LoginResult fresh = loginAppWithInstallation(phone, "inst-gen-refresh");
+        assertEquals(404, probe(fresh.accessToken()).getResponse().getStatus());
+    }
+
+    @Test
     @DisplayName("停用账号不能新建会话：sessions → 401 SESSION_INVALID（不给 token）")
     void disabledAccountCannotCreateSession() throws Exception {
         String phone = newPhone();

@@ -31,7 +31,7 @@ public record AppProperties(String env, Providers providers, Storage storage,
             idempotency = new Idempotency(null);
         }
         if (media == null) {
-            media = new Media(false);
+            media = new Media(false, null);
         }
         if (jobs == null) {
             jobs = new Jobs(null);
@@ -66,12 +66,33 @@ public record AppProperties(String env, Providers providers, Storage storage,
         }
     }
 
+    /** 媒体授权模式（app.media.access-mode；仅 dev/test 生效）。 */
+    public static final String MEDIA_MODE_DENY_ALL = "deny-all";
+    public static final String MEDIA_MODE_OWNER_DEV = "owner-dev";
+    public static final String MEDIA_MODE_ANY_AUTHENTICATED = "any-authenticated";
+
     /**
-     * media.allowAnyAuthenticated：dev 跨模块联调专用"任意已认证可读"开关，
-     * 默认 false（owner-based 最小权限）；app.env=production 且开关为 true →
-     * 启动失败（FoundationConfig fail closed）。
+     * media.accessMode：默认 {@code deny-all}（生产安全默认，任何媒体 GET
+     * 统一 404，直到 B/C/D 安装业务 @Primary MediaAccessPolicy）；
+     * {@code owner-dev}=仅上传者本人可读的 dev/test 便利（核验用途仍拒绝）；
+     * {@code any-authenticated}=显式 dev 联调开放。app.env=production 下任何
+     * 非默认 access-mode 或 allowAnyAuthenticated=true →
+     * ProductionFailClosedValidator 无条件拒绝启动（与 bean 装配无关）。
      */
-    public record Media(boolean allowAnyAuthenticated) {
+    public record Media(boolean allowAnyAuthenticated, String accessMode) {
+        public Media {
+            if (accessMode == null || accessMode.isBlank()) {
+                accessMode = MEDIA_MODE_DENY_ALL;
+            }
+        }
+
+        public String accessModeOrDefault() {
+            return accessMode;
+        }
+
+        public boolean defaultMode() {
+            return MEDIA_MODE_DENY_ALL.equals(accessMode);
+        }
     }
 
     /** jobs.maxAttempts：JobEnqueuer 写 async_jobs.max_attempts 的默认（oracle M8）。 */

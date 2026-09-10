@@ -8,11 +8,16 @@
 -- =====================================================================
 
 -- 所有 JSONB 有 schema_version（DATA §4）——列级 CHECK 逐列执行（决策表见
--- backend/contracts/decisions-notes.md「JSONB schema_version 列决策」）：
---   F 形态 `col = '{}'::jsonb OR jsonb_exists(...)`：NOT NULL DEFAULT '{}' 的
---     阶段性摘要/观测列（空 = 尚未写入）；
---   N 形态 `col IS NULL OR jsonb_exists(...)`：可空业务内容列；
---   S 形态 `jsonb_exists(...)`：一旦建行必须有内容的事实载荷
+-- backend/contracts/decisions-notes.md「JSONB schema_version 列决策」）。
+-- 类型加固（oracle round-2 R2-4）：仅 `jsonb_exists` 存在性不够——数组可含
+-- 字符串 "schema_version"，对象可含 null/字符串版本。非占位分支一律要求
+-- `jsonb_typeof(col)='object' AND col ? 'schema_version' AND
+--  jsonb_typeof(col->'schema_version')='number'`
+-- （? 键存在判断不可省：缺键时 jsonb_typeof(NULL)=NULL，CHECK 会放过）：
+--   F 形态 `col = '{}'::jsonb OR (object 且 schema_version 为 number)`：
+--     NOT NULL DEFAULT '{}' 的阶段性摘要/观测列（空 = 尚未写入）；
+--   N 形态 `col IS NULL OR (object 且 schema_version 为 number)`：可空业务内容列；
+--   S 形态 `(object 且 schema_version 为 number)`：一旦建行必须有内容的事实载荷
 --     （async_jobs.payload、care_records.payload、notifications.payload）。
 --   例外（自由格式，不受版本号约束，注释于各表）：诊断类
 --   last_error / failure_detail / failure_detail* ——错误快照非演进业务载荷。
@@ -42,9 +47,9 @@ CREATE TABLE idempotency_requests (
     -- 空占位 '{}'；服务端写入非空摘要时必须携带 schema_version（IdempotencyService
     -- completeSuccess/completeRejected 统一注入）。
     CONSTRAINT ck_idem_result_summary_schema CHECK (
-        result_summary = '{}'::jsonb OR jsonb_exists(result_summary, 'schema_version')),
+        result_summary = '{}'::jsonb OR (jsonb_typeof(result_summary) = 'object' AND result_summary ? 'schema_version' AND jsonb_typeof(result_summary -> 'schema_version') = 'number')),
     CONSTRAINT ck_idem_verification_summary_schema CHECK (
-        verification_summary = '{}'::jsonb OR jsonb_exists(verification_summary, 'schema_version'))
+        verification_summary = '{}'::jsonb OR (jsonb_typeof(verification_summary) = 'object' AND verification_summary ? 'schema_version' AND jsonb_typeof(verification_summary -> 'schema_version') = 'number'))
 );
 
 -- T14 accounts：APP 登录账号宽表
@@ -64,7 +69,7 @@ CREATE TABLE accounts (
     CONSTRAINT ck_accounts_auth_revision CHECK (auth_revision > 0),
     -- F 形态（DATA §4 JSONB schema_version）：profile 初始为空占位，写入须带版本
     CONSTRAINT ck_accounts_profile_schema CHECK (
-        profile = '{}'::jsonb OR jsonb_exists(profile, 'schema_version'))
+        profile = '{}'::jsonb OR (jsonb_typeof(profile) = 'object' AND profile ? 'schema_version' AND jsonb_typeof(profile -> 'schema_version') = 'number'))
 );
 
 -- T01 members：一个人的档案（created_from_assessment_id 的组合外键后置 V2）
@@ -81,9 +86,9 @@ CREATE TABLE members (
     CONSTRAINT ck_members_status CHECK (status IN ('active','disabled')),
     -- F 形态：档案/身份摘要阶段性为空占位，写入须带 schema_version
     CONSTRAINT ck_members_profile_schema CHECK (
-        profile = '{}'::jsonb OR jsonb_exists(profile, 'schema_version')),
+        profile = '{}'::jsonb OR (jsonb_typeof(profile) = 'object' AND profile ? 'schema_version' AND jsonb_typeof(profile -> 'schema_version') = 'number')),
     CONSTRAINT ck_members_identity_summary_schema CHECK (
-        identity_summary = '{}'::jsonb OR jsonb_exists(identity_summary, 'schema_version'))
+        identity_summary = '{}'::jsonb OR (jsonb_typeof(identity_summary) = 'object' AND identity_summary ? 'schema_version' AND jsonb_typeof(identity_summary -> 'schema_version') = 'number'))
 );
 -- 可靠建档后 (identity_namespace, face_subject_ref) 组合唯一；建档前两列可空 → 部分唯一索引
 CREATE UNIQUE INDEX uq_members_identity
@@ -107,9 +112,9 @@ CREATE TABLE member_access_grants (
     CONSTRAINT ck_grant_status CHECK (status IN ('active','revoked')),
     -- F 形态：授权快照/核验摘要（B 包 M1 写入时带 schema_version）
     CONSTRAINT ck_grant_member_summary_schema CHECK (
-        member_summary = '{}'::jsonb OR jsonb_exists(member_summary, 'schema_version')),
+        member_summary = '{}'::jsonb OR (jsonb_typeof(member_summary) = 'object' AND member_summary ? 'schema_version' AND jsonb_typeof(member_summary -> 'schema_version') = 'number')),
     CONSTRAINT ck_grant_verification_summary_schema CHECK (
-        verification_summary = '{}'::jsonb OR jsonb_exists(verification_summary, 'schema_version'))
+        verification_summary = '{}'::jsonb OR (jsonb_typeof(verification_summary) = 'object' AND verification_summary ? 'schema_version' AND jsonb_typeof(verification_summary -> 'schema_version') = 'number'))
 );
 -- 同一 (account_id, member_id) 最多一条 active 授权（部分唯一索引）
 CREATE UNIQUE INDEX uq_grant_active
@@ -141,9 +146,9 @@ CREATE TABLE gimbals (
     CONSTRAINT ck_gimbal_status_revision CHECK (status_revision >= 0),
     -- F 形态：观测/事件快照（未上报时空占位合法；写入须带 schema_version）
     CONSTRAINT ck_gimbal_latest_observation_schema CHECK (
-        latest_observation = '{}'::jsonb OR jsonb_exists(latest_observation, 'schema_version')),
+        latest_observation = '{}'::jsonb OR (jsonb_typeof(latest_observation) = 'object' AND latest_observation ? 'schema_version' AND jsonb_typeof(latest_observation -> 'schema_version') = 'number')),
     CONSTRAINT ck_gimbal_active_incidents_schema CHECK (
-        active_incidents = '{}'::jsonb OR jsonb_exists(active_incidents, 'schema_version'))
+        active_incidents = '{}'::jsonb OR (jsonb_typeof(active_incidents) = 'object' AND active_incidents ? 'schema_version' AND jsonb_typeof(active_incidents -> 'schema_version') = 'number'))
 );
 
 -- T04 microcrystals：微晶宽表（无 current_controller，占用从 care_executions 查询）
@@ -164,9 +169,9 @@ CREATE TABLE microcrystals (
     CONSTRAINT ck_microcrystal_observation_seq CHECK (observation_seq >= 0),
     -- F 形态：DATA 表注（DD ~L725）"capabilities JSONB 内 schema_version"；未登记前空占位合法
     CONSTRAINT ck_microcrystal_capabilities_schema CHECK (
-        capabilities = '{}'::jsonb OR jsonb_exists(capabilities, 'schema_version')),
+        capabilities = '{}'::jsonb OR (jsonb_typeof(capabilities) = 'object' AND capabilities ? 'schema_version' AND jsonb_typeof(capabilities -> 'schema_version') = 'number')),
     CONSTRAINT ck_microcrystal_latest_observation_schema CHECK (
-        latest_observation = '{}'::jsonb OR jsonb_exists(latest_observation, 'schema_version'))
+        latest_observation = '{}'::jsonb OR (jsonb_typeof(latest_observation) = 'object' AND latest_observation ? 'schema_version' AND jsonb_typeof(latest_observation -> 'schema_version') = 'number'))
 );
 
 -- T05 skin_assessments：测肤任务/统一报告宽表
@@ -206,13 +211,13 @@ CREATE TABLE skin_assessments (
     -- report_summary/report_payload 可空、有值必须带 schema_version。
     -- failure_code/failure_detail：错误快照，自由格式（例外，见文件头注释）
     CONSTRAINT ck_assessment_photo_versions_schema CHECK (
-        photo_versions = '{}'::jsonb OR jsonb_exists(photo_versions, 'schema_version')),
+        photo_versions = '{}'::jsonb OR (jsonb_typeof(photo_versions) = 'object' AND photo_versions ? 'schema_version' AND jsonb_typeof(photo_versions -> 'schema_version') = 'number')),
     CONSTRAINT ck_assessment_identity_result_schema CHECK (
-        identity_result = '{}'::jsonb OR jsonb_exists(identity_result, 'schema_version')),
+        identity_result = '{}'::jsonb OR (jsonb_typeof(identity_result) = 'object' AND identity_result ? 'schema_version' AND jsonb_typeof(identity_result -> 'schema_version') = 'number')),
     CONSTRAINT ck_assessment_report_summary_schema CHECK (
-        report_summary IS NULL OR jsonb_exists(report_summary, 'schema_version')),
+        report_summary IS NULL OR (jsonb_typeof(report_summary) = 'object' AND report_summary ? 'schema_version' AND jsonb_typeof(report_summary -> 'schema_version') = 'number')),
     CONSTRAINT ck_assessment_report_payload_schema CHECK (
-        report_payload IS NULL OR jsonb_exists(report_payload, 'schema_version'))
+        report_payload IS NULL OR (jsonb_typeof(report_payload) = 'object' AND report_payload ? 'schema_version' AND jsonb_typeof(report_payload -> 'schema_version') = 'number'))
 );
 
 -- T06 care_plans：护理方案与进度宽表
@@ -248,11 +253,11 @@ CREATE TABLE care_plans (
     -- F/N 形态：输入快照/方案摘要空占位合法；plan_payload 有值必须带版本。
     -- failure_detail：错误快照，自由格式（例外）
     CONSTRAINT ck_plan_input_snapshot_schema CHECK (
-        input_snapshot = '{}'::jsonb OR jsonb_exists(input_snapshot, 'schema_version')),
+        input_snapshot = '{}'::jsonb OR (jsonb_typeof(input_snapshot) = 'object' AND input_snapshot ? 'schema_version' AND jsonb_typeof(input_snapshot -> 'schema_version') = 'number')),
     CONSTRAINT ck_plan_plan_summary_schema CHECK (
-        plan_summary = '{}'::jsonb OR jsonb_exists(plan_summary, 'schema_version')),
+        plan_summary = '{}'::jsonb OR (jsonb_typeof(plan_summary) = 'object' AND plan_summary ? 'schema_version' AND jsonb_typeof(plan_summary -> 'schema_version') = 'number')),
     CONSTRAINT ck_plan_plan_payload_schema CHECK (
-        plan_payload IS NULL OR jsonb_exists(plan_payload, 'schema_version'))
+        plan_payload IS NULL OR (jsonb_typeof(plan_payload) = 'object' AND plan_payload ? 'schema_version' AND jsonb_typeof(plan_payload -> 'schema_version') = 'number'))
 );
 
 -- T07 care_executions：一次护理执行宽表
@@ -305,13 +310,13 @@ CREATE TABLE care_executions (
     -- F/N 形态：执行期冻结快照/核验/观测/收尾清单（DATA §4）。
     -- latest_observation 可空（未上报）；closure_manifest 可空（未收尾）
     CONSTRAINT ck_execution_plan_snapshot_schema CHECK (
-        plan_snapshot = '{}'::jsonb OR jsonb_exists(plan_snapshot, 'schema_version')),
+        plan_snapshot = '{}'::jsonb OR (jsonb_typeof(plan_snapshot) = 'object' AND plan_snapshot ? 'schema_version' AND jsonb_typeof(plan_snapshot -> 'schema_version') = 'number')),
     CONSTRAINT ck_execution_latest_verification_schema CHECK (
-        latest_verification = '{}'::jsonb OR jsonb_exists(latest_verification, 'schema_version')),
+        latest_verification = '{}'::jsonb OR (jsonb_typeof(latest_verification) = 'object' AND latest_verification ? 'schema_version' AND jsonb_typeof(latest_verification -> 'schema_version') = 'number')),
     CONSTRAINT ck_execution_latest_observation_schema CHECK (
-        latest_observation IS NULL OR jsonb_exists(latest_observation, 'schema_version')),
+        latest_observation IS NULL OR (jsonb_typeof(latest_observation) = 'object' AND latest_observation ? 'schema_version' AND jsonb_typeof(latest_observation -> 'schema_version') = 'number')),
     CONSTRAINT ck_execution_closure_manifest_schema CHECK (
-        closure_manifest IS NULL OR jsonb_exists(closure_manifest, 'schema_version'))
+        closure_manifest IS NULL OR (jsonb_typeof(closure_manifest) = 'object' AND closure_manifest ? 'schema_version' AND jsonb_typeof(closure_manifest -> 'schema_version') = 'number'))
 );
 -- 同一微晶最多一个未收尾执行（仅 closed_at 非空释放占用）
 CREATE UNIQUE INDEX uq_execution_open_microcrystal
@@ -343,7 +348,7 @@ CREATE TABLE care_records (
     CONSTRAINT ck_record_count_delta CHECK (count_delta > 0),
     CONSTRAINT ck_record_source_seq CHECK (source_seq > 0),
     -- S 形态：流水表内容不可变，业务载荷建行即须带 schema_version（无空占位阶段）
-    CONSTRAINT ck_record_payload_schema CHECK (jsonb_exists(payload, 'schema_version'))
+    CONSTRAINT ck_record_payload_schema CHECK (jsonb_typeof(payload) = 'object' AND payload ? 'schema_version' AND jsonb_typeof(payload -> 'schema_version') = 'number')
 );
 
 -- T09 notification_destinations：一个 APP 安装实例推送目标
@@ -373,7 +378,7 @@ CREATE TABLE notification_destinations (
     -- F 形态：registration 未登记/已失效可空占位；写入通道信息须带 schema_version
     -- （active 行由上条 CHECK 强制非空，两条形合成 DD"active 必须有注册"）
     CONSTRAINT ck_destination_registration_schema CHECK (
-        registration = '{}'::jsonb OR jsonb_exists(registration, 'schema_version'))
+        registration = '{}'::jsonb OR (jsonb_typeof(registration) = 'object' AND registration ? 'schema_version' AND jsonb_typeof(registration -> 'schema_version') = 'number'))
 );
 
 -- T10 notifications：一次异常 × 一个目标
@@ -401,7 +406,7 @@ CREATE TABLE notifications (
     CONSTRAINT ck_notification_destination_revision CHECK (destination_revision >= 0),
     -- S 形态：通知建行即携带最小 payload（DD T10"payload 仅最小通知"，无空阶段）；
     -- last_error：错误快照，自由格式（例外）
-    CONSTRAINT ck_notification_payload_schema CHECK (jsonb_exists(payload, 'schema_version'))
+    CONSTRAINT ck_notification_payload_schema CHECK (jsonb_typeof(payload) = 'object' AND payload ? 'schema_version' AND jsonb_typeof(payload -> 'schema_version') = 'number')
 );
 
 -- T11 media_objects：OSS 图片元数据
@@ -433,7 +438,7 @@ CREATE TABLE media_objects (
     -- F 形态：pending 无存储元数据为空占位；MediaService.markAvailable 写入带
     -- schema_version:1。last_error：错误快照，自由格式（例外）
     CONSTRAINT ck_media_storage_metadata_schema CHECK (
-        storage_metadata = '{}'::jsonb OR jsonb_exists(storage_metadata, 'schema_version'))
+        storage_metadata = '{}'::jsonb OR (jsonb_typeof(storage_metadata) = 'object' AND storage_metadata ? 'schema_version' AND jsonb_typeof(storage_metadata -> 'schema_version') = 'number'))
 );
 
 -- T12 async_jobs：可靠异步工作队列
@@ -463,7 +468,7 @@ CREATE TABLE async_jobs (
     CONSTRAINT ck_job_max_attempts CHECK (max_attempts >= 1),
     CONSTRAINT ck_job_lease_revision CHECK (lease_revision >= 0),
     -- payload 必须携带 schema_version
-    CONSTRAINT ck_job_payload_schema CHECK (jsonb_exists(payload, 'schema_version'))
+    CONSTRAINT ck_job_payload_schema CHECK (jsonb_typeof(payload) = 'object' AND payload ? 'schema_version' AND jsonb_typeof(payload -> 'schema_version') = 'number')
 );
 -- 同一 owner 的 identity.enroll 在未完成态最多一个（防并发建档）
 CREATE UNIQUE INDEX uq_job_identity_enroll

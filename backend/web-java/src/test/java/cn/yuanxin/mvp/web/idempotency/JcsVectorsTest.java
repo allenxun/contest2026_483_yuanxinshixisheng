@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * RFC 8785 JCS：复现 backend/contracts/samples/canonicalization/vectors.json
- * 全部 16 个向量（A/decisions #11；行为基准 scripts/jcs.py，两侧字节一致）。
+ * 全部 17 个向量（A/decisions #11；行为基准 scripts/jcs.py，两侧字节一致）。
  * 另测重复键拒绝、-0 归一、越界整数拒绝、ES6 Number::toString 精确对（与
  * `python3 scripts/jcs.py selftest` 同一清单）。
  */
@@ -35,7 +35,7 @@ class JcsVectorsTest {
 
     static Stream<Arguments> vectors() throws IOException {
         JsonNode arr = Jcs.parseStrict(Files.readString(vectorsFile()));
-        assertTrue(arr.isArray() && arr.size() == 16, "契约应提供 16 个向量");
+        assertTrue(arr.isArray() && arr.size() == 17, "契约应提供 17 个向量");
         return StreamSupport.stream(arr.spliterator(), false)
                 .map(v -> Arguments.of(v.get("name").asText(), v.get("input"),
                         v.get("expected_sha256").asText()));

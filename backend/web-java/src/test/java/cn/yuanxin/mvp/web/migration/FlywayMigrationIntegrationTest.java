@@ -325,6 +325,32 @@ class FlywayMigrationIntegrationTest {
     }
 
     @Test
+    @DisplayName("(i2) R2-4 类型加固：数组含 schema_version、版本为 null/字符串 均被 CHECK 拒绝；对象+整数合法")
+    void schemaVersionTypeHardening() throws SQLException {
+        String job = "INSERT INTO async_jobs (id, job_type, dedup_key, owner_type, owner_id, payload)"
+                + " VALUES (?, 'system.echo', ?, 'system', ?, ?::jsonb)";
+        assertRejected("ck_job_payload_schema", job, uuid(), "dedup-arr", uuid(), "[\"schema_version\"]");
+        assertRejected("ck_job_payload_schema", job, uuid(), "dedup-null", uuid(),
+                "{\"schema_version\":null}");
+        assertRejected("ck_job_payload_schema", job, uuid(), "dedup-str", uuid(),
+                "{\"schema_version\":\"1\"}");
+        insert(job, uuid(), "dedup-ok", uuid(), "{\"schema_version\":1,\"message\":\"ok\"}");
+
+        // care_records.payload 同样加固（S 形态）
+        Fixture f = newFixture();
+        String e = newExecution(f, null);
+        String rec = "INSERT INTO care_records (id, execution_id, client_record_id, plan_id, member_id,"
+                + " microcrystal_id, count_delta, source_epoch, source_seq, payload_hash, payload)"
+                + " VALUES (?, ?, ?, ?, ?, ?, 1, ?, 1, 'sha256:x', ?::jsonb)";
+        assertRejected("ck_record_payload_schema", rec, uuid(), e, "c-arr", f.planId(), f.memberId(),
+                f.microId(), "ep-arr", "[\"schema_version\"]");
+        assertRejected("ck_record_payload_schema", rec, uuid(), e, "c-null", f.planId(), f.memberId(),
+                f.microId(), "ep-null", "{\"schema_version\":null}");
+        insert(rec, uuid(), e, "c-ok", f.planId(), f.memberId(), f.microId(), "ep-ok",
+                "{\"schema_version\":1}");
+    }
+
+    @Test
     @DisplayName("(c) idempotency_requests 重复 (principal_type, principal_id, operation, idempotency_key) 被拒绝")
     void duplicateIdempotencyKeyRejected() throws SQLException {
         String ins = "INSERT INTO idempotency_requests (id, principal_type, principal_id, operation,"

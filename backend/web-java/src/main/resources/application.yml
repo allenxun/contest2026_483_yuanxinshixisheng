@@ -68,8 +68,10 @@ app:
   idempotency:
     lease-seconds: ${APP_IDEMPOTENCY_LEASE_SECONDS:30}
   media:
-    # dev 联调显式 opt-in：任意已认证主体可读媒体。默认 false = owner-based
-    # （仅上传者）；app.env=production 时置 true 会拒绝启动（fail closed）。
+    # 生产安全默认 deny-all（任何媒体 GET 统一 404，直到 B/C/D @Primary 业务策略）。
+    # dev/test 可用 owner-dev（仅上传者本人，核验用途仍拒绝）或 any-authenticated
+    # 显式开放。app.env=production 下任何非默认模式 / allow-any=true 拒绝启动。
+    access-mode: ${APP_MEDIA_ACCESS_MODE:deny-all}
     allow-any-authenticated: ${APP_MEDIA_ALLOW_ANY_AUTHENTICATED:false}
   jobs:
     # JobEnqueuer 写 async_jobs.max_attempts 的默认值（与 worker 退避/上限语义对齐）
