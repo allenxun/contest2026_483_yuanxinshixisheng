@@ -203,6 +203,12 @@ def main() -> int:
     print("== canonicalization vectors (recomputed with scripts/jcs.py) ==")
     check_vectors()
 
+    print("== strict echo-jobs 200 response schema (scripts/validate_responses.py) ==")
+    import validate_responses  # noqa: E402  (same scripts/ dir)
+    validate_responses.run_selftest(
+        lambda label, passed, detail: ok(label) if passed else fail(label, detail or "invalid")
+    )
+
     print(f"\n{CHECKS} checks passed, {len(FAILURES)} failed")
     if FAILURES:
         print("RESULT: FAIL", file=sys.stderr)

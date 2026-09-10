@@ -156,9 +156,14 @@ V1 现以列级 CHECK 机器执行，三种形态（文件头有同款注释；`
 INTERNAL ONLY——绝不原样返回，必须经有界安全投影/尺寸约束后外传；业务版本
 列（schema_version）仍保留服务端/ schema 层整数校验，不受本例外影响。）**
 落地：`GET /api/v1/system/echo-jobs/{jobId}` 的 `data.lastError` 现强制
-有界投影（`EchoJobLastError`：仅 reason 枚举 + retryable bool），raw code /
-message / stack / retry_after_seconds 永不投影；未知/畸形 code 归一
-`reason=internal`（有界投影，非截断）。
+有界投影（仅 reason 枚举 + retryable bool），raw code / message / stack /
+retry_after_seconds 永不投影；未知/畸形 code 归一 `reason=internal`
+（有界投影，非截断）。**（oracle round-4 IMPORTANT 修正）**该字段改为严格
+OAS 3.0.3 内联表示（`type: object` + `nullable: true` 同一 Schema Object；
+此前 `allOf:[$ref]`+nullable 在严格消费者下可能拒绝合法的 `null`），并新增
+严格响应 schema 校验 `scripts/validate_responses.py`（从 openapi.yaml 解析
+实际响应 schema，不再只靠结构校验）：正例含真实 `lastError: null`，反例
+覆盖额外字段 / 非法 enum 并被拒绝，已纳入 `validate_samples.py`。
 
 **媒体授权语义（oracle round-2 R2-1）**：A 包生产安全默认 =
 **deny-all**（`DenyAllMediaAccessPolicy`，`app.media.access-mode=deny-all`）：

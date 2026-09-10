@@ -2770,22 +2770,20 @@ components:
         leaseRevision: { allOf: [{ $ref: '#/components/schemas/BigintString' }], nullable: true }
         finishedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
         lastError:
-          allOf: [{ $ref: '#/components/schemas/EchoJobLastError' }]
+          # Strict OAS 3.0.3: `nullable` only applies alongside `type` in the SAME
+          # Schema Object, so this is inline (no allOf+$ref+nullable, which strict
+          # consumers may reject for a legitimate `lastError: null`).
+          type: object
           nullable: true
           description: >-
-            有界安全失败投影；无失败（last_error 为 NULL）时为 null。
-            内部诊断（raw code/message/stack/retry_after_seconds）绝不投影。
-    EchoJobLastError:
-      type: object
-      description: >-
-        Bounded, sanitized job-failure projection. Internal diagnostics (raw
-        code, message, stack, retry_after_seconds) are NEVER projected;
-        unknown/malformed codes normalize to reason=internal. Sanitization is
-        by bounded projection, not truncation.
-      required: [reason, retryable]
-      additionalProperties: false
-      properties:
-        reason:
-          type: string
-          enum: [unsupported_contract, retry_limit_exceeded, handler_failed, internal]
-        retryable: { type: boolean }
+            Bounded, sanitized job-failure projection. Internal diagnostics (raw
+            code, message, stack, retry_after_seconds) are NEVER projected;
+            unknown/malformed codes normalize to reason=internal. Sanitization is
+            by bounded projection, not truncation. null when there is no failure.
+          required: [reason, retryable]
+          additionalProperties: false
+          properties:
+            reason:
+              type: string
+              enum: [unsupported_contract, retry_limit_exceeded, handler_failed, internal]
+            retryable: { type: boolean }
