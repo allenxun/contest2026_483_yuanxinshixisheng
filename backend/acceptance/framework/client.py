@@ -47,9 +47,14 @@ class EvidenceRecorder:
         self.count = 0
 
     def record(self, entry: dict[str, Any]) -> pathlib.Path:
+        """共同落盘边界：request_headers 一律过 safe_headers（默认凭据头无条件脱敏，
+        覆盖 BlackBoxClient 与 scenario_evidence.record_raw 等所有调用路径；
+        幂等，重复调用不会解除遮蔽）。"""
         self.dir.mkdir(parents=True, exist_ok=True)
         self._seq += 1
         self.count += 1
+        entry = {**entry,
+                 "request_headers": safe_headers(dict(entry.get("request_headers") or {}))}
         name = f"{self._seq:05d}-{_path_slug(entry['method'], entry['path'])}.json"
         p = self.dir / name
         p.write_text(json.dumps(entry, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -102,7 +107,7 @@ class BlackBoxClient:
                 "started_at": started,
                 "elapsed_ms": round((time.time() - started) * 1000, 1),
                 "status": resp.status_code,
-                "request_headers": safe_headers(headers, redact_headers),
+                "request_headers": safe_headers(headers, redact_headers),  # recorder 内还会幂等复核
                 "request_json": kwargs.get("json"),
                 "response_excerpt": resp.text[:4000],
             })

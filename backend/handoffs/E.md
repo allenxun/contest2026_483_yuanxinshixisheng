@@ -10,11 +10,15 @@
 - `backend/acceptance/run.sh` / `requirements.txt` / `.gitignore` / `pytest.ini` / `conftest.py`
 - `config/baseline.json`（当前 `gate=closed, sha=null`）、`config/acceptance.env.example`
 - `matrix/scenarios.json`（94）、`matrix/apis.json`（27）、`matrix/generate_matrix.py`（文档→JSON 再生成）
-- `framework/`：`conftest.py`（插件：markers 注册、dependency_pending 统计、matrix 退出码 3）、
-  `gate.py`、`client.py`、`isolation.py`、`doubles.py`
+- `framework/`：`conftest.py`（插件：markers 注册、dependency_pending 统计、
+  matrix 退出码 3/4 双层结算守卫【插件结算 + run.sh 拒绝外部 `PYTEST_ADDOPTS` 并校验
+  结算哨兵 `reports/<RUN_ID>/settlement.json`】、pass-requires-evidence【sc_id 节点
+  passed 必须有证据并 seal，否则改判 fail】）、
+  `gate.py`、`client.py`（证据落盘统一在 `EvidenceRecorder.record` 边界无条件脱敏
+  Authorization/Cookie/Proxy-Authorization/X-Api-Key）、`isolation.py`、`doubles.py`
 - `tests/test_matrix_integrity.py`、`tests/test_framework_selfcheck.py`、
   `tests/scenarios/test_sc00.py..test_sc07.py,test_scc.py,test_scr.py`（94 节点，名称含场景 ID）
-- `plans/A-baseline-plan.md`（AB-01..AB-10）、`plans/isolation-and-doubles.md`
+- `plans/A-baseline-plan.md`（AB-01..AB-11）、`plans/isolation-and-doubles.md`
 
 ## 矩阵统计（逐行提取，与文档声明核对）
 
@@ -27,6 +31,9 @@
 - 包归属：M1/M2/M5→B、M3→C、M4→D（组合场景多包），全部 blocked_by 含 `A-baseline`。
 
 ## 自检命令与退出码（2026-09-10 实际执行）
+
+> 下表为首轮实施的历史记录（当时自检 24 项、无守卫）；后续各轮的守卫与实测见
+> "dependency_pending 语义→守卫补强"下的复核轮/二复审修复轮表。
 
 | 命令 | 退出码 | 结果 |
 | --- | --- | --- |
@@ -44,22 +51,25 @@ gate 打开后未编写步骤的节点会直接 fail（防"开闸空跑冒充通
 
 - **退出码 4（结算不完整）**：matrix 模式由插件从 `matrix/scenarios.json` 加载 94 个
   sc_id 作为必须结算集合，逐一唯一结算（passed/dependency_pending/failed）；缺失、
-  `--ignore`/`-m` deselect、重复异常或 SKIPPED_OTHER>0 → 退出码 4。守卫在插件层，
-  `PYTEST_ADDOPTS` 操纵收集范围无法绕过；oracle 复现命令
-  `PYTEST_ADDOPTS='-p no:cacheprovider --ignore=tests/scenarios' ./run.sh matrix`
-  现返回 4（修复前为 0，即该 BLOCKER）。
+  `--ignore`/`-m` deselect、重复异常或 SKIPPED_OTHER>0 → 退出码 4。初版曾声称
+  "PYTEST_ADDOPTS 无法绕过"，复审证伪（`-p no:framework.conftest` 可禁用插件产生假 0）；
+  现已改为双层事实：**run.sh 为唯一验收入口**，检测外部 `PYTEST_ADDOPTS` 即拒绝并
+  exit 4；插件 session 结束写哨兵 `reports/<RUN_ID>/settlement.json`，run.sh 校验
+  哨兵存在/RUN_ID/mode/结算 94/计数一致，缺失或不匹配强制 4。直调 pytest 时插件守卫
+  仍生效（有回归用例），但裸调 pytest 不被承认为验收结果。
 - **passed 绑定证据**：带 sc_id 的节点 call 阶段 passed 时，必须已经
   `scenario_evidence` 夹具记录 ≥1 条 HTTP 证据并 `seal()` 替身声明，否则插件改判
   fail（"pass without evidence"）；汇总行输出
   `EVIDENCE_TAGS no_externals/doubles_pass/mixed/real_pass` 分类计数。当前
   gate=closed 全 pending，此机制不影响 94 pending，已由 subprocess 自检证明生效。
-- **证据脱敏**：`framework/client.py` 对 Authorization/Cookie/Proxy-Authorization/
-  X-Api-Key 无条件替换为 `***REDACTED***`（默认项不可被调用方移除），并有自检断言
-  证据文件不含 token 值。
+- **证据脱敏**：凭据遮蔽收敛在共同落盘边界 `EvidenceRecorder.record()`——
+  Authorization/Cookie/Proxy-Authorization/X-Api-Key 一律替换 `***REDACTED***`
+  （默认项不可被调用方移除，`record_raw` 等旁路同样覆盖），
+  并有自检断言证据文件不含 token 值。
 - **A 计划补齐**：`plans/A-baseline-plan.md` 增加 AB-01/AB-02 运行并记录 A 交付的
   Java/Python 测试命令与退出码、新增 AB-11 结构化错误响应契约与 requestId 关联验证。
 
-复核轮实际执行（2026-09-10，基线 93363ee 之上）：
+复核轮实际执行（2026-09-10，基线 93363ee 之上；下表属历史轮次事实，后续修复见"守卫补强"与二复审表）：
 
 | 命令 | 退出码 | 关键输出 |
 | --- | --- | --- |
@@ -68,12 +78,22 @@ gate 打开后未编写步骤的节点会直接 fail（防"开闸空跑冒充通
 | `run.sh matrix` | **3** | collected 124；`PASSED=30 DEPENDENCY_PENDING=94 FAILED=0`；`SETTLED=94/94 SETTLEMENT_OK` |
 | `md5sum matrix/scenarios.json` | 0 | `8d2c4e41…` 与修复前一致（94 条数据未动） |
 
+二复审修复轮实际执行（2026-09-10，基线 6b0a234 之上）：
+
+| 命令 | 退出码 | 关键输出 |
+| --- | --- | --- |
+| oracle 绕过复现（`PYTEST_ADDOPTS='-p no:framework.conftest -o addopts= --ignore=tests/test_framework_selfcheck.py --ignore=tests/test_matrix_integrity.py' ./run.sh matrix`） | **4** | 入口拒绝外部 PYTEST_ADDOPTS 注入，未进入 pytest |
+| 一轮 oracle 复现（`--ignore=tests/scenarios` 变体） | **4** | 同上（初版该路径经插件被绕过的假 0 已封死） |
+| `run.sh selfcheck` | **0** | 33 passed（新增入口拒绝、哨兵、record_raw 脱敏回归等） |
+| `run.sh matrix` | **3** | collected 127；`PASSED=33 DEPENDENCY_PENDING=94 FAILED=0 SKIPPED_OTHER=0`；`SETTLED=94/94 SETTLEMENT_OK`；哨兵 `reports/<RUN_ID>/settlement.json` 存在且 settled_unique=94、counts 与汇总一致 |
+| `md5sum matrix/scenarios.json` | 0 | `8d2c4e41…` 仍与最初提取一致 |
+
 ## 待 A 基线后的执行流程
 
 1. 协调者同步 A 已提交基线进本工作树 → 更新 `config/baseline.json`
    （`a_baseline.sha`/`synced_at`、`"gate":"open"`）。
 2. `./run.sh selfcheck` 确认框架完好。
-3. 按 `plans/A-baseline-plan.md` 执行 AB-01..AB-10 基础验收，产出含基线 SHA、命令、
+3. 按 `plans/A-baseline-plan.md` 执行 AB-01..AB-11 基础验收，产出含基线 SHA、命令、
    退出码、请求/响应证据（`reports/evidence/`）的报告交总协调；A 未通过则不启动 B/C/D。
 4. gate=open 后按矩阵补写并运行场景步骤（P0 优先），证据严格区分
    `doubles_pass` / `real_pass`（见 `plans/isolation-and-doubles.md`）。

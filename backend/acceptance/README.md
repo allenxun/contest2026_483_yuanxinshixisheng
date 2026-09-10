@@ -18,14 +18,14 @@ A 基线（公共构建、14 表迁移、认证主体上下文、幂等/代次�
 
 | 路径 | 说明 |
 | --- | --- |
-| `run.sh` | 一键入口：`setup-venv` / `selfcheck` / `matrix` |
+| `run.sh` | **唯一验收入口**：`setup-venv` / `selfcheck` / `matrix`；拒绝外部 `PYTEST_ADDOPTS`、绑定 RUN_ID、pytest 退出后校验结算哨兵 |
 | `requirements.txt` | pytest==9.1.1、requests==2.34.2（.venv 实际安装版本） |
 | `config/baseline.json` | A 基线门控（A 交付后由协调者填 sha/synced_at 并置 `"gate":"open"`） |
 | `config/acceptance.env.example` | E 专用隔离环境变量样例（占位符，无真实凭据） |
 | `matrix/scenarios.json` | 94 条场景追踪矩阵（字段含 status/blocked_by/pending_reason 等） |
 | `matrix/apis.json` | 27 个 API 反向索引（与 scenarios 双向一致） |
 | `matrix/generate_matrix.py` | 文档 → JSON 再生成脚本 |
-| `framework/conftest.py` | pytest 插件：markers 注册、dependency_pending 统计、94 场景结算守卫（退出码 4）、passed 绑定证据强制 |
+| `framework/conftest.py` | pytest 插件：markers 注册、dependency_pending 统计、94 场景结算守卫（退出码 4）、passed 绑定证据强制、结算哨兵 `reports/<RUN_ID>/settlement.json` |
 | `framework/gate.py` | 基线门控与 94 个场景测试节点工厂 |
 | `framework/client.py` | 黑盒 HTTP 客户端（requestId/超时/reports/ 证据落盘；Authorization 等默认无条件脱敏） |
 | `framework/isolation.py` | run-id 前缀、E 专用 DB/端口约定、fail-closed 校验、清理计划 |
@@ -42,14 +42,22 @@ A 基线（公共构建、14 表迁移、认证主体上下文、幂等/代次�
 cd backend/acceptance
 ./run.sh setup-venv   # 首次：建 .venv 并装依赖（或在仓库根: backend/acceptance/run.sh setup-venv）
 ./run.sh selfcheck    # 只跑框架/矩阵自检 → 期望退出码 0
-./run.sh matrix       # 全量（自检 + 94 场景，共 124 节点）→ 当前期望退出码 3
+./run.sh matrix       # 全量（框架自检 + 94 场景节点）→ 当前期望退出码 3
 ```
 
 退出码语义：`0` 94 场景全部真实通过且证据齐备；`1` 存在失败；`3` matrix 模式下存在
-dependency_pending；**`4` 结算不完整（matrix 守卫）**——94 个 sc_id 未逐一唯一结算
-（缺失/未收集/被 `--ignore`/`-m` deselect/重复异常），或存在普通 skipped
-（SKIPPED_OTHER>0）。守卫在 pytest 插件层（framework/conftest.py），经
-`PYTEST_ADDOPTS` 操纵收集范围**无法绕过**，未注入模式时默认按 matrix 处理（fail-safe）。
+dependency_pending；**`4` 结算不完整/入口被篡改/哨兵校验失败**——94 个 sc_id 未逐一
+唯一结算（缺失/未收集/被 `--ignore`/`-m` deselect/重复异常）、存在普通 skipped
+（SKIPPED_OTHER>0），或入口防线被触发。**防假 0 是双层结构**：
+① `run.sh`（唯一验收入口）检测到外部 `PYTEST_ADDOPTS` 注入（如
+`-p no:framework.conftest` 禁用结算插件）即拒绝执行并 exit 4；运行时显式清空该变量
+并注入本次生成的 `E_ACCEPTANCE_RUN_ID`；
+② 插件在 session 结束写结算哨兵 `reports/<RUN_ID>/settlement.json`（mode、run_id、
+settled_unique、四类计数、settlement_ok、completed），`run.sh` 在 pytest 退出后校验
+哨兵存在、RUN_ID/mode 匹配、matrix 结算 94/94 且计数与汇总行一致，缺失/不匹配一律
+无视 pytest 退出码强制 4——插件被禁用时必然无哨兵，0 不可能从本入口产生。
+插件层守卫本身也独立生效（直调 pytest 同样非 0），但**直接裸调 pytest 不是验收入口，
+其结果不被承认为验收证据**。未注入模式时默认按 matrix 处理（fail-safe）。
 终端摘要固定输出
 `PASSED=n DEPENDENCY_PENDING=m FAILED=k SKIPPED_OTHER=s MODE=... RUN_ID=...` 与
 `SETTLED=x/94 EVIDENCE_TAGS ...`。

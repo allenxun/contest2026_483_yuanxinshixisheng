@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import re
 import subprocess
 
 import pytest
@@ -159,44 +160,76 @@ def test_scenario_nodes_have_full_markers():
     assert seen == set(m), f"节点覆盖缺口：{sorted(set(m) - seen)}"
 
 
-# ---------- 发现1守卫：matrix 零场景/残缺收集绝不假 0（插件层，防 PYTEST_ADDOPTS 绕过） ----------
+# ---------- 发现A：matrix 假 0 双层守卫（插件结算守卫 + run.sh 入口拒绝/哨兵） ----------
 
 NESTED = {"E_SELFCHECK_NESTED": "1"}  # 嵌套运行中守卫用例直接返回，防递归
 
 
-def test_matrix_guard_zero_scenario_collection_still_fails():
-    """精确复现 oracle 命令：--ignore 掉 94 场景后 matrix 必须非 0（结算不完整=4）。"""
+def _direct_pytest(addopts: str) -> subprocess.CompletedProcess:
+    """绕过 run.sh 直调 pytest，验证插件层结算守卫本身不依赖入口。"""
+    return _run(["./.venv/bin/pytest", "tests/", "-q"],
+                {**NESTED, "E_ACCEPTANCE_MODE": "matrix", "PYTEST_ADDOPTS": addopts})
+
+
+def test_plugin_guard_zero_scenario_collection_fails():
+    """直接 pytest --ignore 掉 94 场景：插件守卫必须 4，绝不 0。"""
+    if os.environ.get("E_SELFCHECK_NESTED"):
+        return
+    r = _direct_pytest("-p no:cacheprovider --ignore=tests/scenarios")
+    out = r.stdout + r.stderr
+    assert r.returncode == 4, f"期望 4，实际 {r.returncode}：\n{out[-1500:]}"
+    assert "SETTLEMENT_INCOMPLETE" in out and "DEPENDENCY_PENDING=0" in out, out[-800:]
+
+
+def test_plugin_guard_deselect_scenarios_fails():
+    """-m 'not sc_id' 反选全部场景：deselect 计入守卫 → 4。"""
+    if os.environ.get("E_SELFCHECK_NESTED"):
+        return
+    r = _direct_pytest("-m 'not sc_id'")
+    out = r.stdout + r.stderr
+    assert r.returncode == 4, f"期望 4，实际 {r.returncode}：\n{out[-1500:]}"
+    assert "SETTLEMENT_INCOMPLETE" in out, out[-800:]
+
+
+def test_runsh_refuses_pytest_addopts_plugin_disable():
+    """oracle 精确绕过命令：run.sh 必须在进入 pytest 前拒绝并 exit 4。"""
+    if os.environ.get("E_SELFCHECK_NESTED"):
+        return
+    r = _run(["./run.sh", "matrix"],
+             {**NESTED, "PYTEST_ADDOPTS": "-p no:framework.conftest -o addopts= "
+              "--ignore=tests/test_framework_selfcheck.py "
+              "--ignore=tests/test_matrix_integrity.py"})
+    out = r.stdout + r.stderr
+    assert r.returncode == 4, f"期望 4，实际 {r.returncode}：\n{out[-800:]}"
+    assert "PYTEST_ADDOPTS" in out and "exit 4" in out, out[-800:]
+
+
+def test_runsh_refuses_pytest_addopts_ignore_variant():
+    """第一轮 oracle 复现命令同样在入口被拒绝 → 4。"""
     if os.environ.get("E_SELFCHECK_NESTED"):
         return
     r = _run(["./run.sh", "matrix"],
              {**NESTED, "PYTEST_ADDOPTS": "-p no:cacheprovider --ignore=tests/scenarios"})
-    out = r.stdout + r.stderr
-    assert r.returncode == 4, f"期望结算不完整退出码 4，实际 {r.returncode}：\n{out[-1500:]}"
-    assert "DEPENDENCY_PENDING=0" in out, out[-800:]
-    assert "SETTLEMENT_INCOMPLETE" in out, "守卫必须在汇总中显式报告缺失"
+    assert r.returncode == 4, (r.stdout + r.stderr)[-800:]
 
 
-def test_matrix_guard_deselect_scenarios_still_fails():
-    """-m 'not sc_id' 整体反选场景也必须非 0（deselected 计入守卫）。"""
-    if os.environ.get("E_SELFCHECK_NESTED"):
-        return
-    r = _run(["./run.sh", "matrix"],
-             {**NESTED, "PYTEST_ADDOPTS": "-m 'not sc_id'"})
-    out = r.stdout + r.stderr
-    assert r.returncode == 4, f"期望 4，实际 {r.returncode}：\n{out[-1500:]}"
-    assert "SETTLEMENT_INCOMPLETE" in out
-
-
-def test_full_matrix_settles_exactly_94():
-    """完整 matrix 运行必须恰好结算 94 且维持真实状态（当前=3/pending 94）。"""
+def test_full_matrix_settles_exactly_94_and_writes_sentinel():
+    """正常入口：rc=3、SETTLED=94/94，且哨兵文件存在并与汇总一致。"""
     if os.environ.get("E_SELFCHECK_NESTED"):
         return
     r = _run(["./run.sh", "matrix"], NESTED)
     out = r.stdout + r.stderr
-    assert "SETTLED=94/94" in out, out[-800:]
-    assert "SETTLEMENT_OK" in out, out[-800:]
+    assert "SETTLED=94/94" in out and "SETTLEMENT_OK" in out, out[-800:]
     assert "DEPENDENCY_PENDING=94" in out, out[-800:]
     assert r.returncode == 3, f"gate=closed 时完整矩阵应为 3，实际 {r.returncode}"
+    m = re.search(r"RUN_ID=(\S+)", out)
+    assert m, "汇总行缺 RUN_ID"
+    sent = ROOT / "reports" / m.group(1) / "settlement.json"
+    assert sent.exists(), f"哨兵缺失：{sent}"
+    d = json.loads(sent.read_text(encoding="utf-8"))
+    assert d["run_id"] == m.group(1) and d["mode"] == "matrix"
+    assert d["completed"] is True and d["settlement_ok"] is True
+    assert d["settled_unique"] == 94 and d["counts"]["pending"] == 94
 
 
 # ---------- 发现2：证据默认无条件脱敏凭据头 ----------
@@ -227,6 +260,20 @@ def test_evidence_redacts_credentials_by_default(tmp_path):
     again = client.safe_headers({"Authorization": "Bearer t2", "My-Extra": "v"},
                                 ())  # 故意不声明额外项
     assert again["Authorization"] == client.REDACTED
+
+
+def test_record_raw_cannot_bypass_redaction(tmp_path):
+    """发现B回归：record_raw 直传含凭据的 request_headers 也必须被共同边界脱敏。"""
+    from framework import conftest as e_plugin
+    rec = client.EvidenceRecorder(tmp_path, "E-rawcheck-00000000")
+    sm = e_plugin.ScenarioSettlement("SC-02-01", rec)
+    sm.record_raw(method="GET", path="/x", status=200, request_id="r",
+                  request_headers={"Authorization": "Bearer SUPER-SECRET",
+                                   "Cookie": "session=SUPER-SECRET"},
+                  request_json=None, response_excerpt="{}", started_at=0.0, elapsed_ms=0.0)
+    blob = next((tmp_path / "E-rawcheck-00000000").glob("*.json")).read_text(encoding="utf-8")
+    assert "SUPER-SECRET" not in blob, "record_raw 绕过了脱敏边界"
+    assert client.REDACTED in blob
 
 
 # ---------- 发现3：sc_id 节点 passed 必须绑定证据与替身声明 ----------

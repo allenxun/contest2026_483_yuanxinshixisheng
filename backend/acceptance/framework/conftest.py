@@ -10,13 +10,17 @@ PYTEST_ADDOPTS/--ignore 只影响收集，不影响本插件的结算守卫。
 - passed 绑定证据（所有模式生效）：任何带 sc_id 的测试在 call 阶段 passed 时，必须
   已通过 scenario_evidence 夹具记录 ≥1 条 HTTP 证据并封存替身声明，否则插件把该
   报告改判 failed（"pass without evidence"），防止裸通过。
-- 模式来自 E_ACCEPTANCE_MODE（run.sh 注入）：
+- 模式来自 E_ACCEPTANCE_RUN_ID/E_ACCEPTANCE_MODE（仅 run.sh 注入；run.sh 会拒绝外部
+  PYTEST_ADDOPTS 注入并在 pytest 退出后独立校验哨兵，见 run.sh）：
     selfcheck → 框架自检，退出码保持 pytest 原生 0/1；
     matrix（未注入时的默认，fail-safe）→ 强制结算守卫：
       matrix/scenarios.json 的全部 94 个 sc_id 必须各恰好结算一次（passed /
       dependency_pending / failed）；缺失、未收集、被 deselect、重复异常，或存在
       普通 skipped（SKIPPED_OTHER>0）→ 退出码 4（结算不完整，绝不 0）；
       结算完整后：有 failed → 1；仍有 dependency_pending → 3；全通过 → 0。
+- 结算哨兵：session 结束（任何模式）写 reports/<RUN_ID>/settlement.json（mode、run_id、
+  settled_unique、四类计数、settlement_ok、final_exit、completed）。run.sh 以该哨兵
+  独立复核；插件被禁用时哨兵必然缺失 → run.sh 强制 4，假 0 不可能经由本入口出现。
 - 汇总行固定输出 PASSED/DEPENDENCY_PENDING/FAILED/SKIPPED_OTHER 与
   SETTLED、EVIDENCE_TAGS 分类计数。
 """
@@ -108,11 +112,41 @@ def pytest_configure(config: pytest.Config) -> None:
         config.addinivalue_line("markers", f"{name}(value): {desc}")
     st = _State()
     st.load_required()
-    try:
-        st.run_id = isolation.new_run_id(os.environ.get(isolation.ENV_RUN_PREFIX, "E"))
-    except Exception:  # pragma: no cover - new_run_id 自带兜底前缀
-        st.run_id = "E-unassigned"
+    # run.sh 为唯一验收入口：RUN_ID 由入口注入并用于哨兵校验；裸调 pytest 时自生成。
+    injected = os.environ.get(isolation.ENV_RUN_ID, "")
+    if isolation.RUN_ID_RE.match(injected):
+        st.run_id = injected
+    else:
+        try:
+            st.run_id = isolation.new_run_id(os.environ.get(isolation.ENV_RUN_PREFIX, "E"))
+        except Exception:  # pragma: no cover - new_run_id 自带兜底前缀
+            st.run_id = "E-unassigned"
     config._e_acc = st
+
+
+def _write_settlement_sentinel(st: "_State", final_exit: int) -> pathlib.Path:
+    """结算哨兵：run.sh 据此独立验证插件确实运行并完整结算；哨兵缺失=不可信。"""
+    ok, why = st.settlement_ok()
+    data = {
+        "schema": "e-acceptance-settlement/1",
+        "mode": st.mode,
+        "run_id": st.run_id,
+        "completed": True,
+        "required": len(st.required) if st.mode == "matrix" else None,
+        "settled_unique": len(st.settled),
+        "settlement_ok": ok,
+        "settlement_reason": why or None,
+        "counts": dict(st.counts),
+        "evidence_tags": dict(st.evidence_tags),
+        "duplicates": sorted(st.duplicates),
+        "deselected_scenarios": len(st.deselected_scenarios),
+        "final_exit": int(final_exit),
+    }
+    d = ROOT / "reports" / st.run_id
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / "settlement.json"
+    p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return p
 
 
 def _state(config) -> _State:
@@ -200,17 +234,17 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     st = _state(session.config)
-    if st.mode != "matrix":
-        return  # selfcheck：保持 pytest 原生 0/1
-    c = st.counts
-    ok, _ = st.settlement_ok()
-    if c["failed"] > 0:
-        session.exitstatus = pytest.ExitCode.TESTS_FAILED   # 1
-    elif not ok:
-        session.exitstatus = EXIT_SETTLEMENT_INCOMPLETE     # 4：零/残缺场景运行绝不假 0
-    elif c["pending"] > 0:
-        session.exitstatus = 3                              # 依赖挂起
-    # 否则维持 0：94 全部真实通过且证据齐备
+    if st.mode == "matrix":
+        c = st.counts
+        ok, _ = st.settlement_ok()
+        if c["failed"] > 0:
+            session.exitstatus = pytest.ExitCode.TESTS_FAILED   # 1
+        elif not ok:
+            session.exitstatus = EXIT_SETTLEMENT_INCOMPLETE     # 4：零/残缺场景运行绝不假 0
+        elif c["pending"] > 0:
+            session.exitstatus = 3                              # 依赖挂起
+        # 否则维持 0：94 全部真实通过且证据齐备
+    _write_settlement_sentinel(st, int(session.exitstatus))
 
 
 # ---------------- scenario_evidence 夹具：passed 与证据/替身声明的绑定通道 ----------------
