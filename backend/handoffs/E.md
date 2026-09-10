@@ -8,7 +8,8 @@
 
 - `backend/acceptance/README.md` —— 目的、状态语义、运行命令、诚实声明
 - `backend/acceptance/run.sh` / `requirements.txt` / `.gitignore` / `pytest.ini` / `conftest.py`
-- `config/baseline.json`（当前 `gate=closed, sha=null`）、`config/acceptance.env.example`
+- `config/baseline.json`（已记录 A 候选/报告/隔离 dev/集成 SHA 与 e_acceptance 状态；
+  `gate` 保持 `closed`——业务场景由 B/C/D 阻塞）、`config/acceptance.env.example`
 - `matrix/scenarios.json`（94）、`matrix/apis.json`（27）、`matrix/generate_matrix.py`（文档→JSON 再生成）
 - `framework/`：`conftest.py`（插件：markers 注册、dependency_pending 统计、
   matrix 退出码 3/4 双层结算守卫【插件结算 + run.sh 拒绝外部 `PYTEST_ADDOPTS` 并校验
@@ -19,6 +20,12 @@
 - `tests/test_matrix_integrity.py`、`tests/test_framework_selfcheck.py`、
   `tests/scenarios/test_sc00.py..test_sc07.py,test_scc.py,test_scr.py`（94 节点，名称含场景 ID）
 - `plans/A-baseline-plan.md`（AB-01..AB-11）、`plans/isolation-and-doubles.md`
+- `driver/`（A 基线验收参数化驱动：`a_baseline.py`/`infra.py`/`seed_ab04.sql`；
+  E 专用 mvp-e-pg@55433、Java@18081、worker@18082；flock 常驻锁、run 标签归属清理、
+  模式化输出目录【诊断→reports/，正式→evidence/】、52 项完整结算哨兵）
+- `evidence/A-baseline-2026-09-10/`（summary.md 逐项证据、results.json 哨兵、
+  logs/ 摘录与 A 缺陷可执行复现）
+- `backend/handoffs/E-A-acceptance.md`（A 基线独立验收报告：结论、A 缺陷、处置建议）
 
 ## 矩阵统计（逐行提取，与文档声明核对）
 
@@ -32,7 +39,8 @@
   M1/M2/M5→B、M3→D、M4 执行/记账(A03..A09)→C、M4 方案生成(A01/A02)→D，
   跨包场景多归属（owner=关联 API 归属并集）。修正后分布：B×28、B,C×2、B,C,D×7、
   B,D×3、C×26、C,D×7、D×21（总数 94，非 owner 字段逐字节未变）。
-  全部场景 blocked_by 含 `A-baseline`。
+  全部场景 blocked_by=归属 B/C/D 业务包（A 基线已于 2026-09-10 交付；pending_reason
+  同步为"业务实现未集成、端点 501 stub"）。
 
 ## 自检命令与退出码（2026-09-10 实际执行）
 
@@ -92,23 +100,52 @@ gate 打开后未编写步骤的节点会直接 fail（防"开闸空跑冒充通
 | `run.sh matrix` | **3** | collected 127；`PASSED=33 DEPENDENCY_PENDING=94 FAILED=0 SKIPPED_OTHER=0`；`SETTLED=94/94 SETTLEMENT_OK`；哨兵 `reports/<RUN_ID>/settlement.json` 存在且 settled_unique=94、counts 与汇总一致 |
 | `md5sum matrix/scenarios.json` | 0 | `8d2c4e41…` 仍与最初提取一致 |
 
-## 待 A 基线后的执行流程
+## A 基线验收（2026-09-10 已执行，结论：未通过——待 A 修复）
 
-1. 协调者同步 A 已提交基线进本工作树 → 更新 `config/baseline.json`
-   （`a_baseline.sha`/`synced_at`、`"gate":"open"`）。
-2. `./run.sh selfcheck` 确认框架完好。
-3. 按 `plans/A-baseline-plan.md` 执行 AB-01..AB-11 基础验收，产出含基线 SHA、命令、
-   退出码、请求/响应证据（`reports/evidence/`）的报告交总协调；A 未通过则不启动 B/C/D。
-4. gate=open 后按矩阵补写并运行场景步骤（P0 优先），证据严格区分
-   `doubles_pass` / `real_pass`（见 `plans/isolation-and-doubles.md`）。
+A 基线已由总协调同步（集成 df0fa32、A 代码 26d97fb、A oracle round-3
+PASS-with-notes）。E 以参数化驱动 `run.sh a-baseline` 执行独立验收（E 专用资源：
+mvp-e-pg@55433/Java@18081/worker@18082；未修改 A 源码；未执行 A 固定端口脚本；
+实施跑与协调者独立复跑两跑一致）：
+
+| 命令 | 退出码 | 结果 |
+| --- | --- | --- |
+| `backend/acceptance/run.sh selfcheck` | **0** | 45 passed |
+| `backend/acceptance/run.sh matrix` | **3** | PASSED=45 DEPENDENCY_PENDING=94 FAILED=0；SETTLED=94/94 |
+| `backend/acceptance/run.sh a-baseline` | **1** | formal settled=52/52：**50 PASS / 1 FAIL / 0 BLOCKED / 1 INFO** |
+
+- **FAIL 1 项 = A 缺陷**：`system.echo` GET 原样公开 `async_jobs.last_error`
+  （未脱敏、未限大小），违反 1fb07cd 五诊断列约定；定位与最小可执行复现见
+  `backend/handoffs/E-A-acceptance.md`。处置权在总协调（交 A 修复），E 未修改 A。
+- INFO 1 项：N2-codereview 23 处消费点中 9 处待人工复核（诚实降级，不计通过）。
+- AB-01..AB-11 全部通过（AB-02d/AB-06d 按总协调纠偏转型为真实验证：E 隔离定向
+  worker pytest 26 passed；真实 mvp_worker 运行时边界验证重试上限与陈旧代次
+  同事务回滚，标注非 HTTP 链路）。全部结果为测试替身形态 doubles_pass。
+- E 侧 oracle 门禁第五至八轮：f389078/440516b/707670a BLOCKED → 逐项修复 →
+  **85c2f33 PASS**（E 侧 blockingFindings 无；详见 `backend/handoffs/E-oracle.md`）。
+
+## 待 A 修复后的执行流程（定向重验）
+
+1. 总协调安排 A 修复缺陷并提供新 A SHA → 同步本工作树、更新 `config/baseline.json`。
+2. E 绑定新 A SHA 定向重验：两类诊断样本、正常投影、认证与受影响契约；其余未变
+   证据注明来源 SHA 与适用范围后复用；不得以 PARTIAL 冒充全量验收。
+3. 同轮完成第八轮遗留：回归称谓修正、tmp_path 集成测试（settlement()→
+   write_outputs()→summary 落盘断言）、INFO 9 处人工复核（或总协调明确接受）。
+4. A 验收通过且 B/C/D 集成后开闸（gate=open），按矩阵补写并运行场景步骤
+   （P0 优先），证据严格区分 `doubles_pass` / `real_pass`
+   （见 `plans/isolation-and-doubles.md`）。
 
 ## 状态
 
-- blocker：**A 基线未提供**（无已提交的可构建 Java/Python、迁移、认证、幂等、
-  适配端口），94 场景全部 dependency_pending，原因逐条见 `matrix/scenarios.json`。
-- nextAction：**waiting_dependency**（等待协调者提供 A 基线 SHA 并更新门控）。
-- 未修改 `backend/doc/**`、生产实现、迁移、Schema、A 构建配置；未访问兄弟工作树。
-- 提交状态：本包已本地提交（实施提交 `cea01f7`；本交接说明的事实性修正另以独立
-  提交记录），由总协调负责集成，未推送远端。
-- 监督已独立复核上表自检结果（selfcheck exit=0、matrix exit=3）；该结果为框架
-  自检与依赖挂起状态，不构成业务验收通过。
+- blocker：**A 缺陷待修复**（system.echo GET 原样公开诊断列 last_error → A 基础
+  验收未通过 1 FAIL），处置权在总协调；94 业务场景 dependency_pending
+  （blocked_by=归属 B/C/D 包，A 基线已到达）。
+- nextAction：**waiting_dependency**（等总协调交 A 修复 → E 绑定新 A SHA 定向
+  重验并同轮完成第八轮遗留项）。
+- 未修改 `backend/doc/**`、A 源码/契约/迁移/构建配置；未访问兄弟工作树；E 专用
+  资源（mvp-e-pg@55433/18081/18082）已清理，未触碰 A 容器/端口。
+- 提交状态：本包已本地提交（实施 cea01f7 → 修复链 6b0a234/cc33abe/61f6329/
+  f389078/440516b/707670a/85c2f33 + 报告/证据刷新提交），由总协调负责集成，
+  未推送远端。
+- E 代码经 oracle 第八轮复审 PASS（reviewedCommit `85c2f33`，E 侧
+  blockingFindings 无）；全部结果为测试替身形态（doubles_pass），不构成业务
+  验收通过或真实供应商接入声明。
