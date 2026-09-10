@@ -1,9 +1,9 @@
 # A-oracle.md — A 包 oracle 独立审查报告
 
-- **reviewedCommit（最终代码 SHA）**：`26d97fbe908cb93c1fe366e28ba54a91c21b497c`（round-3 最终结论 **PASS-with-notes**、blockingFindings 空；branch `feature/mvp-foundation`，与最终代码一致；本文件仅随 report-only commit 提交，不改代码）
-- 审查者：本机 OpenCode omo-slim 配置的 `oracle` 子代理（会话 `ses_f7523570cffeGdu61d3BzOYo94`，只读，**三轮**：round-1 @f7e75c1 = FAIL(blocked)，round-2 @bf393aa = FAIL，round-3 @26d97fb = PASS-with-notes）
+- **reviewedCommit（最终代码 SHA）**：`bfd2dc3d84219b029255f4918027565a20fe5019`（round-4 有界修复结论见下；round-3 对 26d97fb 全量结论 **PASS-with-notes**、blockingFindings 空，对 bfd2dc3 中未变更部分继续有效；branch `feature/mvp-foundation`；本文件仅随 report-only commit 提交，不改代码）
+- 审查者：本机 OpenCode omo-slim 配置的 `oracle` 子代理（会话 `ses_f7523570cffeGdu61d3BzOYo94`，只读，**四轮**：round-1 @f7e75c1 = FAIL(blocked)，round-2 @bf393aa = FAIL，round-3 @26d97fb = PASS-with-notes，round-4 @bfd2dc3 = **PASS-with-notes（blockingFindings 空，有界复审）**）
 - 审查依据：backend/doc/tasks/A-foundation.md、COMMON.md、技术/数据/详细设计、API 设计、测试需求决策记录、交付代码、真实测试证据（orchestrator 在对应 SHA 实际执行；oracle 只读评估）
-- 代码提交链：`2b786f7`（实现 159 文件）→ `f7e75c1`（清理误提交 LSP 工件）→ `bf393aa`（round-1 修复 38 文件 +965/−123）→ `26d97fb`（round-2 修复 29 文件 +828/−176，**最终代码 SHA**）；报告提交：`fc4b311`（首版）+ 本次报告修订（report-only，SHA 见 git log，均不含代码改动）
+- 代码提交链：`2b786f7`（实现 159 文件）→ `f7e75c1`（清理误提交 LSP 工件）→ `bf393aa`（round-1 修复 38 文件 +965/−123）→ `26d97fb`（round-2 修复 29 文件 +828/−176）→ `bfd2dc3`（round-4 E 驱动有界修复 4 文件 +256/−12，**最终代码 SHA**）；报告提交：`fc4b311`（首版）→ `617354d`（报告修订）→ 本次（report-only，SHA 见 git log，均不含代码改动）
 
 ---
 
@@ -181,9 +181,65 @@ db_schema=PASS-with-notes（数值版本边界+待决诊断豁免）· contracts
 
 ---
 
+## 修复记录（round-4，commit bfd2dc3，E 验收驱动有界修复）
+
+**缺陷（E 独立验收 @26d97fb 发现，证据 n2-http-repro.txt 只读核实）**：`GET /api/v1/system/echo-jobs/{jobId}` 将 `async_jobs.last_error` 原样投影至 `data.lastError`——种入 `{"code":"E_DIAG_MARKER","message":"Bearer E2E_DIAG_SECRET_MARKER_12345"}` → GET 200 marker_echoed=True；4058 字符长诊断原样外泄（raw_lastError_len=4058）。两条泄露路径：`parseError()` 成功时返回整棵 readTree、解析失败时返回原始字符串。
+
+**总协调确认策略（修复边界）**：对外仅提供契约允许、安全稳定、有界的错误投影；内部诊断不原样返回；不得以截断原文充当脱敏。诊断 JSON 列仅内部（脱敏+限大小）；业务版本列仍保持服务/schema 整数校验（DD 本就要求不泄露供应商诊断、对外稳定业务码）。
+
+| 变更 | 内容 |
+|---|---|
+| SystemEchoController.java | 新增 `record EchoJobLastError(String reason, boolean retryable)`；`EchoJobViewData.lastError` Object→该 record；**删除 parseError()**（grep 确认无 parseError/return raw）；`projectError()`+`mapReason()` 白名单映射：UNSUPPORTED_CONTRACT→unsupported_contract、RETRY_LIMIT_EXCEEDED→retry_limit_exceeded、handler_failed 为契约预留（当前 system.echo 无 JobFailed code，经 grep worker handlers 证实）；其余一切（未知/缺失/非字符串 code、非对象节点、非法 JSON、空）→ internal；retryable 仅当 JSON 布尔取值否则 false；**不投影** message/原始 code/retry_after_seconds/stack；有界性由构造保证（封闭枚举+布尔），非截断 |
+| EchoLastErrorProjectionIT.java（新，5 测试） | ① E marker 泄露闭合（body 不含 E2E_DIAG_SECRET_MARKER/E_DIAG_MARKER/Bearer；lastError 键恰为 {reason,retryable}；reason=internal）② 4058 字符 message+stack/sql/retry_after_seconds 额外字段均不出现、retryable=true 保留 ③ 已知码映射 unsupported_contract 且 message 不外泄 ④ 非法/非对象 → internal（含直接调用 parse-failure 分支，绝不回显原文）⑤ succeeded job 不受影响（lastError null、attemptCount/leaseRevision 仍 bigint 字符串） |
+| openapi.yaml | 新增 `EchoJobLastError` 组件（object、additionalProperties:false、required [reason,retryable]、reason 封闭枚举 [unsupported_contract, retry_limit_exceeded, handler_failed, internal]、描述注明有界投影非截断）；`SystemEchoJobView.lastError` → allOf+nullable（文件既有 3.0.3 风格）；其余端点/schema 未动 |
+| decisions-notes.md §10 | 诊断列豁免更新为**已确认 by 总协调 2026-09-10**（仅内部、不原样返回、脱敏+限大小；业务版本列仍服务/schema 整数校验）+ 记录 echo GET 有界投影 |
+
+**修复验证（实际执行 @bfd2dc3，orchestrator 复核提交范围=4 文件仅 web-java+contracts）**：`mvn test` **129/129**（124+5；EchoJobIT/EchoDedupIT 保持绿）；openapi_spec_validator OK；validate_samples 38 checks PASS；`run-acceptance.sh` **26/26 RC=0**（f6/f7/f8 echo E2E 绿）；**活体复现修复**（app 18080 dev + mvp_a_dev）：种入 E marker → GET 200 `data.lastError={"reason":"internal","retryable":false}`，marker_echoed=False、bearer_echoed=False、raw_code_echoed=False、raw_len 4058→319；测试行已清理、app 已停。未重建镜像（Dockerfile/运行依赖未变，不需要）。
+
+---
+
+## Round 4 @ bfd2dc3d84219b029255f4918027565a20fe5019 — 有界复审记录：**PASS-with-notes**（blockingFindings 空）
+
+> 只读复审，未重跑测试；SHA 绑定、执行结果与提交范围为 orchestrator 提供的证据。范围仅限本有界变更；round-3 对其余部分的结论继续有效。
+
+### 泄露闭合核验
+
+| 泄露路径 | 结论 | 证据 |
+|---|---|---|
+| 原始 JSON 树回显 | **CLOSED** | 控制器 :174-184 仅将 `last_error::text` 输入 projectError；:197-214 构造新的类型化投影而非返回解析树 |
+| 原始字符串兜底 | **CLOSED** | 解析失败与非对象输入返回固定 `"internal"`/`false`（:202-208）；无 parseError/原始字符串返回残留 |
+| 不受控键集 | **CLOSED** | EchoJobLastError 恰含 reason+原始布尔 retryable（:104-105）；视图使用该类型（:92-94）；未发现 mixin/any-getter/多态序列化配置 |
+| 输出长度依赖诊断内容 | **CLOSED** | mapReason 仅输出三个固定字面量（:217-225）；retryable 严格布尔（:211-213）；紧凑 lastError JSON 至多 57 ASCII 字节，与诊断长度无关——非截断 |
+
+### 对抗性检查
+
+封闭白名单（仅 UNSUPPORTED_CONTRACT/RETRY_LIMIT_EXCEEDED 特映射，其余→internal；asText 标量强转无法注入任意输出）；retryable 仅 JSON 布尔可为 true（字符串/对象/数组/数值/缺失均不可逃逸）；端点响应对象从不携带原始串/树，HTTP 键集断言实际演练 Jackson 序列化；404 缺行仍 RESOURCE_NOT_VISIBLE（:186-188），bigint 字符串与 RFC3339 转换保持（:180-183）。小差异：SQL NULL 与空白输入均返回 null（:198-199），而非修复摘要所述空白→internal——JSONB 存储不可能产生空白文本，非泄露。实现输出为契约枚举子集；handler_failed 预留当前不可达（已披露，非运行时违约）。decisions-notes.md:152-161 准确记录总协调确认的内部诊断/有界投影边界，未豁免业务版本校验。
+
+### 测试真实性
+
+5 用例均为真实回归：①E marker 精确复现（种入 code/Bearer 形态→HTTP GET→全响应排除+精确键集，EchoLastErrorProjectionIT.java:61-79）；②4058 字符+stack/sql/retry-delay 排除+固定 reason/retryable/键集（:84-107；无显式字节长度断言，但精确输出形状/值断言确立有界性）；③已知映射 unsupported_contract+message 排除（:112-124；retry_limit_exceeded 经代码审读，本用例未覆盖）；④JSONB 数组走 HTTP+非法 JSON 直接走 helper（:129-150，区分合法——PG 不能存畸形 JSONB）；⑤queued/succeeded 投影+null 错误（:155-175；时间戳断言 assertNotNull 偏弱，不证 RFC3339 文本有效——不影响泄露测试）。
+
+### 回归扫描
+
+- **IMPORTANT — nullable schema 语义存在歧义/不可移植**：openapi.yaml:2772-2774 沿用文件既有 `allOf:[$ref]+nullable:true` 风格，但 OAS 3.0.3 规定 nullable 仅在同一 Schema Object 有显式 type 时生效（被引组件亦要求 object）→ 严格消费方可能拒绝实现合法的 `lastError:null`。应改用真正可空的 schema 表示并以严格 OAS 响应校验器验证 null 响应（结构性 spec 校验不能证明此点）。【orchestrator 处置：非阻塞（blockingFindings 空）；本轮授权为"阻塞则修复复审"且有界修复后不得再动代码以维持 reviewedCommit==最终代码——记为下次获授权 A 契约修订的候选项，运行时行为（封闭枚举+null）不受影响】
+- **SUGGESTION — 边缘断言强化**：补 retry_limit_exceeded 映射、非布尔 retryable、解析时间戳格式断言（既有测试已确立主要泄露闭合）。【同上记为后续候选】
+- **NOTE — 被检调用方保持有界**：EchoJobViewData 无其他生产消费方；create/replay 路径不暴露诊断。提交级 worker/deploy/acceptance 脚本无改动在 oracle 侧 UNVERIFIED（未查 Git 历史）——orchestrator 已独立核验：提交范围恰 4 文件（web-java 2 + contracts 2），git show --stat 记录在案。
+
+### 证据充分性
+
+活体结果（固定 {reason,retryable}，marker/Bearer/raw-code 不存在）直接闭合 E 的 n2 复现；4058 字符回归测试+封闭投影构造证明非截断脱敏。提供的 **Java 129**、契约校验、**acceptance 26/26**（orchestrator 另于提交后独立复跑 26/26 RC=0，树前后仅 untracked handoffs）保持既有行为；nullable 响应告戒不由结构性校验器解决。**已部署镜像须纳入本提交后方可视为已修复**（bfd2dc3 后未重建镜像；dev/E 验证路径为源码运行，不受影响——部署前重建 web 镜像记为交接注意项）。
+
+### blockingFindings（round-4）
+
+**[]** — 本有界变更中未发现残留原始诊断泄露。
+
+**Overall（round-4）：PASS-with-notes** — 原始树与原始字符串披露路径已移除，替换为封闭、有界投影；新 HTTP 回归测试忠实复现 E 缺陷并验证诊断与额外字段无法逃逸。接受本有界泄露修复，保留 nullable-schema 互操作 note；round-3 结论其余部分不变。
+
+---
+
 ## blockingFindings（最终）
 
-**无**（round-3 @26d97fb：blockingFindings=[]，Overall=PASS-with-notes；round-1 4 blockers 与 round-2 2 blockers 均已修复并经复审确认）。
+**无**。round-1 的 4 个 blockers 与 round-2 的 2 个 blockers 均已修复并经复审确认；round-4（E 驱动有界缺陷）blockingFindings=[]，泄露四路径全部 CLOSED。round-4 遗留 IMPORTANT note（OAS 3.0.3 `allOf+nullable` 可移植性歧义）与 SUGGESTION（边缘断言强化）为非阻塞候选项，运行时行为不受影响，留待下次获授权的 A 契约修订（详见 round-4 回归扫描节 orchestrator 处置）。
 
 ## 复审记录
 
@@ -191,8 +247,9 @@ db_schema=PASS-with-notes（数值版本边界+待决诊断豁免）· contracts
 - 修复 1：commit bf393aa（全部 round-1 findings），双端套件+acceptance 全绿后提交。
 - Round 2：FAIL @bf393aa — R2-1 媒体授权、R2-2 刷新代次绕过（blocking）+ R2-3/4/5（important）+ bean 扩展/向量区分度/镜像证据缺口。
 - 修复 2：commit 26d97fb（全部 round-2 findings + 容器化证据），Java 124/Python 47/acceptance 26/26 全绿后提交。
-- Round 3：**PASS-with-notes @26d97fb**（blockingFindings 空）— reviewedCommit 与最终代码一致；其后仅本报告提交，无代码改动。
+- Round 3：**PASS-with-notes @26d97fb**（blockingFindings 空）。
+- Round 4（E 验收驱动有界缺陷，非全量复审）：E 于 26d97fb 发现 echo GET last_error 原样投影泄露（52 项 51 PASS/1 FAIL）→ 修复 commit `bfd2dc3`（有界投影 {reason,retryable}，原始诊断不外泄）→ 复审 @bfd2dc3（见上节）。
 
 ## reviewedCommit 一致性声明
 
-最终代码 SHA = `26d97fbe908cb93c1fe366e28ba54a91c21b497c`（round-3 审查绑定）。本文件与 A.md 所属 report-only commit 不修改任何代码，reviewedCommit 与最终代码保持一致。
+最终代码 SHA = `bfd2dc3d84219b029255f4918027565a20fe5019`（round-4 有界复审绑定；round-3 对 26d97fb 的全量 PASS-with-notes 结论对本 SHA 未变更部分继续有效）。本文件与 A.md 所属 report-only commit 不修改任何代码，reviewedCommit 与最终代码保持一致。
