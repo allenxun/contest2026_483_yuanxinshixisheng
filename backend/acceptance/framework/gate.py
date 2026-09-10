@@ -2,7 +2,7 @@
 """基线门控与场景测试工厂。
 
 语义（诚实报告的核心）：
-- gate=closed（A 基线未交付）：所有场景测试以 skip 抛出，但 reason 固定前缀
+- gate=closed（B/C/D 业务实现未集成；A 基线已交付）：所有场景测试以 skip 抛出，但 reason 固定前缀
   ``dependency_pending: ``，由 framework/conftest.py 插件统计为 dependency_pending，
   matrix 模式最终退出码为 3 —— 绝不冒充 0/通过。
 - gate=open（A 基线交付并由协调者更新 config/baseline.json 后）：场景步骤若尚未

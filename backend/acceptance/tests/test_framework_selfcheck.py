@@ -349,3 +349,44 @@ def test_pass_with_sealed_evidence_and_doubles_is_allowed():
     rc, out = _spawn_mini_suite(body, "sealed")
     assert rc == 0, f"已提交证据并封存替身声明的通过应正常判定：\n{out[-1200:]}"
     assert "1 passed" in out
+
+
+# ---------- 第五轮：a-baseline 结算门禁 + 诊断模式不落 evidence ----------
+
+def test_ab_final_exit_settlement_gate():
+    from driver import a_baseline as ab
+    full = {"fail": 0, "missing": [], "extra": [], "duplicates": []}
+    assert ab.final_exit(True, full) == 0                     # 全结算无失败
+    assert ab.final_exit(True, {**full, "missing": ["AB-03"]}) == 4   # 结算缺项 → 4
+    assert ab.final_exit(True, {**full, "extra": ["AB-XX"]}) == 4
+    assert ab.final_exit(True, {**full, "duplicates": ["AB-03"]}) == 4
+    assert ab.final_exit(True, {**full, "fail": 1}) == 1       # 有 FAIL（含 CLEANUP FAIL）→ 1
+    assert ab.final_exit(True, {**full, "fail": 1, "missing": ["AB-03"]}) == 1  # FAIL 优先
+    assert ab.final_exit(False, {**full, "missing": ["AB-03"]}) == 0  # 诊断 PARTIAL 不判 4
+
+
+def test_ab_expected_checks_cover_all_items():
+    from driver import a_baseline as ab
+    assert len(ab.EXPECTED_CHECKS) >= 40
+    for cid in ("AB-01a", "AB-02d", "AB-05f", "AB-06d", "AB-10c", "N2-http",
+                "N3-media", "CLEANUP", "CLEANUP-ports"):
+        assert cid in ab.EXPECTED_CHECKS, cid
+
+
+def test_ab_diagnostic_mode_writes_reports_only(tmp_path, monkeypatch):
+    from driver import a_baseline as ab
+
+    class FakeRows:
+        rows: list = []
+
+        @staticmethod
+        def count(_status: str) -> int:
+            return 0
+
+    monkeypatch.setattr(ab, "REPORTS", tmp_path / "reports")
+    monkeypatch.setattr(ab, "EVID", tmp_path / "evidence")
+    monkeypatch.setattr(ab, "R", FakeRows())
+    ab.write_outputs(False, {"expected": 1, "settled": 0, "missing": ["AB-01a"], "extra": [],
+                             "duplicates": [], "pass": 0, "fail": 0, "blocked": 0}, 0)
+    assert (tmp_path / "reports" / "results.json").exists()
+    assert not (tmp_path / "evidence").exists(), "诊断模式绝不写/覆盖 evidence 正式路径"

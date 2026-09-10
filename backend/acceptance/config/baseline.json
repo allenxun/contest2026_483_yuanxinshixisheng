@@ -11,8 +11,8 @@
   "gate": "closed",
   "e_acceptance": {
     "stage": "A-baseline",
-    "status": "complete",
-    "detail": "E 独立基础验收已执行：AB-01..AB-11 + N1..N3 = 48 PASS / 0 FAIL / 2 BLOCKED（AB-02d 按指示不重跑 A 全量单测、AB-06d 黑盒无可重试失败入口）。证据 backend/acceptance/evidence/A-baseline-2026-09-10/summary.md；均为替身形态 doubles_pass。gate 保持 closed：B/C/D 业务实现未集成，94 业务场景仍 dependency_pending。",
-    "updated_at": "2026-09-10T12:52:00Z"
+    "status": "complete_with_defect",
+    "detail": "E 独立基础验收正式重跑：52/52 唯一结算 = 51 PASS / 1 FAIL(A 缺陷 N2-http) / 0 BLOCKED。A 缺陷：SystemEchoController GET 原样投影 data.lastError（含敏感标记串与 4058 字符超长内容，未脱敏/未限大小/原样返回），违反 1fb07cd 五诊断列约定；最小复现见 evidence/A-baseline-2026-09-10/logs/n2-http-repro.txt。其余 AB-01..11（含 AB-02d E 定向 worker pytest 26 passed、AB-06d 运行时边界集成）与 N1/N2-db/N2-codereview/N3 全通过；AB-10a-c 黑盒启动拒绝逐变体原因行通过。gate 保持 closed：B/C/D 业务实现未集成，94 场景 dependency_pending。证据 summary.md / results.json；doubles_pass 语义。",
+    "updated_at": "2026-09-10T13:05:00Z"
   }
 }

@@ -122,13 +122,58 @@ def port_free(port: int) -> bool:
         return s.connect_ex(("127.0.0.1", port)) != 0
 
 
+def check_ports() -> dict[str, bool]:
+    """启动前检查全部三端口（E 专用）。"""
+    return {str(p): port_free(p) for p in (PG_HOST_PORT, APP_PORT, WORKER_HEALTH_PORT)}
+
+
+LOCK_FILE = ROOT / "reports" / ".a-baseline.lock"
+
+
+def acquire_single_instance_lock() -> tuple[bool, str]:
+    """E 入口单实例锁：lockfile + PID 活性。返回 (ok, reason)。"""
+    LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if LOCK_FILE.exists():
+        parts = LOCK_FILE.read_text(encoding="utf-8").split()
+        pid = int(parts[0]) if parts and parts[0].isdigit() else None
+        if pid and pathlib.Path(f"/proc/{pid}").exists():
+            return False, f"另一 E a-baseline 运行中（pid={pid}，lock={LOCK_FILE}）"
+        LOCK_FILE.unlink(missing_ok=True)  # 陈旧锁：持有进程已死
+    LOCK_FILE.write_text(f"{os.getpid()} {RUN_ID}\n", encoding="utf-8")
+    return True, ""
+
+
+def release_single_instance_lock() -> None:
+    LOCK_FILE.unlink(missing_ok=True)
+
+
+def container_owned_by_run() -> bool:
+    """容器是否带本次 run 标签（清理所有权保护）。"""
+    cp = subprocess.run(["docker", "inspect", "--format",
+                         '{{index .Config.Labels "mvp.e.run"}}', PG_CONTAINER],
+                        capture_output=True, text=True)
+    return cp.returncode == 0 and cp.stdout.strip() == RUN_ID
+
+
 def remove_container() -> None:
-    subprocess.run(["docker", "rm", "-f", "-v", PG_CONTAINER], capture_output=True, text=True)
+    """只清理本 run 创建的容器（label 归属校验；不属于本 run 则拒绝删除）。"""
+    if container_owned_by_run():
+        subprocess.run(["docker", "rm", "-f", "-v", PG_CONTAINER], capture_output=True, text=True)
+    elif container_exists():
+        raise RuntimeError(f"容器 {PG_CONTAINER} 不属于本 run({RUN_ID})，拒绝清理")
+
+
+def container_exists() -> bool:
+    cp = subprocess.run(["docker", "inspect", "--format", "{{.Name}}", PG_CONTAINER],
+                        capture_output=True, text=True)
+    return cp.returncode == 0
 
 
 def start_pg() -> subprocess.CompletedProcess:
-    remove_container()
+    if container_exists():
+        raise RuntimeError(f"容器 {PG_CONTAINER} 已存在且非本 run 所有；拒绝启动/覆盖")
     return run(["docker", "run", "-d", "--name", PG_CONTAINER,
+                "--label", f"mvp.e.run={RUN_ID}",
                 "-e", f"POSTGRES_PASSWORD={PG_PASSWORD}", "-e", f"POSTGRES_DB={PG_DB}",
                 "-p", f"127.0.0.1:{PG_HOST_PORT}:5432", PG_IMAGE], log_name="pg-run.log")
 
@@ -168,6 +213,22 @@ def java_jar() -> pathlib.Path:
     return jars[0]
 
 
+def wait_java_ready(timeout_s: int = 150) -> bool:
+    """健康判定绑定本 run 的 Java 子进程：进程死亡立即判定失败（不误报 UP）。"""
+    end = time.time() + timeout_s
+    while time.time() < end:
+        if JAVA_PROC is None or JAVA_PROC.poll() is not None:
+            return False
+        try:
+            r = requests.get(f"{APP_BASE}/actuator/health", timeout=3, proxies=None)
+            if r.status_code == 200 and '"status":"UP"' in r.text:
+                return True
+        except Exception:
+            pass
+        time.sleep(1)
+    return False
+
+
 def start_java(extra_env=None, log_name="java-app-1.log", wait=True):
     global JAVA_PROC
     (REPORTS / "storage").mkdir(parents=True, exist_ok=True)
@@ -176,7 +237,7 @@ def start_java(extra_env=None, log_name="java-app-1.log", wait=True):
     JAVA_PROC = subprocess.Popen(["java", "-jar", str(java_jar())], cwd=str(JAVA_DIR), env=env,
                                  stdout=logf, stderr=subprocess.STDOUT)
     if wait:
-        return wait_http(f"{APP_BASE}/actuator/health", timeout_s=150)
+        return wait_java_ready()
     return True
 
 
