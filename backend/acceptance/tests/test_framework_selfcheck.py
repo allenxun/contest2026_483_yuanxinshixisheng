@@ -276,6 +276,28 @@ def test_record_raw_cannot_bypass_redaction(tmp_path):
     assert client.REDACTED in blob
 
 
+def test_record_run_id_is_real_run_id_not_scenario_dir(tmp_path):
+    """MINOR 回归：证据 JSON 的 run_id 必须是真实 RUN_ID，而不是场景 ID 目录名。"""
+    run_id, sc_id = "E-20260910T120000Z-abcdef01", "SC-02-01"
+    rec = client.EvidenceRecorder(tmp_path, run_id, namespace=sc_id)
+    assert rec.run_id == run_id and rec.dir == tmp_path / run_id / sc_id
+
+    from framework import conftest as e_plugin
+    sm = e_plugin.ScenarioSettlement(sc_id, rec)
+    sm.record_raw(method="GET", path="/raw", status=200, request_id="r1",
+                  request_headers={}, request_json=None, response_excerpt="{}",
+                  started_at=0.0, elapsed_ms=0.0)
+    # record() 路径（BlackBoxClient 风格）同样写入真实 RUN_ID
+    rec.record({"method": "GET", "path": "/direct", "status": 200, "request_id": "r2",
+                "request_headers": {}, "request_json": None, "response_excerpt": "{}",
+                "started_at": 0.0, "elapsed_ms": 0.0, "run_id": run_id})
+
+    files = sorted((tmp_path / run_id / sc_id).glob("*.json"))
+    assert len(files) == 2
+    for f in files:
+        assert json.loads(f.read_text(encoding="utf-8"))["run_id"] == run_id, f.name
+
+
 # ---------- 发现3：sc_id 节点 passed 必须绑定证据与替身声明 ----------
 
 def _spawn_mini_suite(body: str, name: str) -> tuple[int, str]:

@@ -272,7 +272,7 @@ class ScenarioSettlement:
         self._sealed = False
 
     def record_raw(self, **entry) -> None:
-        entry.setdefault("run_id", self.recorder.dir.name)
+        entry.setdefault("run_id", self.recorder.run_id)  # 真实 RUN_ID，非场景目录名
         self.recorder.record(entry)
 
     def seal(self) -> None:
@@ -294,7 +294,7 @@ def scenario_evidence(request):
         return
     st = _state(request.config)
     ev_dir = os.environ.get(isolation.ENV_EVIDENCE_DIR) or str(ROOT / "reports" / "evidence")
-    recorder = EvidenceRecorder(pathlib.Path(ev_dir), f"{st.run_id}/{sid}")
+    recorder = EvidenceRecorder(pathlib.Path(ev_dir), st.run_id, namespace=sid)
     sm = ScenarioSettlement(sid, recorder)
     st.settlements[sid] = sm
     yield sm

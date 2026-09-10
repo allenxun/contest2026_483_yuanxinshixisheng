@@ -41,8 +41,14 @@ def safe_headers(headers: dict[str, str], extra_redact: tuple[str, ...] = ()) ->
 class EvidenceRecorder:
     """把每次请求/响应写成 JSON 证据文件。reports/ 已在 .gitignore。"""
 
-    def __init__(self, evidence_dir: pathlib.Path, run_id: str) -> None:
+    def __init__(self, evidence_dir: pathlib.Path, run_id: str, namespace: str = "") -> None:
+        """run_id 为本次验收运行标识；namespace（如场景 ID）只做证据子目录，不冒充
+        run_id——record/record_raw 写入的 run_id 字段一律是真实 run_id。"""
+        self.run_id = run_id
+        self.namespace = namespace
         self.dir = pathlib.Path(evidence_dir) / run_id
+        if namespace:
+            self.dir = self.dir / namespace
         self._seq = 0
         self.count = 0
 

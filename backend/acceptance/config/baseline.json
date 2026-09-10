@@ -1,7 +1,18 @@
 {
   "a_baseline": {
     "sha": null,
-    "synced_at": null
+    "candidate_code_sha": "26d97fbe908cb93c1fe366e28ba54a91c21b497c",
+    "report_head": "617354d0634c55b9420a3256c619186a1177b3c3",
+    "isolated_dev": "24232d3ccb203d50acfb6aed6b6e74e336654cb0",
+    "integrated_head": "df0fa32ee42310d8adfa779f215c8b7a8da80fc7",
+    "a_oracle": "round-3 PASS-with-notes",
+    "synced_at": "2026-09-10T12:32:08Z"
   },
-  "gate": "closed"
+  "gate": "closed",
+  "e_acceptance": {
+    "stage": "A-baseline",
+    "status": "complete",
+    "detail": "E 独立基础验收已执行：AB-01..AB-11 + N1..N3 = 48 PASS / 0 FAIL / 2 BLOCKED（AB-02d 按指示不重跑 A 全量单测、AB-06d 黑盒无可重试失败入口）。证据 backend/acceptance/evidence/A-baseline-2026-09-10/summary.md；均为替身形态 doubles_pass。gate 保持 closed：B/C/D 业务实现未集成，94 业务场景仍 dependency_pending。",
+    "updated_at": "2026-09-10T12:52:00Z"
+  }
 }

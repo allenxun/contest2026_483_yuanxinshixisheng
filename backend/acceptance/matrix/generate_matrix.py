@@ -43,14 +43,16 @@ SCOPE_TO_TIER = {
 }
 
 TIER_EXTRA_REASON = {
-    "需替身": "；且本场景为集成范围，须经 A 提供的适配端口使用 face/LLM/push/OSS 测试替身",
-    "需真实设备或APP": "；且本场景为联调范围，需真实云台/微晶/APP 参与，模拟通过不能替代",
-    "现在可自动": "；本场景为后端 HTTP 范围，A 基线交付后可直接黑盒自动执行",
+    "需替身": "；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身",
+    "需真实设备或APP": "；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代",
+    "现在可自动": "；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
 }
 
+# A 基线已于 2026-09-10 到达（E 独立基础验收见 evidence/A-baseline-*）。
+# 场景的真实阻塞已变为 B/C/D 业务实现未集成：26 个业务端点为 501 NOT_IMPLEMENTED stub。
 BASE_PENDING_REASON = (
-    "A-baseline 未交付：backend 无已提交的可构建 Java Web/Python Worker、14 表迁移、"
-    "认证主体上下文、幂等/代次公共设施与外部适配端口，黑盒 HTTP 验收无被测系统"
+    "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；"
+    "B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行"
 )
 
 
@@ -139,7 +141,7 @@ def parse_scenarios(all_api_ids: list[str]) -> list[dict]:
             "apis": apis,
             "deps": deps,
             "owner_package": packages,
-            "blocked_by": ["A-baseline"],
+            "blocked_by": packages,  # A 基线到达；真实阻塞=B/C/D 业务实现未集成
             "automation_tier": tier,
             "status": "dependency_pending",
             "pending_reason": reason,
