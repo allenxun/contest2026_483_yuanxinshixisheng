@@ -55,16 +55,18 @@ OUTPUT: dict[str, pathlib.Path] = {"evidence": FORMAL_EVIDENCE, "logs": LOGS,
 
 
 def set_output_mode(formal: bool, *, reports: pathlib.Path | None = None,
-                    date: str | None = None) -> dict[str, pathlib.Path]:
+                    date: str | None = None,
+                    formal_dir: pathlib.Path | None = None) -> dict[str, pathlib.Path]:
     """入口一次性设定所有输出目录；阶段函数只能经 out_evidence()/out_logs() 取用，
-    不得自行拼正式 evidence 路径。诊断模式一律写 reports/<RUN_ID>/（gitignored）。"""
+    不得自行拼正式 evidence 路径。诊断模式一律写 reports/<RUN_ID>/（gitignored）。
+    formal_dir 可指向独立证据目录（如定向复验 evidence/A-reverify-<date>/<RUN_ID>）。"""
     base = reports or (ROOT / "reports")
-    formal_dir = ROOT / "evidence" / f"A-baseline-{date or DATE_UTC}"
+    fd = formal_dir or (ROOT / "evidence" / f"A-baseline-{date or DATE_UTC}")
     if formal:
-        ev, logs = formal_dir, formal_dir / "logs"
+        ev, logs = fd, fd / "logs"
     else:
         ev, logs = base / RUN_ID, base / RUN_ID / "logs"
-    OUTPUT.update({"evidence": ev, "logs": logs, "formal_evidence": formal_dir})
+    OUTPUT.update({"evidence": ev, "logs": logs, "formal_evidence": fd})
     return dict(OUTPUT)
 
 

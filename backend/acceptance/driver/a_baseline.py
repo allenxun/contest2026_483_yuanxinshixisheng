@@ -839,17 +839,17 @@ def cleanup():
 KNOWN_STATUSES = ("PASS", "FAIL", "BLOCKED", "INFO")
 
 
-def settlement():
+def settlement(expected: frozenset = EXPECTED_CHECKS):
     ids = [r["id"] for r in R.rows]
     dup = sorted({x for x in ids if ids.count(x) > 1})
     settled = set(ids)
-    missing = sorted(EXPECTED_CHECKS - settled)
-    extra = sorted(settled - EXPECTED_CHECKS)
+    missing = sorted(expected - settled)
+    extra = sorted(settled - expected)
     statuses = [r["status"] for r in R.rows]
     unknown = sorted({s for s in statuses if s not in KNOWN_STATUSES})
     counts = {name.lower(): sum(1 for s in statuses if s == name) for name in KNOWN_STATUSES}
     return {"ids": ids, "settled": len(settled), "rows": len(ids),
-            "expected": len(EXPECTED_CHECKS), "missing": missing, "extra": extra,
+            "expected": len(expected), "missing": missing, "extra": extra,
             "duplicates": dup, "unknown_status": unknown, "counts": counts,
             "pass": counts["pass"], "fail": counts["fail"],
             "blocked": counts["blocked"], "info": counts["info"]}

@@ -111,6 +111,27 @@ case "${1:-}" in
     rc=$?
     echo "a-baseline exit=$rc (0=结算完整且无FAIL无BLOCKED【INFO附条件须披露】 1=有FAIL或有BLOCKED 4=结算不完整/未知状态)"
     exit $rc;;
+  a-reverify)
+    # A 修复的有界定向复验（独立 run_id/证据目录，不覆盖 A-baseline 正式证据）
+    if [ ! -x ".venv-driver/bin/python" ]; then
+      python3 -m venv .venv-driver || exit 1
+    fi
+    .venv-driver/bin/pip install -q 'sqlalchemy>=2.0,<3.0' 'psycopg[binary]>=3.2,<4.0' \
+      'pydantic>=2.7,<3.0' 'jsonschema>=4.21,<5.0' requests pyyaml \
+      openapi-spec-validator 'pytest>=8.0' || exit 1
+    .venv-driver/bin/python driver/a_reverify.py
+    rc=$?
+    .venv-driver/bin/python - <<'PY' || rc=4
+import json, pathlib, sys
+files = sorted(pathlib.Path("reports").glob("*/results.json"), key=lambda p: p.stat().st_mtime)
+d = json.loads(files[-1].read_text(encoding="utf-8")) if files else {}
+if d.get("mode") != "targeted-reverify" or d.get("settled") != 11:
+    print(f"REVERIFY_SENTINEL_FAIL: mode={d.get('mode')} settled={d.get('settled')}", file=sys.stderr)
+    sys.exit(1)
+print(f"REVERIFY_SENTINEL_OK mode={d['mode']} settled={d['settled']} exit={d.get('final_exit')}")
+PY
+    echo "a-reverify exit=$rc (0=结算完整且无FAIL无BLOCKED【INFO附条件须披露】 1=有FAIL或有BLOCKED 4=结算不完整/未知状态)"
+    exit $rc;;
   *)
-    echo "用法: $0 {setup-venv|selfcheck|matrix|a-baseline}"; exit 2;;
+    echo "用法: $0 {setup-venv|selfcheck|matrix|a-baseline|a-reverify}"; exit 2;;
 esac
