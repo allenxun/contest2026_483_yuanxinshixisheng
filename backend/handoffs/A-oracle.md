@@ -1,9 +1,9 @@
 # A-oracle.md — A 包 oracle 独立审查报告
 
-- **reviewedCommit（最终代码 SHA）**：`bf393aa181b9772ec54eb4fdbbcf856b227771b6`（branch `feature/mvp-foundation`，与最终代码一致；本文件随 report-only commit 提交，不改代码）
-- 审查者：本机 OpenCode omo-slim 配置的 `oracle` 子代理（会话 `ses_f7523570cffeGdu61d3BzOYo94`，只读，两轮：round-1 @f7e75c1，round-2 @bf393aa）
+- **reviewedCommit（最终代码 SHA）**：`26d97fbe908cb93c1fe366e28ba54a91c21b497c`（round-3 最终结论 **PASS-with-notes**、blockingFindings 空；branch `feature/mvp-foundation`，与最终代码一致；本文件仅随 report-only commit 提交，不改代码）
+- 审查者：本机 OpenCode omo-slim 配置的 `oracle` 子代理（会话 `ses_f7523570cffeGdu61d3BzOYo94`，只读，**三轮**：round-1 @f7e75c1 = FAIL(blocked)，round-2 @bf393aa = FAIL，round-3 @26d97fb = PASS-with-notes）
 - 审查依据：backend/doc/tasks/A-foundation.md、COMMON.md、技术/数据/详细设计、API 设计、测试需求决策记录、交付代码、真实测试证据（orchestrator 在对应 SHA 实际执行；oracle 只读评估）
-- 代码提交链：`2b786f7`（实现 159 文件）→ `f7e75c1`（清理误提交 LSP 工件）→ `bf393aa`（round-1 修复 38 文件 +965/−123）
+- 代码提交链：`2b786f7`（实现 159 文件）→ `f7e75c1`（清理误提交 LSP 工件）→ `bf393aa`（round-1 修复 38 文件 +965/−123）→ `26d97fb`（round-2 修复 29 文件 +828/−176，**最终代码 SHA**）；报告提交：`fc4b311`（首版）+ 本次报告修订（report-only，SHA 见 git log，均不含代码改动）
 
 ---
 
