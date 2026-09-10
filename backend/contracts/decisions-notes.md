@@ -244,6 +244,9 @@ auth_revision / credential_version；disabled、revision 递增、版本轮换�
   `echo-handoff-gimbal-created.json`（实际 POST 插入形状）并纳入
   `validate_samples.py`。GET 每次从持久化行派生创建者并比对；T13 重放投影亦
   复核归属（防御性）。
+- POST 响应映射亦声明 `'404'`（`#/components/responses/NotFound`）且
+  `x-error-codes` 含 `RESOURCE_NOT_VISIBLE`——与 RV-7 全局 dedup 边界的
+  404 行为及描述一致（oracle round-8 IMPORTANT 闭合：此前仅描述未声明）。
 - Worker 领取/续租/回收/完成**不读取** `owner_type/owner_id` 做行为分支
   （仅进入日志字段），归属变更不影响 T12 运行时；worker 测试镜像改为
   `app_account` 形状（测试专用，非运行时语义）。

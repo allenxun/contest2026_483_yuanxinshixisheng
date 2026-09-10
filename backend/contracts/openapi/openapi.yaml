@@ -1581,7 +1581,7 @@ paths:
       summary: 基础协议——入队 system.echo 跨语言最小测试任务
       x-foundation: true
       x-implementation: foundation-system
-      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT]
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT]
       description: >-
         调用方：已认证主体（APP 或云台 session token 均可）。A 包 E2E 验收桥：
         body {message, numbersAsStrings[], jobId?} → 经 JobEnqueuer 入队
@@ -1629,6 +1629,7 @@ paths:
                       data: { $ref: '#/components/schemas/SystemEchoJobAccepted' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/InternalError' }
