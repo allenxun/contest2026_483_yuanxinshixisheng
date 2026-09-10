@@ -121,16 +121,8 @@ case "${1:-}" in
       openapi-spec-validator 'pytest>=8.0' || exit 1
     .venv-driver/bin/python driver/a_reverify.py
     rc=$?
-    .venv-driver/bin/python - <<'PY' || rc=4
-import json, pathlib, sys
-files = sorted(pathlib.Path("reports").glob("*/results.json"), key=lambda p: p.stat().st_mtime)
-d = json.loads(files[-1].read_text(encoding="utf-8")) if files else {}
-if d.get("mode") != "targeted-reverify" or d.get("settled") != 11:
-    print(f"REVERIFY_SENTINEL_FAIL: mode={d.get('mode')} settled={d.get('settled')}", file=sys.stderr)
-    sys.exit(1)
-print(f"REVERIFY_SENTINEL_OK mode={d['mode']} settled={d['settled']} exit={d.get('final_exit')}")
-PY
-    echo "a-reverify exit=$rc (0=结算完整且无FAIL无BLOCKED【INFO附条件须披露】 1=有FAIL或有BLOCKED 4=结算不完整/未知状态)"
+    .venv-driver/bin/python driver/verify_reverify_sentinel.py || rc=4
+    echo "a-reverify exit=$rc (0=结算完整且无FAIL无BLOCKED【INFO附条件须披露】 1=有FAIL或有BLOCKED 4=结算不完整/哨兵不符)"
     exit $rc;;
   *)
     echo "用法: $0 {setup-venv|selfcheck|matrix|a-baseline|a-reverify}"; exit 2;;

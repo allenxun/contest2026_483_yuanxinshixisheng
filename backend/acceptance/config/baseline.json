@@ -14,8 +14,8 @@
     "dev": "f2755ab1741b5ee4f384fa66e73a2e669614ada9",
     "integrated": "d495a7d7c43aab3baae9afcf8774ae9850e6e41f",
     "a_oracle": "round-6 PASS (blockingFindings=[])，修复链 bfd2dc3→1ba984e→f6e500e",
-    "reverify": "pass: settled 11/11, {PASS:11, FAIL:0, BLOCKED:0, INFO:0}, exit=0; evidence/A-reverify-2026-09-10/E-AB-20260910T152407Z-62cd1bee/",
-    "note": "有界定向复验（RV-1..RV-9 + CLEANUP），非全量 52 项；A-baseline-2026-09-10 正式证据未被覆盖（逐文件 0 变更）；echo lastError 已收敛为 closed enum，N2-http 原缺陷复验通过。",
+    "reverify": "pass(附条件): settled 11/11, {PASS:10, FAIL:0, BLOCKED:0, INFO:1(RV-5 跨账号可见性政策待总协调裁定)}, exit=0; evidence/A-reverify-2026-09-10/E-AB-20260910T153807Z-2fc691d7/",
+    "note": "有界定向复验（RV-1..RV-9 + CLEANUP），非全量 52 项；既有两证据目录 62cd1bee/934529f1 未覆盖；echo lastError 已收敛 closed enum 并通过；RV-5 为 INFO（契约未要求创建者过滤，实现为任意已认证主体可按 jobId 读系统诊断 job）待裁定。",
     "synced_at": "2026-09-10T15:20:00Z"
   },
   "gate": "closed",

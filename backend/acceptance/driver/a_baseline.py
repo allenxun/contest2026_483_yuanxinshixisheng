@@ -284,10 +284,16 @@ def stage_ab04_constraints():
 
 # ------------------------------------------------------------------ AB-05
 
-def login():
-    digits = f"{int(I.SUFFIX, 16) % 100000000:08d}"
+def login(identity_tag=None):
+    """建立 APP 会话。identity_tag 可指定独立身份（不同 phone/installationId）；
+    缺省沿用 I.SUFFIX（既有行为不变）。"""
+    tag = identity_tag or I.SUFFIX
+    try:
+        digits = f"{int(tag, 16) % 100000000:08d}"
+    except ValueError:
+        digits = ("".join(ch for ch in tag if ch.isdigit()) or "0").rjust(8, "0")[-8:]
     phone = f"+86138{digits}"
-    installation = f"e-inst-{I.SUFFIX}"
+    installation = f"e-inst-{tag}"
     code, body, _ = I.http("POST", "/api/v1/auth/sms-challenges",
                            body={"phone": phone, "purpose": "login"})
     if code != 200:
