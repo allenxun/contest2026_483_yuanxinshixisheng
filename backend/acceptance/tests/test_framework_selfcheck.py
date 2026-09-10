@@ -648,3 +648,34 @@ def test_reverify_entry_binding_rejects_old_sentinel(tmp_path):
     vs.write_sentinel("old-run2", good, 1, reports_dir=tmp_path)
     ok2, msg2 = vs.verify("old-run2", reports_dir=tmp_path, driver_rc=0)
     assert ok2 is False and "final_exit" in msg2
+
+
+# ---------- RV-5 有界复验：参数化哨兵 + 结论政策 ----------
+
+def test_sentinel_mode_parameterized(tmp_path):
+    from driver import verify_reverify_sentinel as vs
+    settle = {"counts": {"pass": 10, "fail": 0, "blocked": 0, "info": 0},
+              "missing": [], "extra": [], "duplicates": [], "unknown_status": [],
+              "rows": 10, "settled": 10}
+    vs.write_sentinel("rv5-run", settle, 0, reports_dir=tmp_path, mode="rv5-reverify",
+                      expected=vs.EXPECTED_RV5)
+    assert vs.verify("rv5-run", reports_dir=tmp_path, driver_rc=0, mode="rv5-reverify",
+                     expected=vs.EXPECTED_RV5)[0] is True
+    assert vs.verify("rv5-run", reports_dir=tmp_path, mode="targeted-reverify",
+                     expected=vs.EXPECTED_TARGETED)[0] is False   # mode/expected 不符
+
+
+def test_rv5_conclusion_policy():
+    from driver import a_rv5 as r5
+
+    def st(p=0, f=0, b=0, i=0, missing=()):
+        counts = {"pass": p, "fail": f, "blocked": b, "info": i}
+        return {"counts": counts, "pass": p, "fail": f, "blocked": b, "info": i,
+                "expected": 10, "settled": p + f + b + i, "rows": p + f + b + i,
+                "missing": list(missing), "extra": [], "duplicates": [], "unknown_status": []}
+
+    assert "通过（附条件）" in r5.rv5_conclusion(st(p=9, i=1))
+    assert "未通过" in r5.rv5_conclusion(st(p=9, f=1))
+    assert "未通过" in r5.rv5_conclusion(st(p=9, b=1))
+    assert "未通过" in r5.rv5_conclusion(st(p=9, missing=["RV5-3"]))
+    assert "拒绝" in r5.rv5_conclusion({**st(p=9), "unknown_status": ["X"]})
