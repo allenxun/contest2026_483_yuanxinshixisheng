@@ -35,11 +35,6 @@ MAINT_DSN = os.environ.get(
 FIXED_NS = uuid.UUID("f988d041-6031-5120-8075-f90b6b05553e")
 
 
-def echo_owner_id(dedup_key: str) -> uuid.UUID:
-    """system job 的 owner_id = UUIDv5(FIXED_NS, dedup_key)（与 Java 侧一致）。"""
-    return uuid.uuid5(FIXED_NS, dedup_key)
-
-
 def default_echo_payload() -> dict[str, Any]:
     path = CONTRACTS_DIR / "samples" / "jobs" / "system-echo.json"
     return json.loads(path.read_text(encoding="utf-8"))
@@ -66,7 +61,9 @@ def enqueue(
     *,
     job_type: str = "system.echo",
     dedup_key: Optional[str] = None,
-    owner_type: str = "system",
+    # RV-5：foundation echo 用创建者归属（app_account + accountUuid）；worker 领取
+    # 不依赖 owner 值，此处仅为镜像 Java 入队形状（测试专用）。
+    owner_type: str = "app_account",
     owner_id: Optional[str] = None,
     input_revision: int = 0,
     payload: Optional[dict[str, Any]] = None,
@@ -79,7 +76,7 @@ def enqueue(
     if dedup_key is None:
         dedup_key = f"system:echo:{uuid.uuid4()}"
     if owner_id is None:
-        owner_id = str(echo_owner_id(dedup_key))
+        owner_id = str(uuid.uuid4())
     if payload is None:
         payload = default_echo_payload()
     with engine.begin() as conn:

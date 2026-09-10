@@ -18,7 +18,7 @@ from mvp_worker.runtime.rows import JobRow
 
 def _job(payload: dict) -> JobRow:
     return JobRow(
-        id=str(uuid.uuid4()), job_type="system.echo", owner_type="system",
+        id=str(uuid.uuid4()), job_type="system.echo", owner_type="app_account",
         owner_id=str(uuid.uuid4()), input_revision=0,
         dedup_key=f"system:echo:{uuid.uuid4()}", payload=payload,
         attempt_count=1, max_attempts=5, lease_revision=1, lease_owner="w",

@@ -32,6 +32,11 @@ system}`；`owner_id` 为 UUID 文本（多态无外键，服务端校验归属�
 - `identity_namespace` 的 `owner_id` =
   **UUIDv5(FIXED_NS, `"<identity_namespace>:<face_subject_ref>"`)**
 - `system` 的 `owner_id` = **UUIDv5(FIXED_NS, dedup_key)**
+- 例外（RV-5 裁定，见 §11）：foundation `system.echo`
+  （`/api/v1/system/echo-jobs`）改用创建者身份做归属——APP
+  `owner_type=app_account`/`owner_id=accountUuid`，GIMBAL
+  `owner_type=gimbal`/`owner_id=gimbalUuid`；`system` 约定仍适用于 system
+  属主任务（如 identity_namespace）。
 
 ## 4. FIXED_NS 计算值（两侧硬编码，禁止各算各的输入差异）
 
@@ -214,3 +219,21 @@ SessionProvider.authenticate 后经 `PrincipalRevalidator` 复核本地状态，
 `SELECT credential_version FROM gimbals WHERE id=?`。会话快照携带签发时刻
 auth_revision / credential_version；disabled、revision 递增、版本轮换或行
 缺失 → 401 SESSION_INVALID。
+
+## 11. E RV-5 裁定：system.echo 创建者归属 + GET 仅创建者可读（oracle round-7）
+
+- `GET /api/v1/system/echo-jobs/{jobId}` **只服务创建者本人**：不存在 /
+  `job_type≠system.echo` / 非创建者 三类一律返回**完全相同**的
+  404 `RESOURCE_NOT_VISIBLE`（不泄露存在性、归属、类型；未认证仍由
+  BearerAuthFilter 先 401）。该端点不得作为任意 `async_jobs` 的通用查询入口。
+- 归属存储复用 A 属主列 `async_jobs.owner_type/owner_id`（**无新表、无迁移、
+  无新列**），由 `JobEnqueuer` 在创建者业务事务内原子写入：APP
+  `app_account`+`accountUuid`，GIMBAL `gimbal`+`gimbalUuid`。`installation`
+  只属 T13 作用域、**不进 owner_id**（同账号跨安装可读本账号任务）。理由：
+  echo 是账号级诊断端点，T13 作用域仍为 account+installation。
+- POST 重放：同 principal 同键重放返回原 jobId（`meta.replayed=true`）；不同
+  principal 即使同键也是不同 T13 作用域 → 各自新任务，不跨暴露。GET 每次从
+  持久化行派生创建者并比对；T13 重放投影亦复核归属（防御性）。
+- Worker 领取/续租/回收/完成**不读取** `owner_type/owner_id` 做行为分支
+  （仅进入日志字段），归属变更不影响 T12 运行时；worker 测试镜像改为
+  `app_account` 形状（测试专用，非运行时语义）。
