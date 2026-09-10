@@ -49,3 +49,7 @@
 报告保存 backend/handoffs/<包>-oracle.md，包含模块、审查代码 SHA、结论、问题严重度/位置/复现方式、修复与复审结果、残留限制。报告可以单独提交；必须标明被审查代码提交，后续代码变化需复审，纯报告提交不必循环审查自身。
 
 本包 status.json 增加 oracleReview：status（pending/running/changes_requested/passed/blocked）、reviewedCommit、report、blockingFindings。增加 taskProgress，以 checklists.json 的稳定编号为键，每项记录 status（pending/in_progress/blocked/done）和 evidence。只有 done 且有证据的项才在面板勾选。不要因整体 phase=complete 就自动勾选所有任务。
+
+## 监督频率（用户最新要求）
+
+正常实施由 OpenCode Orchestrator 自行协调；Codex 每 30 分钟做一次有界检查，无需处理则结束本轮。不保持高频模型轮询、不持续读输出、不反复催促继续。已有确定性权限事件监听可保留，只有实际待审批事件需要判断时处理；无法事件唤醒时在下一次巡检处理，不承诺即时审批。目录访问按原授权逐项核实，不全局放开。完成、失败、需协调或关键阻塞时才汇报。此规则也适用于后续 B/C/D；Oracle 与独立验收门禁不变。

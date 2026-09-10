@@ -10,6 +10,8 @@ import cn.yuanxin.mvp.web.idempotency.IdempotencyService;
 import cn.yuanxin.mvp.web.jobs.JobEnqueuer;
 import cn.yuanxin.mvp.web.web.EnvelopeSupport;
 import cn.yuanxin.mvp.web.web.SuccessEnvelope;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -43,7 +45,9 @@ import java.util.UUID;
  *       bigint 字符串）。Idempotency-Key 可选：提供时走 T13
  *       （operation=system.echo.create），重放同 jobId + meta.replayed=true。</li>
  *   <li>GET /api/v1/system/echo-jobs/{jobId}：投影 async_jobs 当前状态
- *       （attemptCount/leaseRevision 为 bigint 字符串）。</li>
+ *       （attemptCount/leaseRevision 为 bigint 字符串）。lastError 是<b>有界
+ *       安全投影</b>：仅 {reason 枚举, retryable bool}，内部诊断列
+ *       （raw code/message/stack）绝不外泄（见 {@link #projectError}）。</li>
  * </ul>
  *
  * <p>本端点是 B/C/D 接线 T13 + JobEnqueuer + PrincipalContext 的参照实现。</p>
@@ -86,8 +90,26 @@ public class SystemEchoController {
     }
 
     public record EchoJobViewData(String jobId, String status, String attemptCount,
-                                  String leaseRevision, String finishedAt, Object lastError) {
+                                  String leaseRevision, String finishedAt,
+                                  EchoJobLastError lastError) {
     }
+
+    /**
+     * 外部有界失败投影（契约 components.schemas.EchoJobLastError）：
+     * <b>恰两个字段</b> reason（白名单归一 enum）+ retryable（bool）。内部诊断
+     * （raw code / message / stack / retry_after_seconds）绝不投影；未知/缺失/
+     * 非对象/非 JSON 一律 reason="internal"。有界投影而非截断（无自由文本字段，
+     * 4058 字符 message 不可能出现）。
+     */
+    public record EchoJobLastError(String reason, boolean retryable) {
+    }
+
+    private static final ObjectMapper LAST_ERROR_MAPPER = new ObjectMapper();
+    private static final String REASON_INTERNAL = "internal";
+    private static final String REASON_UNSUPPORTED_CONTRACT = "unsupported_contract";
+    private static final String REASON_RETRY_LIMIT_EXCEEDED = "retry_limit_exceeded";
+    /** 契约保留值：system.echo 当前无 JobFailed code（见 handlers/system_echo.py）。 */
+    private static final String REASON_HANDLER_FAILED = "handler_failed";
 
     @PostMapping
     public ResponseEntity<SuccessEnvelope> create(@Valid @RequestBody EchoJobRequestBody body,
@@ -159,7 +181,7 @@ public class SystemEchoController {
                         String.valueOf(rs.getLong("lease_revision")),
                         rs.getTimestamp("finished_at") == null ? null
                                 : EnvelopeSupport.rfc3339(rs.getTimestamp("finished_at").toInstant()),
-                        parseError(rs.getString("last_error"))),
+                        projectError(rs.getString("last_error"))),
                 jobId);
         if (rows.isEmpty()) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_VISIBLE, "job not visible");
@@ -167,15 +189,40 @@ public class SystemEchoController {
         return envelopes.ok(request, rows.get(0));
     }
 
-    private Object parseError(String raw) {
+    /**
+     * 内部 last_error（JSONB 诊断列）→ 外部有界投影。任何解析失败、非对象、
+     * 缺失 code、未知 code → reason=internal, retryable=false；绝不返回原始文本。
+     * 已知安全 code 经白名单归一；raw code 串永不外泄。
+     */
+    static EchoJobLastError projectError(String raw) {
         if (raw == null || raw.isBlank()) {
             return null;
         }
+        JsonNode node;
         try {
-            return new com.fasterxml.jackson.databind.ObjectMapper().readTree(raw);
-        } catch (Exception e) {
-            return raw;
+            node = LAST_ERROR_MAPPER.readTree(raw);
+        } catch (Exception parseFailure) {
+            return new EchoJobLastError(REASON_INTERNAL, false);
         }
+        if (node == null || !node.isObject()) {
+            return new EchoJobLastError(REASON_INTERNAL, false);
+        }
+        String code = node.path("code").asText(null);
+        JsonNode retryableNode = node.path("retryable");
+        boolean retryable = retryableNode.isBoolean() && retryableNode.booleanValue();
+        return new EchoJobLastError(mapReason(code), retryable);
+    }
+
+    /** INTERNAL code → 外部 reason 白名单；未知/缺失 → internal。 */
+    private static String mapReason(String code) {
+        if (code == null) {
+            return REASON_INTERNAL;
+        }
+        return switch (code) {
+            case "UNSUPPORTED_CONTRACT" -> REASON_UNSUPPORTED_CONTRACT;
+            case "RETRY_LIMIT_EXCEEDED" -> REASON_RETRY_LIMIT_EXCEEDED;
+            default -> REASON_INTERNAL;
+        };
     }
 
     private static String dedupKeyOf(BeginOutcome.ReplaySucceeded replay) {
