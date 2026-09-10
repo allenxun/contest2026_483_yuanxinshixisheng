@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import pathlib
@@ -384,9 +385,71 @@ def test_ab_diagnostic_mode_writes_reports_only(tmp_path, monkeypatch):
             return 0
 
     monkeypatch.setattr(ab, "REPORTS", tmp_path / "reports")
-    monkeypatch.setattr(ab, "EVID", tmp_path / "evidence")
     monkeypatch.setattr(ab, "R", FakeRows())
     ab.write_outputs(False, {"expected": 1, "settled": 0, "missing": ["AB-01a"], "extra": [],
                              "duplicates": [], "pass": 0, "fail": 0, "blocked": 0}, 0)
     assert (tmp_path / "reports" / "results.json").exists()
     assert not (tmp_path / "evidence").exists(), "诊断模式绝不写/覆盖 evidence 正式路径"
+
+
+# ---------- 第六轮：N2-http 判定 / requestId / 输出目录隔离 ----------
+
+def test_n2_http_verdict_never_passes_error_paths():
+    from driver import a_baseline as ab
+    job = "11111111-1111-4111-8111-111111111111"
+    marker = "Bearer SECRET"
+    for status in (400, 401, 403, 404, 500, 503):
+        v, why = ab.n2_http_verdict(status, job, {}, marker)
+        assert v is not True, f"HTTP {status} 不得 PASS：{why}"
+    assert ab.n2_http_verdict(200, job, {"data": {"jobId": "other"}}, marker)[0] is False
+    assert ab.n2_http_verdict(200, job, {"data": {"jobId": job}}, marker)[0] is not True  # 缺字段
+    assert ab.n2_http_verdict(200, job, {"data": {"jobId": job, "lastError": None}},
+                              marker)[0] is True
+    assert ab.n2_http_verdict(200, job, {"data": {"jobId": job,
+                              "lastError": {"message": marker}}}, marker)[0] is False
+    assert ab.n2_http_verdict(200, job, {"data": {"jobId": job,
+                              "lastError": {"m": "L" * 4000}}}, marker)[0] is False
+    assert ab.n2_http_verdict(200, job, {"data": {"jobId": job,
+                              "lastError": {"code": "X"}}}, marker)[0] is True
+
+
+def test_request_id_ok_rejects_missing_or_mismatch():
+    from driver import a_baseline as ab
+    assert ab.request_id_ok("r", {"requestId": "r"}) is True
+    assert ab.request_id_ok(None, None) is False
+    assert ab.request_id_ok(None, {"requestId": "r"}) is False
+    assert ab.request_id_ok("r", {}) is False
+    assert ab.request_id_ok("", {"requestId": ""}) is False
+    assert ab.request_id_ok("r", {"requestId": "s"}) is False
+
+
+def _tree_hash(root: pathlib.Path) -> str:
+    h = hashlib.sha256()
+    if not root.exists():
+        return h.hexdigest()
+    for p in sorted(root.rglob("*")):
+        if p.is_file():
+            h.update(str(p.relative_to(root)).encode())
+            h.update(p.read_bytes())
+    return h.hexdigest()
+
+
+def test_diagnostic_mode_never_touches_formal_evidence(tmp_path):
+    from driver import a_baseline as ab
+    real_formal = ab.I.FORMAL_EVIDENCE
+    before = _tree_hash(real_formal)
+    ab.I.set_output_mode(False, reports=tmp_path)
+    try:
+        ab.I.evidence_text("diag-only.txt", "x")
+        ab.save_log_excerpts()
+        assert (tmp_path / ab.I.RUN_ID / "logs" / "diag-only.txt").exists()
+        assert _tree_hash(real_formal) == before, "诊断模式不得改动正式 evidence"
+    finally:
+        ab.I.set_output_mode(True)
+
+
+def test_formal_mode_targets_formal_evidence():
+    from driver import a_baseline as ab
+    out = ab.I.set_output_mode(True)
+    assert out["evidence"] == ab.I.FORMAL_EVIDENCE
+    assert out["logs"] == ab.I.FORMAL_EVIDENCE / "logs"

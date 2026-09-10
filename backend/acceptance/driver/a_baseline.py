@@ -11,13 +11,14 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import re
 import sys
 import uuid
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from driver import infra as I  # noqa: E402
-from driver.infra import R, REPORTS, EVID, LOGS, PG_DB, APP_BASE  # noqa: E402
+from driver.infra import R, REPORTS, PG_DB, APP_BASE  # noqa: E402
 
 BASELINE = json.loads((I.ROOT / "config" / "baseline.json").read_text(encoding="utf-8"))["a_baseline"]
 
@@ -176,15 +177,16 @@ def stage_ab02_worker():
     cp = I.worker_cli("--check", timeout=120)
     add("AB-02a", "worker --check 连通自检（E 库）", "PASS" if cp.returncode == 0 else "FAIL",
         "python -m mvp_worker --check", cp.returncode, _excerpt_cp(cp))
-    I.start_worker()
-    hz = I.wait_http(f"{I.WORKER_BASE}/healthz", timeout_s=45)
-    rz = I.wait_http(f"{I.WORKER_BASE}/readyz", timeout_s=45)
-    add("AB-02b", "worker 运行循环 + /healthz /readyz UP（18082）",
-        "PASS" if hz and rz else "FAIL", "python -m mvp_worker (loop)", "0" if hz and rz else "1",
-        f"healthz={hz} readyz={rz}")
-    I.stop_worker()
-    add("AB-02c", "worker SIGTERM 优雅停机", "PASS" if I.WORKER_PROC is None else "FAIL",
-        "kill -TERM worker", "0", "")
+    proc = I.start_worker()
+    ready, why = I.wait_worker_ready(timeout_s=45)
+    add("AB-02b", "worker 运行循环 + /healthz /readyz UP（健康绑定本 run 子进程存活）",
+        "PASS" if ready else "FAIL", "python -m mvp_worker (loop)",
+        "0" if ready else (proc.returncode if proc.poll() is not None else "timeout"), why)
+    rc, graceful = I.terminate_worker(timeout_s=40)
+    add("AB-02c", "SIGTERM 优雅停机：真实 Popen wait 后 returncode==0 且日志见停机行",
+        "PASS" if rc == 0 and graceful else "FAIL",
+        "proc.send_signal(SIGTERM) → proc.wait()", rc,
+        f"graceful_log={graceful}（未依赖已清空变量）")
 
 
 WORKER_TEST_FILES = ["tests/test_claim.py", "tests/test_renew.py", "tests/test_expire.py",
@@ -399,6 +401,14 @@ def stage_ab05_auth():
 
 # ------------------------------------------------------------------ AB-06 / AB-08 / AB-11
 
+def request_id_ok(header_value, body) -> bool:
+    """X-Request-Id 与 body.requestId 均须非空且相等（双缺失 None==None 不算通过）。"""
+    hdr = (header_value or "").strip() if isinstance(header_value, str) else ""
+    brid = (body or {}).get("requestId") if isinstance(body, dict) else None
+    brid = brid.strip() if isinstance(brid, str) else ""
+    return bool(hdr) and bool(brid) and hdr == brid
+
+
 def stage_ab0608_echo(s):
     tok = s["access"]
     key = f"e-echo-{I.SUFFIX}"
@@ -443,9 +453,9 @@ def stage_ab0608_echo(s):
     # AB-11
     code, body, hdr = I.http("POST", "/api/v1/system/echo-jobs", token=tok, body={})
     rid = hdr.get("X-Request-Id")
-    add("AB-11a", "非法输入 → 400 INVALID_INPUT 信封，body.requestId==X-Request-Id",
+    add("AB-11a", "非法输入 → 400 INVALID_INPUT 信封，X-Request-Id==body.requestId（均非空）",
         "PASS" if code == 400 and body.get("error", {}).get("code") == "INVALID_INPUT"
-        and body.get("requestId") == rid else "FAIL", "POST /system/echo-jobs {}", code,
+        and request_id_ok(rid, body) else "FAIL", "POST /system/echo-jobs {}", code,
         f"rid_hdr={rid} rid_body={body.get('requestId')}")
     code, body, _ = I.http("GET", "/api/v1/me/member-access-grants", token=tok)
     add("AB-11b", "业务 stub（有 token）→ 501 NOT_IMPLEMENTED，不给假 200",
@@ -648,75 +658,126 @@ def stage_n2_columns():
         "PASS" if w.returncode == 0 and untouched else "FAIL",
         "UPDATE async_jobs.last_error 无版本 + 查 pg_constraint", w.returncode,
         f"no_check_on_diag_cols={untouched}")
-    # 消费点分类检视（每处：文件:行、读/写、业务决策/跨服务协议/客户端投影）
+    # 消费点分类检视：保留 file:line + 代码片段 + 读/写 + 分类；无法机械判定标“待人工复核”，
+    # 存在待复核项则本子项降为 INFO（不计 PASS 依据）。
     cp = I.run(["grep", "-rnE", "last_error|failure_detail|lastError|failureDetail",
                 str(I.JAVA_DIR / "src/main/java"), str(I.WORKER_DIR / "src")],
                timeout=120, log_name="n2-code-review-raw.log")
-    lines = [ln for ln in cp.stdout.splitlines() if ln.strip()]
     rows = []
-    for ln in lines:
-        loc = ln.split(":", 1)[0]
-        rel = loc.split("/backend/", 1)[-1] if "/backend/" in loc else loc
+    for ln in cp.stdout.splitlines():
+        m = re.match(r"^(.*?):(\d+):(.*)$", ln)
+        if not m:
+            continue
+        path, lineno, snippet = m.group(1), m.group(2), m.group(3).strip()
+        rel = path.split("/backend/", 1)[-1] if "/backend/" in path else path
         low = ln.lower()
+        uncertain = False
         if "systemechocontroller" in low:
-            cls, kind = "客户端投影（echo GET lastError）", "read"
+            cls, kind, note = "客户端投影", "read", "echo GET 投影 data.lastError（关联已确认 A 缺陷）"
         elif "complete.py" in low or "loop.py" in low:
-            cls, kind = "写入（worker 失败诊断）", "write"
-        elif "failure_detail" in low:
-            cls, kind = "字段声明/写入边界", "review"
+            cls, kind, note = "写入（worker 诊断）", "write", "failed/last_error 写入路径"
+        elif "last_error" in low or "failure_detail" in low or "lasterror" in low:
+            cls, kind, note = "其他", "review", "待人工复核"
+            uncertain = True
         else:
-            cls, kind = "其他引用（人工检视）", "review"
-        decision = "否" if cls != "其他引用（人工检视）" else "待检视"
-        rows.append({"loc": rel, "kind": kind, "class": cls, "business_decision": decision})
-    LOGS.mkdir(parents=True, exist_ok=True)
-    md = ["# N2 诊断列消费点分类检视（原始 grep + 分类）", "",
-          f"原始命中 {len(rows)} 处；规则：echo GET=客户端投影(read)，worker complete/loop=写入，"
-          "其余人工检视；未见用于业务决策或跨服务任务协议。", "",
-          "| 文件:行 | 读/写 | 分类 | 业务决策? |", "|---|---|---|---|"]
-    md += [f"| {r['loc']} | {r['kind']} | {r['class']} | {r['business_decision']} |" for r in rows]
-    (LOGS / "n2-code-review.md").write_text("\n".join(md) + "\n", encoding="utf-8")
-    add("N2-codereview", f"诊断列消费点分类检视（{len(rows)} 处，客户端投影/写入/人工检视）",
-        "PASS" if rows else "INFO", "grep Java/Python src + 分类记录",
-        cp.returncode, f"hits={len(rows)} 详见 logs/n2-code-review.md")
+            cls, kind, note = "仅日志/注释", "review", "待人工复核"
+            uncertain = True
+        rows.append({"loc": f"{rel}:{lineno}", "snippet": snippet[:160], "kind": kind,
+                     "cls": cls, "note": note, "uncertain": uncertain})
+    has_projection = any(r["cls"] == "客户端投影" for r in rows)
+    uncertain_n = sum(1 for r in rows if r["uncertain"])
+    d = I.out_logs()
+    d.mkdir(parents=True, exist_ok=True)
+    md = ["# N2 诊断列消费点分类检视（file:line + 片段 + 读/写 + 分类）", "",
+          f"命中 {len(rows)} 处；待人工复核 {uncertain_n} 处；含客户端投影={has_projection}。",
+          "分类规则：SystemEchoController→客户端投影(read)；worker complete/loop→写入；"
+          "其余机械不可判定→待人工复核（本子项降 INFO）。", "",
+          "| 文件:行 | 代码片段 | 读/写 | 分类 | 备注 |", "|---|---|---|---|---|"]
+    md += [f"| {r['loc']} | `{r['snippet']}` | {r['kind']} | {r['cls']} | {r['note']} |"
+           for r in rows]
+    (d / "n2-code-review.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+    status = "PASS" if rows and has_projection and uncertain_n == 0 else "INFO"
+    add("N2-codereview", f"诊断列消费点分类检视（{len(rows)} 处，待人工复核 {uncertain_n} 处，"
+                         f"客户端投影={has_projection}）", status,
+        "grep Java/Python src + file:line/片段/分类记录", cp.returncode,
+        f"hits={len(rows)} uncertain={uncertain_n} 详见 logs/n2-code-review.md"
+        + ("（有未判定项，降为 INFO，不作为 PASS 依据）" if status == "INFO" else ""))
+
+
+N2_LAST_ERROR_LIMIT = 1000
+
+
+def n2_http_verdict(status, target_job, body, marker=None, limit=N2_LAST_ERROR_LIMIT):
+    """N2-http 纯判定：返回 (verdict, reason)。True=PASS，False=FAIL，None=BLOCKED。
+
+    PASS 仅当：HTTP 200 + data.id==目标 job + lastError 为空/已脱敏且在限内。
+    任何错误路径（非 200、目标不符、缺字段、marker 回显、超长）绝不 PASS。
+    """
+    if status != 200:
+        return None, f"HTTP {status}（未取得目标资源，不能判定投影）"
+    data = (body or {}).get("data") or {}
+    got_id = data.get("jobId", data.get("id"))  # echo GET 投影字段为 jobId
+    if str(got_id or "") != str(target_job):
+        return False, f"data.jobId={got_id!r} 与目标 job 不符"
+    if "lastError" not in data:
+        return None, "响应缺 data.lastError 字段（投影形态未知，不能判定）"
+    le = data.get("lastError")
+    if le is None:
+        return True, "lastError 为空（未投影诊断内容，合规）"
+    blob = json.dumps(le, ensure_ascii=False)
+    if marker and marker in blob:
+        return False, f"marker 原样回显（len={len(blob)}）"
+    if len(blob) > limit:
+        return False, f"未限大小（len={len(blob)} > {limit}）"
+    return True, f"已脱敏且在限内（len={len(blob)}）"
 
 
 def stage_n2_http():
-    """N2-http 实测：SQL 写入含标记/超长诊断，GET echo job 观察 data.lastError 形态。"""
+    """N2-http 实测：SQL(断言 rc/影响行数) + GET(断言 200/目标 job) → 判定投影形态。"""
     job = CTX.get("job")
     if not job:
         add("N2-http", "诊断列 HTTP 投影实测", "BLOCKED", "依赖 echo job", "n/a",
-            "", blocked="AB-06a 未产出 jobId，无法实测")
+            blocked="AB-06a 未产出 jobId，无法实测")
         return
     marker = "Bearer E2E_DIAG_SECRET_MARKER_12345"
-    long_msg = "L" * 4000
-    I.psql("UPDATE async_jobs SET last_error="
-           f"'{{\"code\":\"E_DIAG_MARKER\",\"message\":\"{marker}\",\"retryable\":false}}'::jsonb "
-           f"WHERE id='{job}'")
-    code1, body1, _ = I.http("GET", f"/api/v1/system/echo-jobs/{job}", token=CTX["token"])
-    raw1 = json.dumps(body1, ensure_ascii=False)
-    marker_echoed = marker in raw1
-    I.psql("UPDATE async_jobs SET last_error="
-           f"'{{\"code\":\"E_DIAG_LONG\",\"message\":\"{long_msg}\",\"retryable\":false}}'::jsonb "
-           f"WHERE id='{job}'")
-    code2, body2, _ = I.http("GET", f"/api/v1/system/echo-jobs/{job}", token=CTX["token"])
-    le2 = (body2.get("data") or {}).get("lastError")
-    returned_len = len(json.dumps(le2, ensure_ascii=False)) if le2 is not None else 0
-    raw_projected = le2 is not None
-    ok = (not marker_echoed) and returned_len <= 1000 and not raw_projected
-    repro = (f"SQL: UPDATE async_jobs SET last_error='{{\"code\":\"E_DIAG_MARKER\","
-             f"\"message\":\"{marker}\"}}' WHERE id='{job}'; "
-             f"curl --noproxy '*' -H 'Authorization: Bearer <token>' "
-             f"{APP_BASE}/api/v1/system/echo-jobs/{job} -> http={code1} "
-             f"marker_echoed={marker_echoed} raw_lastError_len={returned_len}")
-    LOGS.mkdir(parents=True, exist_ok=True)
-    (LOGS / "n2-http-repro.txt").write_text(
-        f"{repro}\n\nhttp_long={code2}\ndata.lastError(json)={json.dumps(le2, ensure_ascii=False)[:600]}\n",
-        encoding="utf-8")
+    variants = [("marker", {"code": "E_DIAG_MARKER", "message": marker, "retryable": False}),
+                ("long", {"code": "E_DIAG_LONG", "message": "L" * 4000, "retryable": False})]
+    verdicts, repro = [], [f"jobId={job}（合成数据，无真实凭据）"]
+    http_codes = []
+    for name, err in variants:
+        ej = json.dumps(err, ensure_ascii=False).replace("'", "''")
+        sql = (f"WITH u AS (UPDATE async_jobs SET last_error='{ej}'::jsonb "
+               f"WHERE id='{job}' RETURNING id) SELECT count(*) FROM u")
+        cp = I.psql(sql)
+        rows = cp.stdout.strip()
+        if cp.returncode != 0 or rows != "1":
+            verdicts.append((None, f"{name}: 诊断 UPDATE 失败 rc={cp.returncode} rows={rows!r}"))
+            repro.append(f"SQL[{name}]: {sql[:300]} -> rc={cp.returncode} rows={rows!r}")
+            continue
+        code, body, _ = I.http("GET", f"/api/v1/system/echo-jobs/{job}", token=CTX["token"])
+        http_codes.append(str(code))
+        v, why = n2_http_verdict(code, job, body, marker if name == "marker" else None)
+        le = (body.get("data") or {}).get("lastError")
+        le_blob = json.dumps(le, ensure_ascii=False) if le is not None else ""
+        verdicts.append((v, f"{name}: {why}"))
+        repro.append(
+            f"SQL[{name}]: {sql[:300]}\n"
+            f"curl --noproxy '*' -H 'Authorization: Bearer <token>' "
+            f"{APP_BASE}/api/v1/system/echo-jobs/{job} -> http={code}\n"
+            f"data.lastError[:400]={le_blob[:400]!r}\n"
+            f"len={len(le_blob)} marker_echoed={(marker in le_blob)}\n")
+    d = I.out_logs()
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "n2-http-repro.txt").write_text("\n".join(repro) + "\n", encoding="utf-8")
+    if any(v is False for v, _ in verdicts):
+        status = "FAIL"
+    elif any(v is None for v, _ in verdicts):
+        status = "BLOCKED"
+    else:
+        status = "PASS"
     add("N2-http", "诊断列 HTTP 投影：须脱敏/限大小/不原样返回（实测 data.lastError）",
-        "PASS" if ok else "FAIL", "GET /system/echo-jobs/{id} 观察 data.lastError",
-        f"{code1}/{code2}",
-        f"marker_echoed={marker_echoed} raw_lastError_len={returned_len} "
-        f"raw_projected={raw_projected}；A 缺陷最小复现见 logs/n2-http-repro.txt",
+        status, "诊断 UPDATE RETURNING count==1 + GET 断言 200/目标 job → 判定",
+        "/".join(http_codes) or "n/a", " | ".join(w for _, w in verdicts),
         doubles="n/a")
 
 
@@ -791,6 +852,7 @@ def final_exit(formal: bool, settle: dict) -> int:
 
 
 def save_log_excerpts():
+    LOGS = I.out_logs()
     LOGS.mkdir(parents=True, exist_ok=True)
 
     def excerpt(name, pattern=None, tail=20):
@@ -829,6 +891,7 @@ def write_outputs(formal: bool, settle: dict, rc: int):
     if not formal:
         print(f"[PARTIAL 诊断模式] 未结算 {len(settle['missing'])} 项；只写 reports/，不落 evidence/")
         return
+    EVID = I.out_evidence()
     EVID.mkdir(parents=True, exist_ok=True)
     save_log_excerpts()
     p, f, b = settle["pass"], settle["fail"], settle["blocked"]
@@ -857,6 +920,16 @@ def write_outputs(formal: bool, settle: dict, rc: int):
         (f"结算缺口：missing={settle['missing']} extra={settle['extra']} "
          f"duplicates={settle['duplicates']}"),
         "",
+    ]
+    if f > 0:
+        lines += [
+            f"**A 基础验收结论：未通过**——{f} 项 A 缺陷（见下）未修复；"
+            "**待 A 修复后，绑定新 A SHA 对本项做定向重验**；在此之前不得表述为“A 已通过验收”。",
+            "",
+        ]
+    else:
+        lines += ["**A 基础验收结论：通过**（0 项 A 缺陷）。", ""]
+    lines += [
         "| 项 | 检查 | 状态 | 命令/rc | 关键摘录 |",
         "|---|---|---|---|---|",
     ]
@@ -904,6 +977,7 @@ def main() -> int:
     REPORTS.mkdir(parents=True, exist_ok=True)
     only = {s.strip() for s in os.environ.get("E_AB_ONLY", "").split(",") if s.strip()}
     formal = not only
+    I.set_output_mode(formal)  # 入口一次性决定全部输出目录（诊断只写 reports/）
 
     def want(name: str) -> bool:
         return not only or name in only

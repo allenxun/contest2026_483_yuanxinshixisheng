@@ -9,9 +9,11 @@ backend/acceptance/evidence/A-baseline-<UTC日期>/（随代码提交）。
 from __future__ import annotations
 
 import datetime
+import fcntl
 import json
 import os
 import pathlib
+import secrets
 import shutil
 import signal
 import socket
@@ -42,10 +44,36 @@ APP_BASE = f"http://127.0.0.1:{APP_PORT}"
 WORKER_BASE = f"http://127.0.0.1:{WORKER_HEALTH_PORT}"
 
 DATE_UTC = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
-RUN_ID = "E-AB-" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+RUN_ID = ("E-AB-" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+          + "-" + secrets.token_hex(4))  # 随机后缀：同秒并发 run 标签不冲突
 REPORTS = ROOT / "reports" / RUN_ID
-EVID = ROOT / "evidence" / f"A-baseline-{DATE_UTC}"
-LOGS = EVID / "logs"
+FORMAL_EVIDENCE = ROOT / "evidence" / f"A-baseline-{DATE_UTC}"
+LOGS = FORMAL_EVIDENCE / "logs"  # 兼容旧引用；真实输出目录由 set_output_mode 决定
+#: 全部输出目录由入口一次性决定：正式→evidence/，诊断→reports/<RUN_ID>/（gitignored）。
+OUTPUT: dict[str, pathlib.Path] = {"evidence": FORMAL_EVIDENCE, "logs": LOGS,
+                                   "formal_evidence": FORMAL_EVIDENCE}
+
+
+def set_output_mode(formal: bool, *, reports: pathlib.Path | None = None,
+                    date: str | None = None) -> dict[str, pathlib.Path]:
+    """入口一次性设定所有输出目录；阶段函数只能经 out_evidence()/out_logs() 取用，
+    不得自行拼正式 evidence 路径。诊断模式一律写 reports/<RUN_ID>/（gitignored）。"""
+    base = reports or (ROOT / "reports")
+    formal_dir = ROOT / "evidence" / f"A-baseline-{date or DATE_UTC}"
+    if formal:
+        ev, logs = formal_dir, formal_dir / "logs"
+    else:
+        ev, logs = base / RUN_ID, base / RUN_ID / "logs"
+    OUTPUT.update({"evidence": ev, "logs": logs, "formal_evidence": formal_dir})
+    return dict(OUTPUT)
+
+
+def out_evidence() -> pathlib.Path:
+    return OUTPUT["evidence"]
+
+
+def out_logs() -> pathlib.Path:
+    return OUTPUT["logs"]
 
 # 固定命名空间（与 Java/Python 一致：Uuid5.FIXED_NS）
 FIXED_NS = uuid.UUID("f988d041-6031-5120-8075-f90b6b05553e")
@@ -128,22 +156,37 @@ def check_ports() -> dict[str, bool]:
 
 
 LOCK_FILE = ROOT / "reports" / ".a-baseline.lock"
+_LOCK_HANDLE = None  # 持有 flock 至 finally，进程退出自动释放
 
 
 def acquire_single_instance_lock() -> tuple[bool, str]:
-    """E 入口单实例锁：lockfile + PID 活性。返回 (ok, reason)。"""
+    """fcntl.flock 非阻塞原子单实例锁；内容 PID+RUN_ID，持有至 release。"""
+    global _LOCK_HANDLE
     LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
-    if LOCK_FILE.exists():
-        parts = LOCK_FILE.read_text(encoding="utf-8").split()
-        pid = int(parts[0]) if parts and parts[0].isdigit() else None
-        if pid and pathlib.Path(f"/proc/{pid}").exists():
-            return False, f"另一 E a-baseline 运行中（pid={pid}，lock={LOCK_FILE}）"
-        LOCK_FILE.unlink(missing_ok=True)  # 陈旧锁：持有进程已死
-    LOCK_FILE.write_text(f"{os.getpid()} {RUN_ID}\n", encoding="utf-8")
+    handle = open(LOCK_FILE, "a+", encoding="utf-8")
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.seek(0)
+        holder = handle.read().strip()
+        handle.close()
+        return False, f"另一 E a-baseline 运行中（lock={LOCK_FILE} holder={holder!r}）"
+    handle.seek(0)
+    handle.truncate()
+    handle.write(f"{os.getpid()} {RUN_ID}\n")
+    handle.flush()
+    _LOCK_HANDLE = handle
     return True, ""
 
 
 def release_single_instance_lock() -> None:
+    global _LOCK_HANDLE
+    if _LOCK_HANDLE is not None:
+        try:
+            fcntl.flock(_LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
+        finally:
+            _LOCK_HANDLE.close()
+            _LOCK_HANDLE = None
     LOCK_FILE.unlink(missing_ok=True)
 
 
@@ -324,5 +367,50 @@ def http(method: str, path: str, token: str | None = None, body=None, headers=No
 
 
 def evidence_text(name: str, content: str) -> None:
-    LOGS.mkdir(parents=True, exist_ok=True)
-    (LOGS / name).write_text(content, encoding="utf-8")
+    d = out_logs()
+    d.mkdir(parents=True, exist_ok=True)
+    (d / name).write_text(content, encoding="utf-8")
+
+
+def wait_worker_ready(timeout_s: int = 45) -> tuple[bool, str]:
+    """健康判定绑定本 run 的 worker 子进程：进程死亡立即失败并附退出码+日志尾。"""
+    end = time.time() + timeout_s
+    hz = rz = False
+    while time.time() < end:
+        if WORKER_PROC is None or WORKER_PROC.poll() is not None:
+            rc = WORKER_PROC.returncode if WORKER_PROC else "no-proc"
+            tail = ""
+            p = REPORTS / "worker-loop.log"
+            if p.exists():
+                tail = " ".join(p.read_text(encoding="utf-8", errors="replace").splitlines()[-3:])
+            return False, f"worker 进程死亡 rc={rc} log_tail={tail[:300]}"
+        try:
+            if requests.get(f"{WORKER_BASE}/healthz", timeout=2, proxies=None).status_code == 200:
+                hz = True
+            if requests.get(f"{WORKER_BASE}/readyz", timeout=2, proxies=None).status_code == 200:
+                rz = True
+            if hz and rz:
+                return True, "healthz=UP readyz=UP"
+        except Exception:
+            pass
+        time.sleep(1)
+    return False, f"超时未就绪 healthz={hz} readyz={rz}"
+
+
+def terminate_worker(timeout_s: int = 40) -> tuple[int | str, bool]:
+    """对本 run 的真实 worker Popen 发 SIGTERM 并等待；返回 (returncode, graceful)。"""
+    global WORKER_PROC
+    if WORKER_PROC is None:
+        return "no-proc", False
+    if WORKER_PROC.poll() is None:
+        WORKER_PROC.send_signal(signal.SIGTERM)
+    try:
+        rc = WORKER_PROC.wait(timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        WORKER_PROC.kill()
+        rc = WORKER_PROC.wait(timeout=10)
+    log = (REPORTS / "worker-loop.log").read_text(encoding="utf-8", errors="replace") \
+        if (REPORTS / "worker-loop.log").exists() else ""
+    graceful = any(k in log.lower() for k in ("shutdown", "stop", "signal"))
+    WORKER_PROC = None
+    return rc, graceful

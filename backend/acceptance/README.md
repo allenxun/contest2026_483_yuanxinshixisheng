@@ -9,11 +9,15 @@ E 工作包的机器可执行验收框架：**纯黑盒、HTTP 驱动**，只通
 
 ## 诚实声明（当前状态）
 
-A 基线（公共构建、14 表迁移、认证主体上下文、幂等/代次公共设施、外部适配端口）**已交付
-并通过 E 独立基础验收**（见 `evidence/A-baseline-*/summary.md`）；当前阻塞变为
-**B/C/D 业务实现未集成**（26 个业务端点为 501 NOT_IMPLEMENTED stub）。`config/baseline.json`
-保持 `"gate":"closed"`，**全部 94 个场景节点状态为 `dependency_pending`**。框架把这类挂起与普通 skip 分开统
-计；matrix 模式另有一层结算守卫：94 个场景必须逐一唯一结算，否则退出码 4——**任何情况下绝不返回 0**，不允许以全 skip、空收集或改命令行选项冒充通过。
+A 基线（公共构建、14 表迁移、认证主体上下文、幂等/代次公共设施、外部适配端口）已交付，
+E 已完成独立基础验收：**结论为未通过**——52/52 唯一结算中 51 PASS / 1 FAIL（A 缺陷：
+`system.echo` GET 原样投影 `data.lastError`，含敏感标记串且未限大小；最小复现见
+`evidence/A-baseline-*/logs/n2-http-repro.txt`）；**待 A 修复后绑定新 A SHA 定向重验**。
+当前业务阻塞为 **B/C/D 业务实现未集成**（26 个业务端点为 501 NOT_IMPLEMENTED stub）。
+`config/baseline.json` 保持 `"gate":"closed"`，**全部 94 个场景节点状态为
+`dependency_pending`**。框架把这类挂起与普通 skip 分开统计；matrix 模式另有一层结算守卫：
+94 个场景必须逐一唯一结算，否则退出码 4——**任何情况下绝不返回 0**，不允许以全 skip、
+空收集或改命令行选项冒充通过。
 
 ## 目录
 
