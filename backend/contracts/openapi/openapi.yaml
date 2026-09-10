@@ -1592,8 +1592,13 @@ paths:
         installation 只属 T13 作用域，不进 owner_id（同账号跨安装可读自己账号
         的任务）。返回受理信封 {jobId, dedupKey, status:"queued"}。
         Idempotency-Key 可选：提供时走 T13（operation=system.echo.create），
-        同 principal 同键同内容重放返回同一 jobId 与 meta.replayed=true；
-        不同 principal 即使同键也是不同 T13 作用域（各自新任务，不跨暴露）；
+        同 principal 同键同内容重放返回同一 jobId 与 meta.replayed=true。
+        不同 principal 即使同键也是不同 T13 作用域（键去重不跨主体）。
+        <b>显式 body jobId 的全局 dedup 边界（RV-7）</b>：dedup_key 全局唯一，
+        JobEnqueuer 若命中非本人所有或非 system.echo 的既有行，POST 返回与 GET
+        <b>完全相同</b>的 404 RESOURCE_NOT_VISIBLE（绝不返回该行的 id/status）；
+        有 Idempotency-Key 时该次 T13 记为 rejected，同键重试重放同一拒绝，绝不
+        succeeded 指向外来 job。同 principal 命中自有 echo 行 = 合法 dedup 重放。
         同键异内容 409 IDEMPOTENCY_CONTENT_CONFLICT；处理中 409
         REQUEST_IN_PROGRESS + Retry-After。Python worker（B/P 包）以正确租约
         代次完成该任务后，GET 本资源投影可见状态变化。

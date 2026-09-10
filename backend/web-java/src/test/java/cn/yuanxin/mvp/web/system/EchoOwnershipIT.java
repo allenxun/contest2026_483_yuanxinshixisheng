@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,14 +28,20 @@ class EchoOwnershipIT extends AbstractWebIT {
     @Autowired
     JdbcTemplate jdbc;
 
-    private String postEcho(String token, String key, String jobId) throws Exception {
+    private MvcResult postEchoRaw(String token, String key, String jobId) throws Exception {
         String body = "{\"message\":\"own\",\"numbersAsStrings\":[\"1\"]"
                 + (jobId == null ? "" : ",\"jobId\":\"" + jobId + "\"") + "}";
-        MvcResult r = mockMvc.perform(post("/api/v1/system/echo-jobs")
-                        .header("Authorization", "Bearer " + token)
-                        .header("Idempotency-Key", key)
-                        .contentType("application/json").content(body))
-                .andReturn();
+        var req = post("/api/v1/system/echo-jobs")
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json").content(body);
+        if (key != null) {
+            req = req.header("Idempotency-Key", key);
+        }
+        return mockMvc.perform(req).andReturn();
+    }
+
+    private String postEcho(String token, String key, String jobId) throws Exception {
+        MvcResult r = postEchoRaw(token, key, jobId);
         assertEquals(200, r.getResponse().getStatus(), r.getResponse().getContentAsString());
         return JSON.readTree(r.getResponse().getContentAsString()).path("data").path("jobId").asText();
     }
@@ -142,5 +149,85 @@ class EchoOwnershipIT extends AbstractWebIT {
         assertEquals(404, getJob(a.accessToken(), jobB).getResponse().getStatus());
         assertEquals(200, getJob(b.accessToken(), jobB).getResponse().getStatus());
         assertEquals(404, getJob(b.accessToken(), jobA).getResponse().getStatus());
+    }
+
+    @Test
+    @DisplayName("(g) 两账号同显式 body jobId 无 Idempotency-Key：A 200；B 得统一 404；A 行不变、无 B 行/无 B T13")
+    void dedupCollisionWithoutKeyDeniesForeign() throws Exception {
+        LoginResult a = loginAppWithInstallation(newPhone(), "inst-own-g1");
+        LoginResult b = loginAppWithInstallation(newPhone(), "inst-own-g2");
+        String explicit = UUID.randomUUID().toString();
+
+        String jobA = postEcho(a.accessToken(), null, explicit);
+        Map<String, Object> before = jdbc.queryForMap(
+                "SELECT owner_type, owner_id::text AS owner_id, status FROM async_jobs WHERE id = ?::uuid",
+                jobA);
+
+        MvcResult foreign = postEchoRaw(b.accessToken(), null, explicit);
+        MvcResult deniedGet = getJob(b.accessToken(), UUID.randomUUID().toString());
+        assertEquals(404, foreign.getResponse().getStatus());
+        assertEquals(errorOf(foreign), errorOf(deniedGet),
+                "POST dedup-denial vs GET denial must be the same error envelope");
+
+        Map<String, Object> after = jdbc.queryForMap(
+                "SELECT owner_type, owner_id::text AS owner_id, status FROM async_jobs WHERE id = ?::uuid",
+                jobA);
+        assertEquals(before, after, "A's job row must be unchanged");
+        assertEquals(a.accountId(), after.get("owner_id"));
+        assertEquals(0, (int) jdbc.queryForObject(
+                "SELECT count(*) FROM async_jobs WHERE owner_type='app_account' AND owner_id = ?::uuid",
+                Integer.class, b.accountId()));
+        assertEquals(0, (int) jdbc.queryForObject(
+                "SELECT count(*) FROM idempotency_requests WHERE principal_id = ?",
+                Integer.class, b.accountId() + ":inst-own-g2"));
+    }
+
+    @Test
+    @DisplayName("(h) 两账号同显式 jobId + 各自 Idempotency-Key：B 首次即 404（非 succeeded）；B T13 rejected；重试重放同 404")
+    void dedupCollisionWithKeyRejectsDeterministically() throws Exception {
+        LoginResult a = loginAppWithInstallation(newPhone(), "inst-own-h1");
+        LoginResult b = loginAppWithInstallation(newPhone(), "inst-own-h2");
+        String explicit = UUID.randomUUID().toString();
+        String keyA = "own-h-a-" + UUID.randomUUID();
+        String keyB = "own-h-b-" + UUID.randomUUID();
+
+        String jobA = postEcho(a.accessToken(), keyA, explicit);
+        Map<String, Object> before = jdbc.queryForMap(
+                "SELECT owner_type, owner_id::text AS owner_id, status FROM async_jobs WHERE id = ?::uuid",
+                jobA);
+
+        MvcResult first = postEchoRaw(b.accessToken(), keyB, explicit);
+        assertEquals(404, first.getResponse().getStatus(),
+                "B first keyed attempt must be 404, not succeeded: "
+                        + first.getResponse().getContentAsString());
+
+        Map<String, Object> t13 = jdbc.queryForMap(
+                "SELECT status, result_summary->>'code' AS code FROM idempotency_requests"
+                        + " WHERE principal_id = ? AND idempotency_key = ?",
+                b.accountId() + ":inst-own-h2", keyB);
+        assertEquals("rejected", t13.get("status"));
+        assertEquals("RESOURCE_NOT_VISIBLE", t13.get("code"));
+
+        MvcResult retry = postEchoRaw(b.accessToken(), keyB, explicit);
+        assertEquals(404, retry.getResponse().getStatus());
+        assertEquals(errorOf(first), errorOf(retry), "retry must replay the same rejection envelope");
+
+        Map<String, Object> after = jdbc.queryForMap(
+                "SELECT owner_type, owner_id::text AS owner_id, status FROM async_jobs WHERE id = ?::uuid",
+                jobA);
+        assertEquals(before, after, "A's job row must be unchanged");
+        assertEquals(0, (int) jdbc.queryForObject(
+                "SELECT count(*) FROM async_jobs WHERE owner_type='app_account' AND owner_id = ?::uuid",
+                Integer.class, b.accountId()));
+    }
+
+    @Test
+    @DisplayName("(i) 同账号同显式 jobId 无键二次提交 → 200 同一 jobId（既有 dedup 语义保留）")
+    void samePrincipalDedupUnchanged() throws Exception {
+        LoginResult a = loginAppWithInstallation(newPhone(), "inst-own-i");
+        String explicit = UUID.randomUUID().toString();
+        String jobA1 = postEcho(a.accessToken(), null, explicit);
+        String jobA2 = postEcho(a.accessToken(), null, explicit);
+        assertEquals(jobA1, jobA2);
     }
 }

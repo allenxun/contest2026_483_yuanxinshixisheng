@@ -232,8 +232,18 @@ auth_revision / credential_version；disabled、revision 递增、版本轮换�
   只属 T13 作用域、**不进 owner_id**（同账号跨安装可读本账号任务）。理由：
   echo 是账号级诊断端点，T13 作用域仍为 account+installation。
 - POST 重放：同 principal 同键重放返回原 jobId（`meta.replayed=true`）；不同
-  principal 即使同键也是不同 T13 作用域 → 各自新任务，不跨暴露。GET 每次从
-  持久化行派生创建者并比对；T13 重放投影亦复核归属（防御性）。
+  principal 即使同键也是不同 T13 作用域（键去重不跨主体）。
+- **显式 body jobId 的全局 dedup 边界（RV-7）**：`dedup_key` 全局唯一；
+  JobEnqueuer 命中的既有行若非本人所有或非 `system.echo`，POST 在记录 T13
+  成功**之前**即按 creator/type 复核，并返回与 GET **完全相同**的
+  404 `RESOURCE_NOT_VISIBLE`（不泄露该行 id/status/归属/类型）；有
+  Idempotency-Key 时该次 T13 记为 `rejected`，同键重试重放同一拒绝（绝不
+  succeeded 指向外来 job）。同 principal 命中自有 echo 行 = 合法 dedup 重放。
+- 契约同步：`schemas/job-async_jobs.json` 的 `owner_type` 枚举扩展
+  `app_account`/`gimbal`；新增 `samples/jobs/echo-handoff-app-created.json` 与
+  `echo-handoff-gimbal-created.json`（实际 POST 插入形状）并纳入
+  `validate_samples.py`。GET 每次从持久化行派生创建者并比对；T13 重放投影亦
+  复核归属（防御性）。
 - Worker 领取/续租/回收/完成**不读取** `owner_type/owner_id` 做行为分支
   （仅进入日志字段），归属变更不影响 T12 运行时；worker 测试镜像改为
   `app_account` 形状（测试专用，非运行时语义）。
