@@ -67,6 +67,20 @@ settled_unique、四类计数、settlement_ok、completed），`run.sh` 在 pyte
 `PASSED=n DEPENDENCY_PENDING=m FAILED=k SKIPPED_OTHER=s MODE=... RUN_ID=...` 与
 `SETTLED=x/94 EVIDENCE_TAGS ...`。
 
+### a-baseline（E 对 A 基线的独立验收）
+
+```bash
+backend/acceptance/run.sh a-baseline   # 真实 PG/Java/worker；总退出码见下
+```
+
+退出码语义：`0` = 结算完整（52/52 唯一结算，各状态计数和==行数）且 **0 FAIL、0 BLOCKED**；
+`1` = 有 FAIL **或有 BLOCKED**（A 缺陷或受阻项）；`4` = 结算不完整（缺项/多项/重复）或出现
+未知状态。**通过条件不含"仅无 FAIL"**：BLOCKED 同样导致未通过。
+**INFO 政策（附条件接受）**：INFO 允许总体 exit 0，但 conclusion/终端/summary 必须显式列出
+INFO 残项（例："通过（附条件）：1 INFO 待人工复核（N2-codereview）"），不得由"无 FAIL"隐式
+判定为通过。诊断模式（`E_AB_ONLY=...`）只写 `reports/<RUN_ID>/`（gitignored），标注 PARTIAL，
+**绝不写/覆盖 `evidence/` 正式路径**。
+
 ## 状态语义
 
 - **passed**：场景步骤真实执行并通过，且**passed 与证据强绑定**：插件强制要求该

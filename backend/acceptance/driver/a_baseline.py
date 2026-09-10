@@ -720,16 +720,18 @@ def n2_http_verdict(status, target_job, body, marker=None, limit=N2_LAST_ERROR_L
     if str(got_id or "") != str(target_job):
         return False, f"data.jobId={got_id!r} 与目标 job 不符"
     if "lastError" not in data:
-        return None, "响应缺 data.lastError 字段（投影形态未知，不能判定）"
+        # 保守：字段缺失视为投影形态未知（BLOCKED，绝不导致总体通过）。若 A 未来按公共
+        # 契约删除该字段，须先经契约确认再调整本预期（届时应在契约变更评审中同步）。
+        return None, "响应缺 data.lastError 字段（投影形态未知，保守判 BLOCKED）"
     le = data.get("lastError")
     if le is None:
-        return True, "lastError 为空（未投影诊断内容，合规）"
+        return True, "本样本响应未暴露诊断内容（lastError=null）"
     blob = json.dumps(le, ensure_ascii=False)
     if marker and marker in blob:
         return False, f"marker 原样回显（len={len(blob)}）"
     if len(blob) > limit:
         return False, f"未限大小（len={len(blob)} > {limit}）"
-    return True, f"已脱敏且在限内（len={len(blob)}）"
+    return True, f"本样本未回显 marker 且在限内（len={len(blob)}）；不构成通用脱敏保证"
 
 
 def stage_n2_http():
@@ -740,19 +742,23 @@ def stage_n2_http():
             blocked="AB-06a 未产出 jobId，无法实测")
         return
     marker = "Bearer E2E_DIAG_SECRET_MARKER_12345"
-    variants = [("marker", {"code": "E_DIAG_MARKER", "message": marker, "retryable": False}),
-                ("long", {"code": "E_DIAG_LONG", "message": "L" * 4000, "retryable": False})]
+    # 复现 SQL 用 jsonb_build_object/repeat 生成精简且**完整可执行**的语句（不截断）。
+    variants = [
+        ("marker", "jsonb_build_object('code','E_DIAG_MARKER','message',"
+                   f"'{marker}','retryable',false)"),
+        ("long", "jsonb_build_object('code','E_DIAG_LONG','message',repeat('L',4000),"
+                 "'retryable',false)"),
+    ]
     verdicts, repro = [], [f"jobId={job}（合成数据，无真实凭据）"]
     http_codes = []
-    for name, err in variants:
-        ej = json.dumps(err, ensure_ascii=False).replace("'", "''")
-        sql = (f"WITH u AS (UPDATE async_jobs SET last_error='{ej}'::jsonb "
+    for name, err_sql in variants:
+        sql = (f"WITH u AS (UPDATE async_jobs SET last_error={err_sql} "
                f"WHERE id='{job}' RETURNING id) SELECT count(*) FROM u")
         cp = I.psql(sql)
         rows = cp.stdout.strip()
         if cp.returncode != 0 or rows != "1":
             verdicts.append((None, f"{name}: 诊断 UPDATE 失败 rc={cp.returncode} rows={rows!r}"))
-            repro.append(f"SQL[{name}]: {sql[:300]} -> rc={cp.returncode} rows={rows!r}")
+            repro.append(f"SQL[{name}]: {sql}\n-> rc={cp.returncode} rows={rows!r}")
             continue
         code, body, _ = I.http("GET", f"/api/v1/system/echo-jobs/{job}", token=CTX["token"])
         http_codes.append(str(code))
@@ -761,7 +767,7 @@ def stage_n2_http():
         le_blob = json.dumps(le, ensure_ascii=False) if le is not None else ""
         verdicts.append((v, f"{name}: {why}"))
         repro.append(
-            f"SQL[{name}]: {sql[:300]}\n"
+            f"SQL[{name}]（完整可执行）: {sql}\n"
             f"curl --noproxy '*' -H 'Authorization: Bearer <token>' "
             f"{APP_BASE}/api/v1/system/echo-jobs/{job} -> http={code}\n"
             f"data.lastError[:400]={le_blob[:400]!r}\n"
@@ -830,23 +836,41 @@ def cleanup():
         "PASS" if freed else "FAIL", "ss probe", "0", "")
 
 
+KNOWN_STATUSES = ("PASS", "FAIL", "BLOCKED", "INFO")
+
+
 def settlement():
     ids = [r["id"] for r in R.rows]
     dup = sorted({x for x in ids if ids.count(x) > 1})
     settled = set(ids)
     missing = sorted(EXPECTED_CHECKS - settled)
     extra = sorted(settled - EXPECTED_CHECKS)
-    return {"ids": ids, "settled": len(settled), "expected": len(EXPECTED_CHECKS),
-            "missing": missing, "extra": extra, "duplicates": dup,
-            "pass": R.count("PASS"), "fail": R.count("FAIL"), "blocked": R.count("BLOCKED")}
+    statuses = [r["status"] for r in R.rows]
+    unknown = sorted({s for s in statuses if s not in KNOWN_STATUSES})
+    counts = {name.lower(): sum(1 for s in statuses if s == name) for name in KNOWN_STATUSES}
+    return {"ids": ids, "settled": len(settled), "rows": len(ids),
+            "expected": len(EXPECTED_CHECKS), "missing": missing, "extra": extra,
+            "duplicates": dup, "unknown_status": unknown, "counts": counts,
+            "pass": counts["pass"], "fail": counts["fail"],
+            "blocked": counts["blocked"], "info": counts["info"]}
+
+
+def settlement_complete(settle: dict) -> bool:
+    """结算完整 = 无缺项/多项/重复/未知状态，且各合法状态计数之和==结算行数。"""
+    return (not settle.get("missing") and not settle.get("extra")
+            and not settle.get("duplicates") and not settle.get("unknown_status")
+            and sum(settle["counts"].values()) == settle.get("rows", -1))
 
 
 def final_exit(formal: bool, settle: dict) -> int:
-    """正式模式：有 FAIL→1；结算不完整（缺项/多项/重复）→4；否则 0。
-    诊断模式：有 FAIL→1 否则 0（PARTIAL，不落 evidence）。CLEANUP FAIL 计入 fail。"""
-    if settle.get("fail", 0) > 0:
+    """退出码：0=结算完整且无 FAIL 无 BLOCKED（INFO 为附条件接受，须显式披露）；
+    1=有 FAIL 或有 BLOCKED；4=结算不完整/缺项/多项/重复/未知状态（正式模式）。
+    诊断模式（PARTIAL，不落 evidence）：有 FAIL/BLOCKED→1，否则 0，不判 4。"""
+    if settle.get("unknown_status"):
+        return 4
+    if settle.get("fail", 0) > 0 or settle.get("blocked", 0) > 0:
         return 1
-    if formal and (settle.get("missing") or settle.get("extra") or settle.get("duplicates")):
+    if formal and not settlement_complete(settle):
         return 4
     return 0
 
@@ -876,14 +900,34 @@ def save_log_excerpts():
         excerpt(p.name, "production fail-closed", tail=3)
 
 
+def conclusion_line(settle: dict) -> str:
+    """结论三态：未通过（FAIL/BLOCKED/结算不完整/未知状态）/ 通过（附条件，有 INFO）/ 通过。"""
+    if settle.get("unknown_status"):
+        return f"**A 基础验收结论：拒绝**——出现未知状态 {settle['unknown_status']}，不得判定通过。"
+    if settle.get("fail", 0) > 0 or settle.get("blocked", 0) > 0:
+        return (f"**A 基础验收结论：未通过**——{settle['fail']} 项 FAIL / {settle['blocked']} 项 "
+                "BLOCKED（见下）；待 A 修复后绑定新 A SHA 定向重验；在此之前不得表述为"
+                "“A 已通过验收”。")
+    if not settlement_complete(settle):
+        return (f"**A 基础验收结论：未通过**——结算不完整（missing={settle['missing']} "
+                f"extra={settle['extra']} duplicates={settle['duplicates']}），不得判定通过。")
+    if settle.get("info", 0) > 0:
+        ids = [r["id"] for r in R.rows if r["status"] == "INFO"]
+        return (f"**A 基础验收结论：通过（附条件）**——{settle['info']} 项 INFO 待人工复核"
+                f"（{ids}），已有自动化项 0 FAIL / 0 BLOCKED；附条件项须人工复核后方可视为完成。")
+    return "**A 基础验收结论：通过**（0 FAIL / 0 BLOCKED / 0 INFO）。"
+
+
 def write_outputs(formal: bool, settle: dict, rc: int):
     result = {"schema": "e-acceptance-a-baseline/1", "run_id": I.RUN_ID,
               "mode": "formal" if formal else "diagnostic(PARTIAL)",
               "baseline": BASELINE, "expected": settle["expected"],
               "settled": settle["settled"], "missing": settle["missing"],
               "extra": settle["extra"], "duplicates": settle["duplicates"],
+              "unknown_status": settle.get("unknown_status", []),
               "counts": {"pass": settle["pass"], "fail": settle["fail"],
-                         "blocked": settle["blocked"]},
+                         "blocked": settle["blocked"], "info": settle["info"]},
+              "counts_sum": sum(settle["counts"].values()), "rows": settle.get("rows"),
               "final_exit": rc, "results": R.rows}
     REPORTS.mkdir(parents=True, exist_ok=True)
     (REPORTS / "results.json").write_text(json.dumps(result, ensure_ascii=False, indent=2),
@@ -894,7 +938,7 @@ def write_outputs(formal: bool, settle: dict, rc: int):
     EVID = I.out_evidence()
     EVID.mkdir(parents=True, exist_ok=True)
     save_log_excerpts()
-    p, f, b = settle["pass"], settle["fail"], settle["blocked"]
+    p, f, b, n = settle["pass"], settle["fail"], settle["blocked"], settle["info"]
     lines = [
         f"# E 独立 A 基线验收证据（{I.DATE_UTC}，run {I.RUN_ID}）",
         "",
@@ -915,27 +959,26 @@ def write_outputs(formal: bool, settle: dict, rc: int):
         "E 专属 PG + 受控测试回调，**非 HTTP 链路**，不改 A 源码。",
         "",
         f"## 结算：{settle['settled']}/{settle['expected']} 唯一结算；"
-        f"{p} PASS / {f} FAIL / {b} BLOCKED；final_exit={rc}",
+        f"{p} PASS / {f} FAIL / {b} BLOCKED / {n} INFO（计数和={sum(settle['counts'].values())}"
+        f"==行数 {settle.get('rows')}）；final_exit={rc}",
         "",
         (f"结算缺口：missing={settle['missing']} extra={settle['extra']} "
-         f"duplicates={settle['duplicates']}"),
+         f"duplicates={settle['duplicates']} unknown={settle.get('unknown_status')}"),
         "",
-    ]
-    if f > 0:
-        lines += [
-            f"**A 基础验收结论：未通过**——{f} 项 A 缺陷（见下）未修复；"
-            "**待 A 修复后，绑定新 A SHA 对本项做定向重验**；在此之前不得表述为“A 已通过验收”。",
-            "",
-        ]
-    else:
-        lines += ["**A 基础验收结论：通过**（0 项 A 缺陷）。", ""]
-    lines += [
+        conclusion_line(settle),
+        "",
         "| 项 | 检查 | 状态 | 命令/rc | 关键摘录 |",
         "|---|---|---|---|---|",
     ]
     for r in R.rows:
         lines.append(f"| {r['id']} | {r['title']} | **{r['status']}** | "
                      f"{r['command']} / {r['rc']} | {r['excerpt']} |")
+    infos = [r for r in R.rows if r["status"] == "INFO"]
+    lines += ["", "## INFO 附条件项（待人工复核）", ""]
+    if not infos:
+        lines.append("（无）")
+    for r in infos:
+        lines.append(f"- **{r['id']}** {r['title']}；{r['excerpt']}")
     fails = [r for r in R.rows if r["status"] == "FAIL"]
     lines += ["", "## A 缺陷清单（如实；未修 A 源码）", ""]
     if not fails:
@@ -966,8 +1009,9 @@ def write_outputs(formal: bool, settle: dict, rc: int):
     (EVID / "summary.md").write_text("\n".join(lines), encoding="utf-8")
     (EVID / "results.json").write_text(json.dumps(result, ensure_ascii=False, indent=2),
                                        encoding="utf-8")
-    print(f"\n=== E A-baseline: {p} PASS / {f} FAIL / {b} BLOCKED "
+    print(f"\n=== E A-baseline: {p} PASS / {f} FAIL / {b} BLOCKED / {n} INFO "
           f"(settled {settle['settled']}/{settle['expected']}, exit={rc}) ===")
+    print(conclusion_line(settle))
     print(f"evidence: {EVID}/summary.md")
 
 

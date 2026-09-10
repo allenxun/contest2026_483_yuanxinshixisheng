@@ -180,6 +180,8 @@ def acquire_single_instance_lock() -> tuple[bool, str]:
 
 
 def release_single_instance_lock() -> None:
+    """只解锁+关闭，**绝不 unlink**：删文件会让后来者对新 inode 取锁，破坏单实例保证。
+    锁文件常驻；PID/RUN_ID 文本在下次取得锁时覆盖写。"""
     global _LOCK_HANDLE
     if _LOCK_HANDLE is not None:
         try:
@@ -187,7 +189,6 @@ def release_single_instance_lock() -> None:
         finally:
             _LOCK_HANDLE.close()
             _LOCK_HANDLE = None
-    LOCK_FILE.unlink(missing_ok=True)
 
 
 def container_owned_by_run() -> bool:

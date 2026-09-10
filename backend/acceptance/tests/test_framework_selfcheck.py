@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
 import os
@@ -354,16 +355,60 @@ def test_pass_with_sealed_evidence_and_doubles_is_allowed():
 
 # ---------- 第五轮：a-baseline 结算门禁 + 诊断模式不落 evidence ----------
 
+def _settle(pass_n=0, fail_n=0, blocked_n=0, info_n=0, expected=52, rows=None,
+            missing=(), extra=(), duplicates=(), unknown=()):
+    counts = {"pass": pass_n, "fail": fail_n, "blocked": blocked_n, "info": info_n}
+    return {"expected": expected, "settled": rows if rows is not None else sum(counts.values()),
+            "rows": rows if rows is not None else sum(counts.values()),
+            "missing": list(missing), "extra": list(extra), "duplicates": list(duplicates),
+            "unknown_status": list(unknown), "counts": counts,
+            "pass": pass_n, "fail": fail_n, "blocked": blocked_n, "info": info_n}
+
+
+def test_ab_final_exit_policy_e2e_five_scenarios():
+    """端到端（跨 final_exit→conclusion）五场景，不止纯函数。"""
+    from driver import a_baseline as ab
+    # (a) 51 PASS + 1 BLOCKED 结算完整 → exit≠0 且结论无“通过（无附条件）”
+    sa = _settle(pass_n=51, blocked_n=1)
+    assert ab.final_exit(True, sa) == 1
+    assert "未通过" in ab.conclusion_line(sa)
+    # (b) 缺项 → exit 4 且结论为“未通过”（不得出现“结论：通过”）
+    sb = _settle(pass_n=51, missing=["AB-03"])
+    assert ab.final_exit(True, sb) == 4
+    cb = ab.conclusion_line(sb)
+    assert "未通过" in cb and "结论：通过" not in cb
+    # (c) 51 PASS + 1 INFO 结算完整 → exit 0 且结论含附条件披露
+    sc = _settle(pass_n=51, info_n=1)
+    assert ab.final_exit(True, sc) == 0
+    concl = ab.conclusion_line(sc)
+    assert "通过（附条件）" in concl and "INFO" in concl
+    # (d) 任一 FAIL → exit 1 未通过
+    sd = _settle(pass_n=51, fail_n=1)
+    assert ab.final_exit(True, sd) == 1 and "未通过" in ab.conclusion_line(sd)
+    # (e) 未知状态 → 拒绝（exit 4）
+    se = _settle(pass_n=51, blocked_n=0, unknown=["WEIRD"])
+    assert ab.final_exit(True, se) == 4 and "拒绝" in ab.conclusion_line(se)
+
+
 def test_ab_final_exit_settlement_gate():
     from driver import a_baseline as ab
-    full = {"fail": 0, "missing": [], "extra": [], "duplicates": []}
-    assert ab.final_exit(True, full) == 0                     # 全结算无失败
-    assert ab.final_exit(True, {**full, "missing": ["AB-03"]}) == 4   # 结算缺项 → 4
-    assert ab.final_exit(True, {**full, "extra": ["AB-XX"]}) == 4
-    assert ab.final_exit(True, {**full, "duplicates": ["AB-03"]}) == 4
-    assert ab.final_exit(True, {**full, "fail": 1}) == 1       # 有 FAIL（含 CLEANUP FAIL）→ 1
-    assert ab.final_exit(True, {**full, "fail": 1, "missing": ["AB-03"]}) == 1  # FAIL 优先
-    assert ab.final_exit(False, {**full, "missing": ["AB-03"]}) == 0  # 诊断 PARTIAL 不判 4
+    ok = _settle(pass_n=52)
+    assert ab.final_exit(True, ok) == 0
+    assert ab.final_exit(True, _settle(pass_n=51, missing=["AB-03"])) == 4
+    assert ab.final_exit(True, _settle(pass_n=51, extra=["AB-XX"])) == 4
+    assert ab.final_exit(True, _settle(pass_n=51, duplicates=["AB-03"])) == 4
+    assert ab.final_exit(True, _settle(pass_n=51, fail_n=1)) == 1
+    assert ab.final_exit(True, _settle(pass_n=51, blocked_n=1)) == 1     # BLOCKED 不算通过
+    assert ab.final_exit(False, _settle(pass_n=51, missing=["AB-03"])) == 0  # 诊断不判 4
+
+
+def test_ab_settlement_counts_sum_and_info():
+    from driver import a_baseline as ab
+    st = _settle(pass_n=50, fail_n=1, info_n=1)
+    assert st["info"] == 1 and sum(st["counts"].values()) == st["rows"] == 52
+    assert ab.settlement_complete(st) is True
+    bad = _settle(pass_n=50, fail_n=1, info_n=1, rows=53)  # 计数和 != 行数
+    assert ab.settlement_complete(bad) is False
 
 
 def test_ab_expected_checks_cover_all_items():
@@ -386,8 +431,7 @@ def test_ab_diagnostic_mode_writes_reports_only(tmp_path, monkeypatch):
 
     monkeypatch.setattr(ab, "REPORTS", tmp_path / "reports")
     monkeypatch.setattr(ab, "R", FakeRows())
-    ab.write_outputs(False, {"expected": 1, "settled": 0, "missing": ["AB-01a"], "extra": [],
-                             "duplicates": [], "pass": 0, "fail": 0, "blocked": 0}, 0)
+    ab.write_outputs(False, _settle(pass_n=0, expected=1, rows=0, missing=["AB-01a"]), 0)
     assert (tmp_path / "reports" / "results.json").exists()
     assert not (tmp_path / "evidence").exists(), "诊断模式绝不写/覆盖 evidence 正式路径"
 
@@ -453,3 +497,36 @@ def test_formal_mode_targets_formal_evidence():
     out = ab.I.set_output_mode(True)
     assert out["evidence"] == ab.I.FORMAL_EVIDENCE
     assert out["logs"] == ab.I.FORMAL_EVIDENCE / "logs"
+
+
+# ---------- 第七轮：锁语义 / 判定措辞边界 ----------
+
+def test_lock_excludes_second_holder_and_release_keeps_file():
+    from driver import infra as I
+    I.release_single_instance_lock()  # 清理可能残留的持有
+    ok, why = I.acquire_single_instance_lock()
+    assert ok, why
+    h = open(I.LOCK_FILE, "a+", encoding="utf-8")  # 第二个 open file description
+    try:
+        with pytest.raises(OSError):
+            fcntl.flock(h.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    finally:
+        h.close()
+    assert I.LOCK_FILE.exists()
+    I.release_single_instance_lock()
+    assert I.LOCK_FILE.exists(), "释放锁不得删除锁文件（否则破坏单实例保证）"
+    ok2, why2 = I.acquire_single_instance_lock()
+    assert ok2, why2
+    I.release_single_instance_lock()
+
+
+def test_n2_http_verdict_wording_boundaries():
+    from driver import a_baseline as ab
+    job = "j1"
+    _, why_null = ab.n2_http_verdict(200, job, {"data": {"jobId": job, "lastError": None}})
+    assert "本样本" in why_null
+    _, why_ok = ab.n2_http_verdict(200, job,
+                                   {"data": {"jobId": job, "lastError": {"code": "X"}}}, "M")
+    assert "不构成通用脱敏保证" in why_ok
+    _, why_missing = ab.n2_http_verdict(200, job, {"data": {"jobId": job}})
+    assert "保守" in why_missing and "BLOCKED" in why_missing

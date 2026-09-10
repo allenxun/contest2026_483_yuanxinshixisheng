@@ -1,6 +1,6 @@
 {
   "schema": "e-acceptance-a-baseline/1",
-  "run_id": "E-AB-20260910T132526Z-e8b053e8",
+  "run_id": "E-AB-20260910T133338Z-a5918d97",
   "mode": "formal",
   "baseline": {
     "sha": null,
@@ -16,11 +16,15 @@
   "missing": [],
   "extra": [],
   "duplicates": [],
+  "unknown_status": [],
   "counts": {
     "pass": 50,
     "fail": 1,
-    "blocked": 0
+    "blocked": 0,
+    "info": 1
   },
+  "counts_sum": 52,
+  "rows": 52,
   "final_exit": 1,
   "results": [
     {
@@ -47,7 +51,7 @@
       "status": "PASS",
       "command": "mvn -B -q test -Dtest=SchemaVersionBoundaryTest,ProductionFailClosedTest",
       "rc": 0,
-      "excerpt": "21:25:38.182 [main] ERROR cn.yuanxin.mvp.web.config.ProductionFailClosedValidator -- production fail-closed: unsafe production configuration -> [SessionProvider=absent, SmsCodeProvider=absent, DeviceCredentialProvider=absent, FaceProvider=absent, StoragePort=absent] (configure app.providers.mode=rea",
+      "excerpt": "21:33:48.617 [main] ERROR cn.yuanxin.mvp.web.config.ProductionFailClosedValidator -- production fail-closed: unsafe production configuration -> [SessionProvider=absent, SmsCodeProvider=absent, DeviceCredentialProvider=absent, FaceProvider=absent, StoragePort=absent] (configure app.providers.mode=rea",
       "doubles": "doubles_pass"
     },
     {
@@ -110,7 +114,7 @@
       "status": "PASS",
       "command": "java -jar (SERVER_PORT=18081, db=mvp_e_dev)",
       "rc": "0",
-      "excerpt": "first pid=3429129",
+      "excerpt": "first pid=3443044",
       "doubles": "doubles_pass"
     },
     {
@@ -164,7 +168,7 @@
       "status": "PASS",
       "command": "pytest -q tests/test_claim.py tests/test_renew.py tests/test_expire.py tests/test_complete.py tests/test_attempt_ceiling.py tests/test_unsupported.py",
       "rc": 0,
-      "excerpt": "passed=26 : 26 passed in 4.47s",
+      "excerpt": "passed=26 : 26 passed in 5.41s",
       "doubles": "doubles_pass"
     },
     {
@@ -263,7 +267,7 @@
       "status": "PASS",
       "command": "GET /me/member-access-grants",
       "rc": 401,
-      "excerpt": "{\"requestId\": \"7bab834a-c6af-437d-84d2-fb92f8760a7f\", \"error\": {\"code\": \"AUTH_REQUIRED\", \"message\": \"missing bearer token\", \"retryable\": false}}",
+      "excerpt": "{\"requestId\": \"559d5059-4357-46d9-9490-aa2d76b81228\", \"error\": {\"code\": \"AUTH_REQUIRED\", \"message\": \"missing bearer token\", \"retryable\": false}}",
       "doubles": "doubles_pass"
     },
     {
@@ -272,7 +276,7 @@
       "status": "PASS",
       "command": "GET with forged token",
       "rc": 401,
-      "excerpt": "{\"requestId\": \"1542e51d-6465-411d-89f1-5213425f2f97\", \"error\": {\"code\": \"SESSION_INVALID\", \"message\": \"session token invalid or expired\", \"retryable\": false}}",
+      "excerpt": "{\"requestId\": \"a01e8bf2-cbd4-4a93-a2ac-383e8caa8d7f\", \"error\": {\"code\": \"SESSION_INVALID\", \"message\": \"session token invalid or expired\", \"retryable\": false}}",
       "doubles": "doubles_pass"
     },
     {
@@ -281,7 +285,7 @@
       "status": "PASS",
       "command": "POST sms-challenges→sessions",
       "rc": 200,
-      "excerpt": "accountId=09048e86-35b9-4905-9ec1-bdfa9eeb8482 前置有效码=501",
+      "excerpt": "accountId=e57f484d-3b3a-4b6e-95cc-02e62f1a7b20 前置有效码=501",
       "doubles": "doubles_pass"
     },
     {
@@ -290,7 +294,7 @@
       "status": "PASS",
       "command": "POST session-refreshes (old reused)",
       "rc": "200/401",
-      "excerpt": "{\"requestId\": \"cc8234f5-f2da-4c4f-adcc-4b9c06135928\", \"error\": {\"code\": \"SESSION_INVALID\", \"message\": \"refresh credential invalid or rotated\", \"retryable\": false}}",
+      "excerpt": "{\"requestId\": \"9a4a45c5-0e2f-48fe-b390-dc50fc321a64\", \"error\": {\"code\": \"SESSION_INVALID\", \"message\": \"refresh credential invalid or rotated\", \"retryable\": false}}",
       "doubles": "doubles_pass"
     },
     {
@@ -299,7 +303,7 @@
       "status": "PASS",
       "command": "独立会话 → 变更真实 accountId → GET",
       "rc": "501->401",
-      "excerpt": "rows_changed=1 account=09048e86",
+      "excerpt": "rows_changed=1 account=e57f484d",
       "doubles": "doubles_pass"
     },
     {
@@ -308,7 +312,7 @@
       "status": "PASS",
       "command": "独立会话 → 变更真实 accountId → GET",
       "rc": "501->401",
-      "excerpt": "rows_changed=1 account=09048e86",
+      "excerpt": "rows_changed=1 account=e57f484d",
       "doubles": "doubles_pass"
     },
     {
@@ -335,7 +339,7 @@
       "status": "PASS",
       "command": "POST /system/echo-jobs (Idempotency-Key)",
       "rc": 200,
-      "excerpt": "{\"requestId\": \"bf404fbd-664e-48d7-ac72-085c7844bd3a\", \"data\": {\"jobId\": \"63cad49b-89ae-4a8d-a574-617273ccb8ac\", \"dedupKey\": \"system:echo:49d67093-b5c1-4c60-bcbe-9e9b0b710f4f\", \"status\": \"queued\"}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-10",
+      "excerpt": "{\"requestId\": \"162c99b6-7672-469d-962e-7b9eee2833a9\", \"data\": {\"jobId\": \"d759758b-60d6-4ad3-b57f-59923a3c6c82\", \"dedupKey\": \"system:echo:6ded4f67-37eb-4050-8b7d-6e563bdc0b41\", \"status\": \"queued\"}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-10",
       "doubles": "doubles_pass"
     },
     {
@@ -353,7 +357,7 @@
       "status": "PASS",
       "command": "POST same key/different content",
       "rc": 409,
-      "excerpt": "{\"requestId\": \"b0396d0d-3fee-4588-a835-84dab89f821d\", \"error\": {\"code\": \"IDEMPOTENCY_CONTENT_CONFLICT\", \"message\": \"Idempotency-Key reused with different request content; use a new key for a new logic",
+      "excerpt": "{\"requestId\": \"e68a28ad-8c42-49a6-9ea5-3c477e59718d\", \"error\": {\"code\": \"IDEMPOTENCY_CONTENT_CONFLICT\", \"message\": \"Idempotency-Key reused with different request content; use a new key for a new logic",
       "doubles": "doubles_pass"
     },
     {
@@ -362,7 +366,7 @@
       "status": "PASS",
       "command": "python -m mvp_worker --once",
       "rc": 0,
-      "excerpt": "job=63cad49b status=succeeded",
+      "excerpt": "job=d759758b status=succeeded",
       "doubles": "doubles_pass"
     },
     {
@@ -380,7 +384,7 @@
       "status": "PASS",
       "command": "POST /system/echo-jobs {}",
       "rc": 400,
-      "excerpt": "rid_hdr=881b7b27-93b2-4b1e-8a78-7a58ecc6efd0 rid_body=881b7b27-93b2-4b1e-8a78-7a58ecc6efd0",
+      "excerpt": "rid_hdr=94a554a5-1ed3-47fd-9cd6-8d61b7ce8149 rid_body=94a554a5-1ed3-47fd-9cd6-8d61b7ce8149",
       "doubles": "doubles_pass"
     },
     {
@@ -389,7 +393,7 @@
       "status": "PASS",
       "command": "GET /me/member-access-grants",
       "rc": 501,
-      "excerpt": "{\"requestId\": \"fe6ef872-ea08-4f0a-8be8-46d581209d86\", \"error\": {\"code\": \"NOT_IMPLEMENTED\", \"message\": \"business endpoint is contract-only and not implemented yet\", \"retryable\": false, \"details\": {\"api",
+      "excerpt": "{\"requestId\": \"a029c883-029c-48fd-b58e-4b30b61f7652\", \"error\": {\"code\": \"NOT_IMPLEMENTED\", \"message\": \"business endpoint is contract-only and not implemented yet\", \"retryable\": false, \"details\": {\"api",
       "doubles": "doubles_pass"
     },
     {
@@ -398,7 +402,7 @@
       "status": "PASS",
       "command": "GET /system/echo-jobs/<random>",
       "rc": 404,
-      "excerpt": "{\"requestId\": \"44731c91-54f4-4fd1-8b21-d05389e1a7f7\", \"error\": {\"code\": \"RESOURCE_NOT_VISIBLE\", \"message\": \"job not visible\", \"retryable\": false}}",
+      "excerpt": "{\"requestId\": \"45d187c8-a948-4575-b55c-bea745eebf2f\", \"error\": {\"code\": \"RESOURCE_NOT_VISIBLE\", \"message\": \"job not visible\", \"retryable\": false}}",
       "doubles": "doubles_pass"
     },
     {
@@ -416,7 +420,7 @@
       "status": "PASS",
       "command": "真实上传者主体 GET /media/{id}/content",
       "rc": "404/404",
-      "excerpt": "uploader_self_404=True no_403=True uploader=09048e86",
+      "excerpt": "uploader_self_404=True no_403=True uploader=e57f484d",
       "doubles": "doubles_pass"
     },
     {
@@ -452,7 +456,7 @@
       "status": "PASS",
       "command": "worker --once 处理坏版本 job",
       "rc": "0/1",
-      "excerpt": "cc8468:failed/UNSUPPORTED_CONTRACT cc8468:failed/UNSUPPORTED_CONTRACT cc8468:failed/UNSUPPORTED_CONTRACT",
+      "excerpt": "45c382:failed/UNSUPPORTED_CONTRACT 45c382:failed/UNSUPPORTED_CONTRACT 45c382:failed/UNSUPPORTED_CONTRACT",
       "doubles": "doubles_pass"
     },
     {
