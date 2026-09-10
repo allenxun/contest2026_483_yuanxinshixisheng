@@ -8,7 +8,7 @@
   - `bf393aa` — oracle round-1 修复（38 文件 +965/−123）
   - `26d97fb` — oracle round-2 修复（29 文件 +828/−176）
 - **最终代码 SHA：`26d97fbe908cb93c1fe366e28ba54a91c21b497c`**
-- 本文件与 `A-oracle.md` 为 oracle 审查后的 report-only commit，不含代码改动；reviewedCommit 与最终代码一致。
+- 本文件与 `A-oracle.md` 以 report-only commit 提交（首版 `fc4b311` + 报告修订版，修订 SHA 见 git log，均不含代码改动）；reviewedCommit 与最终代码一致。
 - Oracle 独立审查（omo-slim oracle 子代理，只读，三轮）：round-1 @f7e75c1 = FAIL(blocked) → 修复 bf393aa → round-2 @bf393aa = FAIL → 修复 26d97fb → **round-3 @26d97fb = PASS-with-notes（blockingFindings 空）**；详情见 `backend/handoffs/A-oracle.md`（reviewedCommit 与最终代码一致）。
 
 ## 版本锁定（按实际环境选定的受支持版本）
@@ -41,13 +41,15 @@ Java 21（Temurin 21.0.12）· Spring Boot 3.5.16（MVC+JDBC+TransactionTemplate
 
 前置：docker、mvn、venv（worker：`python3 -m venv .venv && .venv/bin/pip install -e '.[dev]'`；contracts：jsonschema+pyyaml+openapi-spec-validator）。
 
+以下命令一律**从 A 工作树根目录**（`.worktrees/mvp-a`）运行；各分项用子 shell 显式 cwd（与 run-acceptance.sh 内部调用方式一致，已核实脚本路径）：
+
 ```bash
-bash backend/tests/run-acceptance.sh          # 一键 26 项（全新库迁移/重启周期/约束负例 b1-b8/契约校验/双端全套件/在线 E2E）
-cd backend/web-java && mvn test               # 124
-backend/worker-python/.venv/bin/python -m pytest -q   # 47
-backend/contracts/.venv/bin/python scripts/jcs.py selftest
-backend/contracts/.venv/bin/python scripts/validate_samples.py
-backend/contracts/.venv/bin/python -m openapi_spec_validator backend/contracts/openapi/openapi.yaml
+bash backend/tests/run-acceptance.sh                              # 一键 26 项（全新库迁移/重启周期/约束负例 b1-b8/契约校验/双端全套件/在线 E2E）
+(cd backend/web-java && mvn test)                                 # 124
+(cd backend/worker-python && .venv/bin/python -m pytest -q)       # 47
+(cd backend/contracts && .venv/bin/python scripts/jcs.py selftest)
+(cd backend/contracts && .venv/bin/python scripts/validate_samples.py)
+(cd backend/contracts && .venv/bin/python -m openapi_spec_validator openapi/openapi.yaml)
 ```
 
 注意：宿主 8080 被无关进程占用→脚本用 18080；curl 需 `--noproxy '*'`；严禁触碰 5432（共享 pgvector18）；acceptance 用 ephemeral 库自清理（backend/tests/.work/）；compose 冒烟需 `MVP_A_PG_HOST_PORT=55434`（勿与 mvp-a-pg 并行绑定 55432）。
