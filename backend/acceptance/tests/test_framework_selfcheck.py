@@ -620,14 +620,31 @@ def test_reverify_sentinel_bound_to_run(tmp_path):
             "rows": 11, "settled": 11}
     vs.write_sentinel("run-1", good, 0, reports_dir=tmp_path)
     assert vs.verify("run-1", reports_dir=tmp_path)[0] is True
-    assert vs.verify("run-2", reports_dir=tmp_path)[0] is False       # 错 run_id
+    assert vs.verify("run-1", reports_dir=tmp_path, driver_rc=0)[0] is True
+    assert vs.verify("run-1", reports_dir=tmp_path, driver_rc=1)[0] is False   # 哨兵 exit0 != 驱动 rc1
+    assert vs.verify("run-2", reports_dir=tmp_path)[0] is False               # 错 run_id
     vs.write_sentinel("run-3", {**good, "missing": ["RV-9"], "settled": 10, "rows": 10}, 4,
                       reports_dir=tmp_path)
-    assert vs.verify("run-3", reports_dir=tmp_path)[0] is False       # 缺项
+    assert vs.verify("run-3", reports_dir=tmp_path)[0] is False               # 缺项
     vs.write_sentinel("run-4", {**good, "counts": {"pass": 9, "fail": 0, "blocked": 0,
                                                    "info": 1}}, 0, reports_dir=tmp_path)
-    assert vs.verify("run-4", reports_dir=tmp_path)[0] is False       # 计数和!=rows
+    assert vs.verify("run-4", reports_dir=tmp_path)[0] is False               # 计数和!=rows
     bad5 = {**good, "counts": {"pass": 10, "fail": 1, "blocked": 0, "info": 0},
             "settled": 11, "rows": 11}
     vs.write_sentinel("run-5", bad5, 0, reports_dir=tmp_path)
-    assert vs.verify("run-5", reports_dir=tmp_path)[0] is False       # final_exit 与政策不一致
+    assert vs.verify("run-5", reports_dir=tmp_path)[0] is False               # final_exit 与政策不一致
+
+
+def test_reverify_entry_binding_rejects_old_sentinel(tmp_path):
+    """入口级负例：旧哨兵存在但本次 RUN_ID 未写哨兵 → 拒绝（不得 OK）。"""
+    from driver import verify_reverify_sentinel as vs
+    good = {"counts": {"pass": 10, "fail": 0, "blocked": 0, "info": 1},
+            "missing": [], "extra": [], "duplicates": [], "unknown_status": [],
+            "rows": 11, "settled": 11}
+    vs.write_sentinel("old-run", good, 0, reports_dir=tmp_path)   # 上次成功运行遗留
+    ok, msg = vs.verify("new-run", reports_dir=tmp_path, driver_rc=0)
+    assert ok is False and "缺失" in msg, "本次未写哨兵时不得对旧 run 判 OK"
+    # 旧哨兵 rc 与本次驱动 rc 不一致 → 拒绝
+    vs.write_sentinel("old-run2", good, 1, reports_dir=tmp_path)
+    ok2, msg2 = vs.verify("old-run2", reports_dir=tmp_path, driver_rc=0)
+    assert ok2 is False and "final_exit" in msg2

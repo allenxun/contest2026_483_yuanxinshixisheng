@@ -119,10 +119,12 @@ case "${1:-}" in
     .venv-driver/bin/pip install -q 'sqlalchemy>=2.0,<3.0' 'psycopg[binary]>=3.2,<4.0' \
       'pydantic>=2.7,<3.0' 'jsonschema>=4.21,<5.0' requests pyyaml \
       openapi-spec-validator 'pytest>=8.0' || exit 1
-    .venv-driver/bin/python driver/a_reverify.py
+    # 入口生成并绑定 RUN_ID：驱动与哨兵校验共用同一 RUN_ID + 本次驱动 rc
+    RID="E-AB-$(date -u +%Y%m%dT%H%M%SZ)-$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')"
+    E_ACCEPTANCE_RUN_ID="$RID" .venv-driver/bin/python driver/a_reverify.py
     rc=$?
-    .venv-driver/bin/python driver/verify_reverify_sentinel.py || rc=4
-    echo "a-reverify exit=$rc (0=结算完整且无FAIL无BLOCKED【INFO附条件须披露】 1=有FAIL或有BLOCKED 4=结算不完整/哨兵不符)"
+    .venv-driver/bin/python driver/verify_reverify_sentinel.py "$RID" "$rc" || rc=4
+    echo "a-reverify exit=$rc (RUN_ID=$RID; 0=结算完整且无FAIL无BLOCKED【INFO附条件须披露】 1=有FAIL或有BLOCKED 4=结算不完整/哨兵与本次 rc 不符)"
     exit $rc;;
   *)
     echo "用法: $0 {setup-venv|selfcheck|matrix|a-baseline|a-reverify}"; exit 2;;
