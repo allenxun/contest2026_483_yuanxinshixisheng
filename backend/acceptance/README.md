@@ -9,9 +9,10 @@ E 工作包的机器可执行验收框架：**纯黑盒、HTTP 驱动**，只通
 
 ## 诚实声明（当前状态）
 
-A 基线（公共构建、14 表迁移、认证主体上下文、幂等/代次公共设施、外部适配端口）**尚未
-交付**：`config/baseline.json` 为 `{"gate":"closed","a_baseline":{"sha":null}}`，
-**全部 94 个场景节点状态为 `dependency_pending`**。框架把这类挂起与普通 skip 分开统
+A 基线（公共构建、14 表迁移、认证主体上下文、幂等/代次公共设施、外部适配端口）**已交付
+并通过 E 独立基础验收**（见 `evidence/A-baseline-*/summary.md`）；当前阻塞变为
+**B/C/D 业务实现未集成**（26 个业务端点为 501 NOT_IMPLEMENTED stub）。`config/baseline.json`
+保持 `"gate":"closed"`，**全部 94 个场景节点状态为 `dependency_pending`**。框架把这类挂起与普通 skip 分开统
 计；matrix 模式另有一层结算守卫：94 个场景必须逐一唯一结算，否则退出码 4——**任何情况下绝不返回 0**，不允许以全 skip、空收集或改命令行选项冒充通过。
 
 ## 目录
@@ -71,7 +72,7 @@ settled_unique、四类计数、settlement_ok、completed），`run.sh` 在 pyte
   real_pass。
 - **failed**：执行了但行为不符合清单检查要点（含裸通过被判 fail）→ 记录 requestId、
   响应与差异，报总协调。
-- **dependency_pending**：因 A 基线未交付而无法执行。skip reason 固定前缀
+- **dependency_pending**：因 B/C/D 业务实现未集成而无法执行（A 基线已交付并验收）。skip reason 固定前缀
   `dependency_pending: `，原因逐条来自矩阵 `pending_reason`，不是通过。
 
 ## A 基线交付后的流程

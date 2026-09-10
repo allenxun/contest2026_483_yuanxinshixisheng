@@ -229,7 +229,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:
             terminalreporter.write_line(f"SETTLEMENT_INCOMPLETE: {why}")
     if c["pending"]:
         terminalreporter.write_line(
-            "说明：dependency_pending = A 基线未交付导致的依赖挂起，不是通过，也不是普通跳过。")
+            "说明：dependency_pending = B/C/D 业务实现未集成（A 基线已交付并验收）导致的依赖挂起，"
+            "不是通过，也不是普通跳过。")
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
