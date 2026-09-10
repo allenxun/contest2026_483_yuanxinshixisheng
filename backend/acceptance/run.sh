@@ -109,7 +109,7 @@ case "${1:-}" in
       openapi-spec-validator 'pytest>=8.0' || exit 1
     .venv-driver/bin/python driver/a_baseline.py
     rc=$?
-    echo "a-baseline exit=$rc (0=无 FAIL；BLOCKED 项见 evidence summary)"
+    echo "a-baseline exit=$rc (0=结算完整且无FAIL无BLOCKED【INFO附条件须披露】 1=有FAIL或有BLOCKED 4=结算不完整/未知状态)"
     exit $rc;;
   *)
     echo "用法: $0 {setup-venv|selfcheck|matrix|a-baseline}"; exit 2;;

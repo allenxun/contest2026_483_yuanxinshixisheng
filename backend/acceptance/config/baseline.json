@@ -12,7 +12,7 @@
   "e_acceptance": {
     "stage": "A-baseline",
     "status": "not_passed_a_defect",
-    "detail": "A 基础验收已执行：52/52 唯一结算 = 50 PASS / 1 FAIL（A 缺陷）/ 0 BLOCKED / 1 INFO（N2-codereview 有 9 处待人工复核，按规则降 INFO 不计 PASS）→ **A 基础验收未通过**，待 A 修复后绑定新 A SHA 定向重验。A 缺陷：system.echo GET 原样投影 data.lastError（敏感标记串回显、4058 字符未限大小），违反 1fb07cd 五诊断列约定；最小复现 evidence/A-baseline-2026-09-10/logs/n2-http-repro.txt。其余 AB-01..11（AB-02d E 定向 worker pytest、AB-06d 运行时边界集成）与 N1/N2-db/N3 通过；AB-10a-c 逐变体原因行通过。gate 保持 closed：B/C/D 业务实现未集成，94 场景 dependency_pending；doubles_pass 语义。",
-    "updated_at": "2026-09-10T13:22:00Z"
+    "detail": "A 基础验收已执行（正式，exit=1）：52/52 唯一结算，counts={PASS:50, FAIL:1, BLOCKED:0, INFO:1}（计数和=52==行数）→ **A 基础验收未通过**，待 A 修复后绑定新 A SHA 定向重验。通过条件=结算完整+0 FAIL+0 BLOCKED；INFO 为附条件接受（须显式披露残项，本项 1 INFO=N2-codereview 待人工复核 9 处）。A 缺陷：system.echo GET 原样投影 data.lastError（敏感标记串回显、4058 字符未限大小），违反 1fb07cd 五诊断列约定；完整可执行最小复现 evidence/A-baseline-2026-09-10/logs/n2-http-repro.txt。其余 AB-01..11（AB-02d E 定向 worker pytest、AB-06d 运行时边界集成）与 N1/N2-db/N3 通过。gate 保持 closed：B/C/D 业务实现未集成，94 场景 dependency_pending；doubles_pass 语义。",
+    "updated_at": "2026-09-10T13:34:00Z"
   }
 }
