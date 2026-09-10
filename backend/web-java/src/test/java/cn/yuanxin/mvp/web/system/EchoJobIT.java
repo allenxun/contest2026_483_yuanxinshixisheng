@@ -1,6 +1,5 @@
 package cn.yuanxin.mvp.web.system;
 
-import cn.yuanxin.mvp.web.jobs.Uuid5;
 import cn.yuanxin.mvp.web.support.AbstractWebIT;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.DisplayName;
@@ -25,10 +24,11 @@ class EchoJobIT extends AbstractWebIT {
     JdbcTemplate jdbc;
 
     @Test
-    @DisplayName("POST 入队 async_jobs：owner_id=uuid5(FIXED_NS,dedup_key)、schema_version=1、"
-            + "bigint 字符串、queued/0/5/0 初值")
+    @DisplayName("POST 入队 async_jobs：owner_type=app_account/owner_id=accountId（RV-5 创建者归属）、"
+            + "schema_version=1、bigint 字符串、queued/0/5/0 初值")
     void enqueueRowShape() throws Exception {
-        String token = loginApp(newPhone());
+        LoginResult login = loginAppWithInstallation(newPhone(), "inst-echo-owner");
+        String token = login.accessToken();
         String clientJobId = UUID.randomUUID().toString();
         MvcResult r = mockMvc.perform(post("/api/v1/system/echo-jobs")
                         .header("Authorization", "Bearer " + token)
@@ -49,9 +49,8 @@ class EchoJobIT extends AbstractWebIT {
                         + " FROM async_jobs WHERE id = ?", jobId);
         assertEquals("system.echo", row.get("job_type"));
         assertEquals("system:echo:" + clientJobId, row.get("dedup_key"));
-        assertEquals("system", row.get("owner_type"));
-        assertEquals(Uuid5.uuid5(Uuid5.FIXED_NS, "system:echo:" + clientJobId).toString(),
-                row.get("owner_id"));
+        assertEquals("app_account", row.get("owner_type"));
+        assertEquals(login.accountId(), row.get("owner_id"));
         assertEquals(0L, ((Number) row.get("input_revision")).longValue());
         assertEquals("queued", row.get("status"));
         assertEquals(0L, ((Number) row.get("attempt_count")).longValue());

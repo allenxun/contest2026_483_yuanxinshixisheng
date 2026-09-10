@@ -1586,14 +1586,17 @@ paths:
         调用方：已认证主体（APP 或云台 session token 均可）。A 包 E2E 验收桥：
         body {message, numbersAsStrings[], jobId?} → 经 JobEnqueuer 入队
         job_type=system.echo（dedup_key=system:echo:<jobId 或服务端 UUID>，
-        owner_type=system，owner_id=UUIDv5(FIXED_NS, dedup_key)，payload 带
-        schema_version=1、bigint 一律十进制字符串），返回受理信封
-        {jobId, dedupKey, status:"queued"}。Idempotency-Key 可选：提供时走
-        T13（operation=system.echo.create），同键同内容重放返回同一 jobId 与
-        meta.replayed=true；同键异内容 409
-        IDEMPOTENCY_CONTENT_CONFLICT；处理中 409 REQUEST_IN_PROGRESS +
-        Retry-After。Python worker（B/P 包）以正确租约代次完成该任务后，
-        GET 本资源投影可见状态变化。
+        payload 带 schema_version=1、bigint 一律十进制字符串）。<b>创建者归属
+        （RV-5 裁定）</b>写入 A 属主列：APP → owner_type=app_account、
+        owner_id=accountUuid；GIMBAL → owner_type=gimbal、owner_id=gimbalUuid；
+        installation 只属 T13 作用域，不进 owner_id（同账号跨安装可读自己账号
+        的任务）。返回受理信封 {jobId, dedupKey, status:"queued"}。
+        Idempotency-Key 可选：提供时走 T13（operation=system.echo.create），
+        同 principal 同键同内容重放返回同一 jobId 与 meta.replayed=true；
+        不同 principal 即使同键也是不同 T13 作用域（各自新任务，不跨暴露）；
+        同键异内容 409 IDEMPOTENCY_CONTENT_CONFLICT；处理中 409
+        REQUEST_IN_PROGRESS + Retry-After。Python worker（B/P 包）以正确租约
+        代次完成该任务后，GET 本资源投影可见状态变化。
       security: [{ bearerAuth: [] }]
       parameters:
         - name: Idempotency-Key
@@ -1635,11 +1638,15 @@ paths:
       x-implementation: foundation-system
       x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT]
       description: >-
-        调用方：已认证主体。从 async_jobs（T12）投影 {jobId, status,
-        attemptCount, leaseRevision, finishedAt, lastError}；计数/代次按
-        bigint 十进制字符串传输（契约通用规则）。状态由 Python worker 的
-        claim/renew/complete 推进；本端点只读，不改变任务。不存在统一
-        404 RESOURCE_NOT_VISIBLE。
+        调用方：已认证主体（Bearer）。<b>仅创建者本人可读自己的 system.echo
+        任务</b>（RV-5 裁定）：归属由持久化行 owner_type/owner_id 与认证主体
+        唯一派生，不信任任何请求输入，本端点不得作为任意 async_jobs 的通用
+        查询入口。从 async_jobs（T12）投影 {jobId, status, attemptCount,
+        leaseRevision, finishedAt, lastError}；计数/代次按 bigint 十进制字符串
+        传输（契约通用规则）。状态由 Python worker 的 claim/renew/complete
+        推进；本端点只读，不改变任务。**jobId 不存在 / job_type≠system.echo /
+        非创建者** 三类一律返回<b>完全相同</b>的 404 RESOURCE_NOT_VISIBLE
+        （不泄露存在性、归属或类型；未认证先 401）。
       security: [{ bearerAuth: [] }]
       parameters:
         - name: jobId

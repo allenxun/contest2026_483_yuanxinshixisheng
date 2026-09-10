@@ -31,7 +31,7 @@ def test_raw_second_insert_raises_unique_violation(engine: Engine) -> None:
             conn.execute(
                 text(
                     "INSERT INTO async_jobs (job_type, dedup_key, owner_type, owner_id, payload)"
-                    " VALUES ('system.echo', 'system:echo:raw-conflict', 'system',"
+                    " VALUES ('system.echo', 'system:echo:raw-conflict', 'app_account',"
                     " gen_random_uuid(), CAST(:p AS jsonb))"
                 ),
                 {"p": json.dumps({"schema_version": 1})},
