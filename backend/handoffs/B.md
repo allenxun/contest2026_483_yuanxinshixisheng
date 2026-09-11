@@ -191,3 +191,75 @@ cd backend/worker-python && env MVP_WORKER_PG_DSN=postgresql://postgres:***@127.
   2. `openapi.yaml` 的 8 行改动可能与 C/D 的契约改动相邻冲突，冲突时保留各方新增错误码即可；
   3. 请 A 归属方处理 `invalidateDestinations` 递增 `destination_revision`（第 6 节第 8 项）与 `test_sanity` 环境耦合断言（第 7 项）；
   4. 待裁定/追认项（C9 人脸身份引用端口、C14 三处 A 归属测试适配、C15 环境耦合断言）不阻塞集成，但需在 E 验收前明确归属。
+
+## 11. Swagger / springdoc 文档接入（总协调授权项，提交 `8127be5`）
+
+**目标与边界**：接入兼容 Spring Boot 3.5.16 的 springdoc，从**实际 Controller/DTO 生成** `/v3/api-docs` 与 Swagger UI（**不是渲染既有手写 YAML**）；**仅开发配置启用**；**不改变任何业务权限、不返回假 200**；范围经总协调收敛为"代码生成 + 路由可浏览"，**不扩展 C/D DTO 重构、不唤醒已关闭包**。
+
+- **变更面仅 7 个文件**：`web-java/pom.xml`（新增属性 `springdoc.version=2.8.17` + 唯一新依赖 `springdoc-openapi-starter-webmvc-ui`；实际解析 webmvc-ui/api/common 2.8.17、`swagger-core-jakarta` 2.2.47、webjars `swagger-ui` 5.32.2）、`src/main/resources/application.yml`（基础段默认 `false`，dev/test 覆盖 `true`，prod 显式 `false`）、新增 `web/docs/OpenApiDocsConfig.java`、`web/docs/DocsProductionGuard.java`、新增测试 `OpenApiDocsIT`/`OpenApiDocsDisabledIT`/`DocsProductionGuardTest`。**未改任何 A/C/D 归属文件、未改 `contracts/**`、未改 `backend/tests/**`、未改迁移/deploy。**
+- **鉴权零改动（取证而非假设）**：`web/auth/BearerAuthFilter.java:68` 为 `if (!path.startsWith("/api/") || PUBLIC.contains(...))`，只保护 `/api/**`；`/v3/api-docs` 与 `/swagger-ui/**` 均不以 `/api/` 开头，天然开放（与既有 actuator 一致）。故**无需也未做任何 auth 放行改动**。
+- **生产 fail-closed 三道**：① `application.yml` 基础段默认关闭（prod 再显式关闭）；② `OpenApiDocsConfig` 用 `@Profile({"dev","test"})` + `@ConditionalOnProperty(springdoc.api-docs.enabled=true)`，生产不注册文档 bean；③ `DocsProductionGuard`（`@ConditionalOnProperty(app.env=production)` 的 `SmartInitializingSingleton`）在 springdoc 任一开关为 true 时抛 `production fail-closed` 拒绝启动。**未修改 A 的 `ProductionFailClosedValidator`。**
+  - 如实区分：生产强行启用的实测日志中**先触发的是 A 的 `ProductionFailClosedValidator`**（该次启动使用 doubles 提供方），`DocsProductionGuard` 自身路径由 `DocsProductionGuardTest` 4 例（`ApplicationContextRunner` 隔离）证明，两者不可混为一谈。
+- **生成性证明**：生成文档为 `openapi: 3.1.0`、`info.title` 标注"由实际 Controller/DTO 生成"、含 **20 个由真实 DTO record 推导的 `components.schemas`**（`AppSessionRequestBody`/`BindingBody`/`CaptureDto`/`ExecutionObservationDto`…）；对照手写契约 `backend/contracts/openapi/openapi.yaml` 为 `openapi: 3.0.3` 且标题不同 ⇒ 两者非同一来源，**未把契约 YAML 当作文档来源**。
+- **鉴权/幂等说明集中在 docs 配置**：`OpenApiCustomizer` 在生成后补 `bearerAuth`(http/bearer) + 全局 `security`，并把**恰好 4 个公开认证端点**（`POST /api/v1/auth/sms-challenges`、`/auth/sessions`、`/auth/session-refreshes`、`/gimbal-sessions`）置为 `security: []`，同时移除 principal 伪参数；`info.description` 集中说明统一信封 `{requestId,data}`/`{requestId,error}`、`X-Request-Id`、`Idempotency-Key` 幂等语义与自由结构限制。**未逐端点大改业务代码。**
+
+### 11.1 验证（orchestrator 亲自执行）
+
+| 项 | 结果 |
+|---|---|
+| Java 全量 `mvn -B test` | **394 / 0 failures / 0 errors / 0 skipped，BUILD SUCCESS，rc=0**（基线 386 + 新增 8 项 docs 测试；未设置 `APP_STORAGE_DEV_DIR`） |
+| 启用态（dev、**18083**、DB `mvp_b_dev`） | `/v3/api-docs` **200** application/json 25222B；`/swagger-ui/index.html` **200**；`/swagger-ui/` **200**（内部 forward） |
+| 关闭态（`SPRINGDOC_API_DOCS_ENABLED=false`） | `/v3/api-docs` **404**、`/swagger-ui/index.html` **404** |
+| 生产强行启用 | 进程 **exit 1**，拒绝启动 |
+| **27/27 业务 API 可见** | 期望集合由 orchestrator 独立从契约 **27 个 `x-api-id`** 提取（M1×3/M2×8/M3×6/M4×9/M5×1），用自有校验器 `verify_swagger27.py`（已自测归一化/缺失/非法输入三情形）比对实抓 `/v3/api-docs` → **hit 27/27、missing=[]、rc=0**；总协调独立实测 **33 paths / 34 operations** 与此吻合 |
+| 额外真实端点（如实暴露未隐藏） | A 的 4 个认证端点（含 `DELETE /api/v1/auth/sessions/current`）、`GET /api/v1/media/{mediaId}/content`、`POST`+`GET /api/v1/system/echo-jobs`，共 7 条 |
+| security 结构 | `securitySchemes={bearerAuth:(http,bearer)}`、全局 `security=[{bearerAuth:[]}]`、**恰 4 个** operation 带显式 `security: []` 覆盖 = 4 个公开端点 |
+| 提交卫生 | 暂存集恰 7 文件、**0 工件、0 运行文件、0 越界**；工作树 clean |
+| 资源纪律 | 未新建 PG 容器、未触碰总协调的 **18080 预览**与 `swagger_preview` 库、未停 PG、验证后无遗留 JVM |
+
+### 11.2 给总协调的预览启动方式（B 侧验证用 18083；用户预览的 18080 由总协调唯一负责）
+
+```bash
+# 安全配置文件（chmod 600，目录 700；内含本地测试占位凭据，勿外泄）：
+#   .coordination/B-work/swagger-preview/swagger-preview.env
+set -a; source .coordination/B-work/swagger-preview/swagger-preview.env; set +a
+export SERVER_PORT=18083 SERVER_ADDRESS=127.0.0.1     # B 侧验证端口；总协调预览用 18080
+nohup java -Xmx384m -XX:MaxMetaspaceSize=192m \
+  -jar backend/web-java/target/web-java-0.0.1-SNAPSHOT.jar \
+  > .coordination/B-work/swagger-preview/app.log 2>&1 &
+echo $! > .coordination/B-work/swagger-preview/app.pid
+# 页面：http://127.0.0.1:18083/swagger-ui/index.html   （总协调预览：…:18080/…）
+# 文档：http://127.0.0.1:18083/v3/api-docs
+kill $(cat .coordination/B-work/swagger-preview/app.pid)   # 验证后请停止，勿长期常驻（宿主内存紧张）
+```
+
+### 11.3 文档字段级尚缺（如实声明，本轮按裁定不修）
+
+`Object`/`Map` 自由结构（多为 JSONB）在 Swagger 中只显示 `object`，**不能展开为字段级 schema**；`info.description` 已集中声明该限制并指明**字段级权威仍是 `backend/contracts/openapi/openapi.yaml`**。逐处清单与最小补注解建议见 `.coordination/B-work/swagger-doc-gaps.md`：
+
+- **A 归属**：`web/web/SuccessEnvelope.java:11` `Object data`、`web/web/ErrorEnvelope.java:17` `Map details`
+- **B 归属（可后续自行最小补注解）**：`devices/DeviceDtos.java:38` incidents、`:61` capabilities、`:67` state、`:74` `CapabilitiesView.capabilities`；`notifications/NotificationDestinationDtos.java:32` registration
+- **C 归属**：`care/CareProjections.java:52` `planSummary`、`:56` `plan`
+- **D 归属**：`assessments/dto/SkinReportListItem.java:9` `reportSummary`、`SkinReportView.java:21` `metrics`
+- **M1-A01** 的 multipart `metadata` 部件为严格 JSON（手工解析为 `CreateMetadata`），非 DTO，故无法自动派生字段级 schema
+- 其他差异：生成 `openapi 3.1.0` vs 契约 `3.0.3`；response content-type 为 `*/*`；`operationId` 由 springdoc 按方法名派生（`create`/`create_1`…）**未对齐契约 operationId**；错误码未逐端点附着（仅 info 文字说明）
+
+> 措辞纪律：本文档**不宣称**字段级完备，也**不描述**为"渲染旧手写 YAML"。Swagger 的价值在于**由实际代码生成、路由可浏览、鉴权与幂等语义集中说明**；契约一致性仍由 `backend/contracts` 的四项校验与验收 b14（37 条错误信封观测 / 12 端点白名单）保障。
+
+### 11.4 Oracle 有界复审结论与整改（**提交 `8127be5` 判 FAIL，整改中**）
+
+**重要更正**：上文 11.1 的验证数字（394/0/0、27/27、启用 200 / 关闭 404 / 生产拒绝启动）均为**真实且已亲自复核**，但 Oracle 对该提交做了**有界复审**（只审 `f95037e..8127be5` 的 7 个文件，不重审已通过的业务代码），结论为 **`VERDICT: FAIL`**，并明确"**合入 dev / 替换用户预览前必须先修**"。故 `8127be5` **不是** Swagger 的最终交付 SHA。
+
+- **8 项裁定中 6 项通过**：①确为代码生成而非渲染手写 YAML（生产代码未读取 `openapi.yaml`，仅测试读它构造期望集合）；③业务权限零变化（未改任何 auth 文件；公开端点清单与 `BearerAuthFilter` 四项一致；全局 bearer + 4 个 `security: []` 不误导；principal 删除只改 OpenAPI 模型不改请求解析/授权；未发现 actuator/SQL/配置值/堆栈/媒体内容泄漏）；④无假业务 200、无业务路由变化（唯一新增路由是 `/swagger-ui/` 内部 forward，且仅在文档 bean 启用时存在，不掩盖业务 404）；⑤27/27 证据可信（method 与归一化 path 联合作 key，**不会用路径归一化掩盖 method 错误**；期望集合固定断言 27；27+7=34 operations / 33 paths 与总协调独立实测一致）；⑥范围合规（`8127be5` 恰改 7 个授权文件；未改 auth/`web/error`/`care`/`assessments`/契约/迁移/deploy/`backend/tests`；未重构 C/D DTO）；⑦依赖风险可接受（属性锁定 2.8.17；官方 2.8.17 基于 Boot 3.5.13、同线兼容 3.5.16；未发现其修改全局 `ObjectMapper`/异常处理/业务 `HandlerMapping`；394 项回归为合理证据；建议纳入依赖漏洞监控）。
+- **BLOCKER（必须修，整改中）**：`DocsProductionGuard.java:22-24` 的生产判定**只依赖 `app.env=production`**。当 **`prod` profile + `app.env=dev`（矛盾配置）+ 强制打开 springdoc 开关**时：`OpenApiDocsConfig` 因 `@Profile({"dev","test"})` 不注册、护栏因条件不满足也不注册，而 **springdoc starter 自身的自动配置仍会暴露 `/v3/api-docs` 与 `/swagger-ui/index.html`**；此场景下 A 的 `ProductionFailClosedValidator` 同样按 `app.env` 判定故也不触发 ⇒ **无任何东西拦住**，违反"生产 fail-closed"的授权条件。orchestrator 已独立核实该缺口成立且非理论问题（不得依赖 A 的校验器"偶然先失败"）。修法：护栏**始终注册**，运行时以"active profile 含 `prod` **或** `app.env=production`"为生产判据，任一生产信号成立且文档开启即拒绝启动，并补矛盾配置测试。
+- **IMPORTANT（必须修，整改中）**：`OpenApiDocsConfig.java:86-94` 的"尚未字段级展开"清单**不完整**（遗漏 `SuccessEnvelope.data`、`ErrorEnvelope.details`、heartbeat `incidents`、微晶 `capabilities`/`state`、通知 `registration`）。修法：改为**统一声明**"所有 Java 侧声明为 `Object`/`Map`/`JsonNode` 的字段都可能只显示为自由结构 object"+ 典型字段列举，**不重构 DTO**。
+- **测试充分性部分不通过**：`DocsProductionGuardTest` 只测 `app.env`，未覆盖 `prod profile + app.env!=production` 的矛盾组合，故漏掉上述绕过；修复后须补该组合测试与 `app.env=production + dev profile` 的明确回归。
+- **Oracle 要求持续披露的文档准确性限制**（除 11.3 外补充）：全局 bearer 只表达"是否需要 token"，**不表达 APP/GIMBAL 主体类型、成员授权、当前任务等细粒度权限**；字段与错误码冲突时**以 `backend/contracts/openapi/openapi.yaml` 为准**；Swagger UI **只能在 dev/test 暴露，不得用于公网生产**。
+- **整改后的最终 Swagger SHA = `d3dc853d7ec55ff0fad661a45943e7b60ff12325`**（`fix(B): 闭合 Swagger 生产 fail-closed 绕过（Oracle BLOCKER）并补全自由结构声明`，仅 4 个文件：`DocsProductionGuard`、`OpenApiDocsConfig`、`application.yml`、`DocsProductionGuardTest`；**`pom.xml` 未改**）。Oracle 有界复审判 **`PASS-with-notes`**：BLOCKER 与 IMPORTANT **均已闭合**，7 项护栏测试为有效状态断言、无放宽，并明确 **"可以将 `d3dc853` 合入 dev 并替换开发预览"**。
+- **BLOCKER 闭合方式**：护栏改为**无条件注册**（仅 `@Component`），在 `SmartInitializingSingleton.afterSingletonsInstantiated()` 运行时判定——生产信号 = `acceptsProfiles(Profiles.of("prod"))` **或** 规范化后 `app.env=production`（忽略大小写与首尾空白）；文档开启判定按**保守缺省**（未显式 `false` 即视为开启，对齐 springdoc `matchIfMissing=true`），两个开关分别检查；任一生产信号 + 任一开关开启 → 抛 `IllegalStateException`（含 `production fail-closed` + 命中信号 + 开关名，不含密钥）。该时机在嵌入式 Tomcat `start()` 之前 ⇒ **端口从未绑定**；护栏**独立于 A 的 `ProductionFailClosedValidator`、也独立于文档 bean 是否注册**，故覆盖 springdoc starter 自身自动配置。
+- **端到端拦截证据**（`.coordination/B-work/swagger-preview/prod-profile-bypass-attempt.log`）：以 `--spring.profiles.active=prod,dev --app.env=dev --springdoc.api-docs.enabled=true --app.providers.mode=doubles` 启动 jar（用 `prod,dev` 使 dev 替身 bean 齐备，从而避开 A 校验器与缺 bean 干扰）→ `JAVA_EXIT=1`，日志含 `production fail-closed … active-profile-prod=true, app.env=dev; enabled switches: [springdoc.api-docs.enabled]`，`Tomcat started on port` 出现 **0 次**。
+- **整改后验证（orchestrator 亲自执行）**：Java 全量 **`Tests run: 397, Failures: 0, Errors: 0, Skipped: 0`，BUILD SUCCESS，rc=0**（基线 394 + 新增 3；`OpenApiDocsIT` 3/3、`OpenApiDocsDisabledIT` 1/1、护栏 7/7）；启用态（dev、18083、`mvp_b_dev`）`/v3/api-docs` 200、`/swagger-ui/index.html` 200、`/swagger-ui/` 200，独立校验器复跑 **hit 27/27、missing=[]、rc=0**（`securitySchemes=bearerAuth(http/bearer)`、恰 4 个公开端点 `security: []`）；关闭态两端点均 **404**；BLOCKER 场景 **exit 1 且端口未绑定**。
+- **Oracle 的 2 条 SUGGESTION（非阻塞，本轮按文档化披露处置，未改代码以免使已批准的 SHA 失效）**：
+  1. `DocsProductionGuard.java:49` 只识别正式 profile 名 `prod`，不识别常见别名 `production`；复现需 `spring.profiles.active=production` + `app.env=dev` + 显式强开 springdoc 开关。**项目正式 profile 约定为 `prod`**（见 `application.yml`），且基础段默认关闭、`OpenApiDocsConfig` 仅 dev/test 注册，故残余风险低。后续可选修法：改为 `Profiles.of("prod","production")`，或在部署文档明确只允许 `prod`。
+  2. `DocsProductionGuard.java:17` 的 javadoc 仍链接已删除 import 的 `@ConditionalOnProperty`，且"无条件 ConditionalOnProperty"表述含混；建议改为"无 `@ConditionalOnProperty` 条件"并去掉未解析链接。
+- **必须持续披露的文档准确性限制**（Oracle 本轮重申，已写入 `info.description`）：生成文档非权威契约、冲突以 `backend/contracts/openapi/openapi.yaml` 为准；生成 OpenAPI **3.1.0** vs 契约 **3.0.3**；所有 `Object`/`Map`/`JsonNode` 字段可能只显示自由 object；response content type 可能为 `*/*`；`operationId` 由 Java 方法名派生、未对齐契约；未逐端点附着完整错误码集合；**全局 bearer 只表达"是否需要 token"，不表达 APP/GIMBAL 主体类型、成员查看授权、绑定或当前任务等细粒度权限**；**Swagger UI 仅限 dev/test，不得作为公网生产文档面**；正式生产 profile 名为 `prod`，若将来支持 `production` 别名须同步扩展护栏。
