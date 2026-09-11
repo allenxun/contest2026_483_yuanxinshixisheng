@@ -158,7 +158,7 @@ class MediaCleanupHandler:
             return self._handle(ctx, job)
         except StaleGeneration:
             mlog(
-                log, logging.WARNING, "media.cleanup.fenced_write_stale",
+                log, logging.DEBUG, "media.cleanup.fenced_write_stale",
                 **job.log_fields(), note="lease lost; no transition applied",
             )
             return None

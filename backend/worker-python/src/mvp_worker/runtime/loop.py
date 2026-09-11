@@ -27,6 +27,7 @@ from ..handlers import (
 from ..logging_setup import mlog
 from .claim import claim_batch
 from .complete import (
+    BusinessTx,
     StaleGeneration,
     complete_deferred,
     complete_failure,
@@ -100,7 +101,9 @@ class WorkerRuntime:
         try:
             result = handler.handle(ctx, claim)
         except JobFailed as exc:
-            self._finish_failure(claim, exc.code, exc.message, exc.retryable)
+            self._finish_failure(
+                claim, exc.code, exc.message, exc.retryable, business_tx=exc.business_tx
+            )
             return
         except Exception as exc:  # 未预期异常 → 按临时错误退避重试
             mlog(log, logging.ERROR, "job.handler_exception",
@@ -149,7 +152,15 @@ class WorkerRuntime:
             mlog(log, logging.WARNING, "job.unsupported_stale_generation",
                  workerId=self.cfg.worker_id, **claim.log_fields())
 
-    def _finish_failure(self, claim: JobRow, code: str, message: str, retryable: bool) -> None:
+    def _finish_failure(
+        self,
+        claim: JobRow,
+        code: str,
+        message: str,
+        retryable: bool,
+        *,
+        business_tx: Optional[BusinessTx] = None,
+    ) -> None:
         try:
             complete_failure(
                 self.engine,
@@ -159,6 +170,7 @@ class WorkerRuntime:
                 retryable=retryable,
                 backoff_base_seconds=self.cfg.backoff_base_seconds,
                 backoff_cap_seconds=self.cfg.backoff_cap_seconds,
+                business_tx=business_tx,
             )
         except StaleGeneration:
             # 失败写回也可能遇 stale：回收器已重新入队，丢弃本写回即可

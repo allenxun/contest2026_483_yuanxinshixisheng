@@ -484,9 +484,10 @@ def test_analyze_result_image_idempotent_on_retry(engine: Engine, tmp_path: Any)
     status, exc, _ = run_claimed(engine, analyze_handler, jid, extras=_extras(faulty, face))
     assert status == "failed" and exc is not None
     assert exc.code == "RESULT_ARCHIVE_FAILED" and exc.retryable is True
-    # B3 单事务归档（advisory lock 内 put+行写）：put 失败 → 整段回滚、不留 pending
-    # 半写；重试成功后仍恰一行/ref（幂等由锁内重读复用保证）。
-    assert fetch_result_media(engine, aid, 1) == []
+    # N1 两阶段：put 在 PG 事务外；put 失败保留 pending 行（意图已持久化），重试
+    # 复用同一行/key 续跑，成功仍恰一行/ref（advisory lock 串行 + 行复用）。
+    pending = fetch_result_media(engine, aid, 1)
+    assert len(pending) == 1 and pending[0]["state"] == "pending"
 
     status2, _exc2, _ = run_claimed(engine, analyze_handler, jid, extras=_extras(inner, face))
     assert status2 == "succeeded"
@@ -621,3 +622,60 @@ class _FailFirstStorage:
 
     def get(self, object_key: str) -> bytes:
         return self._inner.get(object_key)
+
+
+# ---------------------------------------------------------- N2 convergence
+
+
+def test_analyze_terminal_failed_same_rev_converges_t12(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """N2：T05 本输入代次已 failed 而 T12 停同代次 → 重放收敛 T12 failed。"""
+    aid = seed_assessment(
+        engine, status="failed", current_photo_version=1, processing_revision=2
+    )
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "UPDATE skin_assessments SET failure_code='DEPENDENCY_UNAVAILABLE'"
+                " WHERE id=CAST(:id AS uuid)"
+            ),
+            {"id": aid},
+        )
+    jid = _enqueue_analyze(engine, aid, 2)
+    status, exc, _ = run_claimed(
+        engine, analyze_handler, jid,
+        extras=_extras(FilesystemStorageDouble(tmp_path / "s"), FaceDouble()),
+    )
+    assert status == "failed" and exc is not None
+    assert exc.code == "DEPENDENCY_UNAVAILABLE" and exc.retryable is False
+    row = fetch_job(engine, jid)
+    assert row["status"] == "failed"
+    assert row["last_error"]["code"] == "DEPENDENCY_UNAVAILABLE"  # == 持久化 failure_code
+    a = fetch_assessment(engine, aid)
+    assert a["status"] == "failed" and a["failure_code"] == "DEPENDENCY_UNAVAILABLE"
+
+
+def test_analyze_terminal_failed_different_rev_noop(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """不同输入代次的终态：保持 stale no-op（T12 succeeded，T05 不变）。"""
+    aid = seed_assessment(
+        engine, status="failed", current_photo_version=1, processing_revision=3
+    )
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "UPDATE skin_assessments SET failure_code='DEPENDENCY_UNAVAILABLE'"
+                " WHERE id=CAST(:id AS uuid)"
+            ),
+            {"id": aid},
+        )
+    jid = _enqueue_analyze(engine, aid, 2)
+    status, exc, _ = run_claimed(
+        engine, analyze_handler, jid,
+        extras=_extras(FilesystemStorageDouble(tmp_path / "s"), FaceDouble()),
+    )
+    assert status == "succeeded" and exc is None
+    assert fetch_job(engine, jid)["status"] == "succeeded"
+    assert fetch_assessment(engine, aid)["status"] == "failed"

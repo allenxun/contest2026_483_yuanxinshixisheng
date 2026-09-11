@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
+import pytest
 from sqlalchemy import Engine, text
 
 from conftest import enqueue, fetch_job
@@ -125,6 +126,101 @@ def test_failure_write_with_stale_generation_raises(engine: Engine) -> None:
         raise AssertionError("expected StaleGeneration")
     except StaleGeneration:
         pass
+
+
+def test_failure_business_tx_commits_atomically_with_failed(engine: Engine) -> None:
+    """N2：终态业务写随 complete_failure 同一事务原子提交（T05/T06 failed + T12 failed）。"""
+    claim, jid = _claim_one(engine)
+    media_id = "b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1"
+
+    def business_tx(conn: Any) -> None:
+        conn.execute(_INSERT_MEDIA, {"id": media_id, "object_key": f"test/fail/{media_id}"})
+
+    complete_failure(
+        engine, claim, code="FACE_QUALITY_REJECTED", message="q",
+        retryable=False, business_tx=business_tx,
+    )
+    assert fetch_job(engine, jid)["status"] == "failed"
+    with engine.connect() as conn:
+        n = conn.execute(
+            text("SELECT count(*) FROM media_objects WHERE id = CAST(:id AS uuid)"),
+            {"id": media_id},
+        ).scalar_one()
+    assert int(n) == 1
+
+
+def test_failure_business_tx_error_rolls_back_business_and_job(engine: Engine) -> None:
+    """N2：业务回调抛错 → 业务写与任务状态整体回滚（job 仍 running/同代次）。"""
+    claim, jid = _claim_one(engine)
+    media_id = "b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2"
+
+    def bad(conn: Any) -> None:
+        conn.execute(_INSERT_MEDIA, {"id": media_id, "object_key": f"test/bad/{media_id}"})
+        raise RuntimeError("callback exploded")
+
+    with pytest.raises(RuntimeError):
+        complete_failure(
+            engine, claim, code="X", message="m", retryable=False, business_tx=bad
+        )
+    row = fetch_job(engine, jid)
+    assert row["status"] == "running"  # 任务状态未改
+    assert row["lease_owner"] == claim.lease_owner
+    assert int(row["lease_revision"]) == claim.lease_revision
+    with engine.connect() as conn:
+        n = conn.execute(
+            text("SELECT count(*) FROM media_objects WHERE id = CAST(:id AS uuid)"),
+            {"id": media_id},
+        ).scalar_one()
+    assert int(n) == 0  # 业务写回滚
+
+
+def test_failure_expired_lease_rejects_business_and_job(engine: Engine) -> None:
+    """N2：租约过期 → 业务与任务状态双拒（StaleGeneration，整体无变化）。"""
+    claim, jid = _claim_one(engine)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "UPDATE async_jobs SET lease_until = CURRENT_TIMESTAMP"
+                " - make_interval(secs => 5) WHERE id = :id"
+            ),
+            {"id": jid},
+        )
+    media_id = "b3b3b3b3-b3b3-4b3b-8b3b-b3b3b3b3b3b3"
+
+    def business_tx(conn: Any) -> None:
+        conn.execute(_INSERT_MEDIA, {"id": media_id, "object_key": f"test/exp/{media_id}"})
+
+    with pytest.raises(StaleGeneration):
+        complete_failure(
+            engine, claim, code="X", message="m", retryable=False, business_tx=business_tx
+        )
+    row = fetch_job(engine, jid)
+    assert row["status"] == "running"  # 任务未改
+    assert int(row["lease_revision"]) == claim.lease_revision
+    with engine.connect() as conn:
+        n = conn.execute(
+            text("SELECT count(*) FROM media_objects WHERE id = CAST(:id AS uuid)"),
+            {"id": media_id},
+        ).scalar_one()
+    assert int(n) == 0  # 业务未提交
+
+
+def test_failure_callback_respects_attempt_budget_on_requeue(engine: Engine) -> None:
+    """N2：带回调的可重试失败仍沿原 attempt 预算（attempt=1<5 → requeue 不退还）。"""
+    claim, jid = _claim_one(engine, max_attempts=5)
+    calls: list[int] = []
+
+    def business_tx(conn: Any) -> None:
+        calls.append(1)
+
+    complete_failure(
+        engine, claim, code="DEPENDENCY_TIMEOUT", message="m", retryable=True,
+        backoff_base_seconds=0, backoff_cap_seconds=0, business_tx=business_tx,
+    )
+    row = fetch_job(engine, jid)
+    assert row["status"] == "queued"
+    assert int(row["attempt_count"]) == claim.attempt_count == 1  # 不退还/不额外
+    assert calls == [1]
 
 
 def test_backoff_formula_exponential_capped():

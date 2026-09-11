@@ -1,7 +1,9 @@
 """``plan.generate`` handler 覆盖：defer 合法等待、能力匹配、冻结快照校验、K 保护、幂等。"""
 from __future__ import annotations
 
+import copy
 import json
+import logging
 import uuid
 from dataclasses import replace
 from typing import Any
@@ -28,6 +30,7 @@ from mvp_worker.handlers.dshared.dconfig import (
     DConfig,
 )
 from mvp_worker.handlers.dshared.providers import PlanDouble
+from mvp_worker.handlers.plan_generate import _frozen_rules
 from mvp_worker.handlers.plan_generate import handler as plan_handler
 from mvp_worker.media.storage import FilesystemStorageDouble
 from mvp_worker.runtime.claim import claim_batch
@@ -115,9 +118,9 @@ def _frozen_snapshot() -> dict[str, Any]:
             "microcrystal_id": str(uuid.uuid4()),
             "capability_id": base["capability_id"],
             "capability_revision": int(base["revision"]),
-            "parameter_ranges": base["parameter_ranges"],
-            "approved_regions": base["approved_regions"],
-            "n_bounds": base["n_bounds"],
+            "parameter_ranges": copy.deepcopy(base["parameter_ranges"]),
+            "approved_regions": list(base["approved_regions"]),
+            "n_bounds": dict(base["n_bounds"]),
         },
         "model": {
             "plan_provider": "double",
@@ -599,3 +602,150 @@ def test_plan_dedup_single_row(engine: Engine, tmp_path: Any) -> None:
     assert replayed1 is False and replayed2 is True
     assert jid1 == jid2
     assert count_jobs_by_dedup(engine, dedup) == 1
+
+
+# ------------------------------------------------ R2 frozen snapshot contract
+
+
+def _mut_missing_report(snap: dict[str, Any]) -> None:
+    del snap["report"]
+
+
+def _mut_missing_model(snap: dict[str, Any]) -> None:
+    del snap["model"]
+
+
+def _mut_missing_capability_id(snap: dict[str, Any]) -> None:
+    del snap["capability"]["capability_id"]
+
+
+def _mut_n_bounds_min_invalid(snap: dict[str, Any]) -> None:
+    snap["capability"]["n_bounds"]["min"] = "invalid"
+
+
+def _mut_ranges_entry_non_object(snap: dict[str, Any]) -> None:
+    snap["capability"]["parameter_ranges"]["intensity"] = "not-an-object"
+
+
+def _mut_empty_unit(snap: dict[str, Any]) -> None:
+    snap["capability"]["parameter_ranges"]["intensity"]["unit"] = ""
+
+
+def _mut_min_gt_max(snap: dict[str, Any]) -> None:
+    snap["capability"]["parameter_ranges"]["intensity"]["min"] = 200.0
+
+
+def _mut_n_bounds_max_lt_min(snap: dict[str, Any]) -> None:
+    snap["capability"]["n_bounds"] = {"min": 5, "max": 1}
+
+
+def _mut_regions_empty(snap: dict[str, Any]) -> None:
+    snap["capability"]["approved_regions"] = []
+
+
+@pytest.mark.parametrize(
+    "mutator",
+    [
+        _mut_missing_report,
+        _mut_missing_model,
+        _mut_missing_capability_id,
+        _mut_n_bounds_min_invalid,
+        _mut_ranges_entry_non_object,
+        _mut_empty_unit,
+        _mut_min_gt_max,
+        _mut_n_bounds_max_lt_min,
+        _mut_regions_empty,
+    ],
+    ids=[
+        "missing_report",
+        "missing_model",
+        "missing_capability_id",
+        "n_bounds_min_invalid",
+        "ranges_entry_non_object",
+        "empty_unit",
+        "min_gt_max",
+        "n_bounds_max_lt_min",
+        "regions_empty",
+    ],
+)
+def test_plan_frozen_snapshot_contract_violation_terminal(
+    engine: Engine, tmp_path: Any, caplog: Any, mutator: Any
+) -> None:
+    """R2：冻结快照任一契约字段缺失/畸形 → fenced PLAN_SNAPSHOT_INVALID 终态。
+
+    断言 T12 failed、T06 failed（非 stranded ``generating``）、ERROR 日志、
+    未 publish ready、且非 ``HANDLER_ERROR``（无未处理异常）。
+    """
+    snap = _frozen_snapshot()
+    mutator(snap)
+    storage, _aid, _member, pid, _ = _seed_plan_case(
+        engine, tmp_path, plan_status="generating", with_capability=True,
+        input_snapshot=snap,
+    )
+    jid = _enqueue_plan(engine, pid, 0, max_attempts=1)
+    caplog.set_level(logging.ERROR, logger="mvp_worker.handlers.plan_generate")
+    status, exc, _ = run_claimed(
+        engine, plan_handler, jid, extras={"storage": storage, "plan_port": PlanDouble()}
+    )
+    assert status == "failed" and exc is not None
+    assert exc.code == "PLAN_SNAPSHOT_INVALID" and exc.retryable is False
+    assert exc.code != "HANDLER_ERROR"
+    plan = fetch_plan(engine, pid)
+    assert plan["generation_status"] == "failed"  # 非 stranded 'generating'
+    assert plan["plan_payload"] is None
+    assert plan["failure_detail"]["code"] == "PLAN_SNAPSHOT_INVALID"
+    assert fetch_job(engine, jid)["status"] == "failed"
+    assert any("plan.snapshot_invalid" in r.message for r in caplog.records)
+
+
+def test_frozen_rules_rejects_schema_version_wrong_type() -> None:
+    """schema_version 非整数（"1"/bool）→ None。
+
+    DB CHECK ``ck_plan_input_snapshot_schema`` 不允许持久化该畸形快照，无法走
+    SQL seed 的 job 级路径，故在此直接验证 ``_frozen_rules`` 拒绝 + 合法基线条通过。
+    """
+    wrong_str = _frozen_snapshot()
+    wrong_str["schema_version"] = "1"
+    assert _frozen_rules(wrong_str) is None
+    wrong_bool = _frozen_snapshot()
+    wrong_bool["schema_version"] = True
+    assert _frozen_rules(wrong_bool) is None
+    assert _frozen_rules(_frozen_snapshot()) is not None
+
+
+# ---------------------------------------------------------- N2 convergence
+
+
+def test_plan_terminal_failed_same_rev_converges_t12(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """N2：T06 本代次已 failed 而 T12 停同代次 → 重放收敛 T12 failed（不再 no-op 成功）。"""
+    storage, _aid, _member, pid, _ = _seed_plan_case(
+        engine, tmp_path, plan_status="failed", gen_rev=0
+    )
+    jid = _enqueue_plan(engine, pid, 0, max_attempts=1)
+    status, exc, _ = run_claimed(
+        engine, plan_handler, jid, extras={"storage": storage, "plan_port": PlanDouble()}
+    )
+    assert status == "failed" and exc is not None
+    assert exc.code == "PLAN_GENERATION_FAILED" and exc.retryable is False
+    row = fetch_job(engine, jid)
+    assert row["status"] == "failed"
+    assert row["last_error"]["code"] == "PLAN_GENERATION_FAILED"
+    assert fetch_plan(engine, pid)["generation_status"] == "failed"  # T06 不变
+
+
+def test_plan_terminal_failed_different_rev_noop(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """不同代次终态：保持 stale no-op（T12 succeeded，T06 不变）。"""
+    storage, _aid, _member, pid, _ = _seed_plan_case(
+        engine, tmp_path, plan_status="failed", gen_rev=1
+    )
+    jid = _enqueue_plan(engine, pid, 0)
+    status, exc, _ = run_claimed(
+        engine, plan_handler, jid, extras={"storage": storage, "plan_port": PlanDouble()}
+    )
+    assert status == "succeeded" and exc is None
+    assert fetch_job(engine, jid)["status"] == "succeeded"
+    assert fetch_plan(engine, pid)["generation_status"] == "failed"

@@ -28,8 +28,8 @@ from d_support import (
     seed_plan,
     seed_source_media,
 )
+from mvp_worker.handlers import JobFailed
 from mvp_worker.handlers.assessment_analyze import (
-    _mark_failed,
     _persist_enroll_pending,
     handler as analyze_handler,
 )
@@ -40,13 +40,14 @@ from mvp_worker.handlers.identity_enroll import (
     handler as enroll_handler,
 )
 from mvp_worker.handlers.media_cleanup import handler as cleanup_handler
-from mvp_worker.handlers.plan_generate import (
-    _mark_plan_failed,
-    handler as plan_handler,
-)
+from mvp_worker.handlers.plan_generate import handler as plan_handler
 from mvp_worker.media.storage import FilesystemStorageDouble
 from mvp_worker.runtime.claim import claim_batch
-from mvp_worker.runtime.complete import StaleGeneration, complete_success
+from mvp_worker.runtime.complete import (
+    StaleGeneration,
+    complete_failure,
+    complete_success,
+)
 from mvp_worker.runtime.expire import recover_expired, release_claim
 
 
@@ -148,13 +149,23 @@ def test_analyze_stale_claim_terminal_failed_mark_rejected(engine: Engine) -> No
         payload={"schema_version": 1, "assessment_id": aid, "processing_revision": "2"},
     )
     claim = _claim(engine, jid)
+    ctx = make_ctx(engine, claim)
     _bump_revision(engine, jid)
 
+    # 终态业务写 = JobFailed.business_tx（不再独立预提交）；随 complete_failure 原子围栏
+    with pytest.raises(JobFailed) as ei:
+        analyze_handler._terminal(
+            ctx, claim, aid, 2,
+            code="DEPENDENCY_UNAVAILABLE", message="boom", reason="boom",
+        )
     with pytest.raises(StaleGeneration):
-        _mark_failed(engine, claim, aid, 2, "DEPENDENCY_UNAVAILABLE", "boom")
+        complete_failure(
+            engine, claim, code=ei.value.code, message=ei.value.message,
+            retryable=ei.value.retryable, business_tx=ei.value.business_tx,
+        )
 
     a = fetch_assessment(engine, aid)
-    assert a["status"] == "analyzing"  # 终态未被旧租约写入
+    assert a["status"] == "analyzing"  # 业务终态未提交
     assert a["failure_code"] is None
 
 
@@ -250,10 +261,19 @@ def test_plan_stale_claim_terminal_mark_rejected(engine: Engine) -> None:
         payload={"schema_version": 1, "plan_id": pid, "generation_revision": "0"},
     )
     claim = _claim(engine, jid)
+    ctx = make_ctx(engine, claim)
     _bump_revision(engine, jid)
 
+    with pytest.raises(JobFailed) as ei:
+        plan_handler._terminal(
+            ctx, claim, pid, 0,
+            code="PLAN_VALIDATION_FAILED", message="boom", detail={"reason": "boom"},
+        )
     with pytest.raises(StaleGeneration):
-        _mark_plan_failed(engine, claim, pid, 0, {"reason": "boom"})
+        complete_failure(
+            engine, claim, code=ei.value.code, message=ei.value.message,
+            retryable=ei.value.retryable, business_tx=ei.value.business_tx,
+        )
 
     assert fetch_plan(engine, pid)["generation_status"] == "waiting_inputs"
 

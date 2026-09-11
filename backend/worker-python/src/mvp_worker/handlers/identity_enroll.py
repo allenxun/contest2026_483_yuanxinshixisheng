@@ -112,7 +112,7 @@ class IdentityEnrollHandler:
             return self._handle(ctx, job)
         except StaleGeneration:
             mlog(
-                log, logging.WARNING, "enroll.fenced_write_stale",
+                log, logging.DEBUG, "enroll.fenced_write_stale",
                 **job.log_fields(), note="lease lost; phase persist rolled back",
             )
             return None

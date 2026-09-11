@@ -16,9 +16,10 @@
 handler 选择（已在各 D handler 的 ``handle`` 包装中实现）：捕获
 ``StaleGeneration`` 后**返回 None**，而非向上抛。原因见 ``runtime/loop.py``：
 向上抛会落入通用 ``except Exception`` → 记 ERROR ``job.handler_exception`` 后再走
-``complete_failure``（同样被围栏丢弃），产生两条日志且第一条误报为未处理异常；
-返回 None 则走 ``complete_success``→围栏丢弃，只留一条 ``job.complete_stale_generation``
-WARN，语义最干净（单日志、不误报）。
+``complete_failure``（同样被围栏丢弃），产生两条日志且第一条误报为未处理异常。
+返回 None 则走 ``complete_success``→围栏丢弃。日志分层（N3）：handler 侧只记
+``*.fenced_write_stale`` **DEBUG**（租约竞争属正常并发，不是错误），loop 的
+``job.complete_stale_generation`` WARN 是唯一权威告警——避免双重日志。
 """
 from __future__ import annotations
 
