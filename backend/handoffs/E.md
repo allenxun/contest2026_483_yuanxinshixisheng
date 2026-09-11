@@ -23,12 +23,16 @@
 - `driver/`（A 基线验收参数化驱动：`a_baseline.py`/`infra.py`/`seed_ab04.sql`；
   E 专用 mvp-e-pg@55433、Java@18081、worker@18082；flock 常驻锁、run 标签归属清理、
   模式化输出目录【诊断→reports/，正式→evidence/】、52 项完整结算哨兵；
-  `a_reverify.py` 定向复验 RV-1..RV-9【11 项结算】、`verify_reverify_sentinel.py`
-  RUN_ID 入口绑定哨兵【run_id/mode/settled/计数和/final_exit==驱动 rc，不符→4】）
+  `a_reverify.py` 定向复验 RV-1..RV-9【11 项结算】、`a_rv5.py` RV-5 最终有界
+  复验 RV5-1..RV5-8【10 项结算】、`verify_reverify_sentinel.py` RUN_ID 入口绑定
+  哨兵【mode/expected 参数化：run_id/mode/settled/计数和/final_exit==驱动 rc，
+  不符→4】）
 - `evidence/A-baseline-2026-09-10/`（summary.md 逐项证据、results.json 哨兵、
   logs/ 摘录与 A 缺陷可执行复现）
 - `evidence/A-reverify-2026-09-10/`（6 个 run 目录：定向复验证据，含
   n2-codereview-manual.md 人工复核 10 行、捕获响应与负例；旧正式证据零覆盖）
+- `evidence/A-rv5-2026-09-10-561c338/`（4 个 run 目录：RV-5 最终有界复验证据，
+  含捕获响应、披露核对、双跑最终结算）
 - `backend/handoffs/E-A-acceptance.md`（A 基线独立验收报告：26d97fb 历史轮【未通过】
   + f6e500e 定向复验闭合节 + 整体意见结构与 RV-5 裁定请求）
 
@@ -148,31 +152,40 @@ E 以 `run.sh a-reverify` 执行定向复验（RV-1..RV-9+CLEANUP=11 项，独�
   复核（9/9 合规、缺陷 0、残项 0，oracle 第九轮独立核验）。
 - 详情与整体意见结构见 `backend/handoffs/E-A-acceptance.md` 定向复验节。
 
-## 待 RV-5 裁定后的执行流程
+## RV-5 最终有界复验（2026-09-11 已执行——通过，第十三轮 oracle 终审 PASS@cce3975）
 
-1. 总协调书面裁定系统诊断可见性 → 若确认接受当前边界，RV-5 转 PASS，整体意见按
-   组合证据形成；若要求创建者/任务类型过滤 → 交 A 实施，E 绑定更新 A SHA 定向重验。
-2. 总协调按三部分结构（26d97fb 旧台账未变证据 + f6e500e 定向闭合 + RV-5 裁定）
-   形成 A 基础验收整体意见，并决定是否启动 B/C/D。
-3. B/C/D 集成后开闸（gate=open），按矩阵补写并运行场景步骤（P0 优先），证据严格
+总协调已书面裁定 RV-5 并由 A 实施（链 334a9c4→199b2f6→**561c338**，A oracle r9
+PASS-with-notes）；E 以 `run.sh a-rv5` 执行有界复验（RV5-1..RV5-8+CLEANUP=10 项，
+独立证据目录 4 run 含历史；实施跑与协调者复跑双跑一致）：selfcheck exit=0
+（54 passed）、a-rv5 exit=0（settled 10/10=10 PASS/0 FAIL/0 BLOCKED/0 INFO）。
+RV-5 裁定语义实测闭合：创建者 GET 可见、三态统一 404 不可区分（完整公开体仅排除
+requestId 逐字节等值+禁止内容扫描+种子回查）、POST dedup 碰撞四体统一拒绝边界+
+T13 rejected-replay+全字段快照不变+同主体正例保留；原 INFO 残项解除。详情与最终
+组合结论见 `backend/handoffs/E-A-acceptance.md` RV-5 节。
+
+## 待总协调决定后的执行流程
+
+1. 总协调按组合证据（26d97fb 旧台账适用证据 + f6e500e 泄漏闭合 + 561c338 RV-5
+   闭合）形成 A 基础验收整体结论，并决定是否启动 B/C/D（E 侧建议：已具备条件；
+   最终放行权总协调，E 不自动启动 B/C/D）。
+2. B/C/D 集成后开闸（gate=open），按矩阵补写并运行场景步骤（P0 优先），证据严格
    区分 `doubles_pass` / `real_pass`（见 `plans/isolation-and-doubles.md`）。
 
 ## 状态
 
-- blocker：**第十二轮 oracle 审查不可用（usage limit，原会话两次调用失败）**——
-  RV-5 最终候选（A 561c338）有界复验已执行（`run.sh a-rv5` 双跑 settled 10/10=
-  10 PASS、exit=0，哨兵入口绑定 OK），E 代码已提交 **03b8dfb** 但**未审，不得
-  视为通过**；94 业务场景 dependency_pending（blocked_by=归属 B/C/D 包）。
-- nextAction：**waiting_dependency**（oracle 配额恢复后重试第十二轮【原会话，
-  不切换模型/不代替审查】→ 补记 E-oracle.md/E-A-acceptance.md 第十二轮结论 →
-  组合意见与 B/C/D 启动建议由总协调形成；若审查发现阻塞→修复后再审）。
+- blocker：**无（E 侧）**——RV-5 最终候选（A 561c338）有界复验完成并经第十三轮
+  oracle 终审 PASS（E 代码最终 **cce3975**，blockingFindings 无，原 INFO 残项
+  解除）；94 业务场景 dependency_pending（blocked_by=归属 B/C/D 包）。
+- nextAction：**waiting_dependency**（总协调按组合证据形成 A 基础验收整体结论并
+  决定是否启动 B/C/D——E 侧建议：已具备条件，最终放行权总协调，E 不自动启动；
+  B/C/D 集成后开闸按矩阵验收 94 场景）。
 - 未修改 `backend/doc/**`、A 源码/契约/迁移/构建配置；未访问兄弟工作树；E 专用
   资源（mvp-e-pg@55433/18081/18082）已清理，未触碰 A 容器/端口；临时输出限
   E 路径（未用 /tmp/opencode）。
 - 提交状态：本包已本地提交（实施 cea01f7 → 修复链 … → 85c2f33【R8 PASS】→
-  07617a4/2a595cf/1fb5a5f【R9-R11，R11 PASS】→ **03b8dfb**【RV-5 有界复验驱动，
-  R12 BLOCKED 待补】+ 证据刷新 baa809b/abaa6a9/ded4034/824d953 及报告提交），
+  07617a4/2a595cf/1fb5a5f【R9-R11 PASS】→ 03b8dfb【R12 BLOCKED】→ **cce3975**
+  【R13 PASS】+ 证据刷新 baa809b/abaa6a9/ded4034/824d953/3b38ce2 及报告提交），
   由总协调负责集成，未推送远端。
-- E 代码经 oracle 第十一轮复审 PASS（reviewedCommit `1fb5a5f`）；03b8dfb 待第十二
-  轮；全部结果为测试替身形态（doubles_pass），不构成业务验收通过或真实供应商
+- E 代码经 oracle 第十三轮终审 PASS（reviewedCommit `cce3975`，blockingFindings
+  无）；全部结果为测试替身形态（doubles_pass），不构成业务验收通过或真实供应商
   接入声明；PARTIAL 不冒充新 SHA 全量。
