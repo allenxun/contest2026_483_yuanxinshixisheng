@@ -91,39 +91,7 @@ public class NotYetImplementedController {
         throw notImplemented("M2-A08");
     }
 
-    // ---------------- M3 测肤任务与报告 ----------------
-
-    @PostMapping("/api/v1/skin-assessment-tasks")
-    public void m3A01() {
-        throw notImplemented("M3-A01");
-    }
-
-    @PutMapping("/api/v1/skin-assessment-tasks/{taskId}/photo-versions/{photoVersion}")
-    public void m3A02(@PathVariable UUID taskId,
-                      @PathVariable @Pattern(regexp = "^(0|[1-9][0-9]*)$",
-                              message = "photoVersion must be a decimal bigint string") String photoVersion) {
-        throw notImplemented("M3-A02");
-    }
-
-    @GetMapping("/api/v1/skin-assessment-tasks/{taskId}")
-    public void m3A03(@PathVariable UUID taskId) {
-        throw notImplemented("M3-A03");
-    }
-
-    @GetMapping("/api/v1/members/{memberId}/skin-reports")
-    public void m3A04(@PathVariable UUID memberId) {
-        throw notImplemented("M3-A04");
-    }
-
-    @GetMapping("/api/v1/skin-reports/{reportId}")
-    public void m3A05(@PathVariable UUID reportId) {
-        throw notImplemented("M3-A05");
-    }
-
-    @GetMapping("/api/v1/gimbals/{gimbalId}/current-assessment")
-    public void m3A06(@PathVariable UUID gimbalId) {
-        throw notImplemented("M3-A06");
-    }
+    // ---------------- M3 测肤任务与报告（M3-A01…A06 已实现，见 assessments 包） ----------------
 
     // ---------------- M4 护理管理 ----------------
 

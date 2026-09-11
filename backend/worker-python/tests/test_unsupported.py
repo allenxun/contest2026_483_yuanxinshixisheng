@@ -20,8 +20,13 @@ def _runtime(engine: Engine) -> WorkerRuntime:
     return WorkerRuntime(cfg, engine=engine)
 
 
-def test_only_system_echo_registered_in_A(engine: Engine) -> None:
-    assert registered_job_types() == ("system.echo",)
+def test_registered_types_include_echo_and_d_business_handlers(engine: Engine) -> None:
+    """D 包落地后：echo + 四个 D 业务 handler 已注册；B 类型仍为扩展点（未注册）。"""
+    types = set(registered_job_types())
+    assert "system.echo" in types
+    assert {"assessment.analyze", "identity.enroll", "plan.generate",
+            "media.cleanup"} <= types
+    assert "notification.deliver" not in types
 
 
 def test_unknown_job_type_fails_without_retry_loop(engine: Engine) -> None:

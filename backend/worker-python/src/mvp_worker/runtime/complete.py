@@ -66,6 +66,25 @@ WHERE id = :id AND status = 'running'
 """
 )
 
+# 合法等待态重排（defer）：同 job、同 dedup_key/input_revision；退还本次 claim
+# 的 attempt 增量（GREATEST 防负），lease_revision+1 作废旧领取代次，available_at
+# 推到下次检查时刻。**绝不写/读 last_error**（诊断字段不得驱动决策）。
+_DEFER = text(
+    """
+UPDATE async_jobs
+SET status = 'queued',
+    lease_owner = NULL,
+    lease_until = NULL,
+    available_at = CURRENT_TIMESTAMP + make_interval(secs => :defer_seconds),
+    attempt_count = GREATEST(attempt_count - 1, 0),
+    lease_revision = lease_revision + 1,
+    updated_at = CURRENT_TIMESTAMP
+WHERE id = :id AND status = 'running'
+  AND lease_owner = :worker_id AND lease_revision = :lease_revision
+  AND lease_until >= CURRENT_TIMESTAMP
+"""
+)
+
 
 def backoff_seconds(
     attempt_count: int,
@@ -120,6 +139,50 @@ def complete_success(
             # 代次失效：连同业务写一起回滚，结果不得发布
             raise StaleGeneration(
                 f"job {claim.id} stale generation on complete (revision={claim.lease_revision})"
+            )
+
+
+def complete_deferred(
+    engine: Engine,
+    claim: JobRow,
+    *,
+    defer_seconds: float,
+    business_tx: Optional[BusinessTx] = None,
+) -> None:
+    """合法等待态重排（defer）单事务：业务守卫 → 代次围栏回 queued。
+
+    **仅用于合法等待态**（如能力待补齐）：同一 job、同一 ``dedup_key``/
+    ``input_revision``，不产生后继任务；退还**本次 claim** 的 attempt 增量
+    （``attempt_count = GREATEST(attempt_count - 1, 0)``，永不为负），
+    ``lease_revision + 1`` 让旧领取代次失效，``available_at`` 推到
+    ``now + defer_seconds``。绝不触碰业务 generation revision。
+
+    真实算法/网络失败**必须**走 :func:`complete_failure` 并消耗 attempt 预算，
+    不得用本函数掩盖失败。
+
+    ``business_tx`` 若给定，先在**同一连接/事务**执行（先锁业务行，DD 8.1）：
+    调用方用它复核业务输入仍是本任务输入版本（不一致抛
+    :class:`StaleGeneration`），并可写入合法等待态；抛出即整体回滚。
+
+    守卫 0 行（陈旧租约 / 重复 defer / 租约已过期）→ :class:`StaleGeneration`，
+    事务已回滚：无 refund、无状态变更、无双重退款。本函数**不写也不读**
+    ``last_error``（诊断字段不得驱动决策）。
+    """
+    with engine.begin() as conn:
+        if business_tx is not None:
+            business_tx(conn)
+        res = conn.execute(
+            _DEFER,
+            {
+                "id": claim.id,
+                "worker_id": claim.lease_owner,
+                "lease_revision": claim.lease_revision,
+                "defer_seconds": float(defer_seconds),
+            },
+        )
+        if res.rowcount == 0:
+            raise StaleGeneration(
+                f"job {claim.id} stale generation on defer (revision={claim.lease_revision})"
             )
 
 

@@ -43,9 +43,6 @@ class StubEndpointsIT extends AbstractWebIT {
                         (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
                                 t -> post("/api/v1/gimbals/" + id + "/heartbeats")
                                         .contentType("application/json").content("{}")),
-                Arguments.of("M3-A03 task view",
-                        (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
-                                t -> get("/api/v1/skin-assessment-tasks/" + id)),
                 Arguments.of("M4-A05 observations",
                         (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
                                 t -> post("/api/v1/care-executions/" + id + "/observations")

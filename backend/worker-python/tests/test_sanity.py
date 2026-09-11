@@ -16,7 +16,11 @@ def test_version_present() -> None:
     assert __version__ == "0.0.1"
 
 
-def test_config_defaults() -> None:
+def test_config_defaults(monkeypatch) -> None:
+    # 默认值断言须在无 DSN 覆盖的环境成立；各 feature lane 会注入
+    # MVP_A_PG_DSN/MVP_WORKER_PG_DSN（隔离容器），此处显式隔离以保持断言语义。
+    monkeypatch.delenv("MVP_WORKER_PG_DSN", raising=False)
+    monkeypatch.delenv("MVP_A_PG_DSN", raising=False)
     cfg = WorkerConfig()
     assert cfg.check_dsn == DEFAULT_CHECK_DSN
     assert cfg.runtime_dsn == DEFAULT_RUNTIME_DSN
