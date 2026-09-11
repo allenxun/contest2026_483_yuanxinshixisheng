@@ -5,6 +5,8 @@ import cn.yuanxin.mvp.web.auth.PrincipalType;
 import cn.yuanxin.mvp.web.error.ApiException;
 import cn.yuanxin.mvp.web.error.ErrorCode;
 import cn.yuanxin.mvp.web.web.EnvelopeSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -47,12 +49,17 @@ public class GimbalHeartbeatService {
 
     public static final String NOT_VISIBLE_MESSAGE = "gimbal not visible";
 
+    private static final Logger log = LoggerFactory.getLogger(GimbalHeartbeatService.class);
+
     private final JdbcTemplate jdbc;
     private final TransactionTemplate txTemplate;
+    private final DeviceProperties props;
 
-    public GimbalHeartbeatService(JdbcTemplate jdbc, TransactionTemplate txTemplate) {
+    public GimbalHeartbeatService(JdbcTemplate jdbc, TransactionTemplate txTemplate,
+                                  DeviceProperties props) {
         this.jdbc = jdbc;
         this.txTemplate = txTemplate;
+        this.props = props;
     }
 
     /** accepted=false 时 lastSeenAt 为当前后端的既有值（可能由更早心跳设置）。 */
@@ -93,11 +100,12 @@ public class GimbalHeartbeatService {
         }
 
         Map<String, Object> observation = DeviceJson.parseObject(row.latestObservation());
+        int maxSessions = props.maxObservationSessionsOrDefault();
         ObservationSessions.Resolution resolution = ObservationSessions.resolve(
                 observation.get("observation_sessions"),
                 DeviceJson.longAt(observation, "observation_credential_version"),
                 DeviceJson.longAt(observation, "observation_generation"),
-                principal.credentialVersion(), principal.sessionId());
+                principal.credentialVersion(), principal.sessionId(), maxSessions);
         String existingEpoch = DeviceJson.textAt(observation, "observation_epoch");
         Long existingSeq = DeviceJson.longAt(observation, "observation_seq");
         boolean accepted = switch (resolution.relation()) {
@@ -108,6 +116,14 @@ public class GimbalHeartbeatService {
                     && existingSeq != null && seq > existingSeq;
             // 旧连接（已被更高代次取代）：一律拒绝，旧会话永不重获权威。
             case STALE -> false;
+            // 表满且该 session 从未被服务端见过：fail closed。拒绝且不追加、不写任何列。
+            case TABLE_FULL -> {
+                log.warn("heartbeat observation session table full; rejected unseen session"
+                                + " gimbalId={} branch=session-table-full-fail-closed"
+                                + " maxSessions={}",
+                        gimbalId, maxSessions);
+                yield false;
+            }
         };
         if (!accepted) {
             return new Result(false, row.lastSeenAt(), row.statusRevision());

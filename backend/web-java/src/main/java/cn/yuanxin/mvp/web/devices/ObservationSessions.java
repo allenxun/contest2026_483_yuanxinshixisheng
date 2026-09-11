@@ -1,13 +1,12 @@
 package cn.yuanxin.mvp.web.devices;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 服务端观察会话代次表（Oracle 第二轮 #2）。
+ * 服务端观察会话代次表（Oracle 第二轮 #2 + 第三轮 BLOCKER）。
  *
  * <p><b>为什么不能把 sessionId 的"不相等"当作"更新"</b>：sessionId 由服务端随机
  * 签发，只有唯一性、没有新旧次序。同一 {@code credential_version} 下可能同时存在
@@ -33,16 +32,17 @@ import java.util.Map;
  * &lt; → 旧连接，<b>一律拒绝，旧会话永不重获权威</b>。因此 A(gen1)/B(gen2) 交替时，
  * B 被接受后 A 再来只会得到 generation=1 &lt; 2 → 拒绝，不再存在来回覆盖。</p>
  *
- * <p><b>有界性</b>：会话表最多保留 {@value #MAX_TRACKED_SESSIONS} 条，按 generation
- * 从大到小保留；新 session 总是成为最高 generation，故当前最高代次永不被淘汰。
- * 淘汰只影响"很久以前、且早已被更高代次取代"的会话；被淘汰的旧 session 若之后
- * 再次出现，会被当作"服务端首次见到的新会话"而获得更高 generation 并被接受——
- * 这是如实披露的边界，且 A 的会话本身有 2 小时有效期，风险有界。</p>
+ * <p><b>有界性与表满 fail closed（Oracle 第三轮 BLOCKER）</b>：会话表<b>只增不减</b>
+ * ——绝不淘汰仍可能有效的旧 session（淘汰后再出现会被赋新最高 generation，重新打开
+ * epoch 回滚）。当表中已跟踪的 session 数达到配置上限
+ * （{@code app.devices.max-observation-sessions}，默认 8）且来方 session
+ * <b>不在表中</b>（服务端从未见过）时，返回 {@link Relation#TABLE_FULL}：
+ * 调用方必须拒绝该次上报、不追加该 session、不写任何列。表中已有的 session（含当前
+ * 最高 generation 者）不受影响，继续按既有规则判定。<b>唯一恢复途径</b>是
+ * {@code credentialVersion} 严格推进：清空会话表、当前 session 记 {@code generation=1}
+ * 并接受。该方向为 fail-closed，与本项目 deny-by-default 一致。</p>
  */
 final class ObservationSessions {
-
-    /** 会话表上限：仅保留最近若干代，绝不淘汰当前最高代次。 */
-    static final int MAX_TRACKED_SESSIONS = 8;
 
     private ObservationSessions() {
     }
@@ -60,10 +60,12 @@ final class ObservationSessions {
         /** 同一连接：调用方还需检查 epoch 一致且 seq 严格更大。 */
         SAME,
         /** 旧连接：一律拒绝，绝不覆盖。 */
-        STALE
+        STALE,
+        /** 表满且该 session 从未被服务端见过：fail closed，拒绝且不追加、不写库。 */
+        TABLE_FULL
     }
 
-    /** 本次请求的代次判定结果（sessions 为有界、按 generation 升序的会话表）。 */
+    /** 本次请求的代次判定结果（sessions 为按 generation 升序、只增不减的会话表）。 */
     record Resolution(Relation relation, int generation, List<Session> sessions) {
     }
 
@@ -77,10 +79,13 @@ final class ObservationSessions {
     /**
      * 依据服务端事实（既有会话表、已记录凭据代次、既有当前代次、本次凭据代次与
      * sessionId）计算本次请求的代次关系。绝不读取请求体 epoch/seq。
+     *
+     * @param maxSessions 会话表上限（{@code app.devices.max-observation-sessions}）；
+     *                    达到上限后对未见 session 返回 {@link Relation#TABLE_FULL}。
      */
     static Resolution resolve(Object rawSessions, Long recordedCredentialVersion,
                               Long recordedGeneration, long incomingCredentialVersion,
-                              String sessionId) {
+                              String sessionId, int maxSessions) {
         List<Session> sessions = parseSessions(rawSessions);
         boolean credentialAdvanced = recordedCredentialVersion != null
                 && incomingCredentialVersion > recordedCredentialVersion;
@@ -93,10 +98,14 @@ final class ObservationSessions {
         if (known != null) {
             generation = known;
         } else {
+            if (sessions.size() >= maxSessions) {
+                // 表满且从未见过该 session：fail closed。绝不追加、绝不淘汰旧会话、不写库。
+                int currentGeneration = recordedGeneration == null ? 0 : recordedGeneration.intValue();
+                return new Resolution(Relation.TABLE_FULL, currentGeneration, sessions);
+            }
             generation = maxGeneration(sessions) + 1;
             sessions.add(new Session(sessionId, generation));
         }
-        sessions = prune(sessions);
         if (recordedGeneration == null) {
             return new Resolution(Relation.FIRST_OR_ADVANCED, generation, sessions);
         }
@@ -156,17 +165,5 @@ final class ObservationSessions {
             max = Math.max(max, session.generation());
         }
         return max;
-    }
-
-    /** 保留 generation 最大的至多 {@value #MAX_TRACKED_SESSIONS} 条，按代次升序返回。 */
-    private static List<Session> prune(List<Session> sessions) {
-        if (sessions.size() <= MAX_TRACKED_SESSIONS) {
-            return sessions;
-        }
-        List<Session> byGenerationDesc = new ArrayList<>(sessions);
-        byGenerationDesc.sort(Comparator.comparingInt(Session::generation).reversed());
-        List<Session> kept = new ArrayList<>(byGenerationDesc.subList(0, MAX_TRACKED_SESSIONS));
-        kept.sort(Comparator.comparingInt(Session::generation));
-        return kept;
     }
 }

@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -276,6 +278,54 @@ class MicrocrystalObservationIT extends AbstractDeviceIT {
                 DevProofFixture.connectionApp(account, installationId, serial), "E2", "2", "4");
         assertTrue(dataOf(next).path("accepted").asBoolean());
         assertEquals("4", dataOf(next).path("capabilityRevision").asText());
+    }
+
+    @Test
+    @DisplayName("Oracle#3 微晶：observer 会话表满后未见 session fail closed 且不写；当前连接不受影响")
+    void sessionTableFullFailClosed() throws Exception {
+        int max = deviceProps.maxObservationSessionsOrDefault();
+        String phone = newPhone();
+        String installationId = "inst-mc-full";
+        String serial = "mc-" + UUID.randomUUID();
+        List<LoginResult> sessions = new ArrayList<>();
+        UUID account = null;
+        UUID id = null;
+        for (int i = 0; i < max; i++) {
+            LoginResult session = loginAppWithInstallation(phone, installationId);
+            sessions.add(session);
+            account = UUID.fromString(session.accountId());
+            MvcResult r = observe(session.accessToken(), serial,
+                    DevProofFixture.connectionApp(account, installationId, serial),
+                    "e" + i, "1", String.valueOf(i + 1));
+            assertTrue(dataOf(r).path("accepted").asBoolean(), "session " + i + " must be accepted");
+            if (id == null) {
+                id = UUID.fromString(dataOf(r).path("microcrystalId").asText());
+            }
+        }
+        String capsFilled = (String) microcrystalRow(id).get("capabilities");
+        assertEquals(max, observerSessionCount(id));
+
+        // 第 max+1 个未见 session → fail closed，不追加、capabilities 未变
+        LoginResult overflow = loginAppWithInstallation(phone, installationId);
+        MvcResult rejected = observe(overflow.accessToken(), serial,
+                DevProofFixture.connectionApp(account, installationId, serial), "eNew", "1", "99");
+        assertEquals(200, rejected.getResponse().getStatus());
+        assertFalse(dataOf(rejected).path("accepted").asBoolean());
+        assertEquals(capsFilled, microcrystalRow(id).get("capabilities"));
+        assertEquals(max, observerSessionCount(id), "rejected unseen session must not be appended");
+
+        // 表满不影响已在表中的最高 generation session：同 epoch、严格更大 seq → 接受
+        MvcResult current = observe(sessions.get(max - 1).accessToken(), serial,
+                DevProofFixture.connectionApp(account, installationId, serial),
+                "e" + (max - 1), "2", "100");
+        assertTrue(dataOf(current).path("accepted").asBoolean(),
+                "table-full must not reject the current connection");
+    }
+
+    private int observerSessionCount(UUID microcrystalId) {
+        return jdbc.queryForObject(
+                "SELECT jsonb_array_length(latest_observation -> 'observer_sessions')"
+                        + " FROM microcrystals WHERE id = ?", Integer.class, microcrystalId);
     }
 
     @Test

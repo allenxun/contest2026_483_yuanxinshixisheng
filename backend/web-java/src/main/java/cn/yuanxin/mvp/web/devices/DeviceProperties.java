@@ -18,11 +18,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *   <li>{@code incident-suppression-seconds}：重复异常通知抑制间隔，供 L4 扫描器
  *       决定是否针对重复上报再次建通知；M2-A02 只记录 durable 事实，
  *       从不据此丢弃 episode。默认 60。</li>
+ *   <li>{@code max-observation-sessions}：会话代次表最多跟踪多少个<b>并存</b>的
+ *       服务端会话（心跳 {@code observation_sessions} / 微晶 {@code observer_sessions}）。
+ *       达到该上限后，对"服务端从未见过"的新 session 一律 fail closed（拒绝该次
+ *       上报，不刷新 {@code last_seen_at}/不覆盖观察），直到凭据代次推进清空会话表
+ *       为止；表中已有的 session 不受影响。默认 8。调高该值可降低设备频繁重连
+ *       （每次新 session）被拒的风险。</li>
  * </ul>
  */
 @ConfigurationProperties(prefix = "app.devices")
 public record DeviceProperties(Integer stalenessSeconds, Integer offlineSeconds,
-                               Integer incidentSuppressionSeconds) {
+                               Integer incidentSuppressionSeconds,
+                               Integer maxObservationSessions) {
 
     public DeviceProperties {
         if (stalenessSeconds == null || stalenessSeconds < 1) {
@@ -33,6 +40,9 @@ public record DeviceProperties(Integer stalenessSeconds, Integer offlineSeconds,
         }
         if (incidentSuppressionSeconds == null || incidentSuppressionSeconds < 1) {
             incidentSuppressionSeconds = 60;
+        }
+        if (maxObservationSessions == null || maxObservationSessions < 1) {
+            maxObservationSessions = 8;
         }
     }
 
@@ -46,5 +56,9 @@ public record DeviceProperties(Integer stalenessSeconds, Integer offlineSeconds,
 
     public int incidentSuppressionSecondsOrDefault() {
         return incidentSuppressionSeconds;
+    }
+
+    public int maxObservationSessionsOrDefault() {
+        return maxObservationSessions;
     }
 }

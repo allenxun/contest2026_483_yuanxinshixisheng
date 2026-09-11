@@ -159,8 +159,15 @@ public class MicrocrystalService {
                 throw new ApiException(ErrorCode.INTERNAL,
                         "microcrystal row missing after locate");
             }
+            int maxSessions = props.maxObservationSessionsOrDefault();
             Decision decision = decide(row, observer, principal.credentialVersion(),
-                    principal.sessionId(), body.observationEpoch(), seq);
+                    principal.sessionId(), body.observationEpoch(), seq, maxSessions);
+            if (decision.relation() == ObservationSessions.Relation.TABLE_FULL) {
+                log.warn("microcrystal observer session table full; rejected unseen session"
+                                + " microcrystalId={} branch=session-table-full-fail-closed"
+                                + " maxSessions={}",
+                        microcrystalId, maxSessions);
+            }
             if (!decision.accepted()) {
                 String existingRevision = currentRevision(row.capabilities());
                 Instant received = row.receivedAt() == null ? Instant.now() : row.receivedAt();
@@ -246,36 +253,40 @@ public class MicrocrystalService {
 
     /** accepted=false 时 generation/sessions 仅作诊断，绝不写库。 */
     private record Decision(boolean accepted, int generation,
-                            List<ObservationSessions.Session> sessions) {
+                            List<ObservationSessions.Session> sessions,
+                            ObservationSessions.Relation relation) {
     }
 
     /**
-     * 服务端会话代次判定（Oracle 第二轮 #2）。来源变化 → 重置并 generation=1；
-     * 来源相同 → 按 {@link ObservationSessions} 的服务端次序：更大代次接受重置，
-     * 同代次要求 epoch 一致且 seq 严格更大，旧代次一律拒绝。
+     * 服务端会话代次判定（Oracle 第二轮 #2 + 第三轮 BLOCKER）。来源变化 → 重置并
+     * generation=1；来源相同 → 按 {@link ObservationSessions} 的服务端次序：更大
+     * 代次接受重置，同代次要求 epoch 一致且 seq 严格更大，旧代次一律拒绝；
+     * 表满且该 session 从未被服务端见过 → {@code TABLE_FULL}（拒绝且不追加、不写库）。
      */
     private static Decision decide(Row row, Observer observer, long credentialVersion,
-                                   String sessionId, String epoch, long seq) {
+                                   String sessionId, String epoch, long seq, int maxSessions) {
         Map<String, Object> observed = DeviceJson.parseObject(row.latestObservation());
         boolean sourceChanged = row.observerType() == null || row.observerRef() == null
                 || !row.observerType().equals(observer.type())
                 || !row.observerRef().equals(observer.ref());
         if (sourceChanged) {
             // 新来源 = 新来源会话：接受并重置，服务端记为 generation=1。
-            return new Decision(true, 1, ObservationSessions.freshSessions(sessionId));
+            return new Decision(true, 1, ObservationSessions.freshSessions(sessionId),
+                    ObservationSessions.Relation.FIRST_OR_ADVANCED);
         }
         ObservationSessions.Resolution resolution = ObservationSessions.resolve(
                 observed.get("observer_sessions"),
                 DeviceJson.longAt(observed, "observer_credential_version"),
                 DeviceJson.longAt(observed, "observer_generation"),
-                credentialVersion, sessionId);
+                credentialVersion, sessionId, maxSessions);
         boolean accepted = switch (resolution.relation()) {
             case FIRST_OR_ADVANCED, NEWER -> true;
             case SAME -> row.observationEpoch() != null && row.observationEpoch().equals(epoch)
                     && row.observationSeq() != null && seq > row.observationSeq();
-            case STALE -> false;
+            case STALE, TABLE_FULL -> false;
         };
-        return new Decision(accepted, resolution.generation(), resolution.sessions());
+        return new Decision(accepted, resolution.generation(), resolution.sessions(),
+                resolution.relation());
     }
 
     private static Map<String, Object> buildCapabilities(Map<String, Object> requested,

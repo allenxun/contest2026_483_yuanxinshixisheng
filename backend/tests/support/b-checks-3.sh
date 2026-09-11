@@ -226,18 +226,26 @@ b37() {
     MVP_A_PG_USER="$PG_USER" MVP_A_PG_PASSWORD="$PG_PASSWORD" \
     .venv/bin/python -m pytest -q --tb=line 2>&1) || rc=$?
   printf '%s\n' "$out" | tail -25 > "$TMP/b37.tail"
-  local summary; summary=$(printf '%s\n' "$out" | grep -E '[0-9]+ (passed|failed)' | tail -1)
+  local summary; summary=$(printf '%s\n' "$out" | grep -E '[0-9]+ (passed|failed|errors?)' | tail -1)
   [[ -n "$summary" ]] || { cat "$TMP/b37.tail"; fail "未找到 pytest 汇总"; }
-  local passed failed
+  local passed failed errors
   passed=$(printf '%s' "$summary" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+' || true); passed=${passed:-0}
   failed=$(printf '%s' "$summary" | grep -oE '[0-9]+ failed' | grep -oE '[0-9]+' || true); failed=${failed:-0}
-  local failed_lines; failed_lines=$(printf '%s\n' "$out" | grep -E '^FAILED ' || true)
-  [[ "$failed" == 0 ]] || { printf '%s\n' "$summary"; printf '%s\n' "$failed_lines"; \
+  # pytest 汇总把 fixture/收集错误写作 "N errors"（单数时 "N error"），必须显式解析
+  errors=$(printf '%s' "$summary" | grep -oE '[0-9]+ errors?' | grep -oE '[0-9]+' | head -1 || true); errors=${errors:-0}
+  local bad_lines; bad_lines=$(printf '%s\n' "$out" | grep -E '^(FAILED|ERROR) ' || true)
+  # Oracle 第三轮 IMPORTANT：rc 曾被捕获却从未检查、errors 从未解析，导致
+  # "200+ passed, 1 error" 会被误报为通过。三项都必须硬断言。
+  [[ "$rc" == 0 ]] || { printf '%s\n' "$summary"; printf '%s\n' "$bad_lines"; \
+    fail "pytest 退出码=$rc（必须为 0）"; }
+  [[ "$failed" == 0 ]] || { printf '%s\n' "$summary"; printf '%s\n' "$bad_lines"; \
     fail "期望 0 个失败，实际 $failed"; }
+  [[ "$errors" == 0 ]] || { printf '%s\n' "$summary"; printf '%s\n' "$bad_lines"; \
+    fail "期望 0 个 error（fixture/收集错误），实际 $errors"; }
   [[ "$passed" -ge 200 ]] || fail "通过数 $passed < 200"
-  vlog "Python passed=$passed failed=0 errors=0"
+  vlog "Python passed=$passed failed=$failed errors=$errors rc=$rc"
   vlog "说明：合并集成基线 8afd0e5 后 tests/test_sanity.py 实测 4/4 通过，原 C15 的"
-  vlog "环境耦合失败（默认 55432 vs 覆盖 55435）不再复现；本项现要求全量零失败。"
+  vlog "环境耦合失败（默认 55432 vs 覆盖 55435）不再复现；本项要求 rc=0 且零 failed、零 error。"
 }
 
 b38() {
