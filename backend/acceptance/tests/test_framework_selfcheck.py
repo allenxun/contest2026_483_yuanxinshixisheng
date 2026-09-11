@@ -940,42 +940,57 @@ def _cc11_synth_errors(api, node, doc, body):
             for e in c_care.oas_errors_node(node, doc, body)]
 
 
-def test_cc11_allowlist_precise_no_impl_downgrade():
-    """R16 判别：普通非 nullable 收 null / 普通 additionalProperties / allowlist 外路径→impl FAIL。"""
+def test_cc11_a08_unknown_field_set_and_schema_path_binding():
+    """R17 判别：A08 未知字段集合必须恰为 {lastSyncedAt}；schema path/API 绑定必须精确。"""
+    import pathlib
+    import yaml
     from driver import c_care
 
-    # 1) 非 nullable 字段收 null（allowlist 外路径）→ impl，不得 contract INFO
-    doc1 = {"components": {"schemas": {"P": {
+    doc = yaml.safe_load((pathlib.Path(c_care.I.CONTRACTS) / "openapi" / "openapi.yaml")
+                         .read_text("utf-8"))
+    node_a08 = doc["paths"]["/api/v1/care-plans/{planId}/progress"]["get"]["responses"]["200"][
+        "content"]["application/json"]["schema"]
+    data_clean = {"targetCount": "3", "completedCount": "1", "remainingCount": "2",
+                  "isCompleted": False, "progressRevision": "1", "completedAt": None,
+                  "lastSyncedAt": "2026-01-01T00:00:00Z"}
+    errs_clean = [e for e in c_care.oas_errors_node(node_a08, doc, {"data": data_clean})
+                  if e.validator == "additionalProperties"]
+    assert errs_clean
+    assert c_care.unknown_fields_of_additional_properties(errs_clean[0]) == {"lastSyncedAt"}
+    assert c_care.classify_strict_error("A08", errs_clean[0]).startswith("contract:")
+    assert c_care.classify_strict_error("A02", errs_clean[0]) == "impl-or-other"  # API/schema path 不符
+    # lastSyncedAt + secret 并存 → 未知集合 != {lastSyncedAt} → 必须 impl FAIL
+    errs_leak = [e for e in c_care.oas_errors_node(
+        node_a08, doc, {"data": {**data_clean, "secret": "LEAK"}})
+        if e.validator == "additionalProperties"]
+    assert errs_leak and c_care.unknown_fields_of_additional_properties(errs_leak[0]) == \
+        {"lastSyncedAt", "secret"}
+    assert c_care.classify_strict_error("A08", errs_leak[0]) == "impl-or-other"
+
+
+def test_cc11_allowlist_precise_no_impl_downgrade():
+    """R17 判别：schema path 不符 / 普通非 nullable 收 null / 普通 additionalProperties→impl FAIL。"""
+    from driver import c_care
+
+    # 1) allowlist 路径命中但 schema path 不符（模拟契约变化）→ 必须 impl FAIL
+    doc2 = {"components": {"schemas": {"P": {
         "type": "object", "additionalProperties": False,
-        "properties": {"completedAt": {"type": "string"}}}}}}
-    node1 = {"type": "object", "properties": {"data": {"type": "object", "properties": {
+        "properties": {"completedAt": {"type": "string"}}, "required": ["completedAt"]}}}}
+    node2 = {"type": "object", "properties": {"data": {"type": "object", "properties": {
         "progress": {"$ref": "#/components/schemas/P"}}}}}
-    body1 = {"data": {"progress": {"completedAt": None}}}
-    r1 = c_care.oas_errors_node(node1, doc1, body1)
-    assert r1 and c_care.classify_strict_error("A01", r1[0]) == "impl-or-other"
-    assert c_care.classify_strict_error("A02", r1[0]).startswith("contract:")  # 仅 allowlist 路径命中
+    e2 = [e for e in c_care.oas_errors_node(node2, doc2, {"data": {"progress": {"completedAt": None}}})
+          if e.validator == "type"][0]
+    assert c_care.normalize_json_path(e2.json_path) == "$.data.progress.completedAt"
+    assert c_care.classify_strict_error("A02", e2) == "impl-or-other"
     # 2) 普通 additionalProperties:false（非 allOf 误伤）出现未声明字段 → impl
-    doc2 = {"components": {"schemas": {"Q": {
-        "type": "object", "additionalProperties": False,
-        "properties": {"a": {"type": "string"}}, "required": ["a"]}}}}
-    node2 = {"$ref": "#/components/schemas/Q"}
-    r2 = c_care.oas_errors_node(node2, doc2, {"a": "x", "b": "y"})
-    assert r2 and c_care.classify_strict_error("A08", r2[0]) == "impl-or-other"
-    # 3) allowlist 精确命中：nullable 路径 + A08 lastSyncedAt（allOf 误伤）
-    doc3 = {"components": {"schemas": {"Progress": {
-        "type": "object", "additionalProperties": False,
-        "properties": {"acceptedCount": {"type": "string"}}, "required": ["acceptedCount"]}}}}
-    node3 = {"type": "object", "properties": {"data": {"allOf": [
-        {"$ref": "#/components/schemas/Progress"},
-        {"type": "object", "properties": {"lastSyncedAt": {"type": "string"}}}]}}}
-    r3 = c_care.oas_errors_node(node3, doc3, {"data": {"acceptedCount": "1",
-                                                       "lastSyncedAt": "2026-01-01T00:00:00Z"}})
-    assert r3 and any(c_care.classify_strict_error("A08", e).startswith("contract:")
-                      for e in r3)
-    # 4) A08 同类 additionalProperties 但未声明字段非 lastSyncedAt → impl
-    r4 = c_care.oas_errors_node(node3, doc3, {"data": {"acceptedCount": "1", "secret": "x"}})
-    assert r4 and all(c_care.classify_strict_error("A08", e) == "impl-or-other" for e in r4)
-    # allowlist 恰 13 条
+    node3 = {"$ref": "#/components/schemas/P"}
+    e3 = [e for e in c_care.oas_errors_node(node3, doc2, {"completedAt": "x", "b": "y"})
+          if e.validator == "additionalProperties"][0]
+    assert c_care.classify_strict_error("A08", e3) == "impl-or-other"
+    # 3) 非 nullable 字段收 null（allowlist 外路径）→ impl
+    e4 = [e for e in c_care.oas_errors_node(node2, doc2, {"data": {"progress": {"completedAt": None}}})
+          if e.validator == "type"][0]
+    assert c_care.classify_strict_error("A09", e4) == "impl-or-other"
     assert len(c_care.CC11_CONTRACT_ALLOWLIST) == 13
 
 

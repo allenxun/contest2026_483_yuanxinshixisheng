@@ -95,24 +95,61 @@ def oas_errors_node(node, doc, body):
                   key=lambda e: list(e.absolute_path))
 
 
-#: R16：已确认的 13 处契约建模缺陷精确 allowlist（键=API + 归一化实例路径 + validator）。
-#: 从实际观测错误（0972884c/735fb16d 的 cc-11-captured.json）派生并硬编码；任何不在表内、
-#: 或上下文不符的严格错误一律 impl → CC-11 FAIL（绝不 INFO）。
+#: R17：13 条契约建模缺陷精确 allowlist（真四元组：API + 归一化实例路径 + validator +
+#: absolute_schema_path）。从实际观测错误（0972884c/735fb16d 的 cc-11-captured.json）派生，
+#: 硬编码 schema path；任何字段不符（含 schema path 变化）一律 impl → CC-11 FAIL。
 _NULLABLE_CTX = "nullable:true 与 $ref/allOf 同层（OAS 3.0.3 不生效）→ C 按契约意图返回 null"
 CC11_CONTRACT_ALLOWLIST = {
-    ("A01", "$.data.items[*].progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A02", "$.data.progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A03", "$.data.controller.gimbalId", "type"): _NULLABLE_CTX + " @ ControllerRef.gimbalId",
-    ("A03", "$.data.progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A03", "$.data.verification.validUntil", "type"): _NULLABLE_CTX + " @ Verification.validUntil",
-    ("A04", "$.data.progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A04", "$.data.verification.validUntil", "type"): _NULLABLE_CTX + " @ Verification.validUntil",
-    ("A05", "$.data.progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A07", "$.data.controller.gimbalId", "type"): _NULLABLE_CTX + " @ ControllerRef.gimbalId",
-    ("A07", "$.data.progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A08", "$.data.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A09", "$.data.items[*].closedAt", "type"): _NULLABLE_CTX + " @ CareExecutionListItem.closedAt",
-    ("A08", "$.data", "additionalProperties"):
+    ("A01", "$.data.items[*].progress.completedAt", "type",
+     ("allOf", 1, "properties", "data", "allOf", 1, "properties", "items", "items",
+      "properties", "progress", "allOf", 0, "properties", "completedAt", "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A02", "$.data.progress.completedAt", "type",
+     ("allOf", 1, "properties", "data", "properties", "progress", "allOf", 0,
+      "properties", "completedAt", "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A03", "$.data.controller.gimbalId", "type",
+     ("allOf", 1, "properties", "data", "properties", "controller", "properties",
+      "gimbalId", "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ ControllerRef.gimbalId",
+    ("A03", "$.data.progress.completedAt", "type",
+     ("allOf", 1, "properties", "data", "properties", "progress", "properties",
+      "completedAt", "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A03", "$.data.verification.validUntil", "type",
+     ("allOf", 1, "properties", "data", "properties", "verification", "properties",
+      "validUntil", "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ Verification.validUntil",
+    ("A04", "$.data.progress.completedAt", "type",
+     ("allOf", 1, "properties", "data", "properties", "progress", "properties",
+      "completedAt", "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A04", "$.data.verification.validUntil", "type",
+     ("allOf", 1, "properties", "data", "properties", "verification", "properties",
+      "validUntil", "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ Verification.validUntil",
+    ("A05", "$.data.progress.completedAt", "type",
+     ("allOf", 1, "properties", "data", "properties", "progress", "allOf", 0,
+      "properties", "completedAt", "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A07", "$.data.controller.gimbalId", "type",
+     ("allOf", 1, "properties", "data", "properties", "controller", "allOf", 0,
+      "properties", "gimbalId", "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ ControllerRef.gimbalId",
+    ("A07", "$.data.progress.completedAt", "type",
+     ("allOf", 1, "properties", "data", "properties", "progress", "allOf", 0,
+      "properties", "completedAt", "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A08", "$.data.completedAt", "type",
+     ("allOf", 1, "properties", "data", "allOf", 0, "properties", "completedAt",
+      "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A09", "$.data.items[*].closedAt", "type",
+     ("allOf", 1, "properties", "data", "allOf", 1, "properties", "items", "items",
+      "properties", "closedAt", "allOf", 0, "type")):
+        _NULLABLE_CTX + " @ CareExecutionListItem.closedAt",
+    ("A08", "$.data", "additionalProperties",
+     ("allOf", 1, "properties", "data", "allOf", 0, "additionalProperties")):
         "allOf: ProgressWithSync.lastSyncedAt 被 Progress.additionalProperties:false 误伤",
 }
 
@@ -121,16 +158,25 @@ def normalize_json_path(json_path):
     return re.sub(r"\[\d+\]", "[*]", json_path or "$")
 
 
+def unknown_fields_of_additional_properties(err):
+    """解析 additionalProperties 错误的完整未知字段集合（jsonschema 可合并多个字段）。"""
+    return set(re.findall(r"'([^']+)'", err.message or ""))
+
+
 def classify_strict_error(api, err):
-    """R16 精确分类：仅 allowlist 四元组精确命中且上下文成立 → contract；否则 impl→FAIL。"""
-    key = (api, normalize_json_path(err.json_path), err.validator)
-    if key not in CC11_CONTRACT_ALLOWLIST:
+    """R17 精确分类：真四元组（API+归一化路径+validator+schema path）精确命中且上下文
+    成立 → contract；否则（含 allowlist 外、schema path 变化、额外未知字段）impl→FAIL。"""
+    key = (api, normalize_json_path(err.json_path), err.validator,
+           tuple(err.absolute_schema_path))
+    ctx = CC11_CONTRACT_ALLOWLIST.get(key)
+    if ctx is None:
         return "impl-or-other"
     if err.validator == "type" and err.instance is not None:
         return "impl-or-other"           # 非 null 的 type 违规不接受
-    if err.validator == "additionalProperties" and "lastSyncedAt" not in (err.message or ""):
-        return "impl-or-other"           # 仅 lastSyncedAt 误伤，非任意未声明字段
-    return "contract:" + CC11_CONTRACT_ALLOWLIST[key]
+    if err.validator == "additionalProperties" and \
+            unknown_fields_of_additional_properties(err) != {"lastSyncedAt"}:
+        return "impl-or-other"           # 未知字段集合必须恰为 {lastSyncedAt}
+    return "contract:" + ctx
 
 
 def oas_validate(path, method, status, body):
