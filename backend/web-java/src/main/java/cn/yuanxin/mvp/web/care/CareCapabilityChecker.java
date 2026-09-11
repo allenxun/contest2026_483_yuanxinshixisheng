@@ -14,17 +14,22 @@ import java.util.Set;
 /**
  * 准入能力覆盖判定（纯函数；无 I/O）。
  *
- * <p>对齐 D 侧版本化约定（总协调裁定 2026-09-11）：T06 {@code input_snapshot}
- * 形如
- * {@code {report:{assessment_id,report_id,report_photo_version}, capability:{microcrystal_id, capability_id, capability_revision, parameter_ranges, approved_regions, n_bounds}}}
- * （旧式 {@code required_capability_revision} 为虚构字段，已删除，不再参与任何
- * 放行/拒绝）。判定必须：当前可信设备能力同 {@code capability_id}、单位一致、
- * 实际参数值覆盖冻结参数范围、区域同时符合冻结 {@code approved_regions} 与当前
- * 设备支持区域、N 落在冻结 {@code n_bounds} 内。</p>
+ * <p>对齐 D 侧版本化约定（总协调裁定 2026-09-11）：
+ * T06 {@code input_snapshot} 形如
+ * {@code {report:{...}, capability:{capability_id, capability_revision, parameter_ranges, approved_regions, n_bounds}}}
+ * （旧式 {@code required_capability_revision} 为虚构字段，已删除）。判定
+ * <b>fail-closed</b>：冻结块必需子结构任一缺失/畸形即拒绝，绝不当“无要求”跳过；
+ * 当前可信设备能力必须同 {@code capability_id}、双侧单位严格相等且存在、设备参数范围
+ * 覆盖冻结范围、区域同时符合冻结 {@code approved_regions} 与设备支持区域、N 落在
+ * 冻结 {@code n_bounds} 内、冻结 steps 的 region/参数被双重覆盖。</p>
  *
- * <p><b>capability_revision 仅作追溯，绝不参与放行/拒绝；microcrystal_id 仅标记
- * 方案生成来源，不锁定执行设备</b>（裁定原文）。C 侧对 D 约定做防御式读取，
- * 形状差异报协调、不擅改。</p>
+ * <p>steps 协议尚未在契约冻结，故 {@code plan_payload.steps} 缺失/非数组/空数组以及
+ * step 缺 {@code region} 或 {@code parameters} 非对象一律保守拒绝
+ * ({@link #MALFORMED_FROZEN_STEP})，不猜测缺省语义。</p>
+ *
+ * <p><b>capability_revision / microcrystal_id 绝不参与放行或拒绝</b>（前者仅追溯，
+ * 后者仅标记方案生成来源，不锁定执行设备）。C 侧对 D 约定做防御式读取，形状差异
+ * 报协调、不擅改。</p>
  */
 @Component
 public class CareCapabilityChecker {
@@ -32,6 +37,7 @@ public class CareCapabilityChecker {
     /** 有界 reason token（公开给测试与调用方）。 */
     public static final String DEVICE_CAPABILITIES_MISSING = "device_capabilities_missing";
     public static final String FROZEN_CAPABILITY_MISSING = "frozen_capability_requirement_missing";
+    public static final String MALFORMED_FROZEN_CAPABILITY = "malformed_frozen_capability";
     public static final String CAPABILITY_ID_MISMATCH = "capability_id_mismatch";
     public static final String PARAMETER_RANGE_NOT_COVERED = "parameter_range_not_covered";
     public static final String REGION_NOT_SUPPORTED = "region_not_supported";
@@ -60,121 +66,163 @@ public class CareCapabilityChecker {
         if (capability == null) {
             return Optional.of(FROZEN_CAPABILITY_MISSING);
         }
+        Optional<String> malformed = validateFrozenCapability(capability);
+        if (malformed.isPresent()) {
+            return malformed;
+        }
 
-        // 3) capability_id：冻结值为非空字符串时必须与设备一致
         String frozenCapabilityId = text(capability, "capability_id");
-        if (frozenCapabilityId != null && !frozenCapabilityId.isEmpty()
-                && !frozenCapabilityId.equals(text(device, "capability_id"))) {
+        String deviceCapabilityId = text(device, "capability_id");
+        if (deviceCapabilityId == null || !frozenCapabilityId.equals(deviceCapabilityId)) {
             return Optional.of(CAPABILITY_ID_MISMATCH);
         }
 
-        // 4) 冻结参数范围逐项必须被设备更宽（含端点）且单位一致覆盖
-        JsonNode frozenRanges = asObject(capability.get("parameter_ranges"));
+        JsonNode frozenRanges = capability.get("parameter_ranges");
         JsonNode deviceRanges = asObject(device.get("parameter_ranges"));
-        if (frozenRanges != null) {
-            for (String name : fieldNames(frozenRanges)) {
-                if (!rangeCovers(deviceRanges, frozenRanges, name)) {
-                    return Optional.of(PARAMETER_RANGE_NOT_COVERED);
-                }
+        if (deviceRanges == null) {
+            return Optional.of(PARAMETER_RANGE_NOT_COVERED);
+        }
+        for (String name : fieldNames(frozenRanges)) {
+            if (!rangeCovers(deviceRanges, frozenRanges, name)) {
+                return Optional.of(PARAMETER_RANGE_NOT_COVERED);
             }
         }
 
-        // 5) 冻结 approved_regions ⊆ 设备支持区域（supported_regions，回退 regions）
         List<String> approvedRegions = stringList(capability.get("approved_regions"));
         Set<String> deviceRegions = deviceRegionSet(device);
         if (deviceRegions == null) {
             return Optional.of(REGION_NOT_SUPPORTED);
         }
-        if (approvedRegions != null) {
-            for (String region : approvedRegions) {
-                if (!deviceRegions.contains(region)) {
-                    return Optional.of(REGION_NOT_SUPPORTED);
-                }
+        for (String region : approvedRegions) {
+            if (!deviceRegions.contains(region)) {
+                return Optional.of(REGION_NOT_SUPPORTED);
             }
         }
 
-        // 6) n_bounds 存在时 N 必须落在闭区间内
+        JsonNode nBounds = capability.get("n_bounds");
+        BigDecimal nMin = decimal(nBounds.get("min"));
+        BigDecimal nMax = decimal(nBounds.get("max"));
+        if (targetCount == null) {
+            return Optional.of(N_OUT_OF_BOUNDS);
+        }
+        BigDecimal n = BigDecimal.valueOf(targetCount);
+        if (n.compareTo(nMin) < 0 || n.compareTo(nMax) > 0) {
+            return Optional.of(N_OUT_OF_BOUNDS);
+        }
+
+        return checkSteps(planPayloadJson, frozenRanges, deviceRanges, approvedRegions,
+                deviceRegions);
+    }
+
+    private Optional<String> validateFrozenCapability(JsonNode capability) {
+        JsonNode capabilityId = capability.get("capability_id");
+        if (capabilityId == null || !capabilityId.isTextual() || capabilityId.asText().isBlank()) {
+            return Optional.of(MALFORMED_FROZEN_CAPABILITY);
+        }
+        JsonNode ranges = asObject(capability.get("parameter_ranges"));
+        if (ranges == null || ranges.size() == 0) {
+            return Optional.of(MALFORMED_FROZEN_CAPABILITY);
+        }
+        for (String name : fieldNames(ranges)) {
+            JsonNode range = asObject(ranges.get(name));
+            if (range == null) {
+                return Optional.of(MALFORMED_FROZEN_CAPABILITY);
+            }
+            BigDecimal min = decimal(range.get("min"));
+            BigDecimal max = decimal(range.get("max"));
+            if (min == null || max == null || min.compareTo(max) > 0) {
+                return Optional.of(MALFORMED_FROZEN_CAPABILITY);
+            }
+            String unit = text(range, "unit");
+            if (unit == null || unit.isBlank()) {
+                return Optional.of(MALFORMED_FROZEN_CAPABILITY);
+            }
+        }
+        List<String> approved = stringList(capability.get("approved_regions"));
+        if (approved == null || approved.isEmpty()) {
+            return Optional.of(MALFORMED_FROZEN_CAPABILITY);
+        }
         JsonNode nBounds = asObject(capability.get("n_bounds"));
-        if (nBounds != null) {
-            BigDecimal min = decimal(nBounds.get("min"));
-            BigDecimal max = decimal(nBounds.get("max"));
-            if (min == null || max == null || targetCount == null) {
-                return Optional.of(N_OUT_OF_BOUNDS);
-            }
-            BigDecimal n = BigDecimal.valueOf(targetCount);
-            if (n.compareTo(min) < 0 || n.compareTo(max) > 0) {
-                return Optional.of(N_OUT_OF_BOUNDS);
-            }
+        if (nBounds == null) {
+            return Optional.of(MALFORMED_FROZEN_CAPABILITY);
         }
+        BigDecimal nMin = decimal(nBounds.get("min"));
+        BigDecimal nMax = decimal(nBounds.get("max"));
+        if (nMin == null || nMax == null || nMin.compareTo(nMax) > 0) {
+            return Optional.of(MALFORMED_FROZEN_CAPABILITY);
+        }
+        return Optional.empty();
+    }
 
-        // 7) 冻结 steps：region 与参数须同时落在冻结与设备约束内
-        JsonNode steps = planPayload(planPayloadJson);
-        if (steps != null) {
-            for (JsonNode step : steps) {
-                String failure = checkStep(step, frozenRanges, deviceRanges, approvedRegions,
-                        deviceRegions);
-                if (failure != null) {
-                    return Optional.of(failure);
-                }
+    private Optional<String> checkSteps(String planPayloadJson, JsonNode frozenRanges,
+                                        JsonNode deviceRanges, List<String> approvedRegions,
+                                        Set<String> deviceRegions) {
+        JsonNode payload = readObject(planPayloadJson);
+        JsonNode steps = payload == null ? null : payload.get("steps");
+        if (steps == null || !steps.isArray() || steps.size() == 0) {
+            return Optional.of(MALFORMED_FROZEN_STEP);
+        }
+        for (JsonNode step : steps) {
+            Optional<String> failure = checkStep(step, frozenRanges, deviceRanges, approvedRegions,
+                    deviceRegions);
+            if (failure.isPresent()) {
+                return failure;
             }
         }
         return Optional.empty();
     }
 
-    private String checkStep(JsonNode step, JsonNode frozenRanges, JsonNode deviceRanges,
-                             List<String> approvedRegions, Set<String> deviceRegions) {
+    private Optional<String> checkStep(JsonNode step, JsonNode frozenRanges, JsonNode deviceRanges,
+                                       List<String> approvedRegions, Set<String> deviceRegions) {
         if (step == null || !step.isObject()) {
-            return MALFORMED_FROZEN_STEP;
+            return Optional.of(MALFORMED_FROZEN_STEP);
         }
         JsonNode regionNode = step.get("region");
-        if (regionNode != null && !regionNode.isNull()) {
-            if (!regionNode.isTextual()) {
-                return MALFORMED_FROZEN_STEP;
-            }
-            String region = regionNode.asText();
-            if (approvedRegions == null || !approvedRegions.contains(region)
-                    || !deviceRegions.contains(region)) {
-                return STEP_PARAMETERS_NOT_COVERED;
-            }
+        if (regionNode == null || !regionNode.isTextual() || regionNode.asText().isBlank()) {
+            return Optional.of(MALFORMED_FROZEN_STEP);
         }
         JsonNode parameters = step.get("parameters");
-        if (parameters == null || parameters.isNull()) {
-            return null;
+        if (parameters == null || !parameters.isObject()) {
+            return Optional.of(MALFORMED_FROZEN_STEP);
         }
-        if (!parameters.isObject()) {
-            return MALFORMED_FROZEN_STEP;
+        String region = regionNode.asText();
+        if (!approvedRegions.contains(region) || !deviceRegions.contains(region)) {
+            return Optional.of(REGION_NOT_SUPPORTED);
         }
         for (String name : fieldNames(parameters)) {
+            if (frozenRanges.get(name) == null) {
+                return Optional.of(STEP_PARAMETERS_NOT_COVERED);
+            }
             JsonNode raw = parameters.get(name);
             BigDecimal value;
             String unit = null;
             if (raw != null && raw.isObject()) {
                 value = decimal(raw.get("value"));
                 unit = text(raw, "unit");
-            } else {
+            } else if (isScalar(raw)) {
                 value = decimal(raw);
+            } else {
+                value = null;
             }
             if (value == null) {
-                return STEP_PARAMETERS_NOT_COVERED;
+                return Optional.of(STEP_PARAMETERS_NOT_COVERED);
             }
             if (!valueWithin(frozenRanges, name, value) || !valueWithin(deviceRanges, name, value)) {
-                return STEP_PARAMETERS_NOT_COVERED;
+                return Optional.of(STEP_PARAMETERS_NOT_COVERED);
             }
-            if (unit != null) {
+            if (raw != null && raw.isObject()) {
                 String frozenUnit = rangeUnit(frozenRanges, name);
-                String deviceUnit = rangeUnit(deviceRanges, name);
-                if ((frozenUnit != null && !unit.equals(frozenUnit))
-                        || (deviceUnit != null && !unit.equals(deviceUnit))) {
-                    return STEP_PARAMETERS_NOT_COVERED;
+                if (unit == null || !unit.equals(frozenUnit)) {
+                    return Optional.of(STEP_PARAMETERS_NOT_COVERED);
                 }
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     private boolean rangeCovers(JsonNode deviceRanges, JsonNode frozenRanges, String name) {
         JsonNode frozen = asObject(frozenRanges.get(name));
-        JsonNode device = deviceRanges == null ? null : asObject(deviceRanges.get(name));
+        JsonNode device = asObject(deviceRanges.get(name));
         if (frozen == null || device == null) {
             return false;
         }
@@ -187,14 +235,15 @@ public class CareCapabilityChecker {
         }
         String frozenUnit = text(frozen, "unit");
         String deviceUnit = text(device, "unit");
-        if (frozenUnit != null && deviceUnit != null && !frozenUnit.equals(deviceUnit)) {
+        // 双侧 unit 都必须存在且严格相等
+        if (frozenUnit == null || deviceUnit == null || !frozenUnit.equals(deviceUnit)) {
             return false;
         }
         return deviceMin.compareTo(frozenMin) <= 0 && deviceMax.compareTo(frozenMax) >= 0;
     }
 
     private boolean valueWithin(JsonNode ranges, String name, BigDecimal value) {
-        JsonNode range = ranges == null ? null : asObject(ranges.get(name));
+        JsonNode range = asObject(ranges.get(name));
         if (range == null) {
             return false;
         }
@@ -205,17 +254,8 @@ public class CareCapabilityChecker {
     }
 
     private String rangeUnit(JsonNode ranges, String name) {
-        JsonNode range = ranges == null ? null : asObject(ranges.get(name));
+        JsonNode range = asObject(ranges.get(name));
         return range == null ? null : text(range, "unit");
-    }
-
-    private JsonNode planPayload(String planPayloadJson) {
-        JsonNode payload = readObject(planPayloadJson);
-        if (payload == null) {
-            return null;
-        }
-        JsonNode steps = payload.get("steps");
-        return steps != null && steps.isArray() ? steps : null;
     }
 
     private Set<String> deviceRegionSet(JsonNode device) {
@@ -248,6 +288,10 @@ public class CareCapabilityChecker {
         }
         JsonNode value = parent.get(name);
         return value != null && value.isTextual() ? value.asText() : null;
+    }
+
+    private static boolean isScalar(JsonNode node) {
+        return node != null && (node.isTextual() || node.isNumber() || node.isBoolean());
     }
 
     private static List<String> fieldNames(JsonNode object) {

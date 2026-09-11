@@ -374,6 +374,12 @@ class CareAdmissionIT extends AbstractCareIT {
         UUID bigPlan = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 40, 0, 0, null);
         assertCapabilityReason(login, bigPlan, fx.seedMicrocrystal(CAPABILITIES), "n_out_of_bounds");
 
+        // BLOCKER-2：非空但缺必需子结构的冻结 capability（capability={}）→ fail-closed
+        UUID malformedPlan = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
+        fx.setPlanInputSnapshot(malformedPlan, "{\"schema_version\":1,\"capability\":{}}");
+        assertCapabilityReason(login, malformedPlan, fx.seedMicrocrystal(CAPABILITIES),
+                "malformed_frozen_capability");
+
         // 正例：设备 revision 9 ≠ 冻结 7，但其余覆盖 → 201（revision 仅追溯）
         bindFaceMember(memberId);
         MvcResult matched = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(),
