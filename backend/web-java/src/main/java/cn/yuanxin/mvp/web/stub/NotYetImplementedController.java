@@ -125,53 +125,6 @@ public class NotYetImplementedController {
         throw notImplemented("M3-A06");
     }
 
-    // ---------------- M4 护理管理 ----------------
-
-    @GetMapping("/api/v1/members/{memberId}/care-plans")
-    public void m4A01(@PathVariable UUID memberId) {
-        throw notImplemented("M4-A01");
-    }
-
-    @GetMapping("/api/v1/care-plans/{planId}")
-    public void m4A02(@PathVariable UUID planId) {
-        throw notImplemented("M4-A02");
-    }
-
-    @PostMapping("/api/v1/care-executions")
-    public void m4A03() {
-        throw notImplemented("M4-A03");
-    }
-
-    @PostMapping("/api/v1/care-executions/{executionId}/revalidations")
-    public void m4A04(@PathVariable UUID executionId) {
-        throw notImplemented("M4-A04");
-    }
-
-    @PostMapping("/api/v1/care-executions/{executionId}/observations")
-    public void m4A05(@PathVariable UUID executionId) {
-        throw notImplemented("M4-A05");
-    }
-
-    @PostMapping("/api/v1/care-executions/{executionId}/closure-confirmations")
-    public void m4A06(@PathVariable UUID executionId) {
-        throw notImplemented("M4-A06");
-    }
-
-    @GetMapping("/api/v1/care-executions/{executionId}")
-    public void m4A07(@PathVariable UUID executionId) {
-        throw notImplemented("M4-A07");
-    }
-
-    @GetMapping("/api/v1/care-plans/{planId}/progress")
-    public void m4A08(@PathVariable UUID planId) {
-        throw notImplemented("M4-A08");
-    }
-
-    @GetMapping("/api/v1/members/{memberId}/care-executions")
-    public void m4A09(@PathVariable UUID memberId) {
-        throw notImplemented("M4-A09");
-    }
-
     // ---------------- M5 消息通知 ----------------
 
     @PutMapping("/api/v1/me/notification-destinations/{installationId}")
