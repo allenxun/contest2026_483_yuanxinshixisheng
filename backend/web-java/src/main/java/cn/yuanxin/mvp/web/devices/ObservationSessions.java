@@ -44,9 +44,25 @@ import java.util.Map;
  * 侧唯一恢复途径是 {@code credential_version} 推进（Oracle 已判可接受）。<b>APP</b> 侧
  * 因 family 稳定，表项数 = 实际出现过的 account:installation 组合数，正常生命周期
  * 天然有界、永不耗尽；<b>残余边界</b>：若同一微晶被超过上限个不同 account:installation
- * 组合观察，则未见 family 会 fail closed，而 APP 没有 credential_version 推进这一恢复
- * 途径（只能靠新的"来源变化"，即生产新的 family）。如实标注，方案①真实会话提供方
- * 落地后可移除该表。</p>
+ * 组合观察，则未见 family 会 fail closed。
+ * <b>APP 侧没有自动恢复途径</b>——表满后"新 family"正是被拒绝的对象，故生产新的
+ * account:installation 组合<b>并不能</b>恢复（Oracle 第五轮 IMPORTANT 纠正了此处先前
+ * 的错误表述）。当前实际可用的恢复手段只有：① observer <b>类型</b>切换（APP↔云台）
+ * 会清空代次表（见 {@code MicrocrystalService.decide} 的 typeChanged 分支）；
+ * ② GIMBAL 侧 {@code credential_version} 推进；③ <b>受控运维重置</b>（按运维流程清空
+ * 该行 {@code latest_observation} 中的代次表并留审计，不提供业务 API）；④ 待真实会话
+ * 提供方或 {@code ConnectionProofVerifier} 提供可信 generation 后，由本表之外的权威
+ * 取代（Oracle 方向①/②）。因此必须配套<b>容量告警</b>（warn 分支
+ * {@code session-table-full-fail-closed}）与<b>受控恢复 runbook</b>；
+ * <b>仅调高上限不是恢复机制</b>，只是推迟触顶。</p>
+ *
+ * <p><b>JSONB 键名与升级约束（Oracle 第五轮 SUGGESTION）</b>：代次表元素的 JSON 键沿用
+ * {@code session_id}，但其值现在是"<b>代次键</b>"而非会话 ID——GIMBAL 为随机
+ * {@code sessionId}，APP 为稳定 family {@code accountUuid:installationId}。保留旧键名
+ * 只为避免无必要的格式迁移，名称已不准确，阅读 JSONB 时须按 {@code generation_key}
+ * 理解。与早期中间版本（APP 也写随机 sessionId）<b>仅格式兼容、非语义兼容</b>：旧条目
+ * 不会被 family 命中，却仍占用容量。故 <b>中间版本不得原地升级</b>；若已存在持久数据，
+ * 须执行受控转换或重置（清空代次表，由首次观察重建 generation=1）。</p>
  */
 final class ObservationSessions {
 
