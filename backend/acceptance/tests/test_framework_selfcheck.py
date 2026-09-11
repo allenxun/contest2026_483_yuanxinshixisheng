@@ -759,3 +759,91 @@ def test_cc03_variant_env_explicit_and_isolated():
     assert penv["APP_ENV"] == "production" and penv["SPRING_PROFILES_ACTIVE"] == "dev"
     assert bad["APP_C_FACE_BOUND_MEMBER"] == "not-a-uuid"
     assert dev["APP_ENV"] == ""                        # 非 production 显式置空
+
+
+# ---------- C 验收驱动：R14 加强断言负例回归 ----------
+
+def test_cc03_unrelated_startup_failure_must_not_pass():
+    """CC-03：无关原因退出（构建/DB/端口/成功启动）不得冒充生产拒绝。"""
+    from driver import c_care
+
+    assert c_care.cc03_failfast_reason("prod-only", "java.lang.OutOfMemoryError") == \
+        (False, "no_production_signature")
+    assert c_care.cc03_failfast_reason(
+        "prod-only", "Started WebJavaApplication\nProductionFailClosedValidator")[0] is False
+    assert c_care.cc03_failfast_reason(
+        "prod-only", "APPLICATION FAILED TO START: No qualifying bean of type SessionProvider")[0] \
+        is True
+    assert c_care.cc03_failfast_reason(
+        "dev+APP_ENV=production", "ProductionFailClosedValidator production fail-closed")[0] is True
+    assert c_care.cc03_failfast_reason("dev+APP_ENV=production", "OutOfMemoryError")[0] is False
+    assert c_care.cc03_failfast_reason(
+        "dev+invalid-bound", "MemberBindingFaceDouble must be a UUID or blank: x")[0] is True
+    assert c_care.cc03_failfast_reason("dev+invalid-bound", "APPLICATION FAILED TO START")[0] is False
+
+
+def test_cc05_any_landing_or_empty_body_must_not_pass():
+    """CC-05：任一落点非期望状态或空体/快照不满足 → 不得 PASS。"""
+    from driver import c_care
+
+    good = dict(hit=[], no_schema_version=True, vd_ok=True, regions_kept=True, full_kept=True,
+                a01_sum_ok=True, proj_ok=True, snap_ok=True, a09_ok=True)
+    ok_land = {"A01": 200, "A02": 200, "A03": 201, "A08": 200, "A09": 200}
+    assert c_care.cc05_verdict(ok_land, **good) is True
+    for bad in ok_land:
+        st = dict(ok_land)
+        st[bad] = 500 if bad != "A03" else 200
+        assert c_care.cc05_verdict(st, **good) is False, bad
+    assert c_care.cc05_verdict(ok_land, **{**good, "vd_ok": False}) is False
+    assert c_care.cc05_verdict(ok_land, **{**good, "snap_ok": False}) is False
+    assert c_care.cc05_verdict(ok_land, **{**good, "hit": ["provider_raw_response"]}) is False
+
+
+def test_cc06_requires_exact_409_and_token():
+    """CC-06：非 409 或 token 不精确（含前缀匹配）不得计为畸形拒绝。"""
+    from driver import c_care
+
+    assert c_care.cc06_variant_ok(
+        409, "PLAN_NOT_READY", "region_not_supported", "region_not_supported") is True
+    assert c_care.cc06_variant_ok(200, "", "", "malformed_frozen_capability") is False
+    assert c_care.cc06_variant_ok(
+        409, "PLAN_NOT_READY", "region_not_supported", "malformed_frozen_capability") is False
+    assert c_care.cc06_variant_ok(
+        409, "INVALID_INPUT", "malformed_frozen_capability",
+        "malformed_frozen_capability") is False
+
+
+def test_cc09_empty_duplicate_must_not_pass():
+    """CC-09：空 disp（all([])==True）不得 PASS；K 边界不满足不得 PASS。"""
+    from driver import c_care
+
+    base = dict(k9_ok=True, k10_ok=True, k11_ok=True, gating_ok=True, conflict_ok=True,
+                stopped_ok=True, overflow_ok=True)
+    assert c_care.cc09_verdict(dup_ok=True, **base) is True
+    assert c_care.cc09_verdict(dup_ok=False, **base) is False
+    assert c_care.cc09_verdict(dup_ok=True, **{**base, "k11_ok": False}) is False
+    assert c_care.cc09_verdict(dup_ok=True, **{**base, "overflow_ok": False}) is False
+
+
+def test_cc10_new_key_replay_must_not_claim_manifest_unchanged():
+    """CC-10：新键重放/未关/缺口未覆盖 → 不得宣称重放 manifest 不变或闭合。"""
+    from driver import c_care
+
+    good = dict(stop_ok=True, gaps_ok=True, one_ok=True, closed=True, occ_rel=True,
+                replay_ok=True, freeze_ok=True, late_ok=True, ack_ok=True, still_close=True,
+                minimal=True, get_2xx=True)
+    assert c_care.cc10_verdict(**good) is True
+    assert c_care.cc10_verdict(**{**good, "replay_ok": False}) is False
+    assert c_care.cc10_verdict(**{**good, "gaps_ok": False}) is False
+    assert c_care.cc10_verdict(**{**good, "closed": False}) is False
+
+
+def test_cc11_missing_strict_validation_must_not_pass():
+    """CC-11：缺捕获或任一 API 严格校验失败 → 不得 PASS。"""
+    from driver import c_care
+
+    assert c_care.cc11_verdict(True, 9, [], []) is True
+    assert c_care.cc11_verdict(True, 9, [], ["A01:missing required"]) is False
+    assert c_care.cc11_verdict(True, 8, [], []) is False
+    assert c_care.cc11_verdict(False, 9, [], []) is False
+    assert c_care.cc11_verdict(True, 9, ["A03=500"], []) is False

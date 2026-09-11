@@ -35,11 +35,13 @@ DEFAULT_INPUT_SNAPSHOT = json.dumps({
     "report": {"assessment_id": None},
     "capability": {"microcrystal_id": None, "capability_id": "cap-mvp-1",
                    "capability_revision": "7",
-                   "parameter_ranges": {"intensity": {"min": "0", "max": "5", "unit": "level"}},
+                   "parameter_ranges": {"intensity": {"min": "0", "max": "5", "unit": "level"},
+                                        "vendor_debug": {"min": "0", "max": "5", "unit": "level"}},
                    "approved_regions": ["face"], "n_bounds": {"min": "1", "max": "30"}}})
 DEFAULT_CAPABILITIES = json.dumps({
     "schema_version": 1, "capability_id": "cap-mvp-1", "revision": "9",
-    "parameter_ranges": {"intensity": {"min": "0", "max": "8", "unit": "level"}},
+    "parameter_ranges": {"intensity": {"min": "0", "max": "8", "unit": "level"},
+                         "vendor_debug": {"min": "0", "max": "8", "unit": "level"}},
     "supported_regions": ["face", "neck"]})
 CLEAN_PLAN = json.dumps({"schema_version": 1, "title": "完整方案",
     "steps": [{"region": "face", "parameters": {"intensity": "3"}}]})
@@ -50,8 +52,191 @@ SENSITIVE_PLAN = json.dumps({
          "parameters": {"intensity": "3",
                         "vendor_debug": {"value": "3", "unit": "level", "SECRET3": "x"}}}],
     "regions": ["face", 123, {"x": 1}], "parameters": {"intensity": "3"}})
+#: 同一份敏感 summary（走 A01 列表 / T07 快照 summary / A09 摘要），覆盖白名单与禁项。
+SENSITIVE_SUMMARY = json.dumps({
+    "schema_version": 1, "title": "完整方案", "description": "d",
+    "provider_raw_response": "SECRET1", "source_report_id": "rep-1",
+    "SECRET8": "x"})
 
 CARE = "/api/v1"
+
+#: 契约 OAS 严格校验（成功响应）。validate_responses.py 仅支持 echo；这里复用其
+#: OAS 3.0.3→JSON Schema 转换器 `convert`，对任意 path/method/status 解析真实 schema。
+_OAS_DOC: dict | None = None
+_OAS_CONVERT = None
+
+
+def _oas_convert():
+    global _OAS_CONVERT
+    if _OAS_CONVERT is None:
+        import importlib.util
+        p = I.CONTRACTS / "scripts" / "validate_responses.py"
+        spec = importlib.util.spec_from_file_location("validate_responses_mod", p)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)  # type: ignore[union-attr]
+        _OAS_CONVERT = mod.convert
+    return _OAS_CONVERT
+
+
+def oas_validate(path, method, status, body):
+    """严格按 OAS 校验成功响应体。返回 (ok, detail)。
+
+    复用 RV-6 的「从 OAS 解析真实 schema 并严格 jsonschema 校验」模式；$ref 内联
+    与 type/required/additionalProperties/enum 均严格。`nullable: true` 与
+    `$ref`/`allOf` 同层时（OAS 3.0.3 该写法本身不生效，契约意图为可空且 C 按可空
+    返回 null）按契约意图解析为可空；除此之外一律不放宽。
+    """
+    global _OAS_DOC
+    from jsonschema import Draft202012Validator
+    if _OAS_DOC is None:
+        import yaml
+        _OAS_DOC = yaml.safe_load((I.CONTRACTS / "openapi" / "openapi.yaml").read_text("utf-8"))
+    node = _OAS_DOC["paths"][path][method]["responses"][str(status)]["content"][
+        "application/json"]["schema"]
+    schema = _oas_schema(node, _OAS_DOC)
+    errors = sorted(Draft202012Validator(schema).iter_errors(body),
+                    key=lambda e: list(e.absolute_path))
+    if not errors:
+        return True, ""
+    detail = "; ".join(f"{e.json_path or '$'}: {e.validator or 'schema'} violated"
+                       for e in errors[:4])
+    return False, detail
+
+
+def _oas_ref(doc, ref):
+    node = doc
+    for part in ref[2:].split("/"):
+        node = node[part.replace("~1", "/").replace("~0", "~")]
+    return node
+
+
+def _oas_schema(node, doc, seen=()):
+    """OAS 3.0.3 → JSON Schema（$ref 内联；nullable over $ref/allOf 解析为可空）。"""
+    if isinstance(node, bool) or not isinstance(node, dict):
+        return node
+    ref = node.get("$ref")
+    if isinstance(ref, str):
+        if ref in seen:
+            raise ValueError(f"cyclic $ref: {ref}")
+        target = _oas_schema(_oas_ref(doc, ref), doc, seen + (ref,))
+        extra = {k: v for k, v in node.items() if k not in ("$ref", "nullable")}
+        base = target if not extra else {"allOf": [target, _oas_schema(extra, doc, seen)]}
+        return {"anyOf": [base, {"type": "null"}]} if node.get("nullable") is True else base
+    out: dict = {}
+    for key, value in node.items():
+        if key == "nullable":
+            continue
+        if key == "properties":
+            out[key] = {pk: _oas_schema(pv, doc, seen) for pk, pv in value.items()}
+        elif key == "items":
+            out[key] = _oas_schema(value, doc, seen)
+        elif key == "additionalProperties":
+            out[key] = _oas_schema(value, doc, seen) if isinstance(value, dict) else value
+        elif key in ("allOf", "oneOf", "anyOf"):
+            out[key] = [_oas_schema(x, doc, seen) for x in value]
+        elif key == "not":
+            out[key] = _oas_schema(value, doc, seen)
+        else:
+            out[key] = value
+    # OAS 组合语义：allOf 分支声明的属性对彼此可见（additionalProperties:false 不应
+    # 误伤兄弟分支新增属性，否则 ProgressWithSync.lastSyncedAt 之类被自身契约拒绝）。
+    if isinstance(out.get("allOf"), list):
+        union: dict = {}
+        for branch in out["allOf"]:
+            if isinstance(branch, dict) and isinstance(branch.get("properties"), dict):
+                union.update(branch["properties"])
+        if union:
+            out["allOf"] = [
+                ({**branch, "properties": {**union, **(branch.get("properties") or {})}}
+                 if isinstance(branch, dict) and branch.get("additionalProperties") is False
+                 else branch)
+                for branch in out["allOf"]]
+    if node.get("nullable") is True:
+        declared = out.get("type")
+        if isinstance(declared, str):
+            out["type"] = [declared, "null"]
+        elif isinstance(declared, list):
+            if "null" not in declared:
+                out["type"] = declared + ["null"]
+        else:
+            return {"anyOf": [out, {"type": "null"}]}
+    return out
+
+
+def contains_schema_version(body) -> bool:
+    return "schema_version" in json.dumps(body, ensure_ascii=False)
+
+
+def read_log(name: str) -> str:
+    p = REPORTS / name
+    return p.read_text(errors="replace") if p.exists() else ""
+
+
+def cc03_failfast_reason(label: str, log_text: str):
+    """CC-03 每变体具体 fail-fast 签名判定（纯函数，供 selfcheck 回归）。
+
+    返回 (ok, signature)。要求命中**本变体专属的生产/绑定拒绝签名**，且**绝不**
+    包含成功启动标记；无关原因（构建错误/DB 故障/端口占用等）不匹配 → FAIL。
+    """
+    if "Started WebJavaApplication" in log_text:
+        return False, "started_ok"
+    production_provider = any(k in log_text for k in (
+        "SessionProvider", "SmsCodeProvider", "DeviceCredentialProvider",
+        "FaceProvider", "StoragePort")) and (
+        "No qualifying bean" in log_text or "APPLICATION FAILED TO START" in log_text)
+    validator = "ProductionFailClosedValidator" in log_text or "production fail-closed" in log_text
+    guard = "CareFaceVerifierProductionGuard" in log_text
+    uuid_fail = ("MemberBindingFaceDouble" in log_text
+                 and ("must be a UUID or blank" in log_text or "Invalid UUID string" in log_text))
+    if label in ("prod-only", "prod,dev+bound"):
+        if validator or guard:
+            return True, "validator/guard"
+        if production_provider:
+            # prod profile → app.providers.mode=real → 替身禁用、缺真实 provider bean，
+            # Spring 在 APPLICATION FAILED TO START 前拒绝（未及 Validator afterSingletons）。
+            return True, "real-provider-required"
+        return False, "no_production_signature"
+    if label == "dev+APP_ENV=production":
+        return (True, "ProductionFailClosedValidator") if validator else \
+            (False, "no_production_signature")
+    if label == "dev+invalid-bound":
+        return (True, "uuid_parse_failfast") if uuid_fail else (False, "no_uuid_signature")
+    return False, "unknown_variant"
+
+
+#: CC-05 五面落点期望（A03 为 201，其余 200）。
+CC05_LANDINGS = {"A01": 200, "A02": 200, "A03": 201, "A08": 200, "A09": 200}
+
+
+def cc05_verdict(landing_status, hit, no_schema_version, vd_ok, regions_kept, full_kept,
+                 a01_sum_ok, proj_ok, snap_ok, a09_ok):
+    """CC-05 纯谓词：任一落点非期望状态、任一白名单保留/禁项/快照不满足 → 不得 PASS。"""
+    landing_ok = all(landing_status.get(k) == v for k, v in CC05_LANDINGS.items())
+    return bool(landing_ok and not hit and no_schema_version and vd_ok and regions_kept
+                and full_kept and a01_sum_ok and proj_ok and snap_ok and a09_ok)
+
+
+def cc06_variant_ok(status, code, reason, expected):
+    """CC-06 单变体：必须 409 PLAN_NOT_READY 且 reason 精确等于期望 token。"""
+    return status == 409 and code == "PLAN_NOT_READY" and reason == expected
+
+
+def cc09_verdict(*, dup_ok, k9_ok, k10_ok, k11_ok, gating_ok, conflict_ok,
+                 stopped_ok, overflow_ok):
+    return all([dup_ok, k9_ok, k10_ok, k11_ok, gating_ok, conflict_ok,
+                stopped_ok, overflow_ok])
+
+
+CC10_KEYS = ("stop_ok", "gaps_ok", "one_ok", "closed", "occ_rel", "replay_ok",
+             "freeze_ok", "late_ok", "ack_ok", "still_close", "minimal", "get_2xx")
+
+
+def cc10_verdict(**kw):
+    return all(kw.get(k) is True for k in CC10_KEYS)
+
+
+def cc11_verdict(baseline_ok, captured, status_bad, strict_bad):
+    return bool(baseline_ok) and captured == 9 and not status_bad and not strict_bad
 
 
 def canon_diff(bodies):
@@ -177,12 +362,13 @@ def seed_assessment(gimbal, member, status="queued"):
 
 
 def seed_plan(assessment, member, status="ready", payload=None, target=None, completed=0,
-              revision=0, mc=None):
+              revision=0, mc=None, summary=None):
     p = str(uuid.uuid4())
     payload = payload or CLEAN_PLAN
+    summary = summary or '{"schema_version":1}'
     sql("INSERT INTO care_plans (id, assessment_id, member_id, generation_status, plan_summary,"
         " plan_payload, target_count, completed_count, progress_revision)"
-        f" VALUES ('{p}','{assessment}','{member}','{status}',CAST('{{\"schema_version\":1}}' AS jsonb),"
+        f" VALUES ('{p}','{assessment}','{member}','{status}',CAST('{summary}' AS jsonb),"
         f"CAST('{payload}' AS jsonb),{target if target is not None else 'NULL'},{completed},{revision})")
     snap = DEFAULT_INPUT_SNAPSHOT.replace('"assessment_id": null', f'"assessment_id": "{assessment}"')
     snap = snap.replace('"microcrystal_id": null', f'"microcrystal_id": "{mc or CONTEXT["mc"]}"')
@@ -391,20 +577,36 @@ def _restart_java(env, log, wait=True):
 def cc_03(ctx):
     results, pos = [], False
     member = ctx["member"]
+    sig_ok = {}
+
+    def _sig_line(label, text):
+        for line in reversed(text.splitlines()):
+            low = line.lower()
+            if any(k in line for k in ("ProductionFailClosedValidator", "production fail-closed",
+                                       "No qualifying bean", "MemberBindingFaceDouble",
+                                       "must be a UUID or blank", "APPLICATION FAILED TO START")):
+                return line.strip()[:220]
+        return ""
 
     def run_variant(label, env, log):
         proc, _up, clean = _restart_java(env, log, wait=False)
         if not clean or proc is None:
             I.stop_java()
             results.append(f"{label}: 环境未净（端口未释放），未启动，拒绝判定")
+            sig_ok[label] = False
             return None
         try:
             rc = proc.wait(timeout=90)
         except Exception:
             rc = "running"
         I.stop_java()
+        text = read_log(log)
+        matched, signature = cc03_failfast_reason(label, text)
         refused = isinstance(rc, int) and rc != 0
-        results.append(f"{label}: rc={rc} refused={refused}")
+        ok_variant = refused and matched
+        sig_ok[label] = ok_variant
+        results.append(f"{label}: rc={rc} refused={refused} sig={signature} "
+                       f"evidence={_sig_line(label, text)!r}")
         return rc
 
     # ⑤ 正例对照先行（判别力：201 且 T07 care_executions 真实新增一行）
@@ -427,7 +629,7 @@ def cc_03(ctx):
             break
     I.stop_java()
     I.kill_own_java()
-    # ①②③④ 负例变体（串行；每变体 env 显式构造 + 前置完全退出确认）
+    # ①②③④ 负例变体（串行；每变体 env 显式构造 + 前置完全退出确认 + 具体 fail-fast 签名）
     r1 = run_variant("prod-only", variant_env(profiles="prod"), "cc-03-prod.log")
     r2 = run_variant("prod,dev+bound",
                      variant_env(profiles="prod,dev", bound_member=member), "cc-03-prod-dev.log")
@@ -437,12 +639,12 @@ def cc_03(ctx):
     r4 = run_variant("dev+invalid-bound",
                      variant_env(profiles="dev", bound_member="not-a-uuid"), "cc-03-bad.log")
     I.evidence_text("cc-03-variants.txt", "\n".join(results))
-    # 生产拒绝断言不放宽：必须真实非零退出（None/0/running 均判失败）
-    refused = [isinstance(r, int) and r != 0 for r in (r1, r2, r3, r4)]
-    ok = pos and all(refused)
+    # 生产拒绝断言不放宽：真实非零退出 **且** 命中本变体专属 fail-fast 签名
+    ok = pos and all(sig_ok.get(k, False) for k in
+                     ("prod-only", "prod,dev+bound", "dev+APP_ENV=production", "dev+invalid-bound"))
     _add("CC-03", "生产人脸 fail-closed：prod / prod,dev / dev+APP_ENV=production / 非法绑定 "
-                  "拒绝启动；dev 合法绑定正例 A03 201+T07 创建（判别力）",
-         "PASS" if ok else "FAIL", "逐变体串行启动 JVM（限堆 640m）+ 正例先行",
+                  "拒绝启动且每变体命中具体 fail-fast 签名；dev 合法绑定正例 A03 201+T07 创建（判别力）",
+         "PASS" if ok else "FAIL", "逐变体串行启动 JVM（限堆 640m）+ 日志签名断言",
          f"{r1},{r2},{r3},{r4}", " | ".join(results))
 
 
@@ -461,15 +663,22 @@ def cc_04(ctx):
     no_member_field = "memberId" not in json.dumps(mk_metadata(mc, plan=plan))
     ok1 = c1 == 201 and bool(exec_id) and no_member_field
     # 异成员：另起 Java（绑定 other 成员）→ A03 403 FACE_NOT_VERIFIED + T07 零行
+    #           + T13=rejected + 同键重放同一拒绝（完整公开体等值）
     other_member = seed_member()
     seed_grant(ctx["accountId"], other_member)
     _restart_java(variant_env(profiles="dev", bound_member=other_member), "cc-04-foreign.log")
     a = AB.login()["access"]  # 重启后会话内存态重置，须重登
     fp, fmc = new_plan_and_mc(target=3)
     rows = scalar("SELECT count(*) FROM care_executions")
-    c2, b2 = admit(a, fmc, fp, key=str(uuid.uuid4()))
+    keyf = str(uuid.uuid4())
+    mdf = mk_metadata(fmc, plan=fp)
+    c2, b2 = admit(a, fmc, fp, key=keyf, metadata=mdf)
     rows2 = scalar("SELECT count(*) FROM care_executions")
-    ok2 = c2 == 403 and (b2.get("error") or {}).get("code") == "FACE_NOT_VERIFIED" and rows2 == rows
+    t13f = scalar("SELECT status FROM idempotency_requests WHERE idempotency_key='" + keyf + "'")
+    c2r, b2r = admit(a, fmc, fp, key=keyf, metadata=mdf)
+    replay_equal = R5.canon_public(b2) == R5.canon_public(b2r)
+    ok2 = (c2 == 403 and (b2.get("error") or {}).get("code") == "FACE_NOT_VERIFIED"
+           and rows2 == rows and t13f == "rejected" and c2r == 403 and replay_equal)
     # 未绑定：显式清空绑定重启 → 503 + 零行 + T13 processing
     _restart_java(variant_env(profiles="dev"), "cc-04-unbound.log")
     a = AB.login()["access"]
@@ -485,10 +694,12 @@ def cc_04(ctx):
     ctx["tok"] = AB.login()["access"]
     ctx["gtok"] = gimbal_token(ctx["gimbal"])
     _add("CC-04", "人脸 1:1 成员绑定（dev 替身）：绑定成员 201；异成员 403 FACE_NOT_VERIFIED+"
-                  "T07 零行；未绑定 503+T07 零行+T13 processing；无客户端 memberId 输入路径",
+                  "T07 零行+T13 rejected+同键重放等值拒绝；未绑定 503+T07 零行+T13 processing；"
+                  "无客户端 memberId 输入路径",
          "PASS" if (ok1 and ok2 and ok3) else "FAIL",
          "三次 JVM 绑定切换 + A03 multipart",
-         f"{c1}/{c2}/{c3}", f"bound201={ok1} foreign403={ok2}(rows {rows}->{rows2}) "
+         f"{c1}/{c2}/{c3}", f"bound201={ok1} foreign403={ok2}(rows {rows}->{rows2} t13={t13f} "
+                             f"replay={c2r} equal={replay_equal}) "
                              f"unbound503={ok3}(rows {rows3a}->{rows3b} t13={t13}) "
                              f"noClientMemberField={no_member_field}")
 
@@ -496,92 +707,180 @@ def cc_04(ctx):
 # ---------------- CC-05 ----------------
 
 def cc_05(ctx):
-    a, plan = ctx["tok"], ctx["plan"]
-    c1, b1, _ = get_json(f"{CARE}/care-plans/{plan}?view=full", a)
-    c2, b2, _ = get_json(f"{CARE}/members/{ctx['member']}/care-plans", a)
-    c3, b3, _ = get_json(f"{CARE}/care-plans/{plan}/progress", a)
-    snap = scalar("SELECT plan_snapshot::text FROM care_executions WHERE id='" +
-                  str(ctx.get('execution')) + "'")
-    blob = json.dumps([b1, b2, b3], ensure_ascii=False) + (snap or "")
-    hit = R5.forbidden_hit(blob, ["SECRET1", "SECRET2", "SECRET3", "provider_raw_response",
-                                  "prompt"])
-    vd = None
+    a, member, plan, mc = ctx["tok"], ctx["member"], ctx["plan"], ctx["mc"]
+    # 同一 SENSITIVE_PLAN 贯穿全链：A01 列表 → A02 full → A03 准入 → A08 progress → A09 历史
+    c1, b1, _ = get_json(f"{CARE}/members/{member}/care-plans", a)
+    c2, b2, _ = get_json(f"{CARE}/care-plans/{plan}?view=full", a)
+    c3, b3 = admit(a, mc, plan, key=str(uuid.uuid4()))
+    ex = (b3.get("data") or {}).get("executionId")
+    c4, b4, _ = get_json(f"{CARE}/care-plans/{plan}/progress", a)
+    c5, b5, _ = get_json(f"{CARE}/members/{member}/care-executions?planId={plan}", a)
+    snap = scalar("SELECT plan_snapshot::text FROM care_executions WHERE id='" + str(ex or "") + "'")
+    http_blob = json.dumps([b1, b2, b3, b4, b5], ensure_ascii=False)
+    needles = ["SECRET1", "SECRET2", "SECRET3", "SECRET8", "provider_raw_response", "prompt"]
+    hit = R5.forbidden_hit(http_blob + (snap or ""), needles)
+    no_schema_version = not any(contains_schema_version(b) for b in (b1, b2, b3, b4, b5))
+
+    def _find(body, key, value):
+        for item in ((body.get("data") or {}).get("items") or []):
+            if item.get(key) == value:
+                return item
+        return None
+
+    a01 = _find(b1, "planId", plan)
+    a09 = _find(b5, "executionId", ex)
+    # A02 full：白名单保留 title/description/steps/regions/parameters + region 保留
+    plan_full = ((b2.get("data") or {}).get("plan") or {})
+    steps = plan_full.get("steps") or []
+    vd2 = None
     try:
-        vd = b1["data"]["plan"]["steps"][0]["parameters"].get("vendor_debug")
+        vd2 = (steps[0].get("parameters") or {}).get("vendor_debug")
     except Exception:
-        vd = None
-    vd_ok = vd == {"value": "3", "unit": "level"}
-    kept = '"region": "face"' in json.dumps(b1, ensure_ascii=False) or \
-        '"region":"face"' in json.dumps(b1, ensure_ascii=False)
-    ok = (c1 == 200 and not hit and vd_ok
-          and "schema_version" not in json.dumps(b1, ensure_ascii=False))
-    _add("CC-05", "嵌套白名单：A02 full/A01+A08 summary/A03 执行投影/T07 快照四处无 SECRET "
-                  "键值，白名单键保留、schema_version 不外发",
-         "PASS" if ok else "FAIL", "种子多层 SECRET plan_payload + HTTP 响应 + T07 SQL 快照",
-         f"{c1}/{c2}/{c3}", f"forbidden_hit={hit} vendor_debug_projection={vd} vd_ok={vd_ok} region_kept={kept} "
-                             f"snapshot_len={len(snap or '')} snapshot_has_secret="
-                             f"{bool(R5.forbidden_hit(snap or '', ['SECRET1', 'SECRET2', 'SECRET3']))}")
+        vd2 = None
+    vd_ok = vd2 == {"value": "3", "unit": "level"}
+    regions_kept = plan_full.get("regions") == ["face"]
+    full_kept = (plan_full.get("title") == "完整方案" and isinstance(plan_full.get("steps"), list)
+                 and bool(steps) and steps[0].get("region") == "face"
+                 and isinstance(steps[0].get("parameters"), dict))
+    # A01 summary 白名单保留（title/description/source_report_id），禁项与 schema_version 不出现
+    a01_sum = (a01 or {}).get("planSummary") or {}
+    a01_sum_ok = (a01 is not None and a01_sum.get("title") == "完整方案"
+                  and a01_sum.get("source_report_id") == "rep-1"
+                  and "provider_raw_response" not in a01_sum and "schema_version" not in a01_sum)
+    # A03 执行投影：steps/regions/parameters 保留 + vendor_debug 收敛 {value,unit}
+    proj = (b3.get("data") or {}).get("planExecution") or {}
+    proj_steps = proj.get("steps") or []
+    vd3 = None
+    try:
+        vd3 = (proj_steps[0].get("parameters") or {}).get("vendor_debug")
+    except Exception:
+        vd3 = None
+    proj_ok = (bool(proj) and bool(proj_steps) and proj_steps[0].get("region") == "face"
+               and vd3 == {"value": "3", "unit": "level"})
+    # T07 快照：无禁项、保留 execution_params（steps/regions/parameters、vendor_debug 收敛）
+    snap_ok = bool(snap) and "execution_params" in (snap or "") and "face" in (snap or "") \
+        and "vendor_debug" in (snap or "") and "SECRET3" not in (snap or "")
+    # A09 planSnapshotSummary 白名单保留
+    a09_sum = (a09 or {}).get("planSnapshotSummary") or {}
+    a09_ok = (a09 is not None and a09_sum.get("title") == "完整方案"
+              and "provider_raw_response" not in a09_sum)
+    ok = cc05_verdict({"A01": c1, "A02": c2, "A03": c3, "A08": c4, "A09": c5}, hit,
+                      no_schema_version, vd_ok, regions_kept, full_kept, a01_sum_ok,
+                      proj_ok, snap_ok, a09_ok) and bool(ex)
+    I.evidence_text("cc-05-bodies.json", json.dumps(
+        {"a01": b1, "a02": b2, "a03": b3, "a08": b4, "a09": b5,
+         "t07_plan_snapshot": snap}, ensure_ascii=False, indent=2))
+    _add("CC-05", "嵌套白名单五面+T07：同一 SENSITIVE_PLAN 贯穿 A01/A02/A03/A08/A09 全 2xx，"
+                  "逐字节无 SECRET 键值、schema_version 不外发；白名单键与 region 保留、"
+                  "vendor_debug 收敛 {value,unit}",
+         "PASS" if ok else "FAIL", "SENSITIVE_PLAN 全链（列表/full/准入/progress/历史/T07 快照）",
+         f"{c1}/{c2}/{c3}/{c4}/{c5}",
+         f"forbidden_hit={hit} no_schema_version={no_schema_version} vd2={vd2} vd3={vd3} "
+         f"regions_kept={regions_kept} full_kept={full_kept} a01_sum_ok={a01_sum_ok} "
+         f"proj_ok={proj_ok} snapshot_len={len(snap or '')} snap_ok={snap_ok} a09_ok={a09_ok}")
 
 
 # ---------------- CC-06 ----------------
 
 def cc_06(ctx):
     a, member = ctx["tok"], ctx["member"]
-    results, tokens = [], set()
+    results = []
 
-    def seed_and_admit(mut, steps_ok=True):
-        import copy
-        mc = seed_microcrystal()
+    def seed_and_admit(snapshot_mut=None, steps=None, device_caps=None, target=3,
+                       frozen_mc=None):
+        caps = device_caps if device_caps is not None else DEFAULT_CAPABILITIES
+        mc = seed_microcrystal(caps)
         asmt = seed_assessment(ctx["gimbal"], member)
-        payload = json.dumps({"schema_version": 1, "title": "t",
-                              "steps": [{"region": "face", "parameters": {"intensity": "3"}}]
-                              if steps_ok else []})
+        if steps is None:
+            steps = [{"region": "face", "parameters": {"intensity": "3"}}]
+        payload = json.dumps({"schema_version": 1, "title": "t", "steps": steps})
         pid = str(uuid.uuid4())
         sql("INSERT INTO care_plans (id, assessment_id, member_id, generation_status, plan_summary,"
             f" plan_payload, target_count, completed_count, progress_revision) VALUES ('{pid}',"
             f"'{asmt}','{member}','ready',CAST('{{\"schema_version\":1}}' AS jsonb),"
-            f"CAST('{payload}' AS jsonb),3,0,0)")
+            f"CAST('{payload}' AS jsonb),{target},0,0)")
         base = json.loads(DEFAULT_INPUT_SNAPSHOT)
-        base["capability"]["microcrystal_id"] = mc
+        base["capability"]["microcrystal_id"] = frozen_mc or mc
         base["report"]["assessment_id"] = asmt
-        if mut:
-            mut(base)
+        if snapshot_mut:
+            snapshot_mut(base)
         sql(f"UPDATE care_plans SET input_snapshot=CAST('{json.dumps(base)}' AS jsonb) WHERE id='{pid}'")
         return admit(a, mc, pid)
 
+    def dev_caps(**over):
+        d = json.loads(DEFAULT_CAPABILITIES)
+        d.update(over)
+        return json.dumps(d)
+
+    M = "malformed_frozen_capability"
     variants = [
-        ("capability={}", lambda s: s.update(capability={})),
-        ("缺 capability_id", lambda s: s["capability"].pop("capability_id")),
-        ("缺 parameter_ranges", lambda s: s["capability"].pop("parameter_ranges")),
-        ("缺 approved_regions", lambda s: s["capability"].pop("approved_regions")),
-        ("缺 n_bounds", lambda s: s["capability"].pop("n_bounds")),
-        ("单边缺 unit", lambda s: s["capability"]["parameter_ranges"].__setitem__(
-            "intensity", {"min": "0", "max": "5"})),
-        ("min>max", lambda s: s["capability"]["parameter_ranges"].__setitem__(
-            "intensity", {"min": "9", "max": "5", "unit": "level"})),
-        ("n_bounds 畸形(缺 max)", lambda s: s["capability"].__setitem__(
-            "n_bounds", {"min": "1"})),
-        ("region 不支持", lambda s: s["capability"].__setitem__("approved_regions", ["ear"])),
+        ("capability={}", dict(snapshot_mut=lambda s: s.update(capability={})), M),
+        ("缺 capability_id", dict(snapshot_mut=lambda s: s["capability"].pop("capability_id")), M),
+        ("缺 parameter_ranges", dict(snapshot_mut=lambda s: s["capability"].pop("parameter_ranges")), M),
+        ("缺 approved_regions", dict(snapshot_mut=lambda s: s["capability"].pop("approved_regions")), M),
+        ("缺 n_bounds", dict(snapshot_mut=lambda s: s["capability"].pop("n_bounds")), M),
+        ("单边缺 unit", dict(snapshot_mut=lambda s: s["capability"]["parameter_ranges"].__setitem__(
+            "intensity", {"min": "0", "max": "5"})), M),
+        ("min>max", dict(snapshot_mut=lambda s: s["capability"]["parameter_ranges"].__setitem__(
+            "intensity", {"min": "9", "max": "5", "unit": "level"})), M),
+        ("n_bounds 畸形(缺 max)", dict(snapshot_mut=lambda s: s["capability"].__setitem__(
+            "n_bounds", {"min": "1"})), M),
+        ("region 不支持", dict(snapshot_mut=lambda s: s["capability"].__setitem__(
+            "approved_regions", ["ear"])), "region_not_supported"),
+        ("冻结 capability 缺失", dict(snapshot_mut=lambda s: s.pop("capability")),
+         "frozen_capability_requirement_missing"),
+        ("设备能力缺失", dict(device_caps="{}"), "device_capabilities_missing"),
+        ("capability_id 不等", dict(device_caps=dev_caps(capability_id="cap-other")),
+         "capability_id_mismatch"),
+        ("设备 unit 不等", dict(device_caps=dev_caps(parameter_ranges={
+            "intensity": {"min": "0", "max": "8", "unit": "kg"}})), "parameter_range_not_covered"),
+        ("设备范围不覆盖", dict(device_caps=dev_caps(parameter_ranges={
+            "intensity": {"min": "0", "max": "4", "unit": "level"}})), "parameter_range_not_covered"),
+        ("region∉设备支持", dict(snapshot_mut=lambda s: s["capability"].__setitem__(
+            "approved_regions", ["face", "neck"]),
+            device_caps=dev_caps(supported_regions=["face"])), "region_not_supported"),
+        ("N∉n_bounds", dict(snapshot_mut=lambda s: s["capability"].__setitem__(
+            "n_bounds", {"min": "5", "max": "10"})), "n_out_of_bounds"),
+        ("步骤值出双侧区间", dict(steps=[{"region": "face", "parameters": {"intensity": "9"}}]),
+         "step_parameters_not_covered"),
+        ("步骤参数名未知", dict(steps=[{"region": "face", "parameters": {"foo": "1"}}]),
+         "step_parameters_not_covered"),
+        ("步骤参数 unit 不等", dict(steps=[{"region": "face", "parameters": {
+            "intensity": {"value": "3", "unit": "kg"}}}]), "step_parameters_not_covered"),
+        ("步骤缺 region", dict(steps=[{"parameters": {"intensity": "3"}}]),
+         "malformed_frozen_step"),
+        ("步骤 parameters 非对象", dict(steps=[{"region": "face", "parameters": "x"}]),
+         "malformed_frozen_step"),
+        ("steps 空数组", dict(steps=[]), "malformed_frozen_step"),
     ]
-    for name, mut in variants:
-        c, b = seed_and_admit(mut)
-        tok = ((b.get("error") or {}).get("details") or {}).get("reason")
-        tokens.add(tok)
-        results.append(f"{name}={c}/{tok}")
-    c_pos, _ = seed_and_admit(None)
-    c_steps, b_steps = seed_and_admit(None, steps_ok=False)
-    tok_steps = ((b_steps.get("error") or {}).get("details") or {}).get("reason")
-    malformed = [r for r in results if "/malformed_frozen_capability" in r or "/region_" in r
-                 or "/n_" in r or "/range_" in r or "/unit_" in r]
-    ok = len(malformed) == len(variants) and c_pos == 201 and c_steps == 409 \
-        and tok_steps == "malformed_frozen_step"
-    _add("CC-06", "能力严格 fail-closed：畸形 capability/steps 逐变体 409 reason token；"
-                  "正例（capability_revision 9≠7）201（代表性 token 子集；其余由 C 27 项单测覆盖，未重跑）",
-         "PASS" if ok else "FAIL", "逐变体新微晶/新方案种子 + A03",
-         f"pos={c_pos} steps={c_steps}",
-         f"tokens={sorted(t for t in tokens if t)} step_token={tok_steps} "
-         f"malformed={len(malformed)}/{len(variants)} unmatched={[r for r in results if r not in malformed]}")
+    observed, unmatched = set(), []
+    for name, kw, expected in variants:
+        c, b = seed_and_admit(**kw)
+        code = (b.get("error") or {}).get("code")
+        reason = ((b.get("error") or {}).get("details") or {}).get("reason")
+        observed.add(reason)
+        good = cc06_variant_ok(c, code, reason, expected)
+        if not good:
+            unmatched.append(name)
+        results.append(f"{name}: status={c} code={code} reason={reason} expected={expected} ok={good}")
+    # 正例判别力：冻结 revision=7≠设备 revision=9、microcrystal_id 与冻结不同、{value,unit} 严格相等
+    c_pos, b_pos = seed_and_admit(frozen_mc=str(uuid.uuid4()))
+    c_unit, _ = seed_and_admit(steps=[{"region": "face", "parameters": {
+        "intensity": {"value": "3", "unit": "level"}}}])
+    ok_pos = c_pos == 201 and c_unit == 201
     I.evidence_text("cc-06-details.txt", "\n".join(results))
+    closed_enum = {"device_capabilities_missing", "frozen_capability_requirement_missing",
+                   "malformed_frozen_capability", "capability_id_mismatch",
+                   "parameter_range_not_covered", "region_not_supported", "n_out_of_bounds",
+                   "step_parameters_not_covered", "malformed_frozen_step"}
+    ok = not unmatched and ok_pos and observed <= closed_enum
+    _add("CC-06", "能力严格 fail-closed：22 畸形/越界变体逐项 409 PLAN_NOT_READY 且 reason 命中"
+                  "封闭 9-token 精确值；正例（冻结 rev≠设备 rev、microcrystal 不同、"
+                  "{value,unit} 严格相等）201 判别力",
+         "PASS" if ok else "FAIL", "逐变体新微晶/新方案种子 + A03（精确 token 断言）",
+         f"pos={c_pos} unit={c_unit}",
+         f"observed_tokens={sorted(t for t in observed if t)} variants={len(variants)} "
+         f"unmatched={unmatched}")
 
 
 # ---------------- CC-07/08/09/10: main execution lifecycle ----------------
@@ -597,127 +896,284 @@ def ctx_gimbal():
 
 def cc_07_10(ctx):
     a, member = ctx["tok"], ctx["member"]
+    import concurrent.futures as cf
+
+    def on_mc(mc, target=3, payload=None):
+        asmt = seed_assessment(CONTEXT["gimbal"], member)
+        return seed_plan(asmt, member, "ready", payload, target=target, mc=mc)
+
+    def srec(ex, ep, records, key=None):
+        return sync(a, ex, {"records": records}, key or str(uuid.uuid4()))
+
+    def sobs(ex, ep, seq, state, rev="1", continuity=True):
+        return sync(a, ex, obs_body(ep, seq=seq, state=state, rev=rev, continuity=continuity),
+                    str(uuid.uuid4()))
+
+    def ecode(resp):
+        return (resp[1].get("error") or {}).get("code")
+
+    def ereason(resp):
+        return ((resp[1].get("error") or {}).get("details") or {}).get("reason")
+
+    def status_of(ex):
+        return scalar(f"SELECT status FROM care_executions WHERE id='{ex}'")
+
+    def acc_of(ex):
+        return scalar(f"SELECT accepted_count FROM care_executions WHERE id='{ex}'")
+
+    def comp_plan(pid):
+        return scalar(f"SELECT coalesce(completed_at::text,'') FROM care_plans WHERE id='{pid}'")
+
+    # ================= CC-07 幂等与重放 =================
     plan, mc = new_plan_and_mc(target=3)
     key = str(uuid.uuid4())
     md = mk_metadata(mc, plan=plan)
     c, b = admit(a, mc, plan, key=key, metadata=md)
     ex = (b.get("data") or {}).get("executionId")
-    ep = (b.get("data") or {}).get("recordStreamEpoch") or ex
-    # 缺 Idempotency-Key → 4xx
     c_nokey, _ = post_multipart(f"{CARE}/care-executions", a, mk_metadata(mc, plan=plan), "")
-    # 重放（同元数据）
     c_rep, b_rep = admit(a, mc, plan, key=key, metadata=md)
     same = (b_rep.get("data") or {}).get("executionId") == ex
-    ver = (b.get("data") or {}).get("verification") or {}
     ver_rep = (b_rep.get("data") or {}).get("verification") or {}
     rev_before = scalar(f"SELECT verification_revision FROM care_executions WHERE id='{ex}'")
     c_rep2, _ = admit(a, mc, plan, key=key, metadata=md)
     rev_after = scalar(f"SELECT verification_revision FROM care_executions WHERE id='{ex}'")
     replayed = (b_rep.get("meta") or {}).get("replayed") is True and ver_rep.get("replayed") is True
-    # 同键异内容
     c_conf2, b_conf = post_multipart(f"{CARE}/care-executions", a,
                                      {"microcrystalId": mc, "connectionProof": "OTHER",
-                                      "consentEvidenceRef": "consent-2",
-                                      "planId": plan,
+                                      "consentEvidenceRef": "consent-2", "planId": plan,
                                       "capture": {"captureId": "c2", "capturedAt": utcnow(),
                                                   "clientContinuityId": "cc-2",
                                                   "purpose": "admission"}}, key)
-    conflict_ok = c_conf2 == 409 and (b_conf.get("error") or {}).get(
-        "code") == "IDEMPOTENCY_CONTENT_CONFLICT"
-    # CC-08 并发占用：新 plan + 新 mc，APP 与云台同微晶并发
-    plan2, mc2 = new_plan_and_mc(target=3)
-    gtok = ctx["gtok"]
-    import concurrent.futures as cf
-    with cf.ThreadPoolExecutor(max_workers=2) as ex_pool:
-        f1 = ex_pool.submit(post_multipart, f"{CARE}/care-executions", a,
-                            mk_metadata(mc2, plan=plan2), str(uuid.uuid4()))
-        f2 = ex_pool.submit(post_multipart, f"{CARE}/care-executions", gtok,
-                            mk_metadata(mc2, task=ctx["assessment"], rev="1"), str(uuid.uuid4()))
-        r1, r2 = f1.result(), f2.result()
-    codes = sorted([r1[0], r2[0]])
-    occ_ok = codes == [201, 409]
-    # CC-09 账本：K 边界（新执行，target=2）
-    plan3, mc3 = new_plan_and_mc(target=2)
-    c3, b3 = admit(a, mc3, plan3, key=str(uuid.uuid4()))
-    ex3 = (b3.get("data") or {}).get("executionId")
-    ep3 = (b3.get("data") or {}).get("recordStreamEpoch") or ex3
-    if not ex3:
-        _add("CC-09", "账本去重/K/事务", "FAIL", "A03 for ledger scenario", c3,
-             f"A03 failed: {str(b3)[:300]}")
-        _add("CC-10", "收尾对账", "FAIL", "A03 for closure scenario", c3,
-             f"A03 failed: {str(b3)[:200]}")
-        return plan3, None
-    s1 = sync(a, ex3, obs_records(ep3, [rec(ep3, 1), rec(ep3, 2)]), str(uuid.uuid4()))
-    # 双键去重：重传同记录
-    s2 = sync(a, ex3, obs_records(ep3, [rec(ep3, 1), rec(ep3, 2)]), str(uuid.uuid4()))
-    disp = [(r.get("disposition")) for r in (s2[1].get("data") or {}).get("records", [])]
-    accepted = scalar(f"SELECT accepted_count FROM care_executions WHERE id='{ex3}'")
-    comp_at = scalar(f"SELECT coalesce(completed_at::text,'') FROM care_executions WHERE id='{ex3}'")
-    comp_before = comp_at
-    s3 = sync(a, ex3, obs_records(ep3, [rec(ep3, 3)]), str(uuid.uuid4()))
-    comp_after = scalar(f"SELECT coalesce(completed_at::text,'') FROM care_executions WHERE id='{ex3}'")
-    # 同键异内容 → 409 整批 + 零持久化
-    kk = str(uuid.uuid4())
-    s4 = sync(a, ex3, obs_records(ep3, [rec(ep3, 4, rid="conf-a")]), kk)
-    s5 = sync(a, ex3, obs_records(ep3, [rec(ep3, 4, delta="2", rid="conf-b")]), kk)
-    rows_x = scalar("SELECT count(*) FROM care_records WHERE execution_id='" + ex3 +
-                    "' AND client_record_id='conf-b'")
-    # 收尾：未 stopped → 409 STOP_NOT_CONFIRMED
-    wm = scalar("SELECT coalesce(max(source_seq),0) FROM care_records "
-                f"WHERE execution_id='{ex3}'")
-    acc_wm = scalar(f"SELECT accepted_count FROM care_executions WHERE id='{ex3}'")
-    fin_seq = int(wm); fin_cnt = int(acc_wm)
-    clo_pre = closure(a, ex3, ep3, fin_seq, fin_cnt, str(uuid.uuid4()), stop_seq=2)
-    # stopped 观察后收尾
-    sync(a, ex3, obs_records(ep3, [], seq=2, state="stopped", rev="1"), str(uuid.uuid4()))
-    clo = closure(a, ex3, ep3, fin_seq, fin_cnt, str(uuid.uuid4()), stop_seq=2)
-    closed = (clo[1].get("data") or {}).get("closed")
-    occ_rel = (clo[1].get("data") or {}).get("occupancyReleased")
-    clo_rep = closure(a, ex3, ep3, fin_seq, fin_cnt, str(uuid.uuid4()), stop_seq=2)
-    manifest1 = scalar(f"SELECT closure_manifest::text FROM care_executions WHERE id='{ex3}'")
-    A07 = get_json(f"{CARE}/care-executions/{ex3}", a)
-    A08 = get_json(f"{CARE}/care-plans/{plan3}/progress", a)
-    A09 = get_json(f"{CARE}/members/{member}/care-executions", a)
-    ok = (c == 201 and c_nokey >= 400 and c_rep == 200 and same and replayed
-          and rev_before == rev_after and conflict_ok and occ_ok
-          and s1[0] == 200 and accepted == "2" and all(d == "duplicate" for d in disp)
-          and comp_before and comp_after == comp_before and s3[0] == 200
-          and s5[0] == 409 and rows_x == "0"
-          and (clo_pre[1].get("error") or {}).get("code") == "STOP_NOT_CONFIRMED"
-          and clo[0] == 200 and closed is True and occ_rel is True
-          and A07[0] == 200 and A08[0] == 200 and A09[0] == 200)
+    conflict_ok = c_conf2 == 409 and ecode((c_conf2, b_conf)) == "IDEMPOTENCY_CONTENT_CONFLICT"
+    cc07_ok = (c == 201 and c_nokey >= 400 and c_rep == 200 and c_rep2 == 200 and same
+               and replayed and rev_before == rev_after and conflict_ok and bool(ex))
     _add("CC-07", "幂等与重放：缺键 4xx、同键重放 replayed 且 revision 不刷新、"
                   "同键异内容 409、并发双端恰一 201",
-         "PASS" if (c_nokey >= 400 and c_rep == 200 and same and replayed
-                    and rev_before == rev_after and conflict_ok and occ_ok) else "FAIL",
-         "A03 重放/冲突/并发", f"{c}/{c_rep}/{c_conf2}", f"nokey={c_nokey} same_exec={same} "
-         f"replayed={replayed} rev {rev_before}->{rev_after} conflict={conflict_ok} "
-         f"concurrent={codes}")
-    _add("CC-08", "占用/并发：APP+云台同微晶恰一 201 一 409 DEVICE_OCCUPIED；占用仅 closed 释放",
-         "PASS" if occ_ok else "FAIL", "两请求真实并行", f"{codes}", f"r1={r1[0]} r2={r2[0]}")
-    _add("CC-09", "账本去重/K/事务：双键判重 duplicate、K 达 completed、同键异内容整批 409 零持久化",
-         "PASS" if (accepted == "2" and all(d == "duplicate" for d in disp)
-                    and s5[0] == 409 and rows_x == "0") else "FAIL",
-         "A05 多批 + SQL 核对", f"{s1[0]}/{s2[0]}/{s5[0]}",
-         f"accepted={accepted} disp={disp} completed_at_stable={comp_after == comp_before} "
-         f"conflict_zero_rows={rows_x}")
-    _add("CC-10", "收尾对账：未 stopped 409 STOP_NOT_CONFIRMED；stopped+水位完整 → closed+"
-                  "occupancyReleased；重放 manifest 不变；A07/A08/A09 2xx",
-         "PASS" if (clo[0] == 200 and closed is True and occ_rel is True
-                    and (clo_pre[1].get("error") or {}).get("code") == "STOP_NOT_CONFIRMED"
-                    and A07[0] == 200 and A08[0] == 200 and A09[0] == 200) else "FAIL",
-         "A06 前后置 + A07/A08/A09", f"{clo_pre[0]}/{clo[0]}",
-         f"closed={closed} released={occ_rel} accepted={accepted} manifest_len={len(manifest1 or '')} "
-         f"clo_err={(clo[1].get('error') or {}).get('code')}/"
-         f"{((clo[1].get('error') or {}).get('details') or {})} "
-         f"A07={A07[0]} A08={A08[0]} A09={A09[0]} replay={clo_rep[0]}")
-    return plan3, ex3
+         "PASS" if cc07_ok else "FAIL", "A03 重放/冲突/并发", f"{c}/{c_rep}/{c_conf2}",
+         f"nokey={c_nokey} same_exec={same} replayed={replayed} rev {rev_before}->{rev_after} "
+         f"conflict={conflict_ok} reason={ecode((c_conf2, b_conf))}")
+
+    # ================= CC-08 占用/并发/释放/TASK_REPLACED =================
+    plan2, mc2 = new_plan_and_mc(target=3)
+    gtok = ctx["gtok"]
+    with cf.ThreadPoolExecutor(max_workers=2) as pool:
+        f1 = pool.submit(post_multipart, f"{CARE}/care-executions", a,
+                         mk_metadata(mc2, plan=plan2), str(uuid.uuid4()))
+        f2 = pool.submit(post_multipart, f"{CARE}/care-executions", gtok,
+                         mk_metadata(mc2, task=ctx["assessment"], rev="1"), str(uuid.uuid4()))
+        r1, r2 = f1.result(), f2.result()
+    codes = sorted([r1[0], r2[0]])
+    resp409 = r1 if r1[0] == 409 else r2
+    concurrency_ok = codes == [201, 409] and ecode(resp409) == "DEVICE_OCCUPIED"
+    # 释放并发成功者（否则其 gimbal 槽位会阻塞后续 TASK_REPLACED 用的云台准入）
+    win_resp = r1 if r1[0] == 201 else r2
+    win_tok = a if r1[0] == 201 else gtok
+    ex_c = (win_resp[1].get("data") or {}).get("executionId")
+    ep_c = (win_resp[1].get("data") or {}).get("recordStreamEpoch") or ex_c
+    if ex_c:
+        sync(win_tok, ex_c, obs_records(ep_c, [], seq=1, state="stopped"), str(uuid.uuid4()))
+        closure(win_tok, ex_c, ep_c, 0, 0, str(uuid.uuid4()), stop_seq=1)
+    # 占用仅 closed 释放
+    mc_r = seed_microcrystal()
+    pr1 = on_mc(mc_r)
+    cr1, br1 = admit(a, mc_r, pr1, key=str(uuid.uuid4()))
+    ex_r = (br1.get("data") or {}).get("executionId")
+    ep_r = (br1.get("data") or {}).get("recordStreamEpoch") or ex_r
+    pr2 = on_mc(mc_r)
+    cr2, br2 = admit(a, mc_r, pr2, key=str(uuid.uuid4()))
+    occ_before = cr2 == 409 and ecode((cr2, br2)) == "DEVICE_OCCUPIED"
+    sobs(ex_r, ep_r, 1, "stopped")
+    cl_r = closure(a, ex_r, ep_r, 0, 0, str(uuid.uuid4()), stop_seq=1)
+    closed_r = (cl_r[1].get("data") or {}).get("closed") is True
+    pr3 = on_mc(mc_r)
+    cr3, br3 = admit(a, mc_r, pr3, key=str(uuid.uuid4()))
+    occ_after = cr3 == 201
+    # TASK_REPLACED（test_seed：SQL 移动 T03 指针；D 真实链路保持 dependency_pending）
+    orig_asmt = scalar(f"SELECT coalesce(current_assessment_id::text,'') FROM gimbals "
+                       f"WHERE id='{ctx['gimbal']}'")
+    orig_rev = scalar(f"SELECT current_assessment_revision FROM gimbals WHERE id='{ctx['gimbal']}'")
+    asmt_g = seed_assessment(ctx["gimbal"], member)
+    mc_g = seed_microcrystal()
+    plan_g = seed_plan(asmt_g, member, "ready", target=3, mc=mc_g)
+    sql(f"UPDATE gimbals SET current_assessment_id='{asmt_g}', current_assessment_revision=1,"
+        f" updated_at=now() WHERE id='{ctx['gimbal']}'")
+    cg, bg = post_multipart(f"{CARE}/care-executions", gtok,
+                            mk_metadata(mc_g, task=asmt_g, rev="1"), str(uuid.uuid4()))
+    ex_g = (bg.get("data") or {}).get("executionId")
+    asmt_g2 = seed_assessment(ctx["gimbal"], member)
+    sql(f"UPDATE gimbals SET current_assessment_id='{asmt_g2}', current_assessment_revision=2,"
+        f" updated_at=now() WHERE id='{ctx['gimbal']}'")
+    ct, bt = post_multipart(f"{CARE}/care-executions", gtok,
+                            mk_metadata(mc_g, task=asmt_g, rev="1"), str(uuid.uuid4()))
+    A08t = get_json(f"{CARE}/care-plans/{plan_g}/progress?executionId={ex_g}"
+                    f"&verificationRevision=1", gtok)
+    replaced_a03 = ct == 409 and ecode((ct, bt)) == "TASK_REPLACED"
+    replaced_a08 = A08t[0] == 409 and ecode(A08t) == "TASK_REPLACED"
+    sql(f"UPDATE gimbals SET current_assessment_id='{orig_asmt}',"
+        f" current_assessment_revision={orig_rev or 0}, updated_at=now() "
+        f"WHERE id='{ctx['gimbal']}'")
+    cc08_ok = (concurrency_ok and occ_before and closed_r and occ_after
+               and replaced_a03 and replaced_a08)
+    _add("CC-08", "占用/并发：APP+云台同微晶恰一 201 一 409 DEVICE_OCCUPIED；占用仅 closed "
+                  "释放（closed 前 409 / closed 后 201）；旧任务 A03/A08 → 409 TASK_REPLACED",
+         "PASS" if cc08_ok else "FAIL", "并发 + 启停 + SQL 移动 T03 指针（test_seed）",
+         f"{codes}",
+         f"app/gimbal={r1[0]}/{r2[0]} code409={ecode(resp409)} occ_before={occ_before} "
+         f"closed_release={closed_r} occ_after={occ_after} replaced_a03={replaced_a03} "
+         f"replaced_a08={replaced_a08}({ecode(A08t)})")
+
+    # ================= CC-09 账本去重/K/状态机/冲突/溢出/迟到 =================
+    plan_k, mc_k = new_plan_and_mc(target=10)
+    ck, bk = admit(a, mc_k, plan_k, key=str(uuid.uuid4()))
+    ex_k = (bk.get("data") or {}).get("executionId")
+    ep_k = (bk.get("data") or {}).get("recordStreamEpoch") or ex_k
+    if not ex_k:
+        _add("CC-09", "账本去重/K/事务/状态机/迟到", "FAIL", "A03 for ledger scenario", ck,
+             f"A03 failed: {str(bk)[:300]}")
+        _add("CC-10", "收尾对账", "FAIL", "A03 for closure scenario", ck, f"{str(bk)[:200]}")
+        return plan_k, None
+    clo_un = closure(a, ex_k, ep_k, 0, 0, str(uuid.uuid4()), stop_seq=1)
+    # duplicate：首批 2 条 HTTP 200；**逐字节相同记录**新键重放 disposition 全 duplicate（非空）
+    ts0 = utcnow()
+    dup_recs = [{"recordId": "dup-1", "sourceEpoch": ep_k, "sourceSeq": "1",
+                 "countDelta": "1", "occurredAt": ts0},
+                {"recordId": "dup-2", "sourceEpoch": ep_k, "sourceSeq": "2",
+                 "countDelta": "1", "occurredAt": ts0}]
+    s1 = srec(ex_k, ep_k, dup_recs)
+    s2 = srec(ex_k, ep_k, dup_recs)
+    disp2 = [(r.get("disposition")) for r in
+             (s2[1].get("data") or {}).get("acknowledgedRecords", [])]
+    dup_ok = (s1[0] == 200 and s2[0] == 200 and disp2 == ["duplicate", "duplicate"]
+              and acc_of(ex_k) == "2")
+    # K=9/10/11：completed_at 首达 10 即置、11 不改写、K 不截断
+    for seq in range(3, 10):
+        srec(ex_k, ep_k, [rec(ep_k, seq)])
+    k9_ok = acc_of(ex_k) == "9" and comp_plan(plan_k) == ""
+    srec(ex_k, ep_k, [rec(ep_k, 10)])
+    acc10, comp10 = acc_of(ex_k), comp_plan(plan_k)
+    k10_ok = acc10 == "10" and comp10 != ""
+    srec(ex_k, ep_k, [rec(ep_k, 11)])
+    acc11, comp11 = acc_of(ex_k), comp_plan(plan_k)
+    k11_ok = acc11 == "11" and comp11 == comp10 and comp10 != ""
+    # 状态机：连续性失效→不 running；unknown；unknown 拒绝 →running
+    sobs(ex_k, ep_k, 1, "running", continuity=False)
+    st_inv = status_of(ex_k)
+    sobs(ex_k, ep_k, 2, "unknown")
+    st_unknown = status_of(ex_k)
+    sobs(ex_k, ep_k, 3, "running")
+    st_run_from_unknown = status_of(ex_k)
+    gating_ok = (st_inv == "admitted" and st_unknown == "unknown"
+                 and st_run_from_unknown == "unknown")
+    # 同记录键（sourceSeq）异内容、不同幂等键 → 409 RECORD_CONFLICT + 零持久化
+    k1, k2 = str(uuid.uuid4()), str(uuid.uuid4())
+    s4 = srec(ex_k, ep_k, [rec(ep_k, 12, rid="conf-a")], k1)
+    s5 = srec(ex_k, ep_k, [rec(ep_k, 12, delta="2", rid="conf-b")], k2)
+    rows_x = scalar(f"SELECT count(*) FROM care_records WHERE execution_id='{ex_k}'"
+                    " AND client_record_id='conf-b'")
+    conflict_ok2 = (s4[0] == 200 and s5[0] == 409 and ecode(s5) == "RECORD_CONFLICT"
+                    and rows_x == "0")
+    # stopped 冻结前水位：obs seq=4 stopped
+    sobs(ex_k, ep_k, 4, "stopped")
+    st_stopped = status_of(ex_k)
+    # 溢出：plan.completed_count=MAX 后增量 1 → 400 count_overflow
+    plan_o, mc_o = new_plan_and_mc(target=10)
+    co, bo = admit(a, mc_o, plan_o, key=str(uuid.uuid4()))
+    ex_o = (bo.get("data") or {}).get("executionId")
+    ep_o = (bo.get("data") or {}).get("recordStreamEpoch") or ex_o
+    sql(f"UPDATE care_plans SET completed_count=9223372036854775807 WHERE id='{plan_o}'")
+    s_o = srec(ex_o, ep_o, [rec(ep_o, 1)])
+    overflow_ok = s_o[0] == 400 and ecode(s_o) == "INVALID_INPUT" and ereason(s_o) == "count_overflow"
+    cc09_ok = cc09_verdict(dup_ok=dup_ok, k9_ok=k9_ok, k10_ok=k10_ok, k11_ok=k11_ok,
+                           gating_ok=gating_ok, conflict_ok=conflict_ok2,
+                           stopped_ok=(st_stopped == "stopped"), overflow_ok=overflow_ok)
+    _add("CC-09", "账本去重/K/事务/状态机：duplicate 非空==2、首批 200、K=9/10/11 边界"
+                  "（completed_at 首达/不改写/K 不截断）、running 门控+unknown 拒绝、"
+                  "同键异内容 409 零持久化、溢出 400 count_overflow",
+         "PASS" if cc09_ok else "FAIL", "A05 多批 + SQL 核对", f"{s1[0]}/{s2[0]}/{s5[0]}",
+         f"dup={disp2}(acc {acc_of(ex_k)}) k9={k9_ok} "
+         f"K10={acc10}/{bool(comp10)} K11={acc11}/stable={comp11 == comp10} "
+         f"gating={gating_ok}({st_inv}/{st_unknown}/{st_run_from_unknown}) "
+         f"conflict={conflict_ok2}({s4[0]}/{s5[0]}/{ecode(s5)}/{rows_x}) "
+         f"stopped={st_stopped} overflow={s_o[0]}/{ereason(s_o)}")
+
+    # ================= CC-10 收尾对账 =================
+    # 缺口：stopped + finalRecordSeq 超实际 → 409 CLOSURE_GAPS + 有界 missingRanges/more
+    gaps = closure(a, ex_k, ep_k, 99, 12, str(uuid.uuid4()), stop_seq=4)
+    gdet = (gaps[1].get("error") or {}).get("details") or {}
+    gaps_ok = (gaps[0] == 409 and ecode(gaps) == "CLOSURE_GAPS" and gdet.get("reason") == "gaps"
+               and isinstance(gdet.get("missingRanges"), list)
+               and len(gdet.get("missingRanges") or []) <= 20
+               and isinstance(gdet.get("more"), bool))
+    # 并发双收尾恰一成功（不同键）
+    kb, kc = str(uuid.uuid4()), str(uuid.uuid4())
+    with cf.ThreadPoolExecutor(max_workers=2) as pool:
+        fb = pool.submit(closure, a, ex_k, ep_k, 12, 12, kb, 4)
+        fc = pool.submit(closure, a, ex_k, ep_k, 12, 12, kc, 4)
+        rb, rcv = fb.result(), fc.result()
+    pair = sorted([rb[0], rcv[0]])
+    winner = rb if rb[0] == 200 else rcv
+    win_key = kb if rb[0] == 200 else kc
+    closed = (winner[1].get("data") or {}).get("closed") is True
+    occ_rel = (winner[1].get("data") or {}).get("occupancyReleased") is True
+    one_ok = pair == [200, 409]
+    # 同一收尾键重放：2xx 且 manifest 逐字节不变
+    manifest_before = scalar(f"SELECT closure_manifest::text FROM care_executions WHERE id='{ex_k}'")
+    rep = closure(a, ex_k, ep_k, 12, 12, win_key, 4)
+    manifest_after = scalar(f"SELECT closure_manifest::text FROM care_executions WHERE id='{ex_k}'")
+    replay_ok = rep[0] == 200 and manifest_after == manifest_before and bool(manifest_before)
+    # closed 冻结：更高序号观察被忽略，状态不变
+    sobs(ex_k, ep_k, 5, "running")
+    freeze_ok = status_of(ex_k) == "closed"
+    # closed 后迟到记录入账 + late_variance 留痕 + 不重开
+    s_late = srec(ex_k, ep_k, [rec(ep_k, 13)])
+    late_cnt = scalar("SELECT coalesce(closure_manifest->'late_variance'->>'late_records_count','') "
+                      f"FROM care_executions WHERE id='{ex_k}'")
+    late_ok = s_late[0] == 200 and status_of(ex_k) == "closed" and late_cnt == "1"
+    # 撤销后：A05 最小 ack(progress=null) + A06 仍可收尾 + A07 最小视图
+    plan_rv, mc_rv = new_plan_and_mc(target=3)
+    crv, brv = admit(a, mc_rv, plan_rv, key=str(uuid.uuid4()))
+    ex_rv = (brv.get("data") or {}).get("executionId")
+    ep_rv = (brv.get("data") or {}).get("recordStreamEpoch") or ex_rv
+    sql(f"UPDATE member_access_grants SET status='revoked', revoked_at=now(), updated_at=now() "
+        f"WHERE account_id='{ctx['accountId']}' AND member_id='{member}'")
+    s_rev = sobs(ex_rv, ep_rv, 1, "stopped")
+    ack_ok = s_rev[0] == 200 and (s_rev[1].get("data") or {}).get("progress") is None
+    cl_rev = closure(a, ex_rv, ep_rv, 0, 0, str(uuid.uuid4()), stop_seq=1)
+    still_close = cl_rev[0] == 200 and (cl_rev[1].get("data") or {}).get("closed") is True
+    A07r = get_json(f"{CARE}/care-executions/{ex_rv}", a)
+    d7r = A07r[1].get("data") or {}
+    minimal = (A07r[0] == 200 and d7r.get("memberId") is None and d7r.get("planId") is None
+               and d7r.get("progress") is None and d7r.get("controller") is None)
+    sql(f"UPDATE member_access_grants SET status='active', revoked_at=NULL, updated_at=now() "
+        f"WHERE account_id='{ctx['accountId']}' AND member_id='{member}'")
+    A07 = get_json(f"{CARE}/care-executions/{ex_k}", a)
+    A08 = get_json(f"{CARE}/care-plans/{plan_k}/progress", a)
+    A09 = get_json(f"{CARE}/members/{member}/care-executions", a)
+    cc10_ok = cc10_verdict(
+        stop_ok=(clo_un[0] == 409 and ecode(clo_un) == "STOP_NOT_CONFIRMED"), gaps_ok=gaps_ok,
+        one_ok=one_ok, closed=closed, occ_rel=occ_rel, replay_ok=replay_ok, freeze_ok=freeze_ok,
+        late_ok=late_ok, ack_ok=ack_ok, still_close=still_close, minimal=minimal,
+        get_2xx=(A07[0] == 200 and A08[0] == 200 and A09[0] == 200))
+    _add("CC-10", "收尾对账：未 stopped 409 STOP_NOT_CONFIRMED；缺口 409 CLOSURE_GAPS+有界"
+                  "missingRanges/more；水位完整→closed+occupancyReleased；并发双收尾恰一成功；"
+                  "同键重放 manifest 逐字节不变；closed 冻结+迟到入账 late_variance 不重开；"
+                  "撤销后 A05 最小 ack(progress=null)+A06 仍可收尾+A07 最小视图；A07/08/09 2xx",
+         "PASS" if cc10_ok else "FAIL", "A06 前后置 + 并发/重放/迟到/撤销（test_seed）",
+         f"{clo_un[0]}/{gaps[0]}/{winner[0]}",
+         f"stop_err={ecode(clo_un)} gaps={gaps_ok}({len(gdet.get('missingRanges') or [])},"
+         f"more={gdet.get('more')}) pair={pair} closed={closed} released={occ_rel} "
+         f"manifest_stable={manifest_after == manifest_before} freeze={freeze_ok} "
+         f"late={late_ok}(cnt={late_cnt}) ack={ack_ok} close_after_revoke={still_close} "
+         f"minimal={minimal} A07/08/09={A07[0]}/{A08[0]}/{A09[0]}")
+    return plan_k, ex_k
+
 
 
 # ---------------- CC-11/12 ----------------
 
-def cc_11():
+def cc_11(ctx):
     from driver import a_reverify as AR
+    a, member = ctx["tok"], ctx["member"]
     st = I.run([str(I.PY), str(AR.VALIDATE), "--selftest"], cwd=I.CONTRACTS, timeout=180,
                log_name="cc-11-selftest.log")
     samp = I.run([str(I.PY), "scripts/validate_samples.py"], cwd=I.CONTRACTS, timeout=180,
@@ -726,13 +1182,59 @@ def cc_11():
     oas = I.run([str(I.PY), "-c", "import yaml\nfrom openapi_spec_validator import validate\n"
                  "validate(yaml.safe_load(open('openapi/openapi.yaml')))\nprint('OPENAPI VALID')"],
                 cwd=I.CONTRACTS, timeout=180, log_name="cc-11-openapi.log")
-    ok = (st.returncode == 0 and "10 checks passed" in st.stdout and samp.returncode == 0
-          and n and n.group(1) == "50" and oas.returncode == 0 and "OPENAPI VALID" in oas.stdout)
-    _add("CC-11", "有界严格契约：validate_responses selftest 10/10 + samples 50 + OpenAPI VALID；"
-                  "成功响应捕获严格校验、错误响应基本信封（如实分类）",
-         "PASS" if ok else "FAIL", "契约脚本（.venv-driver 只读 contracts）",
+    baseline_ok = (st.returncode == 0 and "10 checks passed" in st.stdout and samp.returncode == 0
+                   and n and n.group(1) == "50" and oas.returncode == 0
+                   and "OPENAPI VALID" in oas.stdout)
+    # 9 个 M4 API 代表性成功响应：真实跑一遍生命周期并逐个严格 OAS schema 校验
+    plan, mc = new_plan_and_mc(target=3)
+    c3, b3 = admit(a, mc, plan, key=str(uuid.uuid4()))
+    ex = (b3.get("data") or {}).get("executionId")
+    ep = (b3.get("data") or {}).get("recordStreamEpoch") or ex
+    caps = [("A03", "/api/v1/care-executions", "post", 201, b3)]
+    if ex:
+        c5, b5, _ = sync(a, ex, obs_records(ep, [], seq=1, state="paused"), str(uuid.uuid4()))
+        rev = scalar(f"SELECT verification_revision FROM care_executions WHERE id='{ex}'")
+        c4, b4 = post_multipart(f"{CARE}/care-executions/{ex}/revalidations", a,
+                                {"expectedVerificationRevision": rev or "1",
+                                 "capture": {"captureId": str(uuid.uuid4()), "capturedAt": utcnow(),
+                                             "clientContinuityId": "cc-1", "purpose": "revalidation"},
+                                 "consentEvidenceRef": "consent-1"}, str(uuid.uuid4()))
+        c5b, b5b, _ = sync(a, ex, obs_records(ep, [rec(ep, 1)], seq=2, state="running"),
+                           str(uuid.uuid4()))
+        sync(a, ex, obs_records(ep, [], seq=3, state="stopped"), str(uuid.uuid4()))
+        c6, b6, _ = closure(a, ex, ep, 1, 1, str(uuid.uuid4()), stop_seq=3)
+        caps += [("A05", "/api/v1/care-executions/{executionId}/observations", "post", 200, b5b),
+                 ("A04", "/api/v1/care-executions/{executionId}/revalidations", "post", 200, b4),
+                 ("A06", "/api/v1/care-executions/{executionId}/closure-confirmations", "post", 200, b6)]
+    c1, b1, _ = get_json(f"{CARE}/members/{member}/care-plans", a)
+    c2, b2, _ = get_json(f"{CARE}/care-plans/{plan}?view=full", a)
+    c7, b7, _ = get_json(f"{CARE}/care-executions/{ex}", a)
+    c8, b8, _ = get_json(f"{CARE}/care-plans/{plan}/progress", a)
+    c9, b9, _ = get_json(f"{CARE}/members/{member}/care-executions", a)
+    caps += [("A01", "/api/v1/members/{memberId}/care-plans", "get", c1, b1),
+             ("A02", "/api/v1/care-plans/{planId}", "get", c2, b2),
+             ("A07", "/api/v1/care-executions/{executionId}", "get", c7, b7),
+             ("A08", "/api/v1/care-plans/{planId}/progress", "get", c8, b8),
+             ("A09", "/api/v1/members/{memberId}/care-executions", "get", c9, b9)]
+    strict_bad, status_bad, expected_status = [], [], {"A03": 201}
+    captured = {}
+    for api, path, method, expect, body in caps:
+        captured[api] = body
+        if expect != expected_status.get(api, 200):
+            status_bad.append(f"{api}={expect}!=200")
+            continue
+        ok_s, why = oas_validate(path, method, expect, body)
+        if not ok_s:
+            strict_bad.append(f"{api}:{why}")
+    I.evidence_text("cc-11-captured.json", json.dumps(captured, ensure_ascii=False, indent=2))
+    ok = cc11_verdict(baseline_ok, len(caps), status_bad, strict_bad)
+    _add("CC-11", "有界严格契约：selftest 10/10 + samples 50 + OpenAPI VALID；9 个 M4 API"
+                  "（A01-A09）代表性成功响应逐 schema 严格校验（OAS 解析 $ref）",
+         "PASS" if ok else "FAIL", "契约脚本 + 真实生命周期捕获 9 响应严格校验",
          f"{st.returncode}/{samp.returncode}/{oas.returncode}",
-         f"selftest={st.returncode == 0} samples={n.group(1) if n else '?'} oas_ok={oas.returncode == 0}")
+         f"selftest={st.returncode == 0} samples={n.group(1) if n else '?'} "
+         f"oas_ok={oas.returncode == 0} captured={len(caps)} status_bad={status_bad} "
+         f"strict_fail={strict_bad[:4]}")
 
 
 def cc_12_and_matrix():
@@ -846,7 +1348,7 @@ def main() -> int:
                                     "member": member, "gimbal": gimbal, "mc": mc,
                                     "assessment": asmt, "plan": None})
                     CONTEXT["plan"] = seed_plan(asmt, member, "ready", SENSITIVE_PLAN,
-                                                target=3, mc=mc)
+                                                target=3, mc=mc, summary=SENSITIVE_SUMMARY)
                     CONTEXT["gtok"] = gimbal_token(gimbal)
                     only = os.environ.get("E_CC_ONLY", "")
                     names = only.split(",") if only else None
@@ -867,7 +1369,7 @@ def main() -> int:
                     if want("cc0710"):
                         cc_07_10(CONTEXT)
                     if want("cc11"):
-                        cc_11()
+                        cc_11(CONTEXT)
                     if want("cc04"):
                         cc_04(CONTEXT)
                 if CONTEXT.get("member"):
