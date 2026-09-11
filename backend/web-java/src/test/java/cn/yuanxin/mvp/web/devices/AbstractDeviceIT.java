@@ -22,6 +22,9 @@ abstract class AbstractDeviceIT extends AbstractWebIT {
     @Autowired
     protected JdbcTemplate jdbc;
 
+    @Autowired
+    protected DeviceProperties deviceProps;
+
     protected record GimbalSession(UUID gimbalId, String credential, long credentialVersion,
                                    String accessToken) {
     }

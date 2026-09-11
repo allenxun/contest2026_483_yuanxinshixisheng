@@ -158,33 +158,105 @@ class GimbalHeartbeatIT extends AbstractDeviceIT {
     }
 
     @Test
-    @DisplayName("Oracle#2 有界性：连续 N+3 会话后会话表 ≤ 上限且最高 generation 始终保留")
+    @DisplayName("Oracle#3 会话表有界：表长恰为上限，第 max+1..max+3 个未见 session 被拒且不入表")
     void sessionTableIsBounded() throws Exception {
-        int max = ObservationSessions.MAX_TRACKED_SESSIONS;
+        int max = deviceProps.maxObservationSessionsOrDefault();
         UUID gimbalId = seedGimbal(1L);
         List<String> tokens = new ArrayList<>();
         for (int i = 0; i < max + 3; i++) {
             String token = gimbalToken(gimbalId, 1L);
             tokens.add(token);
-            assertTrue(dataOf(heartbeat(token, gimbalId, "e" + i, "1", null))
-                    .path("accepted").asBoolean(), "session " + i + " should be accepted");
+            boolean accepted = dataOf(heartbeat(token, gimbalId, "e" + i, "1", null))
+                    .path("accepted").asBoolean();
+            if (i < max) {
+                assertTrue(accepted, "session " + i + " (in table) must be accepted");
+            } else {
+                assertFalse(accepted, "session " + i + " (table full, unseen) must be rejected");
+                assertFalse(sessionPresent(sessionIdOf(token), gimbalId),
+                        "rejected unseen session must NOT be appended");
+            }
         }
-        int tracked = jdbc.queryForObject(
+        // 表长恰为上限（不淘汰、不追加），最高 generation 属于第 max 个 session
+        assertEquals(max, jdbc.queryForObject(
+                "SELECT jsonb_array_length(latest_observation -> 'observation_sessions')"
+                        + " FROM gimbals WHERE id = ?", Integer.class, gimbalId));
+        assertEquals(max, jdbc.queryForObject(
+                "SELECT (latest_observation ->> 'observation_generation')::int"
+                        + " FROM gimbals WHERE id = ?", Integer.class, gimbalId));
+        assertTrue(sessionPresent(sessionIdOf(tokens.get(max - 1)), gimbalId),
+                "highest-generation session must be retained");
+        assertTrue(sessionPresent(sessionIdOf(tokens.get(0)), gimbalId),
+                "oldest session must NOT be pruned (table only grows until credential advance)");
+    }
+
+    @Test
+    @DisplayName("Oracle#3：表满后未见 session fail closed 且不淘汰旧 session；当前连接不受影响；仅凭据推进可恢复")
+    void sessionTableFullFailClosedAndRecovery() throws Exception {
+        int max = deviceProps.maxObservationSessionsOrDefault();
+        UUID gimbalId = seedGimbal(1L);
+
+        // 前 max 个 session 依次被服务端见到并入表（generation 1..max）
+        List<String> tokens = new ArrayList<>();
+        for (int i = 0; i < max; i++) {
+            String token = gimbalToken(gimbalId, 1L);
+            tokens.add(token);
+            assertTrue(dataOf(heartbeat(token, gimbalId, "e" + i, "1", null))
+                    .path("accepted").asBoolean(), "session " + i + " must be accepted");
+        }
+        Map<String, Object> afterFilled = row(gimbalId);
+        assertEquals(max, sessionCount(gimbalId));
+
+        // 第 max+1 个 = 未见 session → fail closed，不追加、不写任何列（Oracle 确切复现第 9 个）
+        String overflowToken = gimbalToken(gimbalId, 1L);
+        MvcResult overflow = heartbeat(overflowToken, gimbalId, "eNew", "1", null);
+        assertEquals(200, overflow.getResponse().getStatus());
+        assertFalse(dataOf(overflow).path("accepted").asBoolean());
+        assertEquals(afterFilled, row(gimbalId), "rejected unseen session must not change any column");
+        assertEquals(max, sessionCount(gimbalId), "rejected unseen session must not be appended");
+        assertFalse(sessionPresent(sessionIdOf(overflowToken), gimbalId));
+
+        // 表满不影响当前合法连接：最高 generation 的 session 同 epoch、严格更大 seq → 接受且推进
+        Map<String, Object> beforeCurrent = row(gimbalId);
+        MvcResult current = heartbeat(tokens.get(max - 1), gimbalId, "e" + (max - 1), "2", null);
+        assertTrue(dataOf(current).path("accepted").asBoolean(),
+                "table-full must not reject the current connection");
+        assertFalse(beforeCurrent.get("last_seen_at").equals(row(gimbalId).get("last_seen_at")));
+
+        // 再用第一个 token（仍在表中、generation=1 < 当前）→ 仍拒绝且逐列未变
+        Map<String, Object> beforeFirstAgain = row(gimbalId);
+        MvcResult firstAgain = heartbeat(tokens.get(0), gimbalId, "e0", "100", null);
+        assertEquals(200, firstAgain.getResponse().getStatus());
+        assertFalse(dataOf(firstAgain).path("accepted").asBoolean(),
+                "evicted-then-stale first session must never regain authority");
+        assertEquals(beforeFirstAgain, row(gimbalId));
+
+        // 唯一恢复途径：credential_version 严格推进 → 清空会话表，新 session=gen1、接受并重置
+        jdbc.update("UPDATE gimbals SET credential_version = credential_version + 1 WHERE id = ?",
+                gimbalId);
+        String recoveryToken = gimbalToken(gimbalId, 2L);
+        MvcResult recovered = heartbeat(recoveryToken, gimbalId, "r", "1", null);
+        assertEquals(200, recovered.getResponse().getStatus(),
+                recovered.getResponse().getContentAsString());
+        assertTrue(dataOf(recovered).path("accepted").asBoolean());
+        assertEquals(1, sessionCount(gimbalId), "credential advance must clear the session table");
+        assertEquals(1, jdbc.queryForObject(
+                "SELECT (latest_observation ->> 'observation_generation')::int"
+                        + " FROM gimbals WHERE id = ?", Integer.class, gimbalId));
+    }
+
+    private int sessionCount(UUID gimbalId) {
+        return jdbc.queryForObject(
                 "SELECT jsonb_array_length(latest_observation -> 'observation_sessions')"
                         + " FROM gimbals WHERE id = ?", Integer.class, gimbalId);
-        assertTrue(tracked <= max, "tracked sessions must be bounded: " + tracked);
-        int generation = jdbc.queryForObject(
-                "SELECT (latest_observation ->> 'observation_generation')::int"
-                        + " FROM gimbals WHERE id = ?", Integer.class, gimbalId);
-        assertEquals(max + 3, generation);
-        // 当前最高代次的 session（最后一个）必须仍在表中，绝不被淘汰
-        String lastSession = sessionIdOf(tokens.get(tokens.size() - 1));
+    }
+
+    private boolean sessionPresent(String sessionId, UUID gimbalId) {
         Boolean present = jdbc.queryForObject(
                 "SELECT EXISTS (SELECT 1 FROM jsonb_array_elements("
                         + "latest_observation -> 'observation_sessions') e"
                         + " WHERE e ->> 'session_id' = ?) FROM gimbals WHERE id = ?",
-                Boolean.class, lastSession, gimbalId);
-        assertTrue(present, "highest-generation session must be retained");
+                Boolean.class, sessionId, gimbalId);
+        return Boolean.TRUE.equals(present);
     }
 
     @Test
