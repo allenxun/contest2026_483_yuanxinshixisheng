@@ -7,7 +7,7 @@
 ## 命令与退出码
 
 - `backend/acceptance/run.sh c-acceptance`：mode=`c-care`，EXPECTED=CC-01..CC-12 + CLEANUP + CLEANUP-ports（14 项唯一结算）。
-- 正式跑（当前，R17）：RUN_ID=`E-AB-20260911T104353Z-67c653f8`，settled 14/14，counts={PASS:13, FAIL:0, BLOCKED:0, INFO:1}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。INFO=CC-11（真四元组 allowlist 精确命中 13 路径、`impl_bad=[]`；契约缺陷**已发现并升级待裁定**）。
+- 正式跑（当前，R18）：RUN_ID=`E-AB-20260911T111832Z-28c4994f`，settled 14/14，counts={PASS:13, FAIL:0, BLOCKED:0, INFO:1}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。INFO=CC-11（真四元组 allowlist 精确命中 13 路径、`impl_bad=[]`；未知字段集合改为**结构化计算**，杜绝字段名引号绕过；契约缺陷**已发现并升级待裁定**）。
 - 历史迭代 run（保留、零覆盖）：R15 `E-AB-20260911T100912Z-0972884c`（13 PASS/1 INFO）；R14 `E-AB-20260911T090147Z-6d8dbb55`（**14 PASS/0 INFO**）；merged 重跑 `f724f2ba` 等；其 summary 历史措辞不改写。
 - 历史迭代 run（保留、零覆盖）：`E-AB-20260911T082701Z-73350e3c`（14 PASS）、`E-AB-20260911T081747Z-feeb86d8`（12 PASS / 2 FAIL 驱动侧归因）；连同早期 4 个 run 目录均未被覆盖。
 - `run.sh selfcheck` rc=0（72 passed）；`run.sh matrix` rc=3（94 pending、SETTLED 94/94）。
@@ -48,7 +48,7 @@
 
 ## 限制
 
-- 无 worker 参与（care 包零 worker 依赖）；未重跑 C 的 Java 262 项与契约脚本以外的 A/B/D 套件。selfcheck rc=0（71 passed，含 CC-11 allowlist 精确判别/CC-01 绑定负例回归）。
+- 无 worker 参与（care 包零 worker 依赖）；未重跑 C 的 Java 262 项与契约脚本以外的 A/B/D 套件。selfcheck rc=0（72 passed，含 CC-11 结构化未知字段集合/真四元组 allowlist 判别、CC-01 绑定负例回归）。
 - 内存紧张，JVM 限堆 `-Xmx640m -XX:MaxMetaspaceSize=256m`，变体串行。
 - **CC-11 严格语义下的契约建模缺陷（已发现并升级、待总协调裁定；归属=契约/OAS，openapi.yaml 为契约/A 共享工件，E 无权修）**：共 **13 个不同字段路径**
   （12 处 `nullable:true` 与 `$ref`/`allOf` 同层、OAS 3.0.3 该写法不生效 → C 按契约意图返回 null
@@ -61,7 +61,8 @@
   误伤。
   说明：上述为**字段路径级** distinct 计数（列表元素可产生多条实例级错误，如 A01/A09 items[*]）；
   allowlist 按 **(API, 归一化实例路径, validator, absolute_schema_path) 真四元组** 精确绑定，schema path
-  不符、未知字段集合非恰 `{lastSyncedAt}` 或任何 allowlist 外错误一律 impl→FAIL，绝不降级 INFO。
+  不符、未知字段集合**结构化计算**（`instance.keys − schema.properties − patternProperties`）非恰
+  `{lastSyncedAt}` 或任何 allowlist 外错误一律 impl→FAIL，绝不降级 INFO。
   均为 openapi.yaml 建模问题，非 C 运行时缺陷；驱动如实按 INFO 披露，**不静默放宽**。
   **状态=已发现并升级，待总协调裁定**（裁定为已知限制，或交 A 修约 openapi.yaml）；**裁定前不视为
   公共契约通过**。
@@ -70,5 +71,5 @@
 ## Merged 候选适用性（aebccc7 = C 8b3592e + D dc955c0）
 
 - C care 域 `git diff 8b3592e..aebccc7`（`web-java/.../web/care` main+test）=0，`backend/contracts` diff=0 → 本报告对 C 的结论在 merged 候选上继续适用。
-- 在 merged 树正式重跑 `run.sh c-acceptance`：R17 新 RUN_ID=`E-AB-20260911T104353Z-67c653f8`（settled 14/14，counts={PASS:13,INFO:1}，exit=0，真四元组 allowlist 精确命中 13 路径、impl_bad=[]）；此前 R16 `E-AB-20260911T102717Z-efcddec8`、R15 `E-AB-20260911T100912Z-0972884c`（同计数）、merged 重跑 `E-AB-20260911T093819Z-f724f2ba`（14 PASS，旧措辞「三目录 diff 空」已修正为 care 域精确路径，历史 summary 不改写、零覆盖）。
+- 在 merged 树正式重跑 `run.sh c-acceptance`：R18 新 RUN_ID=`E-AB-20260911T111832Z-28c4994f`（settled 14/14，counts={PASS:13,INFO:1}，exit=0，真四元组 allowlist 精确命中 13 路径、impl_bad=[]）；此前 R17 `E-AB-20260911T104353Z-67c653f8`、R16 `E-AB-20260911T102717Z-efcddec8`、R15 `E-AB-20260911T100912Z-0972884c`（同计数）、merged 重跑 `f724f2ba`（14 PASS，旧措辞「三目录 diff 空」已修正为 care 域精确路径，历史 summary 不改写、零覆盖）。
 - C+D 真实链路与集成结论见 `backend/handoffs/E-CD-acceptance.md`（证据 `evidence/CD-chain-2026-09-11-aebccc7/`）。

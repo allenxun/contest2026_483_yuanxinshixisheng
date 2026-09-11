@@ -959,13 +959,15 @@ def test_cc11_a08_unknown_field_set_and_schema_path_binding():
     assert c_care.unknown_fields_of_additional_properties(errs_clean[0]) == {"lastSyncedAt"}
     assert c_care.classify_strict_error("A08", errs_clean[0]).startswith("contract:")
     assert c_care.classify_strict_error("A02", errs_clean[0]) == "impl-or-other"  # API/schema path 不符
-    # lastSyncedAt + secret 并存 → 未知集合 != {lastSyncedAt} → 必须 impl FAIL
-    errs_leak = [e for e in c_care.oas_errors_node(
-        node_a08, doc, {"data": {**data_clean, "secret": "LEAK"}})
-        if e.validator == "additionalProperties"]
-    assert errs_leak and c_care.unknown_fields_of_additional_properties(errs_leak[0]) == \
-        {"lastSyncedAt", "secret"}
-    assert c_care.classify_strict_error("A08", errs_leak[0]) == "impl-or-other"
+    # 判别：任意额外未知字段（含引号字段名 / 多字段）→ 结构化集合 != {lastSyncedAt} → impl FAIL
+    for extra in ({"secret": "LEAK"}, {"secret'x": "LEAK"}, {'sec"y': "LEAK"},
+                  {"a1": "L", "a2": "L"}):
+        errs = [e for e in c_care.oas_errors_node(node_a08, doc, {"data": {**data_clean, **extra}})
+                if e.validator == "additionalProperties"]
+        assert errs, extra
+        unknown = c_care.unknown_fields_of_additional_properties(errs[0])
+        assert unknown == {"lastSyncedAt"} | set(extra), (extra, unknown)
+        assert c_care.classify_strict_error("A08", errs[0]) == "impl-or-other", extra
 
 
 def test_cc11_allowlist_precise_no_impl_downgrade():
