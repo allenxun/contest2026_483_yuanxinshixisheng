@@ -48,18 +48,15 @@ TIER_EXTRA_REASON = {
     "现在可自动": "；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
 }
 
-# 集成状态（2026-09-11）：C 最终代码 8b3592e 已集成（93b7e33）；B/D 未集成。
-INTEGRATED_PACKAGES = {"C"}
-C_ONLY_PENDING_REASON = (
-    "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）"
-    "仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）"
+# 集成状态（2026-09-11 更新）：C（8b3592e）+ D（dc955c0）均已集成（merged aebccc7）；
+# B 仍未集成（M1/M2/M5 共 11 个端点 501 NOT_IMPLEMENTED stub）。
+INTEGRATED_PACKAGES = {"C", "D"}
+INTEGRATED_PENDING_REASON = (
+    "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收"
+    "（见 backend/handoffs/E-CD-acceptance.md）"
 )
-
-# A 基线已于 2026-09-10 到达（E 独立基础验收见 evidence/A-baseline-*）。
-# 场景的真实阻塞已变为 B/C/D 业务实现未集成：26 个业务端点为 501 NOT_IMPLEMENTED stub。
-BASE_PENDING_REASON = (
-    "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；"
-    "B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行"
+B_PENDING_REASON = (
+    "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行"
 )
 
 
@@ -136,10 +133,10 @@ def parse_scenarios(all_api_ids: list[str]) -> list[dict]:
         packages = sorted({api_owner(a) for a in apis})
         tier = SCOPE_TO_TIER[scope]
         blocked = sorted(set(packages) - INTEGRATED_PACKAGES)
-        if packages and not blocked:  # C-only：C 已集成
-            reason = C_ONLY_PENDING_REASON + TIER_EXTRA_REASON[tier]
-        else:
-            reason = BASE_PENDING_REASON + TIER_EXTRA_REASON[tier]
+        if packages and not blocked:  # owner 仅 {C,D}：均已集成
+            reason = INTEGRATED_PENDING_REASON + TIER_EXTRA_REASON[tier]
+        else:  # 含 B（未集成）
+            reason = B_PENDING_REASON + TIER_EXTRA_REASON[tier]
         if deps:
             reason += "；涉及开发对接项：" + "、".join(deps)
         scenarios.append({
