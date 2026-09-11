@@ -20,6 +20,7 @@ from d_support import (
     enroll_payload,
     fetch_assessment,
     fetch_members,
+    make_ctx,
     photo_versions_for,
     run_claimed,
     seed_assessment,
@@ -28,6 +29,9 @@ from d_support import (
 from mvp_worker.handlers.dshared.providers import FaceDouble
 from mvp_worker.handlers.identity_enroll import handler as enroll_handler
 from mvp_worker.media.storage import FilesystemStorageDouble
+from mvp_worker.runtime.claim import claim_batch
+from mvp_worker.runtime.complete import complete_success
+from mvp_worker.runtime.expire import release_claim
 
 
 @pytest.fixture(autouse=True)
@@ -184,6 +188,56 @@ def test_enroll_timeout_then_reconcile(engine: Engine, tmp_path: Any) -> None:
     assert face.calls.get("query_registration", 0) == 1
     assert count_members(engine, ns=DEFAULT_NS) == 1
     assert fetch_assessment(engine, aid)["member_id"] is not None
+
+
+def test_enroll_link_guard_rejects_after_concurrent_retake(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """B2：外部登记成功后，并发 analyze 重试已把 T05 带离登记窗口（needs_retake）。
+
+    成员行保留（外部登记真实），但**不得归属**：T05.member_id 仍 NULL、identity_result
+    不被 link 覆盖，任务仍 succeeded。缺失的成员归属由重搜的 enrolled_reconciled
+    发布路径在补拍后补上（候选按 assessment 确定性派生）。
+    """
+    storage, aid, images = _seed_enroll_case(engine, tmp_path, status="analyzing", rev=2, pv=1)
+    jid, _corr = _enqueue_enroll(engine, aid, 2, 1, images)
+    face = FaceDouble()
+
+    claims = claim_batch(engine, worker_id="w-d", lease_seconds=60, batch_size=50)
+    claim = next(c for c in claims if c.id == jid)
+    for other in claims:
+        if other.id != jid:
+            release_claim(engine, other, worker_id="w-d")
+    enroll_handler.validate(claim.payload)
+    ctx = make_ctx(engine, claim, extras={"storage": storage, "face_port": face})
+    result = enroll_handler.handle(ctx, claim)
+    assert result is not None  # 外部登记已完成，返回归属 business_tx
+
+    # 并发 analyze 重试写 needs_retake（uncertain）发生在 link 之前
+    uncertain = {
+        "schema_version": 1,
+        "classification": "uncertain",
+        "quality": {"status": "needs_retake", "required_views": ["front"]},
+        "detail": "identity result uncertain",
+    }
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "UPDATE skin_assessments SET status='needs_retake',"
+                " identity_result=CAST(:ir AS jsonb) WHERE id=CAST(:id AS uuid)"
+            ),
+            {"ir": json.dumps(uncertain), "id": aid},
+        )
+
+    complete_success(engine, claim, handler_result_tx=result.business_tx)
+
+    assert fetch_job(engine, jid)["status"] == "succeeded"
+    # 成员已建（外部登记真实），但未归属
+    assert count_members(engine, ns=DEFAULT_NS, ref=derived_candidate(DEFAULT_NS, aid)) == 1
+    a = fetch_assessment(engine, aid)
+    assert a["member_id"] is None
+    assert a["status"] == "needs_retake"
+    assert a["identity_result"]["classification"] == "uncertain"  # link 未覆盖
 
 
 def test_enroll_unrecoverable_failure_keeps_slot(engine: Engine, tmp_path: Any) -> None:

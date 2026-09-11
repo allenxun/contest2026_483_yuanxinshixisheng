@@ -5,7 +5,9 @@ import cn.yuanxin.mvp.web.error.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -98,15 +100,30 @@ public class AssessmentMultipartParser {
         if (!(request instanceof MultipartHttpServletRequest multi)) {
             throw invalid("multipart/form-data request required");
         }
+        MultiValueMap<String, MultipartFile> multiFiles = multi.getMultiFileMap();
+        // getFileMap() 会把同名 part 静默折叠成单值，必须在折叠前按 part 名
+        // 逐一检出重复（front/left/right/metadata 等），否则重复文件会被漏检。
+        for (Map.Entry<String, List<MultipartFile>> e : multiFiles.entrySet()) {
+            if (e.getValue().size() > 1) {
+                throw invalid("duplicate multipart part: " + e.getKey());
+            }
+        }
         Map<String, byte[]> parts = new LinkedHashMap<>();
-        for (Map.Entry<String, MultipartFile> e : multi.getFileMap().entrySet()) {
+        for (Map.Entry<String, List<MultipartFile>> e : multiFiles.entrySet()) {
+            if ("metadata".equals(e.getKey())) {
+                continue;
+            }
             try {
-                parts.put(e.getKey(), e.getValue().getBytes());
+                parts.put(e.getKey(), e.getValue().get(0).getBytes());
             } catch (Exception ex) {
                 throw invalid("unreadable multipart part: " + e.getKey());
             }
         }
-        byte[] metadata = parts.remove("metadata");
+        byte[] metadata = readMetadataPart(multiFiles);
+        String[] metadataParams = multi.getParameterValues("metadata");
+        if (metadata == null && metadataParams != null && metadataParams.length > 1) {
+            throw invalid("duplicate multipart part: metadata");
+        }
         if (metadata == null && multi.getParameter("metadata") != null) {
             metadata = multi.getParameter("metadata").getBytes(StandardCharsets.UTF_8);
         }
@@ -120,6 +137,36 @@ public class AssessmentMultipartParser {
             }
         }
         return new RawParts(metadata, parts);
+    }
+
+    /**
+     * metadata 若为文件 part，其 Content-Type 必须是 application/json（容忍
+     * charset 等参数后缀）；否则 400 INVALID_INPUT。文本参数形式的 metadata
+     * 无 Content-Type，不在此校验。
+     */
+    private byte[] readMetadataPart(MultiValueMap<String, MultipartFile> multiFiles) {
+        List<MultipartFile> metadataFiles = multiFiles.get("metadata");
+        if (metadataFiles == null || metadataFiles.isEmpty()) {
+            return null;
+        }
+        MultipartFile metadata = metadataFiles.get(0);
+        MediaType mediaType = null;
+        String contentType = metadata.getContentType();
+        if (contentType != null) {
+            try {
+                mediaType = MediaType.parseMediaType(contentType);
+            } catch (RuntimeException e) {
+                mediaType = null;
+            }
+        }
+        if (mediaType == null || !MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
+            throw invalid("metadata part must be application/json");
+        }
+        try {
+            return metadata.getBytes();
+        } catch (Exception ex) {
+            throw invalid("unreadable multipart part: metadata");
+        }
     }
 
     private Map<String, byte[]> requireExactViews(Map<String, byte[]> parts, Set<String> expected,

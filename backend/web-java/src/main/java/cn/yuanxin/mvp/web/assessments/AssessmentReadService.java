@@ -60,6 +60,7 @@ public class AssessmentReadService {
         List<String> requiredViews = failureProjection.requiredViews(row.status(),
                 row.identityResult());
         Boolean retryable = failureProjection.retryable(row.failureCode());
+        String failureCode = failureProjection.failureCode(row.failureCode());
         String reportId = "report_ready".equals(row.status()) && row.reportId() != null
                 ? row.reportId().toString() : null;
         String planAvailability = accessRepository.planStatusByAssessmentId(taskId).orElse(null);
@@ -68,7 +69,7 @@ public class AssessmentReadService {
                 row.status(),
                 String.valueOf(row.currentPhotoVersion()),
                 requiredViews,
-                row.failureCode(),
+                failureCode,
                 retryable,
                 reportId,
                 planAvailability);

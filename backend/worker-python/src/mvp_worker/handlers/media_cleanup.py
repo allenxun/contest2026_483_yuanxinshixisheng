@@ -14,9 +14,11 @@ from typing import Any, Optional
 from sqlalchemy import Connection, Engine, text
 
 from ..logging_setup import mlog
+from ..runtime.complete import StaleGeneration
 from ..runtime.rows import JobRow
 from . import HandlerContext, HandlerResult, JobFailed
 from .dshared.denqueue import enqueue_job
+from .dshared.dfence import fenced_business_tx
 from .dshared.jsonschema_support import load_payload_validator, validate_payload
 from .dshared.resolve import storage_for
 
@@ -31,6 +33,17 @@ SELECT id, bucket, object_key, purpose, state, assessment_id, execution_id,
        member_id, request_id
 FROM media_objects
 WHERE id = CAST(:id AS uuid)
+"""
+)
+
+# I2：单事务过渡的行锁读；持锁后完整引用扫描再决定是否 deleting。
+_SELECT_MEDIA_FOR_UPDATE = text(
+    """
+SELECT id, bucket, object_key, purpose, state, assessment_id, execution_id,
+       member_id, request_id
+FROM media_objects
+WHERE id = CAST(:id AS uuid)
+FOR UPDATE
 """
 )
 
@@ -140,68 +153,73 @@ class MediaCleanupHandler:
         validate_payload(self._get_validator(), payload, _PAYLOAD_SCHEMA)
 
     def handle(self, ctx: HandlerContext, job: JobRow) -> Optional[HandlerResult]:
+        """围栏包装：过渡开始的业务写在租约失效时返回 None（见 dshared/dfence）。"""
+        try:
+            return self._handle(ctx, job)
+        except StaleGeneration:
+            mlog(
+                log, logging.WARNING, "media.cleanup.fenced_write_stale",
+                **job.log_fields(), note="lease lost; no transition applied",
+            )
+            return None
+
+    def _handle(self, ctx: HandlerContext, job: JobRow) -> Optional[HandlerResult]:
         media_id = str(job.payload["media_object_id"])
 
+        # 快路径预读（无锁）：已终态直接 no-op；deleting 走幂等 resume 尾段。
         row = _load_media(ctx.engine, media_id)
         if row is None:
             return None  # 行不存在：已无对象可清，no-op 成功
-        state = row["state"]
-        if state == "deleted":
+        if row["state"] == "deleted":
             return None  # 已删除：幂等 no-op 成功
 
-        if state != "deleting":
-            # 2) 范围守卫：只清失败行或未被接纳的无归属上传
-            if not _cleanable(row):
-                mlog(
-                    log, logging.ERROR, "media.cleanup.referenced_or_owned",
-                    **job.log_fields(), mediaId=media_id, media_state=state,
-                )
-                raise JobFailed(
-                    "MEDIA_REFERENCED", "media object is owned or accepted", retryable=False
-                )
-            # 3) 处理者活性 + 业务引用核查（先于任何 T11 锁）
-            request_id = row["request_id"]
-            if request_id is not None and _processor_active(ctx.engine, str(request_id)):
-                raise JobFailed(
-                    "PROCESSOR_ACTIVE", "ingest processor lease still active", retryable=True
-                )
-            if _referenced(ctx.engine, media_id):
-                mlog(
-                    log, logging.ERROR, "media.cleanup.referenced",
-                    **job.log_fields(), mediaId=media_id,
-                )
-                raise JobFailed(
-                    "MEDIA_REFERENCED", "media object is referenced by business data",
-                    retryable=False,
-                )
-            # 4) tx-A：原子进入 deleting（0 行 → 重读判定）
-            if not _mark_deleting(ctx.engine, media_id):
-                again = _load_media(ctx.engine, media_id)
-                if again is None or again["state"] == "deleted":
+        if row["state"] != "deleting":
+            # I2：过渡与完整引用扫描必须同一事务、同一连接（先锁 T11 行，后扫描）。
+            # 序列化论证：受理在同一事务内 UPDATE T11 WHERE state='available' 抢占行，
+            # 与本处 FOR UPDATE 互斥——受理先提交则本处锁后读到 assessment_id 非空/被引用
+            # → abort（无过渡）；本处先提交 deleting 则受理的 UPDATE 匹配 0 行 → 整事务回滚。
+            # 锁顺序安全：本处只持 T11 行锁，业务表为普通 SELECT（不 FOR UPDATE，不阻塞行锁）。
+            with fenced_business_tx(ctx.engine, job) as conn:
+                locked = conn.execute(
+                    _SELECT_MEDIA_FOR_UPDATE, {"id": media_id}
+                ).mappings().first()
+                if locked is None or locked["state"] == "deleted":
                     return None
-                if not _ownership_null(again):
-                    mlog(
-                        log, logging.ERROR, "media.cleanup.referenced_after_guard",
-                        **job.log_fields(), mediaId=media_id,
-                    )
-                    raise JobFailed(
-                        "MEDIA_REFERENCED", "media object became owned/referenced",
-                        retryable=False,
-                    )
-                raise JobFailed(
-                    "CLEANUP_CONTENDED", "media cleanup concurrently progressing",
-                    retryable=True,
-                )
+                if locked["state"] != "deleting":
+                    # 范围守卫：只清失败行或未被接纳的无归属上传
+                    if not _cleanable(locked):
+                        mlog(
+                            log, logging.ERROR, "media.cleanup.referenced_or_owned",
+                            **job.log_fields(), mediaId=media_id, media_state=locked["state"],
+                        )
+                        raise JobFailed(
+                            "MEDIA_REFERENCED", "media object is owned or accepted",
+                            retryable=False,
+                        )
+                    request_id = locked["request_id"]
+                    if request_id is not None and _processor_active_conn(conn, str(request_id)):
+                        raise JobFailed(
+                            "PROCESSOR_ACTIVE", "ingest processor lease still active",
+                            retryable=True,
+                        )
+                    if _referenced_conn(conn, media_id):
+                        mlog(
+                            log, logging.ERROR, "media.cleanup.referenced",
+                            **job.log_fields(), mediaId=media_id,
+                        )
+                        raise JobFailed(
+                            "MEDIA_REFERENCED", "media object is referenced by business data",
+                            retryable=False,
+                        )
+                    conn.execute(_MARK_DELETING, {"id": media_id})
 
-        # 4) 锁外存储删除（幂等：对象不存在视为已删除）
+        # 锁外存储删除（幂等：对象不存在视为已删除）
         if ctx.abort_event.is_set():
             return None
         _delete_object(storage_for(ctx), str(row["object_key"]))
 
         # tx-B：确认 deleted（0 行 → 并发操作，no-op）
-        return HandlerResult(
-            business_tx=lambda conn: _mark_deleted(conn, media_id)
-        )
+        return HandlerResult(business_tx=lambda conn: _mark_deleted(conn, media_id))
 
 
 # ---------------------------------------------------------------- module helpers
@@ -213,7 +231,7 @@ def _load_media(engine: Engine, media_id: str) -> Optional[dict[str, Any]]:
     return dict(row) if row is not None else None
 
 
-def _cleanable(row: dict[str, Any]) -> bool:
+def _cleanable(row: Any) -> bool:
     state = row["state"]
     if state == "failed":
         return True
@@ -222,7 +240,7 @@ def _cleanable(row: dict[str, Any]) -> bool:
     return False
 
 
-def _ownership_null(row: dict[str, Any]) -> bool:
+def _ownership_null(row: Any) -> bool:
     return (
         row["assessment_id"] is None
         and row["execution_id"] is None
@@ -230,31 +248,35 @@ def _ownership_null(row: dict[str, Any]) -> bool:
     )
 
 
+_REFERENCE_SCANS = (
+    _REF_SKIN_ASSESSMENTS,
+    _REF_MEMBERS,
+    _REF_CARE_EXECUTIONS,
+    _REF_IDEMPOTENCY,
+)
+
+
+def _processor_active_conn(conn: Connection, request_id: str) -> bool:
+    return bool(
+        conn.execute(_SELECT_PROCESSOR_ACTIVE, {"id": request_id}).scalar_one_or_none()
+    )
+
+
+def _referenced_conn(conn: Connection, media_id: str) -> bool:
+    for stmt in _REFERENCE_SCANS:
+        if bool(conn.execute(stmt, {"media_id": media_id}).scalar_one()):
+            return True
+    return False
+
+
 def _processor_active(engine: Engine, request_id: str) -> bool:
     with engine.connect() as conn:
-        value = conn.execute(
-            _SELECT_PROCESSOR_ACTIVE, {"id": request_id}
-        ).scalar_one_or_none()
-    return bool(value)
+        return _processor_active_conn(conn, request_id)
 
 
 def _referenced(engine: Engine, media_id: str) -> bool:
     with engine.connect() as conn:
-        for stmt in (
-            _REF_SKIN_ASSESSMENTS,
-            _REF_MEMBERS,
-            _REF_CARE_EXECUTIONS,
-            _REF_IDEMPOTENCY,
-        ):
-            if bool(conn.execute(stmt, {"media_id": media_id}).scalar_one()):
-                return True
-    return False
-
-
-def _mark_deleting(engine: Engine, media_id: str) -> bool:
-    with engine.begin() as conn:
-        res = conn.execute(_MARK_DELETING, {"id": media_id})
-    return res.rowcount > 0
+        return _referenced_conn(conn, media_id)
 
 
 def _mark_deleted(conn: Connection, media_id: str) -> None:

@@ -173,7 +173,7 @@ class AssessmentReportIT extends AssessmentTestSupport {
     }
 
     @Test
-    @DisplayName("A05 APP brief：memberId/metrics/description 为 null，view=brief，images 保留")
+    @DisplayName("A05 APP brief：metrics 省略（合同非 nullable）、memberId/description null、无值泄露")
     void appBriefProjection() throws Exception {
         GimbalFixture gimbal = createGimbal();
         LoginResult app = loginAppWithInstallation(newPhone(), "inst-a05-brief");
@@ -187,10 +187,16 @@ class AssessmentReportIT extends AssessmentTestSupport {
         JsonNode d = data(r);
         assertEquals("brief", d.path("view").asText());
         assertTrue(d.path("memberId").isNull());
-        assertTrue(d.path("metrics").isNull());
+        // openapi SkinReportView.metrics 为 array（非 nullable）：brief 必须省略整字段
+        assertFalse(d.has("metrics"),
+                "brief must omit metrics, not serialize null: " + r.getResponse().getContentAsString());
         assertTrue(d.path("description").isNull());
         assertEquals("looks good", d.path("conclusion").asText());
         assertEquals(1, d.path("images").size());
+
+        String raw = r.getResponse().getContentAsString();
+        assertFalse(raw.contains("hydration"), raw);
+        assertFalse(raw.contains("verified description"), raw);
     }
 
     @Test
