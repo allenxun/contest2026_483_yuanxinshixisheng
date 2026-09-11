@@ -399,11 +399,13 @@ def test_plan_generating_snapshot_missing_terminal(
     )
     # 即使 live 配置完好，也不得据其继续
     jid = _enqueue_plan(engine, pid, 0, max_attempts=3)
+    port = PlanDouble()
     status, exc, _ = run_claimed(
-        engine, plan_handler, jid, extras={"storage": storage, "plan_port": PlanDouble()}
+        engine, plan_handler, jid, extras={"storage": storage, "plan_port": port}
     )
     assert status == "failed" and exc is not None
     assert exc.code == "PLAN_SNAPSHOT_INVALID" and exc.retryable is False
+    assert port.calls.get("generate", 0) == 0  # 校验失败绝不调用 provider
     plan = fetch_plan(engine, pid)
     assert plan["generation_status"] == "failed"
     assert plan["failure_detail"]["code"] == "PLAN_SNAPSHOT_INVALID"
@@ -423,11 +425,13 @@ def test_plan_generating_snapshot_malformed_terminal(
         engine, tmp_path, plan_status="generating", with_capability=True, input_snapshot=snap
     )
     jid = _enqueue_plan(engine, pid, 0, max_attempts=1)
+    port = PlanDouble()
     status, exc, _ = run_claimed(
-        engine, plan_handler, jid, extras={"storage": storage, "plan_port": PlanDouble()}
+        engine, plan_handler, jid, extras={"storage": storage, "plan_port": port}
     )
     assert status == "failed" and exc is not None
     assert exc.code == "PLAN_SNAPSHOT_INVALID" and exc.retryable is False
+    assert port.calls.get("generate", 0) == 0  # 校验失败绝不调用 provider
     assert fetch_plan(engine, pid)["generation_status"] == "failed"
 
 
@@ -684,12 +688,14 @@ def test_plan_frozen_snapshot_contract_violation_terminal(
     )
     jid = _enqueue_plan(engine, pid, 0, max_attempts=1)
     caplog.set_level(logging.ERROR, logger="mvp_worker.handlers.plan_generate")
+    port = PlanDouble()
     status, exc, _ = run_claimed(
-        engine, plan_handler, jid, extras={"storage": storage, "plan_port": PlanDouble()}
+        engine, plan_handler, jid, extras={"storage": storage, "plan_port": port}
     )
     assert status == "failed" and exc is not None
     assert exc.code == "PLAN_SNAPSHOT_INVALID" and exc.retryable is False
     assert exc.code != "HANDLER_ERROR"
+    assert port.calls.get("generate", 0) == 0  # 校验失败绝不调用 provider
     plan = fetch_plan(engine, pid)
     assert plan["generation_status"] == "failed"  # 非 stranded 'generating'
     assert plan["plan_payload"] is None

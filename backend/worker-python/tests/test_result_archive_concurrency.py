@@ -9,6 +9,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import threading
 from typing import Any
 
@@ -225,4 +226,111 @@ def test_archive_crash_before_put_converges_on_retry(
     rows2 = fetch_result_media(engine, aid, 1)
     assert len(rows2) == 1 and rows2[0]["state"] == "available"
     assert storage.exists(key)
+    assert len(_files(tmp_path)) == 1
+
+
+# ---------------------------------------------------- F1 divergent-content
+
+
+def test_archive_duplicate_ref_terminal_before_side_effects(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """F1：单次调用内 provider_ref 重复 → 终态 PROVIDER_CONTRACT_VIOLATION，零副作用。"""
+    storage, aid = _seed(engine, tmp_path)
+    duplicate = [
+        {"ref": "dup", "caption": "a", "bytes": PNG_BYTES},
+        {"ref": "dup", "caption": "b", "bytes": PNG_BYTES},
+    ]
+    with pytest.raises(ArchiveError) as excinfo:
+        archive_result_images(
+            engine, storage, environment="dev", assessment_id=aid,
+            photo_version=1, result_images=duplicate, max_bytes=10_000_000,
+        )
+    assert excinfo.value.code == "PROVIDER_CONTRACT_VIOLATION"
+    assert excinfo.value.terminal is True
+    assert fetch_result_media(engine, aid, 1) == []
+    assert _files(tmp_path) == []
+
+
+def test_archive_available_different_bytes_terminal_original_untouched(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """F1：已 available 的 ref 收到不同字节 → 终态拒绝；原行/对象字节不变。"""
+    storage, aid = _seed(engine, tmp_path)
+    data_a = PNG_BYTES
+    data_b = PNG_BYTES + b"\x01\x02\x03"  # 同 MIME（PNG 头），不同字节/大小
+
+    arch = archive_result_images(
+        engine, storage, environment="dev", assessment_id=aid,
+        photo_version=1, result_images=[{"ref": "r1", "caption": "a", "bytes": data_a}],
+        max_bytes=10_000_000,
+    )
+    mid = str(arch[0]["media_id"])
+    key = _object_key(engine, mid)
+
+    with pytest.raises(ArchiveError) as excinfo:
+        archive_result_images(
+            engine, storage, environment="dev", assessment_id=aid,
+            photo_version=1, result_images=[{"ref": "r1", "caption": "a2", "bytes": data_b}],
+            max_bytes=10_000_000,
+        )
+    assert excinfo.value.code == "PROVIDER_CONTRACT_VIOLATION"
+    assert excinfo.value.terminal is True
+
+    rows = fetch_result_media(engine, aid, 1)
+    assert len(rows) == 1 and rows[0]["state"] == "available"
+    assert rows[0]["content_hash"] == hashlib.sha256(data_a).hexdigest()
+    assert rows[0]["byte_size"] == len(data_a)
+    assert rows[0]["content_type"] == "image/png"
+    assert storage.get(key) == data_a  # 对象字节未被覆盖
+    assert _object_key(engine, mid) == key
+    assert len(_files(tmp_path)) == 1
+
+
+def test_archive_concurrent_same_ref_different_bytes_one_winner(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """F1：并发同 ref 不同字节 → 恰一个赢家；T11 hash 与存储对象字节一致，输家终态拒绝。"""
+    storage, aid = _seed(engine, tmp_path)
+    data_a = PNG_BYTES
+    data_b = PNG_BYTES + b"\x01\x02\x03"
+    barrier = threading.Barrier(2)
+    outcomes: list[tuple[str, str]] = []
+
+    def worker(data: bytes) -> None:
+        try:
+            barrier.wait(timeout=15)
+            arch = archive_result_images(
+                engine, storage, environment="dev", assessment_id=aid,
+                photo_version=1,
+                result_images=[{"ref": "r1", "caption": "c", "bytes": data}],
+                max_bytes=10_000_000,
+            )
+            outcomes.append(("ok", str(arch[0]["media_id"])))
+        except ArchiveError as exc:
+            outcomes.append(("reject", exc.code))
+
+    threads = [
+        threading.Thread(target=worker, args=(data_a,)),
+        threading.Thread(target=worker, args=(data_b,)),
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=30)
+
+    ok = [o for o in outcomes if o[0] == "ok"]
+    rejected = [o for o in outcomes if o[0] == "reject"]
+    assert len(ok) == 1
+    assert len(rejected) == 1 and rejected[0][1] == "PROVIDER_CONTRACT_VIOLATION"
+
+    rows = fetch_result_media(engine, aid, 1)
+    assert len(rows) == 1 and rows[0]["state"] == "available"
+    mid = str(rows[0]["id"])
+    stored = storage.get(_object_key(engine, mid))
+    # T11 元数据必须与存储对象字节一致（赢家字节）
+    assert stored in (data_a, data_b)
+    assert rows[0]["content_hash"] == hashlib.sha256(stored).hexdigest()
+    assert rows[0]["byte_size"] == len(stored)
+    assert rows[0]["content_type"] == "image/png"
     assert len(_files(tmp_path)) == 1
