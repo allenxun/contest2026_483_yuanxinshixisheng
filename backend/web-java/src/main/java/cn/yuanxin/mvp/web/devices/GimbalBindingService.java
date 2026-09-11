@@ -221,11 +221,18 @@ public class GimbalBindingService {
             if (row == null) {
                 return rejectInTx(handle, notVisible());
             }
+            if (row.boundAccountId() == null) {
+                // Oracle 第二轮 #3：未绑定云台必须在 revision 判断之前统一 404，
+                // 否则陈旧的 If-Match（如 binding-1 vs 当前 revision=2）会先命中
+                // revision 分支返回 409，使"未绑定"与"不存在"可区分、泄漏存在性。
+                // 任何合法 If-Match 取值下都与"gimbalId 不存在"完全一致；落 T13
+                // rejected 使同键重放得到同一拒绝。绝不写任何列、不递增代次。
+                return rejectInTx(handle, notVisible());
+            }
             if (expected != null && expected.longValue() != row.bindingRevision()) {
                 return rejectInTx(handle, bindingChanged(row.bindingRevision()));
             }
-            if (row.boundAccountId() != null
-                    && row.boundAccountId().equals(principal.accountUuid())) {
+            if (row.boundAccountId().equals(principal.accountUuid())) {
                 List<Long> updated = jdbc.query("UPDATE gimbals SET bound_account_id = NULL,"
                                 + " bound_at = NULL, binding_revision = binding_revision + 1,"
                                 + " updated_at = now()"
@@ -241,14 +248,8 @@ public class GimbalBindingService {
                                 "bindingRevision", String.valueOf(updated.get(0))));
                 return null;
             }
-            if (row.boundAccountId() == null) {
-                // 新的未知解绑请求：服务端无从证明调用方是原账号（DD M2-A08），
-                // 与"gimbalId 不存在"返回完全相同 404；落 T13 rejected 使同键重放
-                // 得到同一拒绝。绝不递增 binding_revision、绝不写任何列。
-                return rejectInTx(handle, notVisible());
-            }
             // 他人绑定：带相符 If-Match（说明是他人新绑定）→ BINDING_CHANGED；否则 404，
-            // 不泄漏"已被他人绑定"这一事实，绝不解除他人绑定。
+            // 不泄漏"已被他人绑定"这一事实，绝不解除他人绑定。语义保持不变。
             return rejectInTx(handle, expected != null && expected.longValue() == row.bindingRevision()
                     ? bindingChanged(row.bindingRevision()) : notVisible());
         });

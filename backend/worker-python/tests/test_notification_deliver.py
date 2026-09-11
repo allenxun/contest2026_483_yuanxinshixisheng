@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import threading
 import uuid
+from dataclasses import replace
 from datetime import datetime, timezone
 
 import pytest
@@ -26,7 +27,11 @@ from test_notification_support import (
 from mvp_worker.notifications.push import DevTestDoublePushProvider, PushCall
 from mvp_worker.notifications.session_probe import DevDbSessionProbe
 from mvp_worker.notifications.config import NotificationSettings
-from mvp_worker.handlers.notification_deliver import NotificationDeliverHandler
+from mvp_worker.handlers.notification_deliver import (
+    NotificationDeliverHandler,
+    StaleNotification,
+    converge_t10_tx,
+)
 
 
 def _seed_linked(engine: Engine, *, session_ref: str = "sess-1"):
@@ -216,27 +221,14 @@ def test_precheck_cancels_on_session_change_after_probe(engine: Engine) -> None:
     assert row["provider_message_id"] is None
 
 
-# ---------------- BLOCKER D: T12 任务行业务绑定复核 ----------------
-# 复现 Oracle BLOCKER D：合法 payload + 任意 owner_id / 陈旧 input_revision 等
-# 仍可能投递并让 job 成功。现在必须在锁内重检中复核四项绑定，任一不符 → 绝不推送、
-# T10 收敛 failed、T12 以 A 既有 UNSUPPORTED_CONTRACT 语义终结（retryable=false）。
+# ---------------- Oracle #5: T12 业务绑定复核覆盖所有路径 ----------------
+# 校验在 handle() 进入任何状态分支之前执行；不符 → 绝不推送、绝不发布投递结果。
+# 身份绑定不符 → UNSUPPORTED_CONTRACT（T12 failed）；input_revision 滞后 → 路由过期
+# cancelled。失败路径不独立提交 T10（Oracle #6）：收敛计划随 DeliveryFailed 携带，
+# 由 D 的 complete_failure callback 同事务执行（见 notification-adapter-handoff.md）。
 
 
-@pytest.mark.parametrize(
-    "mutation,reason",
-    [
-        ("owner_type", "owner_type_mismatch"),
-        ("owner_id", "owner_id_mismatch"),
-        ("input_revision", "input_revision_mismatch"),
-        ("dedup_key", "dedup_key_mismatch"),
-    ],
-)
-def test_contract_binding_mismatch_fails_without_sending(
-    engine: Engine, mutation: str, reason: str
-) -> None:
-    _, _, _, _, notification = _seed_linked(engine)
-    job_id = enqueue_deliver_job(engine, notification, input_revision=1)
-    # 只改 T12 任务行的业务绑定（payload 仍合法），模拟"插入合法 payload 但配错 owner"。
+def _mutate_job_binding(engine: Engine, job_id: uuid.UUID, mutation: str) -> None:
     with engine.begin() as conn:
         if mutation == "owner_type":
             conn.execute(
@@ -248,17 +240,28 @@ def test_contract_binding_mismatch_fails_without_sending(
                 text("UPDATE async_jobs SET owner_id = :o WHERE id = :id"),
                 {"o": uuid.uuid4(), "id": job_id},
             )
-        elif mutation == "input_revision":
-            conn.execute(
-                text("UPDATE async_jobs SET input_revision = 2 WHERE id = :id"),
-                {"id": job_id},
-            )
         elif mutation == "dedup_key":
             conn.execute(
                 text("UPDATE async_jobs SET dedup_key = 'wrong:key' WHERE id = :id"),
                 {"id": job_id},
             )
 
+
+@pytest.mark.parametrize(
+    "mutation,reason",
+    [
+        ("owner_type", "owner_type_mismatch"),
+        ("owner_id", "owner_id_mismatch"),
+        ("dedup_key", "dedup_key_mismatch"),
+    ],
+)
+def test_unsupported_binding_mismatch_fails_without_publishing(
+    engine: Engine, mutation: str, reason: str
+) -> None:
+    """Oracle #5：合法 payload + 错误身份绑定 → 绝不推送、绝不发布投递结果。"""
+    _, _, _, _, notification = _seed_linked(engine)
+    job_id = enqueue_deliver_job(engine, notification, input_revision=1)
+    _mutate_job_binding(engine, job_id, mutation)
     provider = DevTestDoublePushProvider(mode="accepted")
     job = claim_one(engine)
     assert job is not None
@@ -267,29 +270,185 @@ def test_contract_binding_mismatch_fails_without_sending(
     assert failure is not None
     assert failure.code == "UNSUPPORTED_CONTRACT"
     assert failure.retryable is False
+    # T12 由 A 既有 complete_failure（lease 守卫）终结 failed。
     job_row = fetch_job(engine, job_id)
     assert job_row["status"] == "failed"
     jerr = json.loads(job_row["last_error"])
     assert jerr["code"] == "UNSUPPORTED_CONTRACT"
     assert jerr["retryable"] is False
+    # T10 未被独立提交（Oracle #6）：保持 pending、无 last_error 变更。
+    row = fetch_notification(engine, notification)
+    assert row["status"] == "pending", "失败路径不得独立提交 T10 终态"
+    assert row["last_error"] is None
+    assert provider.calls == [], "绑定不符绝不能调用推送"
+    # 期望的 T10 收敛计划随异常携带，供 D 的同事务 callback 执行。
+    conv = getattr(failure, "convergence", None)
+    assert conv is not None
+    assert conv.status == "failed"
+    assert conv.last_error["code"] == "UNSUPPORTED_CONTRACT"
+    assert conv.last_error["reason"] == reason
+
+
+def test_input_revision_stale_cancels_route_expired(engine: Engine) -> None:
+    """input_revision 滞后于 T10.destination_revision → 路由过期 cancelled，非误发。"""
+    _, _, _, _, notification = _seed_linked(engine)
+    job_id = enqueue_deliver_job(engine, notification, input_revision=2)  # != T10 的 1
+    provider = DevTestDoublePushProvider(mode="accepted")
+    job = claim_one(engine)
+    assert job is not None
+    _, failure = run_delivery(engine, job, _handler(engine, provider))
+
+    assert failure is None
+    row = fetch_notification(engine, notification)
+    assert row["status"] == "cancelled"
+    err = json.loads(row["last_error"])
+    assert err["code"] == "route_recheck_failed"
+    assert err["reason"] == "input_revision_stale"
+    assert fetch_job(engine, job_id)["status"] == "succeeded"
+    assert provider.calls == [], "路由过期绝不能调用推送"
+
+
+def test_reconcile_branch_wrong_binding_never_publishes_submitted(engine: Engine) -> None:
+    """Oracle #5 复现：T10 sending/unknown + 错误 T12 + 回执 accepted。
+
+    修复前会经 `_reconcile_finalize_tx` 发布 submitted；现在必须在状态分支之前拦截，
+    且不得调用回执查询/推送。
+    """
+    _, _, _, _, notification = _seed_linked(engine)
+    job_id = enqueue_deliver_job(engine, notification, input_revision=1)
+    provider = DevTestDoublePushProvider(mode="unknown")
+    # 真实状态机：provider unknown → T10 保持 sending、T12 退避重排队。
+    job = claim_one(engine)
+    assert job is not None
+    _, failure = run_delivery(engine, job, _handler(engine, provider))
+    assert failure is not None and failure.retryable is True
+    assert fetch_notification(engine, notification)["status"] == "sending"
+
+    # 仅改 T12 绑定（owner_id）；回执将返回 accepted；推进退避后驱动真实路径。
+    with engine.begin() as conn:
+        conn.execute(
+            text("UPDATE async_jobs SET available_at = now(), owner_id = :o WHERE id = :id"),
+            {"o": uuid.uuid4(), "id": job_id},
+        )
+    provider.set_receipt_mode("accepted")
+    job2 = claim_one(engine, worker="notif-test-worker-2")
+    assert job2 is not None
+    _, failure2 = run_delivery(engine, job2, _handler(engine, provider))
+
+    assert failure2 is not None and failure2.code == "UNSUPPORTED_CONTRACT"
+    assert fetch_job(engine, job_id)["status"] == "failed"
+    assert provider.receipt_queries == [], "绑定不符必须在对账之前拦截"
+    assert len(provider.calls) == 1, "不得产生第二次投递"
+    # 未发布 submitted；T10 保持可观测态（不独立提交终态）。
+    assert fetch_notification(engine, notification)["status"] == "sending"
+
+
+def test_finalize_tx_rechecks_binding_and_does_not_write(engine: Engine) -> None:
+    """Oracle #5：最终写回事务内复校绑定；不符则不写并整体回滚。
+
+    直接以写回事务 callback 验证（不伪造 reconcile 前提）：T10 保持自然的 pending。
+    """
+    _, _, _, _, notification = _seed_linked(engine)
+    job_id = enqueue_deliver_job(engine, notification, input_revision=1)
+    job = claim_one(engine)
+    assert job is not None
+    wrong_job = replace(job, owner_id=str(uuid.uuid4()))
+    handler = _handler(engine, DevTestDoublePushProvider(mode="accepted"))
+
+    with engine.begin() as conn:
+        with pytest.raises(StaleNotification):
+            handler._finalize_tx(
+                wrong_job, str(notification), 1, "submitted", "pid-1", None
+            )(conn)
 
     row = fetch_notification(engine, notification)
-    assert row["status"] == "failed", "契约绑定不符时 T10 绝不停留 sending"
-    nerr = json.loads(row["last_error"])
-    assert nerr["code"] == "UNSUPPORTED_CONTRACT"
-    assert nerr["reason"] == reason
-    assert nerr["retryable"] is False
-    assert provider.calls == [], "契约绑定不符绝不能调用推送"
+    assert row["status"] == "pending", "写回事务内复校不符必须不写、不发布"
+    assert row["provider_message_id"] is None
+
+
+def test_terminal_noop_branch_still_validates_binding(engine: Engine) -> None:
+    """Oracle #5：终态 no-op 分支不得绕过绑定校验（不得静默 succeeded）。"""
+    _, _, _, _, notification = _seed_linked(engine)
+    job_id = enqueue_deliver_job(engine, notification, input_revision=1)
+    with engine.begin() as conn:
+        conn.execute(
+            text("UPDATE notifications SET status = 'submitted',"
+                 " provider_message_id = 'old' WHERE id = :id"),
+            {"id": notification},
+        )
+        conn.execute(
+            text("UPDATE async_jobs SET owner_id = :o WHERE id = :id"),
+            {"o": uuid.uuid4(), "id": job_id},
+        )
+    provider = DevTestDoublePushProvider(mode="accepted")
+    job = claim_one(engine)
+    assert job is not None
+    _, failure = run_delivery(engine, job, _handler(engine, provider))
+
+    assert failure is not None and failure.code == "UNSUPPORTED_CONTRACT"
+    assert fetch_job(engine, job_id)["status"] == "failed"
+    row = fetch_notification(engine, notification)
+    assert row["status"] == "submitted", "不得覆盖既有终态，也不得发布新投递结果"
+    assert provider.calls == [], "终态分支绑定不符绝不能调用推送"
+
+
+# ---------------- Oracle #6: converge_t10_tx 事务语义（供 D 同事务回调） ----------------
+
+
+def test_converge_t10_tx_writes_on_same_connection(engine: Engine) -> None:
+    _, _, _, _, notification = _seed_linked(engine)
+    with engine.begin() as conn:
+        conn.execute(
+            text("UPDATE notifications SET status = 'sending', attempt_count = 1,"
+                 " last_attempt_at = now() WHERE id = :id"),
+            {"id": notification},
+        )
+    err = {"code": "delivery_unknown", "reason": "boom", "retryable": False}
+    with engine.begin() as conn:
+        updated = converge_t10_tx(conn, str(notification), 1, "failed", err)
+    assert updated is True
+    row = fetch_notification(engine, notification)
+    assert row["status"] == "failed"
+    assert json.loads(row["last_error"])["code"] == "delivery_unknown"
+
+
+def test_converge_t10_tx_guard_mismatch_is_idempotent_noop(engine: Engine) -> None:
+    """守卫不符（attempt_count / 状态）→ 幂等 no-op、不抛异常、不覆盖新事实。"""
+    _, _, _, _, notification = _seed_linked(engine)
+    with engine.begin() as conn:
+        conn.execute(
+            text("UPDATE notifications SET status = 'sending', attempt_count = 2,"
+                 " last_attempt_at = now() WHERE id = :id"),
+            {"id": notification},
+        )
+    err = {"code": "delivery_unknown", "reason": "boom", "retryable": False}
+    with engine.begin() as conn:
+        # 代次不符：本次 attempt=1 而 DB 为 2。
+        assert converge_t10_tx(conn, str(notification), 1, "failed", err) is False
+    row = fetch_notification(engine, notification)
+    assert row["status"] == "sending"
+    assert row["last_error"] is None
+
+    # 状态不符（已终态）：仍是 no-op、不覆盖。
+    with engine.begin() as conn:
+        conn.execute(
+            text("UPDATE notifications SET status = 'submitted' WHERE id = :id"),
+            {"id": notification},
+        )
+    with engine.begin() as conn:
+        assert converge_t10_tx(conn, str(notification), 2, "failed", err) is False
+    assert fetch_notification(engine, notification)["status"] == "submitted"
+
 
 
 # ---------------- 15. unknown 对账（B-14） ----------------
 
 
 def test_unknown_reconciles_accepted_via_real_state_machine(engine: Engine) -> None:
-    """BLOCKER E-1/E-2：unknown 不得再被当作"终态且 job 成功"断掉对账链。
+    """Oracle #6/E：unknown 不再被当作"终态且 job 成功"断掉对账链。
 
     不手工把 T10 改回 sending（删除旧的测试技巧），而是让 provider 真实返回 unknown
-    → T12 由 A 的退避重排队、T10 保留可对账 unknown → 仅推进退避时间后再驱动真实处理
+    → T12 由 A 的退避重排队、T10 保持可对账 sending → 仅推进退避时间后再驱动真实处理
     路径 → 查回执收敛 submitted，且推送替身调用计数仍为 1（无第二次投递）。
     """
     _, _, _, _, notification = _seed_linked(engine)
@@ -299,12 +458,12 @@ def test_unknown_reconciles_accepted_via_real_state_machine(engine: Engine) -> N
     assert job is not None
     _, failure = run_delivery(engine, job, _handler(engine, provider))
 
-    # provider 返回 unknown：本次为可重试失败，T10 保留可对账 unknown，T12 未 succeeded。
+    # provider 返回 unknown：本次为可重试失败，T10 保持可对账 sending，T12 未 succeeded。
     assert failure is not None and failure.retryable is True
     assert failure.code == "delivery_unknown"
     assert len(provider.calls) == 1  # unknown 绝不重发
     row = fetch_notification(engine, notification)
-    assert row["status"] == "unknown"
+    assert row["status"] == "sending"
     assert fetch_job(engine, job_id)["status"] == "queued"
 
     # 真实状态机再驱动：只推进退避时间（模拟退避到期），不伪造 T10 状态。
@@ -325,11 +484,12 @@ def test_unknown_reconciles_accepted_via_real_state_machine(engine: Engine) -> N
     assert fetch_job(engine, job_id)["status"] == "succeeded"
 
 
-def test_last_attempt_receipt_query_error_converges_t10(engine: Engine) -> None:
-    """BLOCKER E-3：末次尝试回执查询抛异常 → T12 failed 且 T10 不再 sending/unknown。
+def test_last_attempt_receipt_query_error_keeps_t10_observable(engine: Engine) -> None:
+    """Oracle #6：末次回执查询异常 → T12 failed，但 T10 不被独立提交（保持可观测）。
 
-    真实状态机：第一次 provider unknown（非末次）→ T10 unknown；第二次（末次）
-    回执查询抛异常，必须在同一原子写里把 T10 收敛为明确终态并记 last_error。
+    真实状态机：第一次 provider unknown（非末次）→ T10 sending；第二次（末次）回执
+    查询抛异常。收敛计划随 DeliveryFailed 携带，待 D 的 complete_failure callback
+    同事务执行；当前不抢先独立提交。
     """
     _, _, _, _, notification = _seed_linked(engine)
     job_id = enqueue_deliver_job(engine, notification, input_revision=1, max_attempts=2)
@@ -344,7 +504,7 @@ def test_last_attempt_receipt_query_error_converges_t10(engine: Engine) -> None:
     assert job is not None
     _, failure = run_delivery(engine, job, _handler(engine, provider))
     assert failure is not None and failure.retryable is True
-    assert fetch_notification(engine, notification)["status"] == "unknown"
+    assert fetch_notification(engine, notification)["status"] == "sending"
 
     with engine.begin() as conn:
         conn.execute(
@@ -358,19 +518,19 @@ def test_last_attempt_receipt_query_error_converges_t10(engine: Engine) -> None:
     assert failure2.retryable is True
     assert fetch_job(engine, job_id)["status"] == "failed"
     row = fetch_notification(engine, notification)
-    assert row["status"] == "failed", "末次对账异常不得让 T10 停在 sending/unknown"
-    err = json.loads(row["last_error"])
-    assert err["code"] == "receipt_query_failed"
-    assert err["retryable"] is False
+    assert row["status"] == "sending", "失败路径不得独立提交 T10 终态"
+    assert row["last_error"] is None
+    conv = getattr(failure2, "convergence", None)
+    assert conv is not None and conv.status == "failed"
+    assert conv.last_error["code"] == "receipt_query_failed"
     assert len(provider.calls) == 1
     assert provider.receipt_queries == [f"{notification}:1"]
 
 
-def test_last_attempt_provider_exception_converges_t10(engine: Engine) -> None:
-    """BLOCKER E-3：末次尝试 provider 抛异常 → T12 failed 且 T10 不滞留 sending。
+def test_last_attempt_provider_exception_keeps_t10_observable(engine: Engine) -> None:
+    """Oracle #6：末次 provider 异常 → T12 failed，T10 保持可观测 sending（待 D 同事务收敛）。
 
-    T10 先被锁内置 sending（提交后才发送），随后 provider 抛异常；末次尝试必须把
-    T10 从 sending 收敛为 failed 并写 last_error。
+    T10 先被锁内置 sending（提交后才发送），随后 provider 抛异常。
     """
     _, _, _, _, notification = _seed_linked(engine)
     job_id = enqueue_deliver_job(engine, notification, input_revision=1, max_attempts=1)
@@ -392,15 +552,16 @@ def test_last_attempt_provider_exception_converges_t10(engine: Engine) -> None:
     assert failure.retryable is True
     assert fetch_job(engine, job_id)["status"] == "failed"
     row = fetch_notification(engine, notification)
-    assert row["status"] == "failed", "末次 provider 异常不得让 T10 停在 sending"
-    err = json.loads(row["last_error"])
-    assert err["code"] == "provider_transient"
-    assert err["retryable"] is False
+    assert row["status"] == "sending", "失败路径不得独立提交 T10 终态"
+    assert row["last_error"] is None
+    conv = getattr(failure, "convergence", None)
+    assert conv is not None and conv.status == "failed"
+    assert conv.last_error["code"] == "provider_transient"
     assert len(provider.calls) == 1
 
 
-def test_unknown_reconcile_boundary_exhausted_converges(engine: Engine) -> None:
-    """BLOCKER E-1：对账必须有界——维持 unknown 策略下边界耗尽即收敛终态、不再增长。"""
+def test_unknown_reconcile_boundary_exhausted_stops_growth(engine: Engine) -> None:
+    """Oracle #6：对账有界——边界耗尽即 T12 终态化、不再增长；T10 不独立提交。"""
     _, _, _, _, notification = _seed_linked(engine)
     job_id = enqueue_deliver_job(engine, notification, input_revision=1, max_attempts=2)
     provider = DevTestDoublePushProvider(mode="unknown", receipt_mode="not_found")
@@ -426,8 +587,7 @@ def test_unknown_reconcile_boundary_exhausted_converges(engine: Engine) -> None:
     assert failure2 is not None and failure2.code == "delivery_unknown"
     assert fetch_job(engine, job_id)["status"] == "failed"
     row = fetch_notification(engine, notification)
-    assert row["status"] == "failed"
-    assert json.loads(row["last_error"])["code"] == "delivery_unknown"
+    assert row["status"] == "sending", "失败路径不得独立提交 T10 终态"
     assert len(provider.calls) == 1, "维持 unknown 策略下不得重发"
     assert provider.receipt_queries == [f"{notification}:1"]
     # 终态后不再被领取，attempt_count 停止增长（无无限对账循环）。

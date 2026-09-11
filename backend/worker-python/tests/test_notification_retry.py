@@ -102,7 +102,14 @@ def test_retry_rechecks_and_cancels_after_rebind(engine: Engine) -> None:
     assert len(provider.calls) == 1, "重检失败后不得再次调用推送"
 
 
-def test_exhausted_transient_leaves_t10_not_sending(engine: Engine) -> None:
+def test_exhausted_transient_keeps_t10_observable_not_independently_committed(
+    engine: Engine,
+) -> None:
+    """Oracle #6：超过 max_attempts 时 T12 终态 failed，但 T10 不被独立提交。
+
+    收敛计划随 DeliveryFailed 携带，由 D 的 complete_failure callback 同事务执行；
+    在此之前 T10 保持可观测 sending（不抢先发布、也不被旧 lease 越权提交）。
+    """
     _, _, _, notification = _seed_linked(engine)
     job_id = enqueue_deliver_job(engine, notification, input_revision=1, max_attempts=1)
     provider = DevTestDoublePushProvider(mode="transient")
@@ -114,6 +121,9 @@ def test_exhausted_transient_leaves_t10_not_sending(engine: Engine) -> None:
     assert failure is not None and failure.retryable is True
     assert fetch_job(engine, job_id)["status"] == "failed"
     row = fetch_notification(engine, notification)
-    assert row["status"] == "failed", "超过 max_attempts 后 T10 不得停在 sending"
-    assert json.loads(row["last_error"])["code"] == "provider_transient"
+    assert row["status"] == "sending", "失败路径不得独立提交 T10 终态"
+    assert row["last_error"] is None
+    conv = getattr(failure, "convergence", None)
+    assert conv is not None and conv.status == "failed"
+    assert conv.last_error["code"] == "provider_transient"
     assert fetch_job(engine, job_id)["attempt_count"] == 1

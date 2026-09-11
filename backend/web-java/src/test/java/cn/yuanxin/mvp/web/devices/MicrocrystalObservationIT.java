@@ -240,6 +240,45 @@ class MicrocrystalObservationIT extends AbstractDeviceIT {
     }
 
     @Test
+    @DisplayName("Oracle#2 微晶：同来源两会话交替不得来回覆盖，旧会话永不重获权威")
+    void olderSessionNeverRegainsAuthority() throws Exception {
+        String phone = newPhone();
+        String installationId = "inst-mc-2sess";
+        LoginResult s1 = loginAppWithInstallation(phone, installationId);
+        UUID account = UUID.fromString(s1.accountId());
+        String serial = "mc-" + UUID.randomUUID();
+
+        // 会话 S1 服务端首次见到 → generation=1
+        MvcResult first = observe(s1.accessToken(), serial,
+                DevProofFixture.connectionApp(account, installationId, serial), "E", "100", "1");
+        assertTrue(dataOf(first).path("accepted").asBoolean());
+        UUID id = UUID.fromString(dataOf(first).path("microcrystalId").asText());
+        String capsAfterFirst = (String) microcrystalRow(id).get("capabilities");
+
+        // 同一 account+installation 的第二个会话 S2 → 服务端首次见到，更高代次，接受并重置
+        LoginResult s2 = loginAppWithInstallation(phone, installationId);
+        assertEquals(account, UUID.fromString(s2.accountId()));
+        MvcResult second = observe(s2.accessToken(), serial,
+                DevProofFixture.connectionApp(account, installationId, serial), "E2", "1", "2");
+        assertTrue(dataOf(second).path("accepted").asBoolean());
+        String capsAfterSecond = (String) microcrystalRow(id).get("capabilities");
+        assertFalse(capsAfterFirst.equals(capsAfterSecond));
+
+        // 关键：旧会话 S1 再报（epoch+seq 看似更"新"）不得重获权威 → 拒绝且能力未变
+        MvcResult stale = observe(s1.accessToken(), serial,
+                DevProofFixture.connectionApp(account, installationId, serial), "E", "101", "3");
+        assertEquals(200, stale.getResponse().getStatus());
+        assertFalse(dataOf(stale).path("accepted").asBoolean());
+        assertEquals(capsAfterSecond, microcrystalRow(id).get("capabilities"));
+
+        // 新会话 S2 同连接内继续推进
+        MvcResult next = observe(s2.accessToken(), serial,
+                DevProofFixture.connectionApp(account, installationId, serial), "E2", "2", "4");
+        assertTrue(dataOf(next).path("accepted").asBoolean());
+        assertEquals("4", dataOf(next).path("capabilityRevision").asText());
+    }
+
+    @Test
     @DisplayName("M2-A05：observer 可读、无证明无上下文 403、他人/不存在 404 不可区分、isStale 正确")
     void capabilitiesAccessControl() throws Exception {
         LoginResult owner = loginAppWithInstallation(newPhone(), "inst-mc-cap-owner");
