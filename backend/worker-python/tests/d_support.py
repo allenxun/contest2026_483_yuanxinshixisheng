@@ -525,6 +525,7 @@ def run_claimed(
         complete_failure(
             engine, claim, code=exc.code, message=exc.message, retryable=exc.retryable,
             backoff_base_seconds=0, backoff_cap_seconds=0,
+            business_tx=exc.business_tx,
         )
         return "failed", exc, claim
     if result is not None and result.defer_seconds is not None:

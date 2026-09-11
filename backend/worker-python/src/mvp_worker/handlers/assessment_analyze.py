@@ -20,7 +20,7 @@ from typing import Any, Optional
 from sqlalchemy import Connection, Engine, text
 
 from ..logging_setup import mlog
-from ..runtime.complete import StaleGeneration
+from ..runtime.complete import BusinessTx, StaleGeneration
 from ..runtime.rows import JobRow
 from . import HandlerContext, HandlerResult, JobFailed
 from .dshared.constants import (
@@ -44,7 +44,8 @@ _PAYLOAD_SCHEMA = "payload-assessment-analyze.json"
 
 _SELECT_ASSESSMENT = text(
     """
-SELECT id, status, member_id, current_photo_version, processing_revision, photo_versions
+SELECT id, status, member_id, current_photo_version, processing_revision, photo_versions,
+       failure_code
 FROM skin_assessments
 WHERE id = CAST(:id AS uuid)
 """
@@ -183,7 +184,7 @@ class AssessmentAnalyzeHandler:
             return self._handle(ctx, job)
         except StaleGeneration:
             mlog(
-                log, logging.WARNING, "analyze.fenced_write_stale",
+                log, logging.DEBUG, "analyze.fenced_write_stale",
                 **job.log_fields(), note="lease lost; business write rolled back",
             )
             return None
@@ -200,6 +201,15 @@ class AssessmentAnalyzeHandler:
             # 旧输入代次：合法作废，无写回，任务成功。
             mlog(log, logging.INFO, "analyze.stale_input", **job.log_fields())
             return None
+
+        if row["status"] == "failed":
+            # N2 收敛：T05 已在本输入代次落终态 failed（但 T12 可能因崩溃停在同代次），
+            # 重放必须收敛 T12 为 failed，而不是 no-op 成功造成审计不一致。
+            # failure_code 是普通业务列（非诊断 failure_detail），允许读取；为空则用有界泛化码。
+            persisted = row.get("failure_code")
+            code = persisted if isinstance(persisted, str) and persisted else "ASSESSMENT_FAILED"
+            mlog(log, logging.INFO, "analyze.converged_terminal", **job.log_fields(), code=code)
+            raise JobFailed(code, "assessment already terminal failed; converge job", retryable=False)
 
         current_photo_version = int(row["current_photo_version"])
         media_ids = _images_for_version(row["photo_versions"], current_photo_version)
@@ -305,6 +315,7 @@ class AssessmentAnalyzeHandler:
                 photo_version=current_photo_version,
                 result_images=getattr(analysis, "result_images", []) or [],
                 max_bytes=dcfg.result_image_max_bytes,
+                job=job,
             )
         except ArchiveError as exc:
             if exc.terminal:
@@ -489,15 +500,15 @@ class AssessmentAnalyzeHandler:
 
         # 无论新入队/重放/槽占用，本次分析都不能发布：等待登记完成后重搜命中。
         if job.attempt_count >= job.max_attempts:
-            # 预算耗尽：登记协调项仍在（槽位保持占用），本任务落 failed 终态。
-            _mark_failed(
-                ctx.engine, job, assessment_id, rev, "IDENTITY_ENROLLMENT_TIMEOUT",
-                "enrollment did not complete within attempt budget",
-            )
+            # 预算耗尽：登记协调项仍在（槽位保持占用），业务终态写与 T12 failed 原子提交。
             raise JobFailed(
                 "IDENTITY_ENROLLMENT_TIMEOUT",
                 "reliable new candidate enrollment timed out",
                 retryable=False,
+                business_tx=_mark_failed_tx(
+                    assessment_id, rev, "IDENTITY_ENROLLMENT_TIMEOUT",
+                    "enrollment did not complete within attempt budget",
+                ),
             )
         raise JobFailed(
             "IDENTITY_ENROLLMENT_PENDING",
@@ -552,8 +563,12 @@ class AssessmentAnalyzeHandler:
         message: str,
         reason: str,
     ) -> None:
-        _mark_failed(ctx.engine, job, assessment_id, rev, code, reason)
-        raise JobFailed(code, message, retryable=False)
+        # 终态业务写不再独立预提交：随 complete_failure 同一事务围栏提交（N2），
+        # 崩溃窗口不会留下 T05 failed 而 T12 非 failed 的审计不一致。
+        raise JobFailed(
+            code, message, retryable=False,
+            business_tx=_mark_failed_tx(assessment_id, rev, code, reason),
+        )
 
     def _transient_or_terminal(
         self,
@@ -567,8 +582,10 @@ class AssessmentAnalyzeHandler:
         reason: str,
     ) -> None:
         if job.attempt_count >= job.max_attempts:
-            _mark_failed(ctx.engine, job, assessment_id, rev, code, reason)
-            raise JobFailed(code, message, retryable=False)
+            raise JobFailed(
+                code, message, retryable=False,
+                business_tx=_mark_failed_tx(assessment_id, rev, code, reason),
+            )
         raise JobFailed(code, message, retryable=True)
 
 
@@ -650,16 +667,17 @@ def _persist_enroll_pending(
         return res.rowcount > 0
 
 
-def _mark_failed(
-    engine: Engine, job: JobRow, assessment_id: str, rev: int, code: str, reason: str
-) -> None:
-    # failure_detail 仅内部诊断（裁定 3）：只留脱敏 reason，不承载协议字段
+def _mark_failed_tx(assessment_id: str, rev: int, code: str, reason: str) -> BusinessTx:
+    """终态业务写回调：在 ``complete_failure`` 同一事务内执行 T05 failed（禁网络）。"""
     detail = {"reason": str(reason)[:200]}
-    with fenced_business_tx(engine, job) as conn:
+
+    def tx(conn: Connection) -> None:
         conn.execute(
             _MARK_FAILED,
             {"id": assessment_id, "rev": rev, "code": code, "detail": _json(detail)},
         )
+
+    return tx
 
 
 def _find_member(engine: Engine, namespace: str, face_subject_ref: Optional[str]) -> Optional[str]:

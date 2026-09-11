@@ -41,13 +41,25 @@ class JobFailed(RuntimeError):
 
     retryable=True → 运行按退避重排队（受 max_attempts 约束）；
     retryable=False（业务性/永久性失败）→ 直接 failed。
+
+    ``business_tx`` 可选：终态业务写回调。运行时在 ``complete_failure`` 的**同一
+    事务**内先执行它、再以代次+租约守卫更新 async_jobs；守卫 0 行 → StaleGeneration
+    整体回滚（业务终态与 T12 终态原子提交，杜绝崩溃窗口的审计不一致）。回调内禁网络。
     """
 
-    def __init__(self, code: str, message: str, *, retryable: bool = True) -> None:
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        retryable: bool = True,
+        business_tx: Optional[BusinessTx] = None,
+    ) -> None:
         super().__init__(f"{code}: {message}")
         self.code = code
         self.message = message
         self.retryable = retryable
+        self.business_tx = business_tx
 
 
 @dataclass

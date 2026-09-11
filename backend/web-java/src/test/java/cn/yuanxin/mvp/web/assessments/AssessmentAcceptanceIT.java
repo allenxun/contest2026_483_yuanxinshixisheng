@@ -240,6 +240,64 @@ class AssessmentAcceptanceIT extends AssessmentTestSupport {
     }
 
     @Test
+    @DisplayName("A01 metadata 形式严格：file+param / 两个文本参数 → 400；单文本参数 → 202")
+    void multipartMetadataFormStrictness() throws Exception {
+        GimbalFixture gimbal = createGimbal();
+
+        // (a) metadata 同时以 file part + 文本参数出现 → 400
+        MvcResult both = mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .multipart("/api/v1/skin-assessment-tasks")
+                                .file(jsonPart("metadata", a01Metadata()))
+                                .file(imagePart("front", png(1)))
+                                .file(imagePart("left", png(2)))
+                                .file(imagePart("right", png(3)))
+                                .param("metadata", a01Metadata())
+                                .header("Authorization", "Bearer " + gimbal.token())
+                                .header("Idempotency-Key", "d-a01-md-both-" + UUID.randomUUID()))
+                .andReturn();
+        assertEquals(400, both.getResponse().getStatus(), both.getResponse().getContentAsString());
+        assertEquals("INVALID_INPUT", error(both).path("code").asText());
+
+        // (b) 同名 metadata 文本参数出现两次 → 400
+        MvcResult dupParam = mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .multipart("/api/v1/skin-assessment-tasks")
+                                .file(imagePart("front", png(1)))
+                                .file(imagePart("left", png(2)))
+                                .file(imagePart("right", png(3)))
+                                .param("metadata", a01Metadata())
+                                .param("metadata", a01Metadata())
+                                .header("Authorization", "Bearer " + gimbal.token())
+                                .header("Idempotency-Key", "d-a01-md-dup-" + UUID.randomUUID()))
+                .andReturn();
+        assertEquals(400, dupParam.getResponse().getStatus(),
+                dupParam.getResponse().getContentAsString());
+        assertEquals("INVALID_INPUT", error(dupParam).path("code").asText());
+
+        // 解析在受理之前失败：不产生任何任务
+        assertEquals(0, count("SELECT count(*) FROM skin_assessments WHERE gimbal_id = ?",
+                gimbal.gimbalId()));
+
+        // (c) 单文本参数 metadata 仍被接受并解析 → 202
+        MvcResult singleParam = mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .multipart("/api/v1/skin-assessment-tasks")
+                                .file(imagePart("front", png(1)))
+                                .file(imagePart("left", png(2)))
+                                .file(imagePart("right", png(3)))
+                                .param("metadata", a01Metadata())
+                                .header("Authorization", "Bearer " + gimbal.token())
+                                .header("Idempotency-Key", "d-a01-md-single-" + UUID.randomUUID()))
+                .andReturn();
+        assertEquals(202, singleParam.getResponse().getStatus(),
+                singleParam.getResponse().getContentAsString());
+        assertEquals("queued", data(singleParam).path("status").asText());
+        assertEquals(1, count("SELECT count(*) FROM skin_assessments WHERE gimbal_id = ?",
+                gimbal.gimbalId()));
+    }
+
+    @Test
     @DisplayName("A01 非图片字节 → 415 UNSUPPORTED_IMAGE")
     void nonImageBytes() throws Exception {
         GimbalFixture gimbal = createGimbal();

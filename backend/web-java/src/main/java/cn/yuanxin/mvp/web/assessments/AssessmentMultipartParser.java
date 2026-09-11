@@ -121,11 +121,17 @@ public class AssessmentMultipartParser {
         }
         byte[] metadata = readMetadataPart(multiFiles);
         String[] metadataParams = multi.getParameterValues("metadata");
-        if (metadata == null && metadataParams != null && metadataParams.length > 1) {
+        int metadataParamCount = metadataParams == null ? 0 : metadataParams.length;
+        // 同名 metadata 以文本参数重复 2+ 次，或同时以 file part + 文本参数两种
+        // 形式出现，均视为重复 part → 400。
+        if (metadataParamCount > 1) {
             throw invalid("duplicate multipart part: metadata");
         }
-        if (metadata == null && multi.getParameter("metadata") != null) {
-            metadata = multi.getParameter("metadata").getBytes(StandardCharsets.UTF_8);
+        if (metadata != null && metadataParamCount == 1) {
+            throw invalid("duplicate multipart part: metadata");
+        }
+        if (metadata == null && metadataParamCount == 1) {
+            metadata = metadataParams[0].getBytes(StandardCharsets.UTF_8);
         }
         if (metadata == null) {
             throw invalid("metadata part is required");

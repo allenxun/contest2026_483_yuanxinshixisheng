@@ -4,7 +4,9 @@
   echo 为空），**后** 条件更新 async_jobs → succeeded；守卫 0 行 → StaleGeneration，
   整个事务回滚（业务写不得发布）。
 - complete_failure：可重试且未超上限 → 回 queued + 指数退避 available_at +
-  last_error；否则 failed。守卫同代次。
+  last_error；否则 failed。可选 ``business_tx`` 在同一事务内**先**执行终态业务写、
+  再守卫 UPDATE（含租约未过期），0 行 → StaleGeneration 整体回滚；无 callback 调用方
+  行为不变。守卫同代次。
 - fail_unsupported：未知 job_type / 未注册 handler / payload schema_version
   不符 / JSON Schema 校验失败 → 直接 failed（UNSUPPORTED_CONTRACT），不重试、
   不循环（DD 9.1）。
@@ -51,6 +53,7 @@ SET status = 'queued',
     updated_at = CURRENT_TIMESTAMP
 WHERE id = :id AND status = 'running'
   AND lease_owner = :worker_id AND lease_revision = :lease_revision
+  AND lease_until >= CURRENT_TIMESTAMP
 """
 )
 
@@ -63,6 +66,7 @@ SET status = 'failed',
     updated_at = CURRENT_TIMESTAMP
 WHERE id = :id AND status = 'running'
   AND lease_owner = :worker_id AND lease_revision = :lease_revision
+  AND lease_until >= CURRENT_TIMESTAMP
 """
 )
 
@@ -195,8 +199,15 @@ def complete_failure(
     retryable: bool,
     backoff_base_seconds: int = 5,
     backoff_cap_seconds: int = 300,
+    business_tx: Optional[BusinessTx] = None,
 ) -> None:
     """失败路径：可重试且未超 attempt 上限 → 退避回 queued；否则 failed。
+
+    ``business_tx`` 可选：在**同一事务**内先执行终态业务写（禁网络），再做守卫
+    UPDATE（failed/requeue 两路径均校验 status/owner/lease_revision/租约未过期）；
+    守卫 0 行 → :class:`StaleGeneration`，业务写与任务状态**整体回滚**。这样
+    「业务终态」与「T12 终态」原子提交，杜绝崩溃窗口导致的审计不一致（oracle N2）。
+    无 callback 的调用方（A echo / B 通知）行为不变。
 
     0 行守卫 → StaleGeneration（调用方记日志丢弃即可：回收器会重新入队）。
     """
@@ -225,6 +236,9 @@ def complete_failure(
         }
     )
     with engine.begin() as conn:
+        if business_tx is not None:
+            # 同事务先执行业务写（禁网络）；随后守卫 0 行则连业务写一起回滚
+            business_tx(conn)
         res = conn.execute(stmt, params)
         if res.rowcount == 0:
             raise StaleGeneration(

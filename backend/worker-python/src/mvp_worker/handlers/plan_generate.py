@@ -13,14 +13,15 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import re
 import threading
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, TypeGuard
 
 from sqlalchemy import Connection, Engine, text
 
 from ..logging_setup import mlog
-from ..runtime.complete import StaleGeneration
+from ..runtime.complete import BusinessTx, StaleGeneration
 from ..runtime.rows import JobRow
 from . import HandlerContext, HandlerResult, JobFailed
 from .dshared.dfence import fenced_business_tx
@@ -33,6 +34,9 @@ JOB_TYPE = "plan.generate"
 _PAYLOAD_SCHEMA = "payload-plan-generate.json"
 
 _DIGITS_RE = re.compile(r"^[0-9]+$")
+# N2 收敛码：T06 已终态 failed 但 T12 停在同代次时，重放收敛 T12 用有界泛化码
+# （不读 failure_detail：诊断列不得驱动决策）。
+_PLAN_GENERATION_FAILED = "PLAN_GENERATION_FAILED"
 
 _SELECT_PLAN = text(
     """
@@ -147,7 +151,7 @@ class PlanGenerateHandler:
             return self._handle(ctx, job)
         except StaleGeneration:
             mlog(
-                log, logging.WARNING, "plan.fenced_write_stale",
+                log, logging.DEBUG, "plan.fenced_write_stale",
                 **job.log_fields(), note="lease lost; business write rolled back",
             )
             return None
@@ -165,12 +169,23 @@ class PlanGenerateHandler:
         if status == "ready":
             # 已 ready：绝不重新生成/覆盖冻结内容
             return None
-        if status == "failed":
-            # 受控失败：不自动复活（人工对账）
-            return None
         if int(row["generation_revision"]) != rev:
+            # 不同代次的终态/等待态：合法作废，任务成功（保持原 no-op 语义）
             mlog(log, logging.INFO, "plan.stale_generation", **job.log_fields())
             return None
+        if status == "failed":
+            # N2 收敛：本代次 T06 已终态 failed（T12 可能因崩溃停同代次）→ 收敛 T12 为
+            # failed。不读 failure_detail（诊断列不得驱动决策），用有界泛化码；原诊断
+            # 仍持久化在 T06.failure_detail 供审计。
+            mlog(
+                log, logging.INFO, "plan.converged_terminal",
+                **job.log_fields(), code=_PLAN_GENERATION_FAILED,
+            )
+            raise JobFailed(
+                _PLAN_GENERATION_FAILED,
+                "care plan already terminal failed; converge job",
+                retryable=False,
+            )
 
         assessment_id = str(row["assessment_id"])
         input_photo_version = row["input_photo_version"]
@@ -299,8 +314,11 @@ class PlanGenerateHandler:
         terminal_detail = dict(detail)
         terminal_detail.setdefault("code", code)
         terminal_detail.setdefault("retryable", False)
-        _mark_plan_failed(ctx.engine, job, plan_id, rev, terminal_detail)
-        raise JobFailed(code, message, retryable=False)
+        # 终态业务写随 complete_failure 同一事务围栏提交（N2）：无独立预提交窗口。
+        raise JobFailed(
+            code, message, retryable=False,
+            business_tx=_mark_plan_failed_tx(plan_id, rev, terminal_detail),
+        )
 
     def _terminal_snapshot_invalid(
         self, ctx: HandlerContext, job: JobRow, plan_id: str, rev: int
@@ -333,8 +351,10 @@ class PlanGenerateHandler:
             terminal_detail = dict(detail)
             terminal_detail.setdefault("code", code)
             terminal_detail.setdefault("retryable", False)
-            _mark_plan_failed(ctx.engine, job, plan_id, rev, terminal_detail)
-            raise JobFailed(code, message, retryable=False)
+            raise JobFailed(
+                code, message, retryable=False,
+                business_tx=_mark_plan_failed_tx(plan_id, rev, terminal_detail),
+            )
         raise JobFailed(code, message, retryable=True)
 
 
@@ -452,28 +472,126 @@ def _build_input_snapshot(
     }
 
 
-def _frozen_rules(snapshot: Any) -> Optional[dict[str, Any]]:
-    """从冻结 input_snapshot 提取校验基线（parameter_ranges/approved_regions/n_bounds）。
+_UUID_RE = re.compile(
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+)
+_MAX_TEXT_LEN = 256
 
-    缺失或畸形（lacks frozen ranges/regions/bounds）→ None，调用方落终态
-    ``PLAN_SNAPSHOT_INVALID``；**绝不回落 live 配置**（B2）。
+
+def _is_int(value: Any) -> TypeGuard[int]:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _is_number(value: Any) -> TypeGuard[float]:
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and math.isfinite(float(value))
+    )
+
+
+def _is_bounded_str(value: Any, *, max_len: int = _MAX_TEXT_LEN) -> TypeGuard[str]:
+    return isinstance(value, str) and 0 < len(value) <= max_len
+
+
+def _is_uuid_str(value: Any) -> bool:
+    return isinstance(value, str) and _UUID_RE.match(value) is not None
+
+
+def _valid_parameter_ranges(ranges: Any) -> bool:
+    if not isinstance(ranges, dict) or not ranges:
+        return False
+    for name, entry in ranges.items():
+        if not _is_bounded_str(name):
+            return False
+        if not isinstance(entry, dict):
+            return False
+        if not _is_bounded_str(entry.get("unit")):
+            return False
+        low, high = entry.get("min"), entry.get("max")
+        if not _is_number(low) or not _is_number(high):
+            return False
+        if float(low) > float(high):
+            return False
+    return True
+
+
+def _valid_approved_regions(regions: Any) -> bool:
+    if not isinstance(regions, list) or not regions:
+        return False
+    seen: set[str] = set()
+    for region in regions:
+        if not _is_bounded_str(region) or region in seen:
+            return False
+        seen.add(region)
+    return True
+
+
+def _valid_n_bounds(n_bounds: Any) -> bool:
+    if not isinstance(n_bounds, dict):
+        return False
+    low, high = n_bounds.get("min"), n_bounds.get("max")
+    if not _is_int(low) or not _is_int(high):
+        return False
+    return low > 0 and high > 0 and low <= high
+
+
+def _frozen_rules(snapshot: Any) -> Optional[dict[str, Any]]:
+    """完整校验冻结 input_snapshot 契约后提取校验基线（oracle R2）。
+
+    任一字段缺失/畸形 → None，调用方落终态 ``PLAN_SNAPSHOT_INVALID``（fenced，
+    T06 failed + 内部 failure_detail + ERROR 日志），**不调用 provider、不发布
+    ready、不抛未处理异常**；**绝不回落 live 配置**。
+
+    校验：schema_version==1；report{assessment_id/report_id UUID、photo_version>0}；
+    model 三字段有界非空串；capability provenance{microcrystal_id/capability_id
+    非空串、capability_revision int}；parameter_ranges 非空且每项 {unit 非空串、
+    min/max 有限数、min<=max}；approved_regions 非空唯一有界串；
+    n_bounds{min/max 正整数、min<=max}。
     """
     if not isinstance(snapshot, dict):
         return None
+    if not _is_int(snapshot.get("schema_version")) or snapshot.get("schema_version") != 1:
+        return None
+
+    report = snapshot.get("report")
+    if not isinstance(report, dict):
+        return None
+    if not _is_uuid_str(report.get("assessment_id")) or not _is_uuid_str(
+        report.get("report_id")
+    ):
+        return None
+    photo_version = report.get("report_photo_version")
+    if not _is_int(photo_version) or photo_version <= 0:
+        return None
+
+    model = snapshot.get("model")
+    if not isinstance(model, dict):
+        return None
+    for key in ("plan_provider", "model_version", "prompt_template_version"):
+        if not _is_bounded_str(model.get(key)):
+            return None
+
     capability = snapshot.get("capability")
     if not isinstance(capability, dict):
         return None
-    if not {"parameter_ranges", "approved_regions", "n_bounds"} <= set(capability):
+    if not _is_bounded_str(capability.get("microcrystal_id")):
         return None
-    ranges = capability["parameter_ranges"]
-    regions = capability["approved_regions"]
-    n_bounds = capability["n_bounds"]
-    if not isinstance(ranges, dict) or not ranges:
+    if not _is_bounded_str(capability.get("capability_id")):
         return None
-    if not isinstance(regions, list) or not regions:
+    if not _is_int(capability.get("capability_revision")):
         return None
-    if not isinstance(n_bounds, dict) or not n_bounds:
+
+    ranges = capability.get("parameter_ranges")
+    if not _valid_parameter_ranges(ranges):
         return None
+    regions = capability.get("approved_regions")
+    if not _valid_approved_regions(regions):
+        return None
+    n_bounds = capability.get("n_bounds")
+    if not _valid_n_bounds(n_bounds):
+        return None
+
     return {
         "parameter_ranges": ranges,
         "approved_regions": regions,
@@ -515,13 +633,15 @@ def _set_generating(
         return res.rowcount > 0
 
 
-def _mark_plan_failed(
-    engine: Engine, job: JobRow, plan_id: str, rev: int, detail: dict[str, Any]
-) -> None:
-    with fenced_business_tx(engine, job) as conn:
+def _mark_plan_failed_tx(plan_id: str, rev: int, detail: dict[str, Any]) -> BusinessTx:
+    """终态业务写回调：在 ``complete_failure`` 同一事务内写 T06 failed（禁网络）。"""
+
+    def tx(conn: Connection) -> None:
         conn.execute(
             _MARK_FAILED, {"id": plan_id, "rev": rev, "detail": _json(detail)}
         )
+
+    return tx
 
 
 def _parse_target_count(value: Any) -> Optional[int]:
