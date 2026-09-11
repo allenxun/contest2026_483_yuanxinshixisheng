@@ -1,0 +1,183 @@
+{
+  "a01": {
+    "requestId": "b384dbac-2753-4f4d-bace-0f34d2ca1529",
+    "data": {
+      "items": [
+        {
+          "planId": "518ae15c-8dcf-49c0-b859-87f02eea3c7f",
+          "generationStatus": "ready",
+          "planSummary": null,
+          "progress": {
+            "targetCount": "3",
+            "completedCount": "0",
+            "remainingCount": "3",
+            "isCompleted": false,
+            "progressRevision": "0",
+            "completedAt": null
+          }
+        },
+        {
+          "planId": "cab44753-697e-4581-bd3b-9b6543cee34d",
+          "generationStatus": "ready",
+          "planSummary": {
+            "title": "完整方案",
+            "description": "d",
+            "source_report_id": "rep-1"
+          },
+          "progress": {
+            "targetCount": "3",
+            "completedCount": "0",
+            "remainingCount": "3",
+            "isCompleted": false,
+            "progressRevision": "0",
+            "completedAt": null
+          }
+        }
+      ],
+      "nextCursor": null
+    },
+    "meta": {
+      "replayed": false,
+      "serverTime": "2026-09-11T13:45:42Z"
+    }
+  },
+  "a02": {
+    "requestId": "baea43a4-abbe-40e7-93d8-5e921b4c153b",
+    "data": {
+      "planId": "cab44753-697e-4581-bd3b-9b6543cee34d",
+      "generationStatus": "ready",
+      "plan": {
+        "steps": [
+          {
+            "region": "face",
+            "parameters": {
+              "intensity": "3",
+              "vendor_debug": {
+                "unit": "level",
+                "value": "3"
+              }
+            }
+          }
+        ],
+        "title": "完整方案",
+        "regions": [
+          "face"
+        ],
+        "parameters": {
+          "intensity": "3"
+        },
+        "description": "d"
+      },
+      "progress": {
+        "targetCount": "3",
+        "completedCount": "0",
+        "remainingCount": "3",
+        "isCompleted": false,
+        "progressRevision": "0",
+        "completedAt": null
+      },
+      "waitingReason": null
+    },
+    "meta": {
+      "replayed": false,
+      "serverTime": "2026-09-11T13:45:42Z"
+    }
+  },
+  "a03": {
+    "requestId": "7926deee-bd30-456f-910c-5050067dde81",
+    "data": {
+      "executionId": "8d91429a-8ab9-4e3c-a71b-6efd43ccab08",
+      "status": "admitted",
+      "controller": {
+        "controllerType": "app_account",
+        "installationId": "e-inst-4bc47f1e",
+        "gimbalId": null
+      },
+      "memberId": "3d351294-b280-433f-b61b-c2fc2fff9020",
+      "planId": "cab44753-697e-4581-bd3b-9b6543cee34d",
+      "planExecution": {
+        "steps": [
+          {
+            "region": "face",
+            "parameters": {
+              "intensity": "3",
+              "vendor_debug": {
+                "unit": "level",
+                "value": "3"
+              }
+            }
+          }
+        ],
+        "regions": [
+          "face"
+        ],
+        "parameters": {
+          "intensity": "3"
+        }
+      },
+      "progress": {
+        "targetCount": "3",
+        "completedCount": "0",
+        "remainingCount": "3",
+        "isCompleted": false,
+        "progressRevision": "0",
+        "completedAt": null
+      },
+      "verification": {
+        "verificationRevision": "1",
+        "captureId": "4971a887-83ea-4905-892c-2f72cbf2ef1e",
+        "clientContinuityId": "cc-1",
+        "verifiedAt": "2026-09-11T13:45:42Z",
+        "validUntil": null,
+        "applicablePurpose": "admission",
+        "replayed": false
+      },
+      "recordStreamEpoch": "8d91429a-8ab9-4e3c-a71b-6efd43ccab08"
+    },
+    "meta": {
+      "replayed": false,
+      "serverTime": "2026-09-11T13:45:42Z"
+    }
+  },
+  "a08": {
+    "requestId": "245cbe96-85c6-4dfc-92c4-46c8bd11a297",
+    "data": {
+      "targetCount": "3",
+      "completedCount": "0",
+      "remainingCount": "3",
+      "isCompleted": false,
+      "progressRevision": "0",
+      "completedAt": null,
+      "lastSyncedAt": null
+    },
+    "meta": {
+      "replayed": false,
+      "serverTime": "2026-09-11T13:45:42Z"
+    }
+  },
+  "a09": {
+    "requestId": "ad309b87-fdff-484e-810f-55bb26348974",
+    "data": {
+      "items": [
+        {
+          "executionId": "8d91429a-8ab9-4e3c-a71b-6efd43ccab08",
+          "status": "admitted",
+          "createdAt": "2026-09-11T13:45:42Z",
+          "closedAt": null,
+          "acceptedCount": "0",
+          "planSnapshotSummary": {
+            "title": "完整方案",
+            "description": "d",
+            "source_report_id": "rep-1"
+          }
+        }
+      ],
+      "nextCursor": null
+    },
+    "meta": {
+      "replayed": false,
+      "serverTime": "2026-09-11T13:45:42Z"
+    }
+  },
+  "t07_plan_snapshot": "{\"plan_id\": \"cab44753-697e-4581-bd3b-9b6543cee34d\", \"summary\": {\"title\": \"完整方案\", \"description\": \"d\", \"source_report_id\": \"rep-1\"}, \"target_count\": \"3\", \"verification\": {\"purpose\": \"admission\", \"media_id\": \"cf7070bf-cd67-420b-b2fa-46e9b6720f30\", \"capture_id\": \"4971a887-83ea-4905-892c-2f72cbf2ef1e\", \"verified_at\": \"2026-09-11T13:45:42Z\", \"classification\": \"MATCHED\", \"client_continuity_id\": \"cc-1\"}, \"schema_version\": 1, \"execution_params\": {\"steps\": [{\"region\": \"face\", \"parameters\": {\"intensity\": \"3\", \"vendor_debug\": {\"unit\": \"level\", \"value\": \"3\"}}}], \"regions\": [\"face\"], \"parameters\": {\"intensity\": \"3\"}}}"
+}

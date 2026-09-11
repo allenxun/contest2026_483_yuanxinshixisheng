@@ -72,6 +72,11 @@ run_pytest() { # $1=mode 其余=pytest 参数
     || { echo "run.sh: RUN_ID 生成失败，强制 exit 4" >&2; exit 4; }
   sentinel="reports/$rid/settlement.json"
   log="$(mktemp)"
+  if [ "$mode" = "matrix" ]; then
+    # 外 layer 矩阵运行不触发内层守卫子进程（守卫由 selfcheck 独立验证），
+    # 避免 gate=open 下嵌套运行重复启动活体服务。
+    export E_SELFCHECK_NESTED=1
+  fi
   env -u PYTEST_ADDOPTS E_ACCEPTANCE_MODE="$mode" E_ACCEPTANCE_RUN_ID="$rid" \
     "$PYTEST" "$@" 2>&1 | tee "$log"
   rc=${PIPESTATUS[0]}

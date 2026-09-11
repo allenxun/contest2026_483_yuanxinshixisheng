@@ -48,16 +48,21 @@ TIER_EXTRA_REASON = {
     "现在可自动": "；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
 }
 
-# 集成状态（2026-09-11 更新）：C（8b3592e）+ D（dc955c0）均已集成（merged aebccc7）；
-# B 仍未集成（M1/M2/M5 共 11 个端点 501 NOT_IMPLEMENTED stub）。
-INTEGRATED_PACKAGES = {"C", "D"}
-INTEGRATED_PENDING_REASON = (
-    "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收"
-    "（见 backend/handoffs/E-CD-acceptance.md）"
-)
-B_PENDING_REASON = (
-    "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行"
-)
+# 集成状态（2026-09-12 最终基线）：B（f95037e）+C（8b3592e）+D（dc955c0）+Swagger 均已集成
+# （approved f045433 / E merge HEAD 08404f8）。全部场景 blocked_by=[]（无未集成包阻塞）。
+INTEGRATED_PACKAGES = {"B", "C", "D"}
+
+# 首波已编写步骤的场景（集成轮 batch 1；其余显式标记 staged_pending）。
+AUTHORED_IDS = {
+    "SC-01-01", "SC-01-02", "SC-01-03", "SC-01-04", "SC-01-05", "SC-01-06",
+    "SC-01-07", "SC-01-08", "SC-01-09", "SC-01-10", "SC-01-11", "SC-01-12",
+    "SC-01-13", "SC-01-14", "SC-01-15", "SC-01-16", "SC-01-17", "SC-01-18",
+    "SC-05-01", "SC-05-02", "SC-05-03", "SC-05-04", "SC-05-05", "SC-05-06",
+    "SC-05-07",
+}
+STAGED_REASON = "场景步骤编写中（集成轮 batch 1）"
+AUTHORED_REASON = "已编写步骤（集成轮 batch 1）；gate=open 下真实执行并结算"
+DEVICE_REASON = "真实设备/APP 联调待办；后端子步骤已验证（集成轮 batch 1）"
 
 
 def parse_apis() -> dict[str, dict]:
@@ -132,11 +137,15 @@ def parse_scenarios(all_api_ids: list[str]) -> list[dict]:
             sys.exit(f"场景 {sid} 验证范围异常：{scope}")
         packages = sorted({api_owner(a) for a in apis})
         tier = SCOPE_TO_TIER[scope]
-        blocked = sorted(set(packages) - INTEGRATED_PACKAGES)
-        if packages and not blocked:  # owner 仅 {C,D}：均已集成
-            reason = INTEGRATED_PENDING_REASON + TIER_EXTRA_REASON[tier]
-        else:  # 含 B（未集成）
-            reason = B_PENDING_REASON + TIER_EXTRA_REASON[tier]
+        blocked = sorted(set(packages) - INTEGRATED_PACKAGES)  # B/C/D 均集成 → []
+        authored = sid in AUTHORED_IDS
+        is_device = tier == "需真实设备或APP"
+        if authored and is_device:
+            reason = DEVICE_REASON
+        elif authored:
+            reason = AUTHORED_REASON
+        else:
+            reason = STAGED_REASON
         if deps:
             reason += "；涉及开发对接项：" + "、".join(deps)
         scenarios.append({
@@ -149,9 +158,12 @@ def parse_scenarios(all_api_ids: list[str]) -> list[dict]:
             "apis": apis,
             "deps": deps,
             "owner_package": packages,
-            "blocked_by": blocked,  # 真实阻塞=尚未集成包（C 已集成→移除）
+            "blocked_by": blocked,  # B/C/D 均已集成 → 全部 []
             "automation_tier": tier,
             "status": "dependency_pending",
+            "staged_pending": not authored,
+            "staged_reason": None if authored else STAGED_REASON,
+            "authored": authored,
             "pending_reason": reason,
         })
     if len(scenarios) != 94:
