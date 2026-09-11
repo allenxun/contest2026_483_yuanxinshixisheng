@@ -353,7 +353,7 @@ maybe_check b19 "旧授权请求重放 403 GRANT_REVOKED；新键 201；旧行�
 maybe_check b20 "face/核验用途永不放行；冻结报告 images[] 未引用→404 / 引用→200" b20
 maybe_check b21 "云台仅当前任务图片：切换 current_assessment 后 404" b21
 maybe_check b22 "心跳 seq 顺序：旧/重复 accepted=false 且逐列未变" b22
-maybe_check b23 "epoch 权威=服务端会话代次：同代次换 epoch 降 seq 拒绝且逐列未变；代次推进后才接受" b23
+maybe_check b23 "epoch 权威=服务端会话代次：同代次换 epoch 降 seq 拒绝；两个并存会话交替时旧会话永不重获权威；凭据代次推进后才重置" b23
 maybe_check b24 "episode 稳定性：复用 / 清除 resolved / 再报新 id" b24
 maybe_check b25 "worker SIGTERM 重启：任务不丢、租约回收、收敛且不重复" b25
 maybe_check b26 "C7：扫描前后 last_seen_at 不变 + 源码无写入" b26

@@ -20,14 +20,17 @@ import java.util.UUID;
 /**
  * M2-A02 云台心跳业务（DD L189-196；lane-m2 跨 lane 决策 2/5/6）。
  *
- * <p>顺序判定的权威是服务端验证的会话代次（{@link ServerGeneration}）：T03 无
- * 该列，故把 {@code observation_generation}（= serverGeneration，只来自
- * {@link PrincipalContext}）与 {@code observation_epoch/observation_seq} 一同存进
- * {@code gimbals.latest_observation} JSONB。既有 generation 缺失（首次/迁移前旧行）
- * 或与当前 generation 不同 = 经服务端验证的新会话代次，接受并重置基准；同
- * generation 内客户端<b>不得更换 epoch</b>，且 seq 必须严格更大。旧/重复/换
- * epoch 回退的心跳 {@code accepted=false}，不更新 {@code last_seen_at}/不递增
- * status_revision/不覆盖 observation。客户端自填 epoch 绝不作为新旧权威。</p>
+ * <p>顺序判定的权威是服务端维护的会话代次表（{@link ObservationSessions}，Oracle
+ * 第二轮 #2）：T03 无对应列，故把 {@code observation_sessions}（服务端实际见过
+ * 的 session 及其首次被观察到的次序）、当前 {@code observation_generation}、
+ * {@code observation_credential_version} 与 {@code observation_epoch/observation_seq}
+ * 一同存进 {@code gimbals.latest_observation} JSONB。随机 sessionId 的"不相等"绝不
+ * 当作"更新"：新 session 由服务端首次见到时获得"表中最大代次 + 1"，一旦被更高代次
+ * 取代就<b>永不重获权威</b>（旧 generation &lt; 当前 → 拒绝），从而闭合两会话
+ * 交替来回覆盖。仅真实的 {@code credential_version} 推进才清空会话表并重置。
+ * 同一 generation 内客户端<b>不得更换 epoch</b>，且 seq 必须严格更大。所有
+ * {@code accepted=false} 不更新 {@code last_seen_at}/不递增 status_revision/不覆盖
+ * observation。客户端自填 epoch 绝不作为新旧权威。</p>
  *
  * <p>共享列写纪律：{@code SELECT ... FOR UPDATE} 读 T03 → 计算 → 只写本次要改的
  * 列，{@code WHERE id=? AND status_revision=<读到的值>} 守卫；{@code status_revision}
@@ -89,23 +92,23 @@ public class GimbalHeartbeatService {
                     "gimbal session credential generation is no longer current");
         }
 
-        String generation = ServerGeneration.of(principal);
         Map<String, Object> observation = DeviceJson.parseObject(row.latestObservation());
-        String existingGeneration = DeviceJson.textAt(observation, "observation_generation");
+        ObservationSessions.Resolution resolution = ObservationSessions.resolve(
+                observation.get("observation_sessions"),
+                DeviceJson.longAt(observation, "observation_credential_version"),
+                DeviceJson.longAt(observation, "observation_generation"),
+                principal.credentialVersion(), principal.sessionId());
         String existingEpoch = DeviceJson.textAt(observation, "observation_epoch");
         Long existingSeq = DeviceJson.longAt(observation, "observation_seq");
-        boolean accepted;
-        if (existingGeneration == null) {
-            // 首次心跳，或迁移前的旧行（无代次记录）：接受并建立基准。
-            accepted = true;
-        } else if (!existingGeneration.equals(generation)) {
-            // 经服务端验证的新会话代次：接受并把 epoch/seq 基准重置为本次客户端值。
-            accepted = true;
-        } else {
-            // 同一服务端代次内：客户端不得更换 epoch，seq 必须严格更大。
-            accepted = body.observationEpoch().equals(existingEpoch)
+        boolean accepted = switch (resolution.relation()) {
+            // 新连接（首次 / 凭据推进 / 服务端首次见到该 session / 更高代次）：接受并重置基准。
+            case FIRST_OR_ADVANCED, NEWER -> true;
+            // 同一连接：客户端不得更换 epoch，且 seq 必须严格更大。
+            case SAME -> body.observationEpoch().equals(existingEpoch)
                     && existingSeq != null && seq > existingSeq;
-        }
+            // 旧连接（已被更高代次取代）：一律拒绝，旧会话永不重获权威。
+            case STALE -> false;
+        };
         if (!accepted) {
             return new Result(false, row.lastSeenAt(), row.statusRevision());
         }
@@ -116,7 +119,9 @@ public class GimbalHeartbeatService {
 
         Map<String, Object> latest = new LinkedHashMap<>();
         latest.put("schema_version", 1);
-        latest.put("observation_generation", generation);
+        latest.put("observation_generation", resolution.generation());
+        latest.put("observation_sessions", ObservationSessions.toJson(resolution.sessions()));
+        latest.put("observation_credential_version", principal.credentialVersion());
         latest.put("observation_epoch", body.observationEpoch());
         latest.put("observation_seq", seq);
         latest.put("power_state", body.powerState().name());

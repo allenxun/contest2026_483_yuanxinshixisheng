@@ -388,6 +388,60 @@ class GimbalBindingIT extends AbstractDeviceIT {
     }
 
     @Test
+    @DisplayName("Oracle#3：未绑定在任何 If-Match 下统一 404 不可区分；本人绑定+陈旧 If-Match 仍 409")
+    void unboundUnbindIsInvisibleRegardlessOfIfMatch() throws Exception {
+        LoginResult a = loginAppWithInstallation(newPhone(), "inst-ub-inv-a");
+        UUID accountA = UUID.fromString(a.accountId());
+
+        // 本人绑定 + 陈旧 If-Match → 409（保持；这是自己的绑定，不构成存在性泄漏）
+        UUID mine = seedGimbal();
+        assertEquals(200, putBind(a.accessToken(), mine, "ub-inv-mine",
+                        "0", DevProofFixture.pairingValid(mine, accountA, "inst-ub-inv-a"))
+                .getResponse().getStatus());
+        MvcResult myStale = deleteUnbind(a.accessToken(), mine, "ub-inv-mine-stale", "\"binding-0\"");
+        assertEquals(409, myStale.getResponse().getStatus());
+        assertEquals("BINDING_CHANGED", errorOf(myStale).path("code").asText());
+        assertEquals(1L, ((Number) bindingRow(mine).get("binding_revision")).longValue());
+        assertNotNull(bindingRow(mine).get("bound_account_id"));
+
+        // 绑定→解绑，使云台进入"未绑定且 binding_revision=2"
+        UUID unbound = seedGimbal();
+        assertEquals(200, putBind(a.accessToken(), unbound, "ub-inv-bind",
+                        "0", DevProofFixture.pairingValid(unbound, accountA, "inst-ub-inv-a"))
+                .getResponse().getStatus());
+        assertEquals(204, deleteUnbind(a.accessToken(), unbound, "ub-inv-unbind",
+                "\"binding-1\"").getResponse().getStatus());
+        Map<String, Object> before = bindingRow(unbound);
+        assertEquals(2L, ((Number) before.get("binding_revision")).longValue());
+        assertNull(before.get("bound_account_id"));
+
+        MvcResult missing = deleteUnbind(a.accessToken(), UUID.randomUUID(), "ub-inv-missing", null);
+        // 未绑定 + 陈旧 If-Match（当前 rev=2，If-Match binding-1）
+        MvcResult stale = deleteUnbind(a.accessToken(), unbound, "ub-inv-stale", "\"binding-1\"");
+        // 未绑定 + 相符 If-Match（binding-2）
+        MvcResult match = deleteUnbind(a.accessToken(), unbound, "ub-inv-match", "\"binding-2\"");
+        // 未绑定 + 无 If-Match
+        MvcResult none = deleteUnbind(a.accessToken(), unbound, "ub-inv-none", null);
+
+        for (MvcResult r : List.of(stale, match, none)) {
+            assertEquals(404, r.getResponse().getStatus(), r.getResponse().getContentAsString());
+            assertEquals("RESOURCE_NOT_VISIBLE", errorOf(r).path("code").asText());
+            assertEquals("gimbal not visible", errorOf(r).path("message").asText());
+        }
+        // 三者与不存在 UUID 的 404 掩蔽 requestId 后逐字节一致
+        String rawMissing = missing.getResponse().getContentAsString();
+        String idMissing = bodyOf(missing).path("requestId").asText();
+        for (MvcResult r : List.of(stale, match, none)) {
+            String raw = r.getResponse().getContentAsString();
+            String id = bodyOf(r).path("requestId").asText();
+            assertEquals(raw.replace(id, "<requestId>"),
+                    rawMissing.replace(idMissing, "<requestId>"));
+        }
+        // 三个 404 均零写：绑定列/代次逐列未变
+        assertEquals(before, bindingRow(unbound));
+    }
+
+    @Test
     @DisplayName("测试组 14：绑定云台 ≠ 成员资料授权")
     void bindingDoesNotGrantMemberAccess() throws Exception {
         LoginResult a = loginAppWithInstallation(newPhone(), "inst-sc05-a");

@@ -7,19 +7,27 @@
   事实逐项比对（封堵核验→加锁之间的 TOCTOU）；任一不匹配 → T10
   ``status='cancelled'`` + 有界 ``last_error.reason``，**不调用推送**。
 - 提交 ``sending`` 后才发送（发送后崩溃留下可观测 sending）。
-- ``submitted`` = 通道可信受理；``delivered`` = 可信送达回执；二者可区分。
+- ``submitted`` = **提供方明确接受**（不代表设备已送达）；``delivered`` = 可信送达
+  回执；二者可区分。
 - 崩溃后（``sending`` + ``last_attempt_at``）或通道结果不确定（``unknown``）都先查
   回执对账，绝不盲目重发；``not_found`` 且策略允许时用**同一**
-  ``provider_message_key`` 有限重发。``unknown`` 不再是"终态且 job 成功"：
-  它保留为**可继续对账**的状态，由 A 的退避/``max_attempts`` 驱动下一次真实对账，
-  边界耗尽后收敛为明确终态（``failed`` + ``last_error``）。
-- 发送前的锁内重检额外复核 T12 任务行与 T10 的业务绑定
-  （``owner_type``/``owner_id``/``input_revision``/``dedup_key``）；不符 → 绝不投递，
-  T10 直接收敛 ``failed``，T12 以 A 既有 ``UNSUPPORTED_CONTRACT`` 语义终结（不重试）。
-- 任何会让 T12 终结为 ``failed`` 的末次尝试路径（回执查询异常、provider 异常、
-  重试耗尽），都在同一原子写里把 T10 从 ``sending``/``unknown`` 收敛为终态并记
-  ``last_error``，绝不允许 T10 滞留 ``sending``。
-- 推送网络调用在锁外，绝不用长事务包住。
+  ``provider_message_key`` 有限重发。``unknown`` 保留为**可继续对账**的状态，由 A 的
+  退避/``max_attempts`` 驱动下一次真实对账。
+- **T12 业务绑定复核（Oracle #5）**：``owner_type``/``owner_id``/``input_revision``/
+  ``dedup_key`` 四项在 ``handle()`` **进入任何状态分支之前**校验一次，并在**最终写回
+  事务内**（``_finalize_tx``/``_reconcile_finalize_tx``）复核一次；不符绝不投递、绝不
+  发布 ``submitted``/``delivered``。
+  - 身份绑定不符（``owner_type``/``owner_id``/``dedup_key``）→ ``UNSUPPORTED_CONTRACT``
+    （``retryable=false``）终结 T12；
+  - ``input_revision != T10.destination_revision``（路由快照代次推进）→ 路由过期，按
+    发送前重检既有语义 ``cancelled`` + ``route_recheck_failed``，不误发。
+- **失败路径不做独立 T10 终态提交（Oracle #6 / 新 BLOCKER）**：失败/收敛路径只
+  ``raise DeliveryFailed``，其携带的 :class:`T10Convergence` 是交给 D 的
+  ``complete_failure`` 同事务 callback 执行的**收敛计划**；在 D 接口落地前，T10 保持
+  ``sending``/``unknown`` 可观测态（可重试失败由下一次领取收敛；末次终态记入待接入
+  缺口）。模块级 :func:`converge_t10_tx` 是纯函数式 callable，签名供 D 对齐。
+- 推送网络调用在锁外，绝不用长事务包住；退避重试有界（``max_attempts`` 硬边界），
+  异常一律有 ``last_error.code/message/retryable`` 记录。
 - ``input_revision`` 选择见模块常量 ``INPUT_REVISION_SEMANTICS``：以 T10
   ``destination_revision``（路由快照代次）为准——投递重试期间它稳定，且正是
   实际参与复合唯一键/路由的身份；``attempt_count`` 每次重试都变，无法表达
@@ -74,7 +82,45 @@ _TERMINAL_STATUSES = ("submitted", "delivered", "cancelled", "failed")
 #: unknown=通道结果不确定。两者都携带 last_attempt_at 与稳定 provider key。
 _RECONCILABLE_STATUSES = ("sending", "unknown")
 
+#: T12 业务绑定复核分类（Oracle #5）。
+_BINDING_UNSUPPORTED = "unsupported_contract"   # 身份绑定不符 → UNSUPPORTED_CONTRACT
+_BINDING_ROUTE_EXPIRED = "route_expired"        # 路由快照代次推进 → cancelled
+
 log = logging.getLogger("mvp_worker.notification.deliver")
+
+
+@dataclass(frozen=True)
+class T10Convergence:
+    """失败路径期望的 T10 收敛计划（**不在 B 侧独立提交**，见 Oracle #6）。
+
+    D 的 ``complete_failure`` 事务 callback 就绪后，由 loop 从 ``DeliveryFailed``
+    取出并调用 :func:`converge_t10_tx`，使 T10 收敛与 T12 lease 守卫写同事务。
+    """
+
+    notification_id: str
+    attempt: int
+    status: str
+    last_error: dict[str, Any]
+
+
+class DeliveryFailed(JobFailed):
+    """携带 T10 收敛计划的 :class:`JobFailed`（B 不独立提交 T10）。
+
+    ``convergence`` 为 ``None`` 表示该失败无需收敛 T10（例如行不存在、供应商未配置）。
+    普通 ``JobFailed`` 调用方仍按 A 既有 ``complete_failure`` 处理。
+    """
+
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        retryable: bool,
+        convergence: Optional[T10Convergence] = None,
+    ) -> None:
+        super().__init__(code, message, retryable=retryable)
+        self.convergence = convergence
+
 
 
 class StaleNotification(RuntimeError):
@@ -160,6 +206,23 @@ class NotificationDeliverHandler:
         row = self._load(ctx.engine, notification_id)
         if row is None:
             raise JobFailed("notification_missing", "notification row not found", retryable=False)
+
+        # Oracle #5：T12 业务绑定必须在**进入任何状态分支之前**校验（终态 no-op /
+        # sending/unknown 对账 / 直接发送都不得绕过），否则错误 T12 仍可能发布 submitted。
+        binding = self._classify_binding(job, row.id, row.destination_revision)
+        if binding is not None:
+            kind, reason = binding
+            if kind == _BINDING_UNSUPPORTED:
+                # 绝不推送、绝不发布任何投递结果。T10 收敛计划随 DeliveryFailed 交给
+                # D 的 complete_failure 同事务 callback（当前不独立提交，见 handoff）。
+                raise self._delivery_failed(
+                    row.id, row.attempt_count, "failed",
+                    "UNSUPPORTED_CONTRACT", reason, retryable=False,
+                )
+            # 路由快照代次已推进（换号/会话变化）→ 按发送前重检既有语义 cancelled。
+            self._cancel_t10(ctx.engine, row.id, row.attempt_count, reason)
+            return HandlerResult(business_tx=None)
+
         if row.status in _TERMINAL_STATUSES:
             # 终态幂等：已被正确取消/投递/失败的通知不重复投递（SC-C-04）。
             log.info(
@@ -176,14 +239,11 @@ class NotificationDeliverHandler:
         if row.status in _RECONCILABLE_STATUSES and row.last_attempt_at is not None:
             if settings.reconcile_unknown:
                 return self._reconcile(ctx, job, row, provider, probe, settings)
-            # 关闭对账策略：不盲目重发，把崩溃残留/未知收敛为明确终态，绝不假成功。
-            self._converge_t10(
-                ctx.engine, row.id, row.attempt_count, "failed",
-                _error("delivery_unknown", "reconciliation disabled by policy",
-                       retryable=False),
+            # 关闭对账策略：不盲目重发；T10 收敛计划交给 D 的同事务 callback。
+            raise self._delivery_failed(
+                row.id, row.attempt_count, "failed",
+                "delivery_unknown", "reconciliation disabled by policy", retryable=False,
             )
-            raise JobFailed("delivery_unknown", "reconciliation disabled by policy",
-                            retryable=False)
 
         new_attempt = row.attempt_count + 1
         return self._precheck_and_send(
@@ -222,26 +282,26 @@ class NotificationDeliverHandler:
         try:
             receipt = provider.query_receipt(provider_key)
         except Exception as exc:  # 回执通道不可用 → 不臆断
-            self._converge_t10(
-                ctx.engine, row.id, row.attempt_count,
-                "failed" if last_attempt else "unknown",
-                _error("receipt_query_failed", type(exc).__name__,
-                       retryable=not last_attempt),
-            )
-            raise JobFailed("receipt_query_failed", type(exc).__name__, retryable=True) from exc
+            # 失败路径不独立提交 T10；收敛计划交给 D 的同事务 callback（见 handoff）。
+            raise self._delivery_failed(
+                row.id, row.attempt_count, "failed" if last_attempt else "unknown",
+                "receipt_query_failed", type(exc).__name__, retryable=True,
+            ) from exc
 
         if ctx.abort_event.is_set():
             return None
         if receipt.kind == KIND_ACCEPTED:
             return HandlerResult(
                 business_tx=self._reconcile_finalize_tx(
-                    row.id, row.attempt_count, "submitted", receipt.provider_message_id, None
+                    job, row.id, row.attempt_count, "submitted",
+                    receipt.provider_message_id, None,
                 )
             )
         if receipt.kind == KIND_DELIVERED:
             return HandlerResult(
                 business_tx=self._reconcile_finalize_tx(
-                    row.id, row.attempt_count, "delivered", receipt.provider_message_id, None
+                    job, row.id, row.attempt_count, "delivered",
+                    receipt.provider_message_id, None,
                 )
             )
         if receipt.kind == "not_found":
@@ -250,22 +310,14 @@ class NotificationDeliverHandler:
                 return self._precheck_and_send(
                     ctx, job, row, provider, probe, row.attempt_count, provider_key
                 )
-            self._converge_t10(
-                ctx.engine, row.id, row.attempt_count,
-                "failed" if last_attempt else "unknown",
-                _error("delivery_unknown", "receipt not found after crash",
-                       retryable=not last_attempt),
+            raise self._delivery_failed(
+                row.id, row.attempt_count, "failed" if last_attempt else "unknown",
+                "delivery_unknown", "receipt not found after crash", retryable=True,
             )
-            raise JobFailed("delivery_unknown", "receipt not found after crash",
-                            retryable=True)
-        self._converge_t10(
-            ctx.engine, row.id, row.attempt_count,
-            "failed" if last_attempt else "unknown",
-            _error("receipt_query_failed", f"unknown receipt kind {receipt.kind}",
-                   retryable=not last_attempt),
+        raise self._delivery_failed(
+            row.id, row.attempt_count, "failed" if last_attempt else "unknown",
+            "receipt_query_failed", f"unknown receipt kind {receipt.kind}", retryable=True,
         )
-        raise JobFailed("receipt_query_failed", f"unknown receipt kind {receipt.kind}",
-                        retryable=True)
 
     # ---------------- pre-check + send ----------------
 
@@ -293,13 +345,11 @@ class NotificationDeliverHandler:
                 else None
             )
         except Exception as exc:
-            if last_attempt:
-                # 末次尝试：T12 将终结 failed，必须同时把 T10（若在 sending/unknown）收敛。
-                self._converge_t10(
-                    ctx.engine, row.id, new_attempt, "failed",
-                    _error("session_unverified", type(exc).__name__, retryable=False),
-                )
-            raise JobFailed("session_unverified", type(exc).__name__, retryable=True) from exc
+            # 失败路径不独立提交 T10；收敛计划交给 D 的同事务 callback（见 handoff）。
+            raise self._delivery_failed(
+                row.id, new_attempt, "failed" if last_attempt else "unknown",
+                "session_unverified", type(exc).__name__, retryable=True,
+            ) from exc
         if verified_snapshot is None:
             # 探针否定：仍进入短事务重检，由重检判定并 cancelled（不直接发送）。
             log.info("notification.session_unverified", extra={"notificationId": row.id})
@@ -307,24 +357,11 @@ class NotificationDeliverHandler:
             return None
 
         # 5. 短事务重检 + 置 sending（提交后才发送）；把锁外快照带入锁内复核，
-        #    封堵"核验之后、加锁之前"目标被改写的 TOCTOU 窗口。
-        try:
-            outcome = self._recheck_and_mark(
-                ctx.engine, job, row, new_attempt, verified_snapshot
-            )
-        except JobFailed as exc:
-            if last_attempt:
-                # 重检异常（如并发争用）也不得让 T10 在末次尝试滞留 sending/unknown。
-                self._converge_t10(
-                    ctx.engine, row.id, new_attempt, "failed",
-                    _error(exc.code, exc.message, retryable=False),
-                )
-            raise
-        if outcome.unsupported_contract is not None:
-            # T12 与 T10 的业务绑定不合法/陈旧（锁内已置 T10 failed）→ 绝不投递；
-            # 按 A 既有 UNSUPPORTED_CONTRACT 语义终结 T12（failed / retryable=false）。
-            raise JobFailed("UNSUPPORTED_CONTRACT", outcome.unsupported_contract,
-                            retryable=False)
+        #    封堵"核验之后、加锁之前"目标被改写的 TOCTOU 窗口。绑定不符由
+        #    _recheck_and_mark 抛出（不写 T10），路由不符返回 cancelled。
+        outcome = self._recheck_and_mark(
+            ctx.engine, job, row, new_attempt, verified_snapshot
+        )
         if outcome.cancelled:
             log.info(
                 "notification.cancelled",
@@ -342,59 +379,50 @@ class NotificationDeliverHandler:
                 provider_message_key=provider_key,
             )
         except Exception as exc:
-            # provider 异常不臆断通道事实：末次尝试必须原子收敛 T10（不留 sending）。
-            if last_attempt:
-                self._converge_t10(
-                    ctx.engine, row.id, new_attempt, "failed",
-                    _error("provider_transient", type(exc).__name__, retryable=False),
-                )
-            raise JobFailed("provider_transient", type(exc).__name__, retryable=True) from exc
+            # provider 异常不臆断通道事实；失败路径不独立提交 T10。
+            raise self._delivery_failed(
+                row.id, new_attempt, "failed" if last_attempt else "unknown",
+                "provider_transient", type(exc).__name__, retryable=True,
+            ) from exc
         if ctx.abort_event.is_set():
             return None
 
         if result.kind == KIND_ACCEPTED:
             return HandlerResult(
                 business_tx=self._finalize_tx(
-                    row.id, new_attempt, "submitted", result.provider_message_id, None
+                    job, row.id, new_attempt, "submitted", result.provider_message_id, None
                 )
             )
         if result.kind == KIND_DELIVERED:
             return HandlerResult(
                 business_tx=self._finalize_tx(
-                    row.id, new_attempt, "delivered", result.provider_message_id, None
+                    job, row.id, new_attempt, "delivered", result.provider_message_id, None
                 )
             )
         if result.kind == KIND_REJECTED:
             return HandlerResult(
                 business_tx=self._finalize_tx(
-                    row.id, new_attempt, "failed", None,
+                    job, row.id, new_attempt, "failed", None,
                     _error("provider_rejected", result.reason or "provider rejected",
                            retryable=False),
                 )
             )
         if result.kind == KIND_UNKNOWN:
-            # 通道结果不确定：绝不把 T10 置"终态且 T12 成功"、断掉对账链。保留可对账
-            # 状态 unknown，由 A 的退避驱动下一次真实回执查询；末次则收敛 failed。
-            self._converge_t10(
-                ctx.engine, row.id, new_attempt,
-                "failed" if last_attempt else "unknown",
-                _error("delivery_unknown", result.reason or "delivery unknown",
-                       retryable=not last_attempt),
+            # 通道结果不确定：绝不把 T10 置"终态且 T12 成功"、断掉对账链；失败路径不
+            # 独立提交 T10，T10 保持 sending/unknown 由下一次领取对账（收敛计划待 D）。
+            raise self._delivery_failed(
+                row.id, new_attempt, "failed" if last_attempt else "unknown",
+                "delivery_unknown", result.reason or "delivery unknown", retryable=True,
             )
-            raise JobFailed("delivery_unknown", result.reason or "delivery unknown",
-                            retryable=True)
         if result.kind == KIND_TRANSIENT:
-            if last_attempt:
-                # T12 将落 failed；先把 T10 从 sending 收尾，避免永久卡在 sending。
-                self._converge_t10(
-                    ctx.engine, row.id, new_attempt, "failed",
-                    _error("provider_transient", result.reason or "provider transient",
-                           retryable=False),
-                )
-            raise JobFailed("provider_transient", result.reason or "provider transient",
-                            retryable=True)
-        raise JobFailed("provider_transient", f"unknown outcome kind {result.kind}",
-                        retryable=True)
+            raise self._delivery_failed(
+                row.id, new_attempt, "failed" if last_attempt else "unknown",
+                "provider_transient", result.reason or "provider transient", retryable=True,
+            )
+        raise self._delivery_failed(
+            row.id, new_attempt, "failed", "provider_transient",
+            f"unknown outcome kind {result.kind}", retryable=True,
+        )
 
     # ---------------- short transactional re-check ----------------
 
@@ -403,8 +431,6 @@ class NotificationDeliverHandler:
         cancelled: bool
         reason: Optional[str] = None
         registration: Optional[dict[str, Any]] = None
-        #: 非 None = T12 任务行与 T10 业务绑定不符，T10 已在锁内收敛 failed。
-        unsupported_contract: Optional[str] = None
 
     def _recheck_and_mark(
         self,
@@ -441,27 +467,21 @@ class NotificationDeliverHandler:
             if t10 is None:
                 raise JobFailed("notification_missing", "notification disappeared", retryable=False)
 
-            # T12 任务行业务绑定复核（BLOCKER D）：必须精确指向本通知，且业务输入代次
-            # 等于锁内当前 destination_revision（路由快照即业务输入）。不符 → 绝不投递。
-            contract_reason = self._contract_mismatch(job, row, t10)
-            if contract_reason is not None:
-                conn.execute(
-                    text(
-                        "UPDATE notifications SET status = 'failed',"
-                        " last_error = CAST(:err AS jsonb), updated_at = now()"
-                        " WHERE id = :nid AND status IN"
-                        " ('pending','queued','sending','unknown')"
-                    ),
-                    {"err": json.dumps(_error("UNSUPPORTED_CONTRACT", contract_reason,
-                                              retryable=False)),
-                     "nid": row.id},
-                )
-                return NotificationDeliverHandler._Recheck(
-                    cancelled=False, unsupported_contract=contract_reason
+            # Oracle #5 防御性复校（handle 已前置）：身份绑定不符绝不投递，且**不写 T10**
+            # （raise 使本重检事务整体回滚），收敛计划随 DeliveryFailed 交给 D 的 callback。
+            binding = self._classify_binding(job, row.id, int(t10["destination_revision"]))
+            if binding is not None and binding[0] == _BINDING_UNSUPPORTED:
+                raise self._delivery_failed(
+                    row.id, new_attempt, "failed",
+                    "UNSUPPORTED_CONTRACT", binding[1], retryable=False,
                 )
 
             # 先比对锁外快照与锁内事实（TOCTOU），再比对 T10 快照代次。
-            reason = self._snapshot_mismatch(verified_snapshot, t09)
+            reason: Optional[str] = None
+            if binding is not None and binding[0] == _BINDING_ROUTE_EXPIRED:
+                reason = binding[1]
+            if reason is None:
+                reason = self._snapshot_mismatch(verified_snapshot, t09)
             if reason is None:
                 reason = self._mismatch(row, t03, t09)
             if reason is not None:
@@ -538,39 +558,111 @@ class NotificationDeliverHandler:
         return None
 
     @staticmethod
-    def _contract_mismatch(
-        job: Optional[JobRow], row: NotificationRow, t10: Any
-    ) -> Optional[str]:
-        """复核 T12 任务行与 T10 的业务绑定（BLOCKER D）。
+    def _classify_binding(
+        job: Optional[JobRow], notification_id: str, destination_revision: int
+    ) -> Optional[tuple[str, str]]:
+        """复核 T12 任务行与 T10 的业务绑定（Oracle #5）。
+
+        返回 ``(kind, reason)``；``kind`` ∈ ``{_BINDING_UNSUPPORTED,
+        _BINDING_ROUTE_EXPIRED}``；全部相符返回 ``None``。
 
         字段来源：``owner_type``/``owner_id``/``input_revision``/``dedup_key`` 全部来自
         ``claim_batch`` 的 :class:`JobRow` 行投影（A 的 ``_SELECT_CLAIMABLE`` 显式列出）；
-        ``destination_revision`` 来自本事务内对 ``notifications`` 的单表 ``FOR UPDATE``
-        读取（``t10``）。返回不匹配原因；全部匹配返回 ``None``。
+        ``destination_revision`` 由调用方传入——``handle()`` 用 T10 行快照，
+        最终写回事务内用单表重读的最新值（两次都要校验；禁 JOIN）。
         """
         if job is None:
-            return "missing_job_binding"
+            return (_BINDING_UNSUPPORTED, "missing_job_binding")
         if job.job_type != JOB_TYPE:
-            return "job_type_mismatch"
+            return (_BINDING_UNSUPPORTED, "job_type_mismatch")
         if job.owner_type != "notification":
-            return "owner_type_mismatch"
+            return (_BINDING_UNSUPPORTED, "owner_type_mismatch")
         try:
-            same_owner = uuid.UUID(str(job.owner_id)) == uuid.UUID(str(row.id))
+            same_owner = uuid.UUID(str(job.owner_id)) == uuid.UUID(str(notification_id))
         except (ValueError, AttributeError, TypeError):
             same_owner = False
         if not same_owner:
-            return "owner_id_mismatch"
-        # input_revision 语义 = T10.destination_revision（路由快照即业务输入）。
-        if int(job.input_revision) != int(t10["destination_revision"]):
-            return "input_revision_mismatch"
-        if job.dedup_key != f"notification:{row.id}":
-            return "dedup_key_mismatch"
+            return (_BINDING_UNSUPPORTED, "owner_id_mismatch")
+        if job.dedup_key != f"notification:{notification_id}":
+            return (_BINDING_UNSUPPORTED, "dedup_key_mismatch")
+        # input_revision 语义 = destination_revision（路由快照即业务输入）。T10 行创建后
+        # 该列不可变；若入队后路由代次被合法推进，则视为过期路由，按发送前重检取消。
+        if int(job.input_revision) != int(destination_revision):
+            return (_BINDING_ROUTE_EXPIRED, "input_revision_stale")
         return None
+
+    @staticmethod
+    def _delivery_failed(
+        notification_id: str,
+        attempt: int,
+        status: str,
+        code: str,
+        reason: str,
+        *,
+        retryable: bool,
+    ) -> "DeliveryFailed":
+        """构造携带 T10 收敛计划的失败（**不在此处写 T10**，见 Oracle #6）。"""
+        return DeliveryFailed(
+            code,
+            reason,
+            retryable=retryable,
+            convergence=T10Convergence(
+                notification_id=notification_id,
+                attempt=attempt,
+                status=status,
+                last_error=_error(code, reason, retryable=retryable),
+            ),
+        )
+
+    def _cancel_t10(
+        self, engine: Engine, notification_id: str, attempt: int, reason: str
+    ) -> bool:
+        """路由过期（``input_revision`` 滞后于 T10 代次）的发送前取消。
+
+        ``cancelled`` 是"未发送"的安全决定（不是已发布投递结果），沿用发送前重检的
+        既有语义与守卫；带 ``attempt_count`` 守卫以免覆盖并发新代次事实。
+        """
+        with engine.begin() as conn:
+            res = conn.execute(
+                text(
+                    "UPDATE notifications SET status = 'cancelled',"
+                    " last_error = CAST(:err AS jsonb), updated_at = now()"
+                    " WHERE id = :nid AND attempt_count = :att"
+                    " AND status NOT IN ('submitted','delivered','cancelled','failed')"
+                ),
+                {"err": json.dumps(_error("route_recheck_failed", reason, retryable=False)),
+                 "nid": notification_id, "att": attempt},
+            )
+            return res.rowcount > 0
+
+    def _recheck_binding_in_tx(
+        self, conn: Connection, job: Optional[JobRow], notification_id: str
+    ) -> None:
+        """Oracle #5：最终写回事务内复校 T12/T10 绑定。
+
+        不符 → 抛 :class:`StaleNotification` 使整个业务写（含 T10 写）回滚，绝不发布；
+        回收器/下一次领取将以入口校验按既有语义终结。禁 JOIN、单表读取。
+        """
+        m = conn.execute(
+            text("SELECT destination_revision FROM notifications WHERE id = :nid"),
+            {"nid": notification_id},
+        ).first()
+        if m is None:
+            raise StaleNotification(
+                f"notification {notification_id} missing on finalize binding recheck"
+            )
+        binding = self._classify_binding(job, notification_id, int(m[0]))
+        if binding is not None:
+            raise StaleNotification(
+                f"notification {notification_id} binding changed before finalize:"
+                f" {binding[0]}/{binding[1]}"
+            )
 
     # ---------------- final business writes ----------------
 
     def _finalize_tx(
         self,
+        job: Optional[JobRow],
         notification_id: str,
         attempt: int,
         status: str,
@@ -578,6 +670,8 @@ class NotificationDeliverHandler:
         last_error: Optional[dict[str, Any]],
     ):
         def tx(conn: Connection) -> None:
+            # Oracle #5：最终写回事务内复校绑定；不符 → raise 使 T10/T12 写整体回滚。
+            self._recheck_binding_in_tx(conn, job, notification_id)
             res = conn.execute(
                 text(
                     "UPDATE notifications SET status = :st, provider_message_id = :mid,"
@@ -602,6 +696,7 @@ class NotificationDeliverHandler:
 
     def _reconcile_finalize_tx(
         self,
+        job: Optional[JobRow],
         notification_id: str,
         attempt: int,
         status: str,
@@ -611,6 +706,8 @@ class NotificationDeliverHandler:
         """对账收敛写回：T10 可能停在 ``sending``（崩溃）或 ``unknown``（结果不确定）。"""
 
         def tx(conn: Connection) -> None:
+            # Oracle #5：最终写回事务内复校绑定；不符 → 不写、整体回滚。
+            self._recheck_binding_in_tx(conn, job, notification_id)
             res = conn.execute(
                 text(
                     "UPDATE notifications SET status = :st, provider_message_id = :mid,"
@@ -637,33 +734,6 @@ class NotificationDeliverHandler:
     def _is_last_attempt(job: Optional[JobRow]) -> bool:
         """本次领取是否为最后一次尝试（``complete_failure`` 的失败判据一致）。"""
         return job is not None and job.attempt_count >= job.max_attempts
-
-    def _converge_t10(
-        self,
-        engine: Engine,
-        notification_id: str,
-        attempt: int,
-        status: str,
-        last_error: dict[str, Any],
-    ) -> bool:
-        """把 ``sending``/``unknown`` 的 T10 原子收敛为明确终态。
-
-        守卫谓词 ``id=? AND status IN ('sending','unknown') AND attempt_count=本次``
-        与既有代次守卫一致：旧尝试绝不覆盖新事实；已是他态则幂等无操作（不抛异常，
-        以便在失败路径上先收敛、再让运行时终结 T12）。
-        """
-        with engine.begin() as conn:
-            res = conn.execute(
-                text(
-                    "UPDATE notifications SET status = :st,"
-                    " last_error = CAST(:err AS jsonb), updated_at = now()"
-                    " WHERE id = :nid AND status IN ('sending','unknown')"
-                    " AND attempt_count = :att"
-                ),
-                {"st": status, "err": json.dumps(last_error), "nid": notification_id,
-                 "att": attempt},
-            )
-            return res.rowcount > 0
 
     # ---------------- load ----------------
 
@@ -693,6 +763,41 @@ def _episode_active(active_incidents_text: Optional[str], incident_id: str) -> b
 def _error(code: str, reason: str, *, retryable: bool) -> dict[str, Any]:
     """有界诊断 last_error（自由格式，不受 schema_version 约束）。"""
     return {"code": code, "reason": reason, "retryable": retryable}
+
+
+def converge_t10_tx(
+    conn: Connection,
+    notification_id: str,
+    attempt: int,
+    status: str,
+    last_error: dict[str, Any],
+) -> bool:
+    """在给定 connection 上字段级收敛 T10（**供 D 的失败完成事务回调同事务调用**）。
+
+    纯函数式、幂等：守卫 ``id=? AND status IN ('sending','unknown') AND attempt_count=本次``
+    与既有代次守卫一致——旧尝试绝不覆盖新事实；状态/代次不匹配时返回 ``False``
+    （no-op，不抛异常）。D 的 ``complete_failure(..., handler_result_tx=...)`` 就绪后，
+    loop 可从 :class:`DeliveryFailed.convergence` 取参数，把本函数与 T12 lease 守卫写
+    放进同一 ``engine.begin()`` 事务；守卫 0 行时由该事务整体回滚业务写。
+
+    :param conn: 与 T12 守卫写同一事务的 SQLAlchemy Connection
+    :param notification_id: T10 主键（= T12 ``owner_id``，由 payload 派生）
+    :param attempt: 本次尝试的 T10 ``attempt_count``（代次守卫）
+    :param status: 收敛目标状态（``failed`` / ``unknown``）
+    :param last_error: 有界 ``last_error`` dict（``code``/``reason``/``retryable``）
+    :return: 是否实际更新（``False`` = 幂等 no-op）
+    """
+    res = conn.execute(
+        text(
+            "UPDATE notifications SET status = :st,"
+            " last_error = CAST(:err AS jsonb), updated_at = now()"
+            " WHERE id = :nid AND status IN ('sending','unknown')"
+            " AND attempt_count = :att"
+        ),
+        {"st": status, "err": json.dumps(last_error), "nid": notification_id,
+         "att": attempt},
+    )
+    return res.rowcount > 0
 
 
 handler = NotificationDeliverHandler()

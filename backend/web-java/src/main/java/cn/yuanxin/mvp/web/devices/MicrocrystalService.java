@@ -34,11 +34,14 @@ import java.util.UUID;
  * <p>先校验 {@code connectionProof}（B 自有端口 + 替身；控制端归属由认证主体
  * 派生，请求体不得覆盖），再单表定位/登记 T04 并锁行判序（真实
  * observation_epoch/observation_seq 列，直接写列不塞 JSONB）。顺序权威是服务端
- * 验证的会话代次（{@link ServerGeneration}），写进 {@code latest_observation}
- * JSONB 的 {@code observer_generation} 键：来源变化（observer_type/observer_ref
- * 不同）或代次变化都接受并重置基准；来源与代次都相同时客户端不得更换 epoch，
- * 且 seq 必须严格更大，否则 200 accepted=false 且不覆盖能力。客户端自填 epoch
- * 绝不作为新旧权威。</p>
+ * 维护的会话代次表（{@link ObservationSessions}，Oracle 第二轮 #2），写进
+ * {@code latest_observation} JSONB 的 {@code observer_sessions}/
+ * {@code observer_generation}/{@code observer_credential_version} 键。来源变化
+ * （observer_type/observer_ref 不同）重置并重新从 generation=1 开始；来源相同则按
+ * 服务端会话次序判定：只有 generation 更大才接受并重置，同 generation 内客户端
+ * 不得更换 epoch 且 seq 必须严格更大，旧 generation 一律拒绝（旧会话永不重获
+ * 权威，闭合两会话交替来回覆盖）。所有 accepted=false 都不覆盖能力。客户端自填
+ * epoch 绝不作为新旧权威。</p>
  *
  * <p>禁止：以观察抢占/改变 T07 占用、累计次数、改 care_executions、创建
  * async_jobs（方案生成归 D/C 的 Worker 扫描）；不得用请求体覆盖他人归属。
@@ -148,7 +151,6 @@ public class MicrocrystalService {
         }
 
         Observer observer = observerFor(principal);
-        String generation = ServerGeneration.of(principal);
         long seq = parseBigint(body.observationSeq());
         return txTemplate.execute(status -> {
             UUID microcrystalId = locateOrRegister(body.microcrystalSerial(), status);
@@ -157,8 +159,9 @@ public class MicrocrystalService {
                 throw new ApiException(ErrorCode.INTERNAL,
                         "microcrystal row missing after locate");
             }
-            boolean accepted = decide(row, observer, generation, body.observationEpoch(), seq);
-            if (!accepted) {
+            Decision decision = decide(row, observer, principal.credentialVersion(),
+                    principal.sessionId(), body.observationEpoch(), seq);
+            if (!decision.accepted()) {
                 String existingRevision = currentRevision(row.capabilities());
                 Instant received = row.receivedAt() == null ? Instant.now() : row.receivedAt();
                 DeviceDtos.MicrocrystalObservationAck ack =
@@ -174,7 +177,9 @@ public class MicrocrystalService {
                     schemaVersion, requestedRevision);
             Map<String, Object> latest = new LinkedHashMap<>();
             latest.put("schema_version", 1);
-            latest.put("observer_generation", generation);
+            latest.put("observer_generation", decision.generation());
+            latest.put("observer_sessions", ObservationSessions.toJson(decision.sessions()));
+            latest.put("observer_credential_version", principal.credentialVersion());
             latest.put("state", body.state());
             int updated = jdbc.update("UPDATE microcrystals SET capabilities = ?::jsonb,"
                             + " latest_observation = ?::jsonb, observer_type = ?, observer_ref = ?,"
@@ -239,24 +244,38 @@ public class MicrocrystalService {
         return rows.isEmpty() ? null : rows.get(0);
     }
 
-    private static boolean decide(Row row, Observer observer, String generation, String epoch,
-                                  long seq) {
-        if (row.observerType() == null || row.observerRef() == null) {
-            return true;
+    /** accepted=false 时 generation/sessions 仅作诊断，绝不写库。 */
+    private record Decision(boolean accepted, int generation,
+                            List<ObservationSessions.Session> sessions) {
+    }
+
+    /**
+     * 服务端会话代次判定（Oracle 第二轮 #2）。来源变化 → 重置并 generation=1；
+     * 来源相同 → 按 {@link ObservationSessions} 的服务端次序：更大代次接受重置，
+     * 同代次要求 epoch 一致且 seq 严格更大，旧代次一律拒绝。
+     */
+    private static Decision decide(Row row, Observer observer, long credentialVersion,
+                                   String sessionId, String epoch, long seq) {
+        Map<String, Object> observed = DeviceJson.parseObject(row.latestObservation());
+        boolean sourceChanged = row.observerType() == null || row.observerRef() == null
+                || !row.observerType().equals(observer.type())
+                || !row.observerRef().equals(observer.ref());
+        if (sourceChanged) {
+            // 新来源 = 新来源会话：接受并重置，服务端记为 generation=1。
+            return new Decision(true, 1, ObservationSessions.freshSessions(sessionId));
         }
-        if (!row.observerType().equals(observer.type()) || !row.observerRef().equals(observer.ref())) {
-            return true; // 来源变化 = 新来源会话，接受并重置基准
-        }
-        String existingGeneration = DeviceJson.textAt(
-                DeviceJson.parseObject(row.latestObservation()), "observer_generation");
-        if (existingGeneration == null || !existingGeneration.equals(generation)) {
-            return true; // 服务端验证的新会话代次（含迁移前旧行），接受并重置基准
-        }
-        // 同来源同代次内：客户端不得更换 epoch，seq 必须严格更大。
-        if (row.observationEpoch() == null || !row.observationEpoch().equals(epoch)) {
-            return false;
-        }
-        return row.observationSeq() != null && seq > row.observationSeq();
+        ObservationSessions.Resolution resolution = ObservationSessions.resolve(
+                observed.get("observer_sessions"),
+                DeviceJson.longAt(observed, "observer_credential_version"),
+                DeviceJson.longAt(observed, "observer_generation"),
+                credentialVersion, sessionId);
+        boolean accepted = switch (resolution.relation()) {
+            case FIRST_OR_ADVANCED, NEWER -> true;
+            case SAME -> row.observationEpoch() != null && row.observationEpoch().equals(epoch)
+                    && row.observationSeq() != null && seq > row.observationSeq();
+            case STALE -> false;
+        };
+        return new Decision(accepted, resolution.generation(), resolution.sessions());
     }
 
     private static Map<String, Object> buildCapabilities(Map<String, Object> requested,

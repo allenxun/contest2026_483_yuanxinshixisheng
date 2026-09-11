@@ -220,6 +220,27 @@ b23() {
   hb_op "$G_TOKEN" "$g" "e2" "1"; aeq "$(jget data.accepted)" false "同代次换 epoch 降 seq 必须拒绝"
   aeq "$(t03snap "$g")" "$snap23" "被拒心跳不得改任何列"
   aeq "$(psql_b "SELECT status_revision FROM gimbals WHERE id='$g'")" "$r1" "被拒不递增代次"
+  # Oracle 第二轮 #2 的确切复现：同一 credential_version 下两个**均未撤销**的会话交替上报。
+  # A 的会话替身签发新 session 不使旧 session 失效，PrincipalRevalidator 对 GIMBAL 只校验
+  # credential_version，故随机 sessionId 只有唯一性、没有新旧次序——不得把"不相等"当"更新"。
+  # 注意：tokA 与上面是**同一会话**（generation 已记录、epoch=e1），故它继续上报必须沿用
+  # 同一 epoch 且 seq 严格更大；换 epoch 属于同代次内的非法改写（上面已断言被拒）。
+  local tokA="$G_TOKEN"
+  local snapA; snapA=$(t03snap "$g")
+  hb_op "$tokA" "$g" "e1" "100"; aeq "$(jget data.accepted)" true "会话A 同 epoch 高 seq 接受"
+  gimbal_login "$aref" 1                      # 第二个会话，credential_version 未变
+  local tokB="$G_TOKEN"
+  aneq "$tokB" "$tokA" "两个会话 token 不同"
+  hb_op "$tokB" "$g" "eB" "1"; aeq "$(jget data.accepted)" true "会话B 首次出现=更高服务端代次，接受并重置"
+  # 关键断言：旧会话 A 永不重获权威（否则可来回回滚覆盖更新的事实）
+  local snapB; snapB=$(t03snap "$g")
+  hb_op "$tokA" "$g" "e1" "101"; aeq "$(jget data.accepted)" false "旧会话A 不得重获权威"
+  aeq "$(t03snap "$g")" "$snapB" "旧会话被拒后逐列未变"
+  # 旧会话 A 即使改换 epoch 试图伪造"新来源"也必须被拒（代次更低，一律拒绝）
+  hb_op "$tokA" "$g" "eA" "999"; aeq "$(jget data.accepted)" false "旧会话A 换 epoch 亦不得重获权威"
+  aeq "$(t03snap "$g")" "$snapB" "换 epoch 被拒后逐列仍未变"
+  # 会话A 早于会话B 被服务端见到，其代次更低；snapA 仅用于证明状态确实被 B 推进过
+  aneq "$snapB" "$snapA" "会话B 确已推进状态（证明上面的拒绝不是空操作）"
   # 真实代次推进：DB 递增 credential_version（旧 token 立即失效）→ 重新认证取新 token，
   # 此时新 epoch + 小 seq 才是合法的"新来源会话"，接受并重置基准。
   psql_b "UPDATE gimbals SET credential_version=2 WHERE id='$g'" >/dev/null

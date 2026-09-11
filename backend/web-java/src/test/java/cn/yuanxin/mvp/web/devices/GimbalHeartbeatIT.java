@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -116,6 +117,74 @@ class GimbalHeartbeatIT extends AbstractDeviceIT {
         assertNotNull(jdbc.queryForObject(
                 "SELECT latest_observation ->> 'observation_generation' FROM gimbals WHERE id = ?",
                 String.class, gimbalId));
+    }
+
+    @Test
+    @DisplayName("Oracle#2：同 credential_version 下两会话交替不得来回覆盖，旧会话永不重获权威")
+    void olderSessionNeverRegainsAuthority() throws Exception {
+        UUID gimbalId = seedGimbal(1L);
+        // 同一 credential_version 下两个均未被撤销的 session（签发新 session 不使旧 session 失效）
+        String tokenA = gimbalToken(gimbalId, 1L);
+        String tokenB = gimbalToken(gimbalId, 1L);
+
+        // 会话 A 服务端首次见到 → generation=1
+        assertTrue(dataOf(heartbeat(tokenA, gimbalId, "EA", "100", null))
+                .path("accepted").asBoolean());
+        Map<String, Object> afterA = row(gimbalId);
+
+        // 会话 B 服务端首次见到 → generation=2（更高），接受并重置基准
+        assertTrue(dataOf(heartbeat(tokenB, gimbalId, "EB", "1", null))
+                .path("accepted").asBoolean());
+        Map<String, Object> afterB = row(gimbalId);
+        assertFalse(afterA.get("last_seen_at").equals(afterB.get("last_seen_at")));
+
+        // 关键：A 再报（更高 seq、同 epoch）不得重获权威 → 拒绝且逐列未变
+        MvcResult aAgain = heartbeat(tokenA, gimbalId, "EA", "101", null);
+        assertEquals(200, aAgain.getResponse().getStatus());
+        assertFalse(dataOf(aAgain).path("accepted").asBoolean());
+        assertEquals(afterB, row(gimbalId));
+
+        // B 同连接内继续推进（epoch 一致、seq 严格更大）
+        assertTrue(dataOf(heartbeat(tokenB, gimbalId, "EB", "2", null))
+                .path("accepted").asBoolean());
+
+        // 会话表记录服务端实际见过的两个 session，当前 generation=2
+        assertEquals(2, ((Number) jdbc.queryForObject(
+                "SELECT jsonb_array_length(latest_observation -> 'observation_sessions')"
+                        + " FROM gimbals WHERE id = ?", Integer.class, gimbalId)).intValue());
+        assertEquals(2, ((Number) jdbc.queryForObject(
+                "SELECT (latest_observation ->> 'observation_generation')::int"
+                        + " FROM gimbals WHERE id = ?", Integer.class, gimbalId)).intValue());
+    }
+
+    @Test
+    @DisplayName("Oracle#2 有界性：连续 N+3 会话后会话表 ≤ 上限且最高 generation 始终保留")
+    void sessionTableIsBounded() throws Exception {
+        int max = ObservationSessions.MAX_TRACKED_SESSIONS;
+        UUID gimbalId = seedGimbal(1L);
+        List<String> tokens = new ArrayList<>();
+        for (int i = 0; i < max + 3; i++) {
+            String token = gimbalToken(gimbalId, 1L);
+            tokens.add(token);
+            assertTrue(dataOf(heartbeat(token, gimbalId, "e" + i, "1", null))
+                    .path("accepted").asBoolean(), "session " + i + " should be accepted");
+        }
+        int tracked = jdbc.queryForObject(
+                "SELECT jsonb_array_length(latest_observation -> 'observation_sessions')"
+                        + " FROM gimbals WHERE id = ?", Integer.class, gimbalId);
+        assertTrue(tracked <= max, "tracked sessions must be bounded: " + tracked);
+        int generation = jdbc.queryForObject(
+                "SELECT (latest_observation ->> 'observation_generation')::int"
+                        + " FROM gimbals WHERE id = ?", Integer.class, gimbalId);
+        assertEquals(max + 3, generation);
+        // 当前最高代次的 session（最后一个）必须仍在表中，绝不被淘汰
+        String lastSession = sessionIdOf(tokens.get(tokens.size() - 1));
+        Boolean present = jdbc.queryForObject(
+                "SELECT EXISTS (SELECT 1 FROM jsonb_array_elements("
+                        + "latest_observation -> 'observation_sessions') e"
+                        + " WHERE e ->> 'session_id' = ?) FROM gimbals WHERE id = ?",
+                Boolean.class, lastSession, gimbalId);
+        assertTrue(present, "highest-generation session must be retained");
     }
 
     @Test
