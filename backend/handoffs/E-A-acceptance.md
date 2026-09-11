@@ -202,7 +202,7 @@ RV-5"他主体"实为同账号、哨兵未绑定本次 run、报告/复核措辞
 
 ---
 
-## RV-5 最终有界复验（PARTIAL）——A 561c338（2026-09-10 已执行；**第十二轮 oracle 审查 BLOCKED 待补**）
+## RV-5 最终有界复验（PARTIAL）——A 561c338（2026-09-10/11 已执行；第十二→十三轮 oracle 审查：BLOCKED→修复→**PASS@cce3975**）
 
 > 总协调已书面裁定 RV-5 并交付 A 最终实施：A 链 f6e500e→334a9c4（创建者归属
 > 持久化+GET 仅创建者可见+统一 404）→199b2f6（POST dedup 创建者/类型事务内门槛+
@@ -211,13 +211,16 @@ RV-5"他主体"实为同账号、哨兵未绑定本次 run、报告/复核措辞
 > dev `9b3e4a1`、集成 HEAD `e1d54b9`。本节为 **RV-5 有界复验（PARTIAL），非新
 > SHA 全量验收**；整体意见按组合结构由总协调形成。
 
-### 执行结果（E 代码 03b8dfb；实施跑 89a36459 与协调者复跑 dd48513a 双跑一致）
+### 执行结果（最终 E 代码 cce3975；实施跑 e21ed79b 与协调者复跑 90dbb580 双跑一致）
 
 | 命令 | 退出码 | 结果 |
 | --- | --- | --- |
-| `backend/acceptance/run.sh selfcheck` | **0** | 53 passed（+2 哨兵/结论回归） |
-| `backend/acceptance/run.sh matrix` | **3** | PASSED=53 DEPENDENCY_PENDING=94 FAILED=0；SETTLED=94/94 |
+| `backend/acceptance/run.sh selfcheck` | **0** | 54 passed（含六类负例回归组） |
+| `backend/acceptance/run.sh matrix` | **3** | PASSED=54 DEPENDENCY_PENDING=94 FAILED=0；SETTLED=94/94 |
 | `backend/acceptance/run.sh a-rv5` | **0** | settled=10/10：**10 PASS / 0 FAIL / 0 BLOCKED / 0 INFO**；REVERIFY_SENTINEL_OK（RUN_ID 入口绑定、mode=rv5-reverify、final_exit==驱动 rc） |
+
+（03b8dfb 的首轮双跑 89a36459/dd48513a 保留为历史证据；第十二轮判定其断言强度
+不足【BLOCKER×2+MAJOR】，经 cce3975 加强后以上表为准；历史目录零覆盖。）
 
 结论原文："**RV-5 有界复验（PARTIAL）结果：通过**——10 PASS / 0 FAIL / 0 BLOCKED。
 组合意见：本次有限验证 + 历史适用证据（A-baseline 26d97fb / A-reverify f6e500e），
@@ -236,12 +239,33 @@ dedup 碰撞六步（无键碰撞 404 且不投影外来 id/status/payload/owner
 200 仅揭示 dedup 键不可用；不扩展实现、不宣称生产完备）；RV5-8 历史台账零变更+
 SHA 适用范围（f6e500e..561c338 消费点文件未变→9 处复核台账仍适用）。
 
-### 审查状态（诚实披露）
+### 审查状态（第十二→十三轮，诚实披露）
 
-- **第十二轮 oracle 审查：BLOCKED（不可用）**——原 oracle 会话（ses_f7592f1b…/
-  ora-1）两次调用均返回 "usage limit reached"（含等待后重试一次）。按门禁规则
-  **oracle 调用失败必须 BLOCKED，绝不视为通过**：E 代码 `03b8dfb` 尚未独立审查，
-  本节执行结果不构成审查通过；组合意见与 B/C/D 建议待 oracle 配额恢复、第十二轮
-  结论补记后形成。
-- 证据目录：`evidence/A-rv5-2026-09-10-561c338/`（2 run，独立 RUN_ID）；既有
-  A-baseline-2026-09-10 与 A-reverify-2026-09-10 全部历史证据零覆盖。
+- 2026-09-10 两次第十二轮调用因 oracle 用量限制失败，按门禁规则记 BLOCKED 不视为
+  通过（interim 披露提交 fb2fc08）。配额恢复后经新授权单次正式调用：**第十二轮审
+  03b8dfb = BLOCKED**（BLOCKER：三态比较只留 error 子树且非 echo 种子未验证、
+  keyed 碰撞/重放未验完整拒绝边界；MAJOR：快照非全字段；MINOR：samples 提取；
+  **A 实现本身未发现新缺陷**）。
+- 修复（cce3975：canon_public 仅排除 requestId 的完整公开体规范化等值、三态禁止
+  内容扫描、种子 INSERT RETURNING+回查、四体统一拒绝边界+重放后 T13 复验、
+  SELECT * 全字段快照+worker 未运行窗口、六类负例回归）后，**第十三轮终审 =
+  E 代码 PASS（blockingFindings：无）**；原 RV-5 INFO 残项解除。
+  reviewedCommit=`cce397560ef32e13c724c920757b479e829f659b`。
+- 证据目录：`evidence/A-rv5-2026-09-10-561c338/`（4 run：历史 89a36459/dd48513a +
+  最终 e21ed79b/90dbb580）；既有 A-baseline 与 A-reverify 全部历史证据零覆盖。
+
+### 最终组合 A 基础验收结论（供总协调采用；最终放行权在总协调）
+
+三部分组合证据齐备：
+1. **26d97fb 旧正式 52 项基础验收中适用的未变证据**（RV-9/RV5-8 台账：注明来源
+   SHA 与适用范围；该轮唯一 1 FAIL 已由下两项闭合）；
+2. **f6e500e 诊断泄漏闭合**（N2-http 定向复验 10 PASS+1 INFO + 9 处消费点人工
+   复核闭合）；
+3. **561c338 RV-5 闭合**（本节 10/10 PASS：创建者归属、三态统一 404 不可区分、
+   POST dedup 碰撞拒绝+T13 rejected-replay、泄漏点抽查回归）。
+
+**E 侧建议：已具备启动 B/C/D 的条件**（是否放行由总协调决定）。放行记录保留
+非阻塞限制：全局 dedup availability-oracle（碰撞 404 vs 新键 200 仅揭示键不可用；
+已接受）、36 处路径外历史 nullable（A follow-up）、旧镜像部署前须从当前源码重建、
+doubles_pass 替身形态不代表真实供应商/生产就绪、94 业务场景仍 dependency_pending
+随 B/C/D 实现继续验收。
