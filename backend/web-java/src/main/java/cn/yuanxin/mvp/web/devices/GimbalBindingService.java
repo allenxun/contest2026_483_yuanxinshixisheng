@@ -242,11 +242,10 @@ public class GimbalBindingService {
                 return null;
             }
             if (row.boundAccountId() == null) {
-                // 已解除且未被重新绑定：幂等完成，不递增代次、不改任何列。
-                idempotencyService.completeSuccess(handle, RESOURCE_TYPE, gimbalId,
-                        Map.of("gimbalId", gimbalId.toString(), "bindingStatus", "unbound",
-                                "bindingRevision", String.valueOf(row.bindingRevision())));
-                return null;
+                // 新的未知解绑请求：服务端无从证明调用方是原账号（DD M2-A08），
+                // 与"gimbalId 不存在"返回完全相同 404；落 T13 rejected 使同键重放
+                // 得到同一拒绝。绝不递增 binding_revision、绝不写任何列。
+                return rejectInTx(handle, notVisible());
             }
             // 他人绑定：带相符 If-Match（说明是他人新绑定）→ BINDING_CHANGED；否则 404，
             // 不泄漏"已被他人绑定"这一事实，绝不解除他人绑定。

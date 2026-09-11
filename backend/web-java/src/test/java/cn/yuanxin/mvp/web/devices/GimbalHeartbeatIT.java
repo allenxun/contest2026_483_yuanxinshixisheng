@@ -62,10 +62,60 @@ class GimbalHeartbeatIT extends AbstractDeviceIT {
         assertFalse(dataOf(late).path("accepted").asBoolean());
         assertEquals(before, row(gimbalId));
 
-        // 不同 epoch = 新来源会话，小 seq 也接受（不跨来源比较裸序号）
-        MvcResult newEpoch = heartbeat(token, gimbalId, "epoch-2", "1", null);
-        assertTrue(dataOf(newEpoch).path("accepted").asBoolean());
-        assertFalse(before.get("last_seen_at").equals(row(gimbalId).get("last_seen_at")));
+        // 同一服务端会话代次内换 epoch → 不是新来源，拒绝且逐列未变
+        MvcResult epochFlip = heartbeat(token, gimbalId, "epoch-2", "1", null);
+        assertEquals(200, epochFlip.getResponse().getStatus());
+        assertFalse(dataOf(epochFlip).path("accepted").asBoolean());
+        assertEquals(before, row(gimbalId));
+    }
+
+    @Test
+    @DisplayName("代次权威：同会话翻转 epoch/回退/重复 seq 拒绝且逐列未变；credential_version 推进后接受并重置")
+    void clientEpochIsNotAuthoritativeWithinGeneration() throws Exception {
+        GimbalSession session = gimbalSession();
+        UUID gimbalId = session.gimbalId();
+        String token = session.accessToken();
+
+        // 先 epoch=E2, seq=100 接受
+        assertTrue(dataOf(heartbeat(token, gimbalId, "E2", "100", null))
+                .path("accepted").asBoolean());
+        assertNotNull(jdbc.queryForObject(
+                "SELECT latest_observation ->> 'observation_generation' FROM gimbals WHERE id = ?",
+                String.class, gimbalId));
+        assertEquals("number", jdbc.queryForObject(
+                "SELECT jsonb_typeof(latest_observation -> 'schema_version') FROM gimbals WHERE id = ?",
+                String.class, gimbalId));
+        Map<String, Object> after100 = row(gimbalId);
+
+        // 同会话换 epoch + 更小 seq（客户端自填 epoch 不是权威）→ 拒绝，逐列未变
+        MvcResult epochFlip = heartbeat(token, gimbalId, "E1", "1", null);
+        assertEquals(200, epochFlip.getResponse().getStatus());
+        assertFalse(dataOf(epochFlip).path("accepted").asBoolean());
+        assertEquals(after100, row(gimbalId));
+
+        // 同 epoch、seq 回退 → 拒绝，逐列未变
+        MvcResult rollback = heartbeat(token, gimbalId, "E2", "99", null);
+        assertFalse(dataOf(rollback).path("accepted").asBoolean());
+        assertEquals(after100, row(gimbalId));
+
+        // 同 epoch、seq 重复 → 拒绝，逐列未变
+        MvcResult duplicate = heartbeat(token, gimbalId, "E2", "100", null);
+        assertFalse(dataOf(duplicate).path("accepted").asBoolean());
+        assertEquals(after100, row(gimbalId));
+
+        // 真实代次推进：DB 递增 credential_version 并重新认证取新 token → 接受并重置
+        jdbc.update("UPDATE gimbals SET credential_version = credential_version + 1 WHERE id = ?",
+                gimbalId);
+        String newToken = gimbalToken(gimbalId, 2L);
+        MvcResult advanced = heartbeat(newToken, gimbalId, "E3", "1", null);
+        assertEquals(200, advanced.getResponse().getStatus(),
+                advanced.getResponse().getContentAsString());
+        assertTrue(dataOf(advanced).path("accepted").asBoolean());
+        Map<String, Object> afterAdvance = row(gimbalId);
+        assertFalse(after100.get("last_seen_at").equals(afterAdvance.get("last_seen_at")));
+        assertNotNull(jdbc.queryForObject(
+                "SELECT latest_observation ->> 'observation_generation' FROM gimbals WHERE id = ?",
+                String.class, gimbalId));
     }
 
     @Test

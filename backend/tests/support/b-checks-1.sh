@@ -99,7 +99,15 @@ b04() {
   aeq "$CODE" 404 "不存在"; printf '%s' "$BODY" > "$TMP/b4.missing"
   mask "$TMP/b4.other" > "$TMP/b4.o"; mask "$TMP/b4.missing" > "$TMP/b4.m"
   cmp -s "$TMP/b4.o" "$TMP/b4.m" || fail "他人/不存在 404 掩蔽 requestId 后不一致"
-  vlog "204（重复 revoked_at 不变）；他人/不存在 404 不可区分"
+  # 契约覆盖（Oracle BLOCKER #1）：缺失 Idempotency-Key → 400 INVALID_INPUT。
+  # 该路径此前从未被任何检查触发，导致 m1A03 端点"实现会返回但契约未声明"的
+  # 缺口被 b14 静默放过；现纳入观测面，使 b14 的白名单校验真正有判别力。
+  # 必须携带合法 Authorization：否则 A 的 BearerAuthFilter 先返回 401，到不了
+  # 控制器的幂等键校验（曾因此误得 401，属本脚本缺陷而非实现缺陷）。
+  op_call m1A03RevokeMemberAccessGrant DELETE "$WEB/api/v1/me/member-access-grants/$(new_id)" \
+    -H "Authorization: Bearer $token"
+  aeq "$CODE" 400 "缺幂等键 400"; aeq "$(jget error.code)" INVALID_INPUT "code"
+  vlog "204（重复 revoked_at 不变）；他人/不存在 404 不可区分；缺幂等键 400 INVALID_INPUT"
 }
 
 b05() {
@@ -292,17 +300,37 @@ b12() {
     -H "Authorization: Bearer $APP_TOKEN" -H "Idempotency-Key: k12-$RANDOM" -H 'Content-Type: application/json' \
     -d "{\"expectedBindingRevision\":\"0\",\"pairingProof\":\"$p\"}"
   aeq "$CODE" 200 "bind"
+  local ukey="ku12-$(new_id)"
   op_call m2A08UnbindGimbal DELETE "$WEB/api/v1/me/gimbal-bindings/$g" \
-    -H "Authorization: Bearer $APP_TOKEN" -H "Idempotency-Key: ku12-$RANDOM" -H 'If-Match: "binding-1"'
+    -H "Authorization: Bearer $APP_TOKEN" -H "Idempotency-Key: $ukey" -H 'If-Match: "binding-1"'
   aeq "$CODE" 204 "解绑 204"
   aeq "$(psql_b "SELECT coalesce(bound_account_id::text,'NULL') FROM gimbals WHERE id='$g'")" NULL "bound null"
   aeq "$(psql_b "SELECT coalesce(bound_at::text,'NULL') FROM gimbals WHERE id='$g'")" NULL "bound_at null"
   local rev; rev=$(psql_b "SELECT binding_revision FROM gimbals WHERE id='$g'")
   aeq "$rev" 2 "revision +1"
+  # Oracle BLOCKER B：**只有原 T13 成功请求的同键重放**可得 204。
   op_call m2A08UnbindGimbal DELETE "$WEB/api/v1/me/gimbal-bindings/$g" \
-    -H "Authorization: Bearer $APP_TOKEN" -H "Idempotency-Key: ku12b-$RANDOM"
-  aeq "$CODE" 204 "重复解绑"
-  aeq "$(psql_b "SELECT binding_revision FROM gimbals WHERE id='$g'")" "$rev" "重复不再递增"
+    -H "Authorization: Bearer $APP_TOKEN" -H "Idempotency-Key: $ukey" -H 'If-Match: "binding-1"'
+  aeq "$CODE" 204 "同键重放 204"
+  aeq "$(psql_b "SELECT binding_revision FROM gimbals WHERE id='$g'")" "$rev" "重放不递增代次"
+  # 新幂等键解绑一个"已解绑/从未属于调用方"的云台 → 404，且与不存在 UUID 完全不可区分
+  # （服务端不能凭一个未知请求猜测之前归属，也不得让任意 APP 拿到"解绑成功"）。
+  op_call m2A08UnbindGimbal DELETE "$WEB/api/v1/me/gimbal-bindings/$g" \
+    -H "Authorization: Bearer $APP_TOKEN" -H "Idempotency-Key: ku12b-$(new_id)"
+  aeq "$CODE" 404 "新键解绑未绑定 404"; aeq "$(jget error.code)" RESOURCE_NOT_VISIBLE "code"
+  printf '%s' "$BODY" > "$TMP/b12.unbound"
+  op_call m2A08UnbindGimbal DELETE "$WEB/api/v1/me/gimbal-bindings/$(new_id)" \
+    -H "Authorization: Bearer $APP_TOKEN" -H "Idempotency-Key: ku12e-$(new_id)"
+  aeq "$CODE" 404 "不存在 404"; printf '%s' "$BODY" > "$TMP/b12.missing"
+  mask "$TMP/b12.unbound" > "$TMP/b12.u"; mask "$TMP/b12.missing" > "$TMP/b12.m"
+  cmp -s "$TMP/b12.u" "$TMP/b12.m" || fail "未绑定/不存在 404 掩蔽 requestId 后不一致"
+  aeq "$(psql_b "SELECT binding_revision FROM gimbals WHERE id='$g'")" "$rev" "404 不递增代次"
+  aeq "$(psql_b "SELECT coalesce(bound_account_id::text,'NULL') FROM gimbals WHERE id='$g'")" NULL "404 未改绑定列"
+  # 契约覆盖（Oracle BLOCKER #1）：非法 If-Match → 400 INVALID_INPUT（此前从未被观测）
+  op_call m2A08UnbindGimbal DELETE "$WEB/api/v1/me/gimbal-bindings/$g" \
+    -H "Authorization: Bearer $APP_TOKEN" -H "Idempotency-Key: ku12f-$(new_id)" \
+    -H 'If-Match: not-a-binding-revision'
+  aeq "$CODE" 400 "非法 If-Match 400"; aeq "$(jget error.code)" INVALID_INPUT "code"
   local g2; g2=$(seed_gimbal "G-B12b-$RANDOM" "A-B12b-$RANDOM" 1)
   local other; other=$(psql_b "INSERT INTO accounts (id,login_provider,login_subject) VALUES (gen_random_uuid(),'phone','o12-$RANDOM') RETURNING id")
   psql_b "UPDATE gimbals SET bound_account_id='$other',binding_revision=1,bound_at=now() WHERE id='$g2'" >/dev/null
@@ -336,5 +364,13 @@ b13() {
     -d '{"provider":"dev-fcm","platform":"android","registration":{"token":"t"},"expectedDestinationRevision":"0"}'
   aeq "$CODE" 401 "无 token"; aeq "$(jget error.code)" AUTH_REQUIRED "code"
   aeq "$(psql_b "SELECT count(*) FROM notification_destinations")" "$n1" "T09 零新行"
-  vlog "首登三字段；registration 整数版本；路径不符 403；无 token 401 零行"
+  # 契约覆盖（Oracle BLOCKER #1）：陈旧 expectedDestinationRevision → 409 BINDING_CHANGED。
+  # m5A01 早已声明 '409' 响应却漏列该码，且此路径此前从未被触发；现纳入观测面。
+  # 用与首登相同的内容，确保只考察代次门槛、不产生内容变化导致的代次递增。
+  op_call m5A01RegisterNotificationDestination PUT "$WEB/api/v1/me/notification-destinations/$inst" \
+    -H "Authorization: Bearer $token" -H "Idempotency-Key: k13d-$(new_id)" -H 'Content-Type: application/json' \
+    -d '{"provider":"dev-fcm","platform":"android","registration":{"token":"dev-token"},"expectedDestinationRevision":"5"}'
+  aeq "$CODE" 409 "陈旧代次 409"; aeq "$(jget error.code)" BINDING_CHANGED "code"
+  aeq "$(psql_b "SELECT destination_revision FROM notification_destinations WHERE installation_id='$inst'")" 1 "409 不递增代次"
+  vlog "首登三字段；registration 整数版本；路径不符 403；无 token 401 零行；陈旧代次 409 BINDING_CHANGED 不递增"
 }
