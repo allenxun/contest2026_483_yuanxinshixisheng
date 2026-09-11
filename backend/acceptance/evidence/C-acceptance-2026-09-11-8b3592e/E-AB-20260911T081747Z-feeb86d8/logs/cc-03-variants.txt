@@ -1,0 +1,6 @@
+dev+bound positive(attempt 1): A03=503
+dev+bound positive(attempt 2): A03=503
+prod-only: rc=1 refused=True
+prod,dev+bound: rc=1 refused=True
+dev+APP_ENV=production: rc=1 refused=True
+dev+invalid-bound: rc=1 refused=True

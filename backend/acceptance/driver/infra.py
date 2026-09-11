@@ -294,6 +294,12 @@ def java_alive() -> bool:
     return JAVA_PROC is not None and JAVA_PROC.poll() is None
 
 
+def kill_own_java() -> None:
+    """仅杀本工作树 jar 启动的 Java（cmdline 含本工作树 JAVA_DIR 路径），不留残余。"""
+    jar = str(JAVA_DIR / "target" / "web-java")
+    subprocess.run(["pkill", "-f", jar], capture_output=True, timeout=30)
+
+
 def stop_java(timeout_s: int = 40) -> None:
     global JAVA_PROC
     if JAVA_PROC is None:

@@ -1,0 +1,73 @@
+{
+  "schema": "e-acceptance-c-care/1",
+  "run_id": "E-AB-20260911T081113Z-e5707a6d",
+  "mode": "c-care",
+  "c_code": "8b3592e",
+  "expected": 14,
+  "settled": 3,
+  "missing": [
+    "CC-02",
+    "CC-03",
+    "CC-04",
+    "CC-05",
+    "CC-06",
+    "CC-07",
+    "CC-08",
+    "CC-09",
+    "CC-10",
+    "CC-11",
+    "CC-12"
+  ],
+  "extra": [],
+  "duplicates": [
+    "CC-01"
+  ],
+  "unknown_status": [],
+  "counts": {
+    "pass": 3,
+    "fail": 1,
+    "blocked": 0,
+    "info": 0
+  },
+  "counts_sum": 4,
+  "rows": 4,
+  "final_exit": 1,
+  "results": [
+    {
+      "id": "CC-01",
+      "title": "构建与启动绑定：HEAD=93b7e33、8b3592e 祖先、源码 diff 空、当前源码构建、health UP",
+      "status": "PASS",
+      "command": "git merge-base/diff; mvn -DskipTests package; java -jar",
+      "rc": "0",
+      "excerpt": "HEAD=93b7e33de486 ancestor=True diff_files=[] jar=web-java-0.0.1-SNAPSHOT.jar sha16=7c79f7cc3ea39a76",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CC-01",
+      "title": "Java 启动健康",
+      "status": "FAIL",
+      "command": "java -jar",
+      "rc": "1",
+      "excerpt": "2026-09-11T16:11:22.003Z level=INFO requestId= logger=o.s.b.a.e.w.EndpointLinksResolver msg=Exposing 2 endpoints beneath base path '/actuator' 2026-09-11T16:11:22.035Z level=WARN requestId= logger=o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext msg=Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextExceptio",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CLEANUP",
+      "title": "停进程并按 run 标签删除 mvp-e-pg",
+      "status": "PASS",
+      "command": "docker rm -f -v",
+      "rc": "0",
+      "excerpt": "",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CLEANUP-ports",
+      "title": "端口释放",
+      "status": "PASS",
+      "command": "ss",
+      "rc": "0",
+      "excerpt": "",
+      "doubles": "doubles_pass"
+    }
+  ]
+}

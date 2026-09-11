@@ -48,6 +48,13 @@ TIER_EXTRA_REASON = {
     "现在可自动": "；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
 }
 
+# 集成状态（2026-09-11）：C 最终代码 8b3592e 已集成（93b7e33）；B/D 未集成。
+INTEGRATED_PACKAGES = {"C"}
+C_ONLY_PENDING_REASON = (
+    "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）"
+    "仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）"
+)
+
 # A 基线已于 2026-09-10 到达（E 独立基础验收见 evidence/A-baseline-*）。
 # 场景的真实阻塞已变为 B/C/D 业务实现未集成：26 个业务端点为 501 NOT_IMPLEMENTED stub。
 BASE_PENDING_REASON = (
@@ -128,7 +135,11 @@ def parse_scenarios(all_api_ids: list[str]) -> list[dict]:
             sys.exit(f"场景 {sid} 验证范围异常：{scope}")
         packages = sorted({api_owner(a) for a in apis})
         tier = SCOPE_TO_TIER[scope]
-        reason = BASE_PENDING_REASON + TIER_EXTRA_REASON[tier]
+        blocked = sorted(set(packages) - INTEGRATED_PACKAGES)
+        if packages and not blocked:  # C-only：C 已集成
+            reason = C_ONLY_PENDING_REASON + TIER_EXTRA_REASON[tier]
+        else:
+            reason = BASE_PENDING_REASON + TIER_EXTRA_REASON[tier]
         if deps:
             reason += "；涉及开发对接项：" + "、".join(deps)
         scenarios.append({
@@ -141,7 +152,7 @@ def parse_scenarios(all_api_ids: list[str]) -> list[dict]:
             "apis": apis,
             "deps": deps,
             "owner_package": packages,
-            "blocked_by": packages,  # A 基线到达；真实阻塞=B/C/D 业务实现未集成
+            "blocked_by": blocked,  # 真实阻塞=尚未集成包（C 已集成→移除）
             "automation_tier": tier,
             "status": "dependency_pending",
             "pending_reason": reason,

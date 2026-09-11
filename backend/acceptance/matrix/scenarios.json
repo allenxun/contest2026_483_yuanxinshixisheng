@@ -23,7 +23,6 @@
     ],
     "blocked_by": [
       "B",
-      "C",
       "D"
     ],
     "automation_tier": "需真实设备或APP",
@@ -56,7 +55,6 @@
     ],
     "blocked_by": [
       "B",
-      "C",
       "D"
     ],
     "automation_tier": "需真实设备或APP",
@@ -82,12 +80,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05"
   },
   {
     "id": "SC-00-04",
@@ -424,8 +420,7 @@
       "C"
     ],
     "blocked_by": [
-      "B",
-      "C"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
@@ -1003,7 +998,6 @@
       "D"
     ],
     "blocked_by": [
-      "C",
       "D"
     ],
     "automation_tier": "现在可自动",
@@ -1052,12 +1046,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D06"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D06"
   },
   {
     "id": "SC-04-02",
@@ -1075,12 +1067,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06"
   },
   {
     "id": "SC-04-03",
@@ -1098,12 +1088,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06"
   },
   {
     "id": "SC-04-04",
@@ -1121,12 +1109,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
   },
   {
     "id": "SC-04-05",
@@ -1146,12 +1132,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D04、D05"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D04、D05"
   },
   {
     "id": "SC-04-06",
@@ -1170,12 +1154,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
   },
   {
     "id": "SC-04-07",
@@ -1193,12 +1175,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
   },
   {
     "id": "SC-04-08",
@@ -1217,12 +1197,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05、D06"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05、D06"
   },
   {
     "id": "SC-04-09",
@@ -1241,12 +1219,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
   },
   {
     "id": "SC-04-10",
@@ -1267,12 +1243,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05、D06"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05、D06"
   },
   {
     "id": "SC-05-01",
@@ -1389,7 +1363,6 @@
     ],
     "blocked_by": [
       "B",
-      "C",
       "D"
     ],
     "automation_tier": "现在可自动",
@@ -1438,7 +1411,6 @@
     ],
     "blocked_by": [
       "B",
-      "C",
       "D"
     ],
     "automation_tier": "现在可自动",
@@ -1460,12 +1432,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-06-02",
@@ -1483,12 +1453,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04"
   },
   {
     "id": "SC-06-03",
@@ -1506,12 +1474,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01"
   },
   {
     "id": "SC-06-04",
@@ -1528,12 +1494,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-06-05",
@@ -1551,12 +1515,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D04"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D04"
   },
   {
     "id": "SC-06-06",
@@ -1573,12 +1535,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-06-07",
@@ -1595,12 +1555,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-06-08",
@@ -1616,12 +1574,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行"
   },
   {
     "id": "SC-06-09",
@@ -1639,12 +1595,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D08"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D08"
   },
   {
     "id": "SC-07-01",
@@ -1666,8 +1620,7 @@
       "C"
     ],
     "blocked_by": [
-      "B",
-      "C"
+      "B"
     ],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
@@ -1690,12 +1643,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
   },
   {
     "id": "SC-07-03",
@@ -1714,12 +1665,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "需真实设备或APP",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06"
   },
   {
     "id": "SC-07-04",
@@ -1737,12 +1686,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
   },
   {
     "id": "SC-07-05",
@@ -1761,12 +1708,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
   },
   {
     "id": "SC-07-06",
@@ -1785,12 +1730,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04、D05"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04、D05"
   },
   {
     "id": "SC-07-07",
@@ -1808,12 +1751,10 @@
     "owner_package": [
       "C"
     ],
-    "blocked_by": [
-      "C"
-    ],
+    "blocked_by": [],
     "automation_tier": "现在可自动",
     "status": "dependency_pending",
-    "pending_reason": "A 基线已交付（候选 26d97fb，E 独立基础验收证据见 backend/acceptance/evidence/）；B/C/D 业务实现尚未集成：关联业务端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
+    "pending_reason": "C 已交付集成（8b3592e@93b7e33）；场景级 E2E 前置（成员/授权/设备/报告/方案生成）仍需 B/D 真实端点，C 断面已经 E-C 验收以测试种子验证（见 backend/handoffs/E-C-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05"
   },
   {
     "id": "SC-C-01",
@@ -1863,7 +1804,6 @@
     ],
     "blocked_by": [
       "B",
-      "C",
       "D"
     ],
     "automation_tier": "现在可自动",
@@ -1972,7 +1912,6 @@
     ],
     "blocked_by": [
       "B",
-      "C",
       "D"
     ],
     "automation_tier": "需替身",
@@ -2074,7 +2013,6 @@
     ],
     "blocked_by": [
       "B",
-      "C",
       "D"
     ],
     "automation_tier": "现在可自动",
@@ -2127,7 +2065,6 @@
       "D"
     ],
     "blocked_by": [
-      "C",
       "D"
     ],
     "automation_tier": "需真实设备或APP",
@@ -2155,7 +2092,6 @@
       "D"
     ],
     "blocked_by": [
-      "C",
       "D"
     ],
     "automation_tier": "需真实设备或APP",
@@ -2236,7 +2172,6 @@
       "D"
     ],
     "blocked_by": [
-      "C",
       "D"
     ],
     "automation_tier": "现在可自动",
@@ -2263,7 +2198,6 @@
       "D"
     ],
     "blocked_by": [
-      "C",
       "D"
     ],
     "automation_tier": "需真实设备或APP",
@@ -2290,7 +2224,6 @@
       "D"
     ],
     "blocked_by": [
-      "C",
       "D"
     ],
     "automation_tier": "需真实设备或APP",
@@ -2317,7 +2250,6 @@
       "D"
     ],
     "blocked_by": [
-      "C",
       "D"
     ],
     "automation_tier": "现在可自动",
