@@ -251,6 +251,58 @@ git diff --name-only ccee6e28..e6812d49 -- 'backend/web-java/src/main/java/cn/yu
 
 **R6 实际执行的核查命令**：`git rev-parse HEAD`、`git log --oneline 5f0a988..f95037e`、`git diff --stat 5f0a988..f95037e`、`git diff 5f0a988..f95037e`、`git diff --check 5f0a988..f95037e`、`git status --short --branch`；另完整阅读修改后的 `ObservationSessions.java` 类 javadoc。未修改文件，未运行测试或写数据库。
 
+### 4.11 第七轮：Swagger/springdoc 接入的**有界**复审（被审 SHA `8127be53e6e2c66e30389699dd26429948733f39`，会话 `ora-1`）
+
+范围严格限定为本次 Swagger 变更面（7 个文件），**不重审 R6 已通过的业务代码**。
+
+**`VERDICT: FAIL`** —— 8 项裁定中 6 项通过，1 BLOCKER + 1 IMPORTANT，且明确"**合入 dev / 替换用户预览前必须先修**"。
+
+**通过项（含 Oracle 依据）**
+1. **确为代码生成而非渲染手写 YAML**：`OpenApiDocsConfig.java:52-98` 仅创建 OpenAPI 元信息，`:109-137` 仅定制生成后的安全说明；生产代码未读取 `backend/contracts/openapi/openapi.yaml`，仅测试 `OpenApiDocsIT.java:113-135` 读它构造期望路由集合；生成结果 3.1.0 且标题不同于手写 3.0.3 契约，为有效佐证。
+3. **业务权限零变化**：未修改任何 auth 文件；`BearerAuthFilter.java:46-69` 的公开端点与文档配置四项一致；全局 bearer + 4 个公开 operation 的 `security: []` 不会误导其他端点；principal 删除只改 OpenAPI 模型、不改请求解析或授权；当前生成路径未发现 actuator、SQL、配置值、堆栈或媒体内容泄漏。
+4. **无假业务 200 / 无业务路由变化**：新增路由仅 `OpenApiDocsConfig.java:145-153` 的 `/swagger-ui/` 内部 forward；未新增或修改业务 Controller；forward 仅在文档 bean 启用时存在，不掩盖业务 404。
+5. **27/27 证据可信**：`OpenApiDocsIT.java:37,49-57,98-140` 将 method 与归一化 path **共同**作为 key，不会用路径归一化掩盖 HTTP method 错误；仅归一化路径变量名，合理；期望集合来自带 `x-api-id` 的契约 operation 且固定断言数量 27；27 业务 + 7 真实额外 = 34 operations / 33 paths，与总协调独立实测一致；测试断言包含关系而非严格 34 项相等，但授权允许该 7 个已知额外端点，不构成缺陷。
+6. **范围基本合规**：`8127be5` 恰改 7 个授权文件；`f95037e..8127be5` 整段为 9 个文件是因含已披露的 `b4917f9` 两份 report-only handoff，非代码越界；未改 auth/`web/error`/`care`/`assessments`/契约/迁移/deploy/`backend/tests`；未重构 C/D DTO。
+7. **依赖风险通过（附常规注意事项）**：`pom.xml:23-29,55-62` 用属性锁定 2.8.17；官方 2.8.17 基于 Boot 3.5.13 并升级 swagger-core 2.2.47 / Swagger UI 5.32.2，与本项目 Boot 3.5.16 同线兼容；springdoc 会新增自动配置、资源 HandlerMapping 与模型扫描，但未发现其修改全局 `ObjectMapper`、异常处理或业务 `HandlerMapping`；394 项测试为合理回归证据；建议纳入依赖漏洞监控。
+
+**BLOCKER（必须修）**
+| 严重度 | 文件:行 | 问题 | 复现 | Oracle 建议修法 |
+|---|---|---|---|---|
+| BLOCKER | `DocsProductionGuard.java:22-24` | 生产判定只依赖 `app.env=production`；`prod` profile 被 `app.env=dev` 覆盖时，springdoc 自动配置仍可暴露文档端点 | 以 prod profile、`app.env=dev`、两个 springdoc 开关为 true 启动并提供真实 provider beans；guard 不注册，`/v3/api-docs` 可生成 | 让 guard **始终注册**，运行时以 `environment.acceptsProfiles("prod") || app.env=="production"` 判断；任一生产信号成立且文档开启即拒绝启动；补矛盾配置测试 |
+| IMPORTANT | `OpenApiDocsConfig.java:86-94` | "尚未字段级展开"清单不完整，遗漏 `SuccessEnvelope.data`、`ErrorEnvelope.details`、Heartbeat `incidents`、微晶 `capabilities`/`state`、通知 `registration` | 查看生成 schema，上述字段仍为自由 object，但 info 清单未列出 | 改成统一声明"所有声明类型为 `Object`/`Map` 的字段均可能无法展开"，再列举典型字段；**无需重构 DTO** |
+
+**测试充分性：部分不通过**——启用/关闭/27 路由/安全结构/UI forward 的测试均为真实断言、不是摆设；但 `DocsProductionGuardTest.java:21-50` 只测 `app.env`，未覆盖 `prod profile + app.env!=production` 的矛盾配置，故漏掉上述生产绕过；修复后应增加该组合测试，并最好增加 `app.env=production + dev profile` 的明确回归测试。
+
+**orchestrator 独立核实**：该缺口成立且非理论问题——矛盾配置下 `OpenApiDocsConfig` 因 `@Profile({"dev","test"})` 不注册、护栏因 `@ConditionalOnProperty(app.env=production)` 不注册，而 springdoc starter 自身自动配置（`@ConditionalOnProperty(springdoc.api-docs.enabled, matchIfMissing=true)`）仍暴露端点；A 的 `ProductionFailClosedValidator` 亦按 `app.env` 判定故同样不触发 ⇒ 无任何拦截。**不得依赖 A 的校验器偶然先失败。**
+
+**Oracle 要求持续披露的文档准确性限制**：生成文档非权威契约；生成格式 3.1.0 而权威契约 3.0.3；所有 `Object`/`Map` 字段可能只显示自由结构 object（含统一信封与请求字段）；response content type 可能为 `*/*`；operationId 由 Java 方法名生成、未对齐契约；未逐端点附着完整错误码与错误响应集合；**全局 bearer 只表达是否需要 token，不表达 APP/GIMBAL 主体类型、成员授权、当前任务等细粒度权限**；字段与错误码冲突时以 `backend/contracts/openapi/openapi.yaml` 为准；**Swagger UI 只能在 dev/test 暴露，不得用于公网生产环境**。
+
+**Oracle 实际执行的核查命令**：`git rev-parse HEAD`、`git log --oneline f95037e..8127be5`（含 `--decorate`）、`git diff --stat/--numstat/--name-only f95037e..8127be5`、`git diff f95037e..8127be5`、`git show --stat --oneline 8127be5`、`git status --short --branch`、`git diff --check f95037e..8127be5`，以及对 `web/auth/**`、`web/web/**`、`web/error/**`、`care/**`、`assessments/**`、`contracts/**`、`backend/tests/**`、`db/migration/**`、`deploy/**` 的越界核查（结果为空）；另只读检查 7 个变更文件、`BearerAuthFilter`、相关 DTO/信封，并核对 springdoc 2.8.17 官方发布信息。未运行测试、未启动进程、未触碰端口或数据库。
+
+**整改状态**：BLOCKER 与 IMPORTANT 已派回原实施道修复（护栏始终注册 + profile/app.env 双判据 + 矛盾配置与回归测试 + info 统一声明），落地于 **`d3dc853d7ec55ff0fad661a45943e7b60ff12325`**；复审结论见 §4.12。
+
+### 4.12 第八轮：Swagger 整改的**有界**复审（被审 SHA `d3dc853d7ec55ff0fad661a45943e7b60ff12325`，会话 `ora-1`）
+
+**`VERDICT: PASS-with-notes`** —— BLOCKER 与 IMPORTANT **均判定已闭合**，并明确**"可以将 `d3dc853` 合入 dev 并替换开发预览"**。
+
+**BLOCKER 闭合依据（Oracle 原文行号）**：`DocsProductionGuard.java:33-34` 护栏无条件注册、不再依赖 `app.env` 条件装配；`:48-53` `prod` profile 或规范化后的 `app.env=production` 任一成立即进入生产检查；`:55-59,76-78` 两个 springdoc 开关分别检查、**未配置按开启处理**、只有显式 `false` 才放行；`:61-73` 任一开关开启即抛 `IllegalStateException`，**不依赖 A 校验器或 `OpenApiDocsConfig`**；`DocsProductionGuardTest.java:32-68` 覆盖原绕过、单独 UI 开启、缺省开关及反向 profile/env 组合。Oracle 并确认：原复现 `prod + app.env=dev + springdoc=true` 现在必然中止启动，且 `SmartInitializingSingleton` 在 WebServer lifecycle 启动前执行，**不会形成可接受请求的监听服务**。
+
+**IMPORTANT 闭合依据**：`OpenApiDocsConfig.java:60-69,79-89,98-117` 已明确生成文档非权威契约、统一声明所有 Java `Object`/`Map`/`JsonNode` 可能无法字段级展开、覆盖上轮点名的 A/B/C/D 典型字段、明确列举 3.1/3.0.3、`*/*`、operationId、错误码及细粒度权限限制，并保持"从 Controller/DTO 生成、不是手写 YAML 渲染"的准确描述。
+
+**Oracle 对新绕过组合的逐条排查（均不成立）**：api-docs=false+UI=true → 拒绝；UI=false+api-docs=true → 拒绝；环境变量/命令行覆盖 → 最终均进入同一 Environment 属性检查；`app.env` 大小写与首尾空白 → 已处理；`/v3/api-docs/swagger-config`、`/swagger-ui/**` → 两个主开关显式关闭时其 springdoc 映射不会启用。**唯一注意点**：字面 profile `production` + `app.env=dev` 不会被识别，但项目正式 profile 约定是 `prod`，故**不作为 blocker**，建议做别名防御。
+
+**其余裁定**：测试 7 项均为有效状态断言、无放宽，覆盖矛盾配置/缺省语义/单开关/非生产不误伤；非生产环境在 `:52` 直接返回故不误伤；生产两开关显式 false 时正常启动；`application.yml` 只更新说明未改 profile 属性值；未发现对既有业务启动路径的新增影响。Oracle 如实说明：外部启动日志因运行目录权限边界未读取，但**代码与七项隔离测试足以确认核心路径**。
+
+**新发现（2 条 SUGGESTION，非阻塞）**
+| 严重度 | 文件:行 | 问题 | 复现 | 建议修法 |
+|---|---|---|---|---|
+| SUGGESTION | `DocsProductionGuard.java:49` | 只识别正式 profile 名 `prod`，不识别常见别名 `production` | `spring.profiles.active=production`、`app.env=dev`、springdoc=true | 改为 `Profiles.of("prod","production")`，或在部署文档明确只允许 `prod` |
+| SUGGESTION | `DocsProductionGuard.java:17` | javadoc 仍链接已删除 import 的 `ConditionalOnProperty`，且"无条件 ConditionalOnProperty"表述含混 | 生成 javadoc 或阅读注释 | 改为"无 `@ConditionalOnProperty` 条件"且不使用未解析链接 |
+
+**orchestrator 处置**：**不改代码**，按文档化披露处理。理由：Oracle 已对 `d3dc853` 给出合入许可，任何代码改动都会使该绑定失效并需再加一轮复审，直接拖延用户查看页面；两条 SUGGESTION 残余风险低（正式 profile 约定为 `prod`、基础 yml 默认关闭、`OpenApiDocsConfig` 仅 dev/test 注册，触发还需显式强开开关）。已记入 `B.md` §11.4 作为后续可选项。
+
+**Oracle 实际执行的核查命令**：`git rev-parse HEAD`、`git log --oneline 8127be5..d3dc853`、`git diff --stat 8127be5..d3dc853`、`git diff 8127be5..d3dc853`、`git show --stat --oneline d3dc853`、`git status --short --branch`、`git diff --check 8127be5..d3dc853`、`git diff --name-only 8127be5..d3dc853`，以及对 `web/auth/**`、`care/**`、`assessments/**`、`contracts/**`、`backend/tests/**`、`worker-python/**`、`db/migration/**`、`deploy/**` 的越界核查（结果为空）；另只读 `read`/`grep` 检查 4 个变更文件。未运行测试、未启动进程、未访问受限协调目录。
+
 
 
 ## 5. 验证证据（orchestrator 亲自执行，最终状态）
