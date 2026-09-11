@@ -1,0 +1,115 @@
+{
+  "schema": "e-acceptance-cd-chain/1",
+  "run_id": "E-CD-20260911T101659Z-078522e5",
+  "mode": "cd-chain",
+  "merged_head": "aebccc7",
+  "c_code": "8b3592e",
+  "d_code": "dc955c0",
+  "expected": 10,
+  "settled": 10,
+  "missing": [],
+  "extra": [],
+  "duplicates": [],
+  "unknown_status": [],
+  "counts": {
+    "pass": 10,
+    "fail": 0,
+    "blocked": 0,
+    "info": 0
+  },
+  "counts_sum": 10,
+  "rows": 10,
+  "final_exit": 0,
+  "results": [
+    {
+      "id": "CD-01",
+      "title": "集成状态绑定（祖先+业务路径 diff 空，非 HEAD 等值）：C 8b3592e / D dc955c0 / merged aebccc7 均为当前 HEAD 祖先；`aebccc7..HEAD -- web-java/worker-python/contracts` diff 空（merge 后仅 E 验收/证据/报告提交）；care diff=0、contracts diff=0；当前源码构建、worker venv 就绪、health UP@18081",
+      "status": "PASS",
+      "command": "git merge-base/diff; mvn package; java -jar; deps import",
+      "rc": "0",
+      "excerpt": "HEAD=845dca065720 C_anc=True D_anc=True merged_anc=True business_diff=[] care_diff=[] contracts_diff=[] jar_sha16=2a74d60d1da75274 worker_deps=True health=True note=后续提交仅 E 验收/证据/报告",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CD-02",
+      "title": "剩余占位定向验证：11 个 B 域占位端点（M1/M2/M5）逐个已认证 HTTP 501 NOT_IMPLEMENTED；未认证 401（B 待集成边界如实）",
+      "status": "PASS",
+      "command": "逐端点真实 HTTP",
+      "rc": "n=11",
+      "excerpt": "bad=[] unauth=401 routes=POST /api/v1/member-access-grants=501/NOT_IMPLEMENTED; GET /api/v1/me/member-access-grants=501/NOT_IMPLEMENTED; POST /api/v1/gimbals/{G}/heartbeats=501/NOT_IMPLEMENTED; GET /api/v1/gimbals/{G}/status=501/NOT_IMPLEMENTED; POST /api/v1/microcrystal-observations=501/NOT_IMPLEMENTED; GET /api/v1/microcrystals/{U}/capabilities=501/NOT_IMPLEMENTED; PUT /api/v1/me/gimbal-bindings",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CD-03",
+      "title": "报告→方案真实链（冻结字段互通）：B 前置 test_seed（gimbal/T04 设备能力）→ 真实 M3-A01 受理 → worker analyze/enroll/analyze → T06 由 D 发布事务唯一创建（waiting_inputs、generation_revision=0、input_photo_version=1、assessment 唯一）→ plan.generate → ready：冻结基线**精确值**（capability_id/ranges/regions/n_bounds/target_count）与 steps 形状完整、K 列显式默认不变",
+      "status": "PASS",
+      "command": "M3-A01 + 真实 worker 全链",
+      "rc": "a01=202 ready=ready",
+      "excerpt": "flags[wait,rev,ipv,dup,ready,cap,steps,Kinit,Ksame]=True,True,True,True,True,True,True,True,True task=d662db14-c964-404a-bdab-3991c3677296 plan=1c21da67-4707-4b42-a255-bf7332e31d99 waiting_seen=waiting_inputs target=30 cap={\"n_bounds\": {\"max\": 100, \"min\": 1}, \"capability_id\": \"mvp-double-capability\", \"microcrystal_id\": \"8726d607-8984-47ac-85ef-089eddde31bf\", \"approved_regions\": [\"forehead\", \"left_",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CD-04",
+      "title": "C 准入消费真实 D 冻结方案：对 CD-03 真实 ready T06（非种子）执行 C A03 准入（dev 人脸绑定）→ 201；**SQL 查证 T07 行存在且 plan_id==真实 D T06、member/microcrystal/controller 关联正确、status=admitted**；能力校验器接受 D 真实冻结基线（双侧 unit/区域/N bounds 实际值）",
+      "status": "PASS",
+      "command": "A03 on real D plan + SQL T07/capability 查证",
+      "rc": "201",
+      "excerpt": "frozen_capability_id=mvp-double-capability frozen_ranges={\"duration\": {\"max\": 600.0, \"min\": 1.0, \"unit\": \"second\"}, \"intensity\": {\"max\": 100.0, \"min\": 0.0, \"unit\": \"percent\"}, \"pulse_count\": {\"max\": 1000.0, \"min\": 1.0, \"unit\": \"count\"}} device_ranges={\"duration\": {\"max\": 600.0, \"min\": 1.0, \"unit\": \"second\"}, \"intensity\": {\"max\": 100.0, \"min\": 0.0, \"unit\": \"percent\"}, \"pulse_count\": {\"max\": 1000.0,",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CD-05",
+      "title": "任务替换 vs 准入竞争（真实链路）：真实 M3-A01 受理触发 T03 指针原子替换（非 SQL 种子）；替换前云台 A03=201、替换后旧任务 A03=409 TASK_REPLACED；A08 面：真实链路旧执行已 closed→404（生命周期冻结先于指针），另以 test_seed 指针移动在 admitted 执行上验证 A08=409 TASK_REPLACED；时序化窗口一致（无悬挂/无二者皆成）；CC-08 种子化 TASK_REPLACED 保留边界单测",
+      "status": "PASS",
+      "command": "M3-A01 + C A03/A08 时序竞争",
+      "rc": "201/409",
+      "excerpt": "pre201=True(ex=1650b898-4d2b-4909-b987-b1829c2c4c4b) replaced=True(a2=db5f47aa-5c19-4662-8f1c-eea48d50cf72) post_a03=409/TASK_REPLACED a08_real=404/RESOURCE_NOT_VISIBLE a08_boundary=409/TASK_REPLACED consistent=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CD-06",
+      "title": "D 公共 success/failure/defer 回归（黑盒）：success=**本次链路三 job （assessment.analyze/identity.enroll/plan.generate）逐个 succeeded** 且 worker 日志（RUN_ID 时间窗）stale_generation=0；defer=plan.generate 能力等待跳（T12 queued、attempt=0、lease 轮换、T06 generation_revision=0；T13 不适用）；failure=确定性配置故障（新受理 A3）→ PLAN_SNAPSHOT_INVALID 终态原子写（T06 无 ready 半成品、T12 同 failed）",
+      "status": "PASS",
+      "command": "worker --once 步进 + SQL 终态核对",
+      "rc": "stale=0",
+      "excerpt": "chain_jobs={'analyze:assessment.analyze': 'assessment.analyze|succeeded', 'enroll:identity.enroll': 'identity.enroll|succeeded', 'plan:plan.generate': 'plan.generate|succeeded'} stale_warnings=0 stale_window=this-run worker --once 日志 + worker-loop.log（RUN_ID 时间窗） gen_ready=True defer={'id': 'f1565186-66a5-483e-b97f-be9b34d16d98', 'status': 'queued', 'attempt': '0', 'lease_revision': '16', 'generat",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CD-07",
+      "title": "矩阵诚实维护：blocked_by=owner−已集成{C,D} → []×54 / B×40；owner/94 ID/业务语义逐字节不变（三字段剔除哈希 e4f5dc52）；pending_reason 分类细化（C/D 已集成已验收 / B 未集成 501）；再生成幂等；gate closed、94 pending",
+      "status": "PASS",
+      "command": "generate_matrix x2 + jq 断言",
+      "rc": "0",
+      "excerpt": "dist={'B': 40, '': 54} idempotent=True hash3=e4f5dc522fe60a83db47d7e42b595652 n=94",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CD-08",
+      "title": "诚实披露与证据纪律：全部 doubles_pass；B 依赖逐项 dependency_pending（11 端点 501 + 媒体读取 deny-all）；不声称完整 MVP；既有证据目录零覆盖；D 待接线如实转录（media.cleanup 周期触发 / enroll failed 槽位运维恢复 / 真实供应商前提）",
+      "status": "PASS",
+      "command": "证据/披露静态核对",
+      "rc": "0",
+      "excerpt": "b_stub_endpoints=11 zero_overwrite=True doc_wiring=True doc_exists=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CLEANUP",
+      "title": "停进程并按 run 标签删除 mvp-e-pg",
+      "status": "PASS",
+      "command": "docker rm -f -v",
+      "rc": "0",
+      "excerpt": "",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CLEANUP-ports",
+      "title": "端口释放（Java/PG/worker）",
+      "status": "PASS",
+      "command": "ss",
+      "rc": "0",
+      "excerpt": "",
+      "doubles": "doubles_pass"
+    }
+  ]
+}
