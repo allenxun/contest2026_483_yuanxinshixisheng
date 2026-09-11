@@ -101,6 +101,7 @@ public class GimbalHeartbeatService {
 
         Map<String, Object> observation = DeviceJson.parseObject(row.latestObservation());
         int maxSessions = props.maxObservationSessionsOrDefault();
+        // M2-A02 仅云台主体，故代次键固定为 sessionId（APP 用稳定 family，见 MicrocrystalService）。
         ObservationSessions.Resolution resolution = ObservationSessions.resolve(
                 observation.get("observation_sessions"),
                 DeviceJson.longAt(observation, "observation_credential_version"),

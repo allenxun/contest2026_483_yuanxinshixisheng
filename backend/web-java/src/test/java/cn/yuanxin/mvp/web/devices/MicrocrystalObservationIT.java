@@ -8,8 +8,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -194,7 +196,7 @@ class MicrocrystalObservationIT extends AbstractDeviceIT {
     }
 
     @Test
-    @DisplayName("同来源同代次翻转 epoch/降 seq → 拒绝且 capabilities 未变；重新登录（新代次）→ 接受并重置")
+    @DisplayName("APP 同 family 翻转 epoch/降 seq → 拒绝且 capabilities 未变；换安装实例（新 family）→ 接受并重置")
     void clientEpochIsNotAuthoritativeWithinGeneration() throws Exception {
         String phone = newPhone();
         String installationId = "inst-mc-epoch";
@@ -208,32 +210,38 @@ class MicrocrystalObservationIT extends AbstractDeviceIT {
                 DevProofFixture.connectionApp(account, installationId, serial), "e1", "10", "1");
         assertTrue(dataOf(first).path("accepted").asBoolean());
         UUID id = UUID.fromString(dataOf(first).path("microcrystalId").asText());
-        String capsBefore = (String) microcrystalRow(id).get("capabilities");
+        Map<String, Object> rowBefore = microcrystalRow(id);
+        // APP 用稳定 family 作代次键：一个 account:installation 只占一个表项、generation=1
+        assertEquals(1, observerSessionCount(id));
+        assertEquals(1, observerGeneration(id));
 
-        // 同来源（同 account:installation）同代次（同 session）翻转 epoch + 降 seq → 拒绝
-        MvcResult flipped = observe(app.accessToken(), serial,
+        // 同 family（refresh 得到的新 sessionId）翻转 epoch + 降 seq → 拒绝且逐列未变
+        LoginResult refreshed = loginAppWithInstallation(phone, installationId);
+        assertEquals(account, UUID.fromString(refreshed.accountId()));
+        MvcResult flipped = observe(refreshed.accessToken(), serial,
                 DevProofFixture.connectionApp(account, installationId, serial), "e2", "1", "2");
         assertEquals(200, flipped.getResponse().getStatus());
         assertFalse(dataOf(flipped).path("accepted").asBoolean());
-        assertEquals(capsBefore, microcrystalRow(id).get("capabilities"));
+        assertEquals(rowBefore, microcrystalRow(id));
 
-        // 同来源同代次、epoch 不变但 seq 回退 → 拒绝（capabilities 仍未变）
-        MvcResult rollback = observe(app.accessToken(), serial,
+        // 同 family、epoch 不变但 seq 回退 → 拒绝且逐列未变
+        MvcResult rollback = observe(refreshed.accessToken(), serial,
                 DevProofFixture.connectionApp(account, installationId, serial), "e1", "9", "3");
         assertFalse(dataOf(rollback).path("accepted").asBoolean());
-        assertEquals(capsBefore, microcrystalRow(id).get("capabilities"));
+        assertEquals(rowBefore, microcrystalRow(id));
+        assertEquals(1, observerSessionCount(id));
 
-        // 真实代次推进：同一 account+installation 重新登录（新 sessionId）→ 接受并重置
-        LoginResult reauth = loginAppWithInstallation(phone, installationId);
-        assertEquals(account, UUID.fromString(reauth.accountId()));
-        MvcResult advanced = observe(reauth.accessToken(), serial,
-                DevProofFixture.connectionApp(account, installationId, serial), "e2", "1", "4");
+        // 真实来源推进：换安装实例 = 新 family → 新表项、更高 generation、接受并重置基准
+        String newInstallation = installationId + "-2";
+        LoginResult newFamily = loginAppWithInstallation(phone, newInstallation);
+        assertEquals(account, UUID.fromString(newFamily.accountId()));
+        MvcResult advanced = observe(newFamily.accessToken(), serial,
+                DevProofFixture.connectionApp(account, newInstallation, serial), "e2", "1", "4");
         assertTrue(dataOf(advanced).path("accepted").asBoolean());
         assertEquals("4", dataOf(advanced).path("capabilityRevision").asText());
-        assertEquals(account + ":" + installationId, microcrystalRow(id).get("observer_ref"));
-        assertNotNull(jdbc.queryForObject(
-                "SELECT latest_observation ->> 'observer_generation' FROM microcrystals WHERE id = ?",
-                String.class, id));
+        assertEquals(account + ":" + newInstallation, microcrystalRow(id).get("observer_ref"));
+        assertEquals(2, observerSessionCount(id));
+        assertEquals(2, observerGeneration(id));
         assertEquals("number", jdbc.queryForObject(
                 "SELECT jsonb_typeof(latest_observation -> 'schema_version')"
                         + " FROM microcrystals WHERE id = ?", String.class, id));
@@ -242,62 +250,106 @@ class MicrocrystalObservationIT extends AbstractDeviceIT {
     }
 
     @Test
-    @DisplayName("Oracle#2 微晶：同来源两会话交替不得来回覆盖，旧会话永不重获权威")
+    @DisplayName("Oracle#4 微晶 APP：同一 account+installation 的多次 refresh/login 全部接受，表项恒为 1、generation 恒为 1")
+    void appRefreshSessionsNeverExhaustFamilyTable() throws Exception {
+        int max = deviceProps.maxObservationSessionsOrDefault();
+        int attempts = Math.max(9, max + 1); // 超过上限的 session 数（Oracle 第 9 个），证明正常生命周期不累积、不耗尽
+        String phone = newPhone();
+        String installation = "inst-mc-refresh";
+        String serial = "mc-" + UUID.randomUUID();
+        Set<String> sessionIds = new LinkedHashSet<>();
+        UUID account = null;
+        UUID id = null;
+        for (int i = 1; i <= attempts; i++) {
+            // 每次 login 都是新的随机 sessionId，但 family（account:installation）不变
+            LoginResult session = loginAppWithInstallation(phone, installation);
+            account = UUID.fromString(session.accountId());
+            sessionIds.add(sessionIdOf(session.accessToken()));
+            MvcResult r = observe(session.accessToken(), serial,
+                    DevProofFixture.connectionApp(account, installation, serial),
+                    "E", String.valueOf(i), String.valueOf(i));
+            assertTrue(dataOf(r).path("accepted").asBoolean(),
+                    "refresh session " + i + " must be accepted (family must never exhaust)");
+            if (id == null) {
+                id = UUID.fromString(dataOf(r).path("microcrystalId").asText());
+            }
+        }
+        assertTrue(sessionIds.size() >= 9,
+                "must exercise at least 9 distinct APP sessions, got " + sessionIds.size());
+        assertEquals(attempts, sessionIds.size(),
+                "each login/refresh must issue a distinct sessionId");
+        assertEquals(1, observerSessionCount(id),
+                "same account:installation must occupy exactly one table entry");
+        assertEquals(1, observerGeneration(id));
+        assertEquals(account + ":" + installation, microcrystalRow(id).get("observer_ref"));
+        assertEquals(String.valueOf(attempts), jdbc.queryForObject(
+                "SELECT observation_seq::text FROM microcrystals WHERE id = ?",
+                String.class, id));
+    }
+
+    @Test
+    @DisplayName("Oracle#4 微晶：不同 family 交替不得来回覆盖，旧 family 永不重获权威")
     void olderSessionNeverRegainsAuthority() throws Exception {
         String phone = newPhone();
-        String installationId = "inst-mc-2sess";
-        LoginResult s1 = loginAppWithInstallation(phone, installationId);
-        UUID account = UUID.fromString(s1.accountId());
+        String inst1 = "inst-mc-fam-1";
+        String inst2 = "inst-mc-fam-2";
+        LoginResult f1 = loginAppWithInstallation(phone, inst1);
+        UUID account = UUID.fromString(f1.accountId());
         String serial = "mc-" + UUID.randomUUID();
 
-        // 会话 S1 服务端首次见到 → generation=1
-        MvcResult first = observe(s1.accessToken(), serial,
-                DevProofFixture.connectionApp(account, installationId, serial), "E", "100", "1");
+        // family 1 首次 → generation=1
+        MvcResult first = observe(f1.accessToken(), serial,
+                DevProofFixture.connectionApp(account, inst1, serial), "E", "100", "1");
         assertTrue(dataOf(first).path("accepted").asBoolean());
         UUID id = UUID.fromString(dataOf(first).path("microcrystalId").asText());
         String capsAfterFirst = (String) microcrystalRow(id).get("capabilities");
 
-        // 同一 account+installation 的第二个会话 S2 → 服务端首次见到，更高代次，接受并重置
-        LoginResult s2 = loginAppWithInstallation(phone, installationId);
-        assertEquals(account, UUID.fromString(s2.accountId()));
-        MvcResult second = observe(s2.accessToken(), serial,
-                DevProofFixture.connectionApp(account, installationId, serial), "E2", "1", "2");
+        // family 2（不同安装实例）→ 新表项 generation=2，接受并重置基准
+        LoginResult f2 = loginAppWithInstallation(phone, inst2);
+        assertEquals(account, UUID.fromString(f2.accountId()));
+        MvcResult second = observe(f2.accessToken(), serial,
+                DevProofFixture.connectionApp(account, inst2, serial), "E2", "1", "2");
         assertTrue(dataOf(second).path("accepted").asBoolean());
         String capsAfterSecond = (String) microcrystalRow(id).get("capabilities");
         assertFalse(capsAfterFirst.equals(capsAfterSecond));
+        assertEquals(2, observerSessionCount(id));
+        assertEquals(2, observerGeneration(id));
+        Map<String, Object> rowAfterSecond = microcrystalRow(id);
 
-        // 关键：旧会话 S1 再报（epoch+seq 看似更"新"）不得重获权威 → 拒绝且能力未变
-        MvcResult stale = observe(s1.accessToken(), serial,
-                DevProofFixture.connectionApp(account, installationId, serial), "E", "101", "3");
+        // 关键：旧 family 1 再报（epoch+seq 看似更"新"）不得重获权威 → 拒绝且逐列未变
+        MvcResult stale = observe(f1.accessToken(), serial,
+                DevProofFixture.connectionApp(account, inst1, serial), "E", "101", "3");
         assertEquals(200, stale.getResponse().getStatus());
         assertFalse(dataOf(stale).path("accepted").asBoolean());
-        assertEquals(capsAfterSecond, microcrystalRow(id).get("capabilities"));
+        assertEquals(rowAfterSecond, microcrystalRow(id));
 
-        // 新会话 S2 同连接内继续推进
-        MvcResult next = observe(s2.accessToken(), serial,
-                DevProofFixture.connectionApp(account, installationId, serial), "E2", "2", "4");
+        // 当前 family 2 同 family 内继续推进
+        MvcResult next = observe(f2.accessToken(), serial,
+                DevProofFixture.connectionApp(account, inst2, serial), "E2", "2", "4");
         assertTrue(dataOf(next).path("accepted").asBoolean());
         assertEquals("4", dataOf(next).path("capabilityRevision").asText());
     }
 
     @Test
-    @DisplayName("Oracle#3 微晶：observer 会话表满后未见 session fail closed 且不写；当前连接不受影响")
+    @DisplayName("Oracle#4 微晶 APP：不同 family 表满后未见 family fail closed 且不写；在表 family 不受影响")
     void sessionTableFullFailClosed() throws Exception {
         int max = deviceProps.maxObservationSessionsOrDefault();
         String phone = newPhone();
-        String installationId = "inst-mc-full";
         String serial = "mc-" + UUID.randomUUID();
-        List<LoginResult> sessions = new ArrayList<>();
+        List<LoginResult> families = new ArrayList<>();
+        List<String> installations = new ArrayList<>();
         UUID account = null;
         UUID id = null;
         for (int i = 0; i < max; i++) {
-            LoginResult session = loginAppWithInstallation(phone, installationId);
-            sessions.add(session);
-            account = UUID.fromString(session.accountId());
-            MvcResult r = observe(session.accessToken(), serial,
-                    DevProofFixture.connectionApp(account, installationId, serial),
+            String installation = "inst-mc-full-" + i;
+            LoginResult family = loginAppWithInstallation(phone, installation);
+            families.add(family);
+            installations.add(installation);
+            account = UUID.fromString(family.accountId());
+            MvcResult r = observe(family.accessToken(), serial,
+                    DevProofFixture.connectionApp(account, installation, serial),
                     "e" + i, "1", String.valueOf(i + 1));
-            assertTrue(dataOf(r).path("accepted").asBoolean(), "session " + i + " must be accepted");
+            assertTrue(dataOf(r).path("accepted").asBoolean(), "family " + i + " must be accepted");
             if (id == null) {
                 id = UUID.fromString(dataOf(r).path("microcrystalId").asText());
             }
@@ -305,26 +357,34 @@ class MicrocrystalObservationIT extends AbstractDeviceIT {
         String capsFilled = (String) microcrystalRow(id).get("capabilities");
         assertEquals(max, observerSessionCount(id));
 
-        // 第 max+1 个未见 session → fail closed，不追加、capabilities 未变
-        LoginResult overflow = loginAppWithInstallation(phone, installationId);
+        // 第 max+1 个未见 family → fail closed，不追加、capabilities 未变
+        String overflowInstallation = "inst-mc-full-overflow";
+        LoginResult overflow = loginAppWithInstallation(phone, overflowInstallation);
         MvcResult rejected = observe(overflow.accessToken(), serial,
-                DevProofFixture.connectionApp(account, installationId, serial), "eNew", "1", "99");
+                DevProofFixture.connectionApp(account, overflowInstallation, serial),
+                "eNew", "1", "99");
         assertEquals(200, rejected.getResponse().getStatus());
         assertFalse(dataOf(rejected).path("accepted").asBoolean());
         assertEquals(capsFilled, microcrystalRow(id).get("capabilities"));
-        assertEquals(max, observerSessionCount(id), "rejected unseen session must not be appended");
+        assertEquals(max, observerSessionCount(id), "rejected unseen family must not be appended");
 
-        // 表满不影响已在表中的最高 generation session：同 epoch、严格更大 seq → 接受
-        MvcResult current = observe(sessions.get(max - 1).accessToken(), serial,
-                DevProofFixture.connectionApp(account, installationId, serial),
+        // 在表中的 family（最后一个）不受影响：同 family、严格更大 seq → 接受
+        MvcResult current = observe(families.get(max - 1).accessToken(), serial,
+                DevProofFixture.connectionApp(account, installations.get(max - 1), serial),
                 "e" + (max - 1), "2", "100");
         assertTrue(dataOf(current).path("accepted").asBoolean(),
-                "table-full must not reject the current connection");
+                "table-full must not reject an already-tracked family");
     }
 
     private int observerSessionCount(UUID microcrystalId) {
         return jdbc.queryForObject(
                 "SELECT jsonb_array_length(latest_observation -> 'observer_sessions')"
+                        + " FROM microcrystals WHERE id = ?", Integer.class, microcrystalId);
+    }
+
+    private int observerGeneration(UUID microcrystalId) {
+        return jdbc.queryForObject(
+                "SELECT (latest_observation ->> 'observer_generation')::int"
                         + " FROM microcrystals WHERE id = ?", Integer.class, microcrystalId);
     }
 
