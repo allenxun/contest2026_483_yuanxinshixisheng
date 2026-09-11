@@ -51,6 +51,17 @@ management:
       readiness:
         include: readinessState,db
 
+# —— API 文档（B 包 Swagger/springdoc）——
+# fail closed 默认关闭：仅 dev/test profile 覆盖为 true；prod 保持 false，
+# 且 DocsProductionGuard 在 app.env=production 且任一项被启用时拒绝启动。
+# 文档端点 /v3/api-docs、/swagger-ui/** 不以 /api/ 开头，天然不被
+# BearerAuthFilter（web/auth/BearerAuthFilter.java:68）拦截，无需改鉴权。
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 # —— 应用配置（全部 env 可覆盖）——
 app:
   # 环境标记：对象 key 前缀 + prod fail-closed 开关（prod profile 置 production）
@@ -93,6 +104,11 @@ spring:
   config:
     activate:
       on-profile: dev
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
 ---
 spring:
   config:
@@ -100,6 +116,11 @@ spring:
       on-profile: test
 app:
   env: test
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
 ---
 spring:
   config:
@@ -109,3 +130,8 @@ app:
   env: production          # 触发 ProductionFailClosedValidator
   providers:
     mode: real             # 必须提供真实实现 bean，否则启动失败
+springdoc:
+  api-docs:
+    enabled: false         # 生产显式关闭（DocsProductionGuard 兜底 fail-closed）
+  swagger-ui:
+    enabled: false
