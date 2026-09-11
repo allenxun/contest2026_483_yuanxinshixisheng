@@ -30,8 +30,14 @@ class OwnerDevMediaAccessIT extends AbstractWebIT {
             0, 0, 0, 9, 'I', 'H', 'D', 'R'};
 
     @Test
-    @DisplayName("owner-dev：非人脸用途上传者 200（no-store/nosniff）；他人/同账号换安装 404；匿名 401")
+    @DisplayName("owner-dev：核验用途（ASSESSMENT_SOURCE）即使上传者也 404——便利旁路已被裁定移除")
     void ownerDevNonFacePossitive() throws Exception {
+        // 总协调裁定（2026-09-11 第 3 项）：媒体统一采用 D 冻结格式
+        // report_payload.images[].media_id，仅 available 且 purpose=assessment_result 可放行；
+        // assessment_source、identity_summary.reference_media 及 face 类核验证据一律不经
+        // 业务 HTTP 读取（Worker 在存储层取图）；且"不得存在 dev owner 便利路径旁路"。
+        // 因此本用例原断言（owner-dev 下上传者读 ASSESSMENT_SOURCE 得 200）验证的正是
+        // 被禁止的旁路，现改为断言其被拒绝。他人/换安装/匿名的隔离断言与旁路无关，原样保留。
         String ownerPhone = newPhone();
         LoginResult owner = loginAppWithInstallation(ownerPhone, "inst-od-1");
         var ownerPrincipal = cn.yuanxin.mvp.web.auth.PrincipalContext.forApp(
@@ -41,17 +47,10 @@ class OwnerDevMediaAccessIT extends AbstractWebIT {
         MediaIntakeService.IngestedMedia ing = intakeService.ingest(
                 ownerPrincipal, MediaPurpose.ASSESSMENT_SOURCE, null, Map.of("front", PNG))
                 .values().iterator().next();
+        assertEquals("available", ing.media().state());
 
-        MvcResult r = mockMvc.perform(get("/api/v1/media/" + ing.media().id() + "/content")
-                        .header("Authorization", "Bearer " + owner.accessToken()))
-                .andReturn();
-        assertEquals(200, r.getResponse().getStatus(), r.getResponse().getContentAsString());
-        assertEquals("no-store", r.getResponse().getHeader("Cache-Control"));
-        assertEquals("nosniff", r.getResponse().getHeader("X-Content-Type-Options"));
-        assertEquals("image/png", r.getResponse().getContentType());
-        assertEquals(PNG.length, r.getResponse().getContentAsByteArray().length);
-        assertTrue(r.getResponse().getHeader("X-Request-Id") != null
-                && !r.getResponse().getHeader("X-Request-Id").isBlank());
+        // 上传者本人 + owner-dev 配置 → 仍 404 RESOURCE_NOT_VISIBLE（无旁路）
+        assertNotVisible(owner.accessToken(), ing.media().id());
 
         // 他人 → 404
         LoginResult other = loginAppWithInstallation(newPhone(), "inst-od-other");
@@ -61,7 +60,7 @@ class OwnerDevMediaAccessIT extends AbstractWebIT {
         LoginResult sameAcctOtherInst = loginAppWithInstallation(ownerPhone, "inst-od-2");
         assertNotVisible(sameAcctOtherInst.accessToken(), ing.media().id());
 
-        // 匿名 → 401
+        // 匿名 → 401（鉴权先于可见性判定）
         MvcResult anon = mockMvc.perform(get("/api/v1/media/" + ing.media().id() + "/content"))
                 .andReturn();
         assertEquals(401, anon.getResponse().getStatus());

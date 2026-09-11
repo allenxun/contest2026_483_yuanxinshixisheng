@@ -20,13 +20,25 @@ def _runtime(engine: Engine) -> WorkerRuntime:
     return WorkerRuntime(cfg, engine=engine)
 
 
-def test_registered_types_include_echo_and_d_business_handlers(engine: Engine) -> None:
-    """D 包落地后：echo + 四个 D 业务 handler 已注册；B 类型仍为扩展点（未注册）。"""
-    types = set(registered_job_types())
-    assert "system.echo" in types
-    assert {"assessment.analyze", "identity.enroll", "plan.generate",
-            "media.cleanup"} <= types
-    assert "notification.deliver" not in types
+def test_registered_types_are_exactly_the_six_implemented_job_types(engine: Engine) -> None:
+    """注册表**恰好**等于六种已实现 job_type（精确集合相等，不是白名单子集）。
+
+    合并集成基线 8afd0e5（含 C+D）后，A 的 ``system.echo``、B 的
+    ``notification.deliver``、D 的 ``assessment.analyze``/``identity.enroll``/
+    ``plan.generate``/``media.cleanup`` 均已注册，故由"⊆ 白名单"收紧为 ``==``：
+    既能发现**漏注册**（例如 B/D 的条目在合并中被丢掉），也能发现未知/拼错类型。
+    同时删除 D 侧 ``assert "notification.deliver" not in types`` 这句在合并后
+    **事实上已不成立**的过时断言（它写于 B 尚未合入时）。
+    未知 job_type 的 UNSUPPORTED_CONTRACT 隔离由下方用例独立验证，不因此放宽。
+    """
+    assert set(registered_job_types()) == {
+        "system.echo",
+        "notification.deliver",
+        "assessment.analyze",
+        "identity.enroll",
+        "plan.generate",
+        "media.cleanup",
+    }
 
 
 def test_unknown_job_type_fails_without_retry_loop(engine: Engine) -> None:
@@ -48,7 +60,15 @@ def test_unknown_job_type_fails_without_retry_loop(engine: Engine) -> None:
 
 
 def test_business_types_are_extension_point_failed(engine: Engine) -> None:
-    """B/C/D 类型未注册 → claimed 即 failed（UNSUPPORTED），日志注明扩展点。"""
+    """业务 job_type 配违反契约的 payload → claimed 即 failed（UNSUPPORTED），不重试循环。
+
+    合并集成基线后这五种类型**均已注册**（见上方精确集合断言），故本用例证明的不再是
+    "未注册扩展点"，而是更强的性质：即使 handler 已注册，payload 违反其契约 schema
+    （此处 ``{"schema_version": 1}`` 缺各类型必填字段）也必须在领取后立即
+    ``failed`` + ``UNSUPPORTED_CONTRACT``（retryable=false），绝不进入重试循环、
+    绝不静默成功。未知 job_type 的隔离由 ``test_unknown_job_type_fails_without_retry_loop``
+    独立覆盖。
+    """
     ids = set()
     for jt in ("assessment.analyze", "identity.enroll", "plan.generate",
                "notification.deliver", "media.cleanup"):

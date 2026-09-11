@@ -116,6 +116,11 @@ from . import system_echo as _system_echo  # noqa: E402
 
 register(_system_echo.ECHO_JOB_TYPE, _system_echo.handler)
 
+# --- B 包注册（notification.deliver；仅追加 B 条目） ---
+from . import notification_deliver as _notification_deliver  # noqa: E402
+
+register(_notification_deliver.JOB_TYPE, _notification_deliver.handler)
+
 # --- D 包注册（assessment.analyze / identity.enroll / plan.generate / media.cleanup；仅追加 D 条目） ---
 from . import assessment_analyze as _assessment_analyze  # noqa: E402
 from . import identity_enroll as _identity_enroll  # noqa: E402
