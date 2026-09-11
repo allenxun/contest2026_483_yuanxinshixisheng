@@ -52,9 +52,16 @@ class JobFailed(RuntimeError):
 
 @dataclass
 class HandlerResult:
-    """handle() 成功产物：可选业务写回调，由 complete_success 在同一事务执行。"""
+    """handle() 成功产物：可选业务写回调，由 complete_success 在同一事务执行。
+
+    ``defer_seconds`` 非空 → 合法等待态：运行时改走 ``complete_deferred``
+    （同 job 重排、退还本次 attempt、不产生后继任务），``business_tx`` 在同一
+    事务内先执行（用于复核业务输入版本仍有效，不一致抛 StaleGeneration）。
+    仅用于能力待补齐等合法等待；真实失败必须抛 :class:`JobFailed`。
+    """
 
     business_tx: Optional[BusinessTx] = None
+    defer_seconds: Optional[float] = None
 
 
 @dataclass
@@ -96,3 +103,14 @@ def registered_job_types() -> tuple[str, ...]:
 from . import system_echo as _system_echo  # noqa: E402
 
 register(_system_echo.ECHO_JOB_TYPE, _system_echo.handler)
+
+# --- D 包注册（assessment.analyze / identity.enroll / plan.generate / media.cleanup；仅追加 D 条目） ---
+from . import assessment_analyze as _assessment_analyze  # noqa: E402
+from . import identity_enroll as _identity_enroll  # noqa: E402
+from . import media_cleanup as _media_cleanup  # noqa: E402
+from . import plan_generate as _plan_generate  # noqa: E402
+
+register(_assessment_analyze.JOB_TYPE, _assessment_analyze.handler)
+register(_identity_enroll.JOB_TYPE, _identity_enroll.handler)
+register(_plan_generate.JOB_TYPE, _plan_generate.handler)
+register(_media_cleanup.JOB_TYPE, _media_cleanup.handler)
