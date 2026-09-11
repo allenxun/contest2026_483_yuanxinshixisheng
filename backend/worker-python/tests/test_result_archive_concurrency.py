@@ -10,13 +10,16 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import threading
+import uuid
 from typing import Any
 
 import pytest
 from sqlalchemy import Engine, text
 
 from d_support import PNG_BYTES, clean_d_tables, fetch_result_media, seed_assessment
+from mvp_worker.db import create_db_engine
 from mvp_worker.handlers.dshared import dmedia
 from mvp_worker.handlers.dshared.dmedia import ArchiveError, archive_result_images
 from mvp_worker.media.storage import FilesystemStorageDouble
@@ -333,4 +336,119 @@ def test_archive_concurrent_same_ref_different_bytes_one_winner(
     assert rows[0]["content_hash"] == hashlib.sha256(stored).hexdigest()
     assert rows[0]["byte_size"] == len(stored)
     assert rows[0]["content_type"] == "image/png"
+    assert len(_files(tmp_path)) == 1
+
+
+# ---------------------------------------------------------- G1 pool discipline
+
+
+def test_archive_two_assessments_small_pool_no_starvation(
+    engine: Engine, tmp_path: Any, test_dsn: str
+) -> None:
+    """G1：pool_size=2/max_overflow=0 下两 assessment 并发归档均完成。
+
+    旧设计每线程需「专用会话锁连接 + tx 连接」两连接 → 池耗尽互相等待（饿死）；
+    新设计任一时刻至多一根连接，故 2 线程在 2 连接池内可完成。
+    """
+    small = create_db_engine(test_dsn, pool_size=2, max_overflow=0)
+    storage = FilesystemStorageDouble(tmp_path / "arch")
+    aids = [
+        seed_assessment(
+            engine, status="analyzing", current_photo_version=1, processing_revision=2
+        )
+        for _ in range(2)
+    ]
+    barrier = threading.Barrier(2)
+    errors: list[BaseException] = []
+
+    def worker(aid: str) -> None:
+        try:
+            barrier.wait(timeout=15)
+            archive_result_images(
+                small, storage, environment="dev", assessment_id=aid,
+                photo_version=1,
+                result_images=[{"ref": "r1", "caption": "c", "bytes": PNG_BYTES}],
+                max_bytes=10_000_000,
+            )
+        except BaseException as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    threads = [threading.Thread(target=worker, args=(aid,)) for aid in aids]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=30)
+    alive = [t for t in threads if t.is_alive()]
+    if not alive:
+        small.dispose()
+
+    assert not alive  # 无饥饿死锁
+    assert errors == []
+    for aid in aids:
+        rows = fetch_result_media(engine, aid, 1)
+        assert len(rows) == 1 and rows[0]["state"] == "available"
+
+
+def test_archive_legacy_null_hash_claim_closes_divergence_window(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """G1/F1：legacy（content_hash NULL）pending 行 + 并发不同字节 → 恰一赢家且行↔对象一致。"""
+    storage, aid = _seed(engine, tmp_path)
+    media_id = str(uuid.uuid4())
+    object_key = f"dev/assessment_result/{media_id}"
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO media_objects (id, bucket, object_key, purpose, assessment_id,"
+                " photo_version, uploader_type, state, content_type, storage_metadata)"
+                " VALUES (CAST(:id AS uuid), 'mvp-media', :key, 'assessment_result',"
+                " CAST(:a AS uuid), 1, 'worker', 'pending', 'image/png',"
+                " CAST(:meta AS jsonb))"
+            ),
+            {
+                "id": media_id,
+                "key": object_key,
+                "a": aid,
+                "meta": json.dumps({"schema_version": 1, "provider_ref": "r1"}),
+            },
+        )
+    data_a = PNG_BYTES
+    data_b = PNG_BYTES + b"\x01\x02\x03"
+    barrier = threading.Barrier(2)
+    outcomes: list[tuple[str, str]] = []
+
+    def worker(data: bytes) -> None:
+        try:
+            barrier.wait(timeout=15)
+            arch = archive_result_images(
+                engine, storage, environment="dev", assessment_id=aid,
+                photo_version=1,
+                result_images=[{"ref": "r1", "caption": "c", "bytes": data}],
+                max_bytes=10_000_000,
+            )
+            outcomes.append(("ok", str(arch[0]["media_id"])))
+        except ArchiveError as exc:
+            outcomes.append(("reject", exc.code))
+
+    threads = [
+        threading.Thread(target=worker, args=(data_a,)),
+        threading.Thread(target=worker, args=(data_b,)),
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=30)
+
+    ok = [o for o in outcomes if o[0] == "ok"]
+    rejected = [o for o in outcomes if o[0] == "reject"]
+    assert len(ok) == 1
+    assert len(rejected) == 1 and rejected[0][1] == "PROVIDER_CONTRACT_VIOLATION"
+
+    rows = fetch_result_media(engine, aid, 1)
+    assert len(rows) == 1 and rows[0]["state"] == "available"
+    assert str(rows[0]["id"]) == media_id  # 复用 legacy 行，不新建
+    stored = storage.get(object_key)
+    assert stored in (data_a, data_b)
+    assert rows[0]["content_hash"] == hashlib.sha256(stored).hexdigest()
+    assert rows[0]["byte_size"] == len(stored)
     assert len(_files(tmp_path)) == 1
