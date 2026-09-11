@@ -1,13 +1,15 @@
-# E-C 验收（C/M4 护理管理）交接草稿
+# E-C 验收（C/M4 护理管理）交接
 
-> 由 E 实施代理起草，供总协调定稿。基线：C 最终代码 `8b3592e`，集成 HEAD `93b7e33`（E 工作树）。
+> 基线分列（Oracle R19 SUGGESTION 修正）：C 原始同步基线 `93b7e33`（C 最终代码
+> `8b3592e` 的集成点）；当前 merged 候选 `aebccc7`（C `8b3592e`+D `dc955c0`）；
+> E 最终代码 **`edbc7c1`**（Oracle 第十九轮 **PASS_WITH_WARNINGS**，blockingFindings 无）。
 > 证据：`backend/acceptance/evidence/C-acceptance-2026-09-11-8b3592e/`（正式 run，RUN_ID 入口绑定 + 哨兵）。
-> Oracle R14（审 `fd18bd4`）判 BLOCKED（5 BLOCKER+1 IMPORTANT+1 SUGGESTION，均为 E 驱动断言强度，未裁 C 新缺陷）；本轮按 findings 加强断言并正式重跑。
+> 审查史：R14（审 `fd18bd4`）BLOCKED（5 BLOCKER+1 IMPORTANT+1 SUGGESTION，均 E 驱动断言强度，未裁 C 新缺陷）→ R15-R18 逐项闭合（详见 `E-oracle.md`）→ **R19 PASS@`edbc7c1`**。
 
 ## 命令与退出码
 
 - `backend/acceptance/run.sh c-acceptance`：mode=`c-care`，EXPECTED=CC-01..CC-12 + CLEANUP + CLEANUP-ports（14 项唯一结算）。
-- 正式跑（当前，R18）：RUN_ID=`E-AB-20260911T111832Z-28c4994f`，settled 14/14，counts={PASS:13, FAIL:0, BLOCKED:0, INFO:1}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。INFO=CC-11（真四元组 allowlist 精确命中 13 路径、`impl_bad=[]`；未知字段集合改为**结构化计算**，杜绝字段名引号绕过；契约缺陷**已发现并升级待裁定**）。
+- 正式跑（最终，R18 修复后@edbc7c1）：**双跑一致**——实施 RUN_ID=`E-AB-20260911T111832Z-28c4994f` + 协调者复跑 `E-AB-20260911T112206Z-15ad40d0`，均 settled 14/14，counts={PASS:13, FAIL:0, BLOCKED:0, INFO:1}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。INFO=CC-11（真四元组 allowlist 精确命中 13 路径、`impl_bad=[]`；未知字段集合改为**结构化计算**，杜绝字段名引号绕过——R19 独立复现核定；契约缺陷**已发现并升级待裁定**）。
 - 历史迭代 run（保留、零覆盖）：R15 `E-AB-20260911T100912Z-0972884c`（13 PASS/1 INFO）；R14 `E-AB-20260911T090147Z-6d8dbb55`（**14 PASS/0 INFO**）；merged 重跑 `f724f2ba` 等；其 summary 历史措辞不改写。
 - 历史迭代 run（保留、零覆盖）：`E-AB-20260911T082701Z-73350e3c`（14 PASS）、`E-AB-20260911T081747Z-feeb86d8`（12 PASS / 2 FAIL 驱动侧归因）；连同早期 4 个 run 目录均未被覆盖。
 - `run.sh selfcheck` rc=0（72 passed）；`run.sh matrix` rc=3（94 pending、SETTLED 94/94）。

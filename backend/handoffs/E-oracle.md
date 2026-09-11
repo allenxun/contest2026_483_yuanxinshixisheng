@@ -4,14 +4,15 @@
 - 审查者：`oracle`（本机已安装 omo-slim 的真实子代理，mode=subagent，沿用其现有模型配置；
   未以协调者/Codex 代替，未更换模型）
 - 调用证据标识：task/session `ses_f7592f1b7ffe3L7KfP3jp79PRd`（调度板别名 ora-1），
-  同一会话共 13 轮正式调用：初审 93363ee → 复审 6b0a234 → 终审 cc33abe →
+  同一会话共 19 轮正式调用：初审 93363ee → 复审 6b0a234 → 终审 cc33abe →
   owner 映射再审 61f6329 → A 验收轮 f389078 → 440516b → 707670a → 85c2f33 →
-  定向复验轮 07617a4 → 2a595cf → 1fb5a5f → RV-5 有界复验轮 03b8dfb → cce3975
-  （另 2026-09-10 两次第十二轮调用因 oracle 用量限制失败【usage limit reached】，
-  配额恢复后经新授权单次正式调用完成；历史 429 仅作历史记录，不循环重试）
-- **reviewedCommit（最终被审代码 SHA）：`cce397560ef32e13c724c920757b479e829f659b`**
-  （分支 feature/mvp-acceptance，工作树干净；本报告为独立后续文档提交，不含代码变更；
-  HEAD=3b38ce2 仅为协调者独立复跑后的证据刷新）
+  定向复验轮 07617a4 → 2a595cf → 1fb5a5f → RV-5 有界复验轮 03b8dfb → cce3975 →
+  C/M4 验收与 C+D 集成链路轮 fd18bd4 → f90bab2 → 845dca0 → 2fcb520 → 098d877 →
+  edbc7c1（另 2026-09-10 两次第十二轮调用因 oracle 用量限制失败【usage limit
+  reached】，配额恢复后经新授权单次正式调用完成；历史 429 仅作历史记录，不循环重试）
+- **reviewedCommit（最终被审代码 SHA）：`edbc7c10c16b026bdd0c2473391feefc52352dee`**
+  （分支 feature/mvp-acceptance，工作树干净；本报告更新为独立后续文档提交，不含
+  代码变更；HEAD=66bf6a9 仅为协调者独立复跑后的证据刷新）
 - 实施链：cea01f7（框架+矩阵+计划+交接）→ 93363ee（E.md 事实修正）→
   6b0a234（第一轮修复）→ cc33abe（第二轮加固，第三轮 PASS）→
   7f4938f（本报告文字纠偏）→ 61f6329（owner 映射纠正，第四轮 PASS）→
@@ -20,25 +21,43 @@
   07617a4（A 修复定向复验驱动，第九轮 BLOCKED）→ 2a595cf（第九轮修复，
   第十轮 PASS 附警告）→ 1fb5a5f（第十轮修复，第十一轮 E 代码 PASS）→
   03b8dfb（RV-5 有界复验驱动 a-rv5，第十二轮 BLOCKED）→ cce3975（第十二轮修复，
-  **第十三轮 E 代码 PASS**）；证据刷新 1dced90/8c7276a/297c176/63763f2/baa809b/
-  abaa6a9/ded4034/824d953/3b38ce2（仅证据，无代码）；fb2fc08=配额受阻期 interim 报告
+  第十三轮 E 代码 PASS）→ fd18bd4（C/M4 验收驱动 c_care，第十四轮 BLOCKED）→
+  0f77b65（第十四轮修复）→ aebccc7（**总协调授权 merge 8afd0e5：C 8b3592e+D
+  dc955c0 集成候选入树**）→ 2600825（C+D 集成链路驱动 cd_chain）→ f90bab2
+  （CD-01 绑定修复，第十五轮 BLOCKED）→ 845dca0（第十五轮修复，第十六轮 BLOCKED）→
+  2fcb520（第十六轮修复，第十七轮 BLOCKED）→ 098d877（第十七轮修复，
+  第十八轮 BLOCKED）→ **edbc7c1（第十八轮修复，第十九轮 E 代码
+  PASS_WITH_WARNINGS，blockingFindings 无）**；证据刷新 1dced90/8c7276a/297c176/
+  63763f2/baa809b/abaa6a9/ded4034/824d953/3b38ce2/4b5ed51/f0fb329/1b3af71/
+  d4be147/a7c1baa/66bf6a9（仅证据，无代码）；fb2fc08=配额受阻期 interim 报告
 
-## 总体结论：**E 代码 PASS**（第十三轮终审 cce3975；blockingFindings：无）
+## 总体结论：**E 代码 PASS_WITH_WARNINGS**（第十九轮终审 edbc7c1；blockingFindings：无）
 
-**A 基础验收组合结论（供总协调采用）**：RV-5 裁定已由 A 实施（334a9c4→
+**C+D 集成验收组合结论（供总协调采用，2026-09-11）**：C/M4 黑盒验收
+（c-acceptance 14 项，双跑 28c4994f/15ad40d0@edbc7c1=13 PASS+1 INFO，exit=0）+
+C+D 真实端点集成链路验收（cd-chain 10 项，双跑 73a69cce/39d01667@2fcb520，
+cd_chain.py 此后零改动经 R19 核定复用）全部通过；结合 C oracle R3
+PASS-with-notes@8b3592e 与 D oracle R1/R2 PASS@dc955c0，**E 侧证据已足以供总协调
+形成 C+D 集成验收判断**。**待总协调裁定项（IMPORTANT，外部，非 E 代码缺陷）**：
+13 处共享 OpenAPI 建模缺陷（12 处 nullable:true 与 $ref/allOf 同层不生效+1 处
+ProgressWithSync.lastSyncedAt 被 Progress.additionalProperties:false 经 allOf
+误伤；清单/归属/复现见 E-C-acceptance.md 限制节）——接受为已知公共契约限制，或
+交 A 修约后定向重验 CC-11；**裁定前不视为公共契约完全通过**。诚实边界保持：B 未
+集成（11 占位 501）、媒体 deny-all 待 B、doubles_pass 非真实供应商、94 业务场景
+dependency_pending、不声称完整 MVP 通过。
+
+**A 基础验收组合结论（历史，供总协调采用）**：RV-5 裁定已由 A 实施（334a9c4→
 199b2f6→561c338）并经 E 有界复验实测闭合（10/10 PASS，原 INFO 残项解除），
 三部分组合证据齐备——①26d97fb 旧正式 52 项验收中适用的未变证据（RV-9/RV5-8
 台账，注明来源与范围）；②f6e500e 诊断泄漏闭合（N2-http 实测+9 处消费点复核
-闭合）；③561c338 RV-5 归属/统一拒绝/POST 碰撞闭合。**已具备由总协调形成 A
-整体基础验收结论并决定启动 B/C/D 的条件**；E 代码 PASS 不自动等于 A 整体无条件
-通过，最终放行权在总协调。放行记录保留非阻塞限制：全局 dedup availability-oracle
-（已接受）、36 处路径外历史 nullable（A follow-up）、旧镜像部署前须从当前源码
-重建、doubles_pass 不代表真实供应商/生产就绪、94 业务场景仍 dependency_pending
-随 B/C/D 继续验收。
+闭合）；③561c338 RV-5 归属/统一拒绝/POST 碰撞闭合。放行记录保留非阻塞限制：
+全局 dedup availability-oracle（已接受）、36 处路径外历史 nullable（A
+follow-up）、旧镜像部署前须从当前源码重建。
 
 审查性质：第 1—4 轮=E 验收准备门禁补审；第 5—8 轮=A 基线验收轮；第 9—11 轮=
-A 修复定向复验轮；第 12—13 轮=RV-5 最终候选有界复验轮。框架自检与 matrix 结果
-仍不代表任何业务场景通过（94 场景 dependency_pending，blocked_by=B/C/D）。
+A 修复定向复验轮；第 12—13 轮=RV-5 最终候选有界复验轮；第 14—19 轮=C/M4 验收
+与 C+D 集成链路轮。框架自检与 matrix 结果仍不代表任何业务场景通过（94 场景
+dependency_pending，blocked_by：[]×54（C/D 已集成，场景级步骤待写）/B×40）。
 
 ## 分项结论（第三轮终审 cc33abe，历史记录）
 
@@ -234,14 +253,40 @@ PYTEST_ADDOPTS 入口命令均 exit=4，实际输出均为"拒绝外部 PYTEST_A
 
 双跑证据目录：E-AB-20260911T012453Z-e21ed79b（实施跑）、E-AB-20260911T012642Z-90dbb580（协调者复跑）；逐项见 `backend/acceptance/evidence/A-rv5-2026-09-10-561c338/` 与 `E-A-acceptance.md` RV-5 节。
 
+## 第十四至十九轮审查（C/M4 验收与 C+D 集成链路轮，2026-09-11）
+
+| 轮次 | 对象 | 结论 | 阻塞发现与闭合 |
+|---|---|---|---|
+| R14 | fd18bd4（C 验收驱动 c_care 初版） | **BLOCKED** | 5 BLOCKER+1 IMPORTANT+1 SUGGESTION，全为 E 断言强度（CC-03 任意启动失败冒充生产拒绝、CC-05 四落点未真实覆盖、CC-06 不要求 409/精确 token、CC-09 空 disp 假 PASS+CC-10 新键重放未比 manifest、CC-11 未严格校验 care 成功响应；CC-04 T13/重放+CC-08 DEVICE_OCCUPIED/占用释放/TASK_REPLACED；三协调请求映射）；**C 实现未裁新缺陷** → 修复 0f77b65 |
+| — | aebccc7 | 总协调授权 merge 8afd0e5（C 8b3592e+D dc955c0 集成候选；care/contracts diff=0，E 产物零触碰） | — |
+| R15 | f90bab2（CD 链路驱动+R14 修复） | **BLOCKED** | BLOCKER：CC-11 非标准 OAS 改写（nullable 扩展/allOf 展平）+硬编码 POST 状态；IMPORTANT×4：CC-07 last_verified_at、CD-03 冻结基线仅通用形状+K 仅前后相等、CD-04 未 SQL 确认 T07、CD-06 success 未绑本次三 job；SUGGESTION：CC-01 merged 树措辞 → 修复 845dca0 |
+| R16 | 845dca0 | **BLOCKED** | BLOCKER：classify_strict_error 过宽（任意 type+None 当契约 nullable、任意 additionalProperties 当 allOf 误伤→实现缺陷可降级 INFO+exit 0）；IMPORTANT：CD-06 enroll 取全库最早未绑本链；MINOR：报告漏 A08 completedAt → 修复 2fcb520（13 条四元组 allowlist+enroll 差集绑定） |
+| R17 | 2fcb520 | **BLOCKED** | BLOCKER：A08 allowlist 仅查 message 含 lastSyncedAt，jsonschema 合并多未知字段→oracle 实际复现 data.secret 泄漏仍降级 INFO；IMPORTANT：13 处 OAS 缺陷误写「已接受限制」（应为待总协调裁定）；MINOR：三处陈旧事实 → 修复 098d877（恰等 {lastSyncedAt}+absolute_schema_path 真四元组） |
+| R18 | 098d877 | **BLOCKED** | BLOCKER：未知字段集合仍正则解析人类可读 message——oracle 实际复现 `"secret'x"`（字段名含单引号→Python repr 双引号包裹）被正则漏读仍降级 INFO；MINOR：E-C:51 selfcheck 统计 → 修复 edbc7c1（**结构化计算** instance.keys−schema.properties−patternProperties，与引号字符无关） |
+| R19 | **edbc7c1** | **PASS_WITH_WARNINGS（blockingFindings 无）** | R18 BLOCKER RESOLVED（oracle 独立复现四形态：仅 lastSyncedAt→contract；+secret'x/+sec"y/+多字段→impl）；MINOR RESOLVED；无回归（五 mode/哨兵/门禁/R15-R17 已闭合断言完好）；双跑一致核定。遗留：SUGGESTION（E-C:3 头陈旧 HEAD 引用——本报告定稿已修正）；**IMPORTANT 外部待裁定**（13 处共享 OpenAPI 建模缺陷：接受为已知限制或交 A 修约，裁定前不视为公共契约通过；非 E 代码缺陷） |
+
+### 第十四至十九轮测试命令与退出码（协调者于最终代码真实执行，2026-09-11）
+
+| 命令 | 退出码 | 结果 |
+| --- | --- | --- |
+| `backend/acceptance/run.sh selfcheck` | **0** | 72 passed（含 CC-11 结构化未知字段/真四元组 allowlist 判别、CD-01 绑定、CC-02 谓词、CD-06 enroll 本链绑定等负例回归） |
+| `backend/acceptance/run.sh matrix` | **3** | PASSED=72 DEPENDENCY_PENDING=94 FAILED=0；SETTLED=94/94；blocked_by []×54/B×40；三字段剔除哈希 e4f5dc52 不变 |
+| `backend/acceptance/run.sh c-acceptance` | **0** | settled=14/14；13 PASS+1 INFO（CC-11 契约披露，allowlist 13/13、impl_bad=[]）；双跑 28c4994f（实施）/15ad40d0（协调者@edbc7c1）一致；哨兵 OK |
+| `backend/acceptance/run.sh cd-chain` | **0** | settled=10/10 全 PASS；双跑 73a69cce（实施）/39d01667（协调者@2fcb520）一致；cd_chain.py 此后零改动，R19 核定复用 |
+
+证据目录：`evidence/C-acceptance-2026-09-11-8b3592e/`（12 run 含迭代史：feeb86d8=12P/2F 驱动侧归因等，零覆盖）；`evidence/CD-chain-2026-09-11-aebccc7/`（7 run 含 945fda65=9P/1F CD-01 绑定缺陷驱动侧归因，零覆盖）。逐项见 `E-C-acceptance.md` 与 `E-CD-acceptance.md`。
+
 ## 状态
 
-- RV-5 裁定已由 A 实施（最终代码 561c338，A oracle round9 PASS-with-notes）并经
-  E 有界复验闭合：a-rv5 双跑 10/10 PASS、exit=0；E 代码最终 **cce3975** 经第十三轮
-  oracle 终审 PASS（blockingFindings 无）；原 RV-5 INFO 残项解除。组合证据
-  （26d97fb 基础历史轮适用证据 + f6e500e 泄漏/9 处闭合 + 561c338 RV-5 闭合）
-  齐备，已具备交总协调形成 A 整体基础验收结论并决定启动 B/C/D 的条件。
-- 94 业务场景仍 dependency_pending（blocked_by=归属 B/C/D 业务包）；全部证据为
-  doubles_pass 替身形态。
-- nextAction：**waiting_dependency** —— 总协调形成整体结论并决定是否启动
-  B/C/D（最终放行权在总协调，E 不自动启动）；B/C/D 集成后开闸按矩阵验收 94 场景。
+- **C/M4+C+D 集成链路验收完成**：E 代码最终 **edbc7c1** 经第十九轮 oracle 终审
+  PASS_WITH_WARNINGS（blockingFindings 无）；c-acceptance 14 项与 cd-chain 10 项
+  均双跑一致 exit=0；C/D 产品代码未发现缺陷。
+- **待总协调裁定**：①13 处共享 OpenAPI 建模缺陷（接受为已知限制或交 A 修约+定向
+  重验 CC-11；裁定前不视为公共契约通过）；②C 三项协调请求（CareFaceVerifier 公共
+  端口/方案白名单批准/能力形状冻结，见 E-C-acceptance.md）；③C+D 集成验收整体
+  判断与 B 启动（最终放行权总协调，E 不自动启动）。
+- 94 业务场景仍 dependency_pending（blocked_by：[]×54=C/D 已集成但场景级 E2E 步骤
+  待写、B×40=B 未集成 11 占位 501）；全部证据为 doubles_pass 替身形态，不声称
+  完整 MVP/真实供应商/生产就绪。
+- nextAction：**waiting_dependency** —— 总协调裁定上述事项并决定 B 集成/94 场景
+  开闸；B 集成后 E 按矩阵补场景级步骤继续验收。

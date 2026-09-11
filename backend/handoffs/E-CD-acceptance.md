@@ -1,6 +1,6 @@
-# E C+D 集成链路验收 —— 交接草稿
+# E C+D 集成链路验收 —— 交接
 
-> 由 E 实施代理起草，供总协调定稿。集成候选：merged HEAD `aebccc7`（merge `8afd0e5`；C=`8b3592e`、D=`dc955c0`；B 未集成）。
+> 集成候选：merged HEAD `aebccc7`（merge `8afd0e5`；C=`8b3592e`、D=`dc955c0`；B 未集成）。E 最终代码 **`edbc7c1`**（Oracle 第十九轮 **PASS_WITH_WARNINGS**，blockingFindings 无；cd_chain.py 于 R17/R18 修复期零改动，本轮明示「CD 及其他未变证据可继续复用」）。
 > 证据：`backend/acceptance/evidence/CD-chain-2026-09-11-aebccc7/`（正式 run，RUN_ID 入口绑定 + 哨兵）。
 > 命令：`backend/acceptance/run.sh cd-chain`（mode=`cd-chain`，EXPECTED=CD-01..CD-08 + CLEANUP + CLEANUP-ports，10 项唯一结算）。
 
@@ -8,7 +8,7 @@
 
 - 正式跑（当前，R16；R17/R18 未重跑）：RUN_ID=`E-CD-20260911T102848Z-73a69cce`，settled 10/10，counts={PASS:10,FAIL:0,BLOCKED:0,INFO:0}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。**R17/R18 修复仅涉 c_care.py 分类器旁路，`cd_chain.py` 相对 HEAD 零改动（git diff 空）**，故 cd-chain 不重跑；本轮沿用 73a69cce 与协调者双跑 `39d01667@2fcb520` 证据（适用性保持）。
 - 迭代记录（如实）：协调者提交后树复跑 `E-CD-20260911T094425Z-945fda65` 得 9 PASS/1 FAIL——唯一 FAIL=CD-01，根因是**驱动绑定缺陷**（以 HEAD 字面等值 `aebccc7` 断言，而 E 自身验收代码/证据/报告提交必然前移 HEAD；业务面 C/D/merged 祖先、care/contracts diff、jar/worker/health 全 True）。R15 修为「祖先关系+业务路径 diff 空」等六项；R16 进一步：CC-11 严格分类改**精确 allowlist 四元组**（allowlist 外一律 impl→FAIL）、CD-06 enroll 改**链前后新增差集绑定**（不用全库最早）。此前 E 正式 run（`f01ae30d`、`5f50aeb4`、`7c7b0e92`、`350c6b76`、`945fda65`）均保留零覆盖。**非 C/D 缺陷**。
-- `run.sh c-acceptance` 在 merged 树 R18 重跑：RUN_ID=`E-AB-20260911T111832Z-28c4994f`，settled 14/14，counts={PASS:13,INFO:1}，exit=0（CC-11 真四元组 allowlist 精确命中 13 路径、结构化未知字段集合、impl_bad=[]；care 域 8b3592e..HEAD diff=0，旧证据适用）。
+- `run.sh c-acceptance` 在 merged 树 R18 修复后@edbc7c1 **双跑一致**：实施 `E-AB-20260911T111832Z-28c4994f` + 协调者复跑 `E-AB-20260911T112206Z-15ad40d0`，均 settled 14/14，counts={PASS:13,INFO:1}，exit=0（CC-11 真四元组 allowlist 精确命中 13 路径、结构化未知字段集合、impl_bad=[]；care 域 8b3592e..HEAD diff=0，旧证据适用）。
 - `run.sh selfcheck` rc=0（72 passed，含 CD-01 绑定/CC-11 真四元组 allowlist 判别/CD-03 基线/CD-06 enroll 本链绑定负例回归）；`run.sh matrix` rc=3（94 pending、SETTLED 94/94、blocked_by []×54/B×40）。
 - 既有 A 系 + C 系 7 run 证据目录零覆盖（新 run 独立子目录）。
 

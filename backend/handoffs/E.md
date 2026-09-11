@@ -173,30 +173,56 @@ T13 rejected-replay+全字段快照不变+同主体正例保留；原 INFO 残�
 
 ## 状态
 
-- blocker：**无（E 侧）**——RV-5 最终候选（A 561c338）有界复验完成并经第十三轮
-  oracle 终审 PASS（E 代码最终 **cce3975**，blockingFindings 无，原 INFO 残项
-  解除）；94 业务场景 dependency_pending（blocked_by=归属 B/C/D 包）。
-- nextAction：**waiting_dependency**（总协调按组合证据形成 A 基础验收整体结论并
-  决定是否启动 B/C/D——E 侧建议：已具备条件，最终放行权总协调，E 不自动启动；
-  B/C/D 集成后开闸按矩阵验收 94 场景）。
-- 未修改 `backend/doc/**`、A 源码/契约/迁移/构建配置；未访问兄弟工作树；E 专用
-  资源（mvp-e-pg@55433/18081/18082）已清理，未触碰 A 容器/端口；临时输出限
-  E 路径（未用 /tmp/opencode）。
-- 提交状态：本包已本地提交（实施 cea01f7 → 修复链 … → 85c2f33【R8 PASS】→
-  07617a4/2a595cf/1fb5a5f【R9-R11 PASS】→ 03b8dfb【R12 BLOCKED】→ **cce3975**
-  【R13 PASS】+ 证据刷新 baa809b/abaa6a9/ded4034/824d953/3b38ce2 及报告提交），
-  由总协调负责集成，未推送远端。
-- E 代码经 oracle 第十三轮终审 PASS（reviewedCommit `cce3975`，blockingFindings
-  无）；全部结果为测试替身形态（doubles_pass），不构成业务验收通过或真实供应商
-  接入声明；PARTIAL 不冒充新 SHA 全量。
+- blocker：**无（E 侧）**——C/M4 与 C+D 集成链路验收完成并经第十九轮 oracle 终审
+  PASS_WITH_WARNINGS（E 代码最终 **edbc7c1**，blockingFindings 无）；C/D 产品
+  代码未发现缺陷；94 业务场景 dependency_pending（blocked_by：[]×54=C/D 已集成
+  待场景级步骤编写 / B×40=B 未集成）。
+- nextAction：**waiting_dependency**（总协调裁定：①13 处 OAS 契约建模缺陷
+  【接受为已知限制或交 A 修约+定向重验 CC-11】②C 三项协调请求 ③C+D 集成验收
+  整体判断与 B 启动——最终放行权总协调，E 不自动启动；B 集成后按矩阵补场景级
+  步骤继续验收）。
+- 未修改 `backend/doc/**`、A/B/C/D 源码/契约/迁移/构建配置；未访问兄弟工作树；
+  E 专用资源（mvp-e-pg@55433/18081/18082）已清理，未触碰 B/D 容器与 5432；
+  临时输出限 E 路径（reports/，未用 /tmp/opencode）；JVM 限堆 640m。
+- 提交状态：本包已本地提交（实施 cea01f7 → … → cce3975【R13 PASS】→
+  fd18bd4/0f77b65【R14】→ aebccc7【授权 merge C+D】→ 2600825/f90bab2【R15】→
+  845dca0【R16】→ 2fcb520【R17】→ 098d877【R18】→ **edbc7c1**【R19
+  PASS_WITH_WARNINGS】+ 证据刷新 …/66bf6a9 及报告提交），由总协调负责集成，
+  未推送远端。
+- E 代码经 oracle 第十九轮终审 PASS_WITH_WARNINGS（reviewedCommit `edbc7c1`，
+  blockingFindings 无）；全部结果为测试替身形态（doubles_pass），不构成业务
+  验收通过或真实供应商接入声明；PARTIAL/test_seed 不冒充跨包真实链路或全量。
 
-## 附注（2026-09-11 增量：C+D merged 候选扩展验收）
+## C/M4 与 C+D 集成链路验收（2026-09-11 已执行——第十九轮 oracle 终审 PASS_WITH_WARNINGS@edbc7c1）
 
-- 本次在 merged 候选 `aebccc7`（C `8b3592e` + D `dc955c0`）上新增扩展真实链路验收
-  `run.sh cd-chain`（CD-01..CD-08，10 项唯一结算），正式 RUN_ID
-  `E-CD-20260911T094733Z-5f50aeb4` 10/10 PASS exit=0（协调者复跑 `945fda65` 暴露 CD-01
-  驱动绑定缺陷→修为祖先关系+业务路径 diff 空→重跑；非 C/D 缺陷）；C 既有 `c-acceptance` 在 merged
-  树重跑 `E-AB-20260911T093819Z-f724f2ba` 14/14 PASS exit=0；矩阵 blocked_by 更新为
-  []×54/B×40（C/D 已集成，B 未集成），三字段剔除哈希 `e4f5dc52` 不变。
-- 全程 doubles_pass；B 前置（成员/授权/设备）为 test_seed；不声称完整 MVP 通过。
-  详见 `backend/handoffs/E-CD-acceptance.md` 与 `evidence/CD-chain-2026-09-11-aebccc7/`。
+总协调已交付 C 候选（8b3592e@93b7e33，C oracle R3 PASS-with-notes）并增量授权
+merge C+D 集成隔离 dev `8afd0e5`（D=dc955c0，D oracle R1 M3 PASS/R2 M4
+PASS-with-notes；merge 无冲突，care/contracts diff=0，E 未改任何业务代码）。
+E 新增两个独立黑盒验收驱动：
+
+| 命令 | 退出码 | 结果 |
+| --- | --- | --- |
+| `backend/acceptance/run.sh selfcheck` | **0** | 72 passed |
+| `backend/acceptance/run.sh c-acceptance` | **0** | settled 14/14=13 PASS+1 INFO（CC-11 契约披露）；双跑一致 28c4994f（实施）/15ad40d0（协调者@edbc7c1） |
+| `backend/acceptance/run.sh cd-chain` | **0** | settled 10/10 全 PASS；双跑一致 73a69cce（实施）/39d01667（协调者@2fcb520；cd_chain.py 此后零改动，R19 核定复用） |
+
+- C/M4（CC-01..12）：生产人脸 fail-closed 四变体（含 prod,dev 混合）+正例判别、
+  成员绑定、嵌套白名单 SENSITIVE_PLAN 五面+T07 快照、能力 9-token 严格
+  fail-closed 22 变体、权限统一 404 三态、幂等重放双字段不刷新、并发占用恰一、
+  K/去重/回滚/收尾水位/迟到留痕、9 API 成功响应严格 OAS 校验（结构化未知字段
+  集合计算，杜绝引号字符绕过）。
+- C+D 真实链路（CD-01..08）：真实 M3-A01 受理→worker→T06 唯一创建→
+  plan.generate→ready 冻结字段精确基线→C 准入消费（T07 SQL 关联）→真实指针
+  替换 TASK_REPLACED；D 公共 success/defer/failure 黑盒回归（本链三 job 逐个
+  绑定+RUN_ID 窗口）；B 域 11 占位 501 实测如实。
+- Oracle 第十四至十九轮门禁：fd18bd4/f90bab2/845dca0/2fcb520/098d877 五轮
+  BLOCKED（均为 E 驱动断言强度/绑定/分类器缺陷，C/D 产品零缺陷裁定）→逐项
+  修复→**edbc7c1 第十九轮 PASS_WITH_WARNINGS（blockingFindings 无）**。
+- **待总协调裁定**：①13 处共享 OpenAPI 建模缺陷（12 处 nullable over
+  $ref/allOf+1 处 allOf/additionalProperties 误伤；归属契约/A；接受为已知限制
+  或交 A 修约+定向重验 CC-11；裁定前不视为公共契约通过）；②C 三项协调请求
+  （CareFaceVerifier 公共端口/方案白名单批准/能力形状冻结）。
+- 全程 doubles_pass；B 前置（成员/授权/设备）为 test_seed≠跨包真实链路；B 未
+  集成（11 占位 501、媒体 deny-all 待 B）；矩阵 blocked_by 更新 []×54/B×40
+  （三字段剔除哈希 e4f5dc52 不变，gate closed）；不声称完整 MVP 通过。详见
+  `E-C-acceptance.md` 与 `E-CD-acceptance.md`。
