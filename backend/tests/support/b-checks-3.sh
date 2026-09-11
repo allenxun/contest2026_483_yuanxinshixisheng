@@ -118,7 +118,10 @@ b33() {
   local pn; pn=$($FIX pending-notification --gimbal "$g" --account "$acct" --dest "$did" --binding-rev 1 --dest-rev 1 --incident "$inc")
   local nid job; nid=$(printf '%s' "$pn" | $HELP jget notificationId); job=$(printf '%s' "$pn" | $HELP jget jobId)
   worker_once unknown not_found > "$TMP/b33.w1.log" 2>&1 || true
-  aeq "$(psql_b "SELECT status FROM notifications WHERE id='$nid'")" unknown "首次 unknown"
+  # 语义（总协调 MVP 简化裁定 + Oracle #6 闭合方式）：KIND_UNKNOWN 属**可重试**失败，
+  # 非末次尝试**不提前终态化**（不包装 business_tx），T10 保持 sending 可观测态等待
+  # 下一次领取对账；只有末次尝试才经 D 的 complete_failure 同事务收敛为终态。
+  aeq "$(psql_b "SELECT status FROM notifications WHERE id='$nid'")" sending "非末次 unknown：T10 保持可观测态"
   aeq "$(psql_b "SELECT attempt_count FROM notifications WHERE id='$nid'")" 1 "attempt=1"
   psql_bf <<SQL
 UPDATE notifications SET status='sending', attempt_count=1, last_attempt_at=now(), provider_message_id=NULL WHERE id='$nid';
@@ -139,7 +142,25 @@ SQL
   worker_once accepted not_found > "$TMP/b33.w3.log" 2>&1 || true
   aeq "$(psql_b "SELECT status FROM notifications WHERE id='$nid2'")" submitted "not_found 重发收敛 submitted"
   aeq "$(psql_b "SELECT provider_message_id FROM notifications WHERE id='$nid2'")" "acc-$nid2:1" "同 provider_message_key"
-  vlog "unknown 不重发；崩溃对账 submitted（attempt 不变）；not_found 同 key 重发"
+  # Oracle #6 的端到端闭合证据：**末次**尝试的 unknown 必须经 D 的 complete_failure
+  # 同事务回调收敛 T10 终态，绝不滞留 sending；且 T10 终态与 T12 failed 同时落库
+  # （lease 守卫 0 行时两者整体回滚）。max_attempts=1 使首次尝试即末次。
+  local fx3; fx3=$($FIX episode-gimbal --bound 1 --dest active --episode device)
+  local g3 acct3 did3 inc3
+  g3=$(printf '%s' "$fx3" | $HELP jget gimbalId); acct3=$(printf '%s' "$fx3" | $HELP jget accountId)
+  did3=$(printf '%s' "$fx3" | $HELP jget destinationId); inc3=$(printf '%s' "$fx3" | $HELP jget incidentId)
+  local pn3; pn3=$($FIX pending-notification --gimbal "$g3" --account "$acct3" --dest "$did3" \
+    --binding-rev 1 --dest-rev 1 --incident "$inc3")
+  local nid3 job3
+  nid3=$(printf '%s' "$pn3" | $HELP jget notificationId); job3=$(printf '%s' "$pn3" | $HELP jget jobId)
+  psql_b "UPDATE async_jobs SET max_attempts=1, attempt_count=0 WHERE id='$job3'" >/dev/null
+  worker_once unknown not_found > "$TMP/b33.w4.log" 2>&1 || true
+  aeq "$(psql_b "SELECT status FROM notifications WHERE id='$nid3'")" failed "末次 unknown：T10 同事务收敛 failed（不滞留 sending）"
+  aeq "$(psql_b "SELECT status FROM async_jobs WHERE id='$job3'")" failed "T12 同时 failed（同一事务）"
+  aeq "$(psql_b "SELECT jsonb_typeof(last_error) FROM notifications WHERE id='$nid3'")" object "T10 留有界 last_error 快照"
+  aeq "$(psql_b "SELECT attempt_count FROM notifications WHERE id='$nid3'")" 1 "末次只投递一次，无重复发送"
+  vlog "非末次 unknown 保持可观测态不提前终态化；对账收敛 submitted 且 attempt 不变；"
+  vlog "not_found 同 key 重发；末次 unknown 经 D 的同事务回调收敛 T10 failed + T12 failed（#6 闭合）"
 }
 
 b34() {
@@ -211,12 +232,12 @@ b37() {
   passed=$(printf '%s' "$summary" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+' || true); passed=${passed:-0}
   failed=$(printf '%s' "$summary" | grep -oE '[0-9]+ failed' | grep -oE '[0-9]+' || true); failed=${failed:-0}
   local failed_lines; failed_lines=$(printf '%s\n' "$out" | grep -E '^FAILED ' || true)
-  [[ "$failed" == 1 ]] || { printf '%s\n' "$summary"; fail "期望恰好 1 个失败（披露的 A 断言），实际 $failed"; }
-  grep -q 'tests/test_sanity.py::test_config_defaults' <<<"$failed_lines" \
-    || { printf '%s\n' "$failed_lines"; fail "唯一失败不是 test_config_defaults"; }
-  [[ "$passed" -ge 75 ]] || fail "通过数 $passed < 75"
-  vlog "Python passed=$passed failed=1；唯一失败=tests/test_sanity.py::test_config_defaults"
-  vlog "分类：DISCLOSED ENV-COUPLED A ASSERTION（默认 55432 vs 覆盖 55435），非 B 缺陷；其余全部通过"
+  [[ "$failed" == 0 ]] || { printf '%s\n' "$summary"; printf '%s\n' "$failed_lines"; \
+    fail "期望 0 个失败，实际 $failed"; }
+  [[ "$passed" -ge 200 ]] || fail "通过数 $passed < 200"
+  vlog "Python passed=$passed failed=0 errors=0"
+  vlog "说明：合并集成基线 8afd0e5 后 tests/test_sanity.py 实测 4/4 通过，原 C15 的"
+  vlog "环境耦合失败（默认 55432 vs 覆盖 55435）不再复现；本项现要求全量零失败。"
 }
 
 b38() {

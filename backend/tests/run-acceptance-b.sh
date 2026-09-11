@@ -363,11 +363,11 @@ maybe_check b29 "无有效目标不假装成功（T10 零行 + skipped_no_destin
 maybe_check b30 "解绑后不误发：cancelled + route_recheck_failed + 推送 0" b30
 maybe_check b31 "换号后旧通知 cancelled 不误发；新路由可建通知" b31
 maybe_check b32 "transient 退避；重试前改绑 → cancelled 不投递" b32
-maybe_check b33 "unknown 对账：不重发 / 收敛 submitted / 同 key 有限重发" b33
+maybe_check b33 "unknown：非末次保持可观测态 / 对账收敛 submitted 不重发 / 同 key 重发 / 末次同事务收敛 T10+T12" b33
 maybe_check b34 "通知内容合规：T10 payload 与推送内容均不含敏感项" b34
 maybe_check b35 "同 T12 二次领取不重复投递；扫描两轮 T10 行数不变" b35
 maybe_check b36 "Java 全量 mvn -B test：Failures 0 / Errors 0" b36
-maybe_check b37 "Python 全量 pytest：仅披露的 A 断言失败，其余全过" b37
+maybe_check b37 "Python 全量 pytest：0 failed / 0 errors（合并 8afd0e5 后 test_sanity 已通过）" b37
 maybe_check b38 "注册含两类；违规 payload → failed/UNSUPPORTED_CONTRACT 不循环" b38
 maybe_check b39 "运行前后 git status 无 tracked 业务文件被改（HEAD 不变）" b39
 maybe_check b14 "契约驱动：错误信封形状 + 每端点码白名单（全量观测）" b14_contract
