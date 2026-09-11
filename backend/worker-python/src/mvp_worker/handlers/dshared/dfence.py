@@ -33,8 +33,10 @@ from ...runtime.rows import JobRow
 
 _FENCE = text(
     """
+-- 租约有效性用 clock_timestamp()（真实执行时刻），而非事务起始 CURRENT_TIMESTAMP：
+-- 围栏必须在调用方执行任何业务写之前看到最新租约状态。
 SELECT status, lease_owner, lease_revision,
-       (lease_until IS NOT NULL AND lease_until >= CURRENT_TIMESTAMP) AS lease_live
+       (lease_until IS NOT NULL AND lease_until >= clock_timestamp()) AS lease_live
 FROM async_jobs
 WHERE id = :job_id
 FOR UPDATE

@@ -53,7 +53,7 @@ SET status = 'queued',
     updated_at = CURRENT_TIMESTAMP
 WHERE id = :id AND status = 'running'
   AND lease_owner = :worker_id AND lease_revision = :lease_revision
-  AND lease_until >= CURRENT_TIMESTAMP
+  AND lease_until >= clock_timestamp()
 """
 )
 
@@ -66,13 +66,16 @@ SET status = 'failed',
     updated_at = CURRENT_TIMESTAMP
 WHERE id = :id AND status = 'running'
   AND lease_owner = :worker_id AND lease_revision = :lease_revision
-  AND lease_until >= CURRENT_TIMESTAMP
+  AND lease_until >= clock_timestamp()
 """
 )
 
 # 合法等待态重排（defer）：同 job、同 dedup_key/input_revision；退还本次 claim
 # 的 attempt 增量（GREATEST 防负），lease_revision+1 作废旧领取代次，available_at
 # 推到下次检查时刻。**绝不写/读 last_error**（诊断字段不得驱动决策）。
+# 租约校验用 clock_timestamp()（真实语句执行时刻，非事务起始 CURRENT_TIMESTAMP）：
+# business_tx 先于守卫执行，若回调耗尽租约，守卫必须在此刻判定过期 → StaleGeneration
+# → 业务与重排整体回滚（过期领取者绝不提交结果）。
 _DEFER = text(
     """
 UPDATE async_jobs
@@ -85,7 +88,7 @@ SET status = 'queued',
     updated_at = CURRENT_TIMESTAMP
 WHERE id = :id AND status = 'running'
   AND lease_owner = :worker_id AND lease_revision = :lease_revision
-  AND lease_until >= CURRENT_TIMESTAMP
+  AND lease_until >= clock_timestamp()
 """
 )
 
@@ -208,6 +211,10 @@ def complete_failure(
     守卫 0 行 → :class:`StaleGeneration`，业务写与任务状态**整体回滚**。这样
     「业务终态」与「T12 终态」原子提交，杜绝崩溃窗口导致的审计不一致（oracle N2）。
     无 callback 的调用方（A echo / B 通知）行为不变。
+
+    租约过期用 ``clock_timestamp()``（真实执行时刻）判定，而非事务起始的
+    ``CURRENT_TIMESTAMP``：回调先于守卫执行，若回调耗时耗尽租约，守卫在此刻判过期
+    → StaleGeneration → 业务+任务写**整体回滚**（过期领取者绝不提交业务结果）。
 
     0 行守卫 → StaleGeneration（调用方记日志丢弃即可：回收器会重新入队）。
     """
