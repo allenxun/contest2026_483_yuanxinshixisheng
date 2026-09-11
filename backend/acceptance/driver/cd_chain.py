@@ -189,10 +189,31 @@ def _run_worker_cycles(n, extra_env=None, pause=1.0):
 
 # ---------------- CD-01 ----------------
 
+#: merge 后仅允许 E 验收/证据/报告路径继续提交（不触业务/契约）。
+CD01_BUSINESS_PATHS = ["backend/web-java", "backend/worker-python", "backend/contracts"]
+
+
+def cd01_binding_ok(*, anc_c, anc_d, anc_merged, business_diff, care_files,
+                    contract_files, mvn_rc, venv_ok, health_up):
+    """CD-01 绑定判定纯函数（供 selfcheck 回归）。
+
+    绑定语义 = **祖先关系 + 业务路径 diff 空**，而非 HEAD 字面等值：C/D/merged 均须为
+    当前 HEAD 祖先；`merged..HEAD` 业务路径（web-java/worker-python/contracts）diff 为空
+    （merge 后仅 E 验收/证据/报告提交）；既有 care diff=0 与 contracts diff=0 保留。
+    """
+    return bool(anc_c and anc_d and anc_merged and business_diff == []
+                and care_files == [] and contract_files == []
+                and mvn_rc == 0 and venv_ok and health_up)
+
+
 def cd_01_build():
     head = _git(["rev-parse", "HEAD"]).stdout.strip()
     anc_c = _git(["merge-base", "--is-ancestor", C_CODE, "HEAD"]).returncode == 0
     anc_d = _git(["merge-base", "--is-ancestor", D_CODE, "HEAD"]).returncode == 0
+    anc_merged = _git(["merge-base", "--is-ancestor", MERGED_HEAD, "HEAD"]).returncode == 0
+    biz = _git(["diff", f"{MERGED_HEAD}..HEAD", "--", *CD01_BUSINESS_PATHS],
+               log_name="cd-01-diff-merged.log")
+    business_diff = [x for x in biz.stdout.splitlines() if x.strip()]
     care_paths = ["backend/web-java/src/main/java/cn/yuanxin/mvp/web/care",
                   "backend/web-java/src/test/java/cn/yuanxin/mvp/web/care"]
     diff_c = _git(["diff", f"{C_CODE}..HEAD", "--", *care_paths], log_name="cd-01-diff-c.log")
@@ -207,24 +228,29 @@ def cd_01_build():
     sha = hashlib.sha256(jar.read_bytes()).hexdigest()[:16] if jar.exists() else "-"
     venv_ok = I.run([str(I.PY), "-c", "import sqlalchemy,psycopg,jsonschema,yaml; print('deps OK')"],
                     cwd=I.ROOT, timeout=120, log_name="cd-01-workerdeps.log")
-    CONTEXT["cd01"] = {"head": head, "anc_c": anc_c, "anc_d": anc_d,
-                       "care_files": care_files, "contract_files": contract_files,
-                       "mvn_rc": cp.returncode, "sha16": sha,
+    CONTEXT["cd01"] = {"head": head, "anc_c": anc_c, "anc_d": anc_d, "anc_merged": anc_merged,
+                       "business_diff": business_diff, "care_files": care_files,
+                       "contract_files": contract_files, "mvn_rc": cp.returncode, "sha16": sha,
                        "venv_ok": venv_ok.returncode == 0}
     return CONTEXT["cd01"]
 
 
 def cd_01_finalize(health_up):
     d = CONTEXT["cd01"]
-    ok = (d["head"].startswith(MERGED_HEAD) and d["anc_c"] and d["anc_d"]
-          and d["care_files"] == [] and d["contract_files"] == []
-          and d["mvn_rc"] == 0 and d["venv_ok"] and health_up)
-    _add("CD-01", "集成状态绑定：HEAD=aebccc7、C 8b3592e/D dc955c0 祖先、care 路径 diff=0、"
-                  "contracts diff=0、当前源码构建、worker venv 就绪、health UP@18081",
+    ok = cd01_binding_ok(anc_c=d["anc_c"], anc_d=d["anc_d"], anc_merged=d["anc_merged"],
+                         business_diff=d["business_diff"], care_files=d["care_files"],
+                         contract_files=d["contract_files"], mvn_rc=d["mvn_rc"],
+                         venv_ok=d["venv_ok"], health_up=health_up)
+    _add("CD-01", "集成状态绑定（祖先+业务路径 diff 空，非 HEAD 等值）：C 8b3592e / D dc955c0 / "
+                  "merged aebccc7 均为当前 HEAD 祖先；`aebccc7..HEAD -- web-java/worker-python/"
+                  "contracts` diff 空（merge 后仅 E 验收/证据/报告提交）；care diff=0、contracts "
+                  "diff=0；当前源码构建、worker venv 就绪、health UP@18081",
          "PASS" if ok else "FAIL", "git merge-base/diff; mvn package; java -jar; deps import",
          d["mvn_rc"], f"HEAD={d['head'][:12]} C_anc={d['anc_c']} D_anc={d['anc_d']} "
+                      f"merged_anc={d['anc_merged']} business_diff={d['business_diff']} "
                       f"care_diff={d['care_files']} contracts_diff={d['contract_files']} "
-                      f"jar_sha16={d['sha16']} worker_deps={d['venv_ok']} health={health_up}")
+                      f"jar_sha16={d['sha16']} worker_deps={d['venv_ok']} health={health_up} "
+                      f"note=后续提交仅 E 验收/证据/报告")
 
 
 # ---------------- CD-02 ----------------
