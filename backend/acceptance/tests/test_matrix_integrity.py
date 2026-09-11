@@ -114,15 +114,19 @@ def test_required_fields_and_pending_status():
         for k in REQUIRED:
             assert k in s, f"{s.get('id')} 缺字段 {k}"
         assert s["status"] == "dependency_pending", s["id"]
-        # C/D 已集成（merged aebccc7）；真实阻塞 = 场景归属中的 B 未集成（M1/M2/M5 501 stub）。
-        assert s["blocked_by"] == sorted(set(s["owner_package"]) - {"C", "D"}), s["id"]
-        assert set(s["blocked_by"]) <= {"B"}, s["id"]
-        if "B" in s["owner_package"]:
-            assert s["blocked_by"], s["id"]
+        # B/C/D 均已集成（approved f045433 / merge HEAD 08404f8）→ 无未集成包阻塞。
+        assert s["blocked_by"] == [], s["id"]
         assert s["pending_reason"].strip(), s["id"]
         assert s["priority"] in ("P0", "P1") and s["scope"] in ("后端", "集成", "联调")
         assert s["automation_tier"] in ("现在可自动", "需替身", "需真实设备或APP")
         assert s["apis"], s["id"]
+        # staged 三态：authored 与 staged_pending 互斥且齐全。
+        assert isinstance(s["authored"], bool) and isinstance(s["staged_pending"], bool)
+        assert s["authored"] != s["staged_pending"], s["id"]
+        if s["staged_pending"]:
+            assert s["staged_reason"] == "场景步骤编写中（集成轮 batch 1）", s["id"]
+        else:
+            assert s["staged_reason"] is None, s["id"]
 
 
 def test_owner_package_mapping():
@@ -139,24 +143,51 @@ def test_owner_package_mapping():
 
 
 def test_blocked_by_excludes_integrated_packages():
-    """blocked_by = owner_package − 已集成包（C/D 已集成 @merged aebccc7；B 未集成）。"""
-    integrated = {"C", "D"}
+    """blocked_by = owner_package − 已集成包（B/C/D 均已集成 @f045433）→ 全部 []。"""
+    integrated = {"B", "C", "D"}
     for s in scenarios:
-        expect = sorted(set(s["owner_package"]) - integrated)
-        assert s["blocked_by"] == expect, f"{s['id']} {s['blocked_by']} != {expect}"
-        if "B" in s["owner_package"]:
-            assert "B 未集成" in s["pending_reason"], s["id"]
-        else:
-            assert "C/D 已集成" in s["pending_reason"], s["id"]
+        assert s["blocked_by"] == sorted(set(s["owner_package"]) - integrated), s["id"]
+        assert s["blocked_by"] == [], s["id"]
 
 
-def test_blocked_by_distribution_54_empty_40_b():
-    """C/D 已集成后分布恰为 []×54 / B×40（全量逐条，非抽查）。"""
+def test_blocked_by_distribution_all_empty():
+    """B/C/D 集成后分布恰为 []×94（全量逐条，非抽查）。"""
     dist: dict[str, int] = {}
     for s in scenarios:
         key = "".join(s["blocked_by"])
         dist[key] = dist.get(key, 0) + 1
-    assert dist == {"": 54, "B": 40}, dist
+    assert dist == {"": 94}, dist
+
+
+def test_staged_pending_three_state_and_authored_first_wave():
+    """staged 三态：首波 25 节点 authored，其余 69 staged_pending；设备APP 用联调待办 reason。"""
+    authored = [s for s in scenarios if s["authored"]]
+    staged = [s for s in scenarios if s["staged_pending"]]
+    assert len(authored) == 25, len(authored)
+    assert len(staged) == 69, len(staged)
+    assert {s["id"] for s in authored} == {
+        "SC-01-01", "SC-01-02", "SC-01-03", "SC-01-04", "SC-01-05", "SC-01-06",
+        "SC-01-07", "SC-01-08", "SC-01-09", "SC-01-10", "SC-01-11", "SC-01-12",
+        "SC-01-13", "SC-01-14", "SC-01-15", "SC-01-16", "SC-01-17", "SC-01-18",
+        "SC-05-01", "SC-05-02", "SC-05-03", "SC-05-04", "SC-05-05", "SC-05-06",
+        "SC-05-07"}
+    device = [s for s in authored if s["automation_tier"] == "需真实设备或APP"]
+    assert len(device) == 12, len(device)
+    for s in device:
+        assert s["pending_reason"].startswith("真实设备/APP 联调待办"), s["id"]
+    for s in authored:
+        if s["automation_tier"] != "需真实设备或APP":
+            assert s["pending_reason"].startswith("已编写步骤"), s["id"]
+
+
+def test_business_semantics_invariant_hash():
+    """剔除 blocked_by/pending_reason/staged_* 后，94 条业务语义哈希与变更前逐字节一致。"""
+    import hashlib
+    drop = {"blocked_by", "pending_reason", "staged_pending", "staged_reason", "authored"}
+    canon = [{k: v for k, v in s.items() if k not in drop} for s in scenarios]
+    got = hashlib.sha256(json.dumps(canon, ensure_ascii=False, sort_keys=True,
+                                    separators=(",", ":")).encode()).hexdigest()[:16]
+    assert got == "86bfa7b721b6f285", got
 
 
 def test_automation_tier_matches_scope():

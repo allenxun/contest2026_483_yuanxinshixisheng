@@ -202,7 +202,7 @@ E 新增两个独立黑盒验收驱动：
 
 | 命令 | 退出码 | 结果 |
 | --- | --- | --- |
-| `backend/acceptance/run.sh selfcheck` | **0** | 72 passed |
+| `backend/acceptance/run.sh selfcheck` | **0** | 75 passed（集成轮 batch1） |
 | `backend/acceptance/run.sh c-acceptance` | **0** | settled 14/14=13 PASS+1 INFO（CC-11 契约披露）；双跑一致 28c4994f（实施）/15ad40d0（协调者@edbc7c1） |
 | `backend/acceptance/run.sh cd-chain` | **0** | settled 10/10 全 PASS；双跑一致 73a69cce（实施）/39d01667（协调者@2fcb520；cd_chain.py 此后零改动，R19 核定复用） |
 
@@ -249,3 +249,20 @@ E 新增两个独立黑盒验收驱动：
   LISTEN 未触碰**；B PG 55435 与用户 Swagger 18080、共享 5432 存在但仅只读 ss 确认，未解读未操作。
 - **待基线声明**：待总协调最终代码基线（含 B 文档范围修复）冻结后，以本映射作**增量接续**集成验收——
   **不从头重派、不重做 A 门禁**；届时 E 验收代码如有变更，仍须真实 Oracle 审最终 SHA。
+
+## 集成基线首轮真实场景级实测（batch 1，2026-09-12）
+
+> 基线 approved `f045433` / E merge HEAD **`08404f8`**（B `f95037e`【R5/R6】+ C `8b3592e`【R3】+ D `dc955c0`【R1/R2】+ Swagger `d3dc853`【报告 `551f166`】）。
+> gate=open；矩阵从 dependency_pending 推进到真实场景级实测。**不声称完整 MVP 通过**；全部 doubles_pass / 后端步骤上限。
+> 精简版见 `backend/acceptance/reports/first-round-integration.md`（reports/ gitignored）。
+
+- **plumbing**：`staged_pending` 第三态（gate=open：已编写→真实结算；显式 staged→dependency_pending；未编写未标记→FAIL 不弱化）；
+  设备APP 节点执行后端子步骤后结算 device_pending；`framework/live.py` 活体 session 夹具（HEAD SHA 打戳重建 jar、PG/Java 回收、证据 `evidence/Integration-<date>-<shortSHA>/<RUN_ID>/scenarios/<SC-ID>/`）；矩阵 `blocked_by` 全部 `[]`（B/C/D 集成）。
+- **矩阵维护**：`blocked_by=[]×94`；剔除 blocked_by/pending_reason/staged_* 后业务语义哈希 **`86bfa7b721b6f285` 与变更前一致**；再生成幂等。
+- **首轮活体矩阵**：RUN_ID=`E-20260911T134511Z-f15497bb`，**settled 94/94**，counts PASSED=88 / DEPENDENCY_PENDING=81 / FAILED=0，exit=**3**；EVIDENCE_TAGS doubles_pass=13。
+  13 活体场景 = SC-01-03/04/05/06/09/10/12（B HTTP+SQL）+ SC-05-01/02/03/04/05/07（M1 授权/C 侧撤销 404）；12 设备APP 后端子步骤已验、真实联调待办；69 staged。
+- **c-acceptance 集成树重跑**：RUN_ID=`E-AB-20260911T134713Z-47c79fbd`，settled 14/14，{PASS:13,INFO:1}，exit=0；CC-01 改为仅断言 **C care 代码 diff=0**（契约面 B 错误码补丁单独记录）。
+- **待修/披露**：C8 scanner 周期未接线（须手动 `python -m mvp_worker.scanners --once`，SC-01-15/16/18 已照此并在证据标注）；#8 A 登出未递增 destination_revision（SC-01-17 只断言投递取消语义）；OAS 13 字段沿用 CC-11 allowlist 披露待裁定。
+- **缺陷**：无业务缺陷；驱动侧修正 5 项（陈旧 jar→SHA 戳重建、M1-A01 multipart 必须文件段、登录 phone 派生碰撞、CC-01 契约适用性、selfcheck 嵌套守卫触发活体）。
+- **边界**：仅 `backend/acceptance/**`+`handoffs/E*.md`；未改业务/契约/迁移/站点；E 资源用毕清理；历史证据零覆盖；未 commit。
+- **status**：矩阵执行中（batch 1）——13 通过 + 12 设备待联调 + 69 staged；nextAction=继续 batch 2 场景步骤编写（并按裁定处理 C8/#8/OAS13）。

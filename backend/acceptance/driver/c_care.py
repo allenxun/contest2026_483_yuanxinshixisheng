@@ -516,10 +516,9 @@ def closure(account_token, execution, epoch, final_seq, final_count, key, stop_s
 
 # ---------------- CC-01 ----------------
 
-#: care 域精确路径 + care 相关契约面（contracts 整体未改）——C 适用性证明范围。
+#: C 适用性证明范围 = C care 代码精确路径（C 编译产物语义）；契约面单独记录（B 错误码补丁）。
 CC01_CARE_PATHS = ["backend/web-java/src/main/java/cn/yuanxin/mvp/web/care",
-                   "backend/web-java/src/test/java/cn/yuanxin/mvp/web/care",
-                   "backend/contracts"]
+                   "backend/web-java/src/test/java/cn/yuanxin/mvp/web/care"]
 
 
 def cc_01():
@@ -528,17 +527,22 @@ def cc_01():
     diff = I.run(["git", "diff", f"{C_CODE}..HEAD", "--", *CC01_CARE_PATHS],
                  cwd=I.REPO, timeout=120, log_name="cc-01-diff.log")
     files = [x for x in diff.stdout.splitlines() if x.strip()]
+    # 契约面：B 集成轮仅错误码声明补丁（非 C care 语义）；单独记录、不计入 C 适用性阻断。
+    cdiff = I.run(["git", "diff", "--stat", f"{C_CODE}..HEAD", "--", "backend/contracts"],
+                  cwd=I.REPO, timeout=120, log_name="cc-01-contracts-diff.log")
+    contracts_changed = [x for x in cdiff.stdout.splitlines() if x.strip()]
     cp = I.run(["mvn", "-B", "-q", "-DskipTests", "package"], cwd=I.JAVA_DIR, timeout=1800,
                log_name="cc-01-mvn.log")
     jar = I.java_jar()
     import hashlib
     sha = hashlib.sha256(jar.read_bytes()).hexdigest()[:16] if jar.exists() else "-"
     ok = anc.returncode == 0 and files == [] and cp.returncode == 0
-    _add("CC-01", "构建与启动绑定：8b3592e 祖先、**care 域（care main/test + contracts）"
-                  "diff=0**、当前源码构建、health UP@18081",
-         "PASS" if ok else "FAIL", "git merge-base/diff（care 域精确路径）; mvn package; java -jar",
+    _add("CC-01", "构建与启动绑定：8b3592e 祖先、**C care 域（care main/test）diff=0**"
+                  "（C 代码未被 B/D/Swagger merge 改动）、当前源码构建、health UP@18081",
+         "PASS" if ok else "FAIL", "git merge-base/diff（care 代码精确路径）; mvn package; java -jar",
          cp.returncode, f"HEAD={head[:12]} ancestor={anc.returncode == 0} "
-                        f"care_domain_diff={files} jar={jar.name} sha16={sha}")
+                        f"care_code_diff={files} contracts_diff={contracts_changed} "
+                        f"jar={jar.name} sha16={sha}")
 
 
 # ---------------- CC-02 ----------------

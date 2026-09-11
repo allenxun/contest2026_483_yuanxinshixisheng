@@ -44,7 +44,7 @@ def test_baseline_gate_closed_implies_no_sha(tmp_path):
     ok = tmp_path / "b2.json"
     ok.write_text(json.dumps({"a_baseline": {"sha": "abc123", "synced_at": "2026-09-10T00:00:00Z"},
                               "gate": "open"}), encoding="utf-8")
-    assert gate.current_gate(ok) == "open"
+    assert gate.load_baseline(ok)["gate"] == "open"
 
 
 def test_gate_closed_skips_with_fixed_prefix(monkeypatch):
@@ -55,10 +55,20 @@ def test_gate_closed_skips_with_fixed_prefix(monkeypatch):
 
 
 def test_gate_open_without_steps_fails(monkeypatch):
+    # SC-01-03 已在 batch1 编写步骤（staged_pending=false）→ 未经门控直跑视为未编写 → fail
     monkeypatch.setattr(gate, "current_gate", lambda path=None: "open")
     with pytest.raises(pytest.fail.Exception) as ei:
-        gate.run_scenario_gate("SC-00-01")
+        gate.run_scenario_gate("SC-01-03")
     assert "scenario steps not yet authored" in str(ei.value)
+
+
+def test_gate_open_staged_scenario_skips_pending(monkeypatch):
+    # SC-06-01 显式 staged_pending=true → skip 且 reason=场景步骤编写中（集成轮 batch N）
+    monkeypatch.setattr(gate, "current_gate", lambda path=None: "open")
+    with pytest.raises(pytest.skip.Exception) as ei:
+        gate.run_scenario_gate("SC-06-01")
+    assert str(ei.value).startswith(gate.PENDING_PREFIX)
+    assert "场景步骤编写中（集成轮" in str(ei.value)
 
 
 def test_scenarios_matrix_loadable_for_all_94():
@@ -164,7 +174,8 @@ def test_scenario_nodes_have_full_markers():
 
 # ---------- 发现A：matrix 假 0 双层守卫（插件结算守卫 + run.sh 入口拒绝/哨兵） ----------
 
-NESTED = {"E_SELFCHECK_NESTED": "1"}  # 嵌套运行中守卫用例直接返回，防递归
+NESTED = {"E_SELFCHECK_NESTED": "1", "E_ACCEPTANCE_FORCE_GATE": "closed"}
+#: 嵌套守卫运行强制 gate=closed：验证结算机制本身，不触发 gate=open 的活体服务。
 
 
 def _direct_pytest(addopts: str) -> subprocess.CompletedProcess:

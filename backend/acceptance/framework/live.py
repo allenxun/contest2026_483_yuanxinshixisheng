@@ -1,0 +1,218 @@
+# -*- coding: utf-8 -*-
+"""集成轮真实场景级实测：活体服务生命周期与 B/C 黑盒辅助。
+
+仅在 gate=open 的 matrix 运行中由 tests/scenarios/conftest.py 调用；复用
+driver/infra.py 的 E 专用资源（mvp-e-pg@55433 / Java@18081 / worker@18082）。
+selfcheck、c-acceptance 等模式不触发本模块。
+"""
+from __future__ import annotations
+
+import base64
+import datetime
+import hashlib
+import hmac
+import json
+import os
+import pathlib
+import subprocess
+import uuid
+
+import requests
+
+from driver import infra as I
+from driver import c_care as CC
+from driver import a_baseline as AB
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+BASE = I.APP_BASE
+
+#: dev/test 配对/连接证明固定密钥（与 B DevProofCodec.DEV_TEST_KEY 一致）。
+DEV_TEST_KEY = "mvp-b-dev-test-proof-key-v1"
+
+#: B DevTestFaceIdentityResolver 身份命名空间默认值（app.identity.namespace:mvp-local）。
+FACE_NAMESPACE = "mvp-local"
+
+
+def _b64(b: bytes) -> str:
+    return base64.urlsafe_b64encode(b).rstrip(b"=").decode()
+
+
+def encode_proof(payload: dict, version: str = "d1",
+                 key: str = DEV_TEST_KEY) -> str:
+    """生成 B dev/test 证明：``<version>.<b64url(payloadJson)>.<b64url(hmac)>``。"""
+    payload_b64 = _b64(json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode())
+    sig = _b64(hmac.new(key.encode(), payload_b64.encode(), hashlib.sha256).digest())
+    return f"{version}.{payload_b64}.{sig}"
+
+
+def pairing_proof(gimbal_id: str, account_id: str, installation_id: str, *,
+                  purpose: str = "pairing", nonce: str | None = None,
+                  ttl_s: int = 600, version: str = "d1") -> str:
+    return encode_proof({
+        "purpose": purpose, "gimbalId": gimbal_id, "accountId": account_id,
+        "installationId": installation_id, "nonce": nonce or uuid.uuid4().hex,
+        "exp": int(datetime.datetime.now(datetime.timezone.utc).timestamp()) + ttl_s,
+    }, version)
+
+
+def app_login(tag: str | None = None) -> dict | None:
+    """建立 APP 会话，phone 由 tag 的 sha256 唯一派生（不同 tag → 不同账号）。
+
+    复用 A 的 SMS 替身（固定码 123456）；不使用 AB.login 的 hex 解析，避免
+    非 hex tag（如 sc0105a/b）数字抽取相同导致账号碰撞。
+    """
+    tag = tag or uuid.uuid4().hex[:10]
+    digits = f"{int(hashlib.sha256(tag.encode()).hexdigest(), 16) % 100000000:08d}"
+    phone = f"+86138{digits}"
+    installation = f"e-inst-{tag}"
+    code, body, _ = I.http("POST", "/api/v1/auth/sms-challenges",
+                           body={"phone": phone, "purpose": "login"})
+    if code != 200:
+        return None
+    chal = (body.get("data") or {}).get("challengeId")
+    code, body, _ = I.http("POST", "/api/v1/auth/sessions",
+                           body={"challengeId": chal, "code": "123456",
+                                 "installationId": installation})
+    if code != 200:
+        return None
+    d = body["data"]
+    return {"phone": phone, "accountId": d["accountId"], "installationId": installation,
+            "access": d["accessToken"], "refresh": d["refreshToken"]}
+
+
+def gimbal_session(gimbal_id: str, credential_version: str = "1",
+                   credential: str | None = None, proof: str = "p") -> tuple[int, dict, dict]:
+    return I.http("POST", "/api/v1/gimbal-sessions", body={
+        "credential": credential or f"gimbal-subj-{gimbal_id}",
+        "credentialVersion": credential_version, "proof": proof})
+
+
+def seed_member_face(mid: str | None = None, image: bytes | None = None) -> tuple[str, bytes]:
+    """植入可靠成员：identity_namespace=mvp-local、face_subject_ref=sha256(图片)。"""
+    image = image if image is not None else _png()
+    m = mid or str(uuid.uuid4())
+    ref = hashlib.sha256(image).hexdigest()
+    CC.sql("INSERT INTO members (id, identity_namespace, face_subject_ref, status) "
+           f"VALUES ('{m}','{FACE_NAMESPACE}','{ref}','active')")
+    return m, image
+
+
+def _png() -> bytes:
+    """最小合法 PNG（格式嗅探要求真实图片头）。"""
+    return base64.b64decode(
+        b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==")
+
+
+def multipart_grant(token: str, image: bytes, *, purpose: str = "grant",
+                    key: str | None = None, metadata_extra: dict | None = None):
+    """M1-A01 multipart：metadata/face **两段均为文件**（B 控制器要求 getFileMap 恰两段）。"""
+    md = {"capture": {"captureId": str(uuid.uuid4()),
+                      "capturedAt": datetime.datetime.now(datetime.timezone.utc)
+                      .strftime("%Y-%m-%dT%H:%M:%SZ"),
+                      "clientContinuityId": "cc-grant", "purpose": purpose},
+          "consentEvidenceRef": "consent-grant"}
+    if metadata_extra:
+        md.update(metadata_extra)
+    headers = {"Authorization": f"Bearer {token}", "Idempotency-Key": key or str(uuid.uuid4())}
+    files = {"metadata": ("metadata.json", json.dumps(md).encode(), "application/json"),
+             "face": ("face.png", image, "image/png")}
+    try:
+        r = requests.post(I.APP_BASE + "/api/v1/member-access-grants", headers=headers,
+                          files=files, timeout=30, proxies=None)
+        return r.status_code, (r.json() if r.text else {})
+    except Exception as exc:  # pragma: no cover
+        return 0, {"exception": repr(exc)}
+
+
+def scanners_once(env_extra: dict | None = None):
+    """手动事件发现（C8：scanner 周期未接线，集成轮以 --once 触发并披露）。"""
+    return I.run([str(I.PY), "-m", "mvp_worker.scanners", "--once"], cwd=I.WORKER_DIR,
+                 env={**I.WORKER_ENV, **(env_extra or {})}, timeout=180,
+                 log_name="scanners-once.log")
+
+
+# ---------------- 活体服务生命周期 ----------------
+
+STATE: dict[str, object] = {"started": False, "jar_built": False}
+
+
+def short_sha() -> str:
+    cp = subprocess.run(["git", "-C", str(I.REPO), "rev-parse", "--short=12", "HEAD"],
+                        capture_output=True, text=True, timeout=30)
+    return cp.stdout.strip() or "unknown"
+
+
+def evidence_base() -> pathlib.Path:
+    """证据根：evidence/Integration-<date>-<shortSHA>/（namespace 再补 scenarios/<SC-ID>）。"""
+    d = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    return I.ROOT / "evidence" / f"Integration-{d}-{short_sha()}"
+
+
+def build_jar_if_needed() -> bool:
+    """从**当前集成树源码**构建 web-java jar；按 HEAD SHA 打戳，HEAD 变化必重建
+    （避免复用 B 集成前的陈旧 jar）。"""
+    import subprocess as _sp
+    head = _sp.run(["git", "-C", str(I.REPO), "rev-parse", "HEAD"],
+                   capture_output=True, text=True, timeout=30).stdout.strip()
+    stamp = I.JAVA_DIR / "target" / ".integration-built-sha"
+    try:
+        if head and stamp.read_text(encoding="utf-8").strip() == head and I.java_jar().exists():
+            return True
+    except Exception:
+        pass
+    cp = I.run(["mvn", "-B", "-q", "-DskipTests", "package"], cwd=I.JAVA_DIR,
+               timeout=2400, log_name="integration-mvn-package.log")
+    if cp.returncode == 0 and head:
+        stamp.write_text(head, encoding="utf-8")
+    return cp.returncode == 0
+
+
+def start_services() -> None:
+    """启动 PG→Java（dev，限堆 640m）；幂等（已启动则跳过）。"""
+    if STATE["started"]:
+        return
+    if not build_jar_if_needed():
+        raise RuntimeError("web-java jar 构建失败，无法进入活体矩阵")
+    ok, why = I.acquire_single_instance_lock()
+    if not ok:
+        raise RuntimeError(f"无法取得单实例锁：{why}")
+    if not I.container_exists():
+        cp = I.start_pg()
+        if cp.returncode != 0:
+            raise RuntimeError(f"PG 容器启动失败：{cp.stdout} {cp.stderr}")
+    if not I.wait_pg():
+        raise RuntimeError("PG 未就绪")
+    I.recreate_db()  # 重建 DB + 迁移（Java dev 启动时 Flyway 迁移）
+    import os as _os
+    jar = I.java_jar()
+    logf = open(I.REPORTS / "integration-java.log", "w", encoding="utf-8")
+    env = {**I.JAVA_ENV, "JAVA_TOOL_OPTIONS": "-Xmx640m -XX:MaxMetaspaceSize=256m"}
+    I.JAVA_PROC = subprocess.Popen(  # type: ignore[assignment]
+        ["java", "-jar", str(jar)], cwd=str(I.JAVA_DIR), env=env,
+        stdout=logf, stderr=subprocess.STDOUT)
+    if not I.wait_java_ready(240):
+        raise RuntimeError("Java(dev) 未就绪")
+    STATE["started"] = True
+
+
+def stop_services() -> None:
+    """停止 Java、删除本 run 容器、释放锁（文件保留）。"""
+    try:
+        I.stop_java()
+    finally:
+        I.kill_own_java()
+    try:
+        I.remove_container()
+    finally:
+        I.release_single_instance_lock()
+    STATE["started"] = False
+
+
+def java_env_with_bound_member(member_id: str | None) -> None:
+    """按需以合法绑定成员重启 Java（care 准入场景）。"""
+    I.stop_java()
+    I.kill_own_java()
+    extra = {"APP_C_FACE_BOUND_MEMBER": member_id} if member_id else {}
+    if not I.start_java(extra_env=extra, log_name="integration-java-bound.log", wait=True):
+        raise RuntimeError("Java(bound) 未就绪")
+

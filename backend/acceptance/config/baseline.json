@@ -1,6 +1,21 @@
 {
+  "final_baseline": {
+    "approved": "f04543345ad8a6e649b19c0e9708120700f1897d",
+    "e_merge_head": "08404f8fbae0f90fecbed7ab0d50283bd79f7c7a",
+    "b": {
+      "code": "f95037e5bbd37742175b52685ca833f91396e00c",
+      "reviewed": "5f0a988333b8",
+      "oracle": "R5 PASS-with-notes@5f0a988 + R6 重绑定确认@f95037e（B-oracle.md §4.10）"
+    },
+    "c": {"code": "8b3592e0b5de86eeaf0febe6ffe9497c68f672bb", "oracle": "R3 PASS-with-notes"},
+    "d": {"code": "dc955c0b109fc2c2693e980622512208e0fcdb9e", "oracle": "R1 M3 PASS / R2 M4 PASS-with-notes"},
+    "swagger": {"code": "d3dc853d7ec55ff0fad661a45943e7b60ff12325", "report": "551f16671120"},
+    "approved_by": "总协调",
+    "approved_at": "2026-09-12",
+    "note": "B+C+D+Swagger 集成基线；E 资产经逐字节核实未被 merge 改动。gate=open：矩阵进入真实场景级实测。"
+  },
   "a_baseline": {
-    "sha": null,
+    "sha": "08404f8fbae0f90fecbed7ab0d50283bd79f7c7a",
     "candidate_code_sha": "26d97fbe908cb93c1fe366e28ba54a91c21b497c",
     "report_head": "617354d0634c55b9420a3256c619186a1177b3c3",
     "isolated_dev": "24232d3ccb203d50acfb6aed6b6e74e336654cb0",
@@ -46,7 +61,7 @@
     "note": "C care 域 8b3592e..aebccc7 diff=0、contracts diff=0；B 未集成（M1/M2/M5 11 端点 501）。",
     "synced_at": "2026-09-11T09:00:00Z"
   },
-  "gate": "closed",
+  "gate": "open",
   "e_acceptance": {
     "stage": "A-baseline",
     "status": "not_passed_a_defect",

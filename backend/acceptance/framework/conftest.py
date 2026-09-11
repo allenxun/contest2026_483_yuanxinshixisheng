@@ -295,7 +295,7 @@ def scenario_evidence(request):
         return
     st = _state(request.config)
     ev_dir = os.environ.get(isolation.ENV_EVIDENCE_DIR) or str(ROOT / "reports" / "evidence")
-    recorder = EvidenceRecorder(pathlib.Path(ev_dir), st.run_id, namespace=sid)
+    recorder = EvidenceRecorder(pathlib.Path(ev_dir), st.run_id, namespace=f"scenarios/{sid}")
     sm = ScenarioSettlement(sid, recorder)
     st.settlements[sid] = sm
     yield sm
