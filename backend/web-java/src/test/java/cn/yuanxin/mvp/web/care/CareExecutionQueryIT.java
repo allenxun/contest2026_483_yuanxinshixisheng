@@ -369,4 +369,46 @@ class CareExecutionQueryIT extends AbstractWebIT {
         assertEquals("CALLER_NOT_ALLOWED",
                 JSON.readTree(cloud.getResponse().getContentAsString()).path("error").path("code").asText());
     }
+
+    // ---------------- F2：A08 云台须当前核验上下文 ----------------
+
+    @Test
+    @DisplayName("F2 A08 云台：代次相等但生命周期/连续性不满足 → 404")
+    void f2GimbalRequiresCurrentVerifiedContext() throws Exception {
+        UUID gimbalId = fx.seedGimbal("f2-a08-login-" + UUID.randomUUID(), 1);
+        String token = fx.loginGimbal(mockMvc, gimbalId);
+        UUID memberId = fx.seedMember();
+        UUID assessment = fx.seedAssessment(gimbalId, memberId);
+        UUID planId = fx.seedReadyPlan(assessment, memberId, 8, 2, 1, null);
+        fx.pointGimbalAtAssessment(gimbalId, assessment);
+        UUID executionId = fx.seedGimbalExecution(planId, memberId, fx.seedMicrocrystal(),
+                assessment, gimbalId);
+        jdbc.update("UPDATE care_executions SET verification_revision=5 WHERE id=?", executionId);
+        String query = "?executionId=" + executionId + "&verificationRevision=5";
+
+        assertEquals(200, getProgress(token, planId, query).getResponse().getStatus());
+
+        String invalidated = "{\"schema_version\":1,\"epoch\":\"e\",\"seq\":\"5\","
+                + "\"state\":\"paused\",\"occurred_at\":\"2026-09-10T04:00:05Z\","
+                + "\"continuity_invalidated\":true}";
+        jdbc.update("UPDATE care_executions SET status='paused', latest_observation=CAST(? AS jsonb)"
+                + " WHERE id=?", invalidated, executionId);
+        assertEquals(404, getProgress(token, planId, query).getResponse().getStatus());
+
+        String valid = "{\"schema_version\":1,\"epoch\":\"e\",\"seq\":\"5\","
+                + "\"state\":\"paused\",\"occurred_at\":\"2026-09-10T04:00:05Z\","
+                + "\"continuity_invalidated\":false}";
+        jdbc.update("UPDATE care_executions SET status='paused', latest_observation=CAST(? AS jsonb)"
+                + " WHERE id=?", valid, executionId);
+        assertEquals(200, getProgress(token, planId, query).getResponse().getStatus());
+
+        jdbc.update("UPDATE care_executions SET status='stopped' WHERE id=?", executionId);
+        assertEquals(404, getProgress(token, planId, query).getResponse().getStatus());
+
+        jdbc.update("UPDATE care_executions SET status='closed', closed_at=now() WHERE id=?", executionId);
+        assertEquals(404, getProgress(token, planId, query).getResponse().getStatus());
+
+        jdbc.update("UPDATE care_executions SET status='unknown', closed_at=NULL WHERE id=?", executionId);
+        assertEquals(404, getProgress(token, planId, query).getResponse().getStatus());
+    }
 }

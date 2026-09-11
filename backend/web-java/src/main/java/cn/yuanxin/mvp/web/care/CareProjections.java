@@ -133,6 +133,12 @@ public class CareProjections {
         return jsonObjectOrNull(raw);
     }
 
+    /** T07.latest_observation 是否已标记连续性失效（NULL/缺失 → false）。 */
+    public boolean continuityInvalidated(String raw) {
+        JsonNode node = readObject(raw);
+        return node != null && node.path("continuity_invalidated").asBoolean(false);
+    }
+
     /** T06.plan_payload：ready 方案正文整体透传（对象）。 */
     public Object planPayloadOrNull(String raw) {
         JsonNode node = readObject(raw);

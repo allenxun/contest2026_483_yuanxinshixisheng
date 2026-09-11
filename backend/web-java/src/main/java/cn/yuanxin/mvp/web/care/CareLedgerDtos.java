@@ -44,7 +44,7 @@ public final class CareLedgerDtos {
     /** components.schemas.ExecutionObservationSyncRequest（records maxItems=200）。 */
     public record SyncRequestDto(
             @Valid ExecutionObservationDto observation,
-            @NotNull @Size(max = 200) List<@Valid ExecutionRecordDto> records) {
+            @NotNull @Size(max = 200) List<@Valid @NotNull ExecutionRecordDto> records) {
     }
 
     /** components.schemas.AcknowledgedRecord。 */
@@ -57,11 +57,11 @@ public final class CareLedgerDtos {
                                     CareProjections.Progress progress) {
     }
 
-    /** components.schemas.ExecutionClosureRequest。 */
+    /** components.schemas.ExecutionClosureRequest。reason 契约未限长，仅要求非空。 */
     public record ClosureRequestDto(
             @NotBlank @Pattern(regexp = CareAdmissionDtos.BIGINT_PATTERN,
                     message = "stopObservationSeq must be a bigint string") String stopObservationSeq,
-            @NotBlank @Size(max = 128) String reason,
+            @NotBlank String reason,
             @NotBlank @Size(max = 128) String recordStreamEpoch,
             @NotBlank @Pattern(regexp = CareAdmissionDtos.BIGINT_PATTERN,
                     message = "finalRecordSeq must be a bigint string") String finalRecordSeq,

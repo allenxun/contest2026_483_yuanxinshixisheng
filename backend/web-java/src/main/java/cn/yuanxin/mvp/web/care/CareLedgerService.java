@@ -175,7 +175,7 @@ public class CareLedgerService {
         if (tx == null) {
             throw new ApiException(ErrorCode.INTERNAL, "observation sync produced no result");
         }
-        boolean includeProgress = shouldIncludeProgress(principal, tx.memberId());
+        boolean includeProgress = shouldIncludeProgress(principal, tx.plan());
         return new SyncOutcome(new ObservationAckDto(tx.acknowledgements(), tx.status(),
                 CareBigints.out(tx.acceptedCount()),
                 includeProgress ? projections.progressFor(tx.plan()) : null), false);
@@ -279,6 +279,8 @@ public class CareLedgerService {
 
         Instant receivedAt = Instant.now();
         long delta = 0L;
+        long insertedCount = 0L;
+        long batchMaxSourceSeq = 0L;
         for (int i : toInsert) {
             ExecutionRecordDto r = records.get(i);
             Object savepoint = txStatus.createSavepoint();
@@ -308,6 +310,8 @@ public class CareLedgerService {
             if (inserted) {
                 delta = addChecked(delta, deltas[i]);
                 disposition[i] = "accepted";
+                insertedCount++;
+                batchMaxSourceSeq = Math.max(batchMaxSourceSeq, seqs[i]);
             }
         }
 
@@ -323,6 +327,13 @@ public class CareLedgerService {
                 throw new ApiException(ErrorCode.INTERNAL,
                         "care execution ledger update affected " + executionRows + " rows");
             }
+        }
+        if ("closed".equals(execution.status()) && insertedCount > 0) {
+            // 迟到差异留痕：仅对已关闭执行，只增 late_variance，不动 status/closed_at
+            executionRepository.applyLateVariance(executionId, insertedCount, batchMaxSourceSeq,
+                    receivedAt);
+            log.warn("late care records admitted to closed execution {}: records={}, maxSourceSeq={}",
+                    executionId, insertedCount, batchMaxSourceSeq);
         }
 
         String status = execution.status();
@@ -410,7 +421,7 @@ public class CareLedgerService {
         CarePlanRow plan = planRepository.findById(row.planId())
                 .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL,
                         "care execution references a missing plan"));
-        boolean includeProgress = shouldIncludeProgress(principal, row.memberId());
+        boolean includeProgress = shouldIncludeProgress(principal, plan);
         return new ObservationAckDto(frozenAcknowledgements(replay.resultSummary()), row.status(),
                 CareBigints.out(row.acceptedCount()),
                 includeProgress ? projections.progressFor(plan) : null);
@@ -577,6 +588,7 @@ public class CareLedgerService {
         boolean more = seqs.size() >= GAP_SCAN_LIMIT;
         List<MissingRangeDto> ranges = new ArrayList<>();
         long expected = 1L;
+        boolean maxReached = false;
         for (long seq : seqs) {
             while (expected < seq) {
                 if (ranges.size() >= MISSING_RANGE_LIMIT) {
@@ -589,17 +601,20 @@ public class CareLedgerService {
             if (more) {
                 break;
             }
+            if (seq == Long.MAX_VALUE) {
+                maxReached = true;
+                expected = Long.MAX_VALUE;
+                break;
+            }
             expected = seq + 1;
         }
-        if (!more) {
-            while (expected <= finalRecordSeq) {
-                if (ranges.size() >= MISSING_RANGE_LIMIT) {
-                    more = true;
-                    break;
-                }
+        // 尾段直接以 finalRecordSeq 为右端（绝不计算 W+1）；达到 MAX 或已截断则不追加
+        if (!more && !maxReached && expected <= finalRecordSeq) {
+            if (ranges.size() >= MISSING_RANGE_LIMIT) {
+                more = true;
+            } else {
                 ranges.add(new MissingRangeDto(Long.toString(expected),
                         Long.toString(finalRecordSeq)));
-                expected = finalRecordSeq + 1;
             }
         }
         return new GapReport(ranges, more);
@@ -632,16 +647,19 @@ public class CareLedgerService {
             case "unknown" -> "unknown";
             case "stopped" -> "stopped";
             case "running" -> {
-                if ("admitted".equals(current) || "running".equals(current)) {
+                if ("running".equals(current)) {
                     yield "running";
                 }
+                if (!"admitted".equals(current) && !"paused".equals(current)) {
+                    yield current; // unknown 等禁止 →running
+                }
+                // admitted/paused 统一门控：连续性未失效、本轮未声明失效、核验代次匹配
                 boolean continuityOk = observation.continuityValid() == null
                         || observation.continuityValid();
                 boolean revisionOk = observation.verificationRevision() == null
                         || CareBigints.parse(observation.verificationRevision(),
                                 "verificationRevision") == execution.verificationRevision();
-                yield "paused".equals(current) && !invalidated && continuityOk && revisionOk
-                        ? "running" : current;
+                yield !invalidated && continuityOk && revisionOk ? "running" : current;
             }
             default -> current;
         };
@@ -738,11 +756,12 @@ public class CareLedgerService {
 
     // ======================= shared helpers =======================
 
-    private boolean shouldIncludeProgress(PrincipalContext principal, UUID memberId) {
-        if (principal.principalType() == PrincipalType.GIMBAL) {
-            return true;
-        }
-        return authorization.hasActiveGrant(principal, memberId);
+    /**
+     * Progress 需要<b>当前</b>方案读取资格（APP active 授权 / 云台当前任务指针），
+     * 而非永久原控制端；不具备时 progress=null，但最小确认信息仍 200。
+     */
+    private boolean shouldIncludeProgress(PrincipalContext principal, CarePlanRow plan) {
+        return authorization.hasPlanReadEligibility(principal, plan);
     }
 
     private void bestEffortReject(IdempotencyHandle handle, ErrorCode code, String message,

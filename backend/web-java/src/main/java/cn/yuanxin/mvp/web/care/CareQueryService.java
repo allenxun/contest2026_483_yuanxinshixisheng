@@ -33,6 +33,7 @@ public class CareQueryService {
 
     private final CareAuthorization authorization;
     private final CareProjections projections;
+    private final CarePlanProjection planProjection;
     private final CarePlanRepository planRepository;
     private final CareExecutionRepository executionRepository;
     private final CareRecordRepository recordRepository;
@@ -41,6 +42,7 @@ public class CareQueryService {
     private final CursorCodec cursorCodec;
 
     public CareQueryService(CareAuthorization authorization, CareProjections projections,
+                            CarePlanProjection planProjection,
                             CarePlanRepository planRepository,
                             CareExecutionRepository executionRepository,
                             CareRecordRepository recordRepository,
@@ -48,6 +50,7 @@ public class CareQueryService {
                             GimbalReadRepository gimbalRepository, CursorCodec cursorCodec) {
         this.authorization = authorization;
         this.projections = projections;
+        this.planProjection = planProjection;
         this.planRepository = planRepository;
         this.executionRepository = executionRepository;
         this.recordRepository = recordRepository;
@@ -95,7 +98,7 @@ public class CareQueryService {
             progress = projections.progressFor(row);
         }
         return new CarePlanListItem(row.id().toString(), row.generationStatus(),
-                projections.planSummaryOrNull(row.planSummary()), progress);
+                planProjection.summary(row.planSummary()), progress);
     }
 
     // ---------- M4-A02 ----------
@@ -113,11 +116,8 @@ public class CareQueryService {
         String status = row.generationStatus();
         if ("ready".equals(status)) {
             requireTargetCount(row);
-            Object plan = projections.planPayloadOrNull(row.planPayload());
-            if (plan == null) {
-                // DB CHECK 应阻止：ready 必须有 plan_payload（防御）
-                throw new ApiException(ErrorCode.INTERNAL, "ready care plan missing payload");
-            }
+            // 显式白名单投影：未冻结字段保守省略；过滤后为空 → plan=null 仍 200
+            Object plan = planProjection.full(row.planPayload());
             return new CarePlanFullView(row.id().toString(), status, plan,
                     projections.progressFor(row), null);
         }
@@ -186,6 +186,12 @@ public class CareQueryService {
             if (execution.verificationRevision() != providedRevision) {
                 throw authorization.notVisible(); // 过期核验不开放
             }
+            // 数字代次相等不足以证明“当前已核验执行上下文”：生命周期必须仍可运行，
+            // 且 latest_observation 未标记连续性失效（行 NULL 视为未失效）。
+            if (!lifecycleAllowsProgress(execution.status())
+                    || projections.continuityInvalidated(execution.latestObservation())) {
+                throw authorization.notVisible();
+            }
             CarePlanRow plan = planRepository.findById(planId)
                     .orElseThrow(() -> authorization.notVisible());
             if (!"ready".equals(plan.generationStatus())) {
@@ -238,7 +244,7 @@ public class CareQueryService {
                 .map(row -> new CareExecutionListItem(row.id().toString(), row.status(),
                         rfc3339(row.createdAt()), rfc3339(row.closedAt()),
                         CareBigints.out(row.acceptedCount()),
-                        projections.planSnapshotSummaryOrNull(row.planSnapshot())))
+                        planProjection.summaryFromSnapshot(row.planSnapshot())))
                 .toList();
         String nextCursor = hasNext && !page.isEmpty()
                 ? encodeCursor(page.get(page.size() - 1), digest) : null;
@@ -299,5 +305,13 @@ public class CareQueryService {
         } catch (IllegalArgumentException invalid) {
             throw new ApiException(ErrorCode.INVALID_INPUT, field + " must be a UUID");
         }
+    }
+
+    /** 仍可运行/可恢复的已核验生命周期（stopped/closed/unknown 不是当前核验上下文）。 */
+    private static boolean lifecycleAllowsProgress(String status) {
+        return switch (status) {
+            case "admitted", "running", "paused" -> true;
+            default -> false;
+        };
     }
 }

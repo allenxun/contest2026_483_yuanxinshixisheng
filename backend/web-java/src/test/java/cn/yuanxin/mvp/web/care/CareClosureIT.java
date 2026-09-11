@@ -9,10 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static cn.yuanxin.mvp.web.care.CareAdmissionTestSupport.closureBody;
+import static cn.yuanxin.mvp.web.care.CareAdmissionTestSupport.recordJson;
+import static cn.yuanxin.mvp.web.care.CareAdmissionTestSupport.syncBody;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -73,6 +76,11 @@ class CareClosureIT extends AbstractWebIT {
     private MvcResult close(Ctx ctx, UUID executionId, String key, String body) throws Exception {
         return CareAdmissionTestSupport.postJson(mockMvc, ctx.login().accessToken(),
                 "/api/v1/care-executions/" + executionId + "/closure-confirmations", key, body);
+    }
+
+    private MvcResult sync(Ctx ctx, UUID executionId, String key, String body) throws Exception {
+        return CareAdmissionTestSupport.postJson(mockMvc, ctx.login().accessToken(),
+                "/api/v1/care-executions/" + executionId + "/observations", key, body);
     }
 
     private static JsonNode data(MvcResult r) throws Exception {
@@ -290,5 +298,87 @@ class CareClosureIT extends AbstractWebIT {
         MvcResult r = close(ctx, executionId, "cb", body("5", "   ", "epoch-1", "0", "0"));
         assertEquals(400, r.getResponse().getStatus(), r.getResponse().getContentAsString());
         assertEquals("INVALID_INPUT", error(r).path("code").asText());
+    }
+
+    // ---------------- F5 / F6 / N1 ----------------
+
+    @Test
+    @DisplayName("F5 缺口不溢出：无记录 W=MAX → ranges=[{1,MAX}] 无负数")
+    void f5AllMissingAtMaxW() throws Exception {
+        Ctx ctx = newCtx("inst-f5-max");
+        UUID executionId = stoppedExecution(ctx, "inst-f5-max", "stopped");
+        String max = Long.toString(Long.MAX_VALUE);
+        MvcResult r = close(ctx, executionId, "cf5a", body("5", "user_finished", "epoch-1", max, "0"));
+        assertEquals(409, r.getResponse().getStatus(), r.getResponse().getContentAsString());
+        assertEquals("gaps", error(r).path("details").path("reason").asText());
+        JsonNode ranges = error(r).path("details").path("missingRanges");
+        assertEquals(1, ranges.size());
+        assertEquals("1", ranges.get(0).path("from").asText());
+        assertEquals(max, ranges.get(0).path("to").asText());
+    }
+
+    @Test
+    @DisplayName("F5 记录仅 seq=MAX、W=MAX → ranges=[{1,MAX-1}]（无 W+1 溢出）")
+    void f5SingleMaxSeqRecord() throws Exception {
+        Ctx ctx = newCtx("inst-f5-single");
+        UUID executionId = stoppedExecution(ctx, "inst-f5-single", "stopped");
+        fx.seedRecord(executionId, ctx.planId(), ctx.memberId(), ctx.micro(), "rmax", "epoch-1",
+                Long.MAX_VALUE, 1);
+        String max = Long.toString(Long.MAX_VALUE);
+        MvcResult r = close(ctx, executionId, "cf5b", body("5", "user_finished", "epoch-1", max, "1"));
+        assertEquals(409, r.getResponse().getStatus(), r.getResponse().getContentAsString());
+        assertEquals("gaps", error(r).path("details").path("reason").asText());
+        JsonNode ranges = error(r).path("details").path("missingRanges");
+        assertEquals(1, ranges.size());
+        assertEquals("1", ranges.get(0).path("from").asText());
+        assertEquals(Long.toString(Long.MAX_VALUE - 1), ranges.get(0).path("to").asText());
+    }
+
+    @Test
+    @DisplayName("F6 A06 长 reason（300 字符）不因长度 400（错误 stopSeq → 409）")
+    void f6LongReasonNotLengthRejected() throws Exception {
+        Ctx ctx = newCtx("inst-f6-long-reason");
+        UUID executionId = stoppedExecution(ctx, "inst-f6-long-reason", "stopped");
+        String longReason = "r".repeat(300);
+        MvcResult r = close(ctx, executionId, "cf6", body("4", longReason, "epoch-1", "0", "0"));
+        assertEquals(409, r.getResponse().getStatus(), r.getResponse().getContentAsString());
+        assertEquals("STOP_NOT_CONFIRMED", error(r).path("code").asText());
+    }
+
+    @Test
+    @DisplayName("N1 迟到差异留痕：closed 后迟到记录累计 late_variance，status/manifest 其余不变")
+    void n1LateVarianceTrace() throws Exception {
+        Ctx ctx = newCtx("inst-n1");
+        UUID executionId = stoppedExecution(ctx, "inst-n1", "stopped");
+        seedRecords(ctx, executionId, 1, 2, 3);
+        MvcResult closed = close(ctx, executionId, "cn1", body("5", "user_finished", "epoch-1", "3", "3"));
+        assertEquals(200, closed.getResponse().getStatus(), closed.getResponse().getContentAsString());
+        String manifestBefore = (String) executionRow(executionId).get("manifest");
+
+        MvcResult late1 = sync(ctx, executionId, "cn1a",
+                syncBody(null, List.of(recordJson("late4", "epoch-1", "4", "1", "2026-09-10T04:00:04Z"))));
+        assertEquals(200, late1.getResponse().getStatus(), late1.getResponse().getContentAsString());
+        JsonNode manifest1 = JSON.readTree((String) executionRow(executionId).get("manifest"));
+        assertEquals(1, manifest1.path("late_variance").path("late_records_count").asInt());
+        assertEquals("4", manifest1.path("late_variance").path("late_max_source_seq").asText());
+        assertEquals("closed", executionRow(executionId).get("status"));
+        assertEquals(1L, ((Number) jdbc.queryForObject(
+                "SELECT completed_count FROM care_plans WHERE id = ?", Long.class, ctx.planId()))
+                .longValue());
+
+        MvcResult late2 = sync(ctx, executionId, "cn1b",
+                syncBody(null, List.of(
+                        recordJson("late5", "epoch-1", "5", "1", "2026-09-10T04:00:05Z"),
+                        recordJson("late6", "epoch-1", "6", "1", "2026-09-10T04:00:06Z"))));
+        assertEquals(200, late2.getResponse().getStatus(), late2.getResponse().getContentAsString());
+        JsonNode manifest2 = JSON.readTree((String) executionRow(executionId).get("manifest"));
+        assertEquals(3, manifest2.path("late_variance").path("late_records_count").asInt());
+        assertEquals("6", manifest2.path("late_variance").path("late_max_source_seq").asText());
+        // 原 manifest 字段仍在（schema_version/record_stream_epoch/final_record_seq）
+        assertEquals(manifest1.path("record_stream_epoch").asText(),
+                manifest2.path("record_stream_epoch").asText());
+        assertEquals(manifest1.path("final_record_seq").asText(),
+                manifest2.path("final_record_seq").asText());
+        assertTrue(manifestBefore.contains("schema_version"));
     }
 }

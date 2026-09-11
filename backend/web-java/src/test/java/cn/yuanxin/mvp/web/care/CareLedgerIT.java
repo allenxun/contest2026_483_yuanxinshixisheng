@@ -375,7 +375,7 @@ class CareLedgerIT extends AbstractWebIT {
     }
 
     @Test
-    @DisplayName("A05 closed 收记录：K/accepted_count 增、status 仍 closed、manifest 不变")
+    @DisplayName("A05 closed 收记录：K/accepted_count 增、status 仍 closed、N1 留 late_variance")
     void a05ClosedLateRecord() throws Exception {
         Ctx ctx = newCtx("inst-a05-closed", 10, 0);
         String stoppedObs = "{\"schema_version\":1,\"epoch\":\"epoch-1\",\"seq\":\"5\","
@@ -384,14 +384,15 @@ class CareLedgerIT extends AbstractWebIT {
         UUID executionId = execution(ctx, "inst-a05-closed", "stopped", "epoch-1", 5L, stoppedObs);
         jdbc.update("UPDATE care_executions SET status='closed', closed_at=now() WHERE id=?",
                 executionId);
-        Object manifestBefore = executionRow(executionId).get("manifest");
 
         MvcResult r = sync(ctx, "inst-a05-closed", executionId, "kcl",
                 syncBody(null, List.of(recordJson("late", "epoch-1", "1", "1", T6))));
         assertEquals(200, r.getResponse().getStatus(), r.getResponse().getContentAsString());
         assertEquals("closed", executionRow(executionId).get("status"));
         assertEquals(1L, ((Number) executionRow(executionId).get("accepted_count")).longValue());
-        assertEquals(manifestBefore, executionRow(executionId).get("manifest"));
+        JsonNode manifest = JSON.readTree((String) executionRow(executionId).get("manifest"));
+        assertEquals(1, manifest.path("late_variance").path("late_records_count").asInt());
+        assertEquals("1", manifest.path("late_variance").path("late_max_source_seq").asText());
         assertEquals(1L, ((Number) planRow(ctx.planId()).get("completed_count")).longValue());
     }
 
@@ -472,6 +473,7 @@ class CareLedgerIT extends AbstractWebIT {
         UUID assessment = fx.seedAssessment(gimbalId, memberId);
         UUID planId = fx.seedReadyPlan(assessment, memberId, 10, 0, 0, null);
         UUID micro = fx.seedMicrocrystal(CAPABILITIES);
+        fx.pointGimbalAtAssessment(gimbalId, assessment);
         UUID executionId = fx.execution(planId, memberId, micro, assessment)
                 .controllerGimbal(gimbalId).status("admitted").observationEpoch("epoch-g").insert();
 
@@ -552,5 +554,71 @@ class CareLedgerIT extends AbstractWebIT {
         MvcResult missingKey = sync(ctx, "inst-a05-limits", executionId, null, syncBody(null, List.of()));
         assertEquals(400, missingKey.getResponse().getStatus());
         assertEquals("INVALID_INPUT", error(missingKey).path("code").asText());
+    }
+
+    // ---------------- F4 / F1 / F6 ----------------
+
+    @Test
+    @DisplayName("F4 admitted→running 统一门控：失效/代次不符→仍 admitted，满足→running")
+    void f4AdmittedRunningGate() throws Exception {
+        Ctx ctx = newCtx("inst-f4-gate", 10, 0);
+        UUID blocked = execution(ctx, "inst-f4-gate", "admitted", "epoch-1", null, null,
+                fx.seedMicrocrystal(CAPABILITIES));
+        sync(ctx, "inst-f4-gate", blocked, "kf41",
+                syncBody(observationJson("epoch-1", "1", "running", T1, null, false), List.of()));
+        Map<String, Object> blockedRow = executionRow(blocked);
+        assertEquals("admitted", blockedRow.get("status"));
+        String blockedObservation = (String) blockedRow.get("latest_observation");
+        assertTrue(blockedObservation.contains("\"continuity_invalidated\": true")
+                || blockedObservation.contains("\"continuity_invalidated\":true"));
+
+        UUID stale = execution(ctx, "inst-f4-gate", "admitted", "epoch-1", null, null,
+                fx.seedMicrocrystal(CAPABILITIES));
+        sync(ctx, "inst-f4-gate", stale, "kf42",
+                syncBody(observationJson("epoch-1", "1", "running", T1, "999", null), List.of()));
+        assertEquals("admitted", executionRow(stale).get("status"));
+
+        UUID allowed = execution(ctx, "inst-f4-gate", "admitted", "epoch-1", null, null,
+                fx.seedMicrocrystal(CAPABILITIES));
+        sync(ctx, "inst-f4-gate", allowed, "kf43",
+                syncBody(observationJson("epoch-1", "1", "running", T1, null, null), List.of()));
+        assertEquals("running", executionRow(allowed).get("status"));
+    }
+
+    @Test
+    @DisplayName("F1 A05 云台原控制端指针被换 → 200 最小确认且 progress=null")
+    void f1GimbalProgressRequiresCurrentTask() throws Exception {
+        UUID gimbalId = fx.seedGimbal("f1-a05-gimbal-" + UUID.randomUUID(), 1);
+        String token = fx.loginGimbal(mockMvc, gimbalId);
+        UUID memberId = fx.seedMember();
+        UUID assessment = fx.seedAssessment(gimbalId, memberId);
+        UUID planId = fx.seedReadyPlan(assessment, memberId, 10, 0, 0, null);
+        UUID micro = fx.seedMicrocrystal(CAPABILITIES);
+        fx.pointGimbalAtAssessment(gimbalId, assessment);
+        UUID executionId = fx.execution(planId, memberId, micro, assessment)
+                .controllerGimbal(gimbalId).status("admitted").observationEpoch("epoch-g").insert();
+        UUID otherAssessment = fx.seedAssessment(gimbalId, memberId);
+        fx.pointGimbalAtAssessment(gimbalId, otherAssessment);
+
+        MvcResult r = CareAdmissionTestSupport.postJson(mockMvc, token,
+                "/api/v1/care-executions/" + executionId + "/observations", "kf1g",
+                syncBody(null, List.of()));
+        assertEquals(200, r.getResponse().getStatus(), r.getResponse().getContentAsString());
+        JsonNode d = data(r);
+        assertTrue(d.path("progress").isNull());
+        assertEquals("admitted", d.path("executionStatus").asText());
+        assertEquals("0", d.path("acceptedCount").asText());
+        assertEquals(0, d.path("acknowledgedRecords").size());
+    }
+
+    @Test
+    @DisplayName("F6 records:[null] → 400 而非 500")
+    void f6RecordsNullElement() throws Exception {
+        Ctx ctx = newCtx("inst-f6-null-record", 10, 0);
+        UUID executionId = execution(ctx, "inst-f6-null-record", "admitted", "epoch-1", null, null);
+        MvcResult r = sync(ctx, "inst-f6-null-record", executionId, "kf6",
+                syncBody(null, java.util.Collections.singletonList("null")));
+        assertEquals(400, r.getResponse().getStatus(), r.getResponse().getContentAsString());
+        assertEquals("INVALID_INPUT", error(r).path("code").asText());
     }
 }
