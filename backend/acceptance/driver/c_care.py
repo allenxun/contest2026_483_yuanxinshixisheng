@@ -159,8 +159,26 @@ def normalize_json_path(json_path):
 
 
 def unknown_fields_of_additional_properties(err):
-    """解析 additionalProperties 错误的完整未知字段集合（jsonschema 可合并多个字段）。"""
-    return set(re.findall(r"'([^']+)'", err.message or ""))
+    """结构化计算 additionalProperties 的未知字段集合（不解析人类可读 message）。
+
+    unknown = set(instance.keys()) − set(schema.properties) − patternProperties 匹配项。
+    `err.instance` 为被测对象、`err.schema` 为含 `additionalProperties:false` 的分支 schema。
+    与字段名是否含引号等字符完全无关，杜绝 message 正则被合法字段名绕过。
+    """
+    inst = err.instance
+    if not isinstance(inst, dict):
+        return set()
+    schema = err.schema if isinstance(err.schema, dict) else {}
+    props = schema.get("properties") or {}
+    patterns = schema.get("patternProperties") or {}
+    unknown = set()
+    for key in inst.keys():
+        if key in props:
+            continue
+        if isinstance(patterns, dict) and any(re.search(pat, key) for pat in patterns):
+            continue
+        unknown.add(key)
+    return unknown
 
 
 def classify_strict_error(api, err):
