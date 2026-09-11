@@ -1,73 +1,60 @@
-# D 包交付说明（测肤、身份归档与方案生成）
+# D 包交付说明（测肤、身份归档与方案生成）— 终版
 
-## 提交
+## 门禁状态与提交
 
-- **代码提交（唯一，未推送、未合并）**：`6b4f9ed82d4e828749f04082b79381362281ff49` @ `feature/mvp-assessments`（基线 `ccee6e2`，提交时间 2026-09-11T12:12:05+08:00；48 文件 +9322/−47）。
-- 本文件与 `D-oracle.md` 以 report-only commit 提交（SHA 见 git log，不含代码改动）。
-- **Oracle 门禁状态：BLOCKED（无结论）**——4 次调用均 401 token_expired，详情、会话 ID 与保留审查位置见 `backend/handoffs/D-oracle.md`。按 COMMON.md：未获得真实 Oracle 结论不视为完成；总协调 E 验收前须先补 Oracle 两轮结论。
+- **Oracle 门禁：PASSED**——R1（M3）`PASS`、R2（M4+公共接口）`PASS-with-notes` CONFIRMED-FINAL，双结论绑定同一最终代码 SHA；全 11 轮实调记录、发现闭合明细与残留披露见 `backend/handoffs/D-oracle.md`。
+- **最终代码 SHA**：`dc955c0b109fc2c2693e980622512208e0fcdb9e`（branch `feature/mvp-assessments`，未推送、未合并；交总协调集成后由 E 验收）。
+- 提交链（基线 `ccee6e2`）：`6b4f9ed` 实现（48 文件 +9322/−47）→ `5c1d419` 报告1 → `4a05e48` R1-1 记录 → `b2d4a79` 修复1（B1-B3/I1-I3/S1）→ `c051577` 修复2（N1/N2/SUG①）→ `4ac4835` 修复3（F1）→ `c5b78d8` 修复4（G1/F2 裁定）→ `dc955c0` 修复5/最终代码（L.1 成功守卫+L.2 health 端口+判别性强化）→ 本文件与 D-oracle.md 终稿为 report-only 提交（SHA 见 git log）。
+- E2E 活体链：r6@dc955c0 **PASS**（最终权威）；r5@c5b78d8、r3@c051577、r2@b2d4a79 PASS；r4@4ac4835 因 orchestrator 侧并发干扰被撤销认证（如实披露，双 oracle 核可处置）。
 
-## 范围与文件归属（全部在本 worktree，未触他包）
+## 范围与文件归属（全部本 worktree，未触他包业务代码）
 
 | 区域 | 内容 |
 |---|---|
-| `backend/web-java/.../assessments/`（新包，main 13 文件 + test 6 文件） | M3-A01~A06 六端点：Controller→ApplicationService→Repository；T13 幂等/T11 媒体受理/T12 交接按 A 基础模式（参照 SystemEchoController）；封闭 failure_code→retryable 映射；requiredViews 仅经 identity_result.quality；报告白名单投影仅取冻结 report_payload；孤儿媒体 cleanup 入队（MediaCleanupEnqueuer，5 接线点，尽力而为） |
-| `backend/web-java/.../stub/NotYetImplementedController.java` + `StubEndpointsIT.java` | 恰删 6 个 M3 占位（其余 20 stub 仍 501）；IT 仅移除 M3-A03 条目 |
-| `backend/worker-python/.../handlers/`（4 新 handler + dshared/ 8 模块） | assessment.analyze（质量/同人/1:N、确定性 candidate+PG 对账、结果图先归档后原子发布、T06+plan 交接）；identity.enroll（namespace 串行、先持久阶段后锁外调用、超时同 EntityId 对账恰一次注册、stale 输入不归属）；plan.generate（defer 等待、冻结快照唯一校验基线、严格白名单校验、ready 冻结、绝不写 K）；media.cleanup（两段式 deleting→deleted、五表引用扫描+T13 活性、幂等孤儿发现 discover_and_enqueue_orphans） |
-| **公共文件（总协调 2026-09-11 授权 D 唯一负责人；集成时单独核对）** | ①`runtime/complete.py`：+`_DEFER` SQL + `complete_deferred()`（新增，未改既有函数）②`runtime/loop.py`：仅 process_job 完成分发分支（defer/success 二选一，StaleGeneration 两路一致）③`handlers/__init__.py`：仅 `HandlerResult.defer_seconds` 字段（向后兼容）+ 末尾追加 4 个 D 注册。claim.py/expire.py/renew.py/__main__.py/health/conftest **未动** |
-| A 测试文件最小适配（2 处，集成知会） | `tests/test_sanity.py`：test_config_defaults 以 monkeypatch 隔离 DSN env（断言语义未变）；`tests/test_unsupported.py`：注册表断言改为 echo+4 个 D 类型已注册、B 类型（notification.deliver）仍未注册 |
-| 未改动 | backend/contracts、db/migration、application*.yml、deploy、docs、他包代码 |
+| `backend/web-java/.../assessments/`（main 13 + test 6 文件） | M3-A01~A06：受理（T13 幂等/T11 媒体受理/T12 交接，A 基础模式）、互斥（T03 锁→T07 检查→stopped/DEVICE_OCCUPIED 映射）、补拍（版本/视角/merged 三视角防御）、查询矩阵（云台当前指针/APP grant/统一 404 不泄存在性）、报告白名单投影（仅冻结 report_payload；requiredViews 唯一通道=identity_result.quality；failureCode 封闭白名单 9 码）、孤儿 cleanup 入队（5 接线点，尽力而为） |
+| `backend/web-java/.../stub/` 两文件 | 恰删 6 个 M3 占位（其余 20 stub 仍 501）；IT 仅移除 M3-A03 条目 |
+| `backend/worker-python/.../handlers/`（4 handler + dshared/ 9 模块） | assessment.analyze（质量/同人/1:N、确定性 candidate+PG 对账 enrolled_reconciled、两段归档 digest-first、原子发布+T06/plan 交接）；identity.enroll（namespace uuid5 串行、先持久阶段后锁外调用、超时对账恰一次注册、stale 不归属、link 守卫）；plan.generate（defer 等待、冻结快照完整契约校验为唯一基线、设备能力覆盖检查、严格白名单校验、ready 冻结、K 绝不写）；media.cleanup（两段删除、单事务锁后全引用扫描、幂等孤儿发现 discover_and_enqueue_orphans）；dshared：providers（替身+阿里云 fail-closed 边界）/dconfig/denqueue/dmedia/dfence/jsonschema_support/resolve/constants |
+| **公共文件（总协调三次授权，D 唯一负责人；集成单独核对）** | `runtime/complete.py`（complete_deferred+_DEFER；complete_failure business_tx；四守卫 clock_timestamp）、`runtime/loop.py`（defer 分发+JobFailed 透传）、`handlers/__init__.py`（HandlerResult.defer_seconds+JobFailed.business_tx+D 注册 4 条目）。claim/expire/renew/__main__/health/conftest 全程未动 |
+| A 测试适配 4 处（集成知会） | test_sanity（env 隔离）、test_unsupported（注册表断言）、test_complete（+4 纯增量）、test_health（端口 0 OS 分配回读，L.2 授权，根治与 E 活体 18081 冲突） |
+| 其他 | `.gitignore` +`/.cortexkit/`（监督者指示条目）；contracts/迁移/application yml/deploy/docs 未动 |
 
-## 总协调裁定落实（2026-09-11 六条 + C/D 衔接）
+## 总协调裁定与授权落实（全部闭环）
 
-1. 媒体边界术语"授权可读集合"：D 未建 Primary 策略（归 B）；D 侧约定（冻结报告引用/member-grant/当前指针/照片版本全量校验）已写协调文件并转达。
-2. identity.enroll owner_id=namespace 级稳定 uuid5（`identity-namespace:{ns}`），uq_job_identity_enroll 全 namespace 串行；未改 A helper。
-3. **requiredViews 唯一通道=T05.identity_result.quality.required_views**（Worker 属主、版本化）；failure_detail 回归纯内部诊断——Java 全代码无任何 failure_detail 读路径（grep 级可验）；retryable=Java 封闭 failure_code 映射（当前全终态码→false，true 预留）。
-4. wait-hop 已撤销：等待=同一 job/同一 generation_revision 的 complete_deferred（租约围栏、原子退 attempt、旧 lease/重复 defer 拒绝）；3600s in-handler 阻塞与 max_attempts=2000 过渡补丁均已删除。
-5. media.cleanup 入 D 范围：handler+Java 触发器+幂等孤儿发现函数齐备；周期接入归总协调（未动 __main__、无常驻进程）。
-6. C/D 衔接（§E 约定）：input_snapshot 冻结 `capability.{microcrystal_id,capability_id,capability_revision,parameter_ranges,approved_regions,n_bounds}`+`report.{...}`+`model.{...}`；校验一律以冻结快照为基线（live 配置仅在 waiting 门与冻结时刻读取）；能力选择含设备参数包络覆盖检查（device ⊇ baseline）；C 不依赖 waiting 递增 generation_revision（worker 全程不增）。
+六条裁定（2026-09-11）：①媒体边界术语"授权可读集合"（B 实施，D 约定已转达）②namespace 级稳定 uuid5 enroll owner③requiredViews 唯一通道 identity_result.quality（Java 零 failure_detail 读路径，grep 级核验）④wait-hop 撤销→complete_deferred（等待不耗 attempt、同 job/同 generation_revision、旧 lease/重复 defer 拒绝、原子退计数）⑤media.cleanup 归 D（handler+Java 触发器+幂等发现函数；周期接线归总协调）⑥边界接受。C/D 衔接 §E：input_snapshot 冻结 capability.{microcrystal_id,capability_id,capability_revision,parameter_ranges,approved_regions,n_bounds}+report+model；校验仅用冻结基线；能力覆盖 device⊇baseline；C 不依赖 waiting 递增代次。增量授权：N2 complete_failure business_tx（H/I 节）；§302 L.1 _COMPLETE_SUCCESS 墙钟守卫+L.2 test_health 端口+L.3 全量无 deselect 证据——均已落地并经最终 Oracle 覆盖。**最终墙钟纪律：四条完成守卫（成功/重排/失败/等待）全部 clock_timestamp()，过期领取者任何路径不能提交业务或任务状态。**
 
-## 测试证据（命令/退出码/时间/与候选代码关联）
+## 测试证据（命令/退出码/UTC/SHA 绑定；最终 SHA dc955c0，clean 树前后 dirty=0）
 
-### 提交后 SHA 绑定复跑（orchestrator 亲自执行，树前后 clean、HEAD=6b4f9ed）
-- **Java**：workdir `backend/web-java`，`env MVP_A_PG_JDBC=jdbc:postgresql://127.0.0.1:55437/postgres MVP_A_PG_USER=postgres MVP_A_PG_PASSWORD=mvp_d_local mvn -B test` → **Tests run: 179, Failures: 0, Errors: 0, exit 0, BUILD SUCCESS**（2026-09-11T04:25:16Z→04:25:30Z）。
-- **Python**：workdir `backend/worker-python`，`env MVP_A_PG_DSN=postgresql://postgres:mvp_d_local@127.0.0.1:55437/postgres MVP_A_PG_HOST_PORT=55437 MVP_A_PG_USER=postgres MVP_A_PG_PASSWORD=mvp_d_local MVP_A_PG_CONTAINER=mvp-d-pg .venv/bin/python -m pytest -q` → **125 passed, exit 0**（04:25:45Z→04:26:02Z）。
-- **contracts（D 未改动，回归证明）**：workdir `backend/contracts`，jcs.py selftest / validate_samples.py / validate_responses.py --selftest / openapi_spec_validator → **4×exit 0**（04:26:17Z→04:26:20Z）。
-
-### 实施期历史轮次（dirty 树 ccee6e2+变更，过程证据）
-- Java：基线 137 绿（A 原状）→ v1 170 → 跟进轮 175 → 裁定轮 179（fix lane 终报+orchestrator 独立复跑双证，内容与 6b4f9ed 同）。
-- Python：基线 47 绿 → v1 86 → robustness 93 → D-E2E-1 修复 95 → 裁定轮 107 → defer/C-D/cleanup 轮 **125**（实施会话+独立 audit 会话双执行；test_plan_generate 3× 无抖动）。
-
-### E2E 活体链（证据 `.mvp-d-runtime/e2e-evidence.md`，未提交之运行文件；要点摘录于此）
-- 执行环境：web@18087（源码 mvn package 构建）+ worker `--once`×4 周期 + mvp_d_dev@55437，全部替身提供方；start/end git 绑定一致（HEAD ccee6e2 + 同 status/diffstat）。
-- 链：受理 202（T05/T03 指针 rev1/3×T11 owned/T12 schema_version=number/T13 succeeded）→ reliable_new→enroll（owner_id=uuid5 VERIFIED）→ 跨周期 PG 对账 enrolled_reconciled → 冻结报告发布（结果图 T11 available+content_hash）→ T06 waiting_inputs gen_rev=0 + plan:{id}:0 → ready target_count=30∈1..100、regions⊆approved、快照冻结含 ranges/regions/n_bounds、**K 三列未动(0/NULL/0)** → 查询矩阵（A03 200 no-store/A05 brief 200/A05 full 403/A06 rev"1"/APP 会话+grant→A04 1 项→A05 full 全字段/媒体 GET 404=A deny-all 预期）→ 重放 200 零新行指针不变 → report_ready 补拍 409（拒绝路径按设计产 1 cleanup 任务）→ DEVICE_OCCUPIED 409 → 恰 3 cleanup 任务 → worker 删 4 media+对象消失 → teardown 完整（端口清/库 drop/storage 删）。
-- **绑定诚实声明**：E2E 运行于提交前的 dirty 树（ccee6e2+变更）。其与 6b4f9ed 的内容同一性由 git 证据链支持（E2E start/end status/diffstat 一致；暂存集=全部变更集且提交后无剩余；提交后树 clean；E2E 结束至提交之间仅只读检查与 git add/commit，无任何源编辑），**但 E2E 未在 6b4f9ed 上重跑，不声称最终 SHA 已独立复测 E2E**；可执行套件（Java/Python/contracts）已于提交后在 clean 树上复跑并 SHA 绑定（见上）。
+- Java：workdir `backend/web-java`，`env MVP_A_PG_JDBC=jdbc:postgresql://127.0.0.1:55437/postgres MVP_A_PG_USER=postgres MVP_A_PG_PASSWORD=mvp_d_local mvn -B test` → **183/0/0 exit 0**（08:35:50Z→08:36:06Z）。
+- Python：workdir `backend/worker-python`，`env MVP_A_PG_DSN=postgresql://postgres:mvp_d_local@127.0.0.1:55437/postgres MVP_A_PG_HOST_PORT=55437 MVP_A_PG_USER=postgres MVP_A_PG_PASSWORD=mvp_d_local MVP_A_PG_CONTAINER=mvp-d-pg .venv/bin/python -m pytest -q` → **175 passed 真 exit 0 零 deselect**（08:36:06Z→08:36:30Z）；同内容 fix-lane 175 绿+时序集 3×12 稳定+health 在外部占 18081 下独立通过证明。
+- contracts（D 未改动，回归）：jcs selftest 26/samples 50/responses 10/openapi → **4×exit 0**（08:36:30Z→32Z）。
+- E2E r6@dc955c0（权威）：全链 a-i+累计断言集（brief 省 metrics/multipart 三类 400/对账链/归档恰 2 行 2 对象且行 hash==存储字节 sha256 实测/cleanup 链恰 3 任务→deleted/K 三列未动/gen_rev 恒 0）+成功守卫活体（全 job succeeded、五周期日志 stale_generation=0）；绑定 start=end dirty=0；teardown 完整。证据 `.mvp-d-runtime/e2e-evidence.md`（运行目录，监督者同步）。
+- 历史轮次与逐轮证据见 D-oracle.md 证据矩阵。
 
 ## 真实 vs 替身（如实报告）
 
-- 人脸/测肤/大模型三提供方均为**受控确定性替身**（FaceDouble/SkinDouble/PlanDouble，可注入故障），仅证明链路；阿里云形状适配器为**边界准备**：全部方法抛 ProviderNotActivated（SearchFace/CompareFace/AddFaceEntity+AddFace/DetectLivingFace/LLM 映射点已定义），**无真实凭据/PoC，绝无伪造业务效果或治疗参数**。
-- 生产 fail-closed：environment=production 解析到 double → ProviderConfigError（任务按 DEPENDENCY_UNAVAILABLE 可重试失败）；aliyun 未激活同样 fail-closed。
-- 指标/能力/参数基线（moisture 等 4 指标；mvp-double-capability、regions 4 项、intensity/duration/pulse_count、N∈1..100）为**文档化 MVP 受控占位**，待设备/算法团队批准口径替换（env 可覆盖：MVP_SKIN_METRICS_BASELINE / MVP_PLAN_CAPABILITY_BASELINE）。
-- 真实接入前提：总协调授权凭据+阿里云 PoC（识别率/活体/索引可见性/费用）+设备团队批准基线；worker 生产存储仍 FilesystemStorageDouble（A 已披露限制，真实 OSS 归总协调/A）。
-- 外部对账能力：enroll 超时按同 correlation/EntityId 查询对账、恰一次注册（测试证明）；崩溃孤儿经 discover_and_enqueue_orphans 幂等补偿（周期触发接线归总协调）。
+- 人脸/测肤/大模型三提供方均为**受控确定性替身**（可注入故障），仅证明链路；阿里云形状适配器为**边界准备**：全方法 ProviderNotActivated（SearchFace/CompareFace/AddFaceEntity+AddFace/DetectLivingFace/LLM 映射点已定义），无真实凭据/PoC，**绝无伪造业务效果或治疗参数**；production+double→fail-closed。
+- 指标/能力/参数基线（moisture 等 4 指标；mvp-double-capability、regions 4、intensity/duration/pulse_count、N∈1..100）为**文档化 MVP 受控占位**，env 可覆盖，待设备/算法团队批准口径替换。
+- **真实接入前提**：总协调授权凭据+阿里云 PoC（识别率/活体/索引可见性/费用）+设备团队批准基线+**按冻结 model provenance 选择供应商或 mismatch fail-closed（Oracle R2-SUG②，激活前必须落实）**；worker 生产存储仍 FilesystemStorageDouble（A 已披露限制，真实 OSS 归总协调/A）。
+- 外部对账能力：enroll 超时同 correlation/EntityId 对账恰一次注册；崩溃孤儿 discover_and_enqueue_orphans 幂等补偿（周期触发接线归总协调）。
 
 ## 复现命令与环境（E/集成用）
 
-- 隔离环境：`docker run -d --name mvp-d-pg -e POSTGRES_PASSWORD=mvp_d_local -p 127.0.0.1:55437:5432 -v mvp-d-pg-data:/var/lib/postgresql/data postgres:16`；venv：worker `python3 -m venv .venv && .venv/bin/pip install -e '.[dev]'`。**严禁 5432/55432/55433/55436**；curl 一律 `--noproxy '*'`。
-- 测试命令与 env 见上节（Python 必带 `MVP_A_PG_CONTAINER=mvp-d-pg`；Java 勿设 APP_STORAGE_DEV_DIR；**Java 与 Python 套件不可并发**——pytest 的 migrate.sh 调 mvn flyway 会与 web-java target/ 冲突产生假红）。
-- D 专属 env 面：MVP_D_{FACE,SKIN,PLAN}_PROVIDER（默认 double）、MVP_IDENTITY_NAMESPACE（mvp-ns-1）、MVP_D_PROVIDER_CONFIG_REVISION、MVP_D_RESULT_IMAGE_MAX_BYTES、MVP_SKIN_METRICS_BASELINE、MVP_PLAN_CAPABILITY_BASELINE、MVP_PLAN_CAPABILITY_STALE_SECONDS（86400）、MVP_PLAN_WAIT_CHECK_SECONDS（30=defer 间隔）、MVP_D_PLAN_PROMPT_VERSION、MVP_D_ALIYUN_*（默认未激活）。
-- Java 运行 cap：`app.assessments.max-request-bytes`（默认 33554432；容器级 multipart 32MB/10MB 为 A 的 application.yml 原值，未改）。
+- 隔离环境：`docker run -d --name mvp-d-pg -e POSTGRES_PASSWORD=mvp_d_local -p 127.0.0.1:55437:5432 -v mvp-d-pg-data:/var/lib/postgresql/data postgres:16`；venv：worker `python3 -m venv .venv && .venv/bin/pip install -e '.[dev]'`。**严禁 5432/55432/55433/55436**；curl 一律 `--noproxy '*'`；勿碰 E 的 18081/18082。
+- Python 套件必带 `MVP_A_PG_CONTAINER=mvp-d-pg`；Java 勿设 `APP_STORAGE_DEV_DIR`；**Java 与 Python 套件不可并发**（pytest 的 migrate.sh 调 mvn flyway 与 web-java target/ 冲突假红）。
+- health 测试已改端口 0 OS 分配（不依赖固定端口）；D 专属 env 面：MVP_D_{FACE,SKIN,PLAN}_PROVIDER（默认 double）、MVP_IDENTITY_NAMESPACE、MVP_D_PROVIDER_CONFIG_REVISION、MVP_D_RESULT_IMAGE_MAX_BYTES、MVP_SKIN_METRICS_BASELINE、MVP_PLAN_CAPABILITY_BASELINE、MVP_PLAN_CAPABILITY_STALE_SECONDS（86400）、MVP_PLAN_WAIT_CHECK_SECONDS（30=defer 间隔）、MVP_D_PLAN_PROMPT_VERSION、MVP_D_ALIYUN_*（默认未激活）。
+- Java 运行 cap：`app.assessments.max-request-bytes`（默认 33554432；容器级 multipart 32MB/10MB 为 A 原值未改）。
 
 ## 限制与未决（如实）
 
-1. Oracle 两轮结论 BLOCKED（401）——恢复后按 D-oracle.md 保留位置执行，结论仅绑定 6b4f9ed；后续任何代码变化需复审。
-2. 94 业务场景中 D 相关项（SC-02-*/SC-03-*/SC-C-* 等）归 E 独立验收，本包不标完成。
-3. media.cleanup 周期触发/孤儿扫描接线归总协调（D 提供幂等 discover 函数+handler；崩溃于 ingest 后且无 Java 拒绝路径覆盖的孤儿需周期或运维触发发现）。
-4. enroll 终态 failed 槽位按设计保持占用（uq 含 failed），需运维外部对账后置 cancelled/succeeded 释放（DD 9.3 受控恢复，非自动丢弃）。
-5. defer 为 D 按授权新增的公共接口；B/C 接入业务 handler 时如需用等待语义应复用 complete_deferred（不得用诊断字段驱动），集成时由总协调确认。
-6. 媒体业务读取（contentUrl 实际下载）待 B 的统一 @Primary MediaAccessPolicy；当前 A deny-all → E2E 中媒体 GET 404 为预期。
-7. plan waiting 期间 SIGTERM：defer 不阻塞停机（无 in-handler 长等待）；运行中任务的在途外部调用按 A 租约/abort 语义处理。
-8. 两处 A 测试文件最小适配（test_sanity env 隔离/test_unsupported 注册表断言）集成时可能与 B/C 的同类适配冲突，由总协调合并。
+1. 94 业务场景中 D 相关项归 E 独立验收，本包不标完成。
+2. media.cleanup 周期触发/崩溃孤儿扫描接线归总协调（D 提供幂等 discover 函数+handler+验证证据）。
+3. enroll 终态 failed 槽位保持占用（uq 含 failed），受控恢复=运维对账后置 cancelled/succeeded（DD 9.3，非自动丢弃）。
+4. owned pending 结果图行（终态失败任务遗留）保留可追踪、现行孤儿规则不清理（行存在即可发现；dmedia docstring 披露）。
+5. defer/complete_failure(business_tx)/success 守卫为 D 按授权新增的公共接口；B/C 接入业务 handler 如需等待/原子终态语义应复用（不得用诊断字段驱动）；集成时由总协调确认。expire/claim 调度语义未扩围（按裁定）。
+6. 媒体业务读取（contentUrl 实际下载）待 B 统一 @Primary MediaAccessPolicy（当前 A deny-all→媒体 GET 404 为预期）。
+7. 两处历史协调事项已由裁定闭环：N2 公共扩展（L.1 落地）、F2 墙钟（四守卫统一）；无遗留待裁定项。
+8. r4@4ac4835 E2E 撤销认证事件（orchestrator 侧干扰）已在 D-oracle.md 如实披露；最终权威活体证据=r6@dc955c0。
 
 ## 协调记录
 
-`.mvp-d-runtime/coordination-request.md`（运行文件，git-ignored，由 Codex 监督者同步项目根 .coordination/D）：B 节媒体归属约定、C 节 defer 提案（已被授权落地取代）、E 节 C/D 衔接最终约定、F 节 defer 授权落实、G 节 Oracle 阻塞记录。关键裁定内容已内联本文件，不依赖运行文件存续。
+`.mvp-d-runtime/coordination-request.md`（运行文件，git-ignored，Codex 监督者同步项目根 .coordination/D）：B 媒体归属约定 / C defer 提案 / E C-D 衔接最终约定 / F defer 授权落实 / G 认证阻塞 / G2 报告收尾 / G3 恢复尝试 / G4 R1 结论 / H N2 提案 / I N2 授权受理 / J 第三次裁定受理 / K 端口冲突通报（已由 L.2 根治）/ L 第四次授权受理。关键裁定内容均已内联本文件与 D-oracle.md，不依赖运行文件存续。
