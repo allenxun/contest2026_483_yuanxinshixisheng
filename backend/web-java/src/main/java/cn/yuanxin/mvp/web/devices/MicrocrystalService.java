@@ -36,12 +36,13 @@ import java.util.UUID;
  * observation_epoch/observation_seq 列，直接写列不塞 JSONB）。顺序权威是服务端
  * 维护的会话代次表（{@link ObservationSessions}，Oracle 第二轮 #2），写进
  * {@code latest_observation} JSONB 的 {@code observer_sessions}/
- * {@code observer_generation}/{@code observer_credential_version} 键。来源变化
- * （observer_type/observer_ref 不同）重置并重新从 generation=1 开始；来源相同则按
- * 服务端会话次序判定：只有 generation 更大才接受并重置，同 generation 内客户端
- * 不得更换 epoch 且 seq 必须严格更大，旧 generation 一律拒绝（旧会话永不重获
- * 权威，闭合两会话交替来回覆盖）。所有 accepted=false 都不覆盖能力。客户端自填
- * epoch 绝不作为新旧权威。</p>
+ * {@code observer_generation}/{@code observer_credential_version} 键。来源<b>类型</b>
+ * 变化（APP↔云台/首次观察）重置并重新从 generation=1 开始；云台来源引用变化同样
+ * 重置（既有语义）；APP 代次键为稳定 family（{@code account:installation}），换
+ * account/安装实例作为新 family 获得更高 generation（旧 family 永不重获权威），同一
+ * family 则按服务端次序判定：只有 generation 更大才接受并重置，同 generation 内
+ * 客户端不得更换 epoch 且 seq 必须严格更大，旧 generation 一律拒绝（闭合会话交替
+ * 来回覆盖）。所有 accepted=false 都不覆盖能力。客户端自填 epoch 绝不作为新旧权威。</p>
  *
  * <p>禁止：以观察抢占/改变 T07 占用、累计次数、改 care_executions、创建
  * async_jobs（方案生成归 D/C 的 Worker 扫描）；不得用请求体覆盖他人归属。
@@ -160,8 +161,11 @@ public class MicrocrystalService {
                         "microcrystal row missing after locate");
             }
             int maxSessions = props.maxObservationSessionsOrDefault();
-            Decision decision = decide(row, observer, principal.credentialVersion(),
-                    principal.sessionId(), body.observationEpoch(), seq, maxSessions);
+            // 代次键按主体类型分派（Oracle 第四轮）：APP 用稳定 family（refresh 不累积），
+            // GIMBAL 用随机 sessionId（有 credential_version 推进作为恢复途径）。
+            String generationKey = generationKeyFor(principal, observer);
+            Decision decision = decide(row, observer, generationKey, principal.credentialVersion(),
+                    body.observationEpoch(), seq, maxSessions);
             if (decision.relation() == ObservationSessions.Relation.TABLE_FULL) {
                 log.warn("microcrystal observer session table full; rejected unseen session"
                                 + " microcrystalId={} branch=session-table-full-fail-closed"
@@ -258,27 +262,51 @@ public class MicrocrystalService {
     }
 
     /**
-     * 服务端会话代次判定（Oracle 第二轮 #2 + 第三轮 BLOCKER）。来源变化 → 重置并
-     * generation=1；来源相同 → 按 {@link ObservationSessions} 的服务端次序：更大
-     * 代次接受重置，同代次要求 epoch 一致且 seq 严格更大，旧代次一律拒绝；
-     * 表满且该 session 从未被服务端见过 → {@code TABLE_FULL}（拒绝且不追加、不写库）。
+     * 观察代次键（Oracle 第四轮）：
+     * <ul>
+     *   <li>APP：稳定 family = {@code "<accountUuid>:<installationId>"}（= {@code Observer.ref}）。
+     *       APP 的 {@code credentialVersion} 恒为 0 且每次 refresh/login 都换 sessionId，
+     *       若用 sessionId 作键则正常生命周期会不断累积直至耗尽；用 family 作键后同一
+     *       account+installation 恒定映射到同一表项，永不累积、永不耗尽。</li>
+     *   <li>GIMBAL：{@code sessionId}（保持既有语义：表满 fail closed，
+     *       {@code credential_version} 推进可恢复）。</li>
+     * </ul>
+     * 该键只来自服务端派生的认证上下文，绝不取请求体。
      */
-    private static Decision decide(Row row, Observer observer, long credentialVersion,
-                                   String sessionId, String epoch, long seq, int maxSessions) {
+    private static String generationKeyFor(PrincipalContext principal, Observer observer) {
+        return principal.principalType() == PrincipalType.APP
+                ? observer.ref() : principal.sessionId();
+    }
+
+    /**
+     * 服务端会话代次判定（Oracle 第二轮 #2 + 第三轮 + 第四轮 BLOCKER）。
+     *
+     * <p>来源<b>类型</b>变化（APP↔云台，或首次观察）→ 清空代次表、generation=1；
+     * 云台来源引用变化（换云台）→ 同样重置（保持既有云台语义）。APP 的 family 变化
+     * （换账号/换安装实例）<b>不</b>清空代次表，而是作为新表项获得更高 generation
+     * （旧 family 因此被拒、永不重获权威）；同一 family 内仍要求 epoch 一致且 seq
+     * 严格更大，否则拒绝。表满且该代次键从未被服务端见过 → {@code TABLE_FULL}
+     * （拒绝且不追加、不写库）。</p>
+     */
+    private static Decision decide(Row row, Observer observer, String generationKey,
+                                   long credentialVersion, String epoch, long seq, int maxSessions) {
         Map<String, Object> observed = DeviceJson.parseObject(row.latestObservation());
-        boolean sourceChanged = row.observerType() == null || row.observerRef() == null
-                || !row.observerType().equals(observer.type())
+        boolean typeChanged = row.observerType() == null
+                || !row.observerType().equals(observer.type());
+        boolean refChanged = row.observerRef() == null
                 || !row.observerRef().equals(observer.ref());
-        if (sourceChanged) {
-            // 新来源 = 新来源会话：接受并重置，服务端记为 generation=1。
-            return new Decision(true, 1, ObservationSessions.freshSessions(sessionId),
+        boolean appFamily = "app_account".equals(observer.type());
+        if (typeChanged || (refChanged && !appFamily)) {
+            // 来源类型变化 / 云台换源：清空代次表，当前来源记为 generation=1。
+            return new Decision(true, 1, ObservationSessions.freshSessions(generationKey),
                     ObservationSessions.Relation.FIRST_OR_ADVANCED);
         }
+        // APP family 变化走这里：不清表，作为新表项获得更高 generation（接受并重置基准）。
         ObservationSessions.Resolution resolution = ObservationSessions.resolve(
                 observed.get("observer_sessions"),
                 DeviceJson.longAt(observed, "observer_credential_version"),
                 DeviceJson.longAt(observed, "observer_generation"),
-                credentialVersion, sessionId, maxSessions);
+                credentialVersion, generationKey, maxSessions);
         boolean accepted = switch (resolution.relation()) {
             case FIRST_OR_ADVANCED, NEWER -> true;
             case SAME -> row.observationEpoch() != null && row.observationEpoch().equals(epoch)

@@ -172,7 +172,11 @@ b07() {
 }
 
 b08() {
-  login_app "$(new_phone)" "inst-b8-$(new_id|cut -c1-8)"
+  # 手机号与安装实例必须留存：后面要用**同一 account+installation** 反复 login，
+  # 以端到端锁定 Oracle R4 BLOCKER（APP 代次键必须是稳定 family，而非随机 sessionId）。
+  local phone; phone=$(new_phone)
+  local inst8="inst-b8-$(new_id|cut -c1-8)"
+  login_app "$phone" "$inst8"
   local acct="$APP_ID" inst="$INST" serial="MC-B8-$RANDOM"
   local proof; proof=$(connection_proof_app "$acct" "$inst" "$serial")
   op_call m2A04ReportMicrocrystalObservation POST "$WEB/api/v1/microcrystal-observations" \
@@ -195,9 +199,33 @@ b08() {
     -d "{\"microcrystalSerial\":\"$serial\",\"connectionProof\":\"$proof3\",\"capabilities\":{\"schemaVersion\":1,\"revision\":\"2\",\"foo\":\"stale\"},\"observationEpoch\":\"e1\",\"observationSeq\":\"3\",\"observedAt\":\"2026-09-11T10:00:00Z\",\"state\":{}}"
   aeq "$CODE" 200 "旧 seq 200"; aeq "$(jget data.accepted)" false "旧 seq rejected"
   aeq "$(psql_b "SELECT capabilities->>'revision' FROM microcrystals WHERE id='$mid'")" 1 "能力未被覆盖"
+  # Oracle 第四轮 BLOCKER 的端到端锁定：APP 的代次键是**稳定 family**（account:installation），
+  # 不是随机 sessionId。同一 account+installation 反复 login（每次都是新 sessionId、旧 token 被撤销）
+  # 后逐次上报（epoch 不变、seq 严格递增）必须**全部接受**，且 observer 会话表项恒为 1、
+  # observer_generation 恒为 1 ⇒ 正常 refresh 生命周期永不累积、永不耗尽。
+  # 循环 9 次（> 默认上限 8）：旧实现（按 sessionId 累积 + 只增不减）在第 9 个 session 必然
+  # 永久 TABLE_FULL，故此断言同时是该 BLOCKER 的回归锁。
+  local i pf
+  for i in 6 7 8 9 10 11 12 13 14; do
+    login_app "$phone" "$inst"
+    aeq "$APP_ID" "$acct" "第 $i 次 login 仍是同一账号（family 不变）"
+    pf=$(connection_proof_app "$acct" "$inst" "$serial")
+    op_call m2A04ReportMicrocrystalObservation POST "$WEB/api/v1/microcrystal-observations" \
+      -H "Authorization: Bearer $APP_TOKEN" -H "Idempotency-Key: k8r$i-$RANDOM" -H 'Content-Type: application/json' \
+      -d "{\"microcrystalSerial\":\"$serial\",\"connectionProof\":\"$pf\",\"capabilities\":{\"schemaVersion\":1,\"revision\":\"1\"},\"observationEpoch\":\"e1\",\"observationSeq\":\"$i\",\"observedAt\":\"2026-09-11T10:00:00Z\",\"state\":{}}"
+    aeq "$CODE" 200 "第 $i 次 refresh 后上报 200"
+    aeq "$(jget data.accepted)" true "第 $i 次（新 session、同 family、seq 递增）必须接受"
+  done
+  aeq "$(psql_b "SELECT jsonb_array_length(latest_observation->'observer_sessions') FROM microcrystals WHERE id='$mid'")" 1 \
+    "observer 会话表项恒为 1（family 稳定，10 个 session 不累积）"
+  aeq "$(psql_b "SELECT (latest_observation->>'observer_generation')::int FROM microcrystals WHERE id='$mid'")" 1 \
+    "observer_generation 恒为 1"
+  aeq "$(psql_b "SELECT observation_seq FROM microcrystals WHERE id='$mid'")" 14 "seq 已推进到 14"
+  aeq "$(psql_b "SELECT observer_ref FROM microcrystals WHERE id='$mid'")" "$acct:$inst" "observer_ref 仍是同一 family"
   printf '%s' "$mid" > "$TMP/b8.mid"; printf '%s' "$serial" > "$TMP/b8.serial"
   printf '%s' "$APP_TOKEN" > "$TMP/b8.token"; printf '%s' "$acct" > "$TMP/b8.acct"; printf '%s' "$inst" > "$TMP/b8.inst"
-  vlog "accepted；schema_version 整数；observer 来自 token；旧 seq 不覆盖能力"
+  vlog "accepted；schema_version 整数；observer 来自 token；旧 seq 不覆盖能力；"
+  vlog "同 family 连续 10 个 session 全部接受且表项恒为 1（APP 永不耗尽，R4 BLOCKER 回归锁）"
 }
 
 b09() {
