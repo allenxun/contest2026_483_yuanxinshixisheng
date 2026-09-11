@@ -6,10 +6,10 @@
 
 ## 命令与退出码
 
-- 正式跑（当前，R15）：RUN_ID=`E-CD-20260911T101034Z-f01ae30d`，settled 10/10，counts={PASS:10,FAIL:0,BLOCKED:0,INFO:0}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。
-- 迭代记录（如实）：协调者提交后树复跑 `E-CD-20260911T094425Z-945fda65` 得 9 PASS/1 FAIL——唯一 FAIL=CD-01，根因是**驱动绑定缺陷**（以 HEAD 字面等值 `aebccc7` 断言，而 E 自身验收代码/证据/报告提交必然前移 HEAD；业务面 C/D/merged 祖先、care/contracts diff、jar/worker/health 全 True）。已修为「祖先关系+业务路径 diff 空」并加 selfcheck 负例。R15 进一步修正 CC-01 措辞/绑定、CC-07 重放双字段、CC-11 严格 OAS 语义、CD-03 精确基线、CD-04 T07 SQL 关联、CD-06 三 job 绑定。此前 E 正式 run（`5f50aeb4`、`7c7b0e92`、`350c6b76`、`945fda65`）均保留零覆盖。**非 C/D 缺陷**。
-- `run.sh c-acceptance` 在 merged 树 R15 重跑：RUN_ID=`E-AB-20260911T100912Z-0972884c`，settled 14/14，counts={PASS:13,INFO:1}，exit=0（CC-11 严格语义暴露契约建模缺陷→INFO 附条件；care 域 8b3592e..HEAD diff=0，旧证据适用）。
-- `run.sh selfcheck` rc=0（69 passed，含 CD-01 绑定/CC-11 严格语义/CD-03 基线负例回归）；`run.sh matrix` rc=3（94 pending、SETTLED 94/94、blocked_by []×54/B×40）。
+- 正式跑（当前，R16）：RUN_ID=`E-CD-20260911T102848Z-73a69cce`，settled 10/10，counts={PASS:10,FAIL:0,BLOCKED:0,INFO:0}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。
+- 迭代记录（如实）：协调者提交后树复跑 `E-CD-20260911T094425Z-945fda65` 得 9 PASS/1 FAIL——唯一 FAIL=CD-01，根因是**驱动绑定缺陷**（以 HEAD 字面等值 `aebccc7` 断言，而 E 自身验收代码/证据/报告提交必然前移 HEAD；业务面 C/D/merged 祖先、care/contracts diff、jar/worker/health 全 True）。R15 修为「祖先关系+业务路径 diff 空」等六项；R16 进一步：CC-11 严格分类改**精确 allowlist 四元组**（allowlist 外一律 impl→FAIL）、CD-06 enroll 改**链前后新增差集绑定**（不用全库最早）。此前 E 正式 run（`f01ae30d`、`5f50aeb4`、`7c7b0e92`、`350c6b76`、`945fda65`）均保留零覆盖。**非 C/D 缺陷**。
+- `run.sh c-acceptance` 在 merged 树 R16 重跑：RUN_ID=`E-AB-20260911T102717Z-efcddec8`，settled 14/14，counts={PASS:13,INFO:1}，exit=0（CC-11 allowlist 精确命中 13 路径、impl_bad=[]；care 域 8b3592e..HEAD diff=0，旧证据适用）。
+- `run.sh selfcheck` rc=0（71 passed，含 CD-01 绑定/CC-11 allowlist 精确判别/CD-03 基线/CD-06 enroll 本链绑定负例回归）；`run.sh matrix` rc=3（94 pending、SETTLED 94/94、blocked_by []×54/B×40）。
 - 既有 A 系 + C 系 7 run 证据目录零覆盖（新 run 独立子目录）。
 
 ## CD 逐项结论
@@ -21,7 +21,7 @@
 | CD-03 | PASS | B 前置 test_seed（gimbal/T04 设备能力）→ 真实 M3-A01 受理 → 真实 worker analyze/enroll/analyze → T06 由 D 发布事务唯一创建（waiting_inputs、generation_revision=0、input_photo_version=1、assessment 唯一）→ plan.generate → ready；冻结基线**精确值** capability_id=mvp-double-capability、intensity percent 0–100/duration second 1–600/pulse_count count 1–1000、approved_regions={forehead,left_cheek,right_cheek,nose}、n_bounds={1,100}、target_count=30；steps 形状完整；K 列显式默认 0/NULL/0 全程不变 |
 | CD-04 | PASS | 对真实 ready T06 执行 C A03 准入（dev 人脸绑定）→ 201；**SQL 查证 T07 行存在且 plan_id==CD-03 真实 T06、member/microcrystal/controller 关联正确、status=admitted**；C 能力校验器接受 D 冻结基线（双侧 unit/区域/N bounds 实际值入证据） |
 | CD-05 | PASS | 真实 M3-A01 受理触发 T03 指针原子替换（非 SQL 种子）；替换前云台 A03=201、替换后旧任务 A03=409 TASK_REPLACED；A08 真实链路旧执行已 closed→404（生命周期冻结先于指针），另以 test_seed 指针移动在 admitted 执行上验证 A08=409 TASK_REPLACED；时序化窗口一致 |
-| CD-06 | PASS | success=**本次链路三 job（assessment.analyze/identity.enroll/plan.generate）逐个 succeeded** 且 worker 日志（RUN_ID 时间窗）stale_generation=0；defer=plan.generate 能力等待跳（T12 queued、attempt=0、lease 轮换、gen_rev=0；T13 不适用）；failure=确定性配置故障（新受理 A3）→ PLAN_SNAPSHOT_INVALID 终态原子写（T06 无 ready 半成品、T12 同 failed） |
+| CD-06 | PASS | success=**本次链路三 job（assessment.analyze/identity.enroll/plan.generate）逐个 succeeded**（enroll 以链前快照差集绑定**本链新增**，不用全库最早）且 worker 日志（RUN_ID 时间窗）stale_generation=0；defer=plan.generate 能力等待跳（T12 queued、attempt=0、lease 轮换、gen_rev=0；T13 不适用）；failure=确定性配置故障（新受理 A3）→ PLAN_SNAPSHOT_INVALID 终态原子写（T06 无 ready 半成品、T12 同 failed） |
 | CD-07 | PASS | blocked_by=owner−{C,D} → []×54/B×40；owner/94 ID/业务语义逐字节不变（三字段剔除哈希 e4f5dc52）；pending_reason 分类细化；再生成幂等 |
 | CD-08 | PASS | 全部 doubles_pass；B 依赖逐项 dependency_pending；既有证据零覆盖；D 待接线如实转录 |
 

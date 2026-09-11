@@ -95,13 +95,42 @@ def oas_errors_node(node, doc, body):
                   key=lambda e: list(e.absolute_path))
 
 
-def classify_strict_error(err):
-    """严格语义失败分类：契约建模问题（nullable/allOf）或疑似实现缺陷。"""
-    if err.validator == "type" and err.instance is None:
-        return "contract:nullable-over-$ref/allOf"
-    if err.validator == "additionalProperties":
-        return "contract:allOf+additionalProperties"
-    return "impl-or-other"
+#: R16：已确认的 13 处契约建模缺陷精确 allowlist（键=API + 归一化实例路径 + validator）。
+#: 从实际观测错误（0972884c/735fb16d 的 cc-11-captured.json）派生并硬编码；任何不在表内、
+#: 或上下文不符的严格错误一律 impl → CC-11 FAIL（绝不 INFO）。
+_NULLABLE_CTX = "nullable:true 与 $ref/allOf 同层（OAS 3.0.3 不生效）→ C 按契约意图返回 null"
+CC11_CONTRACT_ALLOWLIST = {
+    ("A01", "$.data.items[*].progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A02", "$.data.progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A03", "$.data.controller.gimbalId", "type"): _NULLABLE_CTX + " @ ControllerRef.gimbalId",
+    ("A03", "$.data.progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A03", "$.data.verification.validUntil", "type"): _NULLABLE_CTX + " @ Verification.validUntil",
+    ("A04", "$.data.progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A04", "$.data.verification.validUntil", "type"): _NULLABLE_CTX + " @ Verification.validUntil",
+    ("A05", "$.data.progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A07", "$.data.controller.gimbalId", "type"): _NULLABLE_CTX + " @ ControllerRef.gimbalId",
+    ("A07", "$.data.progress.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A08", "$.data.completedAt", "type"): _NULLABLE_CTX + " @ Progress.completedAt",
+    ("A09", "$.data.items[*].closedAt", "type"): _NULLABLE_CTX + " @ CareExecutionListItem.closedAt",
+    ("A08", "$.data", "additionalProperties"):
+        "allOf: ProgressWithSync.lastSyncedAt 被 Progress.additionalProperties:false 误伤",
+}
+
+
+def normalize_json_path(json_path):
+    return re.sub(r"\[\d+\]", "[*]", json_path or "$")
+
+
+def classify_strict_error(api, err):
+    """R16 精确分类：仅 allowlist 四元组精确命中且上下文成立 → contract；否则 impl→FAIL。"""
+    key = (api, normalize_json_path(err.json_path), err.validator)
+    if key not in CC11_CONTRACT_ALLOWLIST:
+        return "impl-or-other"
+    if err.validator == "type" and err.instance is not None:
+        return "impl-or-other"           # 非 null 的 type 违规不接受
+    if err.validator == "additionalProperties" and "lastSyncedAt" not in (err.message or ""):
+        return "impl-or-other"           # 仅 lastSyncedAt 误伤，非任意未声明字段
+    return "contract:" + CC11_CONTRACT_ALLOWLIST[key]
 
 
 def oas_validate(path, method, status, body):
@@ -1219,8 +1248,8 @@ def cc_11(ctx):
             status_bad.append(f"{api}={actual} not in {expected_status[api]}")
             continue
         for e in oas_errors_path(path, method, actual, body):
-            kind = classify_strict_error(e)
-            issue = f"{api} {e.json_path or '$'} [{kind}]"
+            kind = classify_strict_error(api, e)
+            issue = f"{api} {normalize_json_path(e.json_path)} [{kind}]"
             (contract_issues if kind.startswith("contract") else impl_bad).append(issue)
     I.evidence_text("cc-11-captured.json", json.dumps(captured, ensure_ascii=False, indent=2))
     status = cc11_outcome(baseline_ok, len(caps), status_bad, impl_bad, contract_issues)

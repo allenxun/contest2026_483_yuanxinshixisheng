@@ -918,15 +918,12 @@ def test_cc11_strict_oas_semantics_and_discrimination():
         "type": "object", "properties": {"a": {"type": "string"}}, "required": ["a"],
         "additionalProperties": False}}}}
     node_null = {"allOf": [{"$ref": "#/components/schemas/X"}], "nullable": True}
-    assert c_care.oas_errors_node(node_null, doc, None)        # 旧 nullable 形状必须拒绝 null
     errs_null = c_care.oas_errors_node(node_null, doc, None)
-    assert any(c_care.classify_strict_error(e).startswith("contract:nullable") for e in errs_null)
+    assert errs_null                                        # 旧 nullable 形状必须拒绝 null
     # allOf 不展平：兄弟分支新增属性仍被 X 的 additionalProperties:false 拒绝
     node_allof = {"allOf": [{"$ref": "#/components/schemas/X"},
                             {"type": "object", "properties": {"b": {"type": "string"}}}]}
-    errs_allof = c_care.oas_errors_node(node_allof, doc, {"a": "x", "b": "y"})
-    assert errs_allof
-    assert any(c_care.classify_strict_error(e).startswith("contract:allOf") for e in errs_allof)
+    assert c_care.oas_errors_node(node_allof, doc, {"a": "x", "b": "y"})
     assert not c_care.oas_errors_node({"$ref": "#/components/schemas/X"}, doc, {"a": "x"})
     # 结论政策：状态不符/实现缺陷→FAIL；仅契约建模→INFO；全过→PASS
     assert c_care.cc11_outcome(True, 9, [], [], []) == "PASS"
@@ -935,6 +932,51 @@ def test_cc11_strict_oas_semantics_and_discrimination():
     assert c_care.cc11_outcome(
         True, 9, [], [], ["A03 $.data.x [contract:nullable-over-$ref/allOf]"]) == "INFO"
     assert c_care.cc11_outcome(True, 8, [], [], []) == "FAIL"
+
+
+def _cc11_synth_errors(api, node, doc, body):
+    from driver import c_care
+    return [(e, c_care.classify_strict_error(api, e))
+            for e in c_care.oas_errors_node(node, doc, body)]
+
+
+def test_cc11_allowlist_precise_no_impl_downgrade():
+    """R16 判别：普通非 nullable 收 null / 普通 additionalProperties / allowlist 外路径→impl FAIL。"""
+    from driver import c_care
+
+    # 1) 非 nullable 字段收 null（allowlist 外路径）→ impl，不得 contract INFO
+    doc1 = {"components": {"schemas": {"P": {
+        "type": "object", "additionalProperties": False,
+        "properties": {"completedAt": {"type": "string"}}}}}}
+    node1 = {"type": "object", "properties": {"data": {"type": "object", "properties": {
+        "progress": {"$ref": "#/components/schemas/P"}}}}}
+    body1 = {"data": {"progress": {"completedAt": None}}}
+    r1 = c_care.oas_errors_node(node1, doc1, body1)
+    assert r1 and c_care.classify_strict_error("A01", r1[0]) == "impl-or-other"
+    assert c_care.classify_strict_error("A02", r1[0]).startswith("contract:")  # 仅 allowlist 路径命中
+    # 2) 普通 additionalProperties:false（非 allOf 误伤）出现未声明字段 → impl
+    doc2 = {"components": {"schemas": {"Q": {
+        "type": "object", "additionalProperties": False,
+        "properties": {"a": {"type": "string"}}, "required": ["a"]}}}}
+    node2 = {"$ref": "#/components/schemas/Q"}
+    r2 = c_care.oas_errors_node(node2, doc2, {"a": "x", "b": "y"})
+    assert r2 and c_care.classify_strict_error("A08", r2[0]) == "impl-or-other"
+    # 3) allowlist 精确命中：nullable 路径 + A08 lastSyncedAt（allOf 误伤）
+    doc3 = {"components": {"schemas": {"Progress": {
+        "type": "object", "additionalProperties": False,
+        "properties": {"acceptedCount": {"type": "string"}}, "required": ["acceptedCount"]}}}}
+    node3 = {"type": "object", "properties": {"data": {"allOf": [
+        {"$ref": "#/components/schemas/Progress"},
+        {"type": "object", "properties": {"lastSyncedAt": {"type": "string"}}}]}}}
+    r3 = c_care.oas_errors_node(node3, doc3, {"data": {"acceptedCount": "1",
+                                                       "lastSyncedAt": "2026-01-01T00:00:00Z"}})
+    assert r3 and any(c_care.classify_strict_error("A08", e).startswith("contract:")
+                      for e in r3)
+    # 4) A08 同类 additionalProperties 但未声明字段非 lastSyncedAt → impl
+    r4 = c_care.oas_errors_node(node3, doc3, {"data": {"acceptedCount": "1", "secret": "x"}})
+    assert r4 and all(c_care.classify_strict_error("A08", e) == "impl-or-other" for e in r4)
+    # allowlist 恰 13 条
+    assert len(c_care.CC11_CONTRACT_ALLOWLIST) == 13
 
 
 def test_cd03_expected_baseline_precise_values():
@@ -954,3 +996,13 @@ def test_cd03_expected_baseline_precise_values():
     assert cd_chain.EXPECTED_REGIONS == {"forehead", "left_cheek", "right_cheek", "nose"}
     assert cd_chain.EXPECTED_N_BOUNDS == {"min": 1, "max": 100}
     assert cd_chain.EXPECTED_TARGET == 30
+
+
+def test_cd06_enroll_bound_to_chain_not_earliest():
+    """CD-06：enroll 必须为本链新增；预存无关 succeeded enroll + 本链缺失 → 绑定空 → 不得 PASS。"""
+    from driver import cd_chain
+
+    assert cd_chain.new_job_ids({"old"}, ["old"]) == []          # 本链 enroll 缺失 → 空
+    assert cd_chain.new_job_ids({"old"}, ["old", "new"]) == ["new"]
+    assert cd_chain.new_job_ids(set(), ["a", "b"]) == ["a", "b"]
+    assert cd_chain.new_job_ids({"a", "b"}, ["a", "b", "a"]) == []  # 预存顶替不算新增

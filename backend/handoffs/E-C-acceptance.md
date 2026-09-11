@@ -7,8 +7,8 @@
 ## 命令与退出码
 
 - `backend/acceptance/run.sh c-acceptance`：mode=`c-care`，EXPECTED=CC-01..CC-12 + CLEANUP + CLEANUP-ports（14 项唯一结算）。
-- 正式跑（当前，R15）：RUN_ID=`E-AB-20260911T100912Z-0972884c`，settled 14/14，counts={PASS:13, FAIL:0, BLOCKED:0, INFO:1}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。INFO=CC-11（严格 OAS 语义暴露契约建模缺陷，附条件接受，见限制节）。
-- 历史迭代 run（保留、零覆盖）：R14 `E-AB-20260911T090147Z-6d8dbb55`（14 PASS）、merged 重跑 `E-AB-20260911T093819Z-f724f2ba`（14 PASS）、更早 feeb86d8 等；其 summary 历史措辞不改写。
+- 正式跑（当前，R16）：RUN_ID=`E-AB-20260911T102717Z-efcddec8`，settled 14/14，counts={PASS:13, FAIL:0, BLOCKED:0, INFO:1}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。INFO=CC-11（allowlist 精确命中 13 路径、`impl_bad=[]`）。
+- 历史迭代 run（保留、零覆盖）：R15 `E-AB-20260911T100912Z-0972884c`、R14 `E-AB-20260911T090147Z-6d8dbb55`（均 13 PASS/1 INFO）、merged 重跑 `f724f2ba` 等；其 summary 历史措辞不改写。
 - 历史迭代 run（保留、零覆盖）：`E-AB-20260911T082701Z-73350e3c`（14 PASS）、`E-AB-20260911T081747Z-feeb86d8`（12 PASS / 2 FAIL 驱动侧归因）；连同早期 4 个 run 目录均未被覆盖。
 - `run.sh selfcheck` rc=0（63 passed，较上轮 +6 条 R14 负例回归）；`run.sh matrix` rc=3（94 pending、SETTLED 94/94）。
 
@@ -26,7 +26,7 @@
 | CC-08 | PASS | 同微晶并发恰一 201 一 409 **DEVICE_OCCUPIED**；**占用仅 closed 释放**（closed 前再准入 409 / closed 后 201）；**SQL 移动 T03 指针（test_seed）→ 旧任务 A03/A08 均 409 TASK_REPLACED** |
 | CC-09 | PASS | duplicate 重放 **disp 非空==2**；首批 HTTP 200；**K=9/10/11 边界**（completed_at 于 K=10 首达、K=11 不改写、K 不截断）；observation 连续性失效不 running、unknown 拒绝 →running、stopped 冻结；**同记录键异内容（不同幂等键）409 RECORD_CONFLICT 零持久化**；溢出 400 count_overflow |
 | CC-10 | PASS | 未 stopped 409 STOP_NOT_CONFIRMED；**缺口 409 CLOSURE_GAPS + 有界 missingRanges/more**；水位完整→closed+occupancyReleased；**并发双收尾恰一成功**；**同一收尾键重放 200 且 manifest 逐字节不变**；closed 冻结 + 迟到记录入账且 `closure_manifest.late_variance` 留痕、不重开；**撤销后 A05 最小 ack(progress=null) + A06 仍可收尾 + A07 最小视图**；A07/A08/A09 2xx |
-| CC-11 | **INFO** | selftest 10/10、samples 50、OpenAPI VALID；9 个 M4 API（A01-A09）按**实际 HTTP 状态**对应 schema 用 RV-6 严格转换器校验（**不扩展 nullable、不展平 allOf**）。`status_bad=[]`、`impl_bad=[]`（无 C 运行时缺陷）；**13 处契约建模缺陷**（12 处 `nullable:true` 与 `$ref/allOf` 同层不生效→C 按契约意图返回 null 被判 type 违规；A08 `ProgressWithSync.lastSyncedAt` 被 `Progress.additionalProperties:false` 经 allOf 误伤）→ 如实披露、附条件接受，归属=契约/OAS（D/A 维护的 openapi.yaml），非 C 实现缺陷 |
+| CC-11 | **INFO** | selftest 10/10、samples 50、OpenAPI VALID；9 个 M4 API（A01-A09）按**实际 HTTP 状态**对应 schema 用 RV-6 严格转换器校验（**不扩展 nullable、不展平 allOf**）。`status_bad=[]`、`impl_bad=[]`（无 C 运行时缺陷）；**13 个不同字段路径契约建模缺陷**（12 处 `nullable:true` 与 `$ref/allOf` 同层不生效→C 按契约意图返回 null 被判 type 违规，含 `A08 $.data.completedAt`；1 处 A08 `ProgressWithSync.lastSyncedAt` 被 `Progress.additionalProperties:false` 经 allOf 误伤）→ **allowlist 四元组精确绑定（API+归一化路径+validator+契约上下文），allowlist 外一律 impl→FAIL，绝不降级 INFO**；如实披露、附条件接受，归属=契约/OAS（openapi.yaml），非 C 实现缺陷 |
 | CC-12 | PASS | 矩阵再生成幂等；94 ID 唯一；含 C 场景 blocked_by 不含 C；全部 dependency_pending |
 
 ## 替身与依赖区分
@@ -48,18 +48,25 @@
 
 ## 限制
 
-- 无 worker 参与（care 包零 worker 依赖）；未重跑 C 的 Java 262 项与契约脚本以外的 A/B/D 套件。selfcheck rc=0（69 passed，含 CC-11 严格语义/CC-01 绑定负例回归）。
+- 无 worker 参与（care 包零 worker 依赖）；未重跑 C 的 Java 262 项与契约脚本以外的 A/B/D 套件。selfcheck rc=0（71 passed，含 CC-11 allowlist 精确判别/CC-01 绑定负例回归）。
 - 内存紧张，JVM 限堆 `-Xmx640m -XX:MaxMetaspaceSize=256m`，变体串行。
-- **CC-11 严格语义下的契约建模缺陷（已接受限制，归属=契约/OAS）**：①12 处 `nullable:true` 与
-  `$ref`/`allOf` 同层（OAS 3.0.3 该写法不生效），C 按契约意图返回 null 被严格语义判 type 违规——
-  路径 `A01 $.data.items[*].progress.completedAt`、`A02/A03/A04/A05/A07 $.data.progress.completedAt`、
-  `A03/A04 $.data.verification.validUntil`、`A03/A07 $.data.controller.gimbalId`、`A09 $.data.items[*].closedAt`；
-  ②1 处 `A08 $.data`：`ProgressWithSync` 的 `allOf` 第二分支新增 `lastSyncedAt` 被 `Progress.additionalProperties:false`
-  误伤。上述为 openapi.yaml 建模问题，非 C 运行时缺陷；驱动如实按 INFO 披露，**不静默放宽**。
+- **CC-11 严格语义下的契约建模缺陷（已接受限制，归属=契约/OAS）**：共 **13 个不同字段路径**
+  （12 处 `nullable:true` 与 `$ref`/`allOf` 同层、OAS 3.0.3 该写法不生效 → C 按契约意图返回 null
+  被严格语义判 type 违规；1 处 allOf+additionalProperties）：
+  ①nullable 12 路径：`A01 $.data.items[*].progress.completedAt`、`A02 $.data.progress.completedAt`、
+  `A03/A04/A05/A07 $.data.progress.completedAt`、`A08 $.data.completedAt`、
+  `A03/A04 $.data.verification.validUntil`、`A03/A07 $.data.controller.gimbalId`、
+  `A09 $.data.items[*].closedAt`；
+  ②`A08 $.data`：`ProgressWithSync` 的 `allOf` 第二分支新增 `lastSyncedAt` 被 `Progress.additionalProperties:false`
+  误伤。
+  说明：上述为**字段路径级** distinct 计数（列表元素可产生多条实例级错误，如 A01/A09 items[*]）；
+  allowlist 按 (API, 归一化路径, validator) 四元组精确绑定，任何 allowlist 外/上下文不符的错误一律
+  impl→FAIL，绝不降级 INFO。均为 openapi.yaml 建模问题，非 C 运行时缺陷；驱动如实按 INFO 披露，
+  **不静默放宽**。
 - 其余 type/required/enum 及实际状态对应严格不放宽。
 
 ## Merged 候选适用性（aebccc7 = C 8b3592e + D dc955c0）
 
 - C care 域 `git diff 8b3592e..aebccc7`（`web-java/.../web/care` main+test）=0，`backend/contracts` diff=0 → 本报告对 C 的结论在 merged 候选上继续适用。
-- 在 merged 树正式重跑 `run.sh c-acceptance`：R15 新 RUN_ID=`E-AB-20260911T100912Z-0972884c`（settled 14/14，counts={PASS:13,INFO:1}，exit=0）；此前 merged 重跑 `E-AB-20260911T093819Z-f724f2ba`（14 PASS，旧措辞「三目录 diff 空」已被本轮修正为 care 域精确路径，历史 summary 不改写、零覆盖）。
+- 在 merged 树正式重跑 `run.sh c-acceptance`：R16 新 RUN_ID=`E-AB-20260911T102717Z-efcddec8`（settled 14/14，counts={PASS:13,INFO:1}，exit=0，allowlist 精确命中 13 路径、impl_bad=[]）；此前 R15 `E-AB-20260911T100912Z-0972884c`（同计数）、merged 重跑 `E-AB-20260911T093819Z-f724f2ba`（14 PASS，旧措辞「三目录 diff 空」已被修正为 care 域精确路径，历史 summary 不改写、零覆盖）。
 - C+D 真实链路与集成结论见 `backend/handoffs/E-CD-acceptance.md`（证据 `evidence/CD-chain-2026-09-11-aebccc7/`）。
