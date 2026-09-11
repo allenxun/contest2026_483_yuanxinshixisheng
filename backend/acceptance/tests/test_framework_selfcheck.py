@@ -889,3 +889,22 @@ def test_cd_conclusion_policy():
     assert "未通过" in cd_chain.cd_conclusion(st(p=9, missing=["CD-3"]))
     assert "拒绝" in cd_chain.cd_conclusion({**st(p=9), "unknown_status": ["X"]})
     assert "通过" in cd_chain.cd_conclusion(st(p=10))
+
+
+def test_cd01_binding_is_ancestry_not_head_equality():
+    """CD-01 绑定=祖先关系+业务路径 diff 空；HEAD 前移（仅 E 提交）不得 FAIL。"""
+    from driver import cd_chain
+
+    base = dict(anc_c=True, anc_d=True, anc_merged=True, business_diff=[],
+                care_files=[], contract_files=[], mvn_rc=0, venv_ok=True, health_up=True)
+    assert cd_chain.cd01_binding_ok(**base) is True
+    # 负例 1：merged..HEAD 业务路径非空 diff → 必须 FAIL
+    assert cd_chain.cd01_binding_ok(
+        **{**base, "business_diff": ["M\tbackend/web-java/src/x.java"]}) is False
+    # 负例 2：merged 非当前 HEAD 祖先 → 必须 FAIL
+    assert cd_chain.cd01_binding_ok(**{**base, "anc_merged": False}) is False
+    # 负例 3：C/D 非祖先 / 既有 care、contracts diff 回归 → 必须 FAIL
+    assert cd_chain.cd01_binding_ok(**{**base, "anc_c": False}) is False
+    assert cd_chain.cd01_binding_ok(**{**base, "anc_d": False}) is False
+    assert cd_chain.cd01_binding_ok(**{**base, "care_files": ["M\tcare/x.java"]}) is False
+    assert cd_chain.cd01_binding_ok(**{**base, "contract_files": ["M\tcontracts/x"]}) is False

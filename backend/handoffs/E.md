@@ -194,7 +194,8 @@ T13 rejected-replay+全字段快照不变+同主体正例保留；原 INFO 残�
 
 - 本次在 merged 候选 `aebccc7`（C `8b3592e` + D `dc955c0`）上新增扩展真实链路验收
   `run.sh cd-chain`（CD-01..CD-08，10 项唯一结算），正式 RUN_ID
-  `E-CD-20260911T094103Z-7c7b0e92` 10/10 PASS exit=0；C 既有 `c-acceptance` 在 merged
+  `E-CD-20260911T094733Z-5f50aeb4` 10/10 PASS exit=0（协调者复跑 `945fda65` 暴露 CD-01
+  驱动绑定缺陷→修为祖先关系+业务路径 diff 空→重跑；非 C/D 缺陷）；C 既有 `c-acceptance` 在 merged
   树重跑 `E-AB-20260911T093819Z-f724f2ba` 14/14 PASS exit=0；矩阵 blocked_by 更新为
   []×54/B×40（C/D 已集成，B 未集成），三字段剔除哈希 `e4f5dc52` 不变。
 - 全程 doubles_pass；B 前置（成员/授权/设备）为 test_seed；不声称完整 MVP 通过。

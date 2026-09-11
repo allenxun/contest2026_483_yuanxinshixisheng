@@ -6,16 +6,17 @@
 
 ## 命令与退出码
 
-- 正式跑：RUN_ID=`E-CD-20260911T094103Z-7c7b0e92`，settled 10/10，counts={PASS:10,FAIL:0,BLOCKED:0,INFO:0}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。
+- 正式跑：RUN_ID=`E-CD-20260911T094733Z-5f50aeb4`，settled 10/10，counts={PASS:10,FAIL:0,BLOCKED:0,INFO:0}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。
+- 迭代记录（如实）：协调者提交后树复跑 `E-CD-20260911T094425Z-945fda65` 得 9 PASS/1 FAIL——唯一 FAIL=CD-01，根因是**驱动绑定缺陷**（以 HEAD 字面等值 `aebccc7` 断言，而 E 自身验收代码/证据/报告提交必然前移 HEAD；业务面 C/D/merged 祖先、care/contracts diff、jar/worker/health 全 True）。已修为「祖先关系+业务路径 diff 空」并加 selfcheck 负例；`945fda65` 及此前 E 正式 run（`7c7b0e92`、`350c6b76`）均保留零覆盖。**非 C/D 缺陷**。
 - `run.sh c-acceptance` 在 merged 树重跑：RUN_ID=`E-AB-20260911T093819Z-f724f2ba`，settled 14/14，counts={PASS:14,FAIL:0,BLOCKED:0,INFO:0}，exit=0（care 域 8b3592e..aebccc7 diff=0，旧证据适用）。
-- `run.sh selfcheck` rc=0（66 passed）；`run.sh matrix` rc=3（94 pending、SETTLED 94/94、blocked_by []×54/B×40）。
+- `run.sh selfcheck` rc=0（67 passed，含 CD-01 绑定负例回归）；`run.sh matrix` rc=3（94 pending、SETTLED 94/94、blocked_by []×54/B×40）。
 - 既有 A 系 + C 系 7 run 证据目录零覆盖（新 run 独立子目录）。
 
 ## CD 逐项结论
 
 | 项 | 结论 | 说明 |
 |---|---|---|
-| CD-01 | PASS | HEAD=aebccc7、C 8b3592e/D dc955c0 均祖先、C care 域 diff=0、contracts diff=0、当前源码重建 jar、worker 依赖就绪、health UP@18081 |
+| CD-01 | PASS | **祖先关系绑定（非 HEAD 等值）**：C 8b3592e/D dc955c0/merged aebccc7 均为当前 HEAD 祖先；`aebccc7..HEAD -- web-java/worker-python/contracts` diff 空（仅 E 提交）；care diff=0、contracts diff=0；当前源码重建 jar、worker 依赖就绪、health UP@18081 |
 | CD-02 | PASS | 11 个 B 域占位端点（M1/M2/M5）逐个已认证 HTTP 501 NOT_IMPLEMENTED；未认证 401（B 待集成边界如实） |
 | CD-03 | PASS | B 前置 test_seed（gimbal/T04 设备能力）→ 真实 M3-A01 受理 → 真实 worker analyze/enroll/analyze → T06 由 D 发布事务唯一创建（waiting_inputs、generation_revision=0、input_photo_version=1、assessment 唯一）→ plan.generate → ready；冻结 capability/steps 形状完整；D 未写 K（completed_count/completed_at/progress_revision 不变） |
 | CD-04 | PASS | 对真实 ready T06 执行 C A03 准入（dev 人脸绑定）→ 201+T07 创建；C 能力校验器接受 D 冻结基线（双侧 unit/区域/N bounds 实际值入证据） |
