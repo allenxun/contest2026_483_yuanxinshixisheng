@@ -908,3 +908,49 @@ def test_cd01_binding_is_ancestry_not_head_equality():
     assert cd_chain.cd01_binding_ok(**{**base, "anc_d": False}) is False
     assert cd_chain.cd01_binding_ok(**{**base, "care_files": ["M\tcare/x.java"]}) is False
     assert cd_chain.cd01_binding_ok(**{**base, "contract_files": ["M\tcontracts/x"]}) is False
+
+
+def test_cc11_strict_oas_semantics_and_discrimination():
+    """CC-11 严格语义：nullable over $ref/allOf 拒绝 null、allOf 不展平；状态/实现缺陷→FAIL。"""
+    from driver import c_care
+
+    doc = {"components": {"schemas": {"X": {
+        "type": "object", "properties": {"a": {"type": "string"}}, "required": ["a"],
+        "additionalProperties": False}}}}
+    node_null = {"allOf": [{"$ref": "#/components/schemas/X"}], "nullable": True}
+    assert c_care.oas_errors_node(node_null, doc, None)        # 旧 nullable 形状必须拒绝 null
+    errs_null = c_care.oas_errors_node(node_null, doc, None)
+    assert any(c_care.classify_strict_error(e).startswith("contract:nullable") for e in errs_null)
+    # allOf 不展平：兄弟分支新增属性仍被 X 的 additionalProperties:false 拒绝
+    node_allof = {"allOf": [{"$ref": "#/components/schemas/X"},
+                            {"type": "object", "properties": {"b": {"type": "string"}}}]}
+    errs_allof = c_care.oas_errors_node(node_allof, doc, {"a": "x", "b": "y"})
+    assert errs_allof
+    assert any(c_care.classify_strict_error(e).startswith("contract:allOf") for e in errs_allof)
+    assert not c_care.oas_errors_node({"$ref": "#/components/schemas/X"}, doc, {"a": "x"})
+    # 结论政策：状态不符/实现缺陷→FAIL；仅契约建模→INFO；全过→PASS
+    assert c_care.cc11_outcome(True, 9, [], [], []) == "PASS"
+    assert c_care.cc11_outcome(True, 9, ["A03=200 not in (201,)"], [], []) == "FAIL"
+    assert c_care.cc11_outcome(True, 9, [], ["A01 $: enum violated"], []) == "FAIL"
+    assert c_care.cc11_outcome(
+        True, 9, [], [], ["A03 $.data.x [contract:nullable-over-$ref/allOf]"]) == "INFO"
+    assert c_care.cc11_outcome(True, 8, [], [], []) == "FAIL"
+
+
+def test_cd03_expected_baseline_precise_values():
+    """CD-03 精确基线：ranges_match 严判 unit/min/max，常量与 D 受控基线一致。"""
+    from driver import cd_chain
+
+    assert cd_chain.ranges_match(
+        {"intensity": {"unit": "percent", "min": 0.0, "max": 100.0}},
+        {"intensity": {"unit": "percent", "min": 0.0, "max": 100.0}}) is True
+    assert cd_chain.ranges_match(
+        {"intensity": {"unit": "percent", "min": 0.0, "max": 99.0}},
+        cd_chain.EXPECTED_RANGES) is False
+    assert cd_chain.ranges_match(
+        {"intensity": {"unit": "kg", "min": 0.0, "max": 100.0}},
+        cd_chain.EXPECTED_RANGES) is False
+    assert cd_chain.EXPECTED_CAP_ID == "mvp-double-capability"
+    assert cd_chain.EXPECTED_REGIONS == {"forehead", "left_cheek", "right_cheek", "nose"}
+    assert cd_chain.EXPECTED_N_BOUNDS == {"min": 1, "max": 100}
+    assert cd_chain.EXPECTED_TARGET == 30

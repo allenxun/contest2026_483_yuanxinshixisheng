@@ -7,7 +7,8 @@
 ## 命令与退出码
 
 - `backend/acceptance/run.sh c-acceptance`：mode=`c-care`，EXPECTED=CC-01..CC-12 + CLEANUP + CLEANUP-ports（14 项唯一结算）。
-- 正式跑（当前）：RUN_ID=`E-AB-20260911T090147Z-6d8dbb55`，settled 14/14，counts={PASS:14, FAIL:0, BLOCKED:0, INFO:0}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。
+- 正式跑（当前，R15）：RUN_ID=`E-AB-20260911T100912Z-0972884c`，settled 14/14，counts={PASS:13, FAIL:0, BLOCKED:0, INFO:1}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。INFO=CC-11（严格 OAS 语义暴露契约建模缺陷，附条件接受，见限制节）。
+- 历史迭代 run（保留、零覆盖）：R14 `E-AB-20260911T090147Z-6d8dbb55`（14 PASS）、merged 重跑 `E-AB-20260911T093819Z-f724f2ba`（14 PASS）、更早 feeb86d8 等；其 summary 历史措辞不改写。
 - 历史迭代 run（保留、零覆盖）：`E-AB-20260911T082701Z-73350e3c`（14 PASS）、`E-AB-20260911T081747Z-feeb86d8`（12 PASS / 2 FAIL 驱动侧归因）；连同早期 4 个 run 目录均未被覆盖。
 - `run.sh selfcheck` rc=0（63 passed，较上轮 +6 条 R14 负例回归）；`run.sh matrix` rc=3（94 pending、SETTLED 94/94）。
 
@@ -15,17 +16,17 @@
 
 | 项 | 结论 | 说明 |
 |---|---|---|
-| CC-01 | PASS | HEAD=93b7e33、8b3592e 祖先、`git diff 8b3592e..HEAD -- 三目录` 空、当前源码重建 jar、18081 健康 UP |
+| CC-01 | PASS | 8b3592e 祖先；**care 域精确路径**（`web-java/.../web/care` main+test + `contracts`）`git diff 8b3592e..HEAD`=0（不再宣称全树三目录空——merged 树含 D 变更）；当前源码重建 jar、18081 健康 UP |
 | CC-02 | PASS | 5 端点+不存在全等 404（完整公开体仅去 requestId）、codes 全 RESOURCE_NOT_VISIBLE、云台 403 CALLER_NOT_ALLOWED、未认证 401、撤销即时 404、另一 active 授权账号 200；`cC` 谓词语义由 `cc02_verdict` 纯函数 + selfcheck 回归锁定，其余断言未弱化 |
 | CC-03 | PASS | 正例 dev+合法绑定先行：A03=201 且 T07 care_executions 真实新增一行；四负例（prod / prod,dev+bound / dev+APP_ENV=production / dev+非法绑定）rc=1 **且逐变体命中具体 fail-fast 签名**（Validator/Guard、真实 provider bean 要求、UUID 解析），无关原因退出与已成功启动均判 FAIL；统一启动封装（三键 env 显式构造 + 完全退出/端口空闲前置 + 新进程健康等待） |
 | CC-04 | PASS | 绑定成员 201；异成员 403 FACE_NOT_VERIFIED + T07 零行 + **T13=rejected + 同键重放等值拒绝**；未绑定 503 + T07 零行 + T13 processing；无客户端 memberId 输入路径 |
 | CC-05 | PASS | **同一 SENSITIVE_PLAN 贯穿 A01/A02/A03/A08/A09 全 2xx + T07 快照**；五面+快照逐字节无 SECRET 键值、schema_version 不外发；白名单键（title/description/steps/regions/parameters、step.region+parameters、{value,unit}）与 region 保留、`vendor_debug` 收敛 {value,unit}，A01/A09 摘要白名单保留 |
 | CC-06 | PASS | **22** 畸形/越界变体逐项严格断言 `409 PLAN_NOT_READY` 且 `details.reason` 精确命中封闭 9-token（device_capabilities_missing/frozen_capability_requirement_missing/malformed_frozen_capability/capability_id_mismatch/parameter_range_not_covered/region_not_supported/n_out_of_bounds/step_parameters_not_covered/malformed_frozen_step）；正例判别力（冻结 rev 7≠设备 9、microcrystal 不同、{value,unit} 单位严格相等）201 |
-| CC-07 | PASS | 缺键 4xx；同键重放 200 replayed=true 且 revision 不刷新；同键异内容 409 IDEMPOTENCY_CONTENT_CONFLICT；并发 APP+云台恰一 201 |
+| CC-07 | PASS | 缺键 4xx；同键重放 200 replayed=true 且 **verification_revision+last_verified_at 均不刷新**（SQL 双字段前后比对）；同键异内容 409 IDEMPOTENCY_CONTENT_CONFLICT |
 | CC-08 | PASS | 同微晶并发恰一 201 一 409 **DEVICE_OCCUPIED**；**占用仅 closed 释放**（closed 前再准入 409 / closed 后 201）；**SQL 移动 T03 指针（test_seed）→ 旧任务 A03/A08 均 409 TASK_REPLACED** |
 | CC-09 | PASS | duplicate 重放 **disp 非空==2**；首批 HTTP 200；**K=9/10/11 边界**（completed_at 于 K=10 首达、K=11 不改写、K 不截断）；observation 连续性失效不 running、unknown 拒绝 →running、stopped 冻结；**同记录键异内容（不同幂等键）409 RECORD_CONFLICT 零持久化**；溢出 400 count_overflow |
 | CC-10 | PASS | 未 stopped 409 STOP_NOT_CONFIRMED；**缺口 409 CLOSURE_GAPS + 有界 missingRanges/more**；水位完整→closed+occupancyReleased；**并发双收尾恰一成功**；**同一收尾键重放 200 且 manifest 逐字节不变**；closed 冻结 + 迟到记录入账且 `closure_manifest.late_variance` 留痕、不重开；**撤销后 A05 最小 ack(progress=null) + A06 仍可收尾 + A07 最小视图**；A07/A08/A09 2xx |
-| CC-11 | PASS | selftest 10/10、samples 50、OpenAPI VALID；**捕获 9 个 M4 API（A01-A09）代表性成功响应，从当前 openapi.yaml 解析 schema（$ref 内联）逐个严格 jsonschema 校验**；错误响应维持基本信封检查（如实分类） |
+| CC-11 | **INFO** | selftest 10/10、samples 50、OpenAPI VALID；9 个 M4 API（A01-A09）按**实际 HTTP 状态**对应 schema 用 RV-6 严格转换器校验（**不扩展 nullable、不展平 allOf**）。`status_bad=[]`、`impl_bad=[]`（无 C 运行时缺陷）；**13 处契约建模缺陷**（12 处 `nullable:true` 与 `$ref/allOf` 同层不生效→C 按契约意图返回 null 被判 type 违规；A08 `ProgressWithSync.lastSyncedAt` 被 `Progress.additionalProperties:false` 经 allOf 误伤）→ 如实披露、附条件接受，归属=契约/OAS（D/A 维护的 openapi.yaml），非 C 实现缺陷 |
 | CC-12 | PASS | 矩阵再生成幂等；94 ID 唯一；含 C 场景 blocked_by 不含 C；全部 dependency_pending |
 
 ## 替身与依赖区分
@@ -47,12 +48,18 @@
 
 ## 限制
 
-- 无 worker 参与（care 包零 worker 依赖）；未重跑 C 的 Java 262 项与契约脚本以外的 A/B/D 套件。selfcheck rc=0（63 passed）。
+- 无 worker 参与（care 包零 worker 依赖）；未重跑 C 的 Java 262 项与契约脚本以外的 A/B/D 套件。selfcheck rc=0（69 passed，含 CC-11 严格语义/CC-01 绑定负例回归）。
 - 内存紧张，JVM 限堆 `-Xmx640m -XX:MaxMetaspaceSize=256m`，变体串行。
-- OAS 严格校验对 `nullable` over `$ref/allOf` 按契约意图解析为可空、并按 OAS 组合语义令 `additionalProperties:false` 不误伤兄弟分支新增属性；其余 type/required/enum 严格不放宽。
+- **CC-11 严格语义下的契约建模缺陷（已接受限制，归属=契约/OAS）**：①12 处 `nullable:true` 与
+  `$ref`/`allOf` 同层（OAS 3.0.3 该写法不生效），C 按契约意图返回 null 被严格语义判 type 违规——
+  路径 `A01 $.data.items[*].progress.completedAt`、`A02/A03/A04/A05/A07 $.data.progress.completedAt`、
+  `A03/A04 $.data.verification.validUntil`、`A03/A07 $.data.controller.gimbalId`、`A09 $.data.items[*].closedAt`；
+  ②1 处 `A08 $.data`：`ProgressWithSync` 的 `allOf` 第二分支新增 `lastSyncedAt` 被 `Progress.additionalProperties:false`
+  误伤。上述为 openapi.yaml 建模问题，非 C 运行时缺陷；驱动如实按 INFO 披露，**不静默放宽**。
+- 其余 type/required/enum 及实际状态对应严格不放宽。
 
 ## Merged 候选适用性（aebccc7 = C 8b3592e + D dc955c0）
 
 - C care 域 `git diff 8b3592e..aebccc7`（`web-java/.../web/care` main+test）=0，`backend/contracts` diff=0 → 本报告对 C 的结论在 merged 候选上继续适用。
-- 在 merged 树正式重跑 `run.sh c-acceptance`：新 RUN_ID=`E-AB-20260911T093819Z-f724f2ba`，settled 14/14，counts={PASS:14,FAIL:0,BLOCKED:0,INFO:0}，exit=0，哨兵 OK；旧 7 个 run 目录零覆盖。
+- 在 merged 树正式重跑 `run.sh c-acceptance`：R15 新 RUN_ID=`E-AB-20260911T100912Z-0972884c`（settled 14/14，counts={PASS:13,INFO:1}，exit=0）；此前 merged 重跑 `E-AB-20260911T093819Z-f724f2ba`（14 PASS，旧措辞「三目录 diff 空」已被本轮修正为 care 域精确路径，历史 summary 不改写、零覆盖）。
 - C+D 真实链路与集成结论见 `backend/handoffs/E-CD-acceptance.md`（证据 `evidence/CD-chain-2026-09-11-aebccc7/`）。
