@@ -107,11 +107,12 @@ class CareCapabilityCheckerTest {
     }
 
     @Test
-    @DisplayName("冻结无 capability_id 时不构成要求")
+    @DisplayName("冻结缺 capability_id → malformed_frozen_capability（fail-closed）")
     void capabilityIdAbsentFrozen() {
-        assertTrue(check(frozen(capability(null, "0", "5", "level", "[\"face\"]", "1", "30")),
-                STEPS, 5L, device(null, "0", "8", "level", "supported_regions", "[\"face\"]"))
-                .isEmpty());
+        assertEquals(CareCapabilityChecker.MALFORMED_FROZEN_CAPABILITY,
+                covered(frozen(capability(null, "0", "5", "level", "[\"face\"]", "1", "30")),
+                        STEPS, 5L, device(null, "0", "8", "level", "supported_regions",
+                                "[\"face\"]")));
     }
 
     @Test
@@ -185,10 +186,10 @@ class CareCapabilityCheckerTest {
     }
 
     @Test
-    @DisplayName("step.region 不在冻结 approved_regions/设备支持 → step_parameters_not_covered")
+    @DisplayName("step.region 不在冻结 approved_regions/设备支持 → region_not_supported")
     void stepRegionNotCovered() {
-        String payload = "{\"steps\":[{\"region\":\"arm\"}]}";
-        assertEquals(CareCapabilityChecker.STEP_PARAMETERS_NOT_COVERED,
+        String payload = "{\"steps\":[{\"region\":\"arm\",\"parameters\":{}}]}";
+        assertEquals(CareCapabilityChecker.REGION_NOT_SUPPORTED,
                 covered(CareTestFixtures.DEFAULT_INPUT_SNAPSHOT, payload, 5L,
                         CareTestFixtures.DEFAULT_CAPABILITIES));
     }
@@ -249,9 +250,74 @@ class CareCapabilityCheckerTest {
     }
 
     @Test
-    @DisplayName("无 steps 时仅按冻结 capability 判定")
+    @DisplayName("payload 无 steps / steps=[] / step 缺 region → malformed_frozen_step（fail-closed）")
     void noSteps() {
-        assertTrue(check(CareTestFixtures.DEFAULT_INPUT_SNAPSHOT, NO_STEPS, 5L,
-                CareTestFixtures.DEFAULT_CAPABILITIES).isEmpty());
+        assertEquals(CareCapabilityChecker.MALFORMED_FROZEN_STEP,
+                covered(CareTestFixtures.DEFAULT_INPUT_SNAPSHOT, NO_STEPS, 5L,
+                        CareTestFixtures.DEFAULT_CAPABILITIES));
+        assertEquals(CareCapabilityChecker.MALFORMED_FROZEN_STEP,
+                covered(CareTestFixtures.DEFAULT_INPUT_SNAPSHOT, "{\"steps\":[]}", 5L,
+                        CareTestFixtures.DEFAULT_CAPABILITIES));
+        assertEquals(CareCapabilityChecker.MALFORMED_FROZEN_STEP,
+                covered(CareTestFixtures.DEFAULT_INPUT_SNAPSHOT,
+                        "{\"steps\":[{\"parameters\":{}}]}", 5L,
+                        CareTestFixtures.DEFAULT_CAPABILITIES));
+    }
+
+    @Test
+    @DisplayName("严格 fail-closed 负例合集：冻结子结构缺失/畸形、设备缺失、step 参数未知")
+    void strictFailClosedNegativeCases() {
+        String deviceValid = CareTestFixtures.DEFAULT_CAPABILITIES;
+        String fullRanges = "\"parameter_ranges\":{\"intensity\":{\"min\":\"0\",\"max\":\"5\","
+                + "\"unit\":\"level\"}}";
+
+        // capability={} → malformed_frozen_capability
+        assertEquals(CareCapabilityChecker.MALFORMED_FROZEN_CAPABILITY,
+                covered(frozen("{}"), STEPS, 5L, deviceValid));
+        // 缺 capability_id
+        assertEquals(CareCapabilityChecker.MALFORMED_FROZEN_CAPABILITY,
+                covered(frozen("{" + fullRanges + ",\"approved_regions\":[\"face\"],"
+                        + "\"n_bounds\":{\"min\":\"1\",\"max\":\"30\"}}"), STEPS, 5L, deviceValid));
+        // 缺 parameter_ranges
+        assertEquals(CareCapabilityChecker.MALFORMED_FROZEN_CAPABILITY,
+                covered(frozen("{\"capability_id\":\"cap-mvp-1\",\"approved_regions\":[\"face\"],"
+                        + "\"n_bounds\":{\"min\":\"1\",\"max\":\"30\"}}"), STEPS, 5L, deviceValid));
+        // 缺 approved_regions
+        assertEquals(CareCapabilityChecker.MALFORMED_FROZEN_CAPABILITY,
+                covered(frozen("{\"capability_id\":\"cap-mvp-1\"," + fullRanges
+                        + ",\"n_bounds\":{\"min\":\"1\",\"max\":\"30\"}}"), STEPS, 5L, deviceValid));
+        // 缺 n_bounds
+        assertEquals(CareCapabilityChecker.MALFORMED_FROZEN_CAPABILITY,
+                covered(frozen("{\"capability_id\":\"cap-mvp-1\"," + fullRanges
+                        + ",\"approved_regions\":[\"face\"]}"), STEPS, 5L, deviceValid));
+        // 冻结缺 unit
+        assertEquals(CareCapabilityChecker.MALFORMED_FROZEN_CAPABILITY,
+                covered(frozen(capability("cap-mvp-1", "0", "5", null, "[\"face\"]", "1", "30")),
+                        STEPS, 5L, deviceValid));
+        // 设备缺 unit
+        assertEquals(CareCapabilityChecker.PARAMETER_RANGE_NOT_COVERED,
+                covered(frozen(capability("cap-mvp-1", "0", "5", "level", "[\"face\"]", "1", "30")),
+                        STEPS, 5L, device("cap-mvp-1", "0", "8", null, "supported_regions",
+                                "[\"face\"]")));
+        // 设备缺 parameter_ranges
+        assertEquals(CareCapabilityChecker.PARAMETER_RANGE_NOT_COVERED,
+                covered(frozen(capability("cap-mvp-1", "0", "5", "level", "[\"face\"]", "1", "30")),
+                        STEPS, 5L, "{\"schema_version\":1,\"capability_id\":\"cap-mvp-1\","
+                                + "\"supported_regions\":[\"face\"]}"));
+        // 设备 capability_id 缺失
+        assertEquals(CareCapabilityChecker.CAPABILITY_ID_MISMATCH,
+                covered(frozen(capability("cap-mvp-1", "0", "5", "level", "[\"face\"]", "1", "30")),
+                        STEPS, 5L, device(null, "0", "8", "level", "supported_regions",
+                                "[\"face\"]")));
+        // step 参数名不在冻结 ranges
+        assertEquals(CareCapabilityChecker.STEP_PARAMETERS_NOT_COVERED,
+                covered(CareTestFixtures.DEFAULT_INPUT_SNAPSHOT,
+                        "{\"steps\":[{\"region\":\"face\",\"parameters\":{\"unknown\":\"1\"}}]}", 5L,
+                        deviceValid));
+        // step 参数 {value,unit} 缺 unit（对象形式必须给出 unit）
+        assertEquals(CareCapabilityChecker.STEP_PARAMETERS_NOT_COVERED,
+                covered(CareTestFixtures.DEFAULT_INPUT_SNAPSHOT,
+                        "{\"steps\":[{\"region\":\"face\",\"parameters\":{"
+                                + "\"intensity\":{\"value\":\"3\"}}}]}", 5L, deviceValid));
     }
 }
