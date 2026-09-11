@@ -1,6 +1,6 @@
 # C 包交付说明（护理管理 M4 · Java 业务）
 
-状态：候选代码已提交并完成 SHA 绑定自测；Oracle 门禁 R1 FAIL@11b653a→已修复（5bad406/24cab56/bd8e305），**R2 @bd8e305 当前 BLOCKED（oracle 提供方认证过期 401 token_expired，三次调用、两个会话，均无审查结论，不计为通过；监督者已核实）**——详见 `C-oracle.md`；待认证恢复明确通知后单次正式复审，PASS 前不视为完成、不交集成。本包不合并、不推送；交总协调集成后由 E 独立验收（本文不声称已验收）。
+状态：候选代码已提交并完成 SHA 绑定自测；Oracle 门禁 R1 FAIL@11b653a→修复后 R2 已按用户授权单次正式执行（此前 3 次调用因 oracle 提供方 401 token_expired 失败，BLOCKED 已留档）——**R2 @bd8e305 结论 FAIL**：R1 的 F1/F2/F4/F5/F6/N1 核定 CLOSED，F3 NOT-CLOSED（嵌套对象透传），另发现 2 个新 BLOCKER（能力校验对缺失必需冻结约束 fail-open；混合生产 profile prod,dev 可选中人脸替身）。三 BLOCKER 修复进行中，修复提交后将以新最终 SHA 重跑 SHA 绑定套件+活体冒烟并发起 R3 复审；**R3 PASS 前未通过 Oracle 门禁、不视为完成、不交集成**。详见 `C-oracle.md`。本包不合并、不推送；交总协调集成后由 E 独立验收（本文不声称已验收）。
 
 ## 提交
 
@@ -123,9 +123,9 @@ java -jar backend/web-java/target/web-java-0.0.1-SNAPSHOT.jar
 | C-11 | 撤销后：A05 最小 ack（progress=null）、A07 最小投影、A06 仍可收尾、A03/A04/A08 拒绝、**重放亦拒绝（F1）** IT |
 | C-12 | TASK_REPLACED（锁外+锁内）、事务回滚、旧成功响应重放无新有效性（IT+活体）、缺口收尾、并发双收尾 IT |
 | C-13 | 提交链 11b653a→5bad406→24cab56→bd8e305 + 本文件 |
-| C-14/15/16 | C-oracle.md（R1 FAIL@11b653a 全发现+修复映射 5bad406/24cab56/bd8e305；R2 @bd8e305 状态以 C-oracle.md 为准——oracle 会话 ID（ora-1/ora-2）、三次 401 token_expired 认证失败与 BLOCKED 处置、恢复后单次正式复审安排均已记录） |
+| C-14/15/16 | C-oracle.md（R1 FAIL@11b653a 全发现+修复映射；R2 调用史【401 token_expired ×3 BLOCKED 留档→用户授权单次正式执行】+ **R2 FAIL@bd8e305 真实结论**：R1 六项 CLOSED、F3 NOT-CLOSED、2 新 BLOCKER；oracle 会话 ID ora-1/ora-2；R3 待修复后新 SHA） |
 | C-17 | **未达**——Oracle R2 BLOCKED 期间不进入集成；待认证恢复、R2 单次正式复审 PASS 后交总协调集成与 E 验收（本包不自行勾选） |
 
 ## 摘要（≤500 字）
 
-C 包在 feature/mvp-care 交付 M4-A01..A09 全部 9 个 Java API 的实现与自测，最终代码 SHA=bd8e305（链 11b653a 实现→5bad406 Oracle R1 六项修复+迟到留痕→24cab56 总协调三裁定增量→bd8e305 活体绑定补充），A 基础/迁移/契约零改动。核心语义：统一 404 可见性；原控制端（永久写权）与当前读取资格（授权/当前任务）分离，重放同样重查资格；人脸准入为 1:1 成员绑定门禁，memberId 仅出自服务端持久化行，生产默认 fail-closed 503，dev/test 替身含异成员拒绝证据；能力覆盖对齐 D 版本化约定（capability_id/单位/范围/区域/n_bounds/steps 双重覆盖，revision 仅追溯）；方案 JSONB 经显式白名单投影，未知键丢弃；锁序 T03→T04→T06→T07→T02 短事务+锁外网络；双部分唯一索引原子占用；T08 双键去重+异内容整批回滚+K/汇总/T13 同事务；观察状态机 →running 统一门控、stopped/closed 冻结、迟到补账写 late_variance；A06 水位对账 count==W∧max==W⟺无缺口、条件关闭防双关、重放不改 manifest。证据：SHA 绑定 255/255 绿（树前后==bd8e305，RC=0）、契约四项 PASS、18085 活体全流程含占用释放/重放/白名单防泄漏 RC=0。**Oracle 门禁状态：R1 FAIL@11b653a（4 BLOCKER+2 IMPORTANT）已逐项修复并映射留档；R2 @bd8e305 因 oracle 提供方认证过期（401 token_expired，三次调用、两个会话，均无审查结论）记录 BLOCKED——本包未通过 Oracle 门禁，不具备交总协调集成条件；待认证恢复明确通知后单次正式复审，PASS 前不交付。**限制如实披露：生产准入在真实成员绑定提供方接入前恒 503 fail-closed（有意状态）；connectionProof/consentEvidenceRef 未做可信验证；白名单与能力字段形状待契约批准。不合并、不推送、不自行声称验收；R1 修复不冒充最终复审通过。
+C 包在 feature/mvp-care 交付 M4-A01..A09 全部 9 个 Java API 的实现与自测，最终代码 SHA=bd8e305（链 11b653a 实现→5bad406 Oracle R1 六项修复+迟到留痕→24cab56 总协调三裁定增量→bd8e305 活体绑定补充），A 基础/迁移/契约零改动。核心语义：统一 404 可见性；原控制端（永久写权）与当前读取资格（授权/当前任务）分离，重放同样重查资格；人脸准入为 1:1 成员绑定门禁，memberId 仅出自服务端持久化行，生产默认 fail-closed 503，dev/test 替身含异成员拒绝证据；能力覆盖对齐 D 版本化约定（capability_id/单位/范围/区域/n_bounds/steps 双重覆盖，revision 仅追溯）；方案 JSONB 经显式白名单投影，未知键丢弃；锁序 T03→T04→T06→T07→T02 短事务+锁外网络；双部分唯一索引原子占用；T08 双键去重+异内容整批回滚+K/汇总/T13 同事务；观察状态机 →running 统一门控、stopped/closed 冻结、迟到补账写 late_variance；A06 水位对账 count==W∧max==W⟺无缺口、条件关闭防双关、重放不改 manifest。证据：SHA 绑定 255/255 绿（树前后==bd8e305，RC=0）、契约四项 PASS、18085 活体全流程含占用释放/重放/白名单防泄漏 RC=0。**Oracle 门禁状态：R1 FAIL@11b653a（4 BLOCKER+2 IMPORTANT）修复后，R2 @bd8e305 经用户授权单次正式执行（此前 3 次调用因 401 token_expired BLOCKED 留档），结论 FAIL——R1 的 F1/F2/F4/F5/F6/N1 核定 CLOSED，F3 NOT-CLOSED（白名单仅顶层、嵌套对象透传），另发现能力校验 fail-open 与混合生产 profile 可选中人脸替身 2 个新 BLOCKER。三 BLOCKER 修复进行中；修复提交后以新最终 SHA 重跑 SHA 绑定套件+活体冒烟并发起 R3。R3 PASS 前本包未通过 Oracle 门禁，不具备交总协调集成条件。**限制如实披露：生产准入在真实成员绑定提供方接入前恒 503 fail-closed（有意状态）；connectionProof/consentEvidenceRef 未做可信验证；白名单与能力字段形状待契约批准。不合并、不推送、不自行声称验收；R1/R2 修复不冒充最终复审通过。
