@@ -1,22 +1,36 @@
 """结果图归档：算法输出图 → 受控 T11 ``assessment_result`` 行 + 存储对象。
 
-两阶段协议（DD §8.4 / §9.2；oracle R1-N1）：存储不可随 PG 事务回滚，故
-**先持久化意图 → 上传 → 字段级提升**：
+完整归档协议（DD §8.4 / §9.2；oracle N1 + F1）：
 
-1. **tx1**（持事务级 advisory lock ``d:result-archive:<aid>:<pv>``）：按
-   ``assessment_id + photo_version + provider_ref`` 读取既有行；有（pending 或
-   available）则复用其 media_id/object_key；无则生成一次 UUID + object key 并
-   INSERT ``pending`` 行（含 content_type/provider_ref）。COMMIT。advisory lock 使
-   并发创建同一 ref **恰一行一 key**。
-2. **锁外上传**：``storage.put(object_key, data)``，同一 key 每次重试幂等覆盖；
-   put 失败保留 pending 行（重试续跑，非回滚）。
-3. **tx2**（短事务；D handler 内走 :func:`fenced_business_tx` 租约围栏）：
-   ``UPDATE ... state='available' WHERE id=:id AND state='pending'``；rowcount 0 →
-   并发已提升 → 复读要求 available 且同 object_key。
+* **串行化**：整段归档持 **会话级** advisory lock
+  ``pg_advisory_lock(hashtextextended('d:result-archive:'||aid||':'||pv, 0))``，
+  在一根**专用连接**上跨 tx1 → put → tx2 全程持有，结束后 ``pg_advisory_unlock``；
+  unlock 失败即 ``invalidate()`` 丢弃物理连接，进程崩溃由 PG 自动释放。
+  （tx1 作用域的事务级锁不足以覆盖 put/promote，故改会话级。）
+* **digest-first**：上传前先由 data 计算 ``content_hash=sha256`` / ``byte_size`` /
+  ``content_type``。**V1 检查结论**：``media_objects`` 的 ``content_hash`` 无约束、
+  ``byte_size`` 仅 ``IS NULL OR >=0``、``state`` 允许 pending——故 pending INSERT
+  即可持久化 expected content_hash/byte_size，作为「同 ref 必同字节」的持久证据。
+* **tx1**：按 ``assessment_id + photo_version + provider_ref`` 读既有行；无则生成
+  一次 UUID+key 并 INSERT pending（带预期 content_type/byte_size/content_hash）；
+  有则按复用规则判定。COMMIT。
+* **锁外上传**：``storage.put(object_key, data)``（**任何 DB 事务外**，无存储 I/O
+  在事务内）；同一 key 幂等覆盖；put 失败保留 pending 供重试续跑。
+* **tx2**：短事务（D handler 内走 :func:`fenced_business_tx` 租约围栏）
+  ``UPDATE ... state='available' WHERE id=:id AND state='pending'``；0 行 → 复读并
+  做 content_type/byte_size/content_hash/object_key **全匹配**校验。
 
-保证：绝无「有对象无行」；同一 provider_ref 绝不出现第二行/第二个 key；任一点
-崩溃后重试复用 pending 行与同一 key 收敛（不产生旧对象变孤儿）。任何归档失败都
-不发布报告，由 handler 决定重试/终止。
+复用规则（**绝不覆盖发散内容**）：
+- available 行：仅当 content_type + byte_size + content_hash **全部匹配**才复用；
+  任一不匹配 → 终态 ``PROVIDER_CONTRACT_VIOLATION``（fail-closed，不 put、不改行）。
+- pending 行：已持久化 expected hash 时，入参 digest 必须相同，否则终态拒绝；相同 →
+  put 同一 key → promote。
+- 单次调用内 provider_ref 重复 → 终态 ``PROVIDER_CONTRACT_VIOLATION``（在任何
+  存储/DB 副作用之前）。
+
+保证：绝无「有对象无行」；同一 provider_ref 绝不出现第二行/第二个 key；任一点崩溃
+后**同字节**重试复用 pending 行与同一 key 收敛，**不同字节**重试终态拒绝且原行/对象
+不变；T11 元数据与存储对象字节恒一致。任何归档失败都不发布报告。
 
 残留（披露）：终态失败任务遗留的 owned ``pending`` 行仍受当前孤儿规则限制（不清理）
 ——但**行存在即可被 T11 扫描发现**，非「无行对象」，可接受。
@@ -37,7 +51,7 @@ from .dfence import fenced_business_tx
 
 _SELECT_RESULT_MEDIA = text(
     """
-SELECT id, object_key, state, content_type, byte_size, storage_metadata
+SELECT id, object_key, state, content_type, byte_size, content_hash, storage_metadata
 FROM media_objects
 WHERE assessment_id = CAST(:assessment_id AS uuid)
   AND photo_version = :photo_version
@@ -45,12 +59,11 @@ WHERE assessment_id = CAST(:assessment_id AS uuid)
 """
 )
 
-# N1：同 (task, photo_version) 的结果图归档串行化（事务级 advisory lock）。
-# V1/V2 无结果图唯一约束且迁移禁改，故用 advisory lock 保证并发归档同一
-# (task,version,provider_ref) 至多一行 T11、至多一个存储对象/object key。
-_ADVISORY_LOCK = text(
+# F1：会话级 advisory lock（专用连接跨 tx1→put→tx2 持有），使同 (task,photo_version)
+# 的归档全串行，T11 元数据绝不可能与对象字节发散。
+_SESSION_LOCK = text(
     """
-SELECT pg_advisory_xact_lock(
+SELECT pg_advisory_lock(
     hashtextextended(
         'd:result-archive:' || :assessment_id || ':' || CAST(:photo_version AS text), 0
     )
@@ -58,14 +71,27 @@ SELECT pg_advisory_xact_lock(
 """
 )
 
+_SESSION_UNLOCK = text(
+    """
+SELECT pg_advisory_unlock(
+    hashtextextended(
+        'd:result-archive:' || :assessment_id || ':' || CAST(:photo_version AS text), 0
+    )
+)
+"""
+)
+
+# pending 行即持久化预期 content_type/byte_size/content_hash（V1 无禁止约束，
+# 见模块 docstring「V1 检查结论」）。
 _INSERT_RESULT_MEDIA = text(
     """
 INSERT INTO media_objects (id, bucket, object_key, purpose, assessment_id, photo_version,
-                           member_id, uploader_type, state, content_type, storage_metadata,
-                           created_at, updated_at)
+                           member_id, uploader_type, state, content_type, byte_size, content_hash,
+                           storage_metadata, created_at, updated_at)
 VALUES (CAST(:id AS uuid), :bucket, :object_key, 'assessment_result',
         CAST(:assessment_id AS uuid), :photo_version, NULL, 'worker', 'pending',
-        :content_type, CAST(:storage_metadata AS jsonb), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        :content_type, :byte_size, :content_hash,
+        CAST(:storage_metadata AS jsonb), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 """
 )
 
@@ -81,7 +107,10 @@ WHERE id = CAST(:id AS uuid) AND state = 'pending'
 )
 
 _SELECT_MEDIA_BY_ID = text(
-    "SELECT id, object_key, state FROM media_objects WHERE id = CAST(:id AS uuid)"
+    """
+SELECT id, object_key, state, content_type, byte_size, content_hash
+FROM media_objects WHERE id = CAST(:id AS uuid)
+"""
 )
 
 _SELECT_SOURCE_MEDIA = text(
@@ -97,6 +126,11 @@ class ArchiveError(RuntimeError):
         self.code = code
         self.message = message
         self.terminal = terminal
+
+
+def _contract_violation(message: str) -> ArchiveError:
+    """provider 输出与既有归档发散 → 终态拒绝（fail-closed，不 put、不改行）。"""
+    return ArchiveError("PROVIDER_CONTRACT_VIOLATION", message, terminal=True)
 
 
 def sniff_content_type(data: bytes) -> Optional[str]:
@@ -140,13 +174,11 @@ def _ensure_pending_row(
     photo_version: int,
     ref: str,
     content_type: str,
+    byte_size: int,
+    content_hash: str,
 ) -> tuple[str, str, dict[str, Any]]:
-    """tx1：advisory lock 下复用既有行或创建 pending 行；返回 (media_id, key, row)。"""
+    """tx1：复用既有行或创建 pending 行（持久化预期摘要）；返回 (media_id, key, row)。"""
     with engine.begin() as conn:
-        conn.execute(
-            _ADVISORY_LOCK,
-            {"assessment_id": assessment_id, "photo_version": int(photo_version)},
-        )
         by_ref = _load_by_ref_conn(conn, assessment_id, photo_version)
         existing = by_ref.get(ref)
         if existing is not None:
@@ -163,6 +195,8 @@ def _ensure_pending_row(
                 "assessment_id": assessment_id,
                 "photo_version": int(photo_version),
                 "content_type": content_type,
+                "byte_size": byte_size,
+                "content_hash": content_hash,
                 "storage_metadata": _json(meta),
             },
         )
@@ -171,8 +205,88 @@ def _ensure_pending_row(
             "object_key": object_key,
             "state": "pending",
             "content_type": content_type,
-            "byte_size": None,
+            "byte_size": byte_size,
+            "content_hash": content_hash,
         }
+
+
+def _archive_one(
+    engine: Engine,
+    storage: Any,
+    *,
+    job: Optional[JobRow],
+    environment: str,
+    assessment_id: str,
+    photo_version: int,
+    ref: str,
+    caption: str,
+    data: bytes,
+    content_type: str,
+    byte_size: int,
+    content_hash: str,
+) -> dict[str, Any]:
+    media_id, object_key, row = _ensure_pending_row(
+        engine,
+        environment=environment,
+        assessment_id=assessment_id,
+        photo_version=photo_version,
+        ref=ref,
+        content_type=content_type,
+        byte_size=byte_size,
+        content_hash=content_hash,
+    )
+    state = row.get("state")
+    if state == "available":
+        if (
+            row.get("content_type") == content_type
+            and row.get("byte_size") == byte_size
+            and row.get("content_hash") == content_hash
+        ):
+            return {"media_id": media_id, "caption": caption, "content_type": content_type}
+        raise _contract_violation("available result media content diverges from provider output")
+    if state != "pending":
+        raise _contract_violation("result media row in unexpected state")
+    persisted = row.get("content_hash")
+    if persisted is not None and persisted != content_hash:
+        raise _contract_violation("pending result media bytes diverge from provider output")
+
+    # 锁外上传（任何 DB 事务之外）：同一 key 幂等覆盖；失败保留 pending 供重试续跑。
+    try:
+        storage.put(object_key, data)
+    except Exception as exc:
+        raise ArchiveError(
+            "RESULT_ARCHIVE_FAILED", "storage put failed", terminal=False
+        ) from exc
+
+    meta = {"schema_version": 1, "provider_ref": ref}
+    with _promote_tx(engine, job) as conn:
+        res = conn.execute(
+            _PROMOTE_PENDING_MEDIA,
+            {
+                "id": media_id,
+                "content_type": content_type,
+                "byte_size": byte_size,
+                "content_hash": content_hash,
+                "storage_metadata": _json(meta),
+            },
+        )
+        if res.rowcount == 0:
+            again = conn.execute(_SELECT_MEDIA_BY_ID, {"id": media_id}).mappings().first()
+            if again is None:
+                raise ArchiveError(
+                    "RESULT_ARCHIVE_FAILED",
+                    "result media row vanished during promotion",
+                    terminal=False,
+                )
+            if (
+                again["state"] != "available"
+                or str(again["object_key"]) != object_key
+                or again["content_type"] != content_type
+                or again["byte_size"] != byte_size
+                or again["content_hash"] != content_hash
+            ):
+                raise _contract_violation("result media promotion diverged concurrently")
+    return {"media_id": media_id, "caption": caption, "content_type": content_type}
 
 
 def archive_result_images(
@@ -186,12 +300,14 @@ def archive_result_images(
     max_bytes: int,
     job: Optional[JobRow] = None,
 ) -> list[dict[str, Any]]:
-    """归档结果图；返回 ``[{"media_id","caption","content_type"}]``（保序）。
+    """归档结果图（保序返回 ``[{"media_id","caption","content_type"}]``）。
 
-    两阶段见模块 docstring：tx1 建/复用 pending 行（advisory lock），锁外 put
-    同一 key，tx2 提升 available。``job`` 非空时 tx2 走租约围栏。
+    预校验（无副作用）→ 会话锁 → 逐图 tx1(建/复用) → 锁外 put → tx2(promote)。
+    ``job`` 非空时 tx2 走租约围栏。详模块 docstring。
     """
-    validated: list[tuple[str, str, bytes, str]] = []
+    # --- 预校验（任何存储/DB 副作用之前）---
+    validated: list[tuple[str, str, bytes, str, int, str]] = []
+    seen_refs: set[str] = set()
     for image in result_images:
         if not isinstance(image, dict):
             raise ArchiveError("RESULT_ARCHIVE_FAILED", "result image not an object", terminal=True)
@@ -214,68 +330,44 @@ def archive_result_images(
             raise ArchiveError(
                 "RESULT_ARCHIVE_FAILED", "result image content type not allowed", terminal=True
             )
-        validated.append((ref, caption, data, content_type))
-
-    archived: list[dict[str, Any]] = []
-    for ref, caption, data, content_type in validated:
-        media_id, object_key, row = _ensure_pending_row(
-            engine,
-            environment=environment,
-            assessment_id=assessment_id,
-            photo_version=photo_version,
-            ref=ref,
-            content_type=content_type,
+        if ref in seen_refs:
+            raise _contract_violation("duplicate provider_ref within one result set")
+        seen_refs.add(ref)
+        validated.append(
+            (ref, caption, data, content_type, len(data), hashlib.sha256(data).hexdigest())
         )
-        if (
-            row.get("state") == "available"
-            and row.get("content_type") == content_type
-            and row.get("byte_size") == len(data)
-        ):
-            archived.append(
-                {"media_id": media_id, "caption": caption, "content_type": content_type}
-            )
-            continue
 
-        # 锁外上传：同一 key 每次重试幂等覆盖；失败保留 pending 行供重试续跑。
+    lock_params = {"assessment_id": assessment_id, "photo_version": int(photo_version)}
+    with engine.connect() as lock_conn:
+        lock_conn.execute(_SESSION_LOCK, lock_params)
+        lock_conn.commit()  # 会话锁跨事务保持
         try:
-            storage.put(object_key, data)
-        except Exception as exc:
-            raise ArchiveError(
-                "RESULT_ARCHIVE_FAILED", "storage put failed", terminal=False
-            ) from exc
-
-        digest = hashlib.sha256(data).hexdigest()
-        meta = {"schema_version": 1, "provider_ref": ref}
-        with _promote_tx(engine, job) as conn:
-            res = conn.execute(
-                _PROMOTE_PENDING_MEDIA,
-                {
-                    "id": media_id,
-                    "content_type": content_type,
-                    "byte_size": len(data),
-                    "content_hash": digest,
-                    "storage_metadata": _json(meta),
-                },
-            )
-            if res.rowcount == 0:
-                again = conn.execute(
-                    _SELECT_MEDIA_BY_ID, {"id": media_id}
-                ).mappings().first()
-                if (
-                    again is None
-                    or again["state"] != "available"
-                    or str(again["object_key"]) != object_key
-                ):
-                    raise ArchiveError(
-                        "RESULT_ARCHIVE_FAILED",
-                        "result media promotion lost concurrently",
-                        terminal=False,
+            archived: list[dict[str, Any]] = []
+            for ref, caption, data, content_type, byte_size, content_hash in validated:
+                archived.append(
+                    _archive_one(
+                        engine,
+                        storage,
+                        job=job,
+                        environment=environment,
+                        assessment_id=assessment_id,
+                        photo_version=photo_version,
+                        ref=ref,
+                        caption=caption,
+                        data=data,
+                        content_type=content_type,
+                        byte_size=byte_size,
+                        content_hash=content_hash,
                     )
-        archived.append(
-            {"media_id": media_id, "caption": caption, "content_type": content_type}
-        )
-
-    return archived
+                )
+            return archived
+        finally:
+            try:
+                lock_conn.execute(_SESSION_UNLOCK, lock_params)
+                lock_conn.commit()
+            except Exception:
+                # 解锁失败：丢弃物理连接，交由 PG 断连释放会话锁（绝不泄漏到池复用）
+                lock_conn.invalidate()
 
 
 def _json(value: Any) -> str:
