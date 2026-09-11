@@ -6,6 +6,8 @@ import json
 import uuid
 
 from sqlalchemy import Engine, text
+
+from b_support import b_clean_tables  # noqa: F401  autouse B 自清
 from test_notification_support import (
     device_episode,
     fetch_gimbal,

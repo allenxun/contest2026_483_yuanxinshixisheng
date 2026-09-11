@@ -5,6 +5,8 @@ from __future__ import annotations
 import uuid
 
 from sqlalchemy import Engine, text
+
+from b_support import b_clean_tables  # noqa: F401  autouse B 自清
 from test_notification_support import (
     claim_one,
     device_episode,

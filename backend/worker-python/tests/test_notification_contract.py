@@ -8,6 +8,7 @@ import uuid
 import pytest
 from sqlalchemy import Engine, text
 
+from b_support import b_clean_tables  # noqa: F401  autouse B 自清
 from mvp_worker.config import WorkerConfig
 from mvp_worker.handlers import UnsupportedPayload, get_handler, registered_job_types
 from mvp_worker.handlers.notification_deliver import NotificationDeliverHandler

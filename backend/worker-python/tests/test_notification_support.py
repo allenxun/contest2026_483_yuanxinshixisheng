@@ -13,6 +13,7 @@ from typing import Any, Optional
 
 from sqlalchemy import Engine, text
 
+from b_support import b_clean_tables  # noqa: F401  re-export：供 B 各测试模块挂载 autouse 自清
 from mvp_worker.config import WorkerConfig
 from mvp_worker.handlers import HandlerContext, JobFailed
 from mvp_worker.runtime.claim import claim_batch
@@ -221,7 +222,12 @@ def claim_one(engine: Engine, worker: str = "notif-test-worker") -> Optional[Job
 
 
 def run_delivery(engine: Engine, job: JobRow, handler: Any) -> tuple[Any, Optional[JobFailed]]:
-    """直接以已领取的 job 调 handler 并按运行时语义完成（成功/失败）。"""
+    """直接以已领取的 job 调 handler 并按运行时语义完成（成功/失败）。
+
+    失败路径与 A 的 loop 一致：透传 ``exc.business_tx``（终态失败时是 T10 同事务
+    收敛回调）给 ``complete_failure``。守卫 0 行会抛 ``StaleGeneration``，调用方可
+    据此断言过期领取者整体回滚。
+    """
     ctx = HandlerContext(
         engine=engine,
         config=WorkerConfig(),
@@ -235,6 +241,7 @@ def run_delivery(engine: Engine, job: JobRow, handler: Any) -> tuple[Any, Option
         complete_failure(
             engine, job, code=exc.code, message=exc.message, retryable=exc.retryable,
             backoff_base_seconds=5, backoff_cap_seconds=300,
+            business_tx=exc.business_tx,
         )
         return None, exc
     complete_success(

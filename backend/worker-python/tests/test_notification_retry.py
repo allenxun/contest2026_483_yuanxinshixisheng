@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import Engine, text
+from b_support import b_clean_tables  # noqa: F401  autouse B 自清（按 FK 顺序清 B 自己的行）
 from test_notification_support import (
     claim_one,
     device_episode,
@@ -102,13 +103,13 @@ def test_retry_rechecks_and_cancels_after_rebind(engine: Engine) -> None:
     assert len(provider.calls) == 1, "重检失败后不得再次调用推送"
 
 
-def test_exhausted_transient_keeps_t10_observable_not_independently_committed(
+def test_exhausted_transient_converges_t10_terminal_with_t12(
     engine: Engine,
 ) -> None:
-    """Oracle #6：超过 max_attempts 时 T12 终态 failed，但 T10 不被独立提交。
+    """Oracle #6 闭合：超过 max_attempts 时 T12 终态 failed，T10 同事务收敛终态。
 
-    收敛计划随 DeliveryFailed 携带，由 D 的 complete_failure callback 同事务执行；
-    在此之前 T10 保持可观测 sending（不抢先发布、也不被旧 lease 越权提交）。
+    收敛计划随 DeliveryFailed 包装为 ``business_tx``，由 D 的 ``complete_failure``
+    在同一事务执行——T10 不再滞留可观测 ``sending``。
     """
     _, _, _, notification = _seed_linked(engine)
     job_id = enqueue_deliver_job(engine, notification, input_revision=1, max_attempts=1)
@@ -119,10 +120,13 @@ def test_exhausted_transient_keeps_t10_observable_not_independently_committed(
     _, failure = run_delivery(engine, job, _handler(engine, provider))
 
     assert failure is not None and failure.retryable is True
+    assert failure.business_tx is not None, "末次失败必须携带 T10 收敛回调"
     assert fetch_job(engine, job_id)["status"] == "failed"
     row = fetch_notification(engine, notification)
-    assert row["status"] == "sending", "失败路径不得独立提交 T10 终态"
-    assert row["last_error"] is None
+    assert row["status"] == "failed", "超过 max_attempts 不得让 T10 停在 sending"
+    terr = json.loads(row["last_error"])
+    assert terr["code"] == "provider_transient"
+    assert "retryable" in terr
     conv = getattr(failure, "convergence", None)
     assert conv is not None and conv.status == "failed"
     assert conv.last_error["code"] == "provider_transient"
