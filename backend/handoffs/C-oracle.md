@@ -41,24 +41,43 @@ Oracle 实际核对了 SHA 与 30 文件 +6704/−51 范围（仅 care 新包+�
 | note（插入机制描述） | C.md | 已改为「逐条 INSERT+SAVEPOINT；T07 锁串行化下竞态分支为防御性」 |
 | note（测试存储隔离，监督者） | 24cab56 | AbstractCareIT @TestPropertySource 注入本树 target/c-test-storage+bucket mvp-c-test；隔离证据测试；A 文件零改动 |
 
-## Round 2 @ bd8e30557cc352761b0bbb38201fc799f572d0c9 — **BLOCKED（基础设施故障，不计为通过）**
+## Round 2 @ bd8e30557cc352761b0bbb38201fc799f572d0c9 — 基础设施失败×3（BLOCKED 留档）→ 用户授权后正式执行 → **FAIL**
 
-- 尝试 1（2026-09-11，resume ora-1）：调用失败，错误 `Provided authentication token is expired`，未产生任何审查内容。
-- 尝试 2（2026-09-11，resume ora-1）：同一基础设施认证错误，未产生任何审查内容。
-- 尝试 3（2026-09-11，**全新会话 ora-2 诊断性单次尝试**，以排除会话级认证变量）：同一错误 `Provided authentication token is expired`。结论：**oracle 子代理所用模型提供方的全局认证凭据过期**（同窗口内 orchestrator 与 fixer 子代理调用正常，故障为 oracle 通道特有），非会话级问题，代码侧无可修复动作；不更换模型/提供方（任务纪律），不循环重试。
-- 处置：按 COMMON.md 门禁「Oracle 不可用、调用失败或没有结论时记录 blocked；有阻塞问题时不通过」与 A 包 R12 先例（两次调用失败→BLOCKED 不视为通过→不循环重试→恢复确认后单次正式调用），**R2 记录为 BLOCKED，C 包不得视为已通过 Oracle 门禁，不得交付集成**。已向总协调/用户请求恢复 oracle 提供方凭据；恢复确认后以同一审查请求做单次正式重发（全新会话，携带 R1 完整上下文）。
-- R2 审查请求已备好（逐项 F1-F6+N1 闭合核验、人脸绑定门禁重点、能力匹配对齐裁定、新缺陷排查、SHA 绑定 255/255 证据与活体冒烟 @bd8e305）；恢复后以同一请求单次正式重发（建议全新 oracle 会话以排除会话级认证变量，并携带 R1 完整上下文）。
-- 若复审前代码再变更，reviewedCommit 必须更新为新最终 SHA 并重跑 SHA 绑定套件。
+### R2 调用史（如实记录）
+- 尝试 1（2026-09-11，resume ora-1）：失败 `Provided authentication token is expired`，零审查内容。
+- 尝试 2（2026-09-11，resume ora-1）：同一错误，零审查内容。
+- 尝试 3（2026-09-11，全新会话 ora-2 诊断性单次尝试）：同一错误。结论：oracle 通道全局凭据过期（同窗口 orchestrator/fixer 正常）；按门禁纪律记录 **BLOCKED**、不循环重试（此状态已随 fe6a2e7 报告提交留档；监督者核实真实错误为 401 token_expired）。
+- **尝试 4（2026-09-11，用户在 C 任务直接授权的单次正式调用）**：原配置/原模型、复用 ora-1 原会话；授权范围=读取本项目 C 包源码与相关设计执行最终复审，不含密码/密钥/真实用户数据/私人认证配置（审查请求中已明令禁止读取）。**审查正常执行，产生真实结论：FAIL。**
+
+### R2 verdict：FAIL（“当前 bd8e305 仍不应放行”）
+Oracle 实际核对：HEAD=`fe6a2e74f724b4d0969f20f930063ac7c3f4e141`（report-only）；bd8e305..HEAD 仅 C.md/C-oracle.md 两报告文件，无业务代码差异，**代码状态==bd8e305（reviewedCommit 确认）**；本轮只读、未修改文件、未执行写库/写存储测试。
+
+**blockingFindings（3 项，均 BLOCKER）**：
+1. **F3 未闭合——嵌套透传**：`CarePlanProjection.java:95-113` 白名单仅检查顶层键，对允许的 ARRAY/OBJECT 直接 `out.set(name, source.get(name))`，steps/parameters/regions 内部任意未知或敏感字段整体透传。复现：`plan_payload={"schema_version":1,"steps":[{"region":"face","provider_raw_response":"SECRET","prompt":"..."}]}` 会把 SECRET 同时返回 A02/A03 并冻结进 T07 plan_snapshot；现有测试只把敏感键放顶层故未发现。不满足 R1「未知字段不得自动公开」。建议：steps/regions/parameters 递归结构化白名单，协议未冻结的嵌套字段省略或拒绝，补嵌套 SECRET/prompt/vendor_debug 的 A02/A03/A09 及快照负向测试。
+2. **能力校验 fail-open**：`CareCapabilityChecker.java:58-121,175-193` 对缺失的 capability_id、parameter_ranges、approved_regions、n_bounds 等关键冻结约束视为「不构成要求」跳过；capability={} + 无 steps payload + 仅 supported_regions 设备能力即可 covered；unit 任一侧缺失仍通过；`CareCapabilityCheckerTest:109-115,251-255` 固化了宽松行为。与总协调裁定「须同 capability_id、单位一致、N 按 n_bounds、区域双重符合」不符。建议：冻结 capability 必需子结构逐项 fail-closed（非空 capability_id、合法 parameter_ranges/approved_regions/n_bounds），设备侧对应字段必须存在且合法，单位严格一致；steps 存在则 region/parameters 结构完整且受两侧约束；补空 capability、缺 capability_id/n_bounds/approved_regions、单边缺 unit 的准入负例。
+3. **混合生产 profile 可选中人脸替身**：`MemberBindingFaceDouble.java:28-41`——Spring 允许多 profile 并存，`SPRING_PROFILES_ACTIVE=prod,dev` 时 prod 段令 app.env=production，但 `@Profile({"dev","test"})` 仍注册替身且 @Primary 覆盖 FailClosedCareFaceVerifier，`APP_C_FACE_BOUND_MEMBER` 即可产生 MATCHED；A 的 `ProductionFailClosedValidator.java:43-48` 不检查 CareFaceVerifier、不识别 care 包替身，生产启动校验无第二道防线。建议：替身条件明确排除 prod/production + app.env=production 启动校验拒绝选中替身；补 prod,dev 混合 profile+设置环境绑定时必须启动失败或仍选中 fail-closed verifier 的上下文测试。
+
+**R1 闭合状态表（R2 核定）**：F1 CLOSED（CareAuthorization.java:70-83；CareAdmissionService.java:324-353,520-545；CareLedgerService.java:178-181,411-427,759-765）；F2 CLOSED（CareQueryService.java:177-207）；**F3 NOT-CLOSED**（CarePlanProjection.java:95-113 仅顶层）；F4 CLOSED（CareLedgerService.java:642-663）；F5 CLOSED（CareLedgerService.java:585-620 无 W+1）；F6 CLOSED（CareLedgerDtos.java:45-47,60-69；CareAdmissionService.java:362-366）；N1 CLOSED（CareLedgerService.java:331-337；CareExecutionRepository.java:176-195）。
+
+**R2 notes（非阻塞，要点）**：A03/A04 目标成员均来自服务端持久化行，无客户端 memberId 路径；MISMATCH/未绑定发生在 T07 事务前且测试断言强度足够（T07 未创建/T13 状态/目标 memberId/revision 不变）；A03 能力检查锁外+锁内同一 checker 无绕过分支（问题在 checker 自身 fail-open）；F1 幂等语义自洽（succeeded 保持+投影动态复核资格）；A05 事务后资格复核符合「提交确认与读取资格分离」，撤销在鉴权后属设计已承认的在途竞态；T07 快照顶层整数 schema_version 与 CHECK 兼容；late_variance 与 CHECK 兼容且同事务；存储隔离成立（C 路径存在+A 路径不存在实证，A 文件零改动）；missingRanges MAX 边界闭合；插入机制/防御性分支/生产限制披露准确；接受 SHA 绑定 255/255 证据并读到最终 SHA 活体日志 LIVE_SMOKE_ALL_PASS；**现有绿测未覆盖三个阻塞反例**。
+
+**各维度结论（R2 一览）**：API/契约——9 路由与主要 DTO 对齐，F3 与能力裁定仍阻塞；查询投影——权限/统一 404/最小视图已修，嵌套白名单仍可能泄露；准入——锁外核验/锁内重检/K<N/成员来源正确，能力 checker fail-open 阻塞；原子占用/账本/收尾/迟到/撤销/幂等并发——未发现回归；人脸绑定——服务端 memberId 与拒绝路径正确，混合 profile 替身阻塞；能力匹配——revision/microcrystal_id 正确非门禁、锁内外一致，必需字段缺失未 fail-closed；存储与模块边界——成立，A/迁移/契约/共享配置零改动；测试与披露——主路径覆盖充分、披露准确，缺三个阻塞反例。
+
+### R2 处置（按授权「必要修复按原范围并复审新代码」）
+fix-1 正在修复三 BLOCKER（裁定语义：①递归结构化嵌套白名单——step 仅 region/parameters，parameter 仅标量或 {value,unit}，regions 仅 string 元素，任何层级空→丢弃，顶层空→null，WARN 仅键路径；②能力逐项 fail-closed——冻结块必需 capability_id/parameter_ranges(含双侧 unit 严格相等)/approved_regions/n_bounds，新 token malformed_frozen_capability，steps 缺失/空/畸形→malformed_frozen_step，step 参数须在冻结 ranges 内且双重范围覆盖；③双防线——CareDevTestCondition（app.env≠production ∧ 无 prod/production profile ∧ 含 dev/test 才注册替身）+ CareFaceVerifierProductionGuard（production 语义下选中非 FailClosed 即启动 fail-fast），配纯单元+上下文级证据测试）。修复完成并提交后，以**新最终 SHA** 重跑 SHA 绑定套件+活体冒烟，再发起 R3 复审。
+
+## Round 3 @ <修复后新最终 SHA> — 待执行
 
 ## 当前门禁状态
 
 | 项 | 状态 |
 |---|---|
-| R1 @11b653a | FAIL（4 BLOCKER+2 IMPORTANT）— 已修复于 5bad406/24cab56 |
-| R2 @bd8e305 | **BLOCKED**（oracle 基础设施认证失败 ×3：ora-1 resume ×2 + ora-2 全新会话 ×1，均 `Provided authentication token is expired`，无结论；不计为通过；待凭据恢复后单次正式复审） |
-| SHA 绑定自测 @bd8e305 | 255/255 绿，RC=0，树前后==bd8e305 dirty=0（orchestrator 独立执行） |
-| 活体冒烟 @bd8e305 | LIVE_SMOKE_ALL_PASS RC=0（18085+真实 PG+环境绑定成员） |
-| 交付判定 | **未达交付条件**——等待 oracle 恢复后 R2 单次正式复审 PASS 方可交总协调集成 |
+| R1 @11b653a | FAIL（4 BLOCKER+2 IMPORTANT）— 修复于 5bad406/24cab56；R2 核定 F1/F2/F4/F5/F6/N1 CLOSED、F3 NOT-CLOSED |
+| R2 @bd8e305 | **FAIL**（用户授权单次正式执行；3 BLOCKER：嵌套白名单透传、能力校验 fail-open、混合生产 profile 可选中替身） |
+| R3 @修复后新 SHA | 待执行（fix-1 修复中；提交后重跑 SHA 绑定套件+活体冒烟再复审） |
+| SHA 绑定自测 @bd8e305 | 255/255 绿，RC=0，树前后==bd8e305 dirty=0（R2 已采信；新 SHA 须重跑） |
+| 活体冒烟 @bd8e305 | LIVE_SMOKE_ALL_PASS RC=0（R2 已读到日志；新 SHA 须重跑） |
+| 交付判定 | **未通过 Oracle 门禁**——三 BLOCKER 修复并经 R3 PASS 前不得交总协调集成 |
 
 ## 残留限制（与 C.md 一致）
 
