@@ -140,6 +140,34 @@ case "${1:-}" in
     .venv-driver/bin/python driver/verify_reverify_sentinel.py "$RID" "$rc" rv5-reverify || rc=4
     echo "a-rv5 exit=$rc (RUN_ID=$RID; 0=结算完整且无FAIL无BLOCKED 1=有FAIL或有BLOCKED 4=不完整/哨兵与本次 rc 不符)"
     exit $rc;;
+  c-acceptance)
+    # E 对 C/M4（8b3592e）的独立黑盒验收（独立证据目录）
+    if [ ! -x ".venv-driver/bin/python" ]; then
+      python3 -m venv .venv-driver || exit 1
+    fi
+    .venv-driver/bin/pip install -q 'sqlalchemy>=2.0,<3.0' 'psycopg[binary]>=3.2,<4.0' \
+      'pydantic>=2.7,<3.0' 'jsonschema>=4.21,<5.0' requests pyyaml \
+      openapi-spec-validator 'pytest>=8.0' || exit 1
+    RID="E-AB-$(date -u +%Y%m%dT%H%M%SZ)-$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')"
+    E_ACCEPTANCE_RUN_ID="$RID" .venv-driver/bin/python driver/c_care.py
+    rc=$?
+    .venv-driver/bin/python driver/verify_reverify_sentinel.py "$RID" "$rc" c-care || rc=4
+    echo "c-acceptance exit=$rc (RUN_ID=$RID; 0=结算完整且无FAIL无BLOCKED 1=有FAIL或有BLOCKED 4=不完整/哨兵与本次 rc 不符)"
+    exit $rc;;
+  cd-chain)
+    # E 对 C+D 集成候选（merged aebccc7）的扩展真实链路验收（独立证据目录）
+    if [ ! -x ".venv-driver/bin/python" ]; then
+      python3 -m venv .venv-driver || exit 1
+    fi
+    .venv-driver/bin/pip install -q 'sqlalchemy>=2.0,<3.0' 'psycopg[binary]>=3.2,<4.0' \
+      'pydantic>=2.7,<3.0' 'jsonschema>=4.21,<5.0' requests pyyaml \
+      openapi-spec-validator 'pytest>=8.0' || exit 1
+    RID="E-CD-$(date -u +%Y%m%dT%H%M%SZ)-$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')"
+    E_ACCEPTANCE_RUN_ID="$RID" .venv-driver/bin/python driver/cd_chain.py
+    rc=$?
+    .venv-driver/bin/python driver/verify_reverify_sentinel.py "$RID" "$rc" cd-chain || rc=4
+    echo "cd-chain exit=$rc (RUN_ID=$RID; 0=结算完整且无FAIL无BLOCKED 1=有FAIL或有BLOCKED 4=不完整/哨兵与本次 rc 不符)"
+    exit $rc;;
   *)
-    echo "用法: $0 {setup-venv|selfcheck|matrix|a-baseline|a-reverify|a-rv5}"; exit 2;;
+    echo "用法: $0 {setup-venv|selfcheck|matrix|a-baseline|a-reverify|a-rv5|c-acceptance|cd-chain}"; exit 2;;
 esac
