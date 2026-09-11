@@ -50,3 +50,9 @@
 - 无 worker 参与（care 包零 worker 依赖）；未重跑 C 的 Java 262 项与契约脚本以外的 A/B/D 套件。selfcheck rc=0（63 passed）。
 - 内存紧张，JVM 限堆 `-Xmx640m -XX:MaxMetaspaceSize=256m`，变体串行。
 - OAS 严格校验对 `nullable` over `$ref/allOf` 按契约意图解析为可空、并按 OAS 组合语义令 `additionalProperties:false` 不误伤兄弟分支新增属性；其余 type/required/enum 严格不放宽。
+
+## Merged 候选适用性（aebccc7 = C 8b3592e + D dc955c0）
+
+- C care 域 `git diff 8b3592e..aebccc7`（`web-java/.../web/care` main+test）=0，`backend/contracts` diff=0 → 本报告对 C 的结论在 merged 候选上继续适用。
+- 在 merged 树正式重跑 `run.sh c-acceptance`：新 RUN_ID=`E-AB-20260911T093819Z-f724f2ba`，settled 14/14，counts={PASS:14,FAIL:0,BLOCKED:0,INFO:0}，exit=0，哨兵 OK；旧 7 个 run 目录零覆盖。
+- C+D 真实链路与集成结论见 `backend/handoffs/E-CD-acceptance.md`（证据 `evidence/CD-chain-2026-09-11-aebccc7/`）。

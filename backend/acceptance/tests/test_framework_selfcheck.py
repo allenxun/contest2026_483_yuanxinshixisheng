@@ -847,3 +847,45 @@ def test_cc11_missing_strict_validation_must_not_pass():
     assert c_care.cc11_verdict(True, 8, [], []) is False
     assert c_care.cc11_verdict(False, 9, [], []) is False
     assert c_care.cc11_verdict(True, 9, ["A03=500"], []) is False
+
+
+# ---------- CD-chain 验收驱动回归 ----------
+
+def test_cd_chain_sentinel_mode_and_expected(tmp_path):
+    """cd-chain 哨兵：EXPECTED_CD 10 项、mode 绑定、错 mode 必须拒绝。"""
+    from driver import verify_reverify_sentinel as vs
+
+    assert len(vs.EXPECTED_CD) == 10
+    assert "CD-01" in vs.EXPECTED_CD and "CD-08" in vs.EXPECTED_CD
+    assert "CLEANUP" in vs.EXPECTED_CD and "CLEANUP-ports" in vs.EXPECTED_CD
+    settle = {"counts": {"pass": 10, "fail": 0, "blocked": 0, "info": 0}, "settled": 10,
+              "expected": 10, "rows": 10, "missing": [], "extra": [], "duplicates": [],
+              "unknown_status": []}
+    vs.write_sentinel("E-CD-test", settle, 0, reports_dir=tmp_path, mode="cd-chain",
+                      expected=vs.EXPECTED_CD)
+    ok, _ = vs.verify("E-CD-test", reports_dir=tmp_path, driver_rc=0, mode="cd-chain",
+                      expected=vs.EXPECTED_CD)
+    assert ok is True
+    bad, why = vs.verify("E-CD-test", reports_dir=tmp_path, driver_rc=0, mode="c-care",
+                         expected=vs.EXPECTED_C)
+    assert bad is False and "mode" in why          # 错 mode 拒绝
+    rc_bad, _ = vs.verify("E-CD-test", reports_dir=tmp_path, driver_rc=1, mode="cd-chain",
+                          expected=vs.EXPECTED_CD)
+    assert rc_bad is False                          # final_exit==驱动 rc
+
+
+def test_cd_conclusion_policy():
+    """CD-chain 结论政策：FAIL/BLOCKED/缺项/未知状态不通过；全 PASS 完整才通过。"""
+    from driver import cd_chain
+
+    def st(p=0, f=0, b=0, i=0, missing=()):
+        counts = {"pass": p, "fail": f, "blocked": b, "info": i}
+        return {"counts": counts, "settled": p + f + b + i, "expected": 10,
+                "rows": p + f + b + i, "missing": list(missing), "extra": [],
+                "duplicates": [], "unknown_status": []}
+
+    assert "未通过" in cd_chain.cd_conclusion(st(p=9, f=1))
+    assert "未通过" in cd_chain.cd_conclusion(st(p=9, b=1))
+    assert "未通过" in cd_chain.cd_conclusion(st(p=9, missing=["CD-3"]))
+    assert "拒绝" in cd_chain.cd_conclusion({**st(p=9), "unknown_status": ["X"]})
+    assert "通过" in cd_chain.cd_conclusion(st(p=10))
