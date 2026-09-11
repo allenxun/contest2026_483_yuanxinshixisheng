@@ -20,8 +20,26 @@ def _runtime(engine: Engine) -> WorkerRuntime:
     return WorkerRuntime(cfg, engine=engine)
 
 
-def test_only_system_echo_registered_in_A(engine: Engine) -> None:
-    assert registered_job_types() == ("system.echo",)
+def test_registered_handlers_are_only_contract_job_types(engine: Engine) -> None:
+    """注册表只含契约声明的 job_type（无未知/拼错类型）。
+
+    A 交付时只注册 ``system.echo``；任务书与 backend/doc/tasks/README.md 明确
+    授权 B/D "对 Worker handler 注册表仅做本包条目的必要新增"。B 包已新增
+    ``notification.deliver``，故原 ``== ("system.echo",)`` 断言改为契约白名单：
+    必须仍含 ``system.echo``，且不得出现白名单外类型。白名单 = backend/contracts/
+    schemas/payload-*.json 声明的全部 job_type，因此 C/D 后续各自新增条目时本
+    断言依然成立（未知 job_type 的 UNSUPPORTED_CONTRACT 隔离由下方用例独立验证）。
+    """
+    types = registered_job_types()
+    assert "system.echo" in types
+    assert set(types) <= {
+        "system.echo",
+        "notification.deliver",
+        "assessment.analyze",
+        "identity.enroll",
+        "plan.generate",
+        "media.cleanup",
+    }, types
 
 
 def test_unknown_job_type_fails_without_retry_loop(engine: Engine) -> None:

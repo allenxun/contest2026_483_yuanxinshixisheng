@@ -196,12 +196,39 @@ class AuthFlowIT extends AbstractWebIT {
                     .path("error").path("code").asText());
         }
 
-        // 云台 token 走业务 stub：已认证 → 501；principal 格式 = gimbal|<gimbal_uuid>
-        MvcResult stub = mockMvc.perform(put("/api/v1/me/notification-destinations/inst-x")
+        // 云台会话抵达业务层且 principal 格式 = gimbal|<gimbal_uuid>（下方 echo 断言）。
+        // B 包已实现 M5-A01 并移除其 501 占位，故原"M5 stub=501"断言按总协调裁定
+        // 改为**权限语义**断言：用**合法请求体**证明云台不能调用 APP 专属的 M5-A01
+        // （403 CALLER_NOT_ALLOWED），并**另测非法输入**（400 INVALID_INPUT），
+        // 以免把偶然的 400/404 当作权限正确的证据——两条路径必须可区分。
+        String validDestinationBody = "{\"provider\":\"dev-push\",\"platform\":\"android\","
+                + "\"registration\":{\"token\":\"dev-token-1\"},"
+                + "\"expectedDestinationRevision\":\"0\"}";
+        MvcResult forbidden = mockMvc.perform(put("/api/v1/me/notification-destinations/inst-gimbal")
                         .header("Authorization", "Bearer " + gimbalToken)
+                        .header("Idempotency-Key", "gimbal-dest-" + UUID.randomUUID())
+                        .contentType("application/json").content(validDestinationBody))
+                .andReturn();
+        assertEquals(403, forbidden.getResponse().getStatus(), forbidden.getResponse().getContentAsString());
+        assertEquals("CALLER_NOT_ALLOWED", JSON.readTree(forbidden.getResponse().getContentAsString())
+                .path("error").path("code").asText());
+        // 非法输入是**独立**的 400 路径（Bean Validation 先于主体类型判定），
+        // 与上面的 403 区分开，证明 403 来自授权而非请求体校验。
+        MvcResult invalid = mockMvc.perform(put("/api/v1/me/notification-destinations/inst-gimbal")
+                        .header("Authorization", "Bearer " + gimbalToken)
+                        .header("Idempotency-Key", "gimbal-dest-bad-" + UUID.randomUUID())
                         .contentType("application/json").content("{}"))
                 .andReturn();
-        assertEquals(501, stub.getResponse().getStatus());
+        assertEquals(400, invalid.getResponse().getStatus(), invalid.getResponse().getContentAsString());
+        assertEquals("INVALID_INPUT", JSON.readTree(invalid.getResponse().getContentAsString())
+                .path("error").path("code").asText());
+        // 云台被拒后绝不产生投递目标（权限拒绝零写入）。只断言本次被拒的
+        // installationId，不用全表计数——本类其他用例会插入 inst-lifecycle /
+        // inst-other-device，全表断言会与测试执行顺序耦合。
+        Integer rejectedRows = jdbc.queryForObject(
+                "SELECT count(*) FROM notification_destinations WHERE installation_id = 'inst-gimbal'",
+                Integer.class);
+        assertEquals(0, rejectedRows);
 
         MvcResult echo = mockMvc.perform(post("/api/v1/system/echo-jobs")
                         .header("Authorization", "Bearer " + gimbalToken)

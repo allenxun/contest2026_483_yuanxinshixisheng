@@ -96,3 +96,7 @@ def registered_job_types() -> tuple[str, ...]:
 from . import system_echo as _system_echo  # noqa: E402
 
 register(_system_echo.ECHO_JOB_TYPE, _system_echo.handler)
+
+from . import notification_deliver as _notification_deliver  # noqa: E402
+
+register(_notification_deliver.JOB_TYPE, _notification_deliver.handler)

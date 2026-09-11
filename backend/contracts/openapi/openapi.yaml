@@ -86,7 +86,7 @@ paths:
       summary: M1-A01 人脸授权查看本人资料
       x-api-id: M1-A01
       x-implementation: contract-only
-      x-error-codes: [INVALID_INPUT, UPLOAD_TOO_LARGE, UNSUPPORTED_IMAGE, FACE_QUALITY_REJECTED, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, GRANT_REVOKED, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      x-error-codes: [INVALID_INPUT, UPLOAD_TOO_LARGE, UNSUPPORTED_IMAGE, FACE_QUALITY_REJECTED, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, FACE_NOT_VERIFIED, RESOURCE_NOT_VISIBLE, GRANT_REVOKED, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
       description: >-
         调用方：APP（Bearer = APP session token，手机号会话签发）。multipart：
         metadata part（capture + consentEvidenceRef）+ `face` 图片二进制
@@ -163,7 +163,7 @@ paths:
       summary: M1-A02 查询当前账号已有成员访问关系
       x-api-id: M1-A02
       x-implementation: contract-only
-      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
       description: >-
         调用方：APP（APP session token）。仅返回当前账号尚未撤销（active）的
         查看关联；授权不自动过期；不提供全库成员检索；空列表为 items=[]。
@@ -187,6 +187,7 @@ paths:
                       data: { $ref: '#/components/schemas/MemberAccessGrantListData' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/InternalError' }
         '501': { $ref: '#/components/responses/NotImplemented' }
@@ -519,7 +520,7 @@ paths:
       summary: M2-A07 配网时查询云台绑定状态
       x-api-id: M2-A07
       x-implementation: contract-only
-      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
       description: >-
         调用方：已登录且持有本次合法配对上下文的 APP（APP session token +
         请求头配对证明）。仅用于配网界面决定是否显示绑定按钮；不建立绑定；

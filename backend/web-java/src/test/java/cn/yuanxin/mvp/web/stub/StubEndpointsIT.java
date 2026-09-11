@@ -21,8 +21,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 /**
- * 501 契约占位（A/decisions #1）：抽样 M1–M5 共 7 个业务端点——
+ * 501 契约占位（A/decisions #1）：抽样仍属 contract-only 的业务端点——
  * 已认证 → 501 + NOT_IMPLEMENTED 标准信封（绝不假 200）；未认证 → 401。
+ *
+ * <p>B 包已实现 M1-A01～03、M2-A02～08、M5-A01，对应占位与其抽样一并移除；
+ * 本测试现只抽样 M3（D 包）与 M4（C 包）端点。其他包实现自己的端点时按同一
+ * 方式收缩抽样。</p>
  */
 class StubEndpointsIT extends AbstractWebIT {
 
@@ -33,31 +37,25 @@ class StubEndpointsIT extends AbstractWebIT {
     static Stream<Arguments> stubs() {
         UUID id = UUID.randomUUID();
         return Stream.of(
-                Arguments.of("M1-A02 GET grants",
+                Arguments.of("M3-A01 POST assessment task",
                         (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
-                                t -> get("/api/v1/me/member-access-grants")),
-                Arguments.of("M1-A03 DELETE grant",
-                        (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
-                                t -> delete("/api/v1/me/member-access-grants/" + id)),
-                Arguments.of("M2-A02 heartbeat",
-                        (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
-                                t -> post("/api/v1/gimbals/" + id + "/heartbeats")
-                                        .contentType("application/json").content("{}")),
+                                t -> post("/api/v1/skin-assessment-tasks")),
                 Arguments.of("M3-A03 task view",
                         (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
                                 t -> get("/api/v1/skin-assessment-tasks/" + id)),
+                Arguments.of("M3-A06 gimbal current assessment",
+                        (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
+                                t -> get("/api/v1/gimbals/" + id + "/current-assessment")),
+                Arguments.of("M4-A03 POST care execution",
+                        (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
+                                t -> post("/api/v1/care-executions")),
                 Arguments.of("M4-A05 observations",
                         (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
                                 t -> post("/api/v1/care-executions/" + id + "/observations")
                                         .contentType("application/json").content("{}")),
-                Arguments.of("M2-A06 PUT binding",
+                Arguments.of("M4-A08 plan progress",
                         (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
-                                t -> org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                                        .put("/api/v1/me/gimbal-bindings/" + id)),
-                Arguments.of("M5-A01 PUT destination",
-                        (java.util.function.Function<String, org.springframework.test.web.servlet.RequestBuilder>)
-                                t -> org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                                        .put("/api/v1/me/notification-destinations/inst-1")));
+                                t -> get("/api/v1/care-plans/" + id + "/progress")));
     }
 
     @ParameterizedTest(name = "{0}")
