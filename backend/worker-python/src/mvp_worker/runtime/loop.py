@@ -26,7 +26,14 @@ from ..handlers import (
 )
 from ..logging_setup import mlog
 from .claim import claim_batch
-from .complete import StaleGeneration, complete_failure, complete_success, fail_unsupported
+from .complete import (
+    BusinessTx,
+    StaleGeneration,
+    complete_deferred,
+    complete_failure,
+    complete_success,
+    fail_unsupported,
+)
 from .expire import recover_expired, release_claim
 from .renew import LeaseRenewer
 from .rows import JobRow
@@ -94,7 +101,9 @@ class WorkerRuntime:
         try:
             result = handler.handle(ctx, claim)
         except JobFailed as exc:
-            self._finish_failure(claim, exc.code, exc.message, exc.retryable)
+            self._finish_failure(
+                claim, exc.code, exc.message, exc.retryable, business_tx=exc.business_tx
+            )
             return
         except Exception as exc:  # 未预期异常 → 按临时错误退避重试
             mlog(log, logging.ERROR, "job.handler_exception",
@@ -111,18 +120,30 @@ class WorkerRuntime:
             mlog(log, logging.WARNING, "job.result_abandoned_lease_lost",
                  workerId=worker_id, **fields)
             return
+        defer_seconds = result.defer_seconds if result is not None else None
+        deferred = defer_seconds is not None
         try:
-            complete_success(
-                self.engine,
-                claim,
-                handler_result_tx=result.business_tx if result is not None else None,
-            )
+            if defer_seconds is not None:
+                # 合法等待态：同 job 重排并退还本次 attempt（不产生后继任务）
+                complete_deferred(
+                    self.engine,
+                    claim,
+                    defer_seconds=float(defer_seconds),
+                    business_tx=result.business_tx if result is not None else None,
+                )
+            else:
+                complete_success(
+                    self.engine,
+                    claim,
+                    handler_result_tx=result.business_tx if result is not None else None,
+                )
         except StaleGeneration:
             mlog(log, logging.WARNING, "job.complete_stale_generation",
                  workerId=worker_id, **fields,
                  note="rolled back; recovery owns the job now")
             return
-        mlog(log, logging.INFO, "job.succeeded", workerId=worker_id, **fields)
+        mlog(log, logging.INFO, "job.deferred" if deferred else "job.succeeded",
+             workerId=worker_id, **fields)
 
     def _write_unsupported(self, claim: JobRow, *, message: str) -> None:
         try:
@@ -131,7 +152,15 @@ class WorkerRuntime:
             mlog(log, logging.WARNING, "job.unsupported_stale_generation",
                  workerId=self.cfg.worker_id, **claim.log_fields())
 
-    def _finish_failure(self, claim: JobRow, code: str, message: str, retryable: bool) -> None:
+    def _finish_failure(
+        self,
+        claim: JobRow,
+        code: str,
+        message: str,
+        retryable: bool,
+        *,
+        business_tx: Optional[BusinessTx] = None,
+    ) -> None:
         try:
             complete_failure(
                 self.engine,
@@ -141,6 +170,7 @@ class WorkerRuntime:
                 retryable=retryable,
                 backoff_base_seconds=self.cfg.backoff_base_seconds,
                 backoff_cap_seconds=self.cfg.backoff_cap_seconds,
+                business_tx=business_tx,
             )
         except StaleGeneration:
             # 失败写回也可能遇 stale：回收器已重新入队，丢弃本写回即可
