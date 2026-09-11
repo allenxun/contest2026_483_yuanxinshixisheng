@@ -21,6 +21,7 @@ from mvp_worker.runtime.complete import (
     StaleGeneration,
     complete_deferred,
     complete_failure,
+    complete_success,
 )
 
 _INSERT_MEDIA = text(
@@ -76,8 +77,11 @@ def test_complete_failure_mid_tx_expiry_rejects_and_rolls_back(engine: Engine) -
     media_id = str(uuid.uuid4())
 
     def business_tx(conn: Any) -> None:
-        time.sleep(0.9)  # 耗尽租约（≥0.5s 余量）
+        # 先执行 SQL（确定服务端事务起始时间戳），再睡过租约：旧 CURRENT_TIMESTAMP
+        # 语义下守卫会用此 SQL 建立的事务起始时间（租约尚活）→ 误提交；clock_timestamp()
+        # 则在守卫真实执行时判过期 → 拒绝。故本测试对两种语义具判别力。
         conn.execute(_INSERT_MEDIA, {"id": media_id, "object_key": f"t/{media_id}"})
+        time.sleep(0.9)  # 耗尽租约（≥0.5s 余量）
 
     with pytest.raises(StaleGeneration):
         complete_failure(
@@ -101,8 +105,9 @@ def test_complete_deferred_mid_tx_expiry_rejects_no_refund(engine: Engine) -> No
     media_id = str(uuid.uuid4())
 
     def business_tx(conn: Any) -> None:
-        time.sleep(0.9)
+        # 先 SQL 建立事务时间戳，再睡过租约（判别力同上）。
         conn.execute(_INSERT_MEDIA, {"id": media_id, "object_key": f"t/{media_id}"})
+        time.sleep(0.9)
 
     with pytest.raises(StaleGeneration):
         complete_deferred(engine, claim, defer_seconds=5, business_tx=business_tx)
@@ -135,14 +140,72 @@ def test_complete_failure_generous_lease_commits(engine: Engine) -> None:
     media_id = str(uuid.uuid4())
 
     def business_tx(conn: Any) -> None:
-        time.sleep(0.3)
         conn.execute(_INSERT_MEDIA, {"id": media_id, "object_key": f"t/{media_id}"})
+        time.sleep(0.3)
 
     complete_failure(
         engine, claim, code="X", message="m", retryable=False, business_tx=business_tx
     )
     assert fetch_job(engine, jid)["status"] == "failed"
     assert _media_count(engine, media_id) == 1
+
+
+# --------------------------------------- (A) complete_success live-lease guard
+
+
+def test_complete_success_mid_tx_expiry_rejected_and_rolls_back(engine: Engine) -> None:
+    """(A) 成功路径：回调耗尽租约 → 守卫（clock_timestamp）拒绝 → 业务 + succeeded 回滚。"""
+    claim, jid = _claim_one(engine)
+    before = fetch_job(engine, jid)
+    _set_lease_in(engine, jid, 0.3)  # 0.3s 后过期
+    media_id = str(uuid.uuid4())
+
+    def business_tx(conn: Any) -> None:
+        # 先 SQL（建立服务端事务时间戳），再睡过租约：旧 CURRENT_TIMESTAMP 语义会
+        # 用事务起始（租约尚活）→ 误提交 succeeded；clock_timestamp() 判过期 → 拒绝。
+        conn.execute(_INSERT_MEDIA, {"id": media_id, "object_key": f"t/{media_id}"})
+        time.sleep(0.9)  # ≥0.5s 余量
+
+    with pytest.raises(StaleGeneration):
+        complete_success(engine, claim, handler_result_tx=business_tx)
+
+    row = fetch_job(engine, jid)
+    assert row["status"] == "running"  # 未 succeeded
+    assert row["lease_owner"] == before["lease_owner"]
+    assert int(row["lease_revision"]) == int(before["lease_revision"])
+    assert _media_count(engine, media_id) == 0  # 业务写回滚
+
+
+def test_complete_success_generous_lease_commits(engine: Engine) -> None:
+    """(A) 对照：充足租约 + 0.3s 回调 → succeeded 且业务写提交。"""
+    claim, jid = _claim_one(engine, lease_seconds=60)
+    media_id = str(uuid.uuid4())
+
+    def business_tx(conn: Any) -> None:
+        conn.execute(_INSERT_MEDIA, {"id": media_id, "object_key": f"t/{media_id}"})
+        time.sleep(0.3)
+
+    complete_success(engine, claim, handler_result_tx=business_tx)
+    assert fetch_job(engine, jid)["status"] == "succeeded"
+    assert _media_count(engine, media_id) == 1
+
+
+def test_no_callback_success_live_succeeds(engine: Engine) -> None:
+    claim, jid = _claim_one(engine)
+    complete_success(engine, claim)
+    assert fetch_job(engine, jid)["status"] == "succeeded"
+
+
+def test_no_callback_success_expired_is_stale(engine: Engine) -> None:
+    claim, jid = _claim_one(engine)
+    before = fetch_job(engine, jid)
+    _set_lease_in(engine, jid, -5)
+    with pytest.raises(StaleGeneration):
+        complete_success(engine, claim)
+    row = fetch_job(engine, jid)
+    assert row["status"] == "running"
+    assert int(row["attempt_count"]) == int(before["attempt_count"])
+    assert int(row["lease_revision"]) == int(before["lease_revision"])
 
 
 # --------------------------------------------------- (e) no-callback 兼容回归

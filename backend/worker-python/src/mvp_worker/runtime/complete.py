@@ -2,7 +2,9 @@
 
 - complete_success：同一事务内 **先** 执行 handler 的业务写回调（B/C/D 扩展点，
   echo 为空），**后** 条件更新 async_jobs → succeeded；守卫 0 行 → StaleGeneration，
-  整个事务回滚（业务写不得发布）。
+  整个事务回滚（业务写不得发布）。守卫含**真实执行时刻**的租约未过期检查
+  （``clock_timestamp()``）：回调耗尽租约时成功写回同样被拒绝 → 回收器重排 →
+  新 owner 依 revision/dedup 守卫重做（handler 幂等）。
 - complete_failure：可重试且未超上限 → 回 queued + 指数退避 available_at +
   last_error；否则 failed。可选 ``business_tx`` 在同一事务内**先**执行终态业务写、
   再守卫 UPDATE（含租约未过期），0 行 → StaleGeneration 整体回滚；无 callback 调用方
@@ -39,6 +41,7 @@ SET status = 'succeeded',
     updated_at = CURRENT_TIMESTAMP
 WHERE id = :id AND status = 'running'
   AND lease_owner = :worker_id AND lease_revision = :lease_revision
+  AND lease_until >= clock_timestamp()
 """
 )
 
@@ -129,7 +132,13 @@ def complete_success(
     *,
     handler_result_tx: Optional[BusinessTx] = None,
 ) -> None:
-    """成功路径单事务：业务写 → T12 succeeded（守卫不满足则全部回滚）。"""
+    """成功路径单事务：业务写 → T12 succeeded（守卫不满足则全部回滚）。
+
+    守卫含 ``lease_until >= clock_timestamp()``：成功提交同样要求**真实执行时刻**
+    租约仍活跃。回调先于守卫执行，若回调耗时耗尽租约，成功（业务写 + succeeded）
+    被拒绝 → StaleGeneration → 整体回滚 → 回收器重排 → 新 owner 依 revision/dedup
+    守卫重做（handler 幂等，故重做安全）。
+    """
     with engine.begin() as conn:
         if handler_result_tx is not None:
             # 扩展点：B/C/D 在此写业务表（字段级、先锁业务行）；echo 无业务写
