@@ -213,12 +213,23 @@ b23() {
   aeq "$r1" 1 "unknown→online +1"
   hb_op "$G_TOKEN" "$g" "e1" "2"; aeq "$(jget data.accepted)" true "seq2"
   aeq "$(psql_b "SELECT status_revision FROM gimbals WHERE id='$g'")" "$r1" "同状态不递增"
-  hb_op "$G_TOKEN" "$g" "e2" "1"; aeq "$(jget data.accepted)" true "新 epoch 小 seq"
-  aeq "$(psql_b "SELECT status_revision FROM gimbals WHERE id='$g'")" "$r1" "已 online 不递增"
+  # Oracle BLOCKER A：epoch 的新旧权威必须来自**服务端验证过的会话代次**，
+  # 客户端自填 epoch 字符串不得具备改写权。同一 token（同代次）内换 epoch + 降 seq
+  # 是回滚攻击，必须 accepted=false 且逐列未变。
+  local snap23; snap23=$(t03snap "$g")
+  hb_op "$G_TOKEN" "$g" "e2" "1"; aeq "$(jget data.accepted)" false "同代次换 epoch 降 seq 必须拒绝"
+  aeq "$(t03snap "$g")" "$snap23" "被拒心跳不得改任何列"
+  aeq "$(psql_b "SELECT status_revision FROM gimbals WHERE id='$g'")" "$r1" "被拒不递增代次"
+  # 真实代次推进：DB 递增 credential_version（旧 token 立即失效）→ 重新认证取新 token，
+  # 此时新 epoch + 小 seq 才是合法的"新来源会话"，接受并重置基准。
+  psql_b "UPDATE gimbals SET credential_version=2 WHERE id='$g'" >/dev/null
+  hb_op "$G_TOKEN" "$g" "e3" "9"; aeq "$CODE" 401 "旧代次 token 立即 401"
+  gimbal_login "$aref" 2
+  hb_op "$G_TOKEN" "$g" "e3" "1"; aeq "$(jget data.accepted)" true "代次推进后新 epoch 小 seq 接受"
   psql_b "UPDATE gimbals SET connection_status='offline' WHERE id='$g'" >/dev/null
-  hb_op "$G_TOKEN" "$g" "e3" "1"; aeq "$(jget data.accepted)" true "offline→online"
+  hb_op "$G_TOKEN" "$g" "e3" "2"; aeq "$(jget data.accepted)" true "offline→online"
   aeq "$(psql_b "SELECT status_revision FROM gimbals WHERE id='$g'")" $((r1+1)) "offline→online +1"
-  vlog "新 epoch 小 seq 接受；unknown/offline→online +1；同状态不递增"
+  vlog "同代次换 epoch 降 seq 拒绝且逐列未变；代次推进后新 epoch 接受；unknown/offline→online +1；同状态不递增"
 }
 
 b24() {

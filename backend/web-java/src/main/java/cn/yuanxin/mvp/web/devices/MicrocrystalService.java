@@ -33,9 +33,12 @@ import java.util.UUID;
  *
  * <p>先校验 {@code connectionProof}（B 自有端口 + 替身；控制端归属由认证主体
  * 派生，请求体不得覆盖），再单表定位/登记 T04 并锁行判序（真实
- * observation_epoch/observation_seq 列，直接写列不塞 JSONB）。来源变化
- * （observer_type/observer_ref 不同）重置基准；同来源 epoch 优先、同 epoch
- * 仅接受更大 seq；旧/重复 200 accepted=false 且不覆盖能力。</p>
+ * observation_epoch/observation_seq 列，直接写列不塞 JSONB）。顺序权威是服务端
+ * 验证的会话代次（{@link ServerGeneration}），写进 {@code latest_observation}
+ * JSONB 的 {@code observer_generation} 键：来源变化（observer_type/observer_ref
+ * 不同）或代次变化都接受并重置基准；来源与代次都相同时客户端不得更换 epoch，
+ * 且 seq 必须严格更大，否则 200 accepted=false 且不覆盖能力。客户端自填 epoch
+ * 绝不作为新旧权威。</p>
  *
  * <p>禁止：以观察抢占/改变 T07 占用、累计次数、改 care_executions、创建
  * async_jobs（方案生成归 D/C 的 Worker 扫描）；不得用请求体覆盖他人归属。
@@ -78,7 +81,8 @@ public class MicrocrystalService {
     }
 
     private record Row(String observerType, String observerRef, String observationEpoch,
-                       Long observationSeq, String capabilities, Instant receivedAt) {
+                       Long observationSeq, String capabilities, Instant receivedAt,
+                       String latestObservation) {
     }
 
     // ---------------- M2-A04 ----------------
@@ -144,6 +148,7 @@ public class MicrocrystalService {
         }
 
         Observer observer = observerFor(principal);
+        String generation = ServerGeneration.of(principal);
         long seq = parseBigint(body.observationSeq());
         return txTemplate.execute(status -> {
             UUID microcrystalId = locateOrRegister(body.microcrystalSerial(), status);
@@ -152,7 +157,7 @@ public class MicrocrystalService {
                 throw new ApiException(ErrorCode.INTERNAL,
                         "microcrystal row missing after locate");
             }
-            boolean accepted = decide(row, observer, body.observationEpoch(), seq);
+            boolean accepted = decide(row, observer, generation, body.observationEpoch(), seq);
             if (!accepted) {
                 String existingRevision = currentRevision(row.capabilities());
                 Instant received = row.receivedAt() == null ? Instant.now() : row.receivedAt();
@@ -169,6 +174,7 @@ public class MicrocrystalService {
                     schemaVersion, requestedRevision);
             Map<String, Object> latest = new LinkedHashMap<>();
             latest.put("schema_version", 1);
+            latest.put("observer_generation", generation);
             latest.put("state", body.state());
             int updated = jdbc.update("UPDATE microcrystals SET capabilities = ?::jsonb,"
                             + " latest_observation = ?::jsonb, observer_type = ?, observer_ref = ?,"
@@ -218,7 +224,8 @@ public class MicrocrystalService {
 
     private Row selectForUpdate(UUID microcrystalId) {
         List<Row> rows = jdbc.query("SELECT observer_type, observer_ref, observation_epoch,"
-                        + " observation_seq, capabilities::text AS capabilities, received_at"
+                        + " observation_seq, capabilities::text AS capabilities, received_at,"
+                        + " latest_observation::text AS latest_observation"
                         + " FROM microcrystals WHERE id = ? FOR UPDATE",
                 (rs, i) -> new Row(rs.getString("observer_type"), rs.getString("observer_ref"),
                         rs.getString("observation_epoch"),
@@ -226,22 +233,30 @@ public class MicrocrystalService {
                                 : rs.getLong("observation_seq"),
                         rs.getString("capabilities"),
                         rs.getTimestamp("received_at") == null ? null
-                                : rs.getTimestamp("received_at").toInstant()),
+                                : rs.getTimestamp("received_at").toInstant(),
+                        rs.getString("latest_observation")),
                 microcrystalId);
         return rows.isEmpty() ? null : rows.get(0);
     }
 
-    private static boolean decide(Row row, Observer observer, String epoch, long seq) {
+    private static boolean decide(Row row, Observer observer, String generation, String epoch,
+                                  long seq) {
         if (row.observerType() == null || row.observerRef() == null) {
             return true;
         }
         if (!row.observerType().equals(observer.type()) || !row.observerRef().equals(observer.ref())) {
             return true; // 来源变化 = 新来源会话，接受并重置基准
         }
-        if (row.observationEpoch() == null || !row.observationEpoch().equals(epoch)) {
-            return true;
+        String existingGeneration = DeviceJson.textAt(
+                DeviceJson.parseObject(row.latestObservation()), "observer_generation");
+        if (existingGeneration == null || !existingGeneration.equals(generation)) {
+            return true; // 服务端验证的新会话代次（含迁移前旧行），接受并重置基准
         }
-        return row.observationSeq() == null || seq > row.observationSeq();
+        // 同来源同代次内：客户端不得更换 epoch，seq 必须严格更大。
+        if (row.observationEpoch() == null || !row.observationEpoch().equals(epoch)) {
+            return false;
+        }
+        return row.observationSeq() != null && seq > row.observationSeq();
     }
 
     private static Map<String, Object> buildCapabilities(Map<String, Object> requested,

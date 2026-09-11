@@ -86,8 +86,9 @@ def test_rebind_creates_new_row_and_never_rewrites_old_recipient(engine: Engine)
     assert old_after["status"] == "cancelled"
     assert provider.calls == []
 
-    # 新行可投递
-    enqueue_deliver_job(engine, new_row["id"], input_revision=2)
+    # 新行可投递（input_revision 语义 = destination_revision，非 binding_revision；
+    # 新目标 dest_b 的 destination_revision=1，扫描器建行时即以此入队）。
+    enqueue_deliver_job(engine, new_row["id"], input_revision=1)
     new_job = claim_one(engine, worker="rebind-new")
     assert new_job is not None and new_job.owner_id == str(new_row["id"])
     _, failure = run_delivery(engine, new_job, handler)

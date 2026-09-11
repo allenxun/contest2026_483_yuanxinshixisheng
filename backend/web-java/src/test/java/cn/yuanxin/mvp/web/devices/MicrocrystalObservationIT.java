@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -191,19 +192,49 @@ class MicrocrystalObservationIT extends AbstractDeviceIT {
     }
 
     @Test
-    @DisplayName("同来源新 epoch 接受；不产生护理执行/async_jobs")
-    void sourceChangeAndEpochReset() throws Exception {
-        LoginResult app = loginAppWithInstallation(newPhone(), "inst-mc-epoch");
+    @DisplayName("同来源同代次翻转 epoch/降 seq → 拒绝且 capabilities 未变；重新登录（新代次）→ 接受并重置")
+    void clientEpochIsNotAuthoritativeWithinGeneration() throws Exception {
+        String phone = newPhone();
+        String installationId = "inst-mc-epoch";
+        LoginResult app = loginAppWithInstallation(phone, installationId);
         UUID account = UUID.fromString(app.accountId());
         String serial = "mc-" + UUID.randomUUID();
         long jobs = count("async_jobs", "1 = 1");
         long executions = count("care_executions", "1 = 1");
 
-        observe(app.accessToken(), serial,
-                DevProofFixture.connectionApp(account, "inst-mc-epoch", serial), "e1", "10", "1");
-        MvcResult newEpoch = observe(app.accessToken(), serial,
-                DevProofFixture.connectionApp(account, "inst-mc-epoch", serial), "e2", "1", "2");
-        assertTrue(dataOf(newEpoch).path("accepted").asBoolean());
+        MvcResult first = observe(app.accessToken(), serial,
+                DevProofFixture.connectionApp(account, installationId, serial), "e1", "10", "1");
+        assertTrue(dataOf(first).path("accepted").asBoolean());
+        UUID id = UUID.fromString(dataOf(first).path("microcrystalId").asText());
+        String capsBefore = (String) microcrystalRow(id).get("capabilities");
+
+        // 同来源（同 account:installation）同代次（同 session）翻转 epoch + 降 seq → 拒绝
+        MvcResult flipped = observe(app.accessToken(), serial,
+                DevProofFixture.connectionApp(account, installationId, serial), "e2", "1", "2");
+        assertEquals(200, flipped.getResponse().getStatus());
+        assertFalse(dataOf(flipped).path("accepted").asBoolean());
+        assertEquals(capsBefore, microcrystalRow(id).get("capabilities"));
+
+        // 同来源同代次、epoch 不变但 seq 回退 → 拒绝（capabilities 仍未变）
+        MvcResult rollback = observe(app.accessToken(), serial,
+                DevProofFixture.connectionApp(account, installationId, serial), "e1", "9", "3");
+        assertFalse(dataOf(rollback).path("accepted").asBoolean());
+        assertEquals(capsBefore, microcrystalRow(id).get("capabilities"));
+
+        // 真实代次推进：同一 account+installation 重新登录（新 sessionId）→ 接受并重置
+        LoginResult reauth = loginAppWithInstallation(phone, installationId);
+        assertEquals(account, UUID.fromString(reauth.accountId()));
+        MvcResult advanced = observe(reauth.accessToken(), serial,
+                DevProofFixture.connectionApp(account, installationId, serial), "e2", "1", "4");
+        assertTrue(dataOf(advanced).path("accepted").asBoolean());
+        assertEquals("4", dataOf(advanced).path("capabilityRevision").asText());
+        assertEquals(account + ":" + installationId, microcrystalRow(id).get("observer_ref"));
+        assertNotNull(jdbc.queryForObject(
+                "SELECT latest_observation ->> 'observer_generation' FROM microcrystals WHERE id = ?",
+                String.class, id));
+        assertEquals("number", jdbc.queryForObject(
+                "SELECT jsonb_typeof(latest_observation -> 'schema_version')"
+                        + " FROM microcrystals WHERE id = ?", String.class, id));
         assertEquals(jobs, count("async_jobs", "1 = 1"));
         assertEquals(executions, count("care_executions", "1 = 1"));
     }

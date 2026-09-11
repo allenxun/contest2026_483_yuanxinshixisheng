@@ -326,14 +326,36 @@ class GimbalBindingIT extends AbstractDeviceIT {
         assertNull(afterUnbind.get("bound_at"));
         assertEquals(2L, ((Number) afterUnbind.get("binding_revision")).longValue());
 
-        // 同键重放 → 204，代次不再递增
+        // 同键重放 → 204，代次不再递增（走既有 replay 投影，不重做写入）
         assertEquals(204, deleteUnbind(a.accessToken(), gimbal, "unbind-real-" + gimbal,
                 "\"binding-1\"").getResponse().getStatus());
         assertEquals(2L, ((Number) bindingRow(gimbal).get("binding_revision")).longValue());
-        // 新键且仍未被他人绑定 → 204，代次不再递增
-        assertEquals(204, deleteUnbind(a.accessToken(), gimbal, "unbind-again-" + gimbal, null)
-                .getResponse().getStatus());
+
+        // 新键解绑"未绑定"云台 → 404 RESOURCE_NOT_VISIBLE（不再冒充"我解绑成功"），
+        // 代次/绑定列逐列未变；且与不存在 UUID 的 404 掩蔽 requestId 后逐字节一致。
+        Map<String, Object> afterReplay = bindingRow(gimbal);
+        MvcResult unboundAgain = deleteUnbind(a.accessToken(), gimbal, "unbind-again-" + gimbal, null);
+        MvcResult missingGimbal = deleteUnbind(a.accessToken(), UUID.randomUUID(),
+                "unbind-missing-" + gimbal, null);
+        assertEquals(404, unboundAgain.getResponse().getStatus(),
+                unboundAgain.getResponse().getContentAsString());
+        assertEquals("RESOURCE_NOT_VISIBLE", errorOf(unboundAgain).path("code").asText());
+        assertIndistinguishableError(unboundAgain, missingGimbal);
+        assertEquals(afterReplay, bindingRow(gimbal));
         assertEquals(2L, ((Number) bindingRow(gimbal).get("binding_revision")).longValue());
+        String rawUnbound = unboundAgain.getResponse().getContentAsString();
+        String rawMissing = missingGimbal.getResponse().getContentAsString();
+        String idUnbound = bodyOf(unboundAgain).path("requestId").asText();
+        String idMissing = bodyOf(missingGimbal).path("requestId").asText();
+        assertEquals(rawUnbound.replace(idUnbound, "<requestId>"),
+                rawMissing.replace(idMissing, "<requestId>"));
+
+        // 同键重试这个新拒绝 → 重放同一 T13 rejected，仍 404 且逐列未变
+        MvcResult rejectedReplay = deleteUnbind(a.accessToken(), gimbal,
+                "unbind-again-" + gimbal, null);
+        assertEquals(404, rejectedReplay.getResponse().getStatus());
+        assertIndistinguishableError(unboundAgain, rejectedReplay);
+        assertEquals(afterReplay, bindingRow(gimbal));
 
         // B 建立新绑定（expected=2）→ rev3；A 的旧解绑（旧 If-Match）→ 409，B 绑定完好
         MvcResult rebound = putBind(b.accessToken(), gimbal, "unbind-b-" + gimbal, "2",

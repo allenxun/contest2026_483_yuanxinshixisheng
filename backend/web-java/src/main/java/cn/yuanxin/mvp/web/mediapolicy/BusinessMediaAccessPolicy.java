@@ -43,9 +43,10 @@ import java.util.UUID;
  *       {@code report_photo_version}（禁止跨照片版本放行）；且该 mediaId 必须
  *       命中 D 冻结格式 {@code report_payload.images[].media_id}。</li>
  *   <li><b>主体分支</b>：APP 单表读 T02 {@code member_access_grants}
- *       ({@code account_id=principal.accountUuid()}，成员取 T11.member_id，
- *       回退 T05.member_id，均空则拒绝) 要求 {@code status='active'}；撤销即时
- *       生效（无缓存）。GIMBAL 单表读 T03 {@code gimbals}，要求
+ *       ({@code account_id=principal.accountUuid()}，成员<b>只以 T05
+ *       {@code member_id} 为权威</b>；T11.member_id 非空时必须等于 T05，不等
+ *       则 fail closed 拒绝；T05 为空则拒绝) 要求 {@code status='active'}；
+ *       撤销即时生效（无缓存）。GIMBAL 单表读 T03 {@code gimbals}，要求
  *       {@code current_assessment_id == media.assessment_id}（仅自己的当前任务）
  *       且 {@code credential_version == principal.credentialVersion()}。云台绑定
  *       不能替代成员授权（SC-05-07）。</li>
@@ -147,11 +148,16 @@ public class BusinessMediaAccessPolicy implements MediaAccessPolicy {
         if (!isReferencedByFrozenReport(assessment.reportPayload(), media.id())) {
             return false;
         }
-        // 规则 4：主体分支。
+        // 规则 4：主体分支。成员归属的唯一权威是 T05（报告所属成员）；T11 与 T05
+        // 之间没有跨表一致性约束，T11.member_id 被写成他人时绝不能扩大授权。
         if (principal.principalType() == PrincipalType.APP) {
-            UUID memberId = attribution.memberId() != null
-                    ? attribution.memberId() : assessment.memberId();
+            UUID memberId = assessment.memberId();
             if (memberId == null || principal.accountUuid() == null) {
+                return false;
+            }
+            if (attribution.memberId() != null && !attribution.memberId().equals(memberId)) {
+                log.warn("media policy member attribution mismatch; denied mediaId={}"
+                        + " branch=t11-t05-member-mismatch", media.id());
                 return false;
             }
             Integer active = jdbc.queryForObject(

@@ -200,7 +200,7 @@ paths:
       summary: M1-A03 撤销当前账号与某成员查看关联
       x-api-id: M1-A03
       x-implementation: contract-only
-      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
       description: >-
         调用方：APP 中已登录的关联所属账号（APP session token）。成功 204 无
         响应体（X-Request-Id 头仍返回）；同一账号重复撤销已撤销关联也返回
@@ -212,6 +212,7 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
       responses:
         '204': { $ref: '#/components/responses/NoContent' }
+        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -487,7 +488,7 @@ paths:
       summary: M2-A08 原账号解除云台绑定
       x-api-id: M2-A08
       x-implementation: contract-only
-      x-error-codes: [AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, BINDING_CHANGED, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, BINDING_CHANGED, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
       description: >-
         调用方：当前绑定所属账号的已登录 APP（APP session token）。建议
         `If-Match: "binding-{revision}"`。成功 204；已解绑的原请求可重放
@@ -504,6 +505,7 @@ paths:
           description: 建议携带 `binding-{bindingRevision}` 预期代次（DD M2-A08）
       responses:
         '204': { $ref: '#/components/responses/NoContent' }
+        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -1354,7 +1356,7 @@ paths:
       summary: M5-A01 登记本 APP 安装实例的通知投递目标
       x-api-id: M5-A01
       x-implementation: contract-only
-      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
+      x-error-codes: [INVALID_INPUT, AUTH_REQUIRED, SESSION_INVALID, CALLER_NOT_ALLOWED, RESOURCE_NOT_VISIBLE, BINDING_CHANGED, IDEMPOTENCY_CONTENT_CONFLICT, REQUEST_IN_PROGRESS, RATE_LIMITED, DEPENDENCY_UNAVAILABLE, DEPENDENCY_TIMEOUT, NOT_IMPLEMENTED]
       description: >-
         调用方：已登录 APP（APP session token；installationId 必须属于当前
         会话绑定安装，不能仅凭 installationId 抢占或替他人登记）。本接口只

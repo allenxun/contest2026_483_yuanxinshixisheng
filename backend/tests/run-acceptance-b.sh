@@ -335,7 +335,7 @@ vlog "app UP @$WEB"
 maybe_check b1  "M1-A01 有效主体 201 精确字段 + T13 链接" b01
 maybe_check b2  "M1-A01 无效主体 403/401/400/FACE_NOT_VERIFIED 零副作用" b02
 maybe_check b3  "M1-A02 active-only + 分页 + 403 + 非法 cursor 400" b03
-maybe_check b4  "M1-A03 撤销 204/重复不变/他人与不存在 404 一致" b04
+maybe_check b4  "M1-A03 撤销 204/重复不变/他人与不存在 404 一致/缺幂等键 400" b04
 maybe_check b5  "M2-A01 合法凭据 200、错凭据/代次 401、T03 未变" b05
 maybe_check b6  "M2-A02 心跳 accepted + APP 403 + 他人/不存在 404 一致" b06
 maybe_check b7  "M2-A03 绑定/自身 200、其他/不存在 404、isStale、GET 无副作用" b07
@@ -353,7 +353,7 @@ maybe_check b19 "旧授权请求重放 403 GRANT_REVOKED；新键 201；旧行�
 maybe_check b20 "face/核验用途永不放行；冻结报告 images[] 未引用→404 / 引用→200" b20
 maybe_check b21 "云台仅当前任务图片：切换 current_assessment 后 404" b21
 maybe_check b22 "心跳 seq 顺序：旧/重复 accepted=false 且逐列未变" b22
-maybe_check b23 "新 epoch 小 seq 接受；unknown/offline→online +1；同状态不递增" b23
+maybe_check b23 "epoch 权威=服务端会话代次：同代次换 epoch 降 seq 拒绝且逐列未变；代次推进后才接受" b23
 maybe_check b24 "episode 稳定性：复用 / 清除 resolved / 再报新 id" b24
 maybe_check b25 "worker SIGTERM 重启：任务不丢、租约回收、收敛且不重复" b25
 maybe_check b26 "C7：扫描前后 last_seen_at 不变 + 源码无写入" b26

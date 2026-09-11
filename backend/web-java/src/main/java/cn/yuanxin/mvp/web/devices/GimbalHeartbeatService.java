@@ -20,11 +20,14 @@ import java.util.UUID;
 /**
  * M2-A02 云台心跳业务（DD L189-196；lane-m2 跨 lane 决策 2/5/6）。
  *
- * <p>顺序判定依据为 body 的 {@code observationEpoch/observationSeq}（T03 无
- * 该两列，故存进 {@code gimbals.latest_observation} JSONB）：不同 epoch = 新来源
- * 会话，接受并重置基准；同 epoch 仅接受严格更大的 seq。旧/重复心跳
- * {@code accepted=false}，不更新 {@code last_seen_at}/不递增 status_revision/
- * 不覆盖 observation。</p>
+ * <p>顺序判定的权威是服务端验证的会话代次（{@link ServerGeneration}）：T03 无
+ * 该列，故把 {@code observation_generation}（= serverGeneration，只来自
+ * {@link PrincipalContext}）与 {@code observation_epoch/observation_seq} 一同存进
+ * {@code gimbals.latest_observation} JSONB。既有 generation 缺失（首次/迁移前旧行）
+ * 或与当前 generation 不同 = 经服务端验证的新会话代次，接受并重置基准；同
+ * generation 内客户端<b>不得更换 epoch</b>，且 seq 必须严格更大。旧/重复/换
+ * epoch 回退的心跳 {@code accepted=false}，不更新 {@code last_seen_at}/不递增
+ * status_revision/不覆盖 observation。客户端自填 epoch 绝不作为新旧权威。</p>
  *
  * <p>共享列写纪律：{@code SELECT ... FOR UPDATE} 读 T03 → 计算 → 只写本次要改的
  * 列，{@code WHERE id=? AND status_revision=<读到的值>} 守卫；{@code status_revision}
@@ -86,13 +89,23 @@ public class GimbalHeartbeatService {
                     "gimbal session credential generation is no longer current");
         }
 
+        String generation = ServerGeneration.of(principal);
         Map<String, Object> observation = DeviceJson.parseObject(row.latestObservation());
+        String existingGeneration = DeviceJson.textAt(observation, "observation_generation");
         String existingEpoch = DeviceJson.textAt(observation, "observation_epoch");
         Long existingSeq = DeviceJson.longAt(observation, "observation_seq");
-        boolean accepted = existingEpoch == null
-                || !existingEpoch.equals(body.observationEpoch())
-                || existingSeq == null
-                || seq > existingSeq;
+        boolean accepted;
+        if (existingGeneration == null) {
+            // 首次心跳，或迁移前的旧行（无代次记录）：接受并建立基准。
+            accepted = true;
+        } else if (!existingGeneration.equals(generation)) {
+            // 经服务端验证的新会话代次：接受并把 epoch/seq 基准重置为本次客户端值。
+            accepted = true;
+        } else {
+            // 同一服务端代次内：客户端不得更换 epoch，seq 必须严格更大。
+            accepted = body.observationEpoch().equals(existingEpoch)
+                    && existingSeq != null && seq > existingSeq;
+        }
         if (!accepted) {
             return new Result(false, row.lastSeenAt(), row.statusRevision());
         }
@@ -103,6 +116,7 @@ public class GimbalHeartbeatService {
 
         Map<String, Object> latest = new LinkedHashMap<>();
         latest.put("schema_version", 1);
+        latest.put("observation_generation", generation);
         latest.put("observation_epoch", body.observationEpoch());
         latest.put("observation_seq", seq);
         latest.put("power_state", body.powerState().name());

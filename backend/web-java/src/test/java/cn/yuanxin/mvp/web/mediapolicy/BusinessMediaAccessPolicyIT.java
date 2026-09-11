@@ -656,6 +656,57 @@ class BusinessMediaAccessPolicyIT extends AbstractWebIT {
         assertEquals(jobsBefore, jdbc.queryForObject("SELECT count(*) FROM async_jobs", Integer.class));
     }
 
+    // ------------------------------------------------------------------
+    // 测试组 12：T11.member_id 非权威，跨成员越权 fail closed
+    // ------------------------------------------------------------------
+
+    @Test
+    @DisplayName("G12 T11.member_id 非权威：T05 属 A 而 T11 写成 B → 不一致 fail closed（A、B 均 404）；一致/NULL 时按 T05 判定")
+    void t11MemberIsNotAuthoritative() throws Exception {
+        String instA = "inst-auth-" + UUID.randomUUID().toString().substring(0, 8);
+        LoginResult accountA = loginAppWithInstallation(newPhone(), instA);
+        UUID accountAId = UUID.fromString(accountA.accountId());
+        String instB = "inst-auth-" + UUID.randomUUID().toString().substring(0, 8);
+        LoginResult accountB = loginAppWithInstallation(newPhone(), instB);
+        UUID accountBId = UUID.fromString(accountB.accountId());
+
+        UUID memberA = seedMember();
+        UUID memberB = seedMember();
+        seedGrant(accountAId, memberA);
+        seedGrant(accountBId, memberB);
+
+        GimbalFixture gimbal = seedGimbalAndLogin(accountAId, 1L);
+        String uploaderA = accountAId + ":" + instA;
+        String uploaderB = accountBId + ":" + instB;
+
+        // (a) T05 属 memberA，T11.member_id 误写成 memberB（跨表不一致）
+        //     → 归属不可信，fail closed：仅持 B 授权、甚至持 A 授权都 404。
+        UUID inconsistent = UUID.randomUUID();
+        UUID inconsistentAssessment = seedAssessment(gimbal.id(), memberA, "report_ready",
+                frozenImages(inconsistent), 1L, "{}");
+        seedMedia(inconsistent, MediaPurpose.ASSESSMENT_RESULT, "available", inconsistentAssessment,
+                1L, memberB, "app", uploaderB, PNG);
+        assertNotVisible(accountB.accessToken(), inconsistent);
+        assertNotVisible(accountA.accessToken(), inconsistent);
+
+        // (b) T11.member_id 与 T05.member_id 一致（=memberA）→ 仅 T05 成员 A 可读，B 仍 404。
+        UUID consistent = UUID.randomUUID();
+        UUID consistentAssessment = seedAssessment(gimbal.id(), memberA, "report_ready",
+                frozenImages(consistent), 1L, "{}");
+        seedMedia(consistent, MediaPurpose.ASSESSMENT_RESULT, "available", consistentAssessment,
+                1L, memberA, "app", uploaderA, PNG);
+        assertVisible(accountA.accessToken(), consistent, PNG);
+        assertNotVisible(accountB.accessToken(), consistent);
+
+        // (c) T11.member_id 为 NULL → 仍只按 T05 判定放行。
+        UUID nullMemberMedia = UUID.randomUUID();
+        UUID nullMemberAssessment = seedAssessment(gimbal.id(), memberA, "report_ready",
+                frozenImages(nullMemberMedia), 1L, "{}");
+        seedMedia(nullMemberMedia, MediaPurpose.ASSESSMENT_RESULT, "available",
+                nullMemberAssessment, 1L, null, "app", uploaderA, PNG);
+        assertVisible(accountA.accessToken(), nullMemberMedia, PNG);
+    }
+
     private UUID grantIdOf(UUID accountId, UUID memberId) {
         return jdbc.queryForObject("SELECT id FROM member_access_grants"
                 + " WHERE account_id = ? AND member_id = ?", UUID.class, accountId, memberId);
