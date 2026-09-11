@@ -340,7 +340,19 @@ def _poll(fn, timeout_s=150, interval=3.0):
     return last
 
 
+def _sql_lines(s):
+    return [x for x in I.psql(s).stdout.splitlines() if x.strip()]
+
+
+def new_job_ids(pre_ids, post_ids):
+    """本链绑定：链后相对链前**新增** job id（排除预存无关 job，绝不用全库最早）。"""
+    pre = set(pre_ids)
+    return [i for i in post_ids if i not in pre]
+
+
 def cd_03(gtok, app_token):
+    # R16：链开始前快照既有 identity.enroll job id 集合（用于本链新增绑定）
+    pre_enroll_ids = _sql_lines("SELECT id::text FROM async_jobs WHERE job_type='identity.enroll'")
     mc_invalid = _seed_t04(valid=False)
     c, b = _gimbal_accept(gtok, f"cap-{uuid.uuid4().hex[:8]}")
     task = (b.get("data") or {}).get("taskId")
@@ -400,12 +412,16 @@ def cd_03(gtok, app_token):
             ready = "ready"
             break
         _run_worker_cycles(1, pause=1.0)
-    # 绑定本次链路的三个 job（analyze/enroll/plan.generate）id，供 CD-06 逐个断言
+    # 绑定本次链路的三个 job（analyze/enroll/plan.generate）id，供 CD-06 逐个断言。
+    # enroll 必须为**本链新增**（链前快照差集），绝不取全库最早（预存无关 enroll 不得顶替）。
+    new_enroll = new_job_ids(
+        pre_enroll_ids,
+        _sql_lines("SELECT id::text FROM async_jobs WHERE job_type='identity.enroll'"))
     CONTEXT["chain_jobs"] = {
         "analyze": scalar("SELECT id::text FROM async_jobs WHERE job_type='assessment.analyze' "
                           f"AND owner_id='{task}' ORDER BY created_at LIMIT 1"),
-        "enroll": scalar("SELECT id::text FROM async_jobs WHERE job_type='identity.enroll' "
-                         "ORDER BY created_at LIMIT 1"),
+        "enroll": new_enroll[0] if len(new_enroll) == 1 else "",
+        "enroll_new_count": len(new_enroll),
         "plan": scalar("SELECT id::text FROM async_jobs WHERE job_type='plan.generate' "
                        f"AND owner_id='{t06}' ORDER BY created_at LIMIT 1"),
     }
