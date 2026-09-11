@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sys
 import uuid
 
@@ -47,11 +48,48 @@ def err_subtree(body):
     return json.dumps((body or {}).get("error") or {}, sort_keys=True, ensure_ascii=False)
 
 
+def canon_public(body):
+    """完整公开响应规范化：仅递归排除逐请求字段 requestId，其余全部保留后逐字节比较。"""
+    def strip(o):
+        if isinstance(o, dict):
+            return {k: strip(v) for k, v in o.items() if k != "requestId"}
+        if isinstance(o, list):
+            return [strip(x) for x in o]
+        return o
+    return json.dumps(strip(body), sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+
+
+def forbidden_hit(text, needles):
+    low = text.lower()
+    return [n for n in needles if n and n.lower() in low]
+
+
+def three_state_ok(canon_bodies, forbidden, seed_ok, codes_ok):
+    """三态 404 判定（纯函数，负例可单测）：种子必须成功+完整公开体等值+无禁止内容+code 一致。"""
+    if not seed_ok:
+        return False
+    if len(set(canon_bodies)) != 1:
+        return False
+    if forbidden:
+        return False
+    return bool(codes_ok)
+
+
+def post_collision_ok(canon_set, forbidden, t13_first, t13_after_replay,
+                      a_row_unchanged, b_rows_zero, positive_ok):
+    """POST 碰撞判定（纯函数）：完整拒绝体等值 + T13 首/重放均 rejected + 行不变 + 无 B 行 + 正例。"""
+    return (len(set(canon_set)) == 1 and not forbidden
+            and t13_first == "rejected|RESOURCE_NOT_VISIBLE"
+            and t13_after_replay == "rejected|RESOURCE_NOT_VISIBLE"
+            and a_row_unchanged and b_rows_zero == "0" and positive_ok)
+
+
 def snapshot(job_id):
-    return I.sql_scalar(
-        "SELECT row_to_json(t)::text FROM (SELECT owner_type, owner_id::text AS owner_id, status,"
-        " attempt_count, lease_revision, finished_at, last_error, payload, dedup_key"
-        f" FROM async_jobs WHERE id='{job_id}') t")
+    """目标行完整持久化行快照（SELECT *）。返回 (ok, json_text)。"""
+    cp = I.psql("SELECT row_to_json(t)::text FROM (SELECT * FROM async_jobs "
+                f"WHERE id='{job_id}') t")
+    txt = (cp.stdout or "").strip()
+    return (cp.returncode == 0 and bool(txt)), txt
 
 
 def t13_row(principal_id, key):
@@ -129,7 +167,6 @@ def rv5_2_get_creator(s):
 # ---------------- RV5-3 ----------------
 
 def rv5_3_three_state_404(s):
-    detail, ok = [], True
     j1 = post_echo(s["access"])[1].get("data", {}).get("jobId", "")
     s2 = AB.login(identity_tag=uuid.uuid4().hex[:8])
     accounts_differ = bool(s2) and s2["accountId"] != s["accountId"]
@@ -139,28 +176,37 @@ def rv5_3_three_state_404(s):
                                    token=s2["access"])[0] == 200
     foreign = I.http("GET", f"/api/v1/system/echo-jobs/{j1}", token=s2["access"] if s2 else "")
     missing = I.http("GET", f"/api/v1/system/echo-jobs/{uuid.uuid4()}", token=s["access"])
-    # 非 echo 行：owner=创建者，但 job_type 非 system.echo
+    # 非 echo 种子：INSERT RETURNING rowcount==1 + 回查（失败则该项 BLOCKED，绝不 PASS）
     ne = str(uuid.uuid4())
-    I.psql("INSERT INTO async_jobs (id,job_type,dedup_key,owner_type,owner_id,payload,status) "
-           f"VALUES ('{ne}','rv5.non-echo','rv5-ne-{ne}','app_account','{s['accountId']}',"
-           "jsonb_build_object('schema_version',1),'queued')")
+    cp = I.psql("WITH ins AS (INSERT INTO async_jobs (id,job_type,dedup_key,owner_type,owner_id,"
+                f"payload,status) VALUES ('{ne}','rv5.non-echo','rv5-ne-{ne}','app_account',"
+                f"'{s['accountId']}',jsonb_build_object('schema_version',1),'queued') RETURNING id) "
+                "SELECT count(*) FROM ins")
+    seed_rows = (cp.stdout or "").strip()
+    back = I.sql_scalar("SELECT id::text||'|'||job_type||'|'||owner_id::text FROM async_jobs "
+                        f"WHERE id='{ne}'")
+    seed_ok = cp.returncode == 0 and seed_rows == "1" \
+        and back == f"{ne}|rv5.non-echo|{s['accountId']}"
     non_echo = I.http("GET", f"/api/v1/system/echo-jobs/{ne}", token=s["access"])
-    e_foreign, e_missing, e_non = err_subtree(foreign[1]), err_subtree(missing[1]), \
-        err_subtree(non_echo[1])
-    equal = e_foreign == e_missing == e_non
-    codes = [foreign[1].get("error", {}).get("code"), missing[1].get("error", {}).get("code"),
-             non_echo[1].get("error", {}).get("code")]
-    raw = json.dumps(foreign[1], ensure_ascii=False).lower()
-    no_leak = ("owner" not in raw and "system.echo" not in raw and j1.lower() not in raw)
-    ok = (accounts_differ and s1_valid and s2_valid and equal
-          and all(c == "RESOURCE_NOT_VISIBLE" for c in codes) and foreign[0] == 404
-          and missing[0] == 404 and non_echo[0] == 404 and no_leak)
-    detail.append(f"accounts_differ={accounts_differ} s1_valid={s1_valid} s2_valid={s2_valid} "
-                  f"status={foreign[0]}/{missing[0]}/{non_echo[0]} error_equal={equal} "
-                  f"code={codes} no_leak={no_leak}")
-    _add("RV5-3", "GET 三态统一 404 不可区分：外来/不存在/非 echo，error 子树规范化等值 + 无归属/类型泄露",
-         "PASS" if ok else "FAIL", "三态 GET + requestId 外 error 子树逐字节比对",
-         f"{foreign[0]}/{missing[0]}/{non_echo[0]}", " | ".join(detail))
+    bodies = (foreign[1], missing[1], non_echo[1])
+    canon = [canon_public(b) for b in bodies]
+    raw_all = " ".join(json.dumps(b, ensure_ascii=False) for b in bodies)
+    needles = [j1, s["accountId"], (s2 or {}).get("accountId", ""), "app_account",
+               "system.echo", "rv5.non-echo", "schema_version"]
+    hit = forbidden_hit(raw_all, needles)
+    codes_ok = all((b.get("error") or {}).get("code") == "RESOURCE_NOT_VISIBLE" for b in bodies)
+    statuses_ok = foreign[0] == 404 and missing[0] == 404 and non_echo[0] == 404
+    ok = (accounts_differ and s1_valid and s2_valid and statuses_ok
+          and three_state_ok(canon, hit, seed_ok, codes_ok))
+    status = "PASS" if ok else ("BLOCKED" if not seed_ok else "FAIL")
+    detail = (f"accounts_differ={accounts_differ} s1_valid={s1_valid} s2_valid={s2_valid} "
+              f"status={foreign[0]}/{missing[0]}/{non_echo[0]} "
+              f"public_body_equal={len(set(canon)) == 1} forbidden_hit={hit} "
+              f"seed_ok={seed_ok}(rows={seed_rows}) back={back} codes_ok={codes_ok}")
+    _add("RV5-3", "GET 三态统一 404 不可区分：外来/不存在/非 echo——完整公开响应（仅排除 "
+                  "requestId）规范化等值 + 全态无归属/类型/payload 泄露 + 种子回查",
+         status, "三态 GET + 完整 body 规范化逐字节比较 + INSERT RETURNING 回查",
+         f"{foreign[0]}/{missing[0]}/{non_echo[0]}", detail)
 
 
 # ---------------- RV5-4 ----------------
@@ -181,61 +227,57 @@ def rv5_4_unauth():
 # ---------------- RV5-5 ----------------
 
 def rv5_5_post_collision(s):
-    a, detail, ok = s, [], True
+    a, detail = s, []
     b = AB.login(identity_tag=uuid.uuid4().hex[:8])
     if not b:
         _add("RV5-5", "POST dedup 碰撞矩阵", "FAIL", "login second account", "?", "B login failed")
         return
+    # 并发窗口保证：本项不启动 worker，碰撞序列期间无 worker 并发修改目标行
+    worker_running = I.WORKER_PROC is not None
     explicit = str(uuid.uuid4())
     key_a = f"rv5-ka-{uuid.uuid4()}"
     key_b = f"rv5-kb-{uuid.uuid4()}"
     code_a, body_a, _ = post_echo(a["access"], key_a, explicit)
     job_a = body_a.get("data", {}).get("jobId", "")
-    # 注意：POST 成功体是 EchoJobAcceptedData（非 echo-view GET schema），不做严格 GET schema 校验
-    before = snapshot(job_a)
+    ok_before, before = snapshot(job_a)
     b_principal = f"{b['accountId']}:{b['installationId']}"
     # ① B 无键碰撞
     code1, body1, _ = post_echo(b["access"], None, explicit)
-    raw1 = json.dumps(body1, ensure_ascii=False)
-    no_projection = all(x not in raw1 for x in (job_a, "owner", "system.echo")) and \
-        "payload" not in raw1 and "status" not in (body1.get("data") or {})
     denied_get = I.http("GET", f"/api/v1/system/echo-jobs/{uuid.uuid4()}", token=b["access"])
-    same_err = err_subtree(body1) == err_subtree(denied_get[1])
-    ok1 = code1 == 404 and (body1.get("error") or {}).get("code") == "RESOURCE_NOT_VISIBLE" \
-        and no_projection and same_err
-    detail.append(f"no-key: {code1}/{(body1.get('error') or {}).get('code')} "
-                  f"no_projection={no_projection} same_err={same_err}")
     # ② keyed#1
     code2, body2, _ = post_echo(b["access"], key_b, explicit)
     t13 = t13_row(b_principal, key_b)
-    ok2 = code2 == 404 and t13 == "rejected|RESOURCE_NOT_VISIBLE"
-    detail.append(f"keyed#1: {code2} t13={t13}")
-    # ③ keyed#2 重放同一拒绝
+    # ③ keyed#2 重放
     code3, body3, _ = post_echo(b["access"], key_b, explicit)
-    same_replay = err_subtree(body2) == err_subtree(body3)
-    ok3 = code3 == 404 and same_replay
-    detail.append(f"keyed#2: {code3} replay_same_error={same_replay}")
-    # ④ 原 A 行全字段不变
-    after = snapshot(job_a)
-    ok4 = bool(before) and before == after
-    detail.append(f"A_row_unchanged={ok4}")
+    t13_after = t13_row(b_principal, key_b)
+    # ④ 原 A 行完整快照（SELECT *）前后一致
+    ok_after, after = snapshot(job_a)
+    a_row_unchanged = ok_before and ok_after and bool(before) and before == after
     # ⑤ B 属行=0
     b_rows = I.sql_scalar("SELECT count(*) FROM async_jobs WHERE owner_type='app_account' "
                           f"AND owner_id='{b['accountId']}'")
-    ok5 = b_rows == "0"
-    detail.append(f"B_owned_rows={b_rows}")
     # ⑥ 正例：同主体同键重放 → 同 jobId + replayed
     code6, body6, _ = post_echo(a["access"], key_a, explicit)
-    ok6 = code6 == 200 and body6.get("data", {}).get("jobId") == job_a \
-        and body6.get("meta", {}).get("replayed") is True
-    detail.append(f"positive_replay: {code6} same_job="
-                  f"{body6.get('data', {}).get('jobId') == job_a}")
-    ok = all([code_a == 200, bool(job_a), ok1, ok2, ok3, ok4, ok5, ok6])
-    _add("RV5-5", "POST dedup 碰撞矩阵（①无键 404 不投影 ②keyed 404+T13 rejected "
-                  "③重放同一拒绝 ④A 行不变 ⑤无 B 属行 ⑥同主体正例）",
-         "PASS" if ok else "FAIL",
-         "A 显式 body.jobId 建 job → B 同 jobId 无键/keyed 碰撞 + SQL 查证",
-         f"{code1}/{code2}/{code3}/{code6}", " | ".join(detail))
+    positive_ok = (code6 == 200 and body6.get("data", {}).get("jobId") == job_a
+                   and body6.get("meta", {}).get("replayed") is True)
+    # 统一完整拒绝体比较：无键/keyed#1/重放/规范 GET 拒绝（仅排除 requestId）
+    canon = [canon_public(x) for x in (body1, body2, body3, denied_get[1])]
+    raw_all = " ".join(json.dumps(x, ensure_ascii=False) for x in (body1, body2, body3))
+    hit = forbidden_hit(raw_all, [job_a, explicit, "app_account", "system.echo", "payload"])
+    statuses_ok = code1 == 404 and code2 == 404 and code3 == 404
+    ok = (code_a == 200 and bool(job_a) and statuses_ok
+          and post_collision_ok(canon, hit, t13, t13_after, a_row_unchanged, b_rows, positive_ok))
+    status = "PASS" if ok else ("BLOCKED" if not (ok_before and ok_after) else "FAIL")
+    detail = (f"worker_running_during_window={worker_running}（本项不启 worker，无并发修改） | "
+              f"no-key: {code1}/{(body1.get('error') or {}).get('code')} | "
+              f"keyed#1: {code2} t13={t13} | keyed#2: {code3} t13_replay={t13_after} | "
+              f"deny_body_equal={len(set(canon)) == 1} forbidden_hit={hit} | "
+              f"A_row_full_snapshot_unchanged={a_row_unchanged} B_owned_rows={b_rows} | "
+              f"positive_replay: {code6} same_job={body6.get('data', {}).get('jobId') == job_a}")
+    _add("RV5-5", "POST dedup 碰撞矩阵（①无键 404 ②keyed 404+T13 rejected ③重放同一拒绝+T13 复验 "
+                  "④SELECT * 全字段行不变 ⑤无 B 属行 ⑥同主体正例）：统一完整拒绝体等值+防投影",
+         status, "A 显式 body.jobId 建 job → B 同 jobId 无键/keyed 碰撞/重放 + SQL 查证",
+         f"{code1}/{code2}/{code3}/{code6}", detail)
 
 
 # ---------------- RV5-6 ----------------
@@ -246,8 +288,9 @@ def rv5_6_contracts(caps):
     selftest_ok = st.returncode == 0 and "10 checks passed" in st.stdout
     samp = I.run([str(I.PY), "scripts/validate_samples.py"], cwd=I.CONTRACTS, timeout=180,
                  log_name="rv5-6-samples.log")
-    nchecks = next((t for t in samp.stdout.split() if t.isdigit()), "?")
-    samples_ok = samp.returncode == 0 and "50 checks" in samp.stdout
+    nchecks_m = re.search(r"(\d+)\s+checks", samp.stdout)
+    nchecks = nchecks_m.group(1) if nchecks_m else "?"
+    samples_ok = samp.returncode == 0 and nchecks == "50"
     oas = I.run([str(I.PY), "-c", "import yaml\nfrom openapi_spec_validator import validate\n"
                  "validate(yaml.safe_load(open('openapi/openapi.yaml')))\nprint('OPENAPI VALID')"],
                 cwd=I.CONTRACTS, timeout=180, log_name="rv5-6-openapi.log")
@@ -334,8 +377,9 @@ def write_outputs_rv5(settle, rc, formal_dir):
         "|---|---|---|---|---|",
     ]
     for r in R.rows:
-        lines.append(f"| {r['id']} | {r['title']} | **{r['status']}** | "
-                     f"{r['command']} / {r['rc']} | {r['excerpt']} |")
+        cell = (lambda s: str(s).replace("|", "/").replace("\n", " "))
+        lines.append(f"| {r['id']} | {cell(r['title'])} | **{r['status']}** | "
+                     f"{cell(r['command'])} / {r['rc']} | {cell(r['excerpt'])} |")
     lines += [
         "", "## 严格 vs 基本校验分类",
         "- 严格 schema：echo-job-view 200 成功投影（validate_responses 机制）。",

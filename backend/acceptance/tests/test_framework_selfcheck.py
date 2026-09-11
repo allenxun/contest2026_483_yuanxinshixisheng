@@ -665,6 +665,45 @@ def test_sentinel_mode_parameterized(tmp_path):
                      expected=vs.EXPECTED_TARGETED)[0] is False   # mode/expected 不符
 
 
+def test_rv5_three_state_and_collision_negative_cases():
+    from driver import a_rv5 as r5
+    e = {"requestId": "r1", "error": {"code": "RESOURCE_NOT_VISIBLE", "message": "job not visible"}}
+    e2 = {"requestId": "r2", "error": {"code": "RESOURCE_NOT_VISIBLE", "message": "job not visible"}}
+    # 仅排除 requestId：逐请求字段不同仍等值
+    assert r5.canon_public(e) == r5.canon_public(e2)
+    # 某一态多出顶层 data / 其他公开字段 → 不等值 → 不得 PASS
+    extra = {**e, "data": {"jobId": "leak"}}
+    assert r5.canon_public(extra) != r5.canon_public(e)
+    assert r5.three_state_ok([r5.canon_public(e), r5.canon_public(e2),
+                              r5.canon_public(extra)], [], True, True) is False
+    # 三态 error message 不一致 → 不得 PASS
+    diff_msg = {"requestId": "r3", "error": {"code": "RESOURCE_NOT_VISIBLE", "message": "other"}}
+    assert r5.three_state_ok([r5.canon_public(e), r5.canon_public(e2),
+                              r5.canon_public(diff_msg)], [], True, True) is False
+    # 种子失败 → 不得 PASS
+    assert r5.three_state_ok([r5.canon_public(e)] * 3, [], False, True) is False
+    # 禁止内容命中 → 不得 PASS
+    assert r5.three_state_ok([r5.canon_public(e)] * 3, ["app_account"], True, True) is False
+    # happy
+    assert r5.three_state_ok([r5.canon_public(e), r5.canon_public(e2),
+                              r5.canon_public(e)] * 1, [], True, True) is True
+    # POST 碰撞：keyed 响应附顶层 data 含外来 jobId → 不得 PASS
+    leak = {**e, "data": {"jobId": "foreign"}}
+    canon_bad = [r5.canon_public(e), r5.canon_public(leak), r5.canon_public(e), r5.canon_public(e)]
+    assert r5.post_collision_ok(canon_bad, [], "rejected|RESOURCE_NOT_VISIBLE",
+                                "rejected|RESOURCE_NOT_VISIBLE", True, "0", True) is False
+    # 重放后 T13 翻 succeeded → 不得 PASS
+    assert r5.post_collision_ok([r5.canon_public(e)] * 4, [], "rejected|RESOURCE_NOT_VISIBLE",
+                                "succeeded|", True, "0", True) is False
+    # 禁止内容命中 → 不得 PASS
+    assert r5.post_collision_ok([r5.canon_public(e)] * 4, ["foreign"], "rejected|RESOURCE_NOT_VISIBLE",
+                                "rejected|RESOURCE_NOT_VISIBLE", True, "0", True) is False
+    # happy（四条完整拒绝体等值 + T13 首/重放 rejected + 行不变 + 无 B 行 + 正例）
+    assert r5.post_collision_ok([r5.canon_public(e)] * 4, [], "rejected|RESOURCE_NOT_VISIBLE",
+                                "rejected|RESOURCE_NOT_VISIBLE", True, "0", True) is True
+    assert r5.forbidden_hit("has APP_ACCOUNT inside", ["app_account"]) == ["app_account"]
+
+
 def test_rv5_conclusion_policy():
     from driver import a_rv5 as r5
 
