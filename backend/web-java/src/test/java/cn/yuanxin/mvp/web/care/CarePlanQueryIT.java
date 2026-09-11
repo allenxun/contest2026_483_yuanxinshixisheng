@@ -1,6 +1,5 @@
 package cn.yuanxin.mvp.web.care;
 
-import cn.yuanxin.mvp.web.support.AbstractWebIT;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 /** M4-A01 列表 + M4-A02 完整版查询集成测试（真实 PG）。 */
-class CarePlanQueryIT extends AbstractWebIT {
+class CarePlanQueryIT extends AbstractCareIT {
 
     @Autowired
     JdbcTemplate jdbc;

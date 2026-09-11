@@ -1,6 +1,5 @@
 package cn.yuanxin.mvp.web.care;
 
-import cn.yuanxin.mvp.web.support.AbstractWebIT;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,9 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** M4-A05 次数账本集成测试（真实 PG；锁外核验 + 锁内判重/汇总/观察合并 + T13 重放）。 */
-class CareLedgerIT extends AbstractWebIT {
+class CareLedgerIT extends AbstractCareIT {
 
-    private static final String CAPABILITIES = "{\"schema_version\":1,\"revision\":\"1\"}";
+    private static final String CAPABILITIES = CareTestFixtures.DEFAULT_CAPABILITIES;
     private static final String T1 = "2026-09-10T04:00:01Z";
     private static final String T2 = "2026-09-10T04:00:02Z";
     private static final String T3 = "2026-09-10T04:00:03Z";

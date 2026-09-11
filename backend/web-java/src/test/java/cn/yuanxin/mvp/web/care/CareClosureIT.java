@@ -1,6 +1,5 @@
 package cn.yuanxin.mvp.web.care;
 
-import cn.yuanxin.mvp.web.support.AbstractWebIT;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,9 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** M4-A06 收尾集成测试（真实 PG；停止确认 + 单表水位核对 + 释放占用 + T13 重放）。 */
-class CareClosureIT extends AbstractWebIT {
+class CareClosureIT extends AbstractCareIT {
 
-    private static final String CAPABILITIES = "{\"schema_version\":1,\"revision\":\"1\"}";
+    private static final String CAPABILITIES = CareTestFixtures.DEFAULT_CAPABILITIES;
     private static final String STOPPED_OBS = "{\"schema_version\":1,\"epoch\":\"epoch-1\","
             + "\"seq\":\"5\",\"state\":\"stopped\",\"occurred_at\":\"2026-09-10T04:00:05Z\","
             + "\"continuity_invalidated\":false}";
@@ -128,6 +127,7 @@ class CareClosureIT extends AbstractWebIT {
         assertTrue(manifest.contains("user_finished"));
 
         // 占用释放：同一微晶可再次准入
+        bindFaceMember(ctx.memberId());
         MvcResult admission = CareAdmissionTestSupport.admit(mockMvc, ctx.login().accessToken(),
                 CareAdmissionTestSupport.newKey(),
                 CareAdmissionTestSupport.admissionMetadata(ctx.micro(), "p", ctx.planId(), null, null,

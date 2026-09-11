@@ -1,9 +1,6 @@
 package cn.yuanxin.mvp.web.care;
 
-import cn.yuanxin.mvp.web.auth.FaceClassification;
-import cn.yuanxin.mvp.web.auth.FaceProvider;
-import cn.yuanxin.mvp.web.support.AbstractWebIT;
-import cn.yuanxin.mvp.web.testdouble.FaceProviderDouble;
+import cn.yuanxin.mvp.web.care.CareFaceVerifier.Outcome;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,25 +21,18 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** M4-A03 登记新执行集成测试（真实 PG；锁外核验 + 最终短事务 + T13 重放）。 */
-class CareAdmissionIT extends AbstractWebIT {
+class CareAdmissionIT extends AbstractCareIT {
 
-    private static final String CAPABILITIES = "{\"schema_version\":1,\"revision\":\"1\"}";
+    private static final String CAPABILITIES = CareTestFixtures.DEFAULT_CAPABILITIES;
 
     @Autowired
     JdbcTemplate jdbc;
-
-    @Autowired
-    FaceProvider faceProvider;
 
     private CareTestFixtures fx;
 
     @BeforeEach
     void setUp() {
         fx = new CareTestFixtures(jdbc);
-    }
-
-    private FaceProviderDouble faceDouble() {
-        return (FaceProviderDouble) faceProvider;
     }
 
     private String appMetadata(UUID microcrystalId, String proof, UUID planId) {
@@ -72,6 +62,7 @@ class CareAdmissionIT extends AbstractWebIT {
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a03-app-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 1, 1, null);
         UUID microcrystalId = fx.seedMicrocrystal(CAPABILITIES);
@@ -143,6 +134,7 @@ class CareAdmissionIT extends AbstractWebIT {
         UUID gimbalId = fx.seedGimbal("a03-gimbal-login-" + UUID.randomUUID(), 1);
         String token = fx.loginGimbal(mockMvc, gimbalId);
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         UUID assessment = fx.seedAssessment(gimbalId, memberId);
         UUID planId = fx.seedReadyPlan(assessment, memberId, 4, 0, 0, null);
         fx.pointGimbalAtAssessment(gimbalId, assessment);
@@ -178,6 +170,7 @@ class CareAdmissionIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a03-replay");
         UUID memberId = fx.seedMember();
         fx.seedGrant(UUID.fromString(login.accountId()), memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a03-replay-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 1, 1, null);
         UUID microcrystalId = fx.seedMicrocrystal(CAPABILITIES);
@@ -217,6 +210,7 @@ class CareAdmissionIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a03-rej");
         UUID memberId = fx.seedMember();
         fx.seedGrant(UUID.fromString(login.accountId()), memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a03-rej-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedWaitingPlan(fx.seedAssessment(gimbalId, memberId), memberId, "{}");
         UUID microcrystalId = fx.seedMicrocrystal(CAPABILITIES);
@@ -333,6 +327,7 @@ class CareAdmissionIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a03-done");
         UUID memberId = fx.seedMember();
         fx.seedGrant(UUID.fromString(login.accountId()), memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a03-done-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 3, 3, 2, null);
         UUID microcrystalId = fx.seedMicrocrystal(CAPABILITIES);
@@ -344,11 +339,12 @@ class CareAdmissionIT extends AbstractWebIT {
     }
 
     @Test
-    @DisplayName("A03 微晶不存在 404；capabilities 空/能力修订不符 → 409 capability_not_covered")
-    void a03MicrocrystalAndCapability() throws Exception {
+    @DisplayName("A03 能力覆盖（D 约定）：各类不符→409 token；revision 不同仍 201（非门禁）")
+    void a03CapabilityChecker() throws Exception {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a03-cap");
         UUID memberId = fx.seedMember();
         fx.seedGrant(UUID.fromString(login.accountId()), memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a03-cap-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
 
@@ -356,25 +352,49 @@ class CareAdmissionIT extends AbstractWebIT {
                 CareAdmissionTestSupport.newKey(), appMetadata(UUID.randomUUID(), "p", planId), PNG);
         assertEquals(404, missing.getResponse().getStatus());
 
-        UUID emptyCap = fx.seedMicrocrystal("{}");
-        MvcResult empty = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(),
-                CareAdmissionTestSupport.newKey(), appMetadata(emptyCap, "p", planId), PNG);
-        assertEquals(409, empty.getResponse().getStatus());
-        assertEquals("PLAN_NOT_READY", error(empty).path("code").asText());
-        assertEquals("capability_not_covered", error(empty).path("details").path("reason").asText());
+        assertCapabilityReason(login, planId, fx.seedMicrocrystal("{}"),
+                "device_capabilities_missing");
+        assertCapabilityReason(login, planId,
+                fx.seedMicrocrystal(device("other-cap", "0", "8", "[\"face\",\"neck\"]")),
+                "capability_id_mismatch");
+        assertCapabilityReason(login, planId,
+                fx.seedMicrocrystal(device("cap-mvp-1", "0", "3", "[\"face\",\"neck\"]")),
+                "parameter_range_not_covered");
+        assertCapabilityReason(login, planId,
+                fx.seedMicrocrystal(device("cap-mvp-1", "0", "8", "[\"neck\"]")),
+                "region_not_supported");
 
-        fx.setPlanInputSnapshot(planId,
-                "{\"schema_version\":1,\"required_capability_revision\":\"2\"}");
-        UUID revOne = fx.seedMicrocrystal("{\"schema_version\":1,\"revision\":\"1\"}");
-        MvcResult mismatch = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(),
-                CareAdmissionTestSupport.newKey(), appMetadata(revOne, "p", planId), PNG);
-        assertEquals(409, mismatch.getResponse().getStatus());
-        assertEquals("capability_not_covered", error(mismatch).path("details").path("reason").asText());
+        // 冻结快照缺 capability 块 → fail-closed
+        UUID noSnapshotPlan = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
+        fx.setPlanInputSnapshot(noSnapshotPlan, "{}");
+        assertCapabilityReason(login, noSnapshotPlan, fx.seedMicrocrystal(CAPABILITIES),
+                "frozen_capability_requirement_missing");
 
-        UUID revTwo = fx.seedMicrocrystal("{\"schema_version\":1,\"revision\":\"2\"}");
+        // N 越冻结 n_bounds 上界（max 30）
+        UUID bigPlan = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 40, 0, 0, null);
+        assertCapabilityReason(login, bigPlan, fx.seedMicrocrystal(CAPABILITIES), "n_out_of_bounds");
+
+        // 正例：设备 revision 9 ≠ 冻结 7，但其余覆盖 → 201（revision 仅追溯）
+        bindFaceMember(memberId);
         MvcResult matched = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(),
-                CareAdmissionTestSupport.newKey(), appMetadata(revTwo, "p", planId), PNG);
+                CareAdmissionTestSupport.newKey(),
+                appMetadata(fx.seedMicrocrystal(CAPABILITIES), "p", planId), PNG);
         assertEquals(201, matched.getResponse().getStatus(), matched.getResponse().getContentAsString());
+    }
+
+    private void assertCapabilityReason(LoginResult login, UUID planId, UUID microcrystalId,
+                                        String expectedReason) throws Exception {
+        MvcResult r = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(),
+                CareAdmissionTestSupport.newKey(), appMetadata(microcrystalId, "p", planId), PNG);
+        assertEquals(409, r.getResponse().getStatus(), r.getResponse().getContentAsString());
+        assertEquals("PLAN_NOT_READY", error(r).path("code").asText());
+        assertEquals(expectedReason, error(r).path("details").path("reason").asText());
+    }
+
+    private static String device(String capabilityId, String min, String max, String regionsJson) {
+        return "{\"schema_version\":1,\"capability_id\":\"" + capabilityId + "\",\"revision\":\"9\","
+                + "\"parameter_ranges\":{\"intensity\":{\"min\":\"" + min + "\",\"max\":\"" + max
+                + "\",\"unit\":\"level\"}},\"supported_regions\":" + regionsJson + "}";
     }
 
     // ---------------- face / media ----------------
@@ -385,13 +405,14 @@ class CareAdmissionIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a03-face");
         UUID memberId = fx.seedMember();
         fx.seedGrant(UUID.fromString(login.accountId()), memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a03-face-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
 
         try {
             UUID mic1 = fx.seedMicrocrystal(CAPABILITIES);
             String key1 = CareAdmissionTestSupport.newKey();
-            faceDouble().setClassification(FaceClassification.UNCERTAIN);
+            faceDouble.forceOutcome(Outcome.UNCERTAIN);
             MvcResult uncertain = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(), key1,
                     appMetadata(mic1, "p", planId), PNG);
             assertEquals(403, uncertain.getResponse().getStatus(), uncertain.getResponse().getContentAsString());
@@ -402,7 +423,7 @@ class CareAdmissionIT extends AbstractWebIT {
                     Integer.class, mic1));
 
             UUID mic2 = fx.seedMicrocrystal(CAPABILITIES);
-            faceDouble().setClassification(FaceClassification.QUALITY_REJECTED);
+            faceDouble.forceOutcome(Outcome.QUALITY_REJECTED);
             MvcResult quality = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(),
                     CareAdmissionTestSupport.newKey(),
                     appMetadata(mic2, "p", planId), PNG);
@@ -411,7 +432,7 @@ class CareAdmissionIT extends AbstractWebIT {
 
             UUID mic3 = fx.seedMicrocrystal(CAPABILITIES);
             String key3 = CareAdmissionTestSupport.newKey();
-            faceDouble().setClassification(FaceClassification.DEPENDENCY_FAILED);
+            faceDouble.forceOutcome(Outcome.DEPENDENCY_FAILED);
             MvcResult dependency = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(), key3,
                     appMetadata(mic3, "p", planId), PNG);
             assertEquals(503, dependency.getResponse().getStatus());
@@ -419,7 +440,7 @@ class CareAdmissionIT extends AbstractWebIT {
             assertEquals("processing", jdbc.queryForObject(
                     "SELECT status FROM idempotency_requests WHERE idempotency_key = ?", String.class, key3));
         } finally {
-            faceDouble().setClassification(FaceClassification.MATCHED);
+            faceDouble.reset();
         }
 
         UUID mic4 = fx.seedMicrocrystal(CAPABILITIES);
@@ -441,6 +462,7 @@ class CareAdmissionIT extends AbstractWebIT {
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("f1-a03-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 1, 1, null);
         UUID microcrystalId = fx.seedMicrocrystal(CAPABILITIES);
@@ -466,6 +488,7 @@ class CareAdmissionIT extends AbstractWebIT {
         UUID gimbalId = fx.seedGimbal("f1-a03-gimbal-" + UUID.randomUUID(), 1);
         String token = fx.loginGimbal(mockMvc, gimbalId);
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         UUID assessment = fx.seedAssessment(gimbalId, memberId);
         fx.seedReadyPlan(assessment, memberId, 5, 0, 0, null);
         fx.pointGimbalAtAssessment(gimbalId, assessment);
@@ -482,5 +505,32 @@ class CareAdmissionIT extends AbstractWebIT {
         fx.pointGimbalAtAssessment(gimbalId, otherAssessment);
         MvcResult replay = CareAdmissionTestSupport.admit(mockMvc, token, key, metadata, PNG);
         assertEquals(404, replay.getResponse().getStatus(), replay.getResponse().getContentAsString());
+    }
+
+    // ---------------- Part 2：存储本树化 ----------------
+
+    @Test
+    @DisplayName("Part2 人脸文件写入本工作树 target/c-test-storage，不在 /tmp/mvp-a-test-storage")
+    void careStorageRootedInWorktree() throws Exception {
+        LoginResult login = loginAppWithInstallation(newPhone(), "inst-store");
+        UUID memberId = fx.seedMember();
+        fx.seedGrant(UUID.fromString(login.accountId()), memberId, "active");
+        bindFaceMember(memberId);
+        UUID gimbalId = fx.seedGimbal("store-g-" + UUID.randomUUID(), 1);
+        UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
+        UUID micro = fx.seedMicrocrystal(CAPABILITIES);
+        String key = CareAdmissionTestSupport.newKey();
+        MvcResult r = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(), key,
+                appMetadata(micro, "p", planId), PNG);
+        assertEquals(201, r.getResponse().getStatus(), r.getResponse().getContentAsString());
+
+        UUID t13 = t13IdOf(key);
+        String objectKey = jdbc.queryForObject("SELECT object_key FROM media_objects"
+                + " WHERE purpose = 'execution_face' AND request_id = ?", String.class, t13);
+        java.nio.file.Path rooted = java.nio.file.Path.of(storageDevDir).toAbsolutePath()
+                .resolve(objectKey).normalize();
+        assertTrue(java.nio.file.Files.isRegularFile(rooted), rooted.toString());
+        assertFalse(java.nio.file.Files.isRegularFile(
+                java.nio.file.Path.of("/tmp/mvp-a-test-storage").resolve(objectKey)));
     }
 }

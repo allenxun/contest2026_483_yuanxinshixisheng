@@ -1,6 +1,5 @@
 package cn.yuanxin.mvp.web.care;
 
-import cn.yuanxin.mvp.web.support.AbstractWebIT;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,9 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 /** F3 方案 JSONB 字段级白名单投影（A01/A02/A03/A09）：未知/敏感键绝不外发。 */
-class CarePlanProjectionIT extends AbstractWebIT {
+class CarePlanProjectionIT extends AbstractCareIT {
 
-    private static final String CAPABILITIES = "{\"schema_version\":1,\"revision\":\"1\"}";
+    private static final String CAPABILITIES = CareTestFixtures.DEFAULT_CAPABILITIES;
 
     private static final String SECRET_PAYLOAD = "{\"schema_version\":1,\"title\":\"t\","
             + "\"steps\":[{\"order\":1}],\"regions\":[\"face\"],\"parameters\":{\"dose\":\"1\"},"
@@ -99,7 +98,9 @@ class CarePlanProjectionIT extends AbstractWebIT {
         UUID gimbalId = fx.seedGimbal("f3-a03-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedPlan(fx.seedAssessment(gimbalId, memberId), memberId, "ready",
                 SECRET_SUMMARY, SECRET_PAYLOAD, 5L, 0, 0, null);
+        fx.setPlanInputSnapshot(planId, CareTestFixtures.DEFAULT_INPUT_SNAPSHOT);
         UUID micro = fx.seedMicrocrystal(CAPABILITIES);
+        bindFaceMember(memberId);
 
         MvcResult r = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(),
                 CareAdmissionTestSupport.newKey(),
