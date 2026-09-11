@@ -52,6 +52,33 @@ T04_CAPS = json.dumps({
     "n_bounds": {"min": 1, "max": 100},
 })
 
+#: D 受控能力基线（worker dshared/dconfig.py DEFAULT_PLAN_CAPABILITY_BASELINE）精确值。
+EXPECTED_CAP_ID = "mvp-double-capability"
+EXPECTED_RANGES = {
+    "intensity": {"unit": "percent", "min": 0.0, "max": 100.0},
+    "duration": {"unit": "second", "min": 1.0, "max": 600.0},
+    "pulse_count": {"unit": "count", "min": 1.0, "max": 1000.0},
+}
+EXPECTED_REGIONS = {"forehead", "left_cheek", "right_cheek", "nose"}
+EXPECTED_N_BOUNDS = {"min": 1, "max": 100}
+EXPECTED_TARGET = 30
+
+
+def ranges_match(actual, expected):
+    if not isinstance(actual, dict) or set(actual) != set(expected):
+        return False
+    for name, exp in expected.items():
+        got = actual.get(name) or {}
+        if got.get("unit") != exp["unit"]:
+            return False
+        try:
+            if float(got.get("min")) != float(exp["min"]) or float(got.get("max")) != float(exp["max"]):
+                return False
+        except (TypeError, ValueError):
+            return False
+    return True
+
+
 #: 11 个剩余 501 占位（NotYetImplementedController 现有方法，B 所属 M1/M2/M5）。
 STUB_ROUTES = [
     ("POST", "/api/v1/member-access-grants", {}),
@@ -373,6 +400,15 @@ def cd_03(gtok, app_token):
             ready = "ready"
             break
         _run_worker_cycles(1, pause=1.0)
+    # 绑定本次链路的三个 job（analyze/enroll/plan.generate）id，供 CD-06 逐个断言
+    CONTEXT["chain_jobs"] = {
+        "analyze": scalar("SELECT id::text FROM async_jobs WHERE job_type='assessment.analyze' "
+                          f"AND owner_id='{task}' ORDER BY created_at LIMIT 1"),
+        "enroll": scalar("SELECT id::text FROM async_jobs WHERE job_type='identity.enroll' "
+                         "ORDER BY created_at LIMIT 1"),
+        "plan": scalar("SELECT id::text FROM async_jobs WHERE job_type='plan.generate' "
+                       f"AND owner_id='{t06}' ORDER BY created_at LIMIT 1"),
+    }
     snap = scalar(f"SELECT input_snapshot::text FROM care_plans WHERE id='{t06}'")
     payload = scalar(f"SELECT plan_payload::text FROM care_plans WHERE id='{t06}'")
     k1 = scalar(f"SELECT completed_count||'|'||coalesce(completed_at::text,'')||'|'||progress_revision "
@@ -387,38 +423,44 @@ def cd_03(gtok, app_token):
     except Exception:
         plj = {}
     steps = plj.get("steps") or []
-    cap_ok = bool(isinstance(cap.get("capability_id"), str) and cap["capability_id"] != ""
-                  and isinstance(cap.get("microcrystal_id"), str)
-                  and isinstance(cap.get("capability_revision"), int)
-                  and isinstance(cap.get("parameter_ranges"), dict) and cap["parameter_ranges"]
-                  and all(isinstance(v, dict) and isinstance(v.get("unit"), str) and v.get("unit")
-                          for v in cap["parameter_ranges"].values())
-                  and isinstance(cap.get("approved_regions"), list) and cap["approved_regions"]
-                  and isinstance(cap.get("n_bounds"), dict)
-                  and bool(cap["n_bounds"].get("min")) and bool(cap["n_bounds"].get("max")))
+    target = scalar(f"SELECT coalesce(target_count::text,'') FROM care_plans WHERE id='{t06}'")
+    cap_ok = bool(
+        cap.get("capability_id") == EXPECTED_CAP_ID
+        and isinstance(cap.get("microcrystal_id"), str) and cap["microcrystal_id"]
+        and cap.get("capability_revision") == 1
+        and ranges_match(cap.get("parameter_ranges"), EXPECTED_RANGES)
+        and set(cap.get("approved_regions") or []) == EXPECTED_REGIONS
+        and isinstance(cap.get("n_bounds"), dict)
+        and cap["n_bounds"].get("min") == EXPECTED_N_BOUNDS["min"]
+        and cap["n_bounds"].get("max") == EXPECTED_N_BOUNDS["max"]
+        and target == str(EXPECTED_TARGET))
     steps_ok = bool(steps) and all(isinstance(s.get("region"), str)
                                    and isinstance(s.get("parameters"), dict) for s in steps)
-    k_untouched = k0 == k1
+    # K 列显式默认初值：completed_count=0、completed_at NULL、progress_revision=0，且 D 全程不改
+    k_init_ok = (k0 == "0||0")
+    k_untouched = (k1 == k0)
     f_wait = status in ("waiting_inputs", "generating")
     f_ready = ready == "ready"
     f_rev = rev0 == "0"
     f_ipv = ipv == "1"
     f_dup = dup == "1"
     ok = (f_wait and f_rev and f_ipv and f_dup and f_ready and cap_ok and steps_ok
-          and k_untouched)
+          and k_init_ok and k_untouched)
     CONTEXT["cd03"] = {"task": task, "plan": t06, "status_waiting": status, "rev0": rev0,
-                      "ipv": ipv, "dup": dup, "ready": ready, "cap": cap,
-                      "steps": steps, "k0": k0, "k1": k1, "mc_invalid": mc_invalid,
-                      "flags": (f_wait, f_rev, f_ipv, f_dup, f_ready, cap_ok, steps_ok,
-                                k_untouched)}
+                       "ipv": ipv, "dup": dup, "ready": ready, "cap": cap,
+                       "steps": steps, "k0": k0, "k1": k1, "mc_invalid": mc_invalid,
+                       "target": target,
+                       "flags": (f_wait, f_rev, f_ipv, f_dup, f_ready, cap_ok, steps_ok,
+                                 k_init_ok, k_untouched)}
     _add("CD-03", "报告→方案真实链（冻结字段互通）：B 前置 test_seed（gimbal/T04 设备能力）→ 真实 "
                   "M3-A01 受理 → worker analyze/enroll/analyze → T06 由 D 发布事务唯一创建"
                   "（waiting_inputs、generation_revision=0、input_photo_version=1、assessment 唯一）"
-                  "→ plan.generate → ready：冻结 capability/steps 形状完整、D 未写 K 列",
+                  "→ plan.generate → ready：冻结基线**精确值**（capability_id/ranges/regions/"
+                  "n_bounds/target_count）与 steps 形状完整、K 列显式默认不变",
          "PASS" if ok else "FAIL", "M3-A01 + 真实 worker 全链", f"a01={c} ready={ready}",
-         f"flags[wait,rev,ipv,dup,ready,cap,steps,K]={f_wait},{f_rev},{f_ipv},{f_dup},"
-         f"{f_ready},{cap_ok},{steps_ok},{k_untouched} task={task} plan={t06} "
-         f"waiting_seen={status} cap={json.dumps(cap, ensure_ascii=False)[:200]} "
+         f"flags[wait,rev,ipv,dup,ready,cap,steps,Kinit,Ksame]={f_wait},{f_rev},{f_ipv},{f_dup},"
+         f"{f_ready},{cap_ok},{steps_ok},{k_init_ok},{k_untouched} task={task} plan={t06} "
+         f"waiting_seen={status} target={target} cap={json.dumps(cap, ensure_ascii=False)[:180]} "
          f"steps={len(steps)} K0={k0} K1={k1}")
     return t06
 
@@ -459,20 +501,28 @@ def cd_04(app_token):
     regions_ok = set(cap.get("approved_regions") or []) <= set(dev_regions)
     nb = cap.get("n_bounds") or {}
     n_ok = bool(nb.get("min") and nb.get("max"))
+    # SQL 查证 T07 真实持久化关联（伪 201/假 executionId 不得 PASS）
+    t07 = scalar(
+        "SELECT plan_id::text||'|'||member_id::text||'|'||microcrystal_id::text||'|'||"
+        "coalesce(controller_gimbal_id::text,'')||'|'||status||'|'||"
+        f"coalesce(controller_account_id::text,'') FROM care_executions WHERE id='{ex}'")
+    parts = t07.split("|") if t07 else []
+    t07_ok = (len(parts) == 6 and parts[0] == plan and parts[1] == member and parts[2] == mc
+              and parts[3] == "" and parts[4] == "admitted"
+              and parts[5] == CONTEXT.get("accountId"))
     CONTEXT["exec1"] = ex
-    ok = accepted and units_ok and regions_ok and n_ok
-    sql("INSERT INTO member_access_grants (id, account_id, member_id, status, source_request_id)"
-        f" VALUES ('{uuid.uuid4()}','seed','{member}','active','{CC.seed_idem()}')"
-        ) if False else None
+    ok = accepted and units_ok and regions_ok and n_ok and t07_ok
     _add("CD-04", "C 准入消费真实 D 冻结方案：对 CD-03 真实 ready T06（非种子）执行 C A03 准入"
-                  "（dev 人脸绑定）→ 201+T07 创建；能力校验器接受 D 真实冻结基线（双侧 unit/区域/"
-                  "N bounds 实际值）",
-         "PASS" if ok else "FAIL", "A03 on real D plan + SQL capability evidence", f"{c}",
+                  "（dev 人脸绑定）→ 201；**SQL 查证 T07 行存在且 plan_id==真实 D T06、member/"
+                  "microcrystal/controller 关联正确、status=admitted**；能力校验器接受 D 真实冻结"
+                  "基线（双侧 unit/区域/N bounds 实际值）",
+         "PASS" if ok else "FAIL", "A03 on real D plan + SQL T07/capability 查证", f"{c}",
          f"frozen_capability_id={cap.get('capability_id')} frozen_ranges="
          f"{json.dumps(cap.get('parameter_ranges'), ensure_ascii=False)} "
          f"device_ranges={json.dumps(dev_ranges, ensure_ascii=False)} units_ok={units_ok} "
          f"frozen_regions={cap.get('approved_regions')} device_regions={dev_regions} "
-         f"regions_ok={regions_ok} n_bounds={nb} n_ok={n_ok} exec={ex}")
+         f"regions_ok={regions_ok} n_bounds={nb} n_ok={n_ok} exec={ex} "
+         f"t07_plan/member/mc/gimbal/status/acct={parts} t07_ok={t07_ok}")
 
 
 # ---------------- CD-05 ----------------
@@ -561,16 +611,25 @@ def cd_05(gtok, app_token):
 # ---------------- CD-06 ----------------
 
 def cd_06(gtok):
-    # success：CD-03 全链 job succeeded + 无 stale_generation WARNING（收集的 worker --once 日志）
+    # success：绑定本次链路三 job（analyze/enroll/plan.generate）逐个 succeeded + 无 stale WARNING
     logs = list(CONTEXT.get("worker_logs", []))
     wl = REPORTS / "worker-loop.log"
     if wl.exists():
         logs.append(wl.read_text(errors="replace"))
     stale = sum(t.count("stale_generation") for t in logs)
-    jobs = scalar("SELECT count(*) FROM async_jobs WHERE status='succeeded'")
     t06 = CONTEXT.get("plan1")
     gen_ok = scalar(f"SELECT generation_status FROM care_plans WHERE id='{t06}'") == "ready"
-    success_ok = bool(jobs) and jobs != "0" and stale == 0 and gen_ok
+    jmap = CONTEXT.get("chain_jobs") or {}
+    expect_types = (("analyze", "assessment.analyze"), ("enroll", "identity.enroll"),
+                    ("plan", "plan.generate"))
+    job_checks = {}
+    for name, job_type in expect_types:
+        jid = jmap.get(name)
+        got = scalar(f"SELECT job_type||'|'||status FROM async_jobs WHERE id='{jid}'") if jid else ""
+        job_checks[f"{name}:{job_type}"] = got or "missing"
+    jobs_ok = all(job_checks[f"{n}:{t}"] == f"{t}|succeeded" for n, t in expect_types)
+    success_ok = jobs_ok and stale == 0 and gen_ok
+    stale_window = "this-run worker --once 日志 + worker-loop.log（RUN_ID 时间窗）"
     # defer：CD-03 冻结前捕获的等待跳证据（T12 queued、attempt=0、lease 轮换、gen_rev 不变）
     defer = CONTEXT.get("defer") or {}
     defer_ok = (defer.get("status") == "queued" and defer.get("attempt") == "0"
@@ -609,13 +668,15 @@ def cd_06(gtok):
     fail_detail = (f"a3={a3} accept={c3} p3={p3} status={st3} job={job3} ready_rows={ready3} "
                    f"detail={detail[:160]}")
     ok = success_ok and defer_ok and fail_ok
-    _add("CD-06", "D 公共 success/failure/defer 回归（黑盒）：success=全链 job succeeded 且 worker "
-                  "日志 stale_generation=0；defer=plan.generate 能力等待跳（T12 queued、attempt=0、"
-                  "lease 轮换、T06 generation_revision=0 不变；T13 不适用）；failure=确定性配置故障 "
-                  "→ PLAN_SNAPSHOT_INVALID 终态原子写（T06 无 ready 半成品、T12 同 failed）",
+    _add("CD-06", "D 公共 success/failure/defer 回归（黑盒）：success=**本次链路三 job "
+                  "（assessment.analyze/identity.enroll/plan.generate）逐个 succeeded** 且 worker "
+                  "日志（RUN_ID 时间窗）stale_generation=0；defer=plan.generate 能力等待跳"
+                  "（T12 queued、attempt=0、lease 轮换、T06 generation_revision=0；T13 不适用）；"
+                  "failure=确定性配置故障（新受理 A3）→ PLAN_SNAPSHOT_INVALID 终态原子写"
+                  "（T06 无 ready 半成品、T12 同 failed）",
          "PASS" if ok else "FAIL", "worker --once 步进 + SQL 终态核对", f"stale={stale}",
-         f"succeeded_jobs={jobs} stale_warnings={stale} gen_ready={gen_ok} "
-         f"defer={defer} t13={t13_note} failure={fail_detail}")
+         f"chain_jobs={job_checks} stale_warnings={stale} stale_window={stale_window} "
+         f"gen_ready={gen_ok} defer={defer} t13={t13_note} failure={fail_detail}")
 
 
 # ---------------- CD-07 ----------------

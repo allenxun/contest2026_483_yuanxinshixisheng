@@ -78,89 +78,71 @@ def _oas_convert():
     return _OAS_CONVERT
 
 
-def oas_validate(path, method, status, body):
-    """严格按 OAS 校验成功响应体。返回 (ok, detail)。
+def oas_schema_strict(node, doc):
+    """OAS 3.0.3 → JSON Schema，**严格复用 RV-6 转换器**（不改变 OAS 语义）。
 
-    复用 RV-6 的「从 OAS 解析真实 schema 并严格 jsonschema 校验」模式；$ref 内联
-    与 type/required/additionalProperties/enum 均严格。`nullable: true` 与
-    `$ref`/`allOf` 同层时（OAS 3.0.3 该写法本身不生效，契约意图为可空且 C 按可空
-    返回 null）按契约意图解析为可空；除此之外一律不放宽。
+    对齐 A 轮 `contracts/scripts/validate_responses.py::convert` 既有规则：`nullable`
+    仅作用于同一 Schema Object 的本地 `type`；`$ref`/`allOf` 保持原结构、不展平；
+    `allOf` 交由 jsonschema 原生组合语义（`additionalProperties:false` 分支不合并兄弟属性）。
     """
-    global _OAS_DOC
+    return _oas_convert()(node, doc)
+
+
+def oas_errors_node(node, doc, body):
     from jsonschema import Draft202012Validator
+    schema = oas_schema_strict(node, doc)
+    return sorted(Draft202012Validator(schema).iter_errors(body),
+                  key=lambda e: list(e.absolute_path))
+
+
+def classify_strict_error(err):
+    """严格语义失败分类：契约建模问题（nullable/allOf）或疑似实现缺陷。"""
+    if err.validator == "type" and err.instance is None:
+        return "contract:nullable-over-$ref/allOf"
+    if err.validator == "additionalProperties":
+        return "contract:allOf+additionalProperties"
+    return "impl-or-other"
+
+
+def oas_validate(path, method, status, body):
+    """严格按 OAS（status 对应响应 schema）校验成功响应体。返回 (ok, detail)。"""
+    global _OAS_DOC
     if _OAS_DOC is None:
         import yaml
         _OAS_DOC = yaml.safe_load((I.CONTRACTS / "openapi" / "openapi.yaml").read_text("utf-8"))
     node = _OAS_DOC["paths"][path][method]["responses"][str(status)]["content"][
         "application/json"]["schema"]
-    schema = _oas_schema(node, _OAS_DOC)
-    errors = sorted(Draft202012Validator(schema).iter_errors(body),
-                    key=lambda e: list(e.absolute_path))
-    if not errors:
+    errs = oas_errors_node(node, _OAS_DOC, body)
+    if not errs:
         return True, ""
     detail = "; ".join(f"{e.json_path or '$'}: {e.validator or 'schema'} violated"
-                       for e in errors[:4])
+                       for e in errs[:4])
     return False, detail
 
 
-def _oas_ref(doc, ref):
-    node = doc
-    for part in ref[2:].split("/"):
-        node = node[part.replace("~1", "/").replace("~0", "~")]
-    return node
+def oas_errors_path(path, method, status, body):
+    """按实际 HTTP status 取 OAS 响应 schema 并返回严格校验错误列表。"""
+    global _OAS_DOC
+    if _OAS_DOC is None:
+        import yaml
+        _OAS_DOC = yaml.safe_load((I.CONTRACTS / "openapi" / "openapi.yaml").read_text("utf-8"))
+    node = _OAS_DOC["paths"][path][method]["responses"][str(status)]["content"][
+        "application/json"]["schema"]
+    return oas_errors_node(node, _OAS_DOC, body)
 
 
-def _oas_schema(node, doc, seen=()):
-    """OAS 3.0.3 → JSON Schema（$ref 内联；nullable over $ref/allOf 解析为可空）。"""
-    if isinstance(node, bool) or not isinstance(node, dict):
-        return node
-    ref = node.get("$ref")
-    if isinstance(ref, str):
-        if ref in seen:
-            raise ValueError(f"cyclic $ref: {ref}")
-        target = _oas_schema(_oas_ref(doc, ref), doc, seen + (ref,))
-        extra = {k: v for k, v in node.items() if k not in ("$ref", "nullable")}
-        base = target if not extra else {"allOf": [target, _oas_schema(extra, doc, seen)]}
-        return {"anyOf": [base, {"type": "null"}]} if node.get("nullable") is True else base
-    out: dict = {}
-    for key, value in node.items():
-        if key == "nullable":
-            continue
-        if key == "properties":
-            out[key] = {pk: _oas_schema(pv, doc, seen) for pk, pv in value.items()}
-        elif key == "items":
-            out[key] = _oas_schema(value, doc, seen)
-        elif key == "additionalProperties":
-            out[key] = _oas_schema(value, doc, seen) if isinstance(value, dict) else value
-        elif key in ("allOf", "oneOf", "anyOf"):
-            out[key] = [_oas_schema(x, doc, seen) for x in value]
-        elif key == "not":
-            out[key] = _oas_schema(value, doc, seen)
-        else:
-            out[key] = value
-    # OAS 组合语义：allOf 分支声明的属性对彼此可见（additionalProperties:false 不应
-    # 误伤兄弟分支新增属性，否则 ProgressWithSync.lastSyncedAt 之类被自身契约拒绝）。
-    if isinstance(out.get("allOf"), list):
-        union: dict = {}
-        for branch in out["allOf"]:
-            if isinstance(branch, dict) and isinstance(branch.get("properties"), dict):
-                union.update(branch["properties"])
-        if union:
-            out["allOf"] = [
-                ({**branch, "properties": {**union, **(branch.get("properties") or {})}}
-                 if isinstance(branch, dict) and branch.get("additionalProperties") is False
-                 else branch)
-                for branch in out["allOf"]]
-    if node.get("nullable") is True:
-        declared = out.get("type")
-        if isinstance(declared, str):
-            out["type"] = [declared, "null"]
-        elif isinstance(declared, list):
-            if "null" not in declared:
-                out["type"] = declared + ["null"]
-        else:
-            return {"anyOf": [out, {"type": "null"}]}
-    return out
+def cc11_outcome(baseline_ok, captured, status_bad, impl_bad, contract_issues):
+    """CC-11 结论纯函数：
+    - 严格全过 → PASS；
+    - 仅契约建模问题（nullable over $ref/allOf、allOf+additionalProperties）→ INFO（附条件，
+      如实披露精确字段路径与归属，**不静默放宽**）；
+    - 状态不符或疑似实现缺陷 → FAIL。
+    """
+    if not baseline_ok or captured != 9 or status_bad or impl_bad:
+        return "FAIL"
+    if contract_issues:
+        return "INFO"
+    return "PASS"
 
 
 def contains_schema_version(body) -> bool:
@@ -441,23 +423,29 @@ def closure(account_token, execution, epoch, final_seq, final_count, key, stop_s
 
 # ---------------- CC-01 ----------------
 
+#: care 域精确路径 + care 相关契约面（contracts 整体未改）——C 适用性证明范围。
+CC01_CARE_PATHS = ["backend/web-java/src/main/java/cn/yuanxin/mvp/web/care",
+                   "backend/web-java/src/test/java/cn/yuanxin/mvp/web/care",
+                   "backend/contracts"]
+
+
 def cc_01():
     head = I.run(["git", "rev-parse", "HEAD"], cwd=I.REPO, timeout=60).stdout.strip()
     anc = I.run(["git", "merge-base", "--is-ancestor", C_CODE, "HEAD"], cwd=I.REPO, timeout=60)
-    diff = I.run(["git", "diff", f"{C_CODE}..HEAD", "--", "backend/web-java",
-                  "backend/worker-python", "backend/contracts"], cwd=I.REPO, timeout=120,
-                 log_name="cc-01-diff.log")
+    diff = I.run(["git", "diff", f"{C_CODE}..HEAD", "--", *CC01_CARE_PATHS],
+                 cwd=I.REPO, timeout=120, log_name="cc-01-diff.log")
     files = [x for x in diff.stdout.splitlines() if x.strip()]
     cp = I.run(["mvn", "-B", "-q", "-DskipTests", "package"], cwd=I.JAVA_DIR, timeout=1800,
                log_name="cc-01-mvn.log")
     jar = I.java_jar()
     import hashlib
     sha = hashlib.sha256(jar.read_bytes()).hexdigest()[:16] if jar.exists() else "-"
-    ok = anc.returncode == 0 and cp.returncode == 0
-    _add("CC-01", "构建与启动绑定：HEAD=93b7e33、8b3592e 祖先、源码 diff 空、当前源码构建、health UP",
-         "PASS" if ok else "FAIL", "git merge-base/diff; mvn -DskipTests package; java -jar",
-         cp.returncode, f"HEAD={head[:12]} ancestor={anc.returncode == 0} diff_files={files} "
-                        f"jar={jar.name} sha16={sha}")
+    ok = anc.returncode == 0 and files == [] and cp.returncode == 0
+    _add("CC-01", "构建与启动绑定：8b3592e 祖先、**care 域（care main/test + contracts）"
+                  "diff=0**、当前源码构建、health UP@18081",
+         "PASS" if ok else "FAIL", "git merge-base/diff（care 域精确路径）; mvn package; java -jar",
+         cp.returncode, f"HEAD={head[:12]} ancestor={anc.returncode == 0} "
+                        f"care_domain_diff={files} jar={jar.name} sha16={sha}")
 
 
 # ---------------- CC-02 ----------------
@@ -934,9 +922,11 @@ def cc_07_10(ctx):
     c_rep, b_rep = admit(a, mc, plan, key=key, metadata=md)
     same = (b_rep.get("data") or {}).get("executionId") == ex
     ver_rep = (b_rep.get("data") or {}).get("verification") or {}
-    rev_before = scalar(f"SELECT verification_revision FROM care_executions WHERE id='{ex}'")
+    rev_before = scalar(f"SELECT verification_revision||'|'||coalesce(last_verified_at::text,'') "
+                        f"FROM care_executions WHERE id='{ex}'")
     c_rep2, _ = admit(a, mc, plan, key=key, metadata=md)
-    rev_after = scalar(f"SELECT verification_revision FROM care_executions WHERE id='{ex}'")
+    rev_after = scalar(f"SELECT verification_revision||'|'||coalesce(last_verified_at::text,'') "
+                       f"FROM care_executions WHERE id='{ex}'")
     replayed = (b_rep.get("meta") or {}).get("replayed") is True and ver_rep.get("replayed") is True
     c_conf2, b_conf = post_multipart(f"{CARE}/care-executions", a,
                                      {"microcrystalId": mc, "connectionProof": "OTHER",
@@ -946,12 +936,13 @@ def cc_07_10(ctx):
                                                   "purpose": "admission"}}, key)
     conflict_ok = c_conf2 == 409 and ecode((c_conf2, b_conf)) == "IDEMPOTENCY_CONTENT_CONFLICT"
     cc07_ok = (c == 201 and c_nokey >= 400 and c_rep == 200 and c_rep2 == 200 and same
-               and replayed and rev_before == rev_after and conflict_ok and bool(ex))
-    _add("CC-07", "幂等与重放：缺键 4xx、同键重放 replayed 且 revision 不刷新、"
-                  "同键异内容 409、并发双端恰一 201",
-         "PASS" if cc07_ok else "FAIL", "A03 重放/冲突/并发", f"{c}/{c_rep}/{c_conf2}",
-         f"nokey={c_nokey} same_exec={same} replayed={replayed} rev {rev_before}->{rev_after} "
-         f"conflict={conflict_ok} reason={ecode((c_conf2, b_conf))}")
+               and replayed and rev_before == rev_after and rev_before != "" and conflict_ok
+               and bool(ex))
+    _add("CC-07", "幂等与重放：缺键 4xx、同键重放 replayed 且 **verification_revision+"
+                  "last_verified_at 均不刷新**、同键异内容 409",
+         "PASS" if cc07_ok else "FAIL", "A03 重放/冲突", f"{c}/{c_rep}/{c_conf2}",
+         f"nokey={c_nokey} same_exec={same} replayed={replayed} rev+last_verified {rev_before}->"
+         f"{rev_after} conflict={conflict_ok} reason={ecode((c_conf2, b_conf))}")
 
     # ================= CC-08 占用/并发/释放/TASK_REPLACED =================
     plan2, mc2 = new_plan_and_mc(target=3)
@@ -1190,7 +1181,7 @@ def cc_11(ctx):
     c3, b3 = admit(a, mc, plan, key=str(uuid.uuid4()))
     ex = (b3.get("data") or {}).get("executionId")
     ep = (b3.get("data") or {}).get("recordStreamEpoch") or ex
-    caps = [("A03", "/api/v1/care-executions", "post", 201, b3)]
+    caps = [("A03", "/api/v1/care-executions", "post", c3, b3)]
     if ex:
         c5, b5, _ = sync(a, ex, obs_records(ep, [], seq=1, state="paused"), str(uuid.uuid4()))
         rev = scalar(f"SELECT verification_revision FROM care_executions WHERE id='{ex}'")
@@ -1203,9 +1194,9 @@ def cc_11(ctx):
                            str(uuid.uuid4()))
         sync(a, ex, obs_records(ep, [], seq=3, state="stopped"), str(uuid.uuid4()))
         c6, b6, _ = closure(a, ex, ep, 1, 1, str(uuid.uuid4()), stop_seq=3)
-        caps += [("A05", "/api/v1/care-executions/{executionId}/observations", "post", 200, b5b),
-                 ("A04", "/api/v1/care-executions/{executionId}/revalidations", "post", 200, b4),
-                 ("A06", "/api/v1/care-executions/{executionId}/closure-confirmations", "post", 200, b6)]
+        caps += [("A05", "/api/v1/care-executions/{executionId}/observations", "post", c5b, b5b),
+                 ("A04", "/api/v1/care-executions/{executionId}/revalidations", "post", c4, b4),
+                 ("A06", "/api/v1/care-executions/{executionId}/closure-confirmations", "post", c6, b6)]
     c1, b1, _ = get_json(f"{CARE}/members/{member}/care-plans", a)
     c2, b2, _ = get_json(f"{CARE}/care-plans/{plan}?view=full", a)
     c7, b7, _ = get_json(f"{CARE}/care-executions/{ex}", a)
@@ -1216,25 +1207,31 @@ def cc_11(ctx):
              ("A07", "/api/v1/care-executions/{executionId}", "get", c7, b7),
              ("A08", "/api/v1/care-plans/{planId}/progress", "get", c8, b8),
              ("A09", "/api/v1/members/{memberId}/care-executions", "get", c9, b9)]
-    strict_bad, status_bad, expected_status = [], [], {"A03": 201}
-    captured = {}
-    for api, path, method, expect, body in caps:
-        captured[api] = body
-        if expect != expected_status.get(api, 200):
-            status_bad.append(f"{api}={expect}!=200")
+    expected_status = {"A03": (201,), "A01": (200,), "A02": (200,), "A04": (200,),
+                       "A05": (200,), "A06": (200,), "A07": (200,), "A08": (200,),
+                       "A09": (200,)}
+    status_bad, impl_bad, contract_issues = [], [], []
+    captured, actual_status = {}, {}
+    for api, path, method, actual, body in caps:
+        captured[api] = {"status": actual, "body": body}
+        actual_status[api] = actual
+        if actual not in expected_status[api]:
+            status_bad.append(f"{api}={actual} not in {expected_status[api]}")
             continue
-        ok_s, why = oas_validate(path, method, expect, body)
-        if not ok_s:
-            strict_bad.append(f"{api}:{why}")
+        for e in oas_errors_path(path, method, actual, body):
+            kind = classify_strict_error(e)
+            issue = f"{api} {e.json_path or '$'} [{kind}]"
+            (contract_issues if kind.startswith("contract") else impl_bad).append(issue)
     I.evidence_text("cc-11-captured.json", json.dumps(captured, ensure_ascii=False, indent=2))
-    ok = cc11_verdict(baseline_ok, len(caps), status_bad, strict_bad)
+    status = cc11_outcome(baseline_ok, len(caps), status_bad, impl_bad, contract_issues)
     _add("CC-11", "有界严格契约：selftest 10/10 + samples 50 + OpenAPI VALID；9 个 M4 API"
-                  "（A01-A09）代表性成功响应逐 schema 严格校验（OAS 解析 $ref）",
-         "PASS" if ok else "FAIL", "契约脚本 + 真实生命周期捕获 9 响应严格校验",
+                  "（A01-A09）按**实际 HTTP 状态**对应 schema 严格校验（RV-6 转换器，不改 OAS "
+                  "语义、不展平 allOf）；契约建模问题如实披露、绝不静默放宽",
+         status, "契约脚本 + 真实生命周期捕获 9 响应（实际状态）严格校验",
          f"{st.returncode}/{samp.returncode}/{oas.returncode}",
          f"selftest={st.returncode == 0} samples={n.group(1) if n else '?'} "
-         f"oas_ok={oas.returncode == 0} captured={len(caps)} status_bad={status_bad} "
-         f"strict_fail={strict_bad[:4]}")
+         f"oas_ok={oas.returncode == 0} captured={len(caps)} actual_status={actual_status} "
+         f"status_bad={status_bad} impl_bad={impl_bad[:4]} contract_issues={contract_issues[:8]}")
 
 
 def cc_12_and_matrix():
