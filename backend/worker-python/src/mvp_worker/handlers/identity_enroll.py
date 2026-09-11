@@ -16,12 +16,14 @@ from typing import Any, Optional
 from sqlalchemy import Connection, Engine, text
 
 from ..logging_setup import mlog
+from ..runtime.complete import StaleGeneration
 from ..runtime.rows import JobRow
 from . import HandlerContext, HandlerResult, JobFailed
 from .dshared.constants import (
     candidate_entity_id,
     provider_request_id,
 )
+from .dshared.dfence import fenced_business_tx
 from .dshared.dmedia import load_image_bytes
 from .dshared.jsonschema_support import load_payload_validator, validate_payload
 from .dshared.providers import ProviderUnavailable
@@ -77,7 +79,12 @@ SET member_id = CAST(:member_id AS uuid),
     updated_at = CURRENT_TIMESTAMP
 WHERE id = CAST(:id AS uuid) AND processing_revision = :rev
   AND current_photo_version = :photo_version
-  AND status IN ('queued', 'analyzing', 'needs_retake')
+  -- B2：仅在仍处本候选登记窗口时归属。并发的 analyze 重试若已写 needs_retake
+  -- （status 不再是 analyzing）或换成本候选以外的输入，这里 0 行 → 不归属、不覆盖
+  -- identity_result；成员行保留（外部登记真实发生，受控对账），任务仍成功。
+  AND status = 'analyzing'
+  AND identity_result ->> 'candidate_entity_id' = :candidate_entity_id
+  AND identity_result ->> 'phase' IN ('enroll_pending', 'enroll_started')
 """
 )
 
@@ -100,6 +107,17 @@ class IdentityEnrollHandler:
         validate_payload(self._get_validator(), payload, _PAYLOAD_SCHEMA)
 
     def handle(self, ctx: HandlerContext, job: JobRow) -> Optional[HandlerResult]:
+        """围栏包装：standalone 阶段持久化在租约失效时返回 None（见 dshared/dfence）。"""
+        try:
+            return self._handle(ctx, job)
+        except StaleGeneration:
+            mlog(
+                log, logging.WARNING, "enroll.fenced_write_stale",
+                **job.log_fields(), note="lease lost; phase persist rolled back",
+            )
+            return None
+
+    def _handle(self, ctx: HandlerContext, job: JobRow) -> Optional[HandlerResult]:
         assessment_id = str(job.payload["assessment_id"])
         rev = int(job.payload["processing_revision"])
         photo_version = int(job.payload["photo_version"])
@@ -144,7 +162,7 @@ class IdentityEnrollHandler:
             "correlation_id": correlation_id,
             "provider_request_id": request_id,
         }
-        if not _persist_started(ctx.engine, assessment_id, rev, started):
+        if not _persist_started(ctx.engine, job, assessment_id, rev, started):
             mlog(log, logging.INFO, "enroll.persist_started_noop", **job.log_fields())
             return None
 
@@ -300,14 +318,14 @@ def _load_assessment(engine: Engine, assessment_id: str) -> Optional[dict[str, A
 
 
 def _persist_started(
-    engine: Engine, assessment_id: str, rev: int, identity_result: dict[str, Any]
+    engine: Engine, job: JobRow, assessment_id: str, rev: int, identity_result: dict[str, Any]
 ) -> bool:
-    with engine.begin() as conn:
+    with fenced_business_tx(engine, job) as conn:
         res = conn.execute(
             _PERSIST_ENROLL_STARTED,
             {"id": assessment_id, "rev": rev, "identity_result": _json(identity_result)},
         )
-    return res.rowcount > 0
+        return res.rowcount > 0
 
 
 def _identity_summary(
@@ -381,6 +399,10 @@ def _commit_enrollment(
 
     if not fresh:
         # 外部已成功但输入被替换：成员保留（受控对账），不归给新照片。
+        mlog(
+            log, logging.INFO, "enroll.member_retained_stale_input",
+            assessmentId=assessment_id, memberId=member_id,
+        )
         return
 
     identity_result = {
@@ -391,16 +413,26 @@ def _commit_enrollment(
         "correlation_id": correlation_id,
         "member_id": member_id,
     }
-    conn.execute(
+    res = conn.execute(
         _LINK_MEMBER,
         {
             "id": assessment_id,
             "rev": rev,
             "photo_version": photo_version,
+            "candidate_entity_id": candidate_id,
             "member_id": member_id,
             "identity_result": _json(identity_result),
         },
     )
+    if res.rowcount == 0:
+        # B2：并发 analyze 重试已把 T05 带离本候选登记窗口（如 needs_retake）。
+        # 不归属、不覆盖 identity_result；外部登记真实存在，成员行保留待对账。
+        mlog(
+            log, logging.WARNING, "enroll.link_guard_rejected",
+            assessmentId=assessment_id, candidateEntityId=candidate_id,
+            memberId=member_id,
+            note="assessment left enrollment window; member retained unlinked",
+        )
 
 
 handler = IdentityEnrollHandler()

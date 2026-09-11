@@ -23,6 +23,7 @@ from ..logging_setup import mlog
 from ..runtime.complete import StaleGeneration
 from ..runtime.rows import JobRow
 from . import HandlerContext, HandlerResult, JobFailed
+from .dshared.dfence import fenced_business_tx
 from .dshared.jsonschema_support import load_payload_validator, validate_payload
 from .dshared.resolve import dconfig_for, plan_port_for
 
@@ -141,6 +142,17 @@ class PlanGenerateHandler:
         validate_payload(self._get_validator(), payload, _PAYLOAD_SCHEMA)
 
     def handle(self, ctx: HandlerContext, job: JobRow) -> Optional[HandlerResult]:
+        """围栏包装：standalone 终态/冻结写在租约失效时返回 None（见 dshared/dfence）。"""
+        try:
+            return self._handle(ctx, job)
+        except StaleGeneration:
+            mlog(
+                log, logging.WARNING, "plan.fenced_write_stale",
+                **job.log_fields(), note="lease lost; business write rolled back",
+            )
+            return None
+
+    def _handle(self, ctx: HandlerContext, job: JobRow) -> Optional[HandlerResult]:
         plan_id = str(job.payload["plan_id"])
         rev = int(job.payload["generation_revision"])
         dcfg = dconfig_for(ctx)
@@ -197,7 +209,7 @@ class PlanGenerateHandler:
                 # 受控基线结构不完整（缺 ranges/regions/bounds）：不得生成
                 self._terminal_snapshot_invalid(ctx, job, plan_id, rev)
                 return None  # pragma: no cover
-            if not _set_generating(ctx.engine, plan_id, rev, snapshot):
+            if not _set_generating(ctx.engine, job, plan_id, rev, snapshot):
                 return None  # 并发变更 → 合法作废
         elif status == "generating":
             # 重试：输入快照已冻结，一律以冻结快照为基线，绝不回落 live 配置
@@ -287,7 +299,7 @@ class PlanGenerateHandler:
         terminal_detail = dict(detail)
         terminal_detail.setdefault("code", code)
         terminal_detail.setdefault("retryable", False)
-        _mark_plan_failed(ctx.engine, plan_id, rev, terminal_detail)
+        _mark_plan_failed(ctx.engine, job, plan_id, rev, terminal_detail)
         raise JobFailed(code, message, retryable=False)
 
     def _terminal_snapshot_invalid(
@@ -321,7 +333,7 @@ class PlanGenerateHandler:
             terminal_detail = dict(detail)
             terminal_detail.setdefault("code", code)
             terminal_detail.setdefault("retryable", False)
-            _mark_plan_failed(ctx.engine, plan_id, rev, terminal_detail)
+            _mark_plan_failed(ctx.engine, job, plan_id, rev, terminal_detail)
             raise JobFailed(code, message, retryable=False)
         raise JobFailed(code, message, retryable=True)
 
@@ -493,20 +505,20 @@ def _wait_guard(plan_id: str, rev: int) -> Callable[[Connection], None]:
 
 
 def _set_generating(
-    engine: Engine, plan_id: str, rev: int, snapshot: dict[str, Any]
+    engine: Engine, job: JobRow, plan_id: str, rev: int, snapshot: dict[str, Any]
 ) -> bool:
-    with engine.begin() as conn:
+    with fenced_business_tx(engine, job) as conn:
         res = conn.execute(
             _SET_GENERATING,
             {"id": plan_id, "rev": rev, "input_snapshot": _json(snapshot)},
         )
-    return res.rowcount > 0
+        return res.rowcount > 0
 
 
 def _mark_plan_failed(
-    engine: Engine, plan_id: str, rev: int, detail: dict[str, Any]
+    engine: Engine, job: JobRow, plan_id: str, rev: int, detail: dict[str, Any]
 ) -> None:
-    with engine.begin() as conn:
+    with fenced_business_tx(engine, job) as conn:
         conn.execute(
             _MARK_FAILED, {"id": plan_id, "rev": rev, "detail": _json(detail)}
         )

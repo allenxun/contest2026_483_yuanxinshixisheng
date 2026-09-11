@@ -9,5 +9,6 @@ D 测试引用。它不修改 A 包运行时、配置或媒体骨架，只提供
 - :mod:`jsonschema_support`：payload 契约严格校验（复用 common.json $ref 内联）；
 - :mod:`denqueue`：worker 侧 T12 入队助手（去重 / 部分唯一索引冲突区分）；
 - :mod:`dmedia`：结果图归档（T11 行 + 存储写入，幂等复用）；
+- :mod:`dfence`：standalone 业务写的租约围栏（持当前租约代次才允许提交）；
 - :mod:`resolve`：端口解析（extras 注入优先，否则按 env/环境工厂，生产 fail-closed）。
 """

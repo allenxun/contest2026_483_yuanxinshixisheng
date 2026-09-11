@@ -34,10 +34,40 @@ public class FailureProjection {
     private static final Set<String> VIEWS = Set.of("front", "left", "right");
     private static final int MAX_REQUIRED_VIEWS = 3;
 
+    /**
+     * 公开 failure_code 封闭白名单：只允许 Worker 实际写入
+     * {@code skin_assessments.failure_code} 的 D 终态码外泄。任何其它值
+     * （内部/未登记/损坏字符串）一律投影为 null，防止任意字符串经
+     * M3-A03 泄漏。来源：worker-python handlers/assessment_analyze.py 中
+     * {@code _mark_failed}/{@code _MARK_RETAKE} 的所有 code 实参 + dmedia.py
+     * 的 {@code ArchiveError.code}。
+     */
+    private static final Set<String> PUBLIC_FAILURE_CODES = Set.of(
+            "QUALITY_REJECTED",
+            "NOT_SAME_PERSON",
+            "IDENTITY_UNCERTAIN",
+            "IDENTITY_ENROLLMENT_TIMEOUT",
+            "SOURCE_IMAGE_UNAVAILABLE",
+            "RESULT_ARCHIVE_FAILED",
+            "PROVIDER_CONTRACT_VIOLATION",
+            "MEMBER_NOT_VISIBLE",
+            "DEPENDENCY_UNAVAILABLE");
+
     private final ObjectMapper mapper;
 
     public FailureProjection(ObjectMapper mapper) {
         this.mapper = mapper;
+    }
+
+    /**
+     * 封闭 failure_code 投影：仅白名单内的公开码原样返回，其余（含 null、
+     * 未知内部码）→ null。绝不回显任意 DB 字符串。
+     */
+    public String failureCode(String raw) {
+        if (raw == null || !PUBLIC_FAILURE_CODES.contains(raw)) {
+            return null;
+        }
+        return raw;
     }
 
     /**

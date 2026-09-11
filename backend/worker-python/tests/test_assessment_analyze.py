@@ -484,8 +484,9 @@ def test_analyze_result_image_idempotent_on_retry(engine: Engine, tmp_path: Any)
     status, exc, _ = run_claimed(engine, analyze_handler, jid, extras=_extras(faulty, face))
     assert status == "failed" and exc is not None
     assert exc.code == "RESULT_ARCHIVE_FAILED" and exc.retryable is True
-    pending = fetch_result_media(engine, aid, 1)
-    assert len(pending) == 1 and pending[0]["state"] == "pending"
+    # B3 单事务归档（advisory lock 内 put+行写）：put 失败 → 整段回滚、不留 pending
+    # 半写；重试成功后仍恰一行/ref（幂等由锁内重读复用保证）。
+    assert fetch_result_media(engine, aid, 1) == []
 
     status2, _exc2, _ = run_claimed(engine, analyze_handler, jid, extras=_extras(inner, face))
     assert status2 == "succeeded"

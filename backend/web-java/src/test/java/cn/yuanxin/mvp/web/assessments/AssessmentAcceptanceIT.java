@@ -3,8 +3,10 @@ package cn.yuanxin.mvp.web.assessments;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -177,6 +179,64 @@ class AssessmentAcceptanceIT extends AssessmentTestSupport {
                         + "\"consentEvidenceRef\":\"ce\"}", png(1), png(2), png(3));
         assertEquals(400, badVersion.getResponse().getStatus());
         assertEquals("INVALID_INPUT", error(badVersion).path("code").asText());
+    }
+
+    @Test
+    @DisplayName("A01 multipart 严格：metadata 非 application/json / 重复 front / 重复 metadata → 400")
+    void multipartStrictness() throws Exception {
+        GimbalFixture gimbal = createGimbal();
+
+        // (a) metadata part Content-Type 非 application/json（即使 JSON 内容合法）→ 400
+        MockMultipartFile wrongType = new MockMultipartFile(
+                "metadata", "metadata.json", "text/plain",
+                a01Metadata().getBytes(StandardCharsets.UTF_8));
+        MvcResult wrongTypeResult = mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .multipart("/api/v1/skin-assessment-tasks")
+                                .file(wrongType)
+                                .file(imagePart("front", png(1)))
+                                .file(imagePart("left", png(2)))
+                                .file(imagePart("right", png(3)))
+                                .header("Authorization", "Bearer " + gimbal.token())
+                                .header("Idempotency-Key", "d-a01-ctype-" + UUID.randomUUID()))
+                .andReturn();
+        assertEquals(400, wrongTypeResult.getResponse().getStatus(),
+                wrongTypeResult.getResponse().getContentAsString());
+        assertEquals("INVALID_INPUT", error(wrongTypeResult).path("code").asText());
+
+        // (b) 两个 front 文件 part（getFileMap 会折叠，必须按 multi-map 检出）→ 400
+        MvcResult dupFront = mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .multipart("/api/v1/skin-assessment-tasks")
+                                .file(jsonPart("metadata", a01Metadata()))
+                                .file(imagePart("front", png(1)))
+                                .file(imagePart("front", png(4)))
+                                .file(imagePart("left", png(2)))
+                                .file(imagePart("right", png(3)))
+                                .header("Authorization", "Bearer " + gimbal.token())
+                                .header("Idempotency-Key", "d-a01-dupfront-" + UUID.randomUUID()))
+                .andReturn();
+        assertEquals(400, dupFront.getResponse().getStatus(), dupFront.getResponse().getContentAsString());
+        assertEquals("INVALID_INPUT", error(dupFront).path("code").asText());
+
+        // (c) 两个 metadata part → 400
+        MvcResult dupMetadata = mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .multipart("/api/v1/skin-assessment-tasks")
+                                .file(jsonPart("metadata", a01Metadata()))
+                                .file(jsonPart("metadata", a01Metadata()))
+                                .file(imagePart("front", png(1)))
+                                .file(imagePart("left", png(2)))
+                                .file(imagePart("right", png(3)))
+                                .header("Authorization", "Bearer " + gimbal.token())
+                                .header("Idempotency-Key", "d-a01-dupmeta-" + UUID.randomUUID()))
+                .andReturn();
+        assertEquals(400, dupMetadata.getResponse().getStatus(), dupMetadata.getResponse().getContentAsString());
+        assertEquals("INVALID_INPUT", error(dupMetadata).path("code").asText());
+
+        // 解析在受理之前失败：不产生任何任务
+        assertEquals(0, count("SELECT count(*) FROM skin_assessments WHERE gimbal_id = ?",
+                gimbal.gimbalId()));
     }
 
     @Test

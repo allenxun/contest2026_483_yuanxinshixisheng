@@ -20,6 +20,7 @@ from typing import Any, Optional
 from sqlalchemy import Connection, Engine, text
 
 from ..logging_setup import mlog
+from ..runtime.complete import StaleGeneration
 from ..runtime.rows import JobRow
 from . import HandlerContext, HandlerResult, JobFailed
 from .dshared.constants import (
@@ -29,6 +30,7 @@ from .dshared.constants import (
     namespace_owner_id,
 )
 from .dshared.dconfig import DConfig
+from .dshared.dfence import fenced_business_tx
 from .dshared.dmedia import ArchiveError, archive_result_images, load_image_bytes
 from .dshared.denqueue import EnrollSlotOccupied, enqueue_identity_enroll, insert_job
 from .dshared.jsonschema_support import load_payload_validator, validate_payload
@@ -171,6 +173,22 @@ class AssessmentAnalyzeHandler:
     # ------------------------------------------------------------- handle
 
     def handle(self, ctx: HandlerContext, job: JobRow) -> Optional[HandlerResult]:
+        """围栏包装：standalone 业务写在租约失效时抛 StaleGeneration → 返回 None。
+
+        见 ``dshared/dfence`` 与 ``runtime/loop.py``：返回 None 走
+        ``complete_success`` 围栏丢弃，只留单条 ``job.complete_stale_generation``，
+        不误报为未处理异常，也不产生 spurious 终态。
+        """
+        try:
+            return self._handle(ctx, job)
+        except StaleGeneration:
+            mlog(
+                log, logging.WARNING, "analyze.fenced_write_stale",
+                **job.log_fields(), note="lease lost; business write rolled back",
+            )
+            return None
+
+    def _handle(self, ctx: HandlerContext, job: JobRow) -> Optional[HandlerResult]:
         assessment_id = str(job.payload["assessment_id"])
         rev = int(job.payload["processing_revision"])
         dcfg = dconfig_for(ctx)
@@ -209,7 +227,7 @@ class AssessmentAnalyzeHandler:
         storage = storage_for(ctx)
 
         # 2) 标记 analyzing（自有短事务；0 行 = 并发变更 → 合法作废）
-        if not _mark_analyzing(ctx.engine, assessment_id, rev):
+        if not _mark_analyzing(ctx.engine, job, assessment_id, rev):
             mlog(log, logging.INFO, "analyze.mark_analyzing_noop", **job.log_fields())
             return None
 
@@ -437,7 +455,7 @@ class AssessmentAnalyzeHandler:
             "phase": "enroll_pending",
             "correlation_id": correlation_id,
         }
-        if not _persist_enroll_pending(ctx.engine, assessment_id, rev, identity_result):
+        if not _persist_enroll_pending(ctx.engine, job, assessment_id, rev, identity_result):
             mlog(log, logging.INFO, "analyze.enroll_persist_noop", **job.log_fields())
             return None
 
@@ -473,7 +491,7 @@ class AssessmentAnalyzeHandler:
         if job.attempt_count >= job.max_attempts:
             # 预算耗尽：登记协调项仍在（槽位保持占用），本任务落 failed 终态。
             _mark_failed(
-                ctx.engine, assessment_id, rev, "IDENTITY_ENROLLMENT_TIMEOUT",
+                ctx.engine, job, assessment_id, rev, "IDENTITY_ENROLLMENT_TIMEOUT",
                 "enrollment did not complete within attempt budget",
             )
             raise JobFailed(
@@ -534,7 +552,7 @@ class AssessmentAnalyzeHandler:
         message: str,
         reason: str,
     ) -> None:
-        _mark_failed(ctx.engine, assessment_id, rev, code, reason)
+        _mark_failed(ctx.engine, job, assessment_id, rev, code, reason)
         raise JobFailed(code, message, retryable=False)
 
     def _transient_or_terminal(
@@ -549,7 +567,7 @@ class AssessmentAnalyzeHandler:
         reason: str,
     ) -> None:
         if job.attempt_count >= job.max_attempts:
-            _mark_failed(ctx.engine, assessment_id, rev, code, reason)
+            _mark_failed(ctx.engine, job, assessment_id, rev, code, reason)
             raise JobFailed(code, message, retryable=False)
         raise JobFailed(code, message, retryable=True)
 
@@ -615,27 +633,29 @@ def _validate_metrics(dcfg: DConfig, raw: Any) -> list[dict[str, Any]]:
     return normalized
 
 
-def _mark_analyzing(engine: Engine, assessment_id: str, rev: int) -> bool:
-    with engine.begin() as conn:
+def _mark_analyzing(engine: Engine, job: JobRow, assessment_id: str, rev: int) -> bool:
+    with fenced_business_tx(engine, job) as conn:
         res = conn.execute(_MARK_ANALYZING, {"id": assessment_id, "rev": rev})
-    return res.rowcount > 0
+        return res.rowcount > 0
 
 
 def _persist_enroll_pending(
-    engine: Engine, assessment_id: str, rev: int, identity_result: dict[str, Any]
+    engine: Engine, job: JobRow, assessment_id: str, rev: int, identity_result: dict[str, Any]
 ) -> bool:
-    with engine.begin() as conn:
+    with fenced_business_tx(engine, job) as conn:
         res = conn.execute(
             _PERSIST_ENROLL_PENDING,
             {"id": assessment_id, "rev": rev, "identity_result": _json(identity_result)},
         )
-    return res.rowcount > 0
+        return res.rowcount > 0
 
 
-def _mark_failed(engine: Engine, assessment_id: str, rev: int, code: str, reason: str) -> None:
+def _mark_failed(
+    engine: Engine, job: JobRow, assessment_id: str, rev: int, code: str, reason: str
+) -> None:
     # failure_detail 仅内部诊断（裁定 3）：只留脱敏 reason，不承载协议字段
     detail = {"reason": str(reason)[:200]}
-    with engine.begin() as conn:
+    with fenced_business_tx(engine, job) as conn:
         conn.execute(
             _MARK_FAILED,
             {"id": assessment_id, "rev": rev, "code": code, "detail": _json(detail)},

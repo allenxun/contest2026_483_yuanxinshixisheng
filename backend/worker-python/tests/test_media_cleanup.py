@@ -1,17 +1,20 @@
 """``media.cleanup`` handler 覆盖：范围守卫、引用核查、两段式删除、崩溃恢复（裁定 5）。"""
 from __future__ import annotations
 
+import json
 import uuid
 from typing import Any
 
 import pytest
-from sqlalchemy import Engine, text
+from sqlalchemy import Engine, create_engine, text
+from sqlalchemy.engine import make_url
 
 from conftest import enqueue, fetch_job
 from d_support import (
     clean_d_tables,
     count_jobs_by_dedup,
     fetch_job_full_by_dedup,
+    make_ctx,
     run_claimed,
     seed_assessment,
     seed_execution,
@@ -21,11 +24,14 @@ from d_support import (
     seed_microcrystal,
     seed_plan,
 )
+from mvp_worker.handlers import media_cleanup as media_cleanup_module
 from mvp_worker.handlers.media_cleanup import (
     discover_and_enqueue_orphans,
     handler as cleanup_handler,
 )
 from mvp_worker.media.storage import FilesystemStorageDouble, StorageError
+from mvp_worker.runtime.claim import claim_batch
+from mvp_worker.runtime.expire import release_claim
 
 
 @pytest.fixture(autouse=True)
@@ -64,6 +70,20 @@ def _state(engine: Engine, media_id: str) -> str:
 
 def _run(engine: Engine, jid: str, storage: Any) -> tuple[str, Any, Any]:
     return run_claimed(engine, cleanup_handler, jid, extras={"storage": storage})
+
+
+def create_db_engine_with_lock_timeout(dsn: str, lock_timeout_ms: int = 300) -> Any:
+    """测试专用引擎：连接级 ``lock_timeout``（``SET`` 会被 SQLAlchemy 回滚，故用
+    ``connect_args`` 在连接建立时设置，保证 GUC 持久到会话）。"""
+    url = make_url(dsn)
+    if url.drivername in ("postgresql", "postgres"):
+        url = url.set(drivername="postgresql+psycopg")
+    return create_engine(
+        url,
+        pool_size=2,
+        max_overflow=0,
+        connect_args={"options": f"-c lock_timeout={int(lock_timeout_ms)}"},
+    )
 
 
 class _FaultyDeleteStorage:
@@ -354,3 +374,89 @@ def test_discover_failed_orphan_enqueued_and_cleaned(engine: Engine, tmp_path: A
     # 再发现：行已 deleted 不再是候选 → 0 新任务
     assert discover_and_enqueue_orphans(engine) == 0
     assert count_jobs_by_dedup(engine, dedup) == 1
+
+
+# --------------------------------------------------------- I2 TOCTOU recheck
+
+
+def test_cleanup_post_lock_recheck_catches_late_reference(
+    engine: Engine, tmp_path: Any, monkeypatch: Any
+) -> None:
+    """I2：引用在**预读之后、加锁之前**出现 → 锁后同事务重扫捕获并 abort。
+
+    通过 monkeypatch ``_load_media``（无锁预读）注入一次已提交的新引用，模拟并发
+    受理在本清理事务取得 T11 行锁前提交；若只靠预读（无锁后重扫）就会误删。
+    """
+    storage = FilesystemStorageDouble(tmp_path / "s")
+    mid, key = seed_media(engine, storage, state="available")
+    aid = seed_assessment(engine, status="queued")
+    jid = _enqueue_cleanup(engine, mid)
+
+    original = media_cleanup_module._load_media
+    fired = {"done": False}
+
+    def hooked(eng: Engine, media_id: str) -> Any:
+        row = original(eng, media_id)
+        if not fired["done"] and row is not None and row["state"] != "deleting":
+            fired["done"] = True
+            with engine.begin() as conn:
+                conn.execute(
+                    text(
+                        "UPDATE skin_assessments SET photo_versions = CAST(:pv AS jsonb)"
+                        " WHERE id = CAST(:a AS uuid)"
+                    ),
+                    {
+                        "pv": json.dumps(
+                            {
+                                "schema_version": 1,
+                                "versions": [{"version": 1, "images": {"front": media_id}}],
+                            }
+                        ),
+                        "a": aid,
+                    },
+                )
+        return row
+
+    monkeypatch.setattr(media_cleanup_module, "_load_media", hooked)
+
+    status, exc, _ = _run(engine, jid, storage)
+    assert status == "failed" and exc is not None
+    assert exc.code == "MEDIA_REFERENCED" and exc.retryable is False
+    assert _state(engine, mid) == "available"  # 未进入 deleting
+    assert storage.exists(key)
+
+
+def test_cleanup_lock_contention_aborts_without_state_change(
+    engine: Engine, tmp_path: Any, test_dsn: str
+) -> None:
+    """I2：受理持 T11 行锁时，清理以短 lock_timeout 安全中止（无过渡、无删除）。"""
+    storage = FilesystemStorageDouble(tmp_path / "s")
+    mid, key = seed_media(engine, storage, state="available")
+    jid = _enqueue_cleanup(engine, mid)
+    claims = claim_batch(engine, worker_id="w-d", lease_seconds=60, batch_size=50)
+    claim = next(c for c in claims if c.id == jid)
+    for other in claims:
+        if other.id != jid:
+            release_claim(engine, other, worker_id="w-d")
+
+    eng2 = create_db_engine_with_lock_timeout(test_dsn)
+
+    holder = engine.connect()
+    tx = holder.begin()
+    try:
+        # 模拟受理：持有 T11 行锁
+        holder.execute(
+            text("SELECT id FROM media_objects WHERE id = CAST(:id AS uuid) FOR UPDATE"),
+            {"id": mid},
+        )
+        ctx = make_ctx(eng2, claim, extras={"storage": storage})
+        with pytest.raises(Exception) as excinfo:
+            cleanup_handler.handle(ctx, claim)
+        assert "lock timeout" in str(excinfo.value).lower()
+    finally:
+        tx.rollback()
+        holder.close()
+        eng2.dispose()
+
+    assert _state(engine, mid) == "available"  # 无过渡
+    assert storage.exists(key)  # 无删除

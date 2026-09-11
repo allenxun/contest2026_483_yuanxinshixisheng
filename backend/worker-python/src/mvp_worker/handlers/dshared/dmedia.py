@@ -12,7 +12,7 @@ import json
 import uuid
 from typing import Any, Optional
 
-from sqlalchemy import Engine, text
+from sqlalchemy import Connection, Engine, text
 
 from ...media.storage import build_object_key
 from .constants import ALLOWED_RESULT_CONTENT_TYPES, DEFAULT_BUCKET
@@ -24,6 +24,19 @@ FROM media_objects
 WHERE assessment_id = CAST(:assessment_id AS uuid)
   AND photo_version = :photo_version
   AND purpose = 'assessment_result'
+"""
+)
+
+# B3：同 (task, photo_version) 的结果图归档串行化（事务级 advisory lock）。
+# V1/V2 无结果图唯一约束且迁移禁改，故用 advisory lock 保证并发归档同一
+# (task,version,provider_ref) 至多一行 T11、至多一个存储对象。
+_ADVISORY_LOCK = text(
+    """
+SELECT pg_advisory_xact_lock(
+    hashtextextended(
+        'd:result-archive:' || :assessment_id || ':' || CAST(:photo_version AS text), 0
+    )
+)
 """
 )
 
@@ -74,12 +87,13 @@ def sniff_content_type(data: bytes) -> Optional[str]:
     return None
 
 
-def _load_by_ref(engine: Engine, assessment_id: str, photo_version: int) -> dict[str, dict[str, Any]]:
-    with engine.connect() as conn:
-        rows = conn.execute(
-            _SELECT_RESULT_MEDIA,
-            {"assessment_id": assessment_id, "photo_version": int(photo_version)},
-        ).mappings().all()
+def _load_by_ref_conn(
+    conn: Connection, assessment_id: str, photo_version: int
+) -> dict[str, dict[str, Any]]:
+    rows = conn.execute(
+        _SELECT_RESULT_MEDIA,
+        {"assessment_id": assessment_id, "photo_version": int(photo_version)},
+    ).mappings().all()
     by_ref: dict[str, dict[str, Any]] = {}
     for row in rows:
         meta = row["storage_metadata"] or {}
@@ -99,50 +113,61 @@ def archive_result_images(
     result_images: list[dict[str, Any]],
     max_bytes: int,
 ) -> list[dict[str, Any]]:
-    """归档结果图；返回 ``[{"media_id","caption","content_type"}]``（保序）。"""
-    by_ref = _load_by_ref(engine, assessment_id, photo_version)
-    archived: list[dict[str, Any]] = []
+    """归档结果图；返回 ``[{"media_id","caption","content_type"}]``（保序）。
 
-    for image in result_images:
-        if not isinstance(image, dict):
-            raise ArchiveError("RESULT_ARCHIVE_FAILED", "result image not an object", terminal=True)
-        ref = image.get("ref")
-        caption = image.get("caption", "")
-        data = image.get("bytes")
-        if not isinstance(ref, str) or not ref:
-            raise ArchiveError("RESULT_ARCHIVE_FAILED", "result image missing ref", terminal=True)
-        if not isinstance(caption, str):
-            raise ArchiveError("RESULT_ARCHIVE_FAILED", "result image caption not a string", terminal=True)
-        if not isinstance(data, (bytes, bytearray)):
-            raise ArchiveError(
-                "RESULT_ARCHIVE_FAILED", "result image bytes missing", terminal=True
-            )
-        data = bytes(data)
-        if len(data) > int(max_bytes):
-            raise ArchiveError("RESULT_ARCHIVE_FAILED", "result image exceeds size cap", terminal=True)
-        content_type = sniff_content_type(data)
-        if content_type not in ALLOWED_RESULT_CONTENT_TYPES:
-            raise ArchiveError(
-                "RESULT_ARCHIVE_FAILED", "result image content type not allowed", terminal=True
-            )
+    B3：整段 (assessment_id, photo_version) 归档在**单个事务**内持
+    ``pg_advisory_xact_lock``：先加锁再重读既有行，使并发同 ref 归档串行——后到者
+    锁后读到先到者已 available 的行 → 直接复用（不插入、不写存储）。存储 put 与
+    T11 行插入/更新同在该锁内，故恰好一行一对象，双方拿到同一 media_id。
+    put 失败 → 整个归档事务回滚（不留 pending 半写），由 handler 决定重试/终止。
+    """
+    with engine.begin() as conn:
+        conn.execute(
+            _ADVISORY_LOCK,
+            {"assessment_id": assessment_id, "photo_version": int(photo_version)},
+        )
+        by_ref = _load_by_ref_conn(conn, assessment_id, photo_version)
+        archived: list[dict[str, Any]] = []
 
-        existing = by_ref.get(ref)
-        if (
-            existing is not None
-            and existing.get("state") == "available"
-            and existing.get("content_type") == content_type
-            and existing.get("byte_size") == len(data)
-        ):
-            archived.append(
-                {"media_id": str(existing["id"]), "caption": caption, "content_type": content_type}
-            )
-            continue
+        for image in result_images:
+            if not isinstance(image, dict):
+                raise ArchiveError("RESULT_ARCHIVE_FAILED", "result image not an object", terminal=True)
+            ref = image.get("ref")
+            caption = image.get("caption", "")
+            data = image.get("bytes")
+            if not isinstance(ref, str) or not ref:
+                raise ArchiveError("RESULT_ARCHIVE_FAILED", "result image missing ref", terminal=True)
+            if not isinstance(caption, str):
+                raise ArchiveError("RESULT_ARCHIVE_FAILED", "result image caption not a string", terminal=True)
+            if not isinstance(data, (bytes, bytearray)):
+                raise ArchiveError(
+                    "RESULT_ARCHIVE_FAILED", "result image bytes missing", terminal=True
+                )
+            data = bytes(data)
+            if len(data) > int(max_bytes):
+                raise ArchiveError("RESULT_ARCHIVE_FAILED", "result image exceeds size cap", terminal=True)
+            content_type = sniff_content_type(data)
+            if content_type not in ALLOWED_RESULT_CONTENT_TYPES:
+                raise ArchiveError(
+                    "RESULT_ARCHIVE_FAILED", "result image content type not allowed", terminal=True
+                )
 
-        if existing is None:
-            media_id = str(uuid.uuid4())
-            object_key = build_object_key(environment, "assessment_result", media_id)
-            meta = {"schema_version": 1, "provider_ref": ref}
-            with engine.begin() as conn:
+            existing = by_ref.get(ref)
+            if (
+                existing is not None
+                and existing.get("state") == "available"
+                and existing.get("content_type") == content_type
+                and existing.get("byte_size") == len(data)
+            ):
+                archived.append(
+                    {"media_id": str(existing["id"]), "caption": caption, "content_type": content_type}
+                )
+                continue
+
+            if existing is None:
+                media_id = str(uuid.uuid4())
+                object_key = build_object_key(environment, "assessment_result", media_id)
+                meta = {"schema_version": 1, "provider_ref": ref}
                 conn.execute(
                     _INSERT_RESULT_MEDIA,
                     {
@@ -154,30 +179,29 @@ def archive_result_images(
                         "storage_metadata": _json(meta),
                     },
                 )
-            row = {
-                "id": media_id,
-                "object_key": object_key,
-                "state": "pending",
-                "content_type": None,
-                "byte_size": None,
-                "storage_metadata": meta,
-            }
-            by_ref[ref] = row
-            existing = row
-        else:
-            media_id = str(existing["id"])
-            object_key = str(existing["object_key"])
+                row = {
+                    "id": media_id,
+                    "object_key": object_key,
+                    "state": "pending",
+                    "content_type": None,
+                    "byte_size": None,
+                    "storage_metadata": meta,
+                }
+                by_ref[ref] = row
+                existing = row
+            else:
+                media_id = str(existing["id"])
+                object_key = str(existing["object_key"])
 
-        try:
-            storage.put(object_key, data)
-        except Exception as exc:  # 存储瞬时不可用 → 可重试；pending 行保留待复用
-            raise ArchiveError(
-                "RESULT_ARCHIVE_FAILED", "storage put failed", terminal=False
-            ) from exc
+            try:
+                storage.put(object_key, data)  # 与行写入同持 advisory lock
+            except Exception as exc:
+                raise ArchiveError(
+                    "RESULT_ARCHIVE_FAILED", "storage put failed", terminal=False
+                ) from exc
 
-        meta = {"schema_version": 1, "provider_ref": ref}
-        digest = hashlib.sha256(data).hexdigest()
-        with engine.begin() as conn:
+            meta = {"schema_version": 1, "provider_ref": ref}
+            digest = hashlib.sha256(data).hexdigest()
             conn.execute(
                 _UPDATE_MEDIA_AVAILABLE,
                 {
@@ -188,8 +212,8 @@ def archive_result_images(
                     "storage_metadata": _json(meta),
                 },
             )
-        existing.update({"state": "available", "content_type": content_type, "byte_size": len(data)})
-        archived.append({"media_id": media_id, "caption": caption, "content_type": content_type})
+            existing.update({"state": "available", "content_type": content_type, "byte_size": len(data)})
+            archived.append({"media_id": media_id, "caption": caption, "content_type": content_type})
 
     return archived
 

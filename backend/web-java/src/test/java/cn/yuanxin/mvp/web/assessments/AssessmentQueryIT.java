@@ -136,6 +136,59 @@ class AssessmentQueryIT extends AssessmentTestSupport {
     }
 
     @Test
+    @DisplayName("A03 failureCode 封闭白名单：未知/内部码 failed+needs_retake 均投影 null 且不外泄")
+    void failureCodeClosedWhitelist() throws Exception {
+        GimbalFixture gimbal = createGimbal();
+        UUID failed = acceptA01(gimbal);
+        updateTaskFields(failed, "failed", "INTERNAL_SECRET_X",
+                "{\"marker\":\"INTERNAL_SECRET_X\"}", null);
+        MvcResult failedResult = getTask(gimbal.token(), failed);
+        assertEquals(200, failedResult.getResponse().getStatus(),
+                failedResult.getResponse().getContentAsString());
+        assertTrue(data(failedResult).path("failureCode").isNull(),
+                "unknown failure_code must project to null");
+        assertFalse(failedResult.getResponse().getContentAsString().contains("INTERNAL_SECRET_X"),
+                failedResult.getResponse().getContentAsString());
+
+        UUID retake = acceptA01(gimbal);
+        updateTaskFields(retake, "needs_retake", "INTERNAL_SECRET_X", null,
+                "{\"schema_version\":1,\"quality\":{\"status\":\"needs_retake\","
+                        + "\"required_views\":[\"left\"]}}");
+        MvcResult retakeResult = getTask(gimbal.token(), retake);
+        assertEquals(200, retakeResult.getResponse().getStatus(),
+                retakeResult.getResponse().getContentAsString());
+        assertTrue(data(retakeResult).path("failureCode").isNull(),
+                "unknown failure_code must project to null on needs_retake");
+        assertFalse(retakeResult.getResponse().getContentAsString().contains("INTERNAL_SECRET_X"),
+                retakeResult.getResponse().getContentAsString());
+    }
+
+    @Test
+    @DisplayName("A03 failureCode 白名单内码全部原样投影且 retryable=false")
+    void failureCodeWhitelistProjected() throws Exception {
+        GimbalFixture gimbal = createGimbal();
+        String[] codes = {
+                "QUALITY_REJECTED",
+                "NOT_SAME_PERSON",
+                "IDENTITY_UNCERTAIN",
+                "IDENTITY_ENROLLMENT_TIMEOUT",
+                "SOURCE_IMAGE_UNAVAILABLE",
+                "RESULT_ARCHIVE_FAILED",
+                "PROVIDER_CONTRACT_VIOLATION",
+                "MEMBER_NOT_VISIBLE",
+                "DEPENDENCY_UNAVAILABLE"};
+        for (String code : codes) {
+            UUID taskId = acceptA01(gimbal);
+            updateTaskFields(taskId, "failed", code, null, null);
+            MvcResult r = getTask(gimbal.token(), taskId);
+            assertEquals(200, r.getResponse().getStatus(), r.getResponse().getContentAsString());
+            assertEquals(code, data(r).path("failureCode").asText(),
+                    "whitelisted code must project verbatim: " + code);
+            assertFalse(data(r).path("retryable").asBoolean());
+        }
+    }
+
+    @Test
     @DisplayName("A03 requiredViews 来自 identity_result.quality.required_views（枚举过滤+去重）")
     void requiredViewsFromIdentityResult() throws Exception {
         GimbalFixture gimbal = createGimbal();
