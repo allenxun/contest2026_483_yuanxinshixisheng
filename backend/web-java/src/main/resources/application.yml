@@ -52,8 +52,9 @@ management:
         include: readinessState,db
 
 # —— API 文档（B 包 Swagger/springdoc）——
-# fail closed 默认关闭：仅 dev/test profile 覆盖为 true；prod 保持 false，
-# 且 DocsProductionGuard 在 app.env=production 且任一项被启用时拒绝启动。
+# fail closed 默认关闭：仅 dev/test profile 覆盖为 true；prod 保持 false。
+# DocsProductionGuard 始终注册，按运行时生产信号（prod profile 或 app.env=production）
+# 对任一开关被开启的情况 fail-closed（不因 app.env 被覆盖而绕过）。
 # 文档端点 /v3/api-docs、/swagger-ui/** 不以 /api/ 开头，天然不被
 # BearerAuthFilter（web/auth/BearerAuthFilter.java:68）拦截，无需改鉴权。
 springdoc:

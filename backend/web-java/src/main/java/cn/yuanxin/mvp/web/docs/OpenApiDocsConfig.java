@@ -25,8 +25,9 @@ import java.util.Set;
  * 与 handler 方法签名）生成 OpenAPI 的 B 包文档配置。
  *
  * <p><b>仅 dev/test profile 且 springdoc 明确启用时注册</b>（{@link Profile} +
- * {@link ConditionalOnProperty}）：生产 profile 不注册任何文档 bean，
- * {@link DocsProductionGuard} 再对 app.env=production 下的误启用做 fail-closed。</p>
+ * {@link ConditionalOnProperty}）：生产不注册任何文档 bean；{@link DocsProductionGuard}
+ * 则始终注册，按运行时生产信号（active profile 含 prod 或 app.env=production）对任何
+ * 误启用做 fail-closed，不因 profile/env 被覆盖而失效。</p>
  *
  * <p>契约权威仍是 {@code backend/contracts/openapi/openapi.yaml}：本配置只补充
  * <em>语义说明</em>（info、bearerAuth、公开端点清单），不复制/改写业务字段级
@@ -55,10 +56,17 @@ public class OpenApiDocsConfig {
                 .info(new Info()
                         .title("AI 皮肤护理系统 后端 MVP（由实际 Controller/DTO 生成）")
                         .version("0.1.0")
-                        .description("""
+                                .description("""
                                 本页由运行中的 Java 后端（Spring MVC + springdoc 2.8.x）从实际 Controller/DTO
-                                生成，非手写 YAML 回显。字段级/错误码级契约的权威来源仍是
+                                生成，非手写 YAML 回显。它**不是**权威契约：字段级/错误码级契约的权威来源是
                                 backend/contracts/openapi/openapi.yaml；两者不一致时以契约文件为准。
+
+                                生成器差异（如实声明）：
+                                - 生成文档为 OpenAPI 3.1.0，权威契约为 OpenAPI 3.0.3。
+                                - 响应 content type 可能显示为 */*（控制器未强制 produces: application/json）。
+                                - operationId 由 Java 方法名派生，未对齐契约中的 operationId。
+                                - 未逐端点附着完整错误码表/错误响应集合；适用错误码以契约各操作
+                                  的 x-error-codes 为准，本页只提供通用文字说明。
 
                                 统一响应信封：
                                 - 成功：{requestId, data, meta:{replayed, serverTime}}；204 无响应体。
@@ -68,11 +76,15 @@ public class OpenApiDocsConfig {
                                 - 每个响应（含错误与 204）带 X-Request-Id 头；每次 HTTP 尝试生成
                                   新的 requestId，与 T13 稳定逻辑请求 ID 区分。
 
-                                鉴权：全局默认 BearerAuth；下列 4 个公开端点无 Bearer（契约中为 security: []）：
+                                鉴权（含语义粒度限制）：全局默认 BearerAuth；下列 4 个公开端点无 Bearer
+                                （契约中为 security: []）：
                                 POST /api/v1/auth/sms-challenges、POST /api/v1/auth/sessions、
                                 POST /api/v1/auth/session-refreshes、POST /api/v1/gimbal-sessions。
                                 其余端点要求 Authorization: Bearer <APP session token | gimbal device session token>。
                                 主体身份只由服务端从会话派生，请求体不能声明 accountId/gimbalId。
+                                注意：本页全局 bearer 只表达“是否需要 token”，**不表达** APP/GIMBAL 主体类型
+                                限制、成员查看授权、当前任务/绑定关系等细粒度权限——这些由后端在运行时强制，
+                                以契约各端点描述为准。
                                 BearerAuthFilter 仅保护 /api/**；本文档端点（/v3/api-docs、
                                 /swagger-ui/**）不在 /api/** 下，故无需为文档放行鉴权。
 
@@ -83,17 +95,26 @@ public class OpenApiDocsConfig {
                                 Idempotency-Key（1-128 字符），相同键相同内容重放原结果
                                 （meta.replayed=true），相同键不同内容 409 IDEMPOTENCY_CONTENT_CONFLICT。
 
-                                尚未字段级展开（本页只显示为自由结构 object；字段级权威见契约文件）：
-                                - B devices/DeviceDtos.CapabilitiesView.capabilities（JSONB 自由结构）
-                                - C care/CareProjections.planSummary 与 .plan（JSONB 自由结构）
-                                - D assessments/dto/SkinReportListItem.reportSummary 与
-                                  SkinReportView.metrics（JSONB 自由结构）
+                                自由结构字段（统一声明）：所有在 Java 侧声明为 Object / Map / JsonNode 的
+                                字段，在生成文档中可能只显示为自由结构 object，**无法展开为字段级 schema**。
+                                典型字段（非穷举）：
+                                - A web/web/SuccessEnvelope.data（Object）、
+                                  web/web/ErrorEnvelope.details（Map）
+                                - B devices/DeviceDtos：HeartbeatBody.incidents（List<Map>）、
+                                  MicrocrystalObservationBody.capabilities 与 .state（Map）、
+                                  CapabilitiesView.capabilities（Map）；
+                                  notifications/NotificationDestinationDtos.Request.registration（Map）
+                                - C care/CareProjections：CarePlanListItem.planSummary、
+                                  CarePlanFullView.plan（Object）
+                                - D assessments/dto：SkinReportListItem.reportSummary（JsonNode）、
+                                  SkinReportView.metrics（List<Map>）
                                 另有 M1-A01 的 multipart metadata 部件为严格 JSON（capture +
                                 consentEvidenceRef），字段级 schema 同样见契约，不在本页展开。
                                 因此本页“由实际 Controller/DTO 生成”指的是路由与可静态推导的
                                 请求/响应形状，不宣称所有自由结构成员都已具备字段级 schema。
 
-                                本页面仅在 dev/test 启用；app.env=production 下文档端点关闭，强制启用将拒绝启动。
+                                部署限制：本页面仅在 dev/test 启用，Swagger UI 不得用于公网生产；
+                                app.env=production 或 prod profile 下文档端点关闭，强制启用将拒绝启动。
                                 """));
     }
 
