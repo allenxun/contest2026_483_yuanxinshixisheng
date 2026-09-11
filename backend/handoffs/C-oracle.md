@@ -66,19 +66,52 @@ Oracle 实际核对：HEAD=`fe6a2e74f724b4d0969f20f930063ac7c3f4e141`（report-o
 ### R2 处置（按授权「必要修复按原范围并复审新代码」）
 fix-1 正在修复三 BLOCKER（裁定语义：①递归结构化嵌套白名单——step 仅 region/parameters，parameter 仅标量或 {value,unit}，regions 仅 string 元素，任何层级空→丢弃，顶层空→null，WARN 仅键路径；②能力逐项 fail-closed——冻结块必需 capability_id/parameter_ranges(含双侧 unit 严格相等)/approved_regions/n_bounds，新 token malformed_frozen_capability，steps 缺失/空/畸形→malformed_frozen_step，step 参数须在冻结 ranges 内且双重范围覆盖；③双防线——CareDevTestCondition（app.env≠production ∧ 无 prod/production profile ∧ 含 dev/test 才注册替身）+ CareFaceVerifierProductionGuard（production 语义下选中非 FailClosed 即启动 fail-fast），配纯单元+上下文级证据测试）。修复完成并提交后，以**新最终 SHA** 重跑 SHA 绑定套件+活体冒烟，再发起 R3 复审。
 
-## Round 3 @ <修复后新最终 SHA> — 待执行
+## Round 3 @ 8b3592e0b5de86eeaf0febe6ffe9497c68f672bb — **PASS-with-notes（门禁通过）**
 
-## 当前门禁状态
+调用：ora-1 原会话（授权口径沿用：原配置只读、禁读密码/密钥/真实用户数据/私人认证配置）。
 
-| 项 | 状态 |
-|---|---|
-| R1 @11b653a | FAIL（4 BLOCKER+2 IMPORTANT）— 修复于 5bad406/24cab56；R2 核定 F1/F2/F4/F5/F6/N1 CLOSED、F3 NOT-CLOSED |
-| R2 @bd8e305 | **FAIL**（用户授权单次正式执行；3 BLOCKER：嵌套白名单透传、能力校验 fail-open、混合生产 profile 可选中替身） |
-| R3 @修复后新 SHA | 待执行（fix-1 修复中；提交后重跑 SHA 绑定套件+活体冒烟再复审） |
-| SHA 绑定自测 @bd8e305 | 255/255 绿，RC=0，树前后==bd8e305 dirty=0（R2 已采信；新 SHA 须重跑） |
-| 活体冒烟 @bd8e305 | LIVE_SMOKE_ALL_PASS RC=0（R2 已读到日志；新 SHA 须重跑） |
-| 交付判定 | **未通过 Oracle 门禁**——三 BLOCKER 修复并经 R3 PASS 前不得交总协调集成 |
+### reviewedCommit 确认（Oracle 实际核对）
+- HEAD/reviewedCommit=`8b3592e0b5de86eeaf0febe6ffe9497c68f672bb`，工作树 clean；bd8e305..8b3592e 业务代码差异仅 care 域 10 个源码/测试文件，其余为两份 handoffs 报告；A 基础/迁移/OpenAPI/共享配置零改动；本轮只读、未执行写操作或重跑测试。
 
-## 残留限制（与 C.md 一致）
+### verdict：**PASS-with-notes —「可以放行 Oracle 门禁」**；blockingFindings=`[]`（无新阻塞）
 
-生产准入在真实成员绑定人脸提供方接入前恒 503 fail-closed（有意状态）；connectionProof/consentEvidenceRef 未做可信验证；能力数值域/单位与 Plan.execution 结构未冻结（防御式读取+保守白名单）；白名单键集合与 CareFaceVerifier 是否提升为公共端口待总协调/契约裁定；dev profile 下 providers.mode=disabled 时人脸替身仍激活（@Profile 限定，生产不受影响）；活体链路为替身，不代表真实供应商可用。
+### R2 三项 BLOCKER 闭合状态（R3 核定）
+| R2 项 | 状态 | 代码与测试依据 |
+|---|---|---|
+| B1：F3 嵌套 JSON 透传 | **CLOSED** | CarePlanProjection.java:101-235（steps/regions/parameters 递归重建而非复制子树；step 仅 region/parameters；参数对象仅 value/unit）；CarePlanProjectionIT.java:26-197（敏感字段多层嵌套+HTTP 响应与 T07 快照双检，强度充分） |
+| B2：能力缺字段 fail-open | **CLOSED** | CareCapabilityChecker.java:64-154（冻结块完整性）、:157-220（非空 steps/区域/参数实际值）、:223-242（双侧 unit 存在且严格一致）；锁外/锁内同一 checker 无绕过；CareCapabilityCheckerTest.java:109-116,252-322；CareAdmissionIT.java:367-388 |
+| B3：混合生产 profile 启用替身 | **CLOSED** | CareDevTestCondition.java:28-52（app.env+生产 profile+dev/test 三重检查；混合 prod,dev 替身不注册、环境绑定构造器不执行）；MemberBindingFaceDouble.java:29-31；CareFaceVerifierProductionGuard.java:36-53（第二道启动防线；A ProductionFailClosedValidator 为第三层通用防线）；容器级测试 CareFaceVerifierProductionGuardTest.java:60-100（受限上下文足以验证 bean 选择机制——完整应用使用相同 Condition/Environment/DI 规则） |
+
+### R1 已关闭项回归抽查（R3）
+F1 重放/Progress 权限、F2 A08 核验适用性、F4 running 门控、F5 MAX 缺口溢出、F6 DTO 边界校验、N1 迟到差异留痕——**全部无回归**（相关代码本轮未改动，逐项核对）。
+
+### R3 notes（非阻塞，10 项要点）
+1. 递归投影已真正闭合（各层级显式重建；测试多层嵌套+响应与快照双检）。
+2. 能力校验已严格 fail-closed（冻结块完整性+steps 实际值+双侧 unit 严格一致；无绕过路径）。
+3. 生产人脸替身隔离成立（混合 prod,dev 替身不注册）。
+4. Guard 第二道启动防线+A validator 第三层；受限容器测试足以验证关键 bean 选择机制。
+5. **Guard 现仅允许 FailClosedCareFaceVerifier 进生产——未来接入真实 1:1 提供方时必须同步修改 guard 的「可信生产实现」判定**；不阻塞当前「真实提供方接入前生产准入恒 503」的既定交付状态。
+6. 无显式 active profile 回退 default 与共享 `spring.profiles.default: dev` 一致；MockEnvironment 默认值 `default` 不启用替身，属安全侧偏差。
+7. 顶层/步骤 parameters 的动态参数名与标量值保留属已声明协议语义；未知对象字段仍被过滤；安全前提=D 侧只把批准的执行参数写入参数槽（当前披露充分）。
+8. 强制 steps 非空且每步 region/parameters 完整是保守拒绝策略，可接受；D 若将来允许无步骤/无参数步骤，需先协调修改版本化协议。
+9. reason token 增至 9 种仍有界；区域错误改 `region_not_supported` 更准确。
+10. 已采信 SHA 绑定 262/262、契约四项、最终 SHA 活体冒烟证据；首次冒烟幂等键脚本引号错误与产品代码无关，修正后重跑通过的披露充分。
+
+### 各维度结论一览（R3）
+需求与清单——M4-A01..A09、C-01..C-12 核心业务要求满足，C-13..C-17 可进入后续集成/E 验收；API/DB 契约——bigint 字符串、JSONB schema_version、枚举/nullable 无回归，契约校验通过；权限与可见性——统一 404、最小对账投影、撤销后写/读权分离、重放资格复核成立；白名单投影——顶层与嵌套均显式重建，未知内容不进响应与新快照；人脸门禁——memberId 仅 T06/T07、拒绝在事务前、生产隔离与 fail-fast 成立；能力匹配——capability_id/范围/单位/双重区域/steps 参数/N bounds 严格校验，revision/microcrystal_id 正确非门禁；账本并发——双键去重、真实新增 D、汇总原子、K 不截断、SAVEPOINT 防御分支未受影响；状态恢复——running 门控/A04/迟到补账/收尾/MAX 水位无回归；模块边界——仅 care 域；测试证据——三个原阻塞反例均有针对测试，262 全套件+最终 SHA 活体足以放行；生产限制——真实提供方接入前恒 503 与 connectionProof 等限制继续按交付报告披露。
+
+### R3 处置
+**Oracle 门禁通过（PASS-with-notes）**。notes 5/7/8 已并入 C.md「限制与未决」「给 D 的约定」「协调请求」；无阻塞项需修复；交付状态=可交总协调集成，由 E 独立验收（C 不自称验收）。
+
+## 门禁总表（最终）
+
+| 轮次 | 对象 | 结论 |
+|---|---|---|
+| R1 | 11b653a | FAIL（F1-F4 BLOCKER、F5-F6 IMPORTANT、N1 留痕缺失）→ 修复于 5bad406/24cab56 |
+| R2 调用史 | bd8e305 | 401 token_expired ×3（BLOCKED 留档 fe6a2e7）→ 用户授权单次正式执行 → FAIL（3 BLOCKER：嵌套透传/能力 fail-open/混合 profile 替身）→ 修复于 8b3592e |
+| R3 | **8b3592e** | **PASS-with-notes（blockingFindings=[]；R2 三项 CLOSED；R1 六项无回归）** |
+| 交付判定 | — | **Oracle 门禁已通过**；交总协调集成、E 独立验收（本记录不声称已验收） |
+
+## 残留限制（与 C.md 一致，含 R3 notes 并入项）
+
+生产准入在真实成员绑定人脸提供方接入前恒 503 fail-closed（有意状态；**接入真实提供方时须同步更新 CareFaceVerifierProductionGuard 的「可信生产实现」判定**，R3 note 5）；connectionProof/consentEvidenceRef 未做可信验证；能力数值域/单位与 Plan.execution 结构未冻结（严格防御式读取+保守白名单+steps 必填保守拒绝，D 协议演进需先协调，R3 note 8）；白名单键集合与嵌套规则及 CareFaceVerifier 是否提升为公共端口待总协调/契约裁定（标量参数名保留的安全前提=D 只写批准参数，R3 note 7）；dev/test 替身由 CareDevTestCondition 门控（app.env+profile 双重排除生产；无显式 profile 时回退 default=dev 与共享配置一致，R3 note 6）；活体链路为替身，不代表真实供应商可用。
