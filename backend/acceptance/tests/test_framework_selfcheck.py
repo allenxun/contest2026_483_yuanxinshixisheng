@@ -718,3 +718,44 @@ def test_rv5_conclusion_policy():
     assert "未通过" in r5.rv5_conclusion(st(p=9, b=1))
     assert "未通过" in r5.rv5_conclusion(st(p=9, missing=["RV5-3"]))
     assert "拒绝" in r5.rv5_conclusion({**st(p=9), "unknown_status": ["X"]})
+
+
+# ---------- C 验收驱动：CC-02/CC-03 回归锁定 ----------
+
+def test_cc02_other_active_grant_must_be_200():
+    """CC-02 唯一曾写反的谓词：另一仍 active 的授权账号必须 200（非 404）。"""
+    from driver import c_care
+
+    base = dict(statuses=[404] * 6, canon=["{}"] * 6,
+                codes=["RESOURCE_NOT_VISIBLE"] * 6, c403=403,
+                b403={"error": {"code": "CALLER_NOT_ALLOWED"}}, c401=401, cA=200, cB=404)
+    ok, flags = c_care.cc02_verdict(cC=200, **base)
+    assert ok is True and flags["cC"] is True          # active 授权 → 200 判通过
+    ok2, flags2 = c_care.cc02_verdict(cC=404, **base)
+    assert ok2 is False and flags2["cC"] is False      # 若再误写 404 → 必须 FAIL
+    # 其余既有断言不得因修谓词被弱化
+    for key, bad in (("statuses", [200] * 6), ("codes", ["NOT_FOUND"] * 6),
+                     ("cA", 404), ("cB", 200)):
+        kw = {**base, "cC": 200, key: bad}
+        assert c_care.cc02_verdict(**kw)[0] is False, key
+
+
+def test_cc03_variant_env_explicit_and_isolated():
+    """CC-03 启动封装：逐变体三键显式构造，不依赖继承/残留（防正例 503 回归）。"""
+    from driver import c_care
+
+    m = "11111111-1111-4111-8111-111111111111"
+    dev = c_care.variant_env(profiles="dev", bound_member=m)
+    prod = c_care.variant_env(profiles="prod")
+    mixed = c_care.variant_env(profiles="prod,dev", bound_member=m)
+    penv = c_care.variant_env(profiles="dev", bound_member=m, app_env="production")
+    bad = c_care.variant_env(profiles="dev", bound_member="not-a-uuid")
+    keys = {"SPRING_PROFILES_ACTIVE", "APP_C_FACE_BOUND_MEMBER", "APP_ENV"}
+    for env in (dev, prod, mixed, penv, bad):
+        assert set(env) == keys, env
+    assert dev["SPRING_PROFILES_ACTIVE"] == "dev" and dev["APP_C_FACE_BOUND_MEMBER"] == m
+    assert prod["APP_C_FACE_BOUND_MEMBER"] == ""       # 无绑定变体显式清空，防继承污染
+    assert mixed["SPRING_PROFILES_ACTIVE"] == "prod,dev" and mixed["APP_C_FACE_BOUND_MEMBER"] == m
+    assert penv["APP_ENV"] == "production" and penv["SPRING_PROFILES_ACTIVE"] == "dev"
+    assert bad["APP_C_FACE_BOUND_MEMBER"] == "not-a-uuid"
+    assert dev["APP_ENV"] == ""                        # 非 production 显式置空

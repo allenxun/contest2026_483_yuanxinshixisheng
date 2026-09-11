@@ -21,6 +21,8 @@ EXPECTED_TARGETED = frozenset({f"RV-{i}" for i in range(1, 10)}
                               | {"CLEANUP", "CLEANUP-ports"})
 EXPECTED_RV5 = frozenset({f"RV5-{i}" for i in range(1, 9)}
                          | {"CLEANUP", "CLEANUP-ports"})
+EXPECTED_C = frozenset({f"CC-{i:02d}" for i in range(1, 13)}
+                       | {"CLEANUP", "CLEANUP-ports"})
 KNOWN = ("pass", "fail", "blocked", "info")
 
 
@@ -90,7 +92,8 @@ def main(argv: list[str]) -> int:
     rid = argv[0]
     rc = int(argv[1]) if len(argv) > 1 else None
     mode = argv[2] if len(argv) > 2 else "targeted-reverify"
-    exp = EXPECTED_RV5 if mode == "rv5-reverify" else EXPECTED_TARGETED
+    exp = EXPECTED_RV5 if mode == "rv5-reverify" else \
+        (EXPECTED_C if mode == "c-care" else EXPECTED_TARGETED)
     ok, msg = verify(rid, driver_rc=rc, mode=mode, expected=exp)
     print(("REVERIFY_SENTINEL_OK " if ok else "REVERIFY_SENTINEL_FAIL ") + msg)
     return 0 if ok else 1
