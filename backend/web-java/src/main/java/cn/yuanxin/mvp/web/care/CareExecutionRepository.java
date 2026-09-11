@@ -1,5 +1,6 @@
 package cn.yuanxin.mvp.web.care;
 
+import cn.yuanxin.mvp.web.web.EnvelopeSupport;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -170,6 +171,27 @@ public class CareExecutionRepository {
                         + " closure_manifest = CAST(? AS jsonb), updated_at = ?"
                         + " WHERE id = ? AND status = 'stopped'",
                 Timestamp.from(closedAt), closureManifestJson, Timestamp.from(closedAt), executionId);
+    }
+
+    /**
+     * 迟到差异留痕（DD 6.4，N1）：对已 closed 执行的 closure_manifest 增量更新
+     * {@code late_variance}（累计插入条数、最大来源序号、最近接受时间），
+     * 不改 closed_at/status/其余 manifest 字段。仅计入实际新增记录。
+     */
+    public int applyLateVariance(UUID executionId, long insertedCount, long batchMaxSourceSeq,
+                                 Instant receivedAt) {
+        return jdbc.update("UPDATE care_executions SET closure_manifest = jsonb_set("
+                        + "jsonb_set(COALESCE(closure_manifest, '{}'::jsonb),"
+                        + " '{schema_version}', '1'::jsonb, true),"
+                        + " '{late_variance}', jsonb_build_object("
+                        + "   'late_records_count', COALESCE((closure_manifest->'late_variance'"
+                        + "     ->>'late_records_count')::bigint, 0) + ?,"
+                        + "   'late_max_source_seq', GREATEST(COALESCE((closure_manifest"
+                        + "     ->'late_variance'->>'late_max_source_seq')::bigint, 0), ?)::text,"
+                        + "   'last_late_received_at', ?), true), updated_at = ?"
+                        + " WHERE id = ? AND status = 'closed'",
+                insertedCount, batchMaxSourceSeq, EnvelopeSupport.rfc3339(receivedAt),
+                Timestamp.from(receivedAt), executionId);
     }
 
     /**

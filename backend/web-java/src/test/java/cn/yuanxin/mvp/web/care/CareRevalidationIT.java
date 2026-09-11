@@ -422,4 +422,70 @@ class CareRevalidationIT extends AbstractWebIT {
             faceDouble().setClassification(FaceClassification.MATCHED);
         }
     }
+
+    // ---------------- F1 / F6 ----------------
+
+    @Test
+    @DisplayName("F1 A04 重放：撤销授权后同键重放 404，T13 仍 succeeded")
+    void f1RevalidationReplayRequiresCurrentGrant() throws Exception {
+        LoginResult login = loginAppWithInstallation(newPhone(), "inst-f1-a04");
+        UUID accountId = UUID.fromString(login.accountId());
+        UUID memberId = fx.seedMember();
+        fx.seedGrant(accountId, memberId, "active");
+        UUID gimbalId = fx.seedGimbal("f1-a04-g-" + UUID.randomUUID(), 1);
+        UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
+        UUID executionId = seedPausedApp(planId, memberId, accountId, "inst-f1-a04",
+                fx.seedAssessment(gimbalId, memberId), fx.seedMicrocrystal());
+        String key = CareAdmissionTestSupport.newKey();
+        String request = metadata("1");
+        MvcResult first = CareAdmissionTestSupport.revalidate(mockMvc, login.accessToken(), executionId,
+                key, request, PNG);
+        assertEquals(200, first.getResponse().getStatus(), first.getResponse().getContentAsString());
+
+        fx.revokeGrant(accountId, memberId);
+        MvcResult replay = CareAdmissionTestSupport.revalidate(mockMvc, login.accessToken(), executionId,
+                key, request, PNG);
+        assertEquals(404, replay.getResponse().getStatus(), replay.getResponse().getContentAsString());
+        MvcResult random = CareAdmissionTestSupport.revalidate(mockMvc, login.accessToken(),
+                UUID.randomUUID(), CareAdmissionTestSupport.newKey(), request, PNG);
+        assertEquals(404, random.getResponse().getStatus());
+        assertEquals(CareTestFixtures.errorTree(replay), CareTestFixtures.errorTree(random));
+        assertEquals("succeeded", jdbc.queryForObject(
+                "SELECT status FROM idempotency_requests WHERE idempotency_key = ?", String.class, key));
+    }
+
+    @Test
+    @DisplayName("F6 A04 reportedMicrocrystalState 数组/标量 → 400；对象通过校验")
+    void f6ReportedMicrocrystalStateShape() throws Exception {
+        LoginResult login = loginAppWithInstallation(newPhone(), "inst-f6-a04");
+        UUID accountId = UUID.fromString(login.accountId());
+        UUID memberId = fx.seedMember();
+        fx.seedGrant(accountId, memberId, "active");
+        UUID gimbalId = fx.seedGimbal("f6-a04-g-" + UUID.randomUUID(), 1);
+        UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
+        UUID executionId = seedPausedApp(planId, memberId, accountId, "inst-f6-a04",
+                fx.seedAssessment(gimbalId, memberId), fx.seedMicrocrystal());
+
+        String arrayRequest = CareAdmissionTestSupport.revalidationMetadata("1",
+                capture("cap", CAPTURED_AT, "cc", "revalidation"), "consent",
+                CareAdmissionTestSupport.json("[1,2]"));
+        MvcResult array = CareAdmissionTestSupport.revalidate(mockMvc, login.accessToken(), executionId,
+                CareAdmissionTestSupport.newKey(), arrayRequest, PNG);
+        assertEquals(400, array.getResponse().getStatus(), array.getResponse().getContentAsString());
+        assertEquals("INVALID_INPUT", error(array).path("code").asText());
+
+        String scalarRequest = CareAdmissionTestSupport.revalidationMetadata("1",
+                capture("cap", CAPTURED_AT, "cc", "revalidation"), "consent",
+                CareAdmissionTestSupport.json("\"x\""));
+        MvcResult scalar = CareAdmissionTestSupport.revalidate(mockMvc, login.accessToken(), executionId,
+                CareAdmissionTestSupport.newKey(), scalarRequest, PNG);
+        assertEquals(400, scalar.getResponse().getStatus());
+
+        String objectRequest = CareAdmissionTestSupport.revalidationMetadata("1",
+                capture("cap", CAPTURED_AT, "cc", "revalidation"), "consent",
+                CareAdmissionTestSupport.json("{\"a\":1}"));
+        MvcResult object = CareAdmissionTestSupport.revalidate(mockMvc, login.accessToken(), executionId,
+                CareAdmissionTestSupport.newKey(), objectRequest, PNG);
+        assertEquals(200, object.getResponse().getStatus(), object.getResponse().getContentAsString());
+    }
 }

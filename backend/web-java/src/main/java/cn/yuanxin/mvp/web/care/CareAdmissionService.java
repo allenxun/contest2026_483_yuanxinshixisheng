@@ -74,6 +74,7 @@ public class CareAdmissionService {
 
     private final CareAuthorization authorization;
     private final CareProjections projections;
+    private final CarePlanProjection planProjection;
     private final CarePlanRepository planRepository;
     private final CareExecutionRepository executionRepository;
     private final GimbalReadRepository gimbalRepository;
@@ -87,6 +88,7 @@ public class CareAdmissionService {
     private final ObjectMapper objectMapper;
 
     public CareAdmissionService(CareAuthorization authorization, CareProjections projections,
+                                CarePlanProjection planProjection,
                                 CarePlanRepository planRepository,
                                 CareExecutionRepository executionRepository,
                                 GimbalReadRepository gimbalRepository,
@@ -98,6 +100,7 @@ public class CareAdmissionService {
                                 ObjectMapper objectMapper) {
         this.authorization = authorization;
         this.projections = projections;
+        this.planProjection = planProjection;
         this.planRepository = planRepository;
         this.executionRepository = executionRepository;
         this.gimbalRepository = gimbalRepository;
@@ -237,7 +240,7 @@ public class CareAdmissionService {
                 controllerRef(principal),
                 tx.plan().memberId().toString(),
                 tx.plan().id().toString(),
-                jsonOrNull(readJsonObject(tx.plan().planPayload())),
+                planProjection.execution(tx.plan().planPayload()),
                 projections.progressFor(tx.plan()),
                 new VerificationDto("1", meta.capture().captureId(),
                         meta.capture().clientContinuityId(), rfc3339(tx.now()), null,
@@ -327,6 +330,10 @@ public class CareAdmissionService {
         CarePlanRow plan = planRepository.findById(row.planId())
                 .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL,
                         "care execution references a missing plan"));
+        if (!authorization.hasPlanReadEligibility(principal, plan)) {
+            // 重放不把“原控制端”当持续读取权限：T13 仍 succeeded，仅本响应 404
+            throw authorization.notVisible();
+        }
         return new CareExecutionAdmission(
                 row.id().toString(),
                 "admitted",
@@ -347,6 +354,11 @@ public class CareAdmissionService {
                                           M4A04Metadata meta, byte[] face, String idempotencyKey) {
         if (!"revalidation".equals(meta.capture().purpose())) {
             throw invalid("capture.purpose must be revalidation");
+        }
+        JsonNode reportedMicrocrystalState = meta.reportedMicrocrystalState();
+        if (reportedMicrocrystalState != null && !reportedMicrocrystalState.isNull()
+                && !reportedMicrocrystalState.isObject()) {
+            throw invalid("reportedMicrocrystalState must be a JSON object");
         }
         parseInstant(meta.capture().capturedAt(), "capture.capturedAt");
         long expectedRevision = CareBigints.parse(meta.expectedVerificationRevision(),
@@ -514,6 +526,9 @@ public class CareAdmissionService {
         CarePlanRow plan = planRepository.findById(row.planId())
                 .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL,
                         "care execution references a missing plan"));
+        if (!authorization.hasPlanReadEligibility(principal, plan)) {
+            throw authorization.notVisible();
+        }
         return new CareExecutionRevalidation(
                 row.id().toString(),
                 row.status(),
@@ -590,10 +605,10 @@ public class CareAdmissionService {
         snapshot.put("schema_version", 1);
         snapshot.put("plan_id", plan.id().toString());
         snapshot.put("target_count", CareBigints.out(plan.targetCount()));
-        JsonNode summary = readJsonObject(plan.planSummary());
-        snapshot.set("summary", summary == null ? NullNode.getInstance() : summary);
-        JsonNode params = readJsonObject(plan.planPayload());
-        snapshot.set("execution_params", params == null ? NullNode.getInstance() : params);
+        Object summary = planProjection.summary(plan.planSummary());
+        snapshot.set("summary", summary == null ? NullNode.getInstance() : (JsonNode) summary);
+        Object params = planProjection.execution(plan.planPayload());
+        snapshot.set("execution_params", params == null ? NullNode.getInstance() : (JsonNode) params);
         ObjectNode verification = snapshot.putObject("verification");
         verification.put("media_id", mediaId.toString());
         verification.put("capture_id", meta.capture().captureId());

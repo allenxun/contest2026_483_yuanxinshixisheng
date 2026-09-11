@@ -90,7 +90,10 @@ class CareAdmissionIT extends AbstractWebIT {
         assertTrue(d.path("controller").path("gimbalId").isNull());
         assertEquals(memberId.toString(), d.path("memberId").asText());
         assertEquals(planId.toString(), d.path("planId").asText());
-        assertEquals("完整方案", d.path("planExecution").path("title").asText());
+        // F3：Plan.execution 白名单仅 steps/regions/parameters；title/schema_version 不外发
+        assertEquals(1, d.path("planExecution").path("steps").size());
+        assertTrue(d.path("planExecution").path("title").isMissingNode());
+        assertTrue(d.path("planExecution").path("schema_version").isMissingNode());
         JsonNode progress = d.path("progress");
         assertEquals("5", progress.path("targetCount").asText());
         assertEquals("1", progress.path("completedCount").asText());
@@ -427,5 +430,57 @@ class CareAdmissionIT extends AbstractWebIT {
         assertEquals("UNSUPPORTED_IMAGE", error(badImage).path("code").asText());
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM care_executions WHERE microcrystal_id = ?",
                 Integer.class, mic4));
+    }
+
+    // ---------------- F1：重放须当前读取资格 ----------------
+
+    @Test
+    @DisplayName("F1 A03 APP 重放：撤销授权后同键重放 404（与随机 id 全等），T13 仍 succeeded")
+    void f1AdmissionReplayRequiresCurrentGrant() throws Exception {
+        LoginResult login = loginAppWithInstallation(newPhone(), "inst-f1-a03");
+        UUID accountId = UUID.fromString(login.accountId());
+        UUID memberId = fx.seedMember();
+        fx.seedGrant(accountId, memberId, "active");
+        UUID gimbalId = fx.seedGimbal("f1-a03-g-" + UUID.randomUUID(), 1);
+        UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 1, 1, null);
+        UUID microcrystalId = fx.seedMicrocrystal(CAPABILITIES);
+        String key = CareAdmissionTestSupport.newKey();
+        String metadata = appMetadata(microcrystalId, "proof-f1", planId);
+        MvcResult first = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(), key, metadata, PNG);
+        assertEquals(201, first.getResponse().getStatus(), first.getResponse().getContentAsString());
+
+        fx.revokeGrant(accountId, memberId);
+        MvcResult replay = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(), key, metadata, PNG);
+        assertEquals(404, replay.getResponse().getStatus(), replay.getResponse().getContentAsString());
+        MvcResult random = CareAdmissionTestSupport.admit(mockMvc, login.accessToken(),
+                CareAdmissionTestSupport.newKey(), appMetadata(microcrystalId, "p", UUID.randomUUID()), PNG);
+        assertEquals(404, random.getResponse().getStatus());
+        assertEquals(CareTestFixtures.errorTree(replay), CareTestFixtures.errorTree(random));
+        assertEquals("succeeded", jdbc.queryForObject(
+                "SELECT status FROM idempotency_requests WHERE idempotency_key = ?", String.class, key));
+    }
+
+    @Test
+    @DisplayName("F1 A03 云台重放：任务指针换到另一 assessment 后同键重放 404")
+    void f1AdmissionReplayRequiresCurrentTask() throws Exception {
+        UUID gimbalId = fx.seedGimbal("f1-a03-gimbal-" + UUID.randomUUID(), 1);
+        String token = fx.loginGimbal(mockMvc, gimbalId);
+        UUID memberId = fx.seedMember();
+        UUID assessment = fx.seedAssessment(gimbalId, memberId);
+        fx.seedReadyPlan(assessment, memberId, 5, 0, 0, null);
+        fx.pointGimbalAtAssessment(gimbalId, assessment);
+        UUID microcrystalId = fx.seedMicrocrystal(CAPABILITIES);
+        String key = CareAdmissionTestSupport.newKey();
+        String metadata = CareAdmissionTestSupport.admissionMetadata(microcrystalId, "pg", null,
+                assessment, "1",
+                CareAdmissionTestSupport.capture("c", "2026-09-10T04:00:00Z", "cc", "admission"),
+                "consent");
+        MvcResult first = CareAdmissionTestSupport.admit(mockMvc, token, key, metadata, PNG);
+        assertEquals(201, first.getResponse().getStatus(), first.getResponse().getContentAsString());
+
+        UUID otherAssessment = fx.seedAssessment(gimbalId, memberId);
+        fx.pointGimbalAtAssessment(gimbalId, otherAssessment);
+        MvcResult replay = CareAdmissionTestSupport.admit(mockMvc, token, key, metadata, PNG);
+        assertEquals(404, replay.getResponse().getStatus(), replay.getResponse().getContentAsString());
     }
 }
