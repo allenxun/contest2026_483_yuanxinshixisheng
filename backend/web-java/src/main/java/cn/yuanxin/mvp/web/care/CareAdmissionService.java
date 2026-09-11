@@ -1,7 +1,5 @@
 package cn.yuanxin.mvp.web.care;
 
-import cn.yuanxin.mvp.web.auth.FaceClassification;
-import cn.yuanxin.mvp.web.auth.FaceProvider;
 import cn.yuanxin.mvp.web.auth.PrincipalContext;
 import cn.yuanxin.mvp.web.auth.PrincipalType;
 import cn.yuanxin.mvp.web.care.CareAdmissionDtos.CareExecutionAdmission;
@@ -43,6 +41,7 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -54,10 +53,12 @@ import java.util.UUID;
  * → T06 → T07 → T02(APP)。任何锁内复核失败都让事务回滚，再在独立短事务里
  * 把同一 Idempotency-Key 记为 rejected（确定性拒绝；同键重试重放原拒绝）。</p>
  *
- * <p><b>人脸准入协议缺口（必须保留此说明）：</b>真实 1:1「当前人脸 vs 方案成员」
- * 比对需要可信成员参考照，而 {@link FaceProvider#classify(String, byte[])} 端口
- * 没有成员参数。MVP 以 {@code MATCHED} 表示“与方案成员一致”，由测试替身/
- * 未来真实提供方保证该语义；接入缺口不改变本端点的写入语义。</p>
+ * <p><b>人脸成员绑定门禁（总协调裁定 2026-09-11）：</b>准入人脸核验必须针对
+ * 明确 {@code plan.member_id}/{@code execution.member_id} 的可信参考做 1:1 比对
+ * （{@link CareFaceVerifier}）。公共 {@code FaceProvider.classify(purpose,bytes)}
+ * 无成员参数，不能作为准入证据，本服务不再使用它。成员绑定能力接入前生产路径
+ * fail-closed（{@link FailClosedCareFaceVerifier} → CAPABILITY_UNAVAILABLE → 503）；
+ * 最小公共接口需求见 backend/handoffs/C.md。</p>
  */
 @Service
 public class CareAdmissionService {
@@ -81,7 +82,8 @@ public class CareAdmissionService {
     private final MicrocrystalRepository microcrystalRepository;
     private final CareAccessRepository accessRepository;
     private final MediaIntakeService mediaIntakeService;
-    private final FaceProvider faceProvider;
+    private final CareFaceVerifier faceVerifier;
+    private final CareCapabilityChecker capabilityChecker;
     private final IdempotencyService idempotencyService;
     private final TransactionTemplate txTemplate;
     private final JdbcTemplate jdbc;
@@ -94,7 +96,8 @@ public class CareAdmissionService {
                                 GimbalReadRepository gimbalRepository,
                                 MicrocrystalRepository microcrystalRepository,
                                 CareAccessRepository accessRepository,
-                                MediaIntakeService mediaIntakeService, FaceProvider faceProvider,
+                                MediaIntakeService mediaIntakeService, CareFaceVerifier faceVerifier,
+                                CareCapabilityChecker capabilityChecker,
                                 IdempotencyService idempotencyService,
                                 TransactionTemplate txTemplate, JdbcTemplate jdbc,
                                 ObjectMapper objectMapper) {
@@ -107,7 +110,8 @@ public class CareAdmissionService {
         this.microcrystalRepository = microcrystalRepository;
         this.accessRepository = accessRepository;
         this.mediaIntakeService = mediaIntakeService;
-        this.faceProvider = faceProvider;
+        this.faceVerifier = faceVerifier;
+        this.capabilityChecker = capabilityChecker;
         this.idempotencyService = idempotencyService;
         this.txTemplate = txTemplate;
         this.jdbc = jdbc;
@@ -225,8 +229,8 @@ public class CareAdmissionService {
                 handle.requestId(), Map.of("face", face));
         UUID mediaId = ingested.get("face").media().id();
 
-        // 步骤 6：人脸核验（锁外）
-        requireFaceMatched(faceProvider.classify("admission", face));
+        // 步骤 6：人脸 1:1 核验（锁外，绑定方案成员）
+        requireFaceVerified(faceVerifier.verifyOneToOne("admission", plan.memberId(), face));
 
         // 步骤 7：最终短事务
         AdmissionTx tx = txTemplate.execute(status -> runAdmissionTx(handle, principal, meta, plan,
@@ -433,7 +437,7 @@ public class CareAdmissionService {
         var ingested = mediaIntakeService.ingest(principal, MediaPurpose.REVALIDATION_FACE,
                 handle.requestId(), Map.of("face", face));
         UUID mediaId = ingested.get("face").media().id();
-        requireFaceMatched(faceProvider.classify("revalidation", face));
+        requireFaceVerified(faceVerifier.verifyOneToOne("revalidation", row.memberId(), face));
 
         // 步骤 3：最终短事务
         RevalidationTx tx = txTemplate.execute(status -> runRevalidationTx(handle, principal,
@@ -553,37 +557,29 @@ public class CareAdmissionService {
     }
 
     /**
-     * 能力覆盖最小规则（能力协议未冻结，MVP 裁量）：capabilities 为空对象 →
-     * 未覆盖；若方案 input_snapshot 显式携带 {@code required_capability_revision}
-     * 键，则 capabilities.revision 必须与其字符串化后相等。未来能力协议冻结后
-     * 应替换为正式的批准参数/基线匹配。
+     * 能力覆盖判定（D 版本化约定）：委托 {@link CareCapabilityChecker}；不 covered
+     * → 409 PLAN_NOT_READY details.reason=有界 token。锁外预检与锁内重检同规则。
      */
     private void requireCapabilityCovered(CarePlanRow plan, MicrocrystalRow microcrystal) {
-        JsonNode caps = readJsonObject(microcrystal.capabilities());
-        if (caps == null) {
-            throw planNotReady("capability_not_covered");
-        }
-        JsonNode snapshot = readJsonObject(plan.inputSnapshot());
-        if (snapshot != null && snapshot.hasNonNull("required_capability_revision")) {
-            JsonNode required = snapshot.get("required_capability_revision");
-            JsonNode actual = caps.get("revision");
-            if (actual == null || actual.isNull()
-                    || !required.asText().equals(actual.asText())) {
-                throw planNotReady("capability_not_covered");
-            }
+        Optional<String> reason = capabilityChecker.notCoveredReason(plan.inputSnapshot(),
+                plan.planPayload(), plan.targetCount(), microcrystal.capabilities());
+        if (reason.isPresent()) {
+            throw planNotReady(reason.get());
         }
     }
 
-    private void requireFaceMatched(FaceClassification classification) {
-        switch (classification) {
+    /** 人脸 1:1 结果映射：MATCHED 继续；MISMATCH/UNCERTAIN→403；质量→422；能力/依赖→503。 */
+    private void requireFaceVerified(CareFaceVerifier.Outcome outcome) {
+        switch (outcome) {
             case MATCHED -> {
             }
-            case RELIABLE_NEW, UNCERTAIN -> throw new ApiException(ErrorCode.FACE_NOT_VERIFIED,
+            case MISMATCH, UNCERTAIN -> throw new ApiException(ErrorCode.FACE_NOT_VERIFIED,
                     "face does not match the plan member");
             case QUALITY_REJECTED -> throw new ApiException(ErrorCode.FACE_QUALITY_REJECTED,
                     "face image quality rejected");
-            case DEPENDENCY_FAILED -> throw new ApiException(ErrorCode.DEPENDENCY_UNAVAILABLE,
-                    "face provider unavailable");
+            case DEPENDENCY_FAILED, CAPABILITY_UNAVAILABLE ->
+                    throw new ApiException(ErrorCode.DEPENDENCY_UNAVAILABLE,
+                            "member-bound face verification unavailable");
         }
     }
 

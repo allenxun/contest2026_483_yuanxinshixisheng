@@ -1,9 +1,6 @@
 package cn.yuanxin.mvp.web.care;
 
-import cn.yuanxin.mvp.web.auth.FaceClassification;
-import cn.yuanxin.mvp.web.auth.FaceProvider;
-import cn.yuanxin.mvp.web.support.AbstractWebIT;
-import cn.yuanxin.mvp.web.testdouble.FaceProviderDouble;
+import cn.yuanxin.mvp.web.care.CareFaceVerifier.Outcome;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 /** M4-A04 连续性失效后重新核验集成测试（真实 PG；原控制端 + paused + 代次重检）。 */
-class CareRevalidationIT extends AbstractWebIT {
+class CareRevalidationIT extends AbstractCareIT {
 
     private static final String LATEST_OBS = "{\"schema_version\":1,\"epoch\":\"epoch-1\","
             + "\"seq\":\"2\",\"state\":\"paused\",\"occurred_at\":\"2026-09-10T04:00:00Z\","
@@ -47,18 +44,11 @@ class CareRevalidationIT extends AbstractWebIT {
     @Autowired
     JdbcTemplate jdbc;
 
-    @Autowired
-    FaceProvider faceProvider;
-
     private CareTestFixtures fx;
 
     @BeforeEach
     void setUp() {
         fx = new CareTestFixtures(jdbc);
-    }
-
-    private FaceProviderDouble faceDouble() {
-        return (FaceProviderDouble) faceProvider;
     }
 
     private UUID seedPausedApp(UUID planId, UUID memberId, UUID accountId, String installation,
@@ -96,7 +86,9 @@ class CareRevalidationIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a04-ok");
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a04-ok-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 1, 1, null);
         UUID assessment = fx.seedAssessment(gimbalId, memberId);
@@ -148,6 +140,7 @@ class CareRevalidationIT extends AbstractWebIT {
         UUID gimbalId = fx.seedGimbal("a04-a08-login-" + UUID.randomUUID(), 1);
         String token = fx.loginGimbal(mockMvc, gimbalId);
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         UUID assessment = fx.seedAssessment(gimbalId, memberId);
         UUID planId = fx.seedReadyPlan(assessment, memberId, 5, 1, 1, null);
         fx.pointGimbalAtAssessment(gimbalId, assessment);
@@ -189,7 +182,9 @@ class CareRevalidationIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a04-rev");
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a04-rev-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
         UUID executionId = seedPausedApp(planId, memberId, accountId, "inst-a04-rev",
@@ -208,7 +203,9 @@ class CareRevalidationIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a04-status");
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a04-status-g-" + UUID.randomUUID(), 1);
 
         assertReason(login, accountId, memberId, gimbalId, "running", null, "running_not_paused");
@@ -243,7 +240,9 @@ class CareRevalidationIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a04-done");
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a04-done-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 3, 3, 2, null);
         UUID executionId = seedPausedApp(planId, memberId, accountId, "inst-a04-done",
@@ -262,7 +261,9 @@ class CareRevalidationIT extends AbstractWebIT {
         LoginResult owner = loginAppWithInstallation(newPhone(), "inst-a04-owner");
         UUID accountId = UUID.fromString(owner.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a04-own-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
         UUID executionId = seedPausedApp(planId, memberId, accountId, "inst-a04-owner",
@@ -285,6 +286,7 @@ class CareRevalidationIT extends AbstractWebIT {
         // 其他有授权的账号
         LoginResult otherAccount = loginAppWithInstallation(newPhone(), "inst-a04-other-acct");
         fx.seedGrant(UUID.fromString(otherAccount.accountId()), memberId, "active");
+        bindFaceMember(memberId);
         MvcResult wrongAccount = CareAdmissionTestSupport.revalidate(mockMvc, otherAccount.accessToken(),
                 executionId, CareAdmissionTestSupport.newKey(), metadata("1"), PNG);
         assertEquals(404, wrongAccount.getResponse().getStatus());
@@ -317,7 +319,9 @@ class CareRevalidationIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a04-revoked");
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a04-revoked-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
         UUID executionId = seedPausedApp(planId, memberId, accountId, "inst-a04-revoked",
@@ -336,6 +340,7 @@ class CareRevalidationIT extends AbstractWebIT {
         UUID gimbalId = fx.seedGimbal("a04-repl-login-" + UUID.randomUUID(), 1);
         String token = fx.loginGimbal(mockMvc, gimbalId);
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         UUID assessment = fx.seedAssessment(gimbalId, memberId);
         UUID planId = fx.seedReadyPlan(assessment, memberId, 5, 0, 0, null);
         fx.pointGimbalAtAssessment(gimbalId, assessment);
@@ -359,7 +364,9 @@ class CareRevalidationIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a04-replay");
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a04-replay-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
         UUID executionId = seedPausedApp(planId, memberId, accountId, "inst-a04-replay",
@@ -391,7 +398,9 @@ class CareRevalidationIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-a04-face");
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("a04-face-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
         UUID executionId = seedPausedApp(planId, memberId, accountId, "inst-a04-face",
@@ -399,7 +408,7 @@ class CareRevalidationIT extends AbstractWebIT {
 
         try {
             String key1 = CareAdmissionTestSupport.newKey();
-            faceDouble().setClassification(FaceClassification.UNCERTAIN);
+            faceDouble.forceOutcome(Outcome.UNCERTAIN);
             MvcResult uncertain = CareAdmissionTestSupport.revalidate(mockMvc, login.accessToken(),
                     executionId, key1, metadata("1"), PNG);
             assertEquals(403, uncertain.getResponse().getStatus(), uncertain.getResponse().getContentAsString());
@@ -411,7 +420,7 @@ class CareRevalidationIT extends AbstractWebIT {
                     executionId)).longValue());
 
             String key2 = CareAdmissionTestSupport.newKey();
-            faceDouble().setClassification(FaceClassification.DEPENDENCY_FAILED);
+            faceDouble.forceOutcome(Outcome.DEPENDENCY_FAILED);
             MvcResult dependency = CareAdmissionTestSupport.revalidate(mockMvc, login.accessToken(),
                     executionId, key2, metadata("1"), PNG);
             assertEquals(503, dependency.getResponse().getStatus());
@@ -419,7 +428,7 @@ class CareRevalidationIT extends AbstractWebIT {
             assertEquals("processing", jdbc.queryForObject(
                     "SELECT status FROM idempotency_requests WHERE idempotency_key = ?", String.class, key2));
         } finally {
-            faceDouble().setClassification(FaceClassification.MATCHED);
+            faceDouble.reset();
         }
     }
 
@@ -431,7 +440,9 @@ class CareRevalidationIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-f1-a04");
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("f1-a04-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
         UUID executionId = seedPausedApp(planId, memberId, accountId, "inst-f1-a04",
@@ -460,7 +471,9 @@ class CareRevalidationIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-f6-a04");
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
+        bindFaceMember(memberId);
         UUID gimbalId = fx.seedGimbal("f6-a04-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
         UUID executionId = seedPausedApp(planId, memberId, accountId, "inst-f6-a04",

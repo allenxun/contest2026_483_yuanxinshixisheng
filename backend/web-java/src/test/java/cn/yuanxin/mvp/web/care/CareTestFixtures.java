@@ -21,6 +21,20 @@ public class CareTestFixtures {
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
+    /** D 版本化约定：冻结 capability 基线（capability_revision 仅追溯）。 */
+    public static final String DEFAULT_INPUT_SNAPSHOT = "{\"schema_version\":1,"
+            + "\"report\":{\"assessment_id\":\"00000000-0000-0000-0000-000000000001\"},"
+            + "\"capability\":{\"microcrystal_id\":\"00000000-0000-0000-0000-000000000002\","
+            + "\"capability_id\":\"cap-mvp-1\",\"capability_revision\":\"7\","
+            + "\"parameter_ranges\":{\"intensity\":{\"min\":\"0\",\"max\":\"5\",\"unit\":\"level\"}},"
+            + "\"approved_regions\":[\"face\"],\"n_bounds\":{\"min\":\"1\",\"max\":\"30\"}}}";
+
+    /** 设备可信能力（revision 9 ≠ 冻结 7，但 revision 非门禁证据）。 */
+    public static final String DEFAULT_CAPABILITIES = "{\"schema_version\":1,"
+            + "\"capability_id\":\"cap-mvp-1\",\"revision\":\"9\","
+            + "\"parameter_ranges\":{\"intensity\":{\"min\":\"0\",\"max\":\"8\",\"unit\":\"level\"}},"
+            + "\"supported_regions\":[\"face\",\"neck\"]}";
+
     private final JdbcTemplate jdbc;
 
     public CareTestFixtures(JdbcTemplate jdbc) {
@@ -73,10 +87,7 @@ public class CareTestFixtures {
     }
 
     public UUID seedMicrocrystal() {
-        UUID id = UUID.randomUUID();
-        jdbc.update("INSERT INTO microcrystals (id, serial_no) VALUES (?, ?)",
-                id, "mic-" + id);
-        return id;
+        return seedMicrocrystal(DEFAULT_CAPABILITIES);
     }
 
     /** 带能力 JSON 的微晶（非空 capabilities 须带数字 schema_version，见 V1 CHECK）。 */
@@ -144,10 +155,13 @@ public class CareTestFixtures {
 
     public UUID seedReadyPlan(UUID assessmentId, UUID memberId, long target, long completed,
                               long progressRevision, Instant completedAt) {
-        return seedPlan(assessmentId, memberId, "ready",
+        UUID id = seedPlan(assessmentId, memberId, "ready",
                 "{\"schema_version\":1,\"title\":\"摘要标题\"}",
-                "{\"schema_version\":1,\"title\":\"完整方案\",\"steps\":[{\"order\":1}]}",
+                "{\"schema_version\":1,\"title\":\"完整方案\","
+                        + "\"steps\":[{\"region\":\"face\",\"parameters\":{\"intensity\":\"3\"}}]}",
                 target, completed, progressRevision, completedAt);
+        setPlanInputSnapshot(id, DEFAULT_INPUT_SNAPSHOT);
+        return id;
     }
 
     public void setPlanCreatedAt(UUID planId, Instant createdAt) {
@@ -155,7 +169,7 @@ public class CareTestFixtures {
                 java.sql.Timestamp.from(createdAt), planId);
     }
 
-    /** 设置 T06 输入快照（如 required_capability_revision 能力覆盖校验）。 */
+    /** 设置 T06 输入快照（D 版本化 capability 冻结需求的覆盖校验）。 */
     public void setPlanInputSnapshot(UUID planId, String inputSnapshotJson) {
         jdbc.update("UPDATE care_plans SET input_snapshot=CAST(? AS jsonb) WHERE id=?",
                 inputSnapshotJson, planId);

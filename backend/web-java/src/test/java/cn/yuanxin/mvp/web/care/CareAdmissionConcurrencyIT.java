@@ -1,6 +1,5 @@
 package cn.yuanxin.mvp.web.care;
 
-import cn.yuanxin.mvp.web.support.AbstractWebIT;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,9 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * M4-A03 / M4-A04 真实 PG 并发准入：两个部分唯一索引（微晶 / 云台未收尾）
  * 原子裁决占用；A04 同 expectedRevision 并发只放行一个。
  */
-class CareAdmissionConcurrencyIT extends AbstractWebIT {
+class CareAdmissionConcurrencyIT extends AbstractCareIT {
 
-    private static final String CAPABILITIES = "{\"schema_version\":1,\"revision\":\"1\"}";
+    private static final String CAPABILITIES = CareTestFixtures.DEFAULT_CAPABILITIES;
 
     private static final String LATEST_OBS = "{\"schema_version\":1,\"epoch\":\"epoch-1\","
             + "\"seq\":\"2\",\"state\":\"paused\",\"occurred_at\":\"2026-09-10T04:00:00Z\","
@@ -103,6 +102,7 @@ class CareAdmissionConcurrencyIT extends AbstractWebIT {
     @DisplayName("A03 并发同微晶双 APP：恰一个 201 一个 409 DEVICE_OCCUPIED，T07 仅 1 行")
     void concurrentSameMicrocrystal() throws Exception {
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         LoginResult a = loginAppWithInstallation(newPhone(), "inst-conc-a");
         LoginResult b = loginAppWithInstallation(newPhone(), "inst-conc-b");
         fx.seedGrant(UUID.fromString(a.accountId()), memberId, "active");
@@ -131,6 +131,7 @@ class CareAdmissionConcurrencyIT extends AbstractWebIT {
         UUID gimbalId = fx.seedGimbal("conc-gim-login-" + UUID.randomUUID(), 1);
         String token = fx.loginGimbal(mockMvc, gimbalId);
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         UUID assessment = fx.seedAssessment(gimbalId, memberId);
         UUID planId = fx.seedReadyPlan(assessment, memberId, 5, 0, 0, null);
         fx.pointGimbalAtAssessment(gimbalId, assessment);
@@ -160,6 +161,7 @@ class CareAdmissionConcurrencyIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-occ");
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
         UUID gimbalId = fx.seedGimbal("occ-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
@@ -195,6 +197,7 @@ class CareAdmissionConcurrencyIT extends AbstractWebIT {
     @DisplayName("A03 负对照：同方案两个不同微晶双 APP 并发 → 都 201")
     void concurrentDifferentMicrocrystalsBothSucceed() throws Exception {
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         LoginResult a = loginAppWithInstallation(newPhone(), "inst-conc-na");
         LoginResult b = loginAppWithInstallation(newPhone(), "inst-conc-nb");
         fx.seedGrant(UUID.fromString(a.accountId()), memberId, "active");
@@ -219,6 +222,7 @@ class CareAdmissionConcurrencyIT extends AbstractWebIT {
         LoginResult login = loginAppWithInstallation(newPhone(), "inst-conc-a04");
         UUID accountId = UUID.fromString(login.accountId());
         UUID memberId = fx.seedMember();
+        bindFaceMember(memberId);
         fx.seedGrant(accountId, memberId, "active");
         UUID gimbalId = fx.seedGimbal("conc-a04-g-" + UUID.randomUUID(), 1);
         UUID planId = fx.seedReadyPlan(fx.seedAssessment(gimbalId, memberId), memberId, 5, 0, 0, null);
