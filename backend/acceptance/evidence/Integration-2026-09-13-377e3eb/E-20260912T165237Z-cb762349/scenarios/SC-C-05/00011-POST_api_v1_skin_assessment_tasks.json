@@ -1,0 +1,15 @@
+{
+  "method": "POST",
+  "path": "/api/v1/skin-assessment-tasks",
+  "status": 202,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "inject": "fail-put:grant_face",
+    "purpose": "assessment_source"
+  },
+  "response_excerpt": "{\"requestId\": \"d9c1aee9-375a-458f-8cde-db4630614e73\", \"data\": {\"taskId\": \"0fdf0ddc-09af-481f-aedb-32893b604f6c\", \"status\": \"queued\", \"photoVersion\": \"1\", \"currentAssessmentRevision\": \"1\"}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-12T17:04:25Z\"}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T165237Z-cb762349"
+}
