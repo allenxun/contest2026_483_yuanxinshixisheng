@@ -1,0 +1,15 @@
+{
+  "method": "POST",
+  "path": "/api/v1/microcrystal-observations",
+  "status": 403,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "serial": "mc-1f25b953",
+    "forged": true
+  },
+  "response_excerpt": "{\"requestId\": \"1e5fd552-c3ef-4412-9667-361f99664f25\", \"error\": {\"code\": \"CALLER_NOT_ALLOWED\", \"message\": \"connectionProof could not be verified for this control side\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T122015Z-33ffeb3c"
+}
