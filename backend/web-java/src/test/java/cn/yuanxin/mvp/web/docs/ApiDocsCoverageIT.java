@@ -80,6 +80,50 @@ class ApiDocsCoverageIT extends AbstractWebIT {
             Map.entry("ExecutionObservationDto", "ExecutionObservation"),
             Map.entry("ExecutionRecordDto", "ExecutionRecord"));
 
+    /**
+     * 生成 schema 名 → 契约 components schema 名，用于<strong>成功响应 data</strong> 侧
+     * required 交叉校验。每条的取证来源：
+     * <ul>
+     *   <li>同名映射（下列未列出的响应类型）：{@code openapi.yaml components.schemas} 与 DTO
+     *       简单类名同名，如 {@code MemberAccessGrantResult}、{@code AssessmentTaskView}、
+     *       {@code SkinReportView}、{@code SkinReportListItem}、{@code CareExecutionAdmission}、
+     *       {@code CareExecutionRevalidation}、{@code CarePlanFullView}、{@code Progress}、
+     *       {@code GimbalCurrentAssessmentView}、{@code ProgressWithSync}、{@code CareExecutionView}、
+     *       {@code CareExecutionListItem}、{@code ControllerRef}、{@code ExecutionObservation}。</li>
+     *   <li>{@code SmsChallengeData}→{@code SmsChallenge}：{@code AuthController.SmsChallengeData}（契约 M6）。</li>
+     *   <li>{@code AppSessionData}→{@code AppSession}：{@code AuthController.AppSessionData}。</li>
+     *   <li>{@code GimbalSessionData}→{@code GimbalSession}：{@code GimbalSessionController.GimbalSessionData}。</li>
+     *   <li>{@code EchoJobAcceptedData}→{@code SystemEchoJobAccepted}：{@code SystemEchoController}。</li>
+     *   <li>{@code EchoJobViewData}→{@code SystemEchoJobView}：{@code SystemEchoController}。</li>
+     *   <li>{@code HeartbeatAck}→{@code GimbalHeartbeatAck}：{@code DeviceDtos.HeartbeatAck}（契约 M2-A02）。</li>
+     *   <li>{@code StatusView}→{@code GimbalStatusView}：{@code DeviceDtos.StatusView}（契约 M2-A03）。</li>
+     *   <li>{@code CapabilitiesView}→{@code MicrocrystalCapabilitiesView}：{@code DeviceDtos.CapabilitiesView}（契约 M2-A05）。</li>
+     *   <li>{@code BindingResultView}→{@code GimbalBindingResult}：{@code DeviceDtos.BindingResultView}（契约 M2-A06）。</li>
+     *   <li>{@code BindingStatusView}→{@code GimbalBindingStatusView}：{@code DeviceDtos.BindingStatusView}（契约 M2-A07）。</li>
+     *   <li>{@code View}→{@code NotificationDestinationView}：{@code NotificationDestinationDtos.View}（契约 M5-A01）。</li>
+     *   <li>{@code ObservationAckDto}→{@code ExecutionObservationAck}：{@code CareLedgerDtos.ObservationAckDto}（契约 M4-A05）。</li>
+     *   <li>{@code ClosureResultDto}→{@code ExecutionClosureResult}：{@code CareLedgerDtos.ClosureResultDto}（契约 M4-A06）。</li>
+     *   <li>{@code VerificationDto}→{@code Verification}：{@code CareAdmissionDtos.VerificationDto}（契约 components.Verification）。</li>
+     *   <li>{@code AcknowledgedRecordDto}→{@code AcknowledgedRecord}：{@code CareLedgerDtos.AcknowledgedRecordDto}（契约 M4-A05）。</li>
+     * </ul>
+     */
+    private static final Map<String, String> CONTRACT_RESPONSE_SCHEMA_ALIASES = Map.ofEntries(
+            Map.entry("SmsChallengeData", "SmsChallenge"),
+            Map.entry("AppSessionData", "AppSession"),
+            Map.entry("GimbalSessionData", "GimbalSession"),
+            Map.entry("EchoJobAcceptedData", "SystemEchoJobAccepted"),
+            Map.entry("EchoJobViewData", "SystemEchoJobView"),
+            Map.entry("HeartbeatAck", "GimbalHeartbeatAck"),
+            Map.entry("StatusView", "GimbalStatusView"),
+            Map.entry("CapabilitiesView", "MicrocrystalCapabilitiesView"),
+            Map.entry("BindingResultView", "GimbalBindingResult"),
+            Map.entry("BindingStatusView", "GimbalBindingStatusView"),
+            Map.entry("View", "NotificationDestinationView"),
+            Map.entry("ObservationAckDto", "ExecutionObservationAck"),
+            Map.entry("ClosureResultDto", "ExecutionClosureResult"),
+            Map.entry("VerificationDto", "Verification"),
+            Map.entry("AcknowledgedRecordDto", "AcknowledgedRecord"));
+
     @Autowired
     private ApiDocsApplier apiDocsApplier;
 
@@ -253,6 +297,11 @@ class ApiDocsCoverageIT extends AbstractWebIT {
             }
         }
 
+        // 6a) <strong>递归</strong>结构扫描：只扫描直接属性无法发现"展开字段内部的空 object /
+        //     错误 items"（如 plan.steps 被建成 array<string>、incidents[].detail 空壳，而父字段
+        //     已有 properties 被判 EXPANDED）。递归进入 properties/*、items、additionalProperties。
+        problems.addAll(findStructureProblems(schemas));
+
         // 6b) 契约 required 交叉校验：multipart part 必填性 + 请求体 schema required 集。
         crossCheckContractRequired(generated, schemas, problems);
 
@@ -309,6 +358,78 @@ class ApiDocsCoverageIT extends AbstractWebIT {
 
     // ------------------------------------------------------------------ helpers
 
+    /**
+     * <strong>递归</strong>结构门禁扫描（6a）：遍历每个 component schema 的每个属性，并递归进入
+     * {@code properties.*}、{@code items}、{@code additionalProperties}（为 schema 时）。
+     *
+     * <ul>
+     *   <li>任何 {@code type=object}（或无 {@code type} 但有 {@code properties}/{@code additionalProperties}）
+     *       节点必须满足：有<strong>非空</strong> {@code properties}，或显式 {@code additionalProperties}
+     *       （布尔或 schema），或属经核准的显式不透明声明（{@link ApiDocsApplier#OPAQUE_MARKER} 且
+     *       路径在 {@link #APPROVED_OPAQUE_FIELDS} 内）；否则失败，消息含完整路径
+     *       （如 {@code CarePlanFullView.plan.steps[]}）。</li>
+     *   <li>任何 {@code type=array} 节点必须有 {@code items} 且 {@code items} 有 {@code type}
+     *       或 {@code $ref}。</li>
+     * </ul>
+     *
+     * <p>不试图从生成文档反推"本该是对象数组"——该约束由引擎在 {@code knownKeys} 裸
+     * {@code array}/{@code object} 前缀处 fail fast（见 {@code ApiDocsApplier.keySchema}）。</p>
+     */
+    static List<String> findStructureProblems(JsonNode schemas) {
+        List<String> problems = new ArrayList<>();
+        if (schemas == null || !schemas.isObject()) {
+            return problems;
+        }
+        for (java.util.Iterator<String> it = schemas.fieldNames(); it.hasNext(); ) {
+            String name = it.next();
+            scanStructure(schemas.path(name), name, problems);
+        }
+        return problems;
+    }
+
+    private static void scanStructure(JsonNode node, String path, List<String> problems) {
+        if (node == null || !node.isObject()) {
+            return;
+        }
+        if (node.has("$ref")) {
+            return; // 被引用 schema 会在 components 遍历中单独扫描
+        }
+        String type = node.path("type").asText("");
+        boolean hasProperties = node.path("properties").isObject() && node.path("properties").size() > 0;
+        boolean hasAdditional = node.has("additionalProperties");
+        boolean objectish = "object".equals(type)
+                || (type.isEmpty() && (node.has("properties") || hasAdditional));
+        if (objectish) {
+            boolean approvedOpaque = node.path("description").asText("")
+                    .contains(ApiDocsApplier.OPAQUE_MARKER)
+                    && APPROVED_OPAQUE_FIELDS.contains(path);
+            if (!hasProperties && !hasAdditional && !approvedOpaque) {
+                problems.add("嵌套空虚对象（无 properties 且无显式 additionalProperties）: " + path
+                        + " = " + node);
+            }
+        }
+        if ("array".equals(type)) {
+            JsonNode items = node.path("items");
+            if (!items.isObject() || (!items.has("type") && !items.has("$ref"))) {
+                problems.add("数组缺少带 type/$ref 的 items: " + path + " = " + node);
+            }
+        }
+        JsonNode properties = node.path("properties");
+        if (properties.isObject()) {
+            for (java.util.Iterator<String> it = properties.fieldNames(); it.hasNext(); ) {
+                String prop = it.next();
+                scanStructure(properties.path(prop), path + "." + prop, problems);
+            }
+        }
+        if ("array".equals(type)) {
+            scanStructure(node.path("items"), path + "[]", problems);
+        }
+        JsonNode additional = node.get("additionalProperties");
+        if (additional != null && additional.isObject()) {
+            scanStructure(additional, path + ".*", problems);
+        }
+    }
+
     private static void checkChinese(JsonNode op, String field, String key, List<String> problems) {
         String value = op.path(field).asText("");
         if (value.isBlank()) {
@@ -341,7 +462,9 @@ class ApiDocsCoverageIT extends AbstractWebIT {
     /**
      * （a）multipart part required 与契约操作 {@code requestBody.content.multipart/form-data.schema.required}
      * 精确比对；（b）生成文档中全部请求体相关 schema 的 {@code required} 与契约 components 比对
-     * （生成名经 {@link #CONTRACT_REQUEST_SCHEMA_ALIASES} 映射）。
+     * （生成名经 {@link #CONTRACT_REQUEST_SCHEMA_ALIASES} 映射）；（c）每个操作成功响应
+     * {@code data} schema（含列表 {@code items} 条目类型，递归嵌套 {@code $ref}）的 {@code required}
+     * 与契约 components 比对（生成名经 {@link #CONTRACT_RESPONSE_SCHEMA_ALIASES} 映射）。
      * 少于契约 → 失败（应经 {@code requiredProperties()} 修正）；多于契约 → 失败（不得 invent）。
      * 无契约对应者<strong>跳过并在输出中披露计数</strong>，不静默。
      */
@@ -403,6 +526,73 @@ class ApiDocsCoverageIT extends AbstractWebIT {
             System.out.println("[coverage-gate] 无契约可比对、已跳过并披露的请求体:"
                     + " multipartOps=" + skippedMultipart + " requestSchemas=" + skippedSchemas);
         }
+
+        // (c) 成功响应 data schema required 集比对（含列表 items 条目类型，递归嵌套）。
+        //     生成名经 CONTRACT_RESPONSE_SCHEMA_ALIASES 映射；少于契约 → 失败（应经 requiredProperties()
+        //     修正）；多于契约 → 失败（不得 invent）。无契约对应者跳过并计数披露，不静默。
+        List<String> skippedResponses = new ArrayList<>();
+        for (String generatedName : responseSchemaNames(generated, schemas)) {
+            String contractName = CONTRACT_RESPONSE_SCHEMA_ALIASES.getOrDefault(generatedName, generatedName);
+            if (!contractSchemas.containsKey(contractName)) {
+                skippedResponses.add(generatedName + "→" + contractName);
+                continue;
+            }
+            Set<String> actual = stringSet(schemas.path(generatedName).path("required"));
+            Set<String> expected = contractSchemas.get(contractName);
+            if (actual.equals(expected)) {
+                continue;
+            }
+            Set<String> missing = new LinkedHashSet<>(expected);
+            missing.removeAll(actual);
+            Set<String> extra = new LinkedHashSet<>(actual);
+            extra.removeAll(expected);
+            if (!extra.isEmpty()) {
+                problems.add("响应 data schema required 多于契约（不得 invent 必填性）: "
+                        + generatedName + "→" + contractName + " extra=" + extra
+                        + " generated=" + actual + " contract=" + expected);
+            } else {
+                problems.add("响应 data schema required 少于契约（应经 requiredProperties() 修正）: "
+                        + generatedName + "→" + contractName + " missing=" + missing
+                        + " generated=" + actual + " contract=" + expected);
+            }
+        }
+        if (!skippedResponses.isEmpty()) {
+            System.out.println("[coverage-gate] 无契约可比对、已跳过并披露的响应 data schema:"
+                    + " responseSchemas=" + skippedResponses);
+        }
+    }
+
+    /**
+     * 生成文档中全部成功响应 {@code data} 相关 schema 名：对每个 2xx JSON 响应取信封的
+     * {@code data} schema（列表响应为内联 {@code {items, nextCursor}}，故进入其 {@code items}
+     * 的 {@code $ref}），再递归进入 components 的嵌套 {@code $ref}。
+     * <p>只从 {@code data} 子树出发，不把 {@code meta}/{@code requestId} 计入响应 data 比对。</p>
+     */
+    private static Set<String> responseSchemaNames(Map<String, JsonNode> generated, JsonNode schemas) {
+        Set<String> out = new LinkedHashSet<>();
+        java.util.Deque<String> queue = new java.util.ArrayDeque<>();
+        for (JsonNode op : generated.values()) {
+            JsonNode responses = op.path("responses");
+            for (java.util.Iterator<String> it = responses.fieldNames(); it.hasNext(); ) {
+                String code = it.next();
+                if (!(code.length() == 3 && code.charAt(0) == '2')) {
+                    continue;
+                }
+                JsonNode schema = responses.path(code).path("content")
+                        .path("application/json").path("schema");
+                JsonNode data = schema.path("properties").path("data");
+                collectSchemaRefs(data, out, queue);
+            }
+        }
+        while (!queue.isEmpty()) {
+            String name = queue.poll();
+            JsonNode schema = schemas.path(name);
+            if (schema.isMissingNode()) {
+                continue;
+            }
+            collectSchemaRefs(schema, out, queue);
+        }
+        return out;
     }
 
     private static Set<String> stringSet(JsonNode arrayNode) {

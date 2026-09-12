@@ -5,6 +5,9 @@ import cn.yuanxin.mvp.web.docs.catalog.ApiDocsCatalog;
 import cn.yuanxin.mvp.web.error.ErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.core.converter.ModelConverters;
+import io.swagger.v3.core.converter.ResolvedSchema;
+import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -56,7 +59,8 @@ class ApiDocsApplierTest {
     public record SyntheticMetadata(String captureId, String consentEvidenceRef) {
     }
 
-    public record SyntheticBody(String name, Integer count, Object state, List<Object> tags) {
+    public record SyntheticBody(String name, Integer count, Object state, List<Object> tags,
+                                JsonNode blob) {
     }
 
     public record SyntheticItem(String id, String name) {
@@ -546,6 +550,270 @@ class ApiDocsApplierTest {
                         + "\"properties\":{\"a\":{}}}}"), schemas));
     }
 
+    // ------------------------------------------------------------------ structuredKeys (recursive) + gate hardening
+
+    @Test
+    @DisplayName("正向：structuredKeys 递归构建（array<closedObject>、mapOf 值 schema、any 不写 type）、与 knownKeys 并集且同名以 structured 为准、数组字段内层键作用于 items")
+    void structuredKeysRecursiveBuildAndMerge() throws Exception {
+        OpenAPI openApi = syntheticDoc();
+        ApiDocsCatalog.KnownKeyDoc element = ApiDocsCatalog.KnownKeyDoc.closedObject(
+                Map.of("a", ApiDocsCatalog.KnownKeyDoc.str("A 键"),
+                        "b", ApiDocsCatalog.KnownKeyDoc.integer("B 键")),
+                "元素对象");
+        ApiDocsCatalog.KnownKeyDoc flex = new ApiDocsCatalog.KnownKeyDoc(
+                "any", "标量或 {value,unit} 对象的联合", null, null, null, null, null);
+        Map<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> sk = Map.of(
+                "SyntheticBody.state", Map.of(
+                        "steps", ApiDocsCatalog.KnownKeyDoc.array(element, "步骤数组"),
+                        "mapping", ApiDocsCatalog.KnownKeyDoc.mapOf(
+                                ApiDocsCatalog.KnownKeyDoc.str("映射值"), "动态映射"),
+                        "flex", flex,
+                        "clash", ApiDocsCatalog.KnownKeyDoc.integer("结构化赢"),
+                        "extra", ApiDocsCatalog.KnownKeyDoc.str("只有 structured 的键")),
+                "SyntheticBody.tags", Map.of(
+                        "detail", ApiDocsCatalog.KnownKeyDoc.opaqueObject("细节，未冻结")));
+        Map<String, ApiDocsCatalog.FreeFormDoc> free = Map.of(
+                "SyntheticBody.state", new ApiDocsCatalog.FreeFormDoc(
+                        "状态", Map.of("keep", "boolean: 保留键", "clash", "string: 一层 DSL"),
+                        true, "note", null),
+                "SyntheticBody.tags", new ApiDocsCatalog.FreeFormDoc(
+                        "标签", Map.of("code", "string: 码"), true, "note2", null));
+
+        Map<String, ApiDocEntry> entries = new LinkedHashMap<>(validCatalog().entries());
+        new ApiDocsApplier(List.of(new TestCatalog(entries, Map.of(), free,
+                List.of(new Tag().name("Synthetic")), Map.of(), sk)), MAPPER).customise(openApi);
+
+        Schema<?> body = openApi.getComponents().getSchemas().get("SyntheticBody");
+        Schema<?> state = (Schema<?>) body.getProperties().get("state");
+        assertEquals("object", state.getType());
+
+        Schema<?> steps = (Schema<?>) state.getProperties().get("steps");
+        assertEquals("array", steps.getType());
+        Schema<?> stepItems = steps.getItems();
+        assertEquals("object", stepItems.getType(), "array(closedObject) 必须生成 items.type=object");
+        assertEquals(Boolean.FALSE, stepItems.getAdditionalProperties());
+        assertNotNull(stepItems.getProperties().get("a"));
+        assertEquals("integer", ((Schema<?>) stepItems.getProperties().get("b")).getType());
+
+        Schema<?> mapping = (Schema<?>) state.getProperties().get("mapping");
+        assertEquals("object", mapping.getType());
+        assertTrue(mapping.getAdditionalProperties() instanceof Schema,
+                "mapOf 的 additionalProperties 必须是<值 schema>而非布尔: "
+                        + mapping.getAdditionalProperties());
+        assertEquals("string", ((Schema<?>) mapping.getAdditionalProperties()).getType());
+
+        Schema<?> flexSchema = (Schema<?>) state.getProperties().get("flex");
+        assertNull(flexSchema.getType(), "any 不得写 type 关键字");
+        assertTrue(flexSchema.getDescription().contains("联合"));
+
+        assertEquals("boolean", ((Schema<?>) state.getProperties().get("keep")).getType(),
+                "knownKeys 独有键应生效");
+        assertEquals("integer", ((Schema<?>) state.getProperties().get("clash")).getType(),
+                "同名键以 structuredKeys 为准");
+        assertNotNull(state.getProperties().get("extra"), "只有 structuredKeys 的键应生效");
+
+        // 数组型自由字段：内层键描述的是 items 对象的键
+        Schema<?> tags = (Schema<?>) body.getProperties().get("tags");
+        assertEquals("array", tags.getType());
+        Schema<?> tagItems = tags.getItems();
+        assertEquals("object", tagItems.getType());
+        assertEquals("string", ((Schema<?>) tagItems.getProperties().get("code")).getType());
+        Schema<?> detail = (Schema<?>) tagItems.getProperties().get("detail");
+        assertNotNull(detail, "数组字段的 structuredKeys 内层键须作用于 items.properties");
+        assertEquals("object", detail.getType());
+        assertEquals(Boolean.TRUE, detail.getAdditionalProperties());
+
+        // 序列化层（OpenAPI 3.1，与生产同源 Json31）：确认这些语义确实进入最终文档 JSON，
+        // 而非只存在于内存对象（原 `$ref` 实例的 type 只设内存、不进 3.1 序列化）。
+        JsonNode serState = MAPPER.readTree(Json31.mapper().writeValueAsString(openApi))
+                .path("components").path("schemas").path("SyntheticBody")
+                .path("properties").path("state");
+        JsonNode serProps = serState.path("properties");
+        assertFalse(serProps.path("flex").has("type"), "序列化层：any 不得写 type 关键字");
+        assertTrue(serProps.path("flex").path("description").asText().contains("联合"),
+                "序列化层：any 必须保留 description: " + serProps.path("flex"));
+        assertTrue(serProps.path("mapping").path("additionalProperties").isObject(),
+                "序列化层：mapOf 的 additionalProperties 必须是对象 schema 而非布尔");
+        assertEquals("string",
+                serProps.path("mapping").path("additionalProperties").path("type").asText());
+        assertEquals("object", serProps.path("steps").path("items").path("type").asText());
+        assertFalse(serProps.path("steps").path("items")
+                .path("additionalProperties").asBoolean(true));
+        assertEquals("integer", serProps.path("clash").path("type").asText());
+    }
+
+    @Test
+    @DisplayName("负向：knownKeys 裸 array/object 前缀 → 结构性错误 fail fast（错误含字段路径）")
+    void bareContainerKnownKeysFailFast() {
+        // 裸 array
+        OpenAPI openApi = syntheticDoc();
+        Map<String, ApiDocsCatalog.FreeFormDoc> freeArray = Map.of(
+                "SyntheticBody.state", new ApiDocsCatalog.FreeFormDoc(
+                        "状态", Map.of("events", "array，事件列表"), true, "note", null));
+        ApiDocsApplier applier = new ApiDocsApplier(List.of(new TestCatalog(
+                validCatalog().entries(), Map.of(), freeArray,
+                List.of(new Tag().name("Synthetic")))), MAPPER);
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> applier.customise(openApi));
+        assertTrue(ex.getMessage().contains("invalidKnownKeyTypes"), ex.getMessage());
+        assertTrue(applier.report().invalidKnownKeyTypes.stream()
+                        .anyMatch(p -> p.contains("SyntheticBody.state.events")),
+                "错误必须含字段路径: " + applier.report().invalidKnownKeyTypes);
+
+        // 裸 object
+        OpenAPI openApi2 = syntheticDoc();
+        Map<String, ApiDocsCatalog.FreeFormDoc> freeObject = Map.of(
+                "SyntheticBody.state", new ApiDocsCatalog.FreeFormDoc(
+                        "状态", Map.of("detail", "object，细节"), true, "note", null));
+        ApiDocsApplier applier2 = new ApiDocsApplier(List.of(new TestCatalog(
+                validCatalog().entries(), Map.of(), freeObject,
+                List.of(new Tag().name("Synthetic")))), MAPPER);
+        IllegalStateException ex2 = assertThrows(IllegalStateException.class,
+                () -> applier2.customise(openApi2));
+        assertTrue(ex2.getMessage().contains("invalidKnownKeyTypes"), ex2.getMessage());
+        assertTrue(applier2.report().invalidKnownKeyTypes.stream()
+                        .anyMatch(p -> p.contains("SyntheticBody.state.detail")),
+                "错误必须含字段路径: " + applier2.report().invalidKnownKeyTypes);
+    }
+
+    @Test
+    @DisplayName("正向：显式 array<string> 前缀生成 array<string>（真正的字符串数组）")
+    void explicitStringArrayPrefixBuildsStringItems() throws Exception {
+        OpenAPI openApi = syntheticDoc();
+        Map<String, ApiDocsCatalog.FreeFormDoc> free = Map.of(
+                "SyntheticBody.state", new ApiDocsCatalog.FreeFormDoc(
+                        "状态", Map.of("regions", "array<string>，允许区域字符串数组"),
+                        true, "note", null));
+        new ApiDocsApplier(List.of(new TestCatalog(validCatalog().entries(), Map.of(), free,
+                List.of(new Tag().name("Synthetic")))), MAPPER).customise(openApi);
+
+        Schema<?> state = (Schema<?>) openApi.getComponents().getSchemas()
+                .get("SyntheticBody").getProperties().get("state");
+        Schema<?> regions = (Schema<?>) state.getProperties().get("regions");
+        assertEquals("array", regions.getType());
+        assertEquals("string", regions.getItems().getType());
+        assertTrue(regions.getDescription().contains("区域"));
+
+        // 序列化层（3.1）：array<string> 的 type/items.type 确实进入最终 JSON。
+        JsonNode serRegions = MAPPER.readTree(Json31.mapper().writeValueAsString(openApi))
+                .path("components").path("schemas").path("SyntheticBody")
+                .path("properties").path("state").path("properties").path("regions");
+        assertEquals("array", serRegions.path("type").asText());
+        assertEquals("string", serRegions.path("items").path("type").asText());
+    }
+
+    @Test
+    @DisplayName("负向：structuredKeys 的 array 缺 items → 引擎 fail fast")
+    void structuredArrayWithoutItemsFailsFast() {
+        OpenAPI openApi = syntheticDoc();
+        ApiDocsCatalog.KnownKeyDoc badArray = new ApiDocsCatalog.KnownKeyDoc(
+                "array", "坏数组（缺 items）", null, null, null, null, null);
+        Map<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> sk = Map.of(
+                "SyntheticBody.state", Map.of("bad", badArray));
+        ApiDocsApplier applier = new ApiDocsApplier(List.of(new TestCatalog(
+                validCatalog().entries(), Map.of(), Map.of(),
+                List.of(new Tag().name("Synthetic")), Map.of(), sk)), MAPPER);
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> applier.customise(openApi));
+        assertTrue(ex.getMessage().contains("items"), ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("负向：跨目录重复声明同一 structuredKeys 键 → fail fast 并报告")
+    void duplicateStructuredKeysFailFast() {
+        OpenAPI openApi = syntheticDoc();
+        Map<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> sk = Map.of(
+                "SyntheticBody.state", Map.of("k", ApiDocsCatalog.KnownKeyDoc.str("x")));
+        ApiDocsCatalog a = new TestCatalog(Map.of(), Map.of(), Map.of(),
+                List.of(), Map.of(), sk);
+        ApiDocsCatalog b = new TestCatalog(Map.of(), Map.of(), Map.of(),
+                List.of(), Map.of(), sk);
+        ApiDocsApplier applier = new ApiDocsApplier(List.of(a, b), MAPPER);
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> applier.customise(openApi));
+        assertTrue(ex.getMessage().contains("duplicateStructuredKeys"), ex.getMessage());
+        assertTrue(applier.report().duplicateStructuredKeys.contains("SyntheticBody.state.k"),
+                applier.report().duplicateStructuredKeys.toString());
+    }
+
+    @Test
+    @DisplayName("回归：清 $ref 展开自由结构后，OpenAPI 3.1 序列化结果必须带 type=object（JsonNode 型字段）")
+    void refClearedFreeFormGetsObjectType() throws Exception {
+        // 前置：证明 fixture 与真实文档同形。JsonNode 记录组件经 swagger 解析为 `$ref` 且无 type
+        // （真实 SkinReportListItem.reportSummary / M4A04Metadata.reportedMicrocrystalState 同形），
+        // 否则本回归不覆盖"清 `$ref`"路径，会退化为恒真。
+        ResolvedSchema resolved =
+                ModelConverters.getInstance().readAllAsResolvedSchema(SyntheticBody.class);
+        Schema<?> before = (Schema<?>) resolved.schema.getProperties().get("blob");
+        assertNotNull(before, "fixture 必须含 blob 字段");
+        assertNotNull(before.get$ref(), "fixture 形态必须为 $ref（与真实 JsonNode 字段一致）");
+        assertNull(before.getType(), "`$ref` 形态不得带 type");
+
+        OpenAPI openApi = syntheticDoc();
+        Map<String, ApiDocsCatalog.FreeFormDoc> free = Map.of(
+                "SyntheticBody.blob", new ApiDocsCatalog.FreeFormDoc(
+                        "JsonNode 型自由字段", Map.of("k", "string: 键"),
+                        false, "封闭白名单", null));
+        new ApiDocsApplier(List.of(new TestCatalog(validCatalog().entries(), Map.of(), free,
+                List.of(new Tag().name("Synthetic")))), MAPPER).customise(openApi);
+
+        // 与生产同源的序列化：生成的文档为 OpenAPI 3.1.0，springdoc 对 3.1 使用
+        // io.swagger.v3.core.util.Json31.mapper()（其 Schema31Mixin 以 `types` 集合序列化 `type`）。
+        JsonNode serialized = MAPPER.readTree(Json31.mapper().writeValueAsString(openApi))
+                .path("components").path("schemas").path("SyntheticBody").path("properties").path("blob");
+        assertFalse(serialized.has("$ref"), "展开后序列化结果不得含 $ref");
+        assertTrue(serialized.has("type"),
+                "序列化结果必须含 type 键：对原 $ref 实例原地 setType 不会进入 3.1 序列化");
+        assertEquals("object", serialized.path("type").asText());
+        assertEquals("string", serialized.path("properties").path("k").path("type").asText());
+        assertFalse(serialized.path("additionalProperties").asBoolean(true),
+                "additionalProperties 应为 false");
+
+        // 内存态双保险（替换为 new ObjectSchema 后其构造器填充 type/types）。
+        Schema<?> blob = (Schema<?>) openApi.getComponents().getSchemas()
+                .get("SyntheticBody").getProperties().get("blob");
+        assertNull(blob.get$ref(), "展开后不得保留 $ref");
+        assertEquals("object", blob.getType(), "$ref 清除后必须带 type=object");
+
+        // 负向判别力证明：对"原 $ref 实例只 setType、不替换实例"的同类节点，
+        // 3.1 序列化结果确实缺 type ⇒ 证明上面的 "必须含 type" 断言能捕获原缺陷、不是恒真。
+        Schema<?> refFormInstance = new Schema<>().$ref("#/components/schemas/JsonNode");
+        refFormInstance.set$ref(null);
+        refFormInstance.setType("object");
+        JsonNode mutated = MAPPER.readTree(Json31.mapper().writeValueAsString(refFormInstance));
+        assertFalse(mutated.has("type"),
+                "原地 setType 于原 $ref 实例不得进入 3.1 序列化（本测试判别力的来源）");
+    }
+
+    @Test
+    @DisplayName("门禁递归扫描：嵌套空 object / 无 type 的 items 必须失败；mapOf/any/核准不透明形态通过，且消息含完整路径")
+    void recursiveStructureScanHasDiscriminatingPower() throws Exception {
+        JsonNode nestedEmpty = MAPPER.readTree(
+                "{\"Outer\":{\"type\":\"object\",\"properties\":{\"inner\":{\"type\":\"object\"}}}}");
+        List<String> p1 = ApiDocsCoverageIT.findStructureProblems(nestedEmpty);
+        assertFalse(p1.isEmpty(), "嵌套空 object 必须被递归发现");
+        assertTrue(p1.get(0).contains("Outer.inner"), "消息须含完整路径: " + p1);
+
+        JsonNode arrayBadItems = MAPPER.readTree(
+                "{\"Outer\":{\"type\":\"array\",\"items\":{\"type\":\"object\"}}}");
+        List<String> p2 = ApiDocsCoverageIT.findStructureProblems(arrayBadItems);
+        assertFalse(p2.isEmpty(), "items 内部空 object 必须被发现");
+        assertTrue(p2.get(0).contains("Outer[]"), "消息须含完整路径: " + p2);
+
+        JsonNode arrayNoType = MAPPER.readTree("{\"Outer\":{\"type\":\"array\"}}");
+        List<String> p3 = ApiDocsCoverageIT.findStructureProblems(arrayNoType);
+        assertFalse(p3.isEmpty(), "array 缺 items 必须被发现");
+        assertTrue(p3.get(0).contains("Outer"));
+
+        JsonNode valid = MAPPER.readTree("{\"Outer\":{\"type\":\"object\",\"properties\":{"
+                + "\"inner\":{\"type\":\"object\",\"additionalProperties\":true},"
+                + "\"map\":{\"type\":\"object\",\"additionalProperties\":{\"type\":\"string\"}},"
+                + "\"flex\":{\"description\":\"标量或对象联合\"}}}}");
+        assertTrue(ApiDocsCoverageIT.findStructureProblems(valid).isEmpty(),
+                "有 additionalProperties/any 的形态不得误报: "
+                        + ApiDocsCoverageIT.findStructureProblems(valid));
+    }
+
     // ------------------------------------------------------------------ fixtures
 
     private static ApiDocEntry.ParamDoc ParamDoc(String name, String in, String desc,
@@ -688,12 +956,13 @@ class ApiDocsApplierTest {
         private final Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs;
         private final List<Tag> tags;
         private final Map<String, Set<String>> requiredProperties;
+        private final Map<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> structuredKeys;
 
         private TestCatalog(Map<String, ApiDocEntry> entries,
                             Map<String, Map<String, ApiDocsCatalog.PropertyDoc>> propertyDocs,
                             Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs,
                             List<Tag> tags) {
-            this(entries, propertyDocs, freeFormDocs, tags, Map.of());
+            this(entries, propertyDocs, freeFormDocs, tags, Map.of(), Map.of());
         }
 
         private TestCatalog(Map<String, ApiDocEntry> entries,
@@ -701,11 +970,21 @@ class ApiDocsApplierTest {
                             Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs,
                             List<Tag> tags,
                             Map<String, Set<String>> requiredProperties) {
+            this(entries, propertyDocs, freeFormDocs, tags, requiredProperties, Map.of());
+        }
+
+        private TestCatalog(Map<String, ApiDocEntry> entries,
+                            Map<String, Map<String, ApiDocsCatalog.PropertyDoc>> propertyDocs,
+                            Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs,
+                            List<Tag> tags,
+                            Map<String, Set<String>> requiredProperties,
+                            Map<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> structuredKeys) {
             this.entries = entries;
             this.propertyDocs = propertyDocs;
             this.freeFormDocs = freeFormDocs;
             this.tags = tags;
             this.requiredProperties = requiredProperties;
+            this.structuredKeys = structuredKeys;
         }
 
         @Override
@@ -731,6 +1010,11 @@ class ApiDocsApplierTest {
         @Override
         public Map<String, Set<String>> requiredProperties() {
             return requiredProperties;
+        }
+
+        @Override
+        public Map<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> structuredKeys() {
+            return structuredKeys;
         }
 
         @Override

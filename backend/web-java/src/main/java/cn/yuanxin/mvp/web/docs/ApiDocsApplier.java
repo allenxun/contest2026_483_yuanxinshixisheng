@@ -111,6 +111,7 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
         Map<String, ApiDocEntry> entries = new LinkedHashMap<>();
         Map<String, Map<String, ApiDocsCatalog.PropertyDoc>> propertyDocs = new LinkedHashMap<>();
         Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs = new LinkedHashMap<>();
+        Map<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> structuredKeys = new LinkedHashMap<>();
         Map<String, Set<String>> requiredProperties = new LinkedHashMap<>();
         List<Tag> tags = new ArrayList<>();
         for (ApiDocsCatalog catalog : catalogs) {
@@ -140,6 +141,21 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
                 for (Map.Entry<String, ApiDocsCatalog.FreeFormDoc> f : catalog.freeFormDocs().entrySet()) {
                     if (freeFormDocs.putIfAbsent(f.getKey(), f.getValue()) != null) {
                         report.duplicateFreeFormDocs.add(f.getKey());
+                    }
+                }
+            }
+            if (catalog.structuredKeys() != null) {
+                for (Map.Entry<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> s
+                        : catalog.structuredKeys().entrySet()) {
+                    Map<String, ApiDocsCatalog.KnownKeyDoc> merged =
+                            structuredKeys.computeIfAbsent(s.getKey(), k -> new LinkedHashMap<>());
+                    if (s.getValue() == null) {
+                        continue;
+                    }
+                    for (Map.Entry<String, ApiDocsCatalog.KnownKeyDoc> k : s.getValue().entrySet()) {
+                        if (merged.putIfAbsent(k.getKey(), k.getValue()) != null) {
+                            report.duplicateStructuredKeys.add(s.getKey() + "." + k.getKey());
+                        }
                     }
                 }
             }
@@ -203,8 +219,8 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
         // 6.5) 属性级 required 修正（契约要求必填、Java 未强制时；与 springdoc 推导取并集）。
         applyRequiredProperties(components, requiredProperties);
 
-        // 7) 自由结构展开。
-        applyFreeFormDocs(components, freeFormDocs);
+        // 7) 自由结构展开（knownKeys 一层 DSL + structuredKeys 递归，并集、structured 优先）。
+        applyFreeFormDocs(components, freeFormDocs, structuredKeys);
 
         // 8) 清理不可达 schema（消除空壳 JsonNode / SuccessEnvelope / PrincipalContext 泄漏）。
         pruneUnreachableSchemas(openApi, components);
@@ -473,43 +489,90 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
         }
     }
 
+    /**
+     * 自由结构文档的施加目标：<strong>父 schema + 属性名 + 原属性实例</strong>。
+     *
+     * <p>必须能整体替换父属性（见 {@link #applyFreeForm}）：对"原为 {@code $ref} 形态"的实例
+     * 原地 {@code setType("object")} 在 OpenAPI 3.1 序列化中<strong>不会输出 type</strong>——
+     * 3.1 的 {@code type} 由 {@code Schema#getTypes()}（{@code Set<String>}）序列化，
+     * 而 {@code setType(String)} 只改 legacy 的 {@code type} 字段（`$ref` 实例的 {@code types} 为 null）。
+     * 引擎新构造的 {@code ObjectSchema}/{@code ArraySchema} 构造器同时填充 {@code type} 与 {@code types}，
+     * 故序列化正确。</p>
+     */
+    private record FreeFormTarget(Schema<?> parent, String propertyName, Schema<?> property) {
+    }
+
     private void applyFreeFormDocs(Components components,
-                                   Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs) {
+                                   Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs,
+                                   Map<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> structuredKeys) {
+        Set<String> handled = new LinkedHashSet<>();
         for (Map.Entry<String, ApiDocsCatalog.FreeFormDoc> e : freeFormDocs.entrySet()) {
             String key = e.getKey();
-            int dot = key.indexOf('.');
-            if (dot <= 0 || dot == key.length() - 1) {
-                report.unknownFreeFormTargets.add(key + " (key 必须为 SchemaName.propertyName)");
+            FreeFormTarget target = findFreeFormTarget(components, key);
+            if (target == null) {
+                continue; // unknown target 已记录
+            }
+            handled.add(key);
+            applyFreeForm(target, e.getValue(), structuredKeys.get(key), key);
+        }
+        // 只有 structuredKeys、没有 freeFormDocs 的字段：仍按并集语义展开（描述来自各 KnownKeyDoc 自身）。
+        for (Map.Entry<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> e : structuredKeys.entrySet()) {
+            if (handled.contains(e.getKey())) {
                 continue;
             }
-            String schemaName = key.substring(0, dot);
-            String propName = key.substring(dot + 1);
-            Schema<?> schema = components.getSchemas().get(schemaName);
-            Schema<?> prop = schema == null || schema.getProperties() == null
-                    ? null : (Schema<?>) schema.getProperties().get(propName);
-            if (prop == null) {
-                report.unknownFreeFormTargets.add(key);
+            FreeFormTarget target = findFreeFormTarget(components, e.getKey());
+            if (target == null) {
                 continue;
             }
-            applyFreeForm(prop, e.getValue());
+            applyFreeForm(target,
+                    new ApiDocsCatalog.FreeFormDoc(null, null, true, null, null), e.getValue(), e.getKey());
         }
     }
 
+    private FreeFormTarget findFreeFormTarget(Components components, String key) {
+        int dot = key.indexOf('.');
+        if (dot <= 0 || dot == key.length() - 1) {
+            report.unknownFreeFormTargets.add(key + " (key 必须为 SchemaName.propertyName)");
+            return null;
+        }
+        String schemaName = key.substring(0, dot);
+        String propName = key.substring(dot + 1);
+        Schema<?> schema = components.getSchemas().get(schemaName);
+        Schema<?> prop = schema == null || schema.getProperties() == null
+                ? null : (Schema<?>) schema.getProperties().get(propName);
+        if (prop == null) {
+            report.unknownFreeFormTargets.add(key);
+            return null;
+        }
+        return new FreeFormTarget(schema, propName, prop);
+    }
+
     @SuppressWarnings("unchecked")
-    private void applyFreeForm(Schema<?> prop, ApiDocsCatalog.FreeFormDoc doc) {
-        // 自由结构常被 springdoc 生成为 `$ref`（如 JsonNode）。展开为显式结构时必须清除 `$ref`，
-        // 否则 OpenAPI 3.1 下 `$ref` 优先，联调方看到的仍是空壳对象。
-        prop.set$ref(null);
-        boolean array = "array".equals(prop.getType()) || prop.getItems() != null;
-        boolean opaque = isExplicitOpaqueDeclaration(doc);
+    private void applyFreeForm(FreeFormTarget target, ApiDocsCatalog.FreeFormDoc doc,
+                               Map<String, ApiDocsCatalog.KnownKeyDoc> structured, String fieldPath) {
+        Schema<?> original = target.property();
+        boolean array = "array".equals(original.getType()) || original.getItems() != null;
+        Map<String, ApiDocsCatalog.KnownKeyDoc> structuredKeys =
+                structured == null ? Map.of() : structured;
+        // 有 structuredKeys 声明的字段不属"显式不透明"（结构已被显式给出）。
+        boolean opaque = isExplicitOpaqueDeclaration(doc) && structuredKeys.isEmpty();
         String description = opaque ? opaqueDescription(doc) : structureDescription(doc);
-        ObjectSchema struct = new ObjectSchema();
         Map<String, Schema> properties = new LinkedHashMap<>();
         if (!opaque && doc.knownKeys() != null) {
             for (Map.Entry<String, String> k : doc.knownKeys().entrySet()) {
-                properties.put(k.getKey(), keySchema(k.getValue()));
+                // 同名键以 structuredKeys 为准：跳过将被覆盖的一层 DSL，避免对其做已废弃前缀校验。
+                if (structuredKeys.containsKey(k.getKey())) {
+                    continue;
+                }
+                properties.put(k.getKey(), keySchema(k.getValue(), fieldPath + "." + k.getKey()));
             }
         }
+        if (!opaque) {
+            for (Map.Entry<String, ApiDocsCatalog.KnownKeyDoc> k : structuredKeys.entrySet()) {
+                properties.put(k.getKey(), knownKeySchema(k.getValue(), fieldPath + "." + k.getKey()));
+            }
+        }
+        ObjectSchema struct = new ObjectSchema();
         struct.setProperties(properties);
         struct.setAdditionalProperties(doc.extensible());
         struct.setDescription(description);
@@ -519,16 +582,132 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
                 struct.setExample(example);
             }
         }
-        prop.setDescription(description);
+        Schema<?> replacement;
         if (array) {
-            prop.setItems(struct);
-        } else {
-            prop.setType("object");
-            prop.setProperties(properties);
-            prop.setAdditionalProperties(doc.extensible());
+            // 数组型自由结构：knownKeys/structuredKeys 描述的是<strong>元素对象</strong>的键。
+            ArraySchema arr = new ArraySchema();
+            arr.setDescription(description);
+            arr.setItems(struct);
             if (struct.getExample() != null) {
-                prop.setExample(struct.getExample());
+                arr.setExample(struct.getExample());
             }
+            replacement = arr;
+        } else {
+            // 整体替换而非原地 mutate：new ObjectSchema() 的构造器同时填充 type 与 types，
+            // 3.1 序列化才会输出 "type":"object"；原 $ref 实例的 types 为 null，setType 不生效。
+            replacement = struct;
+        }
+        copySiblingKeywords(original, replacement);
+        // 替换父 properties 中的同名项（保留原有插入位置）。
+        target.parent().getProperties().put(target.propertyName(), replacement);
+    }
+
+    /** 替换属性时保留原属性上与结构无关的同级关键字，避免丢失 nullable/readOnly 等既有信息。 */
+    private static void copySiblingKeywords(Schema<?> from, Schema<?> to) {
+        if (from.getNullable() != null) {
+            to.setNullable(from.getNullable());
+        }
+        if (from.getReadOnly() != null) {
+            to.setReadOnly(from.getReadOnly());
+        }
+        if (from.getWriteOnly() != null) {
+            to.setWriteOnly(from.getWriteOnly());
+        }
+        if (from.getDeprecated() != null) {
+            to.setDeprecated(from.getDeprecated());
+        }
+        if (from.getTitle() != null) {
+            to.setTitle(from.getTitle());
+        }
+        if (from.getFormat() != null) {
+            to.setFormat(from.getFormat());
+        }
+        if (from.getExtensions() != null && !from.getExtensions().isEmpty()) {
+            from.getExtensions().forEach(to::addExtension);
+        }
+    }
+
+    /**
+     * {@link ApiDocsCatalog.KnownKeyDoc} → swagger {@link Schema} 的<strong>递归</strong>构建。
+     *
+     * <ul>
+     *   <li>{@code object}：{@code ObjectSchema} + 递归 {@code properties}；若给出
+     *       {@code additionalPropertiesSchema} 则设为该 schema（动态映射，与布尔值互斥、以 schema 为准），
+     *       否则才用布尔 {@code additionalProperties}；两者皆无则不设置。</li>
+     *   <li>{@code array}：{@code ArraySchema} + 递归 {@code items}；{@code items} 为 {@code null}
+     *       属目录错误，fail fast。</li>
+     *   <li>{@code any}（或 type 为 null/空）：不写 {@code type} 关键字，仅给 description，
+     *       用于真实存在的联合形态。</li>
+     *   <li>标量：对应 schema。每层都施加 description 与 example。</li>
+     *   <li>未知 type：目录错误，fail fast。</li>
+     * </ul>
+     */
+    private Schema<?> knownKeySchema(ApiDocsCatalog.KnownKeyDoc doc, String fieldPath) {
+        if (doc == null) {
+            throw new IllegalStateException("KnownKeyDoc 为 null（目录错误）: " + fieldPath);
+        }
+        String type = doc.type();
+        Schema<?> schema;
+        if (type == null || type.isBlank() || "any".equals(type)) {
+            schema = new Schema<>();
+        } else {
+            switch (type) {
+                case "object" -> {
+                    ObjectSchema obj = new ObjectSchema();
+                    Map<String, Schema> props = new LinkedHashMap<>();
+                    if (doc.properties() != null) {
+                        for (Map.Entry<String, ApiDocsCatalog.KnownKeyDoc> p : doc.properties().entrySet()) {
+                            props.put(p.getKey(),
+                                    knownKeySchema(p.getValue(), fieldPath + "." + p.getKey()));
+                        }
+                    }
+                    if (!props.isEmpty()) {
+                        obj.setProperties(props);
+                    }
+                    if (doc.additionalPropertiesSchema() != null) {
+                        // 动态映射优先：additionalProperties 为 <值 schema>，不再用布尔值。
+                        obj.setAdditionalProperties(
+                                knownKeySchema(doc.additionalPropertiesSchema(), fieldPath + ".*"));
+                    } else if (doc.additionalProperties() != null) {
+                        obj.setAdditionalProperties(doc.additionalProperties());
+                    }
+                    schema = obj;
+                }
+                case "array" -> {
+                    if (doc.items() == null) {
+                        throw new IllegalStateException(
+                                "KnownKeyDoc array 缺少 items（目录错误；嵌套形状必须显式声明）: " + fieldPath);
+                    }
+                    ArraySchema arr = new ArraySchema();
+                    arr.setItems(knownKeySchema(doc.items(), fieldPath + "[]"));
+                    schema = arr;
+                }
+                case "string" -> schema = new StringSchema();
+                case "integer" -> schema = new IntegerSchema();
+                case "number" -> schema = new NumberSchema();
+                case "boolean" -> schema = new BooleanSchema();
+                default -> throw new IllegalStateException(
+                        "KnownKeyDoc 未知 type=\"" + type + "\"（目录错误）: " + fieldPath);
+            }
+        }
+        if (doc.description() != null && !doc.description().isBlank()) {
+            schema.setDescription(doc.description());
+        }
+        if (doc.example() != null) {
+            applyKnownKeyExample(schema, doc.example(), type);
+        }
+        return schema;
+    }
+
+    private void applyKnownKeyExample(Schema<?> schema, String example, String type) {
+        if (type == null || type.isBlank() || "any".equals(type)
+                || "object".equals(type) || "array".equals(type)) {
+            Object parsed = parseJsonExample(example);
+            if (parsed != null) {
+                schema.setExample(parsed);
+            }
+        } else {
+            schema.setExample(coerceExample(example, schema));
         }
     }
 
@@ -644,35 +823,86 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
     }
 
     /**
-     * knownKeys 值约定：以 JSON 类型开头（{@code integer}/{@code number}/{@code boolean}/
-     * {@code object}/{@code array}/{@code string}），后接分隔符与中文说明，例如
-     * {@code "integer，目标次数 N，单位：次"}；无类型前缀时默认 {@code string}。
+     * {@code knownKeys} 一层 DSL 值约定：以类型前缀开头，后接分隔符与中文说明，例如
+     * {@code "integer，目标次数 N，单位：次"}；显式字符串数组写 {@code "array<string>，…"}。
+     *
+     * <p><b>裸 {@code array}/{@code object} 前缀已废弃并 fail fast</b>：引擎无法从输出判别
+     * "本应是对象数组"还是合法字符串数组（二者同形 {@code array<string>}），故不再猜测。
+     * 嵌套/对象形状必须改用 {@link ApiDocsCatalog#structuredKeys()} 的 {@code KnownKeyDoc} 显式表达；
+     * 真正的字符串数组写 {@code array<string>}。</p>
+     *
+     * <p>无类型前缀时默认 {@code string}。</p>
      */
-    private static Schema<?> keySchema(String text) {
-        String type = "string";
+    private Schema<?> keySchema(String text, String fieldPath) {
         String desc = text == null ? "" : text;
         if (text != null) {
             String lower = text.toLowerCase(Locale.ROOT);
+            if (lower.startsWith("array<")) {
+                int close = text.indexOf('>');
+                if (close < 0) {
+                    report.invalidKnownKeyTypes.add(fieldPath + "=\"" + abbreviate(text)
+                            + "\"（array<...> 缺少 '>'；嵌套形状请用 structuredKeys()/KnownKeyDoc 表达）");
+                    return new StringSchema();
+                }
+                String elementType = text.substring("array<".length(), close).trim().toLowerCase(Locale.ROOT);
+                String rest = text.substring(close + 1).replaceFirst("^[\\s:：,，\\-]+", "");
+                Schema<?> items = switch (elementType) {
+                    case "string" -> new StringSchema();
+                    case "integer" -> new IntegerSchema();
+                    case "number" -> new NumberSchema();
+                    case "boolean" -> new BooleanSchema();
+                    default -> null;
+                };
+                if (items == null) {
+                    report.invalidKnownKeyTypes.add(fieldPath + "=\"" + abbreviate(text)
+                            + "\"（array 元素类型仅支持 string/integer/number/boolean；"
+                            + "对象或嵌套数组请用 structuredKeys()/KnownKeyDoc 表达）");
+                    return new StringSchema();
+                }
+                ArraySchema array = new ArraySchema().items(items);
+                if (!rest.isBlank()) {
+                    array.setDescription(rest);
+                }
+                return array;
+            }
             for (String cand : List.of("integer", "number", "boolean", "object", "array", "string")) {
                 if (lower.startsWith(cand)) {
-                    type = cand;
+                    if ("array".equals(cand) || "object".equals(cand)) {
+                        report.invalidKnownKeyTypes.add(fieldPath + "=\"" + abbreviate(text)
+                                + "\"：裸 " + cand + " 前缀已废弃、一律 fail fast；"
+                                + ("array".equals(cand)
+                                        ? "字符串数组请写 array<string>；"
+                                        : "")
+                                + "对象/嵌套数组形状必须用 structuredKeys()/KnownKeyDoc 显式表达");
+                        return new StringSchema();
+                    }
                     desc = text.substring(cand.length()).replaceFirst("^[\\s:：,，\\-]+", "");
-                    break;
+                    Schema<?> schema = switch (cand) {
+                        case "integer" -> new IntegerSchema();
+                        case "number" -> new NumberSchema();
+                        case "boolean" -> new BooleanSchema();
+                        default -> new StringSchema();
+                    };
+                    if (!desc.isBlank()) {
+                        schema.setDescription(desc);
+                    }
+                    return schema;
                 }
             }
         }
-        Schema<?> schema = switch (type) {
-            case "integer" -> new IntegerSchema();
-            case "number" -> new NumberSchema();
-            case "boolean" -> new BooleanSchema();
-            case "object" -> new ObjectSchema();
-            case "array" -> new ArraySchema().items(new StringSchema());
-            default -> new StringSchema();
-        };
-        if (!desc.isBlank()) {
+        StringSchema schema = new StringSchema();
+        if (desc != null && !desc.isBlank()) {
             schema.setDescription(desc);
         }
         return schema;
+    }
+
+    private static String abbreviate(String text) {
+        if (text == null) {
+            return "";
+        }
+        String single = text.replaceAll("\\s+", " ").trim();
+        return single.length() <= 60 ? single : single.substring(0, 57) + "...";
     }
 
     // ------------------------------------------------------------------ helpers
@@ -932,6 +1162,8 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
         public final List<String> duplicatePropertyDocs = new ArrayList<>();
         public final List<String> unknownFreeFormTargets = new ArrayList<>();
         public final List<String> duplicateFreeFormDocs = new ArrayList<>();
+        public final List<String> duplicateStructuredKeys = new ArrayList<>();
+        public final List<String> invalidKnownKeyTypes = new ArrayList<>();
         public final List<String> undeclaredTags = new ArrayList<>();
         public final Set<String> coveredOperations = new LinkedHashSet<>();
         public final Set<String> prunedSchemas = new LinkedHashSet<>();
@@ -948,6 +1180,8 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
             duplicatePropertyDocs.clear();
             unknownFreeFormTargets.clear();
             duplicateFreeFormDocs.clear();
+            duplicateStructuredKeys.clear();
+            invalidKnownKeyTypes.clear();
             undeclaredTags.clear();
             coveredOperations.clear();
             prunedSchemas.clear();
@@ -959,7 +1193,8 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
                     || !unknownPropertySchemas.isEmpty() || !unknownPropertyNames.isEmpty()
                     || !unknownRequiredProperties.isEmpty()
                     || !duplicatePropertyDocs.isEmpty() || !unknownFreeFormTargets.isEmpty()
-                    || !duplicateFreeFormDocs.isEmpty();
+                    || !duplicateFreeFormDocs.isEmpty()
+                    || !duplicateStructuredKeys.isEmpty() || !invalidKnownKeyTypes.isEmpty();
         }
 
         public List<String> structuralErrors() {
@@ -993,6 +1228,12 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
             }
             if (!duplicateFreeFormDocs.isEmpty()) {
                 errors.add("duplicateFreeFormDocs=" + duplicateFreeFormDocs);
+            }
+            if (!duplicateStructuredKeys.isEmpty()) {
+                errors.add("duplicateStructuredKeys=" + duplicateStructuredKeys);
+            }
+            if (!invalidKnownKeyTypes.isEmpty()) {
+                errors.add("invalidKnownKeyTypes=" + invalidKnownKeyTypes);
             }
             return errors;
         }

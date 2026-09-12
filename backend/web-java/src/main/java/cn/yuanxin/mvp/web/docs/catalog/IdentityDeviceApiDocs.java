@@ -496,9 +496,23 @@ public class IdentityDeviceApiDocs implements ApiDocsCatalog {
      */
     @Override
     public Map<String, Set<String>> requiredProperties() {
-        return Map.of(
-                "M1A01Metadata", Set.of("capture", "consentEvidenceRef"),
-                "Capture", Set.of("captureId", "capturedAt", "clientContinuityId", "purpose"));
+        return Map.ofEntries(
+                // 请求：服务端手工强制（缺失即 400 INVALID_INPUT），仅未用 Bean Validation 注解声明。
+                Map.entry("M1A01Metadata", Set.of("capture", "consentEvidenceRef")),
+                Map.entry("Capture", Set.of("captureId", "capturedAt", "clientContinuityId", "purpose")),
+                // 响应 data schema：契约 required 表示服务端保证该键必然存在；未列入者意为可能为 null
+                // 或在某些视图下省略，客户端不得依赖（record 组件恒被序列化，故声明即为存在性承诺）。
+                Map.entry("MemberAccessGrantResult", Set.of("grantId", "memberId", "status", "grantedAt")),
+                Map.entry("MemberAccessGrantListItem", Set.of("grantId", "memberId", "grantedAt")),
+                Map.entry("HeartbeatAck", Set.of("accepted", "lastSeenAt", "statusRevision", "serverTime")),
+                Map.entry("StatusView", Set.of("connectionStatus", "isStale", "statusRevision")),
+                Map.entry("MicrocrystalObservationAck", Set.of("microcrystalId", "accepted",
+                        "capabilityRevision", "receivedAt")),
+                Map.entry("CapabilitiesView", Set.of("capabilities", "capabilityRevision", "isStale")),
+                Map.entry("BindingResultView", Set.of("bindingStatus", "gimbalId", "bindingRevision",
+                        "boundAt")),
+                Map.entry("BindingStatusView", Set.of("bindingStatus", "bindingRevision")),
+                Map.entry("View", Set.of("destinationId", "destinationRevision", "status")));
     }
 
     @Override
@@ -850,6 +864,21 @@ public class IdentityDeviceApiDocs implements ApiDocsCatalog {
                         {"schema_version":1}
                         """))
         );
+    }
+
+    @Override
+    public Map<String, Map<String, KnownKeyDoc>> structuredKeys() {
+        return Map.of(
+                // incidents 为数组型自由字段：内层键描述的是数组元素的键（detail 为嵌套层级）
+                "HeartbeatBody.incidents", Map.of(
+                        "detail", KnownKeyDoc.opaqueObject(
+                                "异常附加细节；来自云台上报。服务端只校验其为 JSON 对象："
+                                        + "GimbalHeartbeatService.touch 仅当 detail 是 Map 时把它原样写入 episode.detail，"
+                                        + "newEpisode 对非对象一律置为空对象，均不解析其内部键。"
+                                        + "detail 内部结构未冻结（契约 GimbalHeartbeatRequest.incidents 标注 "
+                                        + "x-detail: skeleton），客户端不得依赖任何具体键，未来新增键必须被容忍。"
+                                        + "异常 episode 的内部键集 source/opened_at/last_reported_at/"
+                                        + "last_reported_seq/resolved_at 绝不外发；查询回包 IncidentView 亦不含 detail。")));
     }
 
     // ------------------------------------------------------------------ helpers

@@ -423,7 +423,14 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
     public Map<String, Set<String>> requiredProperties() {
         return Map.of(
                 "A01Metadata", Set.of("photoVersion", "captureSessionId", "consentEvidenceRef"),
-                "A02Metadata", Set.of("expectedPhotoVersion", "replacedViews"));
+                "A02Metadata", Set.of("expectedPhotoVersion", "replacedViews"),
+                "AssessmentTaskAccepted", Set.of("taskId", "status", "photoVersion"),
+                "AssessmentTaskView",
+                Set.of("taskId", "status", "photoVersion", "requiredViews"),
+                "SkinReportListItem", Set.of("reportId", "reportReadyAt"),
+                "SkinReportView", Set.of("reportId", "view"),
+                "GimbalCurrentAssessmentView",
+                Set.of("currentAssessment", "currentAssessmentRevision"));
     }
 
     @Override
@@ -593,7 +600,7 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                                 "schema_version", "integer，摘要结构版本，当前写入方固定为 1。",
                                 "conclusion", "string，测肤结论（取自测肤算法 provider 返回的 conclusion 字段；"
                                         + "取值集合当前未冻结、无枚举约束，dev/test 替身默认为 balanced）。",
-                                "headline_metrics", "array，要点指标名列表，最多 8 项；元素为指标名（string），"
+                                "headline_metrics", "array<string>，要点指标名列表，最多 8 项；元素为指标名（string），"
                                         + "指标名集合未冻结、须来自测肤协议契约。"),
                         true,
                         "已知键来自写入方 assessment_analyze.py:412-417 的固定构造（schema_version/conclusion/"
@@ -609,7 +616,11 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                         """,
                         Map.of(
                                 "name", "string，指标名。必须来自测肤协议契约，当前未冻结，不得自由发明。",
-                                "value", "number，指标值。数值/文本类型与语义未冻结，须来自测肤协议契约。",
+                                "value", "number，指标值。**类型已由上游算法结果契约校验强制**："
+                                        + "必须为数值（int/float，显式排除 bool）且落在核准范围内，违约即触发 "
+                                        + "PROVIDER_CONTRACT_VIOLATION 终态失败（取证 assessment_analyze.py:645-648），"
+                                        + "故报告中的 value 必为 number。未冻结的是**指标语义、单位与取值范围**"
+                                        + "（须来自测肤协议契约），不是其类型。",
                                 "unit", "string，指标单位。单位未冻结，须来自测肤协议契约。"),
                         false,
                         "封闭白名单：服务端对每个指标对象仅投影 name/value/unit 三键，其余键一律丢弃"
