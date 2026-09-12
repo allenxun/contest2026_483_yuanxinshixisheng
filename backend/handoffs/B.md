@@ -673,4 +673,56 @@ Oracle 判 **FAIL**：其 6 条判据中 **1/6/7/8 已通过**（`plan.steps` �
 
 **验证（orchestrator 亲自执行，绑定 `c3bf054`）**：`test-compile` rc=0；定向文档测试 **38/0/0**（Guard 7、Coverage 1、DisabledIT 1、**Applier 26**、OpenApiDocsIT 3）；**全量 Java 446 run / 0 failures / 0 errors**（`7461ce1` 的 442 + 4 新）；真实 `/v3/api-docs` **200 / 424133 字节**、swagger-ui 200；自建 `verify-r4.py`（**两次自测判别力**：对修复前抓取 72 PASS/6 FAIL，6 项恰为待修清单；期间我修掉脚本自身两个缺陷——把属性节点当 schema 名传入致 `TypeError: unhashable type: 'dict'`、`any` 判据把 47 个正常 component 误报为 53 个）跑出 **78 PASS / 0 FAIL**，逐条覆盖 Oracle 7 条目标（`missingRanges.items.required=[from,to]` 且仍封闭、三个 inline component 的 required 精确相符且**未 invent `reportId`**、`RecordWatermark`/`IncidentView` 均为空、无 type 值节点**恰 6 处且全在核准路径**、有非空 required 的 schema 由 53 增至 **56**）并回归前几轮全部已闭合项（ops 34、summary/description 34/34、4xx5xx 34/34、`x-error-codes` 34/34、参数 59/59、属性描述 266/266、枚举 32、示例 221、tags 12、公开端点 4、`bearerAuth`、2xx={200,201,202,204}、A02 `required=['metadata']`、无结构自由字段 0、**384 个 `$ref` 零悬空**、`JsonNode`/`PrincipalContext`/`SuccessEnvelope` 已修剪、3 个 `JsonNode` 型字段均带 `type=object`、核准不透明集恰 3 项）；跑后端口空闲、无遗留进程；整轮相对 dev 基线 **12 文件 / +7642 −53，全部在 `web/docs/**`**，`git diff --check` rc=0。
 
-**主动披露（不在 Oracle 7 条目标内、未擅自扩大范围）**：①5 个 inline 映射 component 的 `additionalProperties` 契约为 `false`、生成文档为空（语义更宽松，但响应 DTO 是 record、实际不输出额外键 ⇒ 无行为风险）；②47/61 个 component 未声明 `"type":"object"`（已写入交付指南第 8 节，并说明"若工具链对缺 type 敏感应以契约为准"）；③plan 参数值联合以无 type 的 `any` 表达，协议冻结后应改 `oneOf`；④实施道为取得"required 确实进入 3.1 JSON"的证据运行了一次**隔离 classpath 的独立 `java` 探针**（非 mvn、非项目测试套件、不触碰项目源码与端口）并主动披露 ⇒ 我判定属轻微越界（任务书禁跑 java）但目的正当、无副作用、已如实记录，予以接受。
+## 15. 最小契约一致性修正轮（总协调授权，最终代码 SHA `859266099476eace91053bac0b61a48a7023dc52`）
+
+上一轮（§14）交付后，总协调阅读并**首次授权改 `backend/contracts/openapi`**，指定三项最小修正 + 两项文档一致性要求，并明令**禁止改变 HTTP 或序列化业务语义**、只验证此次变动、不重复 E 的 61 项集成全套与已通过范围。完整记录见 `B-oracle.md` §4.17，此处只列要点。
+
+**① `PROVIDER_CONTRACT_VIOLATION` 的正确归类**：取证确认它**不是** HTTP 错误码（Java `ErrorCode` 枚举命中 0），而是**任务投影字段** `failureCode` 的取值（D 的 Worker 写 `skin_assessments.failure_code` → `FailureProjection` 公开白名单 → M3-A03 外发）。契约该字段原本只有 `{type: string, nullable: true}`、**完全没有 enum**，该码在契约中出现 **0 次** ⇒ 修法是把 `PUBLIC_FAILURE_CODES` 的 **9 个码作为封闭 enum** 写入契约，并让生成文档侧同步为 `PropertyDoc.enumOf`（**逐字同序**），`retryable=false` 语义原样保留。这也正是 Oracle 第二轮的意见（"应补入测肤 failureCode 契约，而非 HTTP ErrorBody enum"）。
+
+**② f02 补 `SESSION_INVALID`**：`AuthController:181` 对停用账号确实抛 401（裁定依据 oracle B2）；契约 `responses` 本已含 `'401': $ref Unauthorized`（共享响应描述即写明该码）⇒ **只补 `x-error-codes`**，为最小改动。
+
+**③ 移除 24 处不可达错误码声明 / 17 个操作**（Care 15、Assessment 4、Foundation+IdentityDevice 5，与契约精确相等）。方法上是本轮的关键纪律：
+- 我先发现自己的 grep **漏掉静态导入**（只匹配 `ErrorCode.X`），导致三个码"零命中"的假象与既有实测矛盾 ⇒ 改用**裸常量名**重做，才得到真实抛出点全集。
+- 确证 `SESSION_INVALID` 由 `BearerAuthFilter:89,104` 对**所有已认证请求**统一抛出 ⇒ 除公开端点外**一律不得删**（本轮最易造成真实回归处）。
+- `CALLER_NOT_ALLOWED`/`PLAN_NOT_READY` 不可凭直觉判定，派**只读侦察道逐操作追踪 controller→service→授权路径**；决定性依据是 `CareAuthorization.requireApp`（care 包唯一 403 抛出点）仅被 `CareQueryService:69,107,227` 调用，而 M4-A03…A08 **显式接纳云台主体**。
+- 我对侦察结论**逐条复核而非照抄**，其中一处**改变结论**：M4-A04 的 `TASK_REPLACED` 未被真值表覆盖，我自行追踪 `taskReplaced()` 全部调用点确证其经 `runRevalidation:427,430` 与 `runRevalidationTx:470,473` **可达 ⇒ 保留**。
+- **一处我差点造成的文档破坏**：我曾怀疑 `AssessmentApiDocs` 中 M3-A03 的"过声明：`CALLER_NOT_ALLOWED` 当前实现不返回"标注有误（因 `AssessmentReadService:81` 确实抛该码）；取证明明 `:81` 属 **`currentAssessment`（`:78`，服务 M3-A06）**，`getTask:36-58` 不经过它 ⇒ **原标注正确**，若"顺手修正"就会把正确文档改错。
+- 契约改法：4 行内容相同而删除项不同 ⇒ `edit` 工具会因多重匹配失败，改用**按行号定位的脚本**并对每行自校验（确为 `x-error-codes` 行、确含待删码、结果集恰等于预期、删除数相符），任一不符即整体不写入；实测 diff 34 行、**非 `x-error-codes` 行改动为 0**。
+
+**④⑤ 文档一致性**：指南 §7 的 `reportSummary` 行已与 §8 统一为"**已知三键**（`schema_version` integer 固定 1 / `conclusion` string 取值集合未冻结 / `headline_metrics` array 最多 8 项）+ **剩余扩展边界**（`additionalProperties=true`、必须容忍新增键、字段可空、内部诊断绝不外发）"；§3.2 由"已知缺口（未改契约）"改写为"契约一致性修正与过声明处置"，含 **24 处移除清单表（逐项附 `文件:行` 依据）**与"必须保留的可达码"段。47 个 component 缺 `type` 与 4 处 `additionalProperties` 按授权**仍只作披露**，未扩展为代码生成器工程。
+
+**新增仓内回归守卫**（`.coordination/` 是 git 忽略目录、运行时脚本不进仓库，故守卫必须落在仓内）：门禁新增 24 对不可达码**不得再被声明** + 13+1 项可达码**必须继续声明**（正向对照使"全删"无法通过）+ **操作缺失即记 problem**（防路径笔误导致恒真）；另新增 `crossCheckFailureCodeEnum`（生成文档 enum 与契约逐字同序、必含 `PROVIDER_CONTRACT_VIOLATION`）。
+
+**验证（orchestrator 亲自执行）**：契约四项校验器全绿（VALID、10/0、50/0 all samples valid、jcs 26 checks）；Java `test-compile` rc=0、定向 **38/0/0**、**全量 446/0/0**；真实 `/v3/api-docs` 200 / **418567 字节**，**34 个契约业务操作 generated==contract ALL MATCH**、24 对残留 **0**、14 项正向对照全部仍在、enum 同序相等、`x-error-codes` 总数 **358→334（恰 −24）**；上轮已闭合项零回归（自建脚本 **78 PASS / 0 FAIL**）；**端到端工装完整 41 项 ALL PASS / SCRIPT_RC=0**，其中 **b14**（契约驱动白名单，全量观测面）PASS ⇒ 实证被删的码在真实请求中不可观测、且无观测码变为未声明。
+
+**我本轮的错误（如实记录）**：①**过滤式工装运行结构上无效**——先以 `B_ACCEPT_FILTER="b3 b11 b14 b19 b21"` 跑得 2 PASS/3 FAIL（b14 报"端点 m1A01… 未产生任何错误观测"、b3 因缺 b1/b2 前置 fixture 失败）；取证 `b-checks-3.sh:300-304` 确认 b14 读取共享 `$OBS_FILE` 并**要求 12 端点均有观测**，而观测由各检查的 `op_call` 产生 ⇒ 过滤运行对 b14/b3 无效、**非产品缺陷**；改完整运行后 41/41 全绿。②**第三次**犯"`cd` 后在 heredoc 里用相对路径"的错误（致量化脚本 `FileNotFoundError`）。③初始 grep 漏静态导入。
+**子道对我任务书的两处纠正（均已采纳）**：M2-A01 实际在 `FoundationApiDocs.java:207`（我误标 IdentityDevice）；`PropertyDoc.enumOf` 定义在 `ApiDocsCatalog.java:320` 的嵌套 record（我误指 `ApiDocEntry.java`）。
+
+**边界与待协调**：业务代码 diff **0 文件**；E 的验收资产零改动（其 driver 未硬编码这些码，命中只在历史 evidence 工件）；未改 `backend/doc/**`（设计文档归总协调）；未 push、未合入 dev。**已提请总协调**：契约 `x-error-codes` 收窄可能要求 E 更新其期望。
+
+**门禁状态（最终）**：Oracle 对 `8592660` 判 **FAIL**（1 BLOCKER + 2 IMPORTANT + 1 SUGGESTION），整改后提交 **`666bfbe75c5bd86129d6d8f3a5df91134ffab605`**，Oracle 第十八轮窄范围复审判 **PASS-with-notes**，**明确许可把 `666bfbe` 作为本轮最终代码 SHA 合入 dev**、**不要求补跑完整验收也无需重跑 b14**、并确认轮次边界（无需再因普通措辞或断言精度发起重绑定）。完整记录见 `B-oracle.md` §4.17–4.18。
+
+### 15.1 Oracle 第十七轮 FAIL 的 BLOCKER 与我的验证盲区
+
+删掉某操作**最后一个**映射到某 HTTP 状态的码后，契约仍保留该状态的 `responses` 条目 ⇒ **9 处孤儿响应**（M2-A01 的 409；M2-A03、M3-A03、M4-A05、M4-A06、M4-A07、M4-A08、f05 的 403；M4-A02 的 409）。**根因是我的验证盲区**：门禁只校验"每个声明的错误码必须有对应响应"（单向），未校验反方向；我的量化脚本也只比对 `x-error-codes` 而未比对 `responses` 状态集。
+**一处险情**：Oracle 给出的 9 个行号经我**预检发现不是响应行、而是这些操作的 `x-api-id`/`operationId` 行**（9 处逐行核对全部 MISMATCH）；若照其行号执行删除会损坏权威契约。故改为在各操作块内自行定位（实得第 267/344/744/962/1146/1194/1240/1290/1575 行）。**Oracle 本轮确认那是"操作块锚点"，并判定我的处置"正确且必要"。**
+修法：替换为**同缩进注释行**（保留删除理由与取证指引，**总行数不变** 2848→2848），三重自校验（移除集合==预期 9 处、以 `(method,path,status)` 三元组为键；无新增状态；**补回后与原文件 deep-equal**）；实测 diff 18 行、**被删行中非 403/409 响应者为 0**。
+另按 Oracle 的 IMPORTANT/SUGGESTION：修 `ErrorCodeDocs`/`CommonEnvelopeApiDocs` 两处陈旧"契约缺口"表述（改为"该码**刻意**属于 `AssessmentTaskView.failureCode` 的独立封闭枚举、不属于 HTTP `ErrorCode`，在 HTTP 错误码枚举中找不到它是正常的"）；门禁补 3 对正向对照（共 **16 对**）、新增 `orphan4xxResponseProblems()` 孤儿 4xx 守卫、`KNOWN_UNSUPPORTED_4XX_RESPONSES` 例外清单**恰 2 条**（M3-A01/A02 的 422）+ **反向陈旧守卫**、`discloseExistingContractGaps()` 弱披露（只打印不失败）；指南修 4 处（删旧冲突段、如实区分"16 对门禁锁定 vs 其余人工取证"、`reportSummary` 改为"仅识别三键且**每键按可选处理**"、`NOT_IMPLEMENTED` 改为"契约保留码、占位 Controller 已无业务映射、已实现端点不应期待"）。
+**我对 Oracle 目标 #2 的偏离（已获其裁定接受）**：其"契约与生成文档非 2xx 状态集合一致"按字面**不可达**——全部 34 个操作的契约都声明 `500`，而 29 个 `ErrorCode` 中只有 `INTERNAL` 映射 500 且按设计不入任何端点声明，故生成文档从不输出 500；严格相等会在 34 个操作上全部失败，且属既有约定、不在授权范围。改为"孤儿 **4xx** 守卫 + 2 条精确例外 + 反向陈旧守卫 + 5xx 排除（附理由）+ 弱披露"，Oracle 判"**满足本轮目标的意图，可以接受**"。
+
+### 15.2 待总协调处理的 5 项既有契约不一致（Oracle 逐项裁定"总协调应处理"，不阻塞本次合入，但"不建议永久仅靠披露保留"）
+1. **`500`×34**：全部 34 个操作的契约都声明 500 而无任何 `x-error-codes` 支撑（生成文档亦无 500）。Oracle 明确**正确方向是让生成 Swagger 也声明通用 500，而非删除权威契约的 500**（真实运行确实可能返回 500 `INTERNAL`）。
+2. **M3-A01/M3-A02 的孤儿 `422`**：无剩余码支撑，应由总协调确认并清理，不宜长期保留为有效响应。
+3. **M1-A02 缺 `404` 响应**：已声明 `RESOURCE_NOT_VISIBLE`（隐含 404），契约 `responses` 应补 404。
+4. **M2-A04 缺 `422` 响应**：已声明 `UNSUPPORTED_CONTRACT`（隐含 422），契约 `responses` 应补 422。
+5. **`NOT_IMPLEMENTED`**：全部已实现业务端点仍声明它，而占位 Controller 已无业务路由映射 ⇒ 应重新裁定；Oracle 建议**权威契约冻结前从已实现操作移除**，若作为未来兼容保留则必须明确它不是当前可达码。
+> 另需知会：本轮契约 `x-error-codes` 收窄（24 处）与 9 处响应删除，可能要求 **E 更新其按精确集合断言的期望**；E 的 driver 未硬编码这些码（命中只在历史 evidence 工件中，不应修改），我方工装的 b14 白名单从契约动态读取故自动适配。
+
+### 15.3 Oracle 的 2 项非阻塞 SUGGESTION 与我的处置决定
+①门禁因 500 的特殊约定而排除了**全部 5xx**，未来出现孤儿 `501/503/504` 会被漏报 ⇒ 建议**只排除 500**、仍检查其它 5xx（当前无此类孤儿，故现状结果正确）。②披露文案"29 个 ErrorCode 无码映射到 500"**不准确**——实际 `INTERNAL` 映射 500，只是不进入端点 `x-error-codes`；建议改为"除刻意不进入 `x-error-codes` 的 `INTERNAL` 外，无可声明码支撑 500"。
+**决定：不为这 2 项改动代码 SHA。** Oracle 已明确其属"断言精度/普通措辞"且宣告无需再为此发起重绑定轮次；改动会使已获批的 `666bfbe` 绑定失效、制造其明示不必要的审查循环。两项连同精确修法记入本节与 `B-oracle.md` §4.18，交由总协调安排的"契约收敛任务"（上述 5 项本就要其裁定）一并处理。**如实标注**：`ApiDocsCoverageIT` 中 `discloseExistingContractGaps()` 的**打印字符串**含上述不准确表述（`:1031-1034` 的注释表述是准确的），任何读者不应据该字符串得出结论。
+
+### 15.4 本轮验证与我的错误
+**验证（绑定 `666bfbe`，orchestrator 亲自执行）**：契约四项校验器全绿（`openapi_spec_validator` VALID、`validate_responses --selftest` 10/0、`validate_samples` 50/0 all samples valid、`jcs` 26 checks）；Java `test-compile` rc=0、定向 **38/0/0**（含 Coverage 1）、**全量 446 run / 0 failures / 0 errors**；孤儿 4xx 独立复查**仅剩 2 处**（恰为既有的 M3-A01/A02 的 422）；真实 `/v3/api-docs` 200 / **418968 字节**、swagger-ui 200；上轮已闭合项零回归（自建脚本 **78 PASS / 0 FAIL**）；契约↔生成文档非 2xx 差异 34 个操作**全部属既有类型**、本轮修的 9 处残留 **0**；按 Oracle 明示未重跑端到端工装与 b14；业务代码 diff **0 文件**、`git diff --check` rc=0。
+**我的错误**：①验证盲区（见 15.1，BLOCKER 根因）；②自建孤儿复查临时脚本**连续两次崩溃**（映射表漏 `INTERNAL_SERVER_ERROR` 致 `KeyError`；改用 `http.HTTPStatus` 动态映射而 Spring 的 `PAYLOAD_TOO_LARGE` 在 Python 中名为 `REQUEST_ENTITY_TOO_LARGE` 致 `AttributeError`），第三次回到已验证可用的显式映射表才成功 ⇒ 不要为"更聪明"而替换已验证可用的取证脚本；③预期集合误用 foundation 操作并不存在的 `x-api-id` 标签，被自校验拦下、未造成损害；④**过滤式工装运行结构上无效**（见 §15 正文，`B_ACCEPT_FILTER` 使 b14 失去观测面、b3 失去前置 fixture），已改为完整运行取 41/41；⑤第三次犯"`cd` 后在 heredoc 里用相对路径"的错误。
+**子道对我任务书的两处纠正（均已采纳）**：M2-A01 实际在 `FoundationApiDocs.java:207`（我误标 IdentityDevice）；`PropertyDoc.enumOf` 定义在 `ApiDocsCatalog.java:320` 的嵌套 record（我误指 `ApiDocEntry.java`）。

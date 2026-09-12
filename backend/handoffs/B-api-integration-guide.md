@@ -169,14 +169,41 @@
 | `RECORD_CONFLICT` | `conflictingRecordIds`（≤20）+ `totalConflicts`，或 `reason` ∈ `observation_epoch_mismatch` / `observation_seq_conflict` | 保留待同步记录，修正后以**新键**重传 |
 | `STOP_NOT_CONFIRMED` | `reason` | 收尾前必须先上报 stopped 观察 |
 | `CLOSURE_GAPS` | `reason` + `missingRanges` + `more` + `finalCount` + `totalCount` | `missingRanges` 是**对象数组**，每个元素为 `{from, to}`（含端点，均为无符号 bigint 十进制字符串），依契约 `MissingRange` 封闭（无其它键）；受输出上限约束，须配合 `more` 判断是否被截断。按缺失区间补传后再收尾 |
-| `NOT_IMPLEMENTED` | `apiId` | 501 占位；客户端须容忍 `details` 未来新增字段 |
+| `NOT_IMPLEMENTED` | `apiId` | **契约保留码**（501，表示该能力在当前版本未实现）。当前占位 Controller 已**无任何业务路由映射**（`NotYetImplementedController` 不再声明请求映射），故**已实现的业务端点不应期待该码发生**；若收到它，说明请求打到了未启用的能力上。客户端须容忍 `details` 未来新增字段 |
 
 > **内部诊断绝不外发**：`failure_detail`、`last_error` 等内部诊断列的**原始内容不会出现在任何响应**中。测肤任务的失败只投影**公开白名单内的 `failureCode`** + `retryable`（+ 需补拍时的 `requiredViews`）；异步任务的 `lastError` 只投影封闭的 `reason` 枚举与 `retryable`。
 
-### 3.2 已知契约缺口与过声明（如实披露，待总协调裁定；本轮**未改契约**）
-1. **`PROVIDER_CONTRACT_VIOLATION` 未入契约**：该码**已实现**且会经 `GET /api/v1/skin-assessment-tasks/{taskId}` 的 `failureCode` **对外返回**（算法结果违约的终态失败，`retryable=false`，1 轮到达终态、无后继任务），但它**不在契约 `ErrorCode` enum、也不在 DD 3.2 表**，因此也不在上表中。客户端**应当容忍并处理**该 `failureCode`。
-2. **`SESSION_INVALID` 未在 f02 声明**：`POST /api/v1/auth/sessions` 在账号非 active（停用）时确实抛 **401 `SESSION_INVALID`**，但契约该操作的 `x-error-codes` 未声明它（而其它 32 个操作都声明了）⇒ 契约遗漏。生成文档为与契约保持一致**未擅自加入**，已在该端点 description 注明。
-3. **契约过声明（生成文档保留以与契约一致，并注明当前实现不触发）**：`POST /api/v1/gimbals/{gimbalId}/heartbeats` 声明 `TASK_REPLACED`（心跳实现明确不使用）；`GRANT_REVOKED` 声明于 M3-A04/M3-A05 与 M4-A01/A02/A07/A08/A09，但代码在这些端点实际统一用 `RESOURCE_NOT_VISIBLE`（`GRANT_REVOKED` 只在成员访问授权创建的幂等重放中触发）；`POST /api/v1/gimbal-sessions` 声明 `SESSION_INVALID`/`IDEMPOTENCY_CONTENT_CONFLICT`、`GET /api/v1/media/{mediaId}/content` 声明 `CALLER_NOT_ALLOWED`，当前基础实现不主动抛。
+### 3.2 契约一致性修正与过声明处置（本轮经总协调授权改契约；逐项以实现为据）
+1. **`PROVIDER_CONTRACT_VIOLATION` 已纳入契约（原缺口已闭合）**：该码**已实现**且会经 `GET /api/v1/skin-assessment-tasks/{taskId}` 的 `failureCode` 对外返回（算法结果违反已核准指标白名单/基线的**确定性终态**失败，1 轮到达终态、无后继任务）。本轮已把 `FailureProjection.PUBLIC_FAILURE_CODES` 的 **9 个公开白名单码作为封闭 `enum`** 写入契约 `components.schemas.AssessmentTaskView.properties.failureCode`，并注明"当前所有非 null 取值的 `retryable` 均为 **false**，`true` 仅为未来瞬时可重试失败预留"（**语义未变**）。客户端现在可以**穷举**这 9 个取值；新增取值需先改契约。注意它是**任务投影字段**（`failureCode`），不是 HTTP 错误码，故不出现在任何操作的 `x-error-codes` 中。
+2. **`SESSION_INVALID` 已补入 f02 声明（原遗漏已闭合）**：`POST /api/v1/auth/sessions` 在账号非 active（停用）时确实抛 **401 `SESSION_INVALID`**（`AuthController:181`，裁定依据 oracle B2），本轮已补入契约该操作的 `x-error-codes` 与生成文档（其余 32 个操作本就声明该码）。401 响应体沿用共享的 `Unauthorized` 信封（`401 AUTH_REQUIRED / SESSION_INVALID`），故 `responses` 无需改动。
+3. **契约过声明的处置（逐项依据实现）**：本轮已把**经实现取证确认不可达**的错误码从对应操作的**有效声明**（契约 `x-error-codes` 与生成文档 `x-error-codes`）中移除，共 **24 处码-操作对 / 17 个操作**；每处都在对应端点的 description 中保留了精简的**历史背景 + 取证依据**（`文件:行`）。**HTTP 行为与序列化语义均未改变**（这些码本来就不会由这些操作返回）。
+
+**过声明移除清单（24 处，逐项附实现依据）**
+
+| 操作 | 端点 | 移除的码 | 不可达依据 |
+|---|---|---|---|
+| M2-A01 | `POST /api/v1/gimbal-sessions` | `SESSION_INVALID`、`IDEMPOTENCY_CONTENT_CONFLICT` | 公开端点不经 `BearerAuthFilter`（前者无入口）；本端点无 `Idempotency-Key`，而后者全仓唯一抛出点为 `idempotency/IdempotencyService.java:104` |
+| M2-A02 | `POST /api/v1/gimbals/{gimbalId}/heartbeats` | `TASK_REPLACED` | 心跳**不移动** `current_assessment` 指针（`GimbalHeartbeatService.java:44-45` javadoc 明示"本实现不使用 TASK_REPLACED"） |
+| M2-A03 | `GET /api/v1/gimbals/{gimbalId}/status` | `CALLER_NOT_ALLOWED` | `GimbalStatusService` 对 GIMBAL/APP 双主体分支放行或统一 404，全类该码命中 **0** |
+| M3-A01 | `POST /api/v1/skin-assessment-tasks` | `TASK_REPLACED` | `AssessmentAcceptanceService.acceptA01New:117-174` 以"受理即替换指针"完成（`:159`），该码只在 A02 路径 `:238` 抛出 |
+| M3-A03 | `GET /api/v1/skin-assessment-tasks/{taskId}` | `CALLER_NOT_ALLOWED` | `AssessmentReadService.getTask:36-58` 对双主体分支处理（云台非本人→404、非当前任务→`TASK_REPLACED`）；`:81` 的该码属 **`currentAssessment`（`:78`，服务 M3-A06）** |
+| M3-A04 | `GET /api/v1/members/{memberId}/skin-reports` | `GRANT_REVOKED` | 该码全仓唯一抛出点 `identity/MemberAccessGrantService.java:151`（M1-A01 幂等重放指向已撤销授权）；本端点对无 active 授权统一 404 `RESOURCE_NOT_VISIBLE`（防存在性推断） |
+| M3-A05 | `GET /api/v1/skin-reports/{reportId}` | `GRANT_REVOKED` | 同上 |
+| M4-A01 | `GET /api/v1/members/{memberId}/care-plans` | `GRANT_REVOKED` | 同上 |
+| M4-A02 | `GET /api/v1/care-plans/{planId}` | `PLAN_NOT_READY`、`GRANT_REVOKED` | 未就绪方案返回 **200 + `waitingReason`**（waiting_inputs/generating/generation_failed），**不抛错**（`CareQueryService.getCarePlan:116-130`）；`GRANT_REVOKED` 同上 |
+| M4-A03 | `POST /api/v1/care-executions` | `CALLER_NOT_ALLOWED`、`BINDING_CHANGED` | 本操作**同时接纳 APP 与云台**主体（`controllerType` 可为 `gimbal`）；`CareAuthorization.requireApp`（唯一抛该 403 处，`care/CareAuthorization.java:44`）在 care 包**仅被 `CareQueryService:69,107,227` 调用**。`BINDING_CHANGED` 只在 `GimbalBindingService:357` 与 `NotificationDestinationService:324,327`，护理路径无绑定代次入参 |
+| M4-A04 | `POST /care-executions/{executionId}/revalidations` | `CALLER_NOT_ALLOWED`、`RECORD_CONFLICT` | 以 `isOriginalController` 判定（错误主体→404 `RESOURCE_NOT_VISIBLE`），无 `requireApp`；重新核验路径**不写台账记录**，`RECORD_CONFLICT` 只在 `CareLedgerService:349,368`（A05）与 `:527,807`（A06） |
+| M4-A05 | `POST /care-executions/{executionId}/observations` | `CALLER_NOT_ALLOWED`、`BINDING_CHANGED` | 同 M4-A03/A04 的主体与绑定依据 |
+| M4-A06 | `POST /care-executions/{executionId}/closure-confirmations` | `CALLER_NOT_ALLOWED` | 同上（`CareLedgerService.close/runClosure:490-506` 仅 `isOriginalController`） |
+| M4-A07 | `GET /api/v1/care-executions/{executionId}` | `CALLER_NOT_ALLOWED`、`GRANT_REVOKED` | `CareQueryService.getCareExecution:135-164` 以 `hasActiveGrant`/`isOriginalController` 双判定（APP 与云台都接受）；`GRANT_REVOKED` 同上 |
+| M4-A08 | `GET /api/v1/care-plans/{planId}/progress` | `CALLER_NOT_ALLOWED`、`GRANT_REVOKED` | `getPlanProgress:168-219` 显式分支允许云台（需 executionId+verificationRevision）；`GRANT_REVOKED` 同上 |
+| M4-A09 | `GET /api/v1/members/{memberId}/care-executions` | `GRANT_REVOKED` | 同上 |
+| f05 | `GET /api/v1/media/{mediaId}/content` | `CALLER_NOT_ALLOWED` | `MediaController.content:42-52` 授权失败一律 **404 `RESOURCE_NOT_VISIBLE`**（防存在性推断）；三个 `MediaAccessPolicy` 实现中该码命中 **0** |
+
+**必须保留的可达码（逐项取证；其中 16 对已由门禁 `reachableCodesMustStay` 正向对照断言锁定，防止“全删”）**：M1-A01 的 `GRANT_REVOKED`（唯一可达点 `MemberAccessGrantService:151`）；M3-A03/M3-A05/M4-A03/M4-A04/M4-A08 的 `TASK_REPLACED`（`AssessmentReadService:48`、`SkinReportService:129`、`CareAdmissionService.taskReplaced()` 经 `:203,:207,:266,:270`（admit）与 **`:427,:430`（`runRevalidation`）、`:470,:473`（`runRevalidationTx`）**、`CareQueryService:205`）；M4-A03/M4-A08 的 `PLAN_NOT_READY`（`CareAdmissionService:774,775`、`CareQueryService:198`（云台分支）/`:216`（APP 分支））；M4-A05/M4-A06 的 `RECORD_CONFLICT`（`CareLedgerService:349,368,527,807`）；f05 与全部已认证操作的 `SESSION_INVALID`（`BearerAuthFilter:89,104` 统一抛出）；M4-A01/A02/A09 与 M2-A02/M3-A01/A02/A04/A05/A06 的 `CALLER_NOT_ALLOWED`（`CareAuthorization.requireApp` 的 3 处调用 + 各域 `requireApp`/`requireGimbal`）。
+> **断言覆盖范围如实说明**：门禁锁定的是上述 **16 对**（含本轮补入的 M3-A03 `TASK_REPLACED`、M4-A05/M4-A06 `RECORD_CONFLICT`）；其余可达码为**取证结论**，未逐对写入断言。
+> 注：M4-A04 的 `TASK_REPLACED` 起初未在侦察结论覆盖范围内，orchestrator 自行追踪 `taskReplaced()` 的全部调用点后确证其**可达**（经 `runRevalidation`/`runRevalidationTx`），故**保留**——这是"保守默认保留 + 逐点取证"的结果，不是遗漏。
+> 生成文档的 `x-error-codes` 声明总数由 **358 降至 334（恰 −24）**，唯一码数 28（`ErrorCode` 共 29 个，其中 `NOT_IMPLEMENTED` 等按操作声明）。
 
 ---
 
@@ -298,7 +325,7 @@ POST /api/v1/microcrystal-observations      （Idempotency-Key 必填；capabili
 | 心跳 `incidents[].code`/`severity` 枚举与上报频率 | 契约标 `x-detail: skeleton`，**未冻结** | 容忍未知键；服务端只读 `code/state/cleared/severity/detail`；其中 **`detail` 的内部结构未冻结**（文档中建模为显式开放对象），客户端不得依赖其任何具体键 |
 | 通知 `registration` 结构与 `provider` 取值 | **推送通道未选定**；仅 `schema_version`（JSON 整数，缺省服务端注入 1）可依赖 | 按提供方协议填写；服务端**绝不回传完整推送 token** |
 | 测肤报告 `metrics` 的指标名/区域枚举/单位 | 每元素**仅** `name/value/unit` 三键（封闭白名单），但**指标名与区域枚举未冻结**（须来自测肤协议，不得自由发明） | 按 `name`+`unit` 原样展示，不要硬编码指标集合 |
-| 报告列表项 `reportSummary` | DB JSONB **原样**返回、可空，**键结构未冻结** | 容忍未知键与缺失 |
+| 报告列表项 `reportSummary` | **已知三键**（取证自写入方 `assessment_analyze.py:412-417`）：`schema_version`（integer，当前固定 1）、`conclusion`（string，测肤结论；**取值集合未冻结**、无枚举约束）、`headline_metrics`（array，要点指标名，**最多 8 项**；指标名集合未冻结、须来自测肤协议）。**剩余扩展边界**：写入方未来可能新增键 ⇒ `additionalProperties=true`；该字段整体可空（报告未就绪时为 null）；`failure_detail`/`identity_result` 等内部诊断**绝不外发** | 仅**识别**这三键，且**每键都按可选处理**（不得假设任何键必然出现）；容忍未知键；容忍整体为 null |
 | 护理方案正文（`plan`/`planSummary`/`planExecution`） | 服务端**白名单投影**（封闭）；`schema_version` **绝不外发**；禁止返回供应商原始响应/提示词；该白名单标注"待契约确认后冻结"。**嵌套形状**：`steps` 是**对象数组** `{region: string, parameters: <动态映射>}`（服务端只保留这两键，其余丢弃；过滤后为空的步骤整体丢弃）；`regions` 是 `array<string>`；`parameters` 是**键名不固定的动态映射** `{参数名: 标量 或 {value, unit}}`（`value` 可为 string/number/boolean，`unit` 必为字符串，其余键丢弃） | 只使用文档列出的键；**不得发明参数名**（参数名/单位/取值范围未冻结，须来自已验证微晶协议） |
 | token 有效期 / 刷新窗口 | **真实会话提供方未选定**，无权威数值 | 以响应中的 `expiresAt`/`serverTime` 为准 |
 | APP 侧 `installBindingMaterial` | **不透明对象、结构未冻结**，当前基础层不解释 | 不要依赖任何键 |
