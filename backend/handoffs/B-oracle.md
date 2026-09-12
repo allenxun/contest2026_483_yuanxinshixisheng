@@ -412,6 +412,92 @@ git diff --name-only ccee6e28..e6812d49 -- 'backend/web-java/src/main/java/cn/yu
 
 
 
+### 4.16 第十三/十四轮：Swagger 联调注释轮的有界复审（会话 `ora-1`）
+
+本轮范围是**全新**的（文档-only：为实际 springdoc 生成的 `/v3/api-docs` 补齐 APP/云台联调中文文档），与前十二轮的业务代码审查无关。Oracle 被明确授权可运行测试（DB 仅 `mvp-b-pg`@55435、活体端口仅 18083），并被告知 Java 测试库 env 陷阱（漏传 `MVP_A_PG_JDBC/USER/PASSWORD` 会连**禁用的 55432** 并使全部 `@SpringBootTest` 上下文加载失败，表现为 `Errors` 而非 `Failures`）。
+
+#### 4.16.1 第十三轮：首次交付 `fb342a67e7c613cdc9c24ec6fcb74b9f68dbcacb` → **VERDICT: FAIL**
+
+2 BLOCKER + 5 IMPORTANT，明确"不可合入 dev"。**orchestrator 逐条读码核实 7 项全部成立**，其中两项纠正了我自己任务书的口径、一项裁定实施子道取证有误：
+
+| # | 严重度 | Oracle 发现 | 我的独立核实 | 归属 |
+|---|---|---|---|---|
+| 1 | BLOCKER | 引擎把所有 multipart part 标为 required，A02 的图片 part 实为按 `replacedViews` 条件必填 | 生成文档 A02 `required=['front','left','metadata','right']`，契约 `required=['metadata']`；`AssessmentMultipartParser:76-88` 要求 `replacedViews` 非空/∈front,left,right/不重复 | 引擎 + C4 |
+| 2 | BLOCKER | `SkinReportListItem.reportSummary` 被虚假声明为"无可取证键"的不透明对象 | **写入方** `assessment_analyze.py:412-417` 固定构造 `{schema_version:1, conclusion, headline_metrics[:8]}`，`SkinReportService.java:87` 原样外发 ⇒ 三键完全可取证 | C4 |
+| 3 | IMPORTANT | 登出被错称"同事务" | `AuthController:136` 在会话撤销**后**调用；`:203-214` 是 autocommit 单条 UPDATE 且 try/catch 吞异常（注释明写"撤销已生效；目标失效可后续补偿，**不反转登出**"）；控制器无 `@Transactional` | C1 |
+| 4 | IMPORTANT | 媒体策略描述过时（称生产 deny-all、dev 可走 owner 便利） | `BusinessMediaAccessPolicy:66-67` 为 `@Component @Primary`（javadoc 自称"唯一业务策略，覆盖 A 的 deny-all 默认"）；dev 旁路已在注入缝轮**全删**，`MediaPolicyNoDelegationIT` 在 `owner-dev` 下断言上传者仍 404 | C1 |
+| 5 | IMPORTANT | `EchoJobRequestBody.numbersAsStrings` 契约必填却写成"可选"，且无契约口径说明 | 契约 `SystemEchoJobRequest.required=['message','numbersAsStrings']`，代码未以注解强制 | C1 |
+| 6 | IMPORTANT | 门禁只查 5 个硬编码自由结构字段，且任意非空 note 即可冒充不透明声明 | `ApiDocsCoverageIT:55-61` 确为硬编码清单；`classifyFreeForm` 用自由文本关键词判定 ⇒ 夹具描述"普通数组描述（无任何**不透明/未冻结**表述）"竟被误判为已声明 | 引擎 + 门禁 |
+| 7 | IMPORTANT | `capabilities.schema_version` 被写成"服务端当前写 1" | `MicrocrystalService.buildCapabilities(requested, schemaVersion, revision)` 把它置为**请求中已校验的 `schemaVersion`**（可 >1）并跳过 requested 同名键 | C2 |
+
+**我对第 2 项的裁定**：子道以"`SkinReportService.listReports` 仅 `parseJson` 原样返回、未读取任何固定键"推断"无经取证的键可列"——把**读取方不解析**误当成**结构不可取证**；键的权威来源是**写入方**。Oracle 正确、子道取证有误，已要求其复盘根因。
+**我对第 5 项的关键区分**（避免修出新失真）：`A01Metadata`/`A02Metadata`/`M1A01Metadata`/`Capture` 的必填字段**服务端确实强制**（`AssessmentMultipartParser:60-64,73-88`；`MemberAccessGrantController:162-170,197-203,207-210` → 400 `INVALID_INPUT` + `details.fields`），只是未用 Bean Validation 注解 ⇒ javadoc 明写"**这不是实现偏差**"；只有 `numbersAsStrings` 属"契约必填而代码不强制"的**真实现偏差**。
+**Oracle 同时确认**：零业务改动成立（`76cd426..fb342a6` 仅 `web/docs/**` 12 文件）、生产 fail-closed 不回归、成功码/类型化 data/错误码与契约一致/示例脱敏均通过、`JsonNode` 空壳可接受、实现与契约差异按源码事实书写恰当、两个契约缺口（`PROVIDER_CONTRACT_VIOLATION` 未入 enum、f02 漏声明 `SESSION_INVALID`）应上报总协调且当前处置正确。
+
+**整改**（提交 `9b5ed34a6bd669ebc4726681cb92847264b3a18e`，9 文件全在 `web/docs/**`）：接口加法扩展 `MultipartPartDoc.required`（保留 3 参工厂默认 true ⇒ 零目录破坏）与 `ApiDocsCatalog.requiredProperties()`（default 方法 ⇒ 不破坏 29 处 `new PropertyDoc(...)`、16 处 `new FreeFormDoc(...)`）；引擎按 part 施加 required、合并并施加 `requiredProperties()` 且 fail-fast（新增 `unknownRequiredProperties`）、展开自由结构时清 `$ref`；门禁三项硬化（只认 `OPAQUE_MARKER`、动态扫描全部属性 + `isUnstructuredObject`、`APPROVED_OPAQUE_FIELDS` 核准清单恰 3 项、契约 required 交叉校验含生成名↔契约名映射）；三个目录据实声明 required；C1/C2/C4 文案与结构改正。
+**我实测闭合证据**：`test-compile` rc=0；`ApiDocsApplierTest` 15/0/0、`ApiDocsCoverageIT` 1/0/0（4 项→0）、`OpenApiDocsIT` 3/0/0、`OpenApiDocsDisabledIT` 1/0/0、`DocsProductionGuardTest` 7/0/0；**全量 `mvn -B test` 435/0/0**；真实 `/v3/api-docs` 200/415676 字节，A02 `required=['metadata']`、A01/care/revalid/grant 与契约逐个吻合，`reportSummary` 含三键且无不透明标记，5 个 schema 的 required 与契约相符，"当前为 1"与"留痕"出现 0 次，`deny-all`/`owner-dev`/`any-authenticated` 仅出现在否定句中，核准不透明集恰 3 项，无结构自由字段 0，**全量 384 个 `$ref` 零悬空**。
+
+#### 4.16.2 第十四轮：整改 SHA `9b5ed34` → **VERDICT: FAIL**（范围收窄）
+
+**原 7 项全部确认闭合**（Oracle 逐条给出 `文件:行`），并采纳我的两项决策：清除 `$ref` 可接受（展开后 inline schema 成为机器可见结构、无悬空引用、`JsonNode` 修剪合理）、**本轮不重跑 41 项端到端工装可接受**（增量仅 `web/docs/**`，435 项 Java 全量 + 真实抓取是适当验证）。新发现 1 BLOCKER + 2 IMPORTANT + 1 SUGGESTION：
+
+- **BLOCKER**：`knownKeys` 只能表达一层类型，`keySchema()` 的 `case "array" -> new ArraySchema().items(new StringSchema())` 使**任何嵌套数组退化为 `array<string>`**，与真实响应冲突并误导代码生成器：`CarePlanFullView.plan.steps`、两个 `planExecution.steps`（实为 `array<object{region,parameters}>`，权威源 `CarePlanProjection.projectStep/projectParameters/projectParameter`）、`ErrorBody.details.fields`（实为 `array<object{field,reason}>`）、`ErrorBody.details.missingRanges`（实为契约 `MissingRange={from,to}` 均必填、封闭）。Oracle 判定这违反"大 JSON 必须明确结构及可扩展边界"，属 **9/13 联调阻塞项**。
+- **IMPORTANT**：门禁只扫描 component 的**直接属性**，展开字段内部的空 object / 错误 array items 不会被发现（`plan.steps` 建成 string items、`incidents[].detail` 为空壳 object，但父字段已有 properties 被判 EXPANDED）⇒ 须递归遍历 inline properties/items。
+- **IMPORTANT**：契约 required 交叉校验只覆盖请求，不覆盖响应 DTO ⇒ 须对所有成功响应的 data/list item schema 同等校验。
+- **SUGGESTION**：`AssessmentApiDocs` 的 `metrics.value` 同时写"number"与"数值/文本类型未冻结"，自相矛盾。
+
+**我实测复核全部成立**，并补充两点：①根因更精确——顶层数组型自由字段（`HeartbeatBody.incidents`、`SkinReportView.metrics`）的 `items` **已正确**为 object 且键齐全，错误只发生在"自由结构对象**内部**的键"经 `keySchema()` 一层 DSL 时；②我发现一个 **Oracle 未点名的引擎缺陷**：`applyFreeForm` 清除 `$ref` 后**未补 `type`**，致 `SkinReportListItem.reportSummary` 与 `M4A04Metadata.reportedMicrocrystalState` 在生成文档中**缺 `"type":"object"`**（实测 `has type key: False`），而 `MicrocrystalObservationBody.state` 却有 ⇒ 已纳入本轮修复。
+**我对 `metrics.value` 的取证修正**（比 Oracle 建议更准确）：投影层 `SkinReportService.projectMetrics` 原样复制、不校验类型，但**上游 Python 契约校验** `assessment_analyze.py:645-648` 强制 `value` 为 `int/float` 且排除 `bool`、并须落在核准范围内，违约即 `PROVIDER_CONTRACT_VIOLATION` 终态失败 ⇒ 报告中的 `value` **必为 number**，未冻结的是**指标语义/单位/取值范围**而非类型。已按此改写（而非简单删掉"未冻结"字样）。
+
+**Oracle 给出 6 条一次性目标判据**：①`plan.steps.items.type == object` 且含 `region`/`parameters`；②动态参数 map 明确 `additionalProperties` 及值边界；③`ErrorBody.details.fields/missingRanges` 使用正确对象 item schema；④Coverage 递归检查所有 inline object/array；⑤响应 required 与契约同等交叉校验；⑥定向加入"错误 `array<string>` 不得通过"的负向测试。**轮次边界声明**：下一轮只需核验递归自由结构 schema、响应 required 门禁与上述负向测试，已闭合的 7 项无需复审；达到 6 条后无需再因普通文档措辞发起重绑定轮次。
+**9/13 可用性判断**：上轮两个 P0 已修，但"大 JSON 的机器结构仍不准确，故 P0 尚未全部清零"；修完递归 schema 后可支撑 HTTP 流程与 doubles 联调，**真实硬件独立接入仍需设备团队/总协调冻结 10 项**（云台 credential/proof 格式与签名/nonce/防重放/轮换、pairingProof 协议、connectionProof 与连接 generation/有效期、微晶 capabilities 键与类型/单位/范围/版本演进、微晶 state 结构与状态编码、heartbeat incident code/severity/detail 结构、observationEpoch/Seq 持久化与 C25/C26 代次规则、session token 提供方/字段名/TTL/撤销语义、测肤 metrics 名称与单位范围及 conclusion 集合、care plan 的 region/step/parameter 名称与单位）——**这些不能由文档实现方自行发明**。
+
+#### 4.16.3 第十五轮：递归结构化键整改 → 待审
+
+**orchestrator 的接口决策**（我拥有冻结接口）：新增递归 record `KnownKeyDoc`（7 组件 `type/description/properties/items/additionalProperties/additionalPropertiesSchema/example`）与工厂 `str/integer/number/bool/array/closedObject/openObject/mapOf/opaqueObject`，并新增 **default 方法** `structuredKeys()`（与 `freeFormDocs()` 同键空间，内层为顶层已知键 → 递归结构；与 `knownKeys` **按并集施加、同名以 `structuredKeys` 为准**）⇒ 加法扩展，16 处 `new FreeFormDoc(...)` 零破坏。`type` 另支持 **`any`**（不写 type 关键字、仅 description），专为 `projectParameter` 允许的"标量 **或** `{value,unit}` 对象"这类真实联合形态，且明令不得用 `any` 规避取证。
+**首次尝试的错误**：我曾试图给 record 加可变私有字段承载 `mapOf` 的值结构，触发 `Instance fields may not be declared in a record class` ⇒ 改为第 7 个组件 `additionalPropertiesSchema`；定向 `javac` 验证接口与我自己的 `CommonEnvelopeApiDocs.structuredKeys()` 均 rc=0。
+**分道**：引擎+门禁道（递归构建、`$ref` 清除后补 `type`、门禁递归扫描、响应侧 required 交叉校验、正负向测试含"错误 `array<string>` 不得通过"）、C3 道（`plan.steps`/`parameters` 与两个 `planExecution`）、C2 道（`incidents[].detail`）；我自己修 `CommonEnvelopeApiDocs`（`details.fields`→`array<openObject{field,reason}>`，因 `CareBigints:50` 等生产者只给 `field` 不给 `reason` 故不封闭；`missingRanges`→`array<closedObject{from,to}>` 依契约 `MissingRange`）与 `AssessmentApiDocs` 的 `metrics.value` 文案。
+
+**第四轮整改落地（提交 `7461ce115e2d3690c414db63bcd1bc261b95c8b1`，9 文件全在 `web/docs/**`）**：
+- **接缝风险实测裁定**：两条目录道各自独立提出的同一风险（引擎对"数组型自由字段的内层键"与 `any` 的落地口径）经我读码确认**双方假设均正确**——引擎固化"内层键描述元素对象的键"（`prop.setType("array"); prop.setItems(struct)`），`knownKeySchema` 对 `any`/null/空 type **不写 type 关键字**。
+- **我发现并修复 Oracle 未点名的缺陷**：两个 `JsonNode` 型字段（`SkinReportListItem.reportSummary`、`M4A04Metadata.reportedMicrocrystalState`）在真实文档中缺 `"type":"object"`。引擎已调用 `setType("object")` 且单测断言内存态 `getType()` 通过 ⇒ **内存成功但 3.1 序列化未输出**。字节码级根因：`Schema31Mixin` 把 `getType()` 标 `@JsonIgnore`，`"type"` 由 `getTypes()`（`Set<String>`）经 `TypeSerializer` 输出，而 `Schema.setType(String)` 只写 legacy 字段、不动 `types`；`new ObjectSchema()` 走 `Schema.<init>("object", null)` 会 `addType("object")` 故正常（引擎自建的列表 `data`/统一信封带 type，构成反证）。修法：整体替换属性实例（`FreeFormTarget` holder + `copySiblingKeywords` 保留 `nullable/readOnly/writeOnly/deprecated/title/format/extensions` 与插入位置）。
+- **测试代表性缺陷（比缺 type 本身更严重）**：原回归测试只断言内存态，故生产 JSON 缺 type 时依然绿 = **虚假保证**。改为对 `Json31.mapper().writeValueAsString(openApi)` 的序列化结果断言，并新增**负向判别力证明**（构造 `new Schema<>().$ref(...)` → 清 `$ref` → `setType("object")` → 序列化后断言 `type` **缺失**）；同类问题已排查并为另两个测试补序列化层断言。
+- **门禁新增的响应侧 required 交叉校验暴露 33 项真实缺口**（生成 required 为空 vs 契约非空）。我裁定**补齐而非降级**；四域据实声明 33 个响应 schema，每条 snakeyaml 实读契约逐字比对并**逐字段核实存在性**（全库仅 2 处 `@JsonInclude(NON_NULL)`：`SkinReportView:21` 的 `metrics`、`ErrorEnvelope:17` 的 `details`，均不在声明集；`AssessmentTaskView.requiredViews` 由 `FailureProjection:88-90` 在非 `needs_retake` 时返回 `List.of()` ⇒ 键恒存在；`GimbalCurrentAssessmentView.currentAssessment` 键恒存在、值可为严格 null；Care 域 14 项核对 DB NOT NULL 列与构造路径）。接口语义同步澄清：**响应侧 required = 服务端保证键必然存在（值可为 null），不是实现偏差**。
+- **我纠正了自己定的一个不可实现判据**：原要求"目录把对象数组声明成 `array<string>` 时门禁必须失败"——仅凭生成文档无法判别（与合法字符串数组同形）⇒ 改为引擎 fail-fast：`keySchema()` 拒绝裸 `array`/`object` 前缀（`invalidKnownKeyTypes`）、新增显式 `array<string|integer|number|boolean>`；连带改 5 处真字符串数组，另 5 处裸前缀经核实安全（2 处为 `KnownKeyDoc` 描述文本、3 处被 `structuredKeys` 覆盖而由引擎跳过）。
+- **orchestrator 的调度误判（如实记录）**：C3 道派发后 10 分钟无写入 + `task_status` 返回 "Unknown task ID" + 磁盘 `requiredProperties` 命中 0，我判定其已死并**重派**，造成同文件重复写者；实际该道处于长时间读码核实阶段，11 分钟后正常交付。我随即取消重复道并实测对账（方法声明恰 1 次、import 恰 1 次、mtime 仍为原道交付时刻、14 个键各命中 2 次系 `propertyDocs()` 与 `requiredProperties()` 各一次）⇒ **重复道零写入、无污染、无需回滚**。教训：对需大量读码的任务，"短暂无写入"不构成死亡证据。第 8 次同类信号出现时我改用 260 秒三点指纹探测，确认其在世（surefire 报告新写入）而未误动。
+
+**orchestrator 实测验证（绑定 `7461ce1`）**：`test-compile` rc=0；定向文档测试 **34/0/0**（Guard 7、Coverage 1、DisabledIT 1、**Applier 22**、OpenApiDocsIT 3）；**全量 Java 442 run / 0 failures / 0 errors**；硬化门禁 **33 项 → 0 项**；真实 `/v3/api-docs` **200 / 423892 字节**；自建 `verify-r4.py`（**判别力已自测**：对修复前抓取 34 PASS/22 FAIL）跑出 **66 PASS / 0 FAIL**，覆盖 Oracle 6 条判据 + 序列化缺陷 + 前两轮回归（`plan.steps.items.type=object` 含 `region`/`parameters`、`parameters.additionalProperties` 为 schema、`details.fields.items`={field,reason}、`missingRanges.items` 封闭 {from,to}、`incidents[].detail` 显式开放、3 个 `JsonNode` 型字段均带 `type=object`、53/61 schema 有非空 required、属性描述 266/266、示例 221、**384 个 `$ref` 零悬空**、`JsonNode`/`PrincipalContext`/`SuccessEnvelope` 已修剪）；跑后端口空闲、无遗留进程；整轮相对 dev 基线 **12 文件 / +7224 −53 全在 `web/docs/**`**，`git diff --check` rc=0。
+
+**第十五轮（Oracle 对 `7461ce1` 的窄范围复审）结论：VERDICT FAIL**（送审范围严格限于 Oracle 上轮自行声明的边界）。其 6 条判据中 **1/6/7/8 通过**（`plan.steps` 递归结构、裸前缀 fail-fast 负向判别、3.1 序列化缺陷的根因与修法、`metrics.value` 文案），判据 2 **基本通过**（`any` 准确表达真实联合，建议协议冻结后改 `oneOf`）。新发现 **2 BLOCKER + 1 IMPORTANT**：
+- **BLOCKER A**：`KnownKeyDoc` 无法表达**嵌套 required** ⇒ `ErrorBody.details.missingRanges.items` 缺 `required:[from,to]`，与契约 `MissingRange`（两键均必填、封闭）不一致，机器契约比权威契约更宽松、会让代码生成器允许客户端漏填。**根因是我设计接口时的能力缺口**（7 组件无 required，引擎 `knownKeySchema` 从不 `setRequired`）。
+- **BLOCKER B**：响应 required 门禁**跳过**契约的 inline schema（5 个生成 component），其中 3 个契约明确要求 required 而目录未声明；Oracle 指出"**跳过并打印不等于同等交叉校验**"。
+- **IMPORTANT**：`any` 节点无 type 且不受核准清单约束 ⇒ 可被用来绕过递归结构门禁。
+Oracle 给出 7 条精确修复目标并明示"无需重跑完整端到端验收"。
+
+#### 4.16.4 第十六轮整改（提交 `c3bf05433276152441eb7e80081c3dffc5fbeb6a`）与其窄范围复审
+
+**整改要点**：①接口加法扩展 `KnownKeyDoc` 第 8 个（末位）组件 `List<String> required` 并保留 **7 参委托构造器** ⇒ 既有 10 个工厂与既有目录调用点（`CareApiDocs:1019`）**零破坏**；新增 `any(desc)` 与 `closedObject(props, required, desc)` 工厂；引擎 object 分支按声明顺序 `setRequired`，required 含不存在的键 → 新增 `invalidNestedRequired`（含完整路径）并 fail fast。②门禁新增 `CONTRACT_INLINE_RESPONSE_POINTERS`（生成名→契约 JSON pointer）+ RFC6901 `resolvePointer` + `crossCheckInlineRequired`（**双向精确集合相等**，pointer 陈旧亦失败）；`RecordWatermark` 从跳过清单移出改为真实比对。③目录据实声明 3 项（`EchoJobLastError[reason,retryable]`、`SkinReportImage[mediaId,contentUrl]`、`CurrentAssessment[taskId,status,photoVersion]`），且**契约 required 不含 `reportId` 故未声明**、并把该字段描述补为"未就绪时为 null 但键仍存在、客户端不得依赖其非空"。④门禁 `APPROVED_ANY_PATHS` 采用**精确集合成员判定**（实施道提出、我采纳，比我原建议的模式匹配更严格：模式会顺带放行未来任何 `Foo.plan.parameters.*`，精确集合则"新增或改名结构都会响亮失败并暴露待审路径"）。⑤新增 4 项正负向测试 + 1 项真实文档断言，负向均有判别力；序列化层证据以 `javap` 核实 `Schema31Mixin` 中 `getType` 被 `@JsonIgnore` 而 **`getRequired` 未被忽略**。
+
+**我方对 Oracle 两处主张的独立核实结论（不盲从）**：
+- **`IncidentView`**：Oracle 要求"与 inline 契约的空 required 集比较，而非跳过"。我与实施道**各自独立**全量搜索契约的 `incidentId`/`openedAt`/`lastReportedAt` ⇒ **均零命中**；契约中唯一的 `incidents` 键在请求侧（`GimbalHeartbeatRequest`、`GimbalStatusView`），两者均标 `x-detail: skeleton`、形态 `{type:object, additionalProperties:true}`，**不存在任何响应投影结构定义**。故处置为：保留"跳过"，但把披露文案改为**明确写明"契约未定义该结构"及其依据**（门禁新增 `CONTRACT_UNDEFINED_RESPONSE_SCHEMAS`），**未 invent 任何映射或 required**。该分歧已带证据提交 Oracle 裁定。
+- **`any` 的数量**：Oracle 称"仅三处 plan parameter map value"，我在真实文档上实测为 **6 处**（3 个 plan 结构 × {顶层 `parameters.*`、`steps[].parameters.*`}，因 `projectStep → parameters → projectParameters`，每个 step 内还有一层动态映射），并已把该实测修正转达在飞实施道（其独立回放判据于修复前抓取，HITS=6 逐字一致）。
+- **另一处避免误报的实测事实**：61 个 component 中 **47 个没有 `type` 键**（只有 `properties`/`required`），这是 springdoc 对 record 在 3.1 下的正常输出、Oracle 两轮均未视为缺陷 ⇒ `any` 的检测判据**不能**只用"无 type"，否则大面积误报；实际判据为"无 `type` 且无 `$ref` 且无 `properties` 且无 `items` 且无 `additionalProperties`"。
+
+**orchestrator 实测验证（绑定 `c3bf054`）**：`test-compile` rc=0；定向文档测试 **38/0/0**（Guard 7、Coverage 1、DisabledIT 1、**Applier 26**、OpenApiDocsIT 3）；**全量 Java 446 run / 0 failures / 0 errors**（`7461ce1` 的 442 + 4 新）；真实 `/v3/api-docs` **200 / 424133 字节**、swagger-ui 200；自建 `verify-r4.py`（**两次自测判别力**：对修复前抓取 72 PASS/6 FAIL，6 项恰为待修清单；期间修掉脚本自身两个缺陷——把属性节点当 schema 名传入致 `TypeError`、`any` 判据把 47 个正常 component 误报）跑出 **78 PASS / 0 FAIL**，逐条覆盖 Oracle 7 条目标（`missingRanges.items.required=[from,to]`、三个 inline component 的 required 精确相符且**未 invent `reportId`**、`RecordWatermark`/`IncidentView` 均为空、无 type 值节点**恰 6 处且全在核准路径**、有非空 required 的 schema 由 53 增至 **56**）并回归前几轮全部已闭合项；门禁披露口径已改为 `undefined=[IncidentView（契约未定义该结构…）]`；跑后端口空闲、无遗留进程；整轮相对 dev 基线 **12 文件 / +7642 −53 全在 `web/docs/**`**，`git diff --check` rc=0。
+
+**我方主动披露（不在 Oracle 7 条目标内、未擅自扩大范围）**：①5 个 inline 映射 component 的 `additionalProperties` 契约为 `false`、生成文档为空（语义更宽松，但响应 DTO 是 record、实际不会输出额外键 ⇒ 无行为风险）；②47/61 个 component 未声明 `"type":"object"`（已写入交付指南第 8 节）；③plan 参数值联合以无 type 的 `any` 表达，协议冻结后应改 `oneOf`；④实施道为取得"required 确实进入 3.1 JSON"的证据运行了一次**隔离 classpath 的独立 `java` 探针**（非 mvn、非项目测试套件、不触碰项目源码与端口）并主动披露，我判定属轻微越界但目的正当、无副作用，予以接受并记录。
+
+**第十六轮（Oracle 对 `c3bf054` 的窄范围复审）结论：VERDICT PASS-with-notes**。
+- **五项判据全部通过**（各附 `文件:行`）：①nested required（DSL `ApiDocsCatalog.java:175-219`、引擎施加与非法属性 fail-fast `ApiDocsApplier.java:645-689,1184-1221`、`MissingRange` 声明 `CommonEnvelopeApiDocs.java:145-178`、真实文档门禁 `ApiDocsCoverageIT.java:388-398`）；②inline 响应映射（4 个 pointer `:161-192`、RFC6901 解析与双向比较 `:639-760`，少报/多报/陈旧 pointer 均失败，`RecordWatermark` 已与空 required 集真实比较而不再笼统跳过）；③三项实际 required（`FoundationApiDocs.java:508-526`、`AssessmentApiDocs.java:423-444`，且 **`reportId` 未被错误加入** `CurrentAssessment`）；④正负测试（nested required 序列化正反对照、非法键完整路径、inline pointer 少报/多报/陈旧映射、未核准 any 均有独立判别力；**测试使用 Json31 序列化结果、不再停留于可能失真的内存态**）；⑤`any` 核准（精确清单 `:63-95`、递归判定 `:485-505`，"精确路径优于模式匹配，不会静默放行未来同名结构"）。验证数字自洽（442+4=446、定向合计 38 项）。
+- **A（`IncidentView`）：Oracle 明确撤回其此前主张**——"实施方处置正确，我撤回此前'应与空 required 集比较'的要求"，并自证契约仅在 `openapi.yaml:2173-2176`（heartbeat 请求 incidents）与 `:2202-2205`（status 响应 incidents）定义开放 skeleton，均不含 `incidentId/openedAt/lastReportedAt` 投影结构；把 `IncidentView` 归入"契约未定义"并披露**比虚构 pointer 正确**。⇒ 我方"不 invent 映射、带证据顶住"的处置获裁定支持。
+- **B（`any` 数量）：Oracle 确认应为 6 处**——其"三处"指三种 plan 结构，未计入每种的两条实际递归路径（`parameters.*` 与 `steps[].parameters.*`）。
+- **新发现（均非阻塞）**：①IMPORTANT——47 个带 `properties` 的 component 未输出 `type: object`，且**JSON Schema 语义并不会由 `properties` 推导出实例必须是对象**（非对象实例只是不应用 `properties` 约束）；本轮明确接受（主流生成器仍能从 properties 生成模型），但**该文档不得宣称是严格验证契约**，后续可用 Json31 安全补齐 object type 并加序列化门禁。②SUGGESTION——4 个 inline component 的契约 `additionalProperties:false` 未在生成侧显式设置，机器文档比契约宽松；响应 DTO 实际不会输出额外字段，不阻塞联调，后续可把 inline pointer 比较扩展到 `additionalProperties`。
+- **合入与验收**：**可以将 `c3bf05433276152441eb7e80081c3dffc5fbeb6a` 作为本轮最终交付 SHA 合入 dev**；**不要求重跑完整端到端验收**（本轮仍只改 `web/docs/**`，446 项 Java 全量 + 38 项文档定向 + 实际 `/v3/api-docs` 抓取已覆盖该风险面）。
+- **9/13 硬件联调可用性**：此前识别的文档 **P0 已清零**（plan 嵌套结构正确、nested required 落地、inline 响应 required 可追溯、any 受精确清单限制）⇒ **可支撑 APP/云台开发者独立完成 HTTP 流程与 doubles 联调**、**可用于主流代码生成器生成客户端模型/调用骨架**；但**不能作为严格 JSON Schema 验证器或替代权威手写契约**（因 object type、additionalProperties 与 any 残留）。真实硬件协议仍需外部冻结其列出的 **10 项**。
+- **轮次边界确认**：`c3bf054` 为本轮最终交付 SHA，**无需再因普通文档措辞或断言精度发起新的重绑定轮次**；唯一后续是已明确接受的 machine-schema 严格性增强，不影响 9/13 HTTP/doubles 联调。
+- **对我方第 4 项披露（隔离 `java` 探针）的裁定**：可作为**补充证据**接受，但"不应替代仓内测试"；因本轮相同判别已固化为 Json31 单测与真实文档检查，**无需依赖该越界探针作结论**。
+- **必须持续披露的残留限制（Oracle 清单，11 项）**：生成文档非权威契约；3.1.0 与 3.0.3 表示差异；47 个 component 缺显式 `type: object`、不宜作严格 JSON Schema 验证输入；inline 响应未完全同步 `additionalProperties:false`；plan 参数联合暂以经核准的无 type `any` 表达、冻结后应改 `oneOf`；`IncidentView` 响应投影在权威契约中未定义；`operationId` 尚未对齐；`ClosureResult` 实现少于契约的可选字段；`PROVIDER_CONTRACT_VIOLATION` 与 f02 `SESSION_INVALID` 两项契约缺口待总协调处理；真实硬件协议 10 项未冻结；文档仅 dev/test 启用、生产保持 fail-closed。
+
 ## 5. 验证证据（orchestrator 亲自执行，最终状态）
 
 ```
