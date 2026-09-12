@@ -303,6 +303,65 @@ git diff --name-only ccee6e28..e6812d49 -- 'backend/web-java/src/main/java/cn/yu
 
 **Oracle 实际执行的核查命令**：`git rev-parse HEAD`、`git log --oneline 8127be5..d3dc853`、`git diff --stat 8127be5..d3dc853`、`git diff 8127be5..d3dc853`、`git show --stat --oneline d3dc853`、`git status --short --branch`、`git diff --check 8127be5..d3dc853`、`git diff --name-only 8127be5..d3dc853`，以及对 `web/auth/**`、`care/**`、`assessments/**`、`contracts/**`、`backend/tests/**`、`worker-python/**`、`db/migration/**`、`deploy/**` 的越界核查（结果为空）；另只读 `read`/`grep` 检查 4 个变更文件。未运行测试、未启动进程、未访问受限协调目录。
 
+### 4.13 第九轮：公共集成修复轮的**有界**复审（被审 SHA `2d6c7231f2d2aa58ec0501e8550a0f35b8bd2533`，会话 `ora-1`）
+
+总协调本轮指定 **B 为公共集成修复唯一实施负责人**（不恢复 A/C/D 会话），授权三项：① B 的可重入 incident scanner + D 已有 `media.cleanup` 候选发现接入既有 Python Worker 的**有界周期调度**；② Java 登出失效通知目标时**同事务递增 `destination_revision`**（= Oracle 此前提出的 #8）；③ 修 E 报告 **CC-11 的 13 处 OpenAPI 建模缺陷**。审查范围限定本轮三项 + 基线合并，**不重审** R6 已通过的 B 业务代码与 R8 已通过的 Swagger。
+
+**`VERDICT: PASS-with-notes`** —— 三项授权目标**均已正确实现、无代码级 blocker**，并明确 **"可以合入 dev"**。
+
+**19 点逐条裁定（全部通过，含 Oracle 依据行号）**
+- **项 1（`2d6c723`）**：①**已真实接入既有 Worker**——`runtime/loop.py:60-66,227-249` 在 `run_forever()` 内构建并调用 `scanner.run_due()`，"不是用 CLI 冒充生产接入"，未新增进程/线程/cron/服务/队列；②**租约与失败事务语义未变**——`process_job()`、`run_cycle()` 及 `claim`/`complete`/`renew`/`expire`/`rows`、handler 注册表均无 diff，`business_tx` 与 lease generation 守卫原样；③**候选分页有界成立**——`incident_scanner.py:102-139,202-228` 三段 SQL 均为 UUID keyset + `ORDER BY id LIMIT`、满页推进/尾页归零，生产 scheduler 始终传显式 limit（`scheduler.py:150-159`），`limit=None` 只保留直接函数兼容、CLI 默认也已传配置 limit（`scanners/__init__.py:33-48`）；④**重入安全成立**——`scheduler.py:47-70` 非阻塞 Lock，生产同线程调用不会重叠，多实例继续依赖原有行锁/revision/dedup，"不新增错误的分布式锁"；⑤**网络仍在锁外**——回调只做候选发现与 DB 入队，真正存储删除仍在 `media_cleanup.py:216-222` 的业务事务外；⑥**C7 红线保持**——`incident_scanner.py:102-119,257-303` 仅读 `last_seen_at`、UPDATE 不含该列，测试见 `test_scanner_scheduler.py:230-242`；⑦**停机及时**——`loop.py:243-249` 用 `stop_event.wait()`，扫描间隔不会变成不可中断 sleep（正在执行的同步扫描须完成后退出，属既有限制）；⑧**`ScanReport`/CLI 兼容**——仅追加 `scan_limit`（`incident_scanner.py:45-84`），既有字段未改，`--once/--loop` 退出语义未变且 CLI 扫描现默认有界。
+- **项 2（`d0e9b84`）**：⑨**原子 UPDATE 正确**——`AuthController.java:203-209` 一条 SQL 同时置 invalid、写时间并 `destination_revision + 1`，不存在 DB 内"已失效但代次未变"中间态；⑩**幂等/竞态正确**——`WHERE session_ref=? AND status='active'` 只递增一次、无先查后改、已 invalid 行不刷新时间；⑪**HTTP 行为不变**——`:128-137` 仍 204 无体，T09 失败不反转已完成的会话撤销，日志不再记录 session_ref/token；⑫**一致性边界表述准确**——注释只声称"T09 状态与 revision 在同一原子 UPDATE"，**没有**声称与 `SessionProvider` 撤销同一事务；⑬**既有登记/投递代次语义未削弱**——`NotificationDestinationService` 与 Python 投递 handler 无 diff；⑭**测试有效**——`LogoutDestinationRevisionIT.java:93-234` 分别覆盖恰好 +1 与 204、重复/已 invalid 不递增、旧 T10 快照与当前 T09 代次失配、新会话重新登记继续 +1，且未修改既有断言。
+- **项 3（`2bd768a`）**：⑮**13 个已报告缺陷均正确修复**——`Verification.validUntil`（`openapi.yaml:2052`）、`Progress.completedAt`（`:2069`）、`ProgressWithSync` 展平（`:2070-2087`）、`ControllerRef.gimbalId`（`:2475`）、`CareExecutionListItem.closedAt`（`:2666`）；⑯**严格性保持**——`ProgressWithSync` 显式保留七个属性、原 `required` 集合与 `additionalProperties:false`，未删除父 schema 严格约束，状态码/`operationId`/`x-api-id`/`x-error-codes` 及响应引用链均未修改；⑰**未修改 E 验收资产**——`backend/acceptance/**`、`backend/tests/**` diff 为空；⑱**剩余旧式 nullable 可按本轮授权只披露**——`ProgressWithSync.targetCount` 仍在 `:2081`，但当前 M4-A08 只允许 ready plan（`CareQueryService.java:195-218` 拒绝非 ready，ready 行要求 `targetCount` 非空），故 A08 成功响应不会触发该 null 缺陷，**不是本轮 blocker**，应纳入统一契约治理；⑲**E 自检应由 E/集成方更新**——`test_framework_selfcheck.py:943-960` 明确断言旧 additionalProperties 缺陷存在，修复后失败是预期；`c_care.py:98-154` 的 13 项 allowlist 已陈旧；**B 不应重新制造缺陷或擅改 E 文件**，E 应把自检改为断言已无该错误并清理对应 allowlist。
+
+**新发现（1 IMPORTANT + 4 SUGGESTION，均非 blocker）**
+| 严重度 | 文件:行 | 问题 | Oracle 建议 |
+|---|---|---|---|
+| IMPORTANT | `incident_scanner.py:389-422` | `LIMIT` 只约束 **gimbal 候选数**；单个 gimbal 的 `active episodes × active destinations` 扇出无总预算 ⇒ 单轮总事务/通知数并非严格有界（复现：`limit=1` 但为该 gimbal 准备大量 active episodes 与 destinations，仍处理全部组合） | 后续增加每轮总工作预算或对 episode/destination 分页；**MVP 可暂按运营规模接受并监控** |
+| SUGGESTION | `scheduler.py:58-70` | `due_at` 按回调**开始前**的 `now` 顺延；回调耗时超过 interval 时下一轮立即再次到期 | 改为回调结束时的 monotonic + interval，**或明确这是 fixed-rate/best-effort** |
+| SUGGESTION | `scanners/__init__.py:3-4,25` | 注释仍称"由总协调接入/本轮不接入部署"，与已接入现状不符 | 更新注释，不改行为 |
+| SUGGESTION | `contracts/decisions-notes.md:179` | 仍写 36 处旧 nullable，当前已减少 | 由契约所有者更新剩余计数 |
+| SUGGESTION | `NotificationDestinationService.java:35` | 注释仍以"登出不改代次"为现状前提 | 由 B/集成所有者更新为当前 +1 语义 |
+
+**对 orchestrator 已披露待协调项的裁定**
+| 项目 | Oracle 裁定 | 负责人 |
+|---|---|---|
+| D 候选发现有 `LIMIT` 无 keyset（头部永久安全跳过项可致后续候选饥饿） | **非阻塞但应修**；影响清理及时性/存储回收，**不造成误删**；调 batch 不能根治永久头阻塞 | D/集成方增加 keyset 或排除已证明不可清理的候选 |
+| `gimbals.active_incidents` 长期保留 resolved episodes | **非阻塞 MVP 残留**；增加 JSONB 体积、候选扫描与通知延迟，但 active 过滤避免误通知 | 集成/数据所有者设计压缩、索引或迁移 |
+| `worker-python/tests/conftest.py` 只认 `MVP_A_PG_*`（默认 55432） | **非生产阻塞，测试基础设施应修** | 共享测试基础设施所有者 / A 或总协调 |
+| `NotificationDestinationService` 旧注释 | **非阻塞文档修正** | B/集成方 |
+| C25 / C26 | **维持非阻塞待冻结项** | 总协调、APP/设备协议提供方 |
+
+**合入许可与附带条件（Oracle 原文）**：**可以合入 dev**。需注意：①合入后 E 的一项旧缺陷自检会**按预期失败**，E/集成方必须同步更新其期望，之后才能宣称整体验收全绿；②incident scanner 的总扇出不是绝对硬上限，作为 MVP 运维限制接受，但应进入后续预算化治理。
+
+**Oracle 要求持续披露的残留限制**：incident scan 的候选 gimbal 数有界但 episode×destination 总扇出尚无全局预算；D cleanup discovery 无 keyset 可致头部饥饿；resolved episode 不自动压缩、规模增长会延长扫描周期；Worker 停机可立即打断等待但不能中断正在执行的同步 DB 扫描；剩余旧式 `allOf/$ref + nullable` 尚未全量治理（含 `ProgressWithSync.targetCount`）；E 的 CC-11 allowlist/selfcheck 必须随契约修复更新；登出的会话撤销与 T09 更新**不是跨资源同一事务**，T09 SQL 失败依赖既有补偿与投递侧 fail-closed；C25/C26 仍待冻结。
+
+**Oracle 实际执行的核查命令**：`git rev-parse HEAD`、`git log --oneline 551f166..2d6c7231`、`git diff --stat 39adc57..2d6c7231`、`git diff 39adc57..2d6c7231`、`git show --stat --oneline 2bd768a d0e9b84 2d6c723`、`git status --short --branch`、`git diff --check 39adc57..2d6c7231`、`git show -s --format='%H%n%P%n%s' 39adc57`、`git diff --unified=30 … -- backend/contracts/openapi/openapi.yaml`，以及对 `backend/acceptance/**`、`backend/tests/**`、`backend/handoffs/**`、`**/db/migration/**` 的越界核查（结果为空）与对 `runtime/claim|complete|renew|expire|rows.py`、`handlers/__init__.py`、`handlers/media_cleanup.py`、`handlers/notification_deliver.py`、`NotificationDestinationService.java` 的"应无 diff"核查；另只读检查全部 10 个变更文件、D 的 cleanup handler、通知登记服务与 E 的陈旧 CC-11 自检。未运行测试、未启动进程、未执行 `backend/acceptance/**`。
+
+**纯注释后续提交与重新绑定**：orchestrator 据 4 条 SUGGESTION 中"注释与现状不符"的 3 条（其中 2 条 Oracle 判给 B）做了**纯注释/文档**提交 **`c59a18bac95dae3e262f06d93993cee85b5a620b`**（`scanners/__init__.py` 模块 docstring 与 `--loop` 帮助文本、`scheduler.py` 的 fixed-rate/best-effort 语义说明、`NotificationDestinationService` 类 javadoc、`decisions-notes.md` 遗留计数 36→**32** 并给出 `36−5+1` 沿革）。自证零行为变更：Java 侧该 diff 的**非 javadoc 行数为 0**、Python 侧仅 docstring/注释/`help=` 文本、契约侧**只有 `decisions-notes.md`（`openapi.yaml` 未在 diff 中）**；相称验证为 `py_compile` OK、定向 pytest **13 passed rc=0**、`--once` **rc=0**、`mvn -DskipTests compile` **rc=0**。**IMPORTANT（扇出预算）未修**，理由：需设计决策（每轮总工作预算或 episode/destination 分页）属业务规则变更、超出本轮授权且风险不对等，已按 Oracle"MVP 可暂按运营规模接受并监控"的裁定如实披露并移交集成方。
+
+**重新绑定结论（`c59a18b`）：`VERDICT: PASS-with-notes`**，Oracle 明确 **"可以将 `c59a18b` 合入 dev"**、**"不要求重跑端到端验收"**、"B/Public-integration 代码门禁维持 PASS-with-notes"、"整体集成仍需 E 更新已过时的 CC-11 selfcheck/allowlist，之后才能宣称全部集成验收绿色"。五点裁定：①属文档性变更、无业务/调度语义变化（4 文件、39 增/17 删、`git diff --check` 通过；Java 仅 javadoc、Markdown 仅说明文字、scheduler 仅注释；并诚实指出 `scanners/__init__.py:1-11,32` 的模块 docstring 与 argparse `help=` 是**运行时字符串**、会改变 `__doc__`/`--help` 输出，但不改变参数解析、控制流、配置、退出码或扫描行为；OpenAPI YAML、配置值、函数签名、常量与业务语句均未修改）；②三条注释类 SUGGESTION 中 `scanners/__init__.py:1-11,46-47` 与 `NotificationDestinationService.java:32-43` **已正确处置**（准确说明已接入既有 Worker、CLI 仅供验证排障、未新增生产进程/cron；登出 +1、幂等守卫、旧快照失配与重新激活语义均准确），`scheduler.py:55-61` **主要问题已说明但措辞仍可更精确**；③**32 处计数准确**——Oracle 只读递归检查最终 `openapi.yaml`，实际命中**恰好 32** 个"`nullable=true`、无本地 `type`、含 `allOf/oneOf/anyOf`"节点，与 `decisions-notes.md:178-204` 的 32 项清单**逐项一致**，`36−5+1=32` 沿革成立、**没有虚报或漏报**；④扇出 IMPORTANT 的处置**可接受**（维持上轮裁定：候选行分页有界但 episode×destination 总扇出无硬预算；需业务预算/分页设计，不要求在本次纯文档提交或合入 dev 前修复），并提醒 `B.md §12.5` 当时仍是未提交修改、**交付前必须经 report-only 提交纳入版本记录**；⑤结论可原样重新绑定到 `c59a18b`，定向编译/测试已足够，**无需再次执行完整 39 项端到端验收**。
+
+**Oracle 该轮唯一新发现（SUGGESTION）**：`scheduler.py:57-61` 的"fixed-rate""不跳过周期"不完全准确——实现会**合并**回调期间错过的周期（复现：interval=30s、回调耗时 95s，结束后只立即执行一次、不补跑两个错过周期），建议改为"best-effort start-to-start；超时立即再到期；错过周期合并、不追赶补跑"。
+
+**Oracle 该轮实际执行的核查命令**：`git rev-parse HEAD`、`git log --oneline 2d6c7231..c59a18b`、`git diff --stat 2d6c7231..c59a18b`、`git diff 2d6c7231..c59a18b`、`git diff --check 2d6c7231..c59a18b`、`git show --stat --oneline c59a18b`、`git status --short --branch`、`git diff -- backend/handoffs/B.md`；另执行只读 Python/YAML 递归检查确认旧式 nullable 节点数为 32，并 `read` 核验四个修改文件。未运行端到端验收、未启动进程、未写数据库。
+
+**注释精确化提交 `76a01f06a5ac015f243d277db66c99dea8a01004`**：orchestrator 认为"事实性错误注释"正是本轮刚修掉的那类缺陷、不应自留，故**严格按 Oracle 给出的措辞**更正 `scheduler.py` 的调度语义注释（删除不准确的 "fixed-rate"/"不跳过周期"；改为①回调耗时超过 `interval` 时回调结束后下一轮立即到期、不补偿漂移，②回调期间错过的多个周期**合并为一次**执行、**不追赶补跑**，并附 interval=30s/回调 95s 的具体例子；保留"叠加并发由非阻塞守卫排除"与"若需固定延迟语义应在 finally 改用回调结束时的 monotonic 时间"两条既有说明）。自证零行为变更：该 diff 中**非注释行数为 0**（全部以 `#` 开头）、`py_compile` OK、定向 `pytest tests/test_scanner_scheduler.py` → **8 passed rc=0**。
+
+**最终重新绑定结论（`76a01f0`）：`VERDICT: PASS-with-notes`，新发现：无。**
+
+三点裁定：①**确认仅修改注释**——`c59a18b..76a01f0` 仅修改 `scheduler.py:57-63` 的 `#` 注释，未触及语句、签名、常量、控制流、配置或契约，`git diff --check` 通过；②**新措辞准确**——与实现 `scheduler.py:66-78` 一致（`due_at = now + interval` 使用尝试开始前的 `now`），正确说明超时后立即到期、错过周期合并且不追赶补跑，30 秒间隔/95 秒回调的示例准确，非阻塞重入守卫及未来 fixed-delay 修法说明均保留；③**原结论可原样重新绑定**——B/Public-integration 代码门禁维持 **PASS-with-notes**、可以合入 dev、不要求重跑端到端验收、E 仍需更新过时的 CC-11 selfcheck/allowlist。
+
+**最终交付与验收（Oracle 原文）**：**可以将 `76a01f06a5ac015f243d277db66c99dea8a01004` 作为本轮最终交付 SHA 合入 dev**；**不要求重跑端到端验收**（差异仅为注释，执行语义完全未变）；工作树中的 `B.md`、`B-oracle.md` 修改不属于被审 SHA，应按既定 report-only 流程单独处理。
+
+**轮次边界声明（Oracle 原文）**：**`76a01f0` 为本轮最终交付 SHA，无需再因纯注释/文档措辞发起新的重新绑定轮次。**
+
+**持续披露的残留限制**：与上轮一致，**已消除**唯一的 scheduler 语义措辞不准确项；仍需披露——incident 的 `episode×destination` 总扇出没有硬预算；D cleanup 无 keyset、存在候选饥饿风险；resolved episode 不自动压缩；仍有 **32 处**旧式 nullable；E 的 CC-11 selfcheck/allowlist 待更新；会话撤销与 T09 更新不是跨资源原子事务；C25/C26 协议、容量告警及恢复 runbook 待冻结。
+
+**Oracle 该轮实际执行的核查命令**：`git rev-parse HEAD`、`git log --oneline c59a18b..76a01f0`、`git diff --stat c59a18b..76a01f0`、`git diff c59a18b..76a01f0`、`git diff --check c59a18b..76a01f0`、`git show --stat --oneline 76a01f0`、`git status --short --branch`；另只读检查最终 `scheduler.py:47-78`。未修改文件、未运行测试、未启动进程。
+
+**本轮 Oracle 调用小结**：公共集成修复轮共 **3 次实际调用**（`2d6c723` 有界复审 → `c59a18b` 窄范围重绑定 → `76a01f0` 最终窄范围重绑定），全部为真实只读审查、均给出可核查的文件:行依据与实际执行命令清单，三次结论均为 **PASS-with-notes** 且明确许可合入 dev；无任何轮次以"内容评估"替代 SHA 绑定。
+
 
 
 ## 5. 验证证据（orchestrator 亲自执行，最终状态）
