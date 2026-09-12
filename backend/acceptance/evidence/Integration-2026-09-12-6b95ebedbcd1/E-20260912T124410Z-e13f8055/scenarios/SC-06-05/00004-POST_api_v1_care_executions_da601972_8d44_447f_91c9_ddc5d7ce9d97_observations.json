@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions/da601972-8d44-447f-91c9-ddc5d7ce9d97/observations",
+  "status": 200,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "n": 1
+  },
+  "response_excerpt": "{\"requestId\": \"aa868b4c-c996-4170-9e7e-3934699d23e6\", \"data\": {\"acknowledgedRecords\": [{\"recordId\": \"r-da601972-1\", \"disposition\": \"accepted\", \"rejectReason\": null}, {\"recordId\": \"r-da601972-2\", \"disposition\": \"accepted\", \"rejectReason\": null}], \"executionStatus\": \"running\", \"acceptedCount\": \"2\", \"progress\": {\"targetCount\": \"10\", \"completedCount\": \"2\", \"remainingCount\": \"8\", \"isCompleted\": false, \"progressRevision\": \"1\", \"completedAt\": null}}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-12T12:51:41Z\"}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T124410Z-e13f8055"
+}
