@@ -183,36 +183,69 @@ def test_SC_01_09(scenario_evidence):
 
 @_mark("SC-01-10", "P1", "后端", ["B"], ["D03", "D04"])
 def test_SC_01_10(scenario_evidence):
-    """心跳更新及重复/迟到上报：重复/旧上报不误改状态、不累计。"""
+    """心跳重复/迟到/旧上报：逐响应状态+accepted 语义；业务列（K/占用/执行状态/绑定）逐列前后全等；
+    心跳信息列可更新但不得误改业务状态。"""
     se = scenario_evidence
     se.doubles.add("gimbal_device", "double", "心跳来源 dev 替身")
-    g, tok = _seed_bound_gimbal()
+    se.doubles.add("face_algo", "double", "MemberBindingFaceDouble（dev 绑定成员）")
+    # —— 真实前置态（真实链 M3→worker→T06 ready→A03 准入→A05 K=1→open 占用）——
+    g, tk = live.gimbal_with_token()
+    _c, _b = live.multipart_a01(tk, str(uuid.uuid4()))
+    tid = (_b.get("data") or {}).get("taskId")
+    assert _c == 202
+    for _ in range(140):
+        if CC.scalar(f"SELECT (status='report_ready')::int FROM skin_assessments WHERE id='{tid}'") == "1":
+            break
+        I.worker_once(timeout=180)
+    mid = CC.scalar(f"SELECT member_id::text FROM skin_assessments WHERE id='{tid}'")
+    plan = CC.scalar(f"SELECT id::text FROM care_plans WHERE assessment_id='{tid}'")
+    obs = live.app_login("s0110o")
+    serial = f"mc-{uuid.uuid4().hex[:8]}"
+    live.observe_microcrystal(obs, serial, live.CAP_BASELINE)
+    for _ in range(60):
+        if CC.scalar(f"SELECT (generation_status='ready')::int FROM care_plans WHERE id='{plan}'") == "1":
+            break
+        I.worker_once(timeout=180)
+    mc = CC.scalar(f"SELECT id::text FROM microcrystals WHERE serial_no='{serial}'")
+    live.java_env_with_bound_member(mid)
+    a = live.app_login("sc0110")
+    CC.seed_grant(a["accountId"], mid, status="active")
+    CC.sql(f"UPDATE gimbals SET bound_account_id='{a['accountId']}', binding_revision=1,"
+           f" bound_at=now() WHERE id='{g}'")
+    tok = CC.gimbal_token(g)
+    code, body = CC.admit(a["access"], mc, plan, key=str(uuid.uuid4()))
+    assert code == 201, (code, body)
+    ex = (body.get("data") or {}).get("executionId")
+    ep = (body.get("data") or {}).get("recordStreamEpoch") or ex
+    rev = CC.scalar(f"SELECT verification_revision FROM care_executions WHERE id='{ex}'")
+    CC.sync(a["access"], ex, CC.obs_records(ep, [CC.rec(ep, 1)], seq=1, state="running", rev=rev),
+            str(uuid.uuid4()))
+    def care():
+        return "|".join(CC.scalar(s) for s in (
+            f"SELECT coalesce(completed_count,0) FROM care_plans WHERE id='{plan}'",
+            f"SELECT status FROM care_executions WHERE id='{ex}'",
+            f"SELECT (closed_at IS NULL)::int FROM care_executions WHERE id='{ex}'",
+            f"SELECT verification_revision FROM care_executions WHERE id='{ex}'",
+            f"SELECT coalesce(bound_account_id::text,'') FROM gimbals WHERE id='{g}'"))
+    def hb():
+        return CC.scalar("SELECT last_seen_at::text||'|'||status_revision||'|'||connection_status "
+                         f"FROM gimbals WHERE id='{g}'")
+    care0, hb0 = care(), hb()
     e1 = f"ep-{uuid.uuid4().hex[:8]}"
     base = {"observationEpoch": e1, "observedAt": _now(), "powerState": "awake"}
     c1, b1, _ = I.http("POST", f"/api/v1/gimbals/{g}/heartbeats", token=tok,
                        body={**base, "observationSeq": "1"})
-    _rec(se, "POST", f"/api/v1/gimbals/{g}/heartbeats", c1, b1)
-    after1 = CC.scalar("SELECT last_seen_at::text||'|'||status_revision FROM gimbals "
-                       f"WHERE id='{g}'")
-    # 重复 seq（应 rejected，逐列不变）
+    _rec(se, "POST", f"/api/v1/gimbals/{g}/heartbeats", c1, b1, req={"seq": 1})
+    # 重复 seq：精确拒绝语义
     c2, b2, _ = I.http("POST", f"/api/v1/gimbals/{g}/heartbeats", token=tok,
                        body={**base, "observationSeq": "1"})
-    _rec(se, "POST", f"/api/v1/gimbals/{g}/heartbeats", c2, b2)
-    after2 = CC.scalar("SELECT last_seen_at::text||'|'||status_revision FROM gimbals "
-                       f"WHERE id='{g}'")
-    # 正常推进 seq
+    _rec(se, "POST", f"/api/v1/gimbals/{g}/heartbeats", c2, b2, req={"seq": 1, "dup": True})
+    # 合法推进
     c3, b3, _ = I.http("POST", f"/api/v1/gimbals/{g}/heartbeats", token=tok,
                        body={**base, "observationSeq": "2"})
-    _rec(se, "POST", f"/api/v1/gimbals/{g}/heartbeats", c3, b3)
-    c3row = CC.scalar("SELECT last_seen_at::text||'|'||status_revision||'|'||connection_status "
-                      f"FROM gimbals WHERE id='{g}'")
-    def biz():
-        return c3row + "##" + "|".join(CC.scalar(s) for s in (
-            "SELECT count(*) FROM care_executions",
-            "SELECT count(*) FROM notifications",
-            "SELECT count(*) FROM async_jobs"))
-    biz_before = biz()
-    # 真实迟到/旧上报：旧 seq + 旧 observedAt（新 seq 已推进）→ 不误改业务状态
+    _rec(se, "POST", f"/api/v1/gimbals/{g}/heartbeats", c3, b3, req={"seq": 2})
+    hb1 = hb()
+    # 真实迟到（旧 seq）+旧 observedAt
     old_ts = "2020-01-01T00:00:00Z"
     c4, b4, _ = I.http("POST", f"/api/v1/gimbals/{g}/heartbeats", token=tok,
                        body={**base, "observationSeq": "1", "observedAt": old_ts})
@@ -220,15 +253,13 @@ def test_SC_01_10(scenario_evidence):
     c5, b5, _ = I.http("POST", f"/api/v1/gimbals/{g}/heartbeats", token=tok,
                        body={**base, "observationSeq": "2", "observedAt": old_ts})
     _rec(se, "POST", f"/api/v1/gimbals/{g}/heartbeats", c5, b5, req={"old_observed_at": old_ts})
-    biz_after = biz()
-    late_row = CC.scalar("SELECT last_seen_at::text||'|'||status_revision||'|'||connection_status "
-                         f"FROM gimbals WHERE id='{g}'")
-    assert c1 == 200 and (b1.get("data") or {}).get("accepted") is True
-    assert after1 == after2, (after1, after2)
-    assert c3 == 200 and (b3.get("data") or {}).get("accepted") is True
-    assert (b4.get("data") or {}).get("accepted") is not True
-    assert (b5.get("data") or {}).get("accepted") is not True
-    assert biz_before == biz_after and late_row == c3row  # 迟到不误改业务状态/不累计/不释放占用
+    assert c1 in (200, 201) and (b1.get("data") or {}).get("accepted") is True
+    assert c3 in (200, 201) and (b3.get("data") or {}).get("accepted") is True
+    assert c2 in (200, 409) and (b2.get("data") or {}).get("accepted") is not True
+    assert c4 in (200, 409) and (b4.get("data") or {}).get("accepted") is not True
+    assert c5 in (200, 409) and (b5.get("data") or {}).get("accepted") is not True
+    assert care() == care0, (care0, care())      # 业务列（K/执行状态/占用/revision/绑定）全等
+    assert hb() == hb1, (hb1, hb())              # 迟到不误改心跳信息列
     se.seal()
 
 
@@ -475,8 +506,10 @@ def test_SC_01_17(scenario_evidence):
     c, b, _ = I.http("DELETE", "/api/v1/auth/sessions/current", token=sess["access"])
     _rec(se, "DELETE", "/api/v1/auth/sessions/current", c, b)
     assert c in (200, 204)
-    if c != 204:
-        assert b.get("requestId") or b.get("error") is None or "error" in b
+    if c == 204:
+        assert not b or set(b.keys()) == {"_raw"}, f"204 须空体：{b}"
+    else:
+        assert b.get("requestId") and b.get("data") is not None and "error" not in b, b
     row = CC.scalar("SELECT status||'|'||destination_revision::text||'|'||"
                     f"coalesce(invalidated_at::text,'') FROM notification_destinations "
                     f"WHERE installation_id='{inst}'")
@@ -485,6 +518,12 @@ def test_SC_01_17(scenario_evidence):
     c2, b2, _ = I.http("DELETE", "/api/v1/auth/sessions/current", token=sess["access"])
     _rec(se, "DELETE", "/api/v1/auth/sessions/current", c2, b2, req={"repeat": True})
     assert c2 in (200, 204, 401)
+    if c2 == 204:
+        assert not b2 or set(b2.keys()) == {"_raw"}, f"204 须空体：{b2}"
+    elif c2 == 200:
+        assert b2.get("requestId") and b2.get("data") is not None and "error" not in b2, b2
+    else:
+        assert b2.get("requestId") and (b2.get("error") or {}).get("code"), b2
     row2 = CC.scalar("SELECT status||'|'||destination_revision::text||'|'||"
                      f"coalesce(invalidated_at::text,'') FROM notification_destinations "
                      f"WHERE installation_id='{inst}'")

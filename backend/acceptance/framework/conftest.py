@@ -254,6 +254,24 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:
             "不是通过，也不是普通跳过。")
 
 
+def _persist_evidence_summary(st) -> None:
+    """把脱敏 settlement + 运行摘要写入正式证据目录（若设置），便于从提交内容复核计数。"""
+    ev = os.environ.get(isolation.ENV_EVIDENCE_DIR)
+    if not ev:
+        return
+    d = pathlib.Path(ev)
+    try:
+        d.mkdir(parents=True, exist_ok=True)
+        payload = {"run_id": st.run_id, "mode": st.mode, "counts": dict(st.counts),
+                   "settled": len(st.settled), "required": len(st.required),
+                   "evidence_tags": dict(st.evidence_tags),
+                   "pending_gate_failures": list(getattr(st, "pending_gate_failures", []))}
+        (d / "settlement.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2),
+                                           encoding="utf-8")
+    except Exception:
+        pass
+
+
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     st = _state(session.config)
     if st.mode == "matrix":
@@ -266,6 +284,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         elif c["pending"] > 0:
             session.exitstatus = 3                              # 依赖挂起
         # 否则维持 0：94 全部真实通过且证据齐备
+    _persist_evidence_summary(st)
     _write_settlement_sentinel(st, int(session.exitstatus))
 
 
