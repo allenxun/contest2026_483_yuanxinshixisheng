@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/skin-assessment-tasks",
+  "status": 503,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "inject": "fail-put:assessment_source"
+  },
+  "response_excerpt": "{\"requestId\": \"d66105e8-5a7b-4bcf-b82a-ffe60107eb78\", \"error\": {\"code\": \"DEPENDENCY_UNAVAILABLE\", \"message\": \"storage write failed\", \"retryable\": true}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-SEAM-20260912T162220Z-6e7a2e7b"
+}

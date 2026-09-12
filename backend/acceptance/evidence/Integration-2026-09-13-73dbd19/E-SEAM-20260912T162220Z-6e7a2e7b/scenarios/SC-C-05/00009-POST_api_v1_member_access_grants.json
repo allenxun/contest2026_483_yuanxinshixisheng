@@ -1,0 +1,15 @@
+{
+  "method": "POST",
+  "path": "/api/v1/member-access-grants",
+  "status": 201,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "inject": "fail-put:assessment_source",
+    "purpose": "grant_face"
+  },
+  "response_excerpt": "{\"requestId\": \"b724cafe-5319-451b-82fc-6b74623d8b0d\", \"data\": {\"grantId\": \"13232f05-b8c8-43f7-b084-a4f30cfc6b6c\", \"memberId\": \"6845f9b3-ad17-4433-ba4f-fb2ce7a40c33\", \"status\": \"active\", \"grantedAt\": \"2026-09-12T16:22:38Z\"}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-12T16:22:38Z\"}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-SEAM-20260912T162220Z-6e7a2e7b"
+}

@@ -226,36 +226,76 @@ def test_SC_03_06(scenario_evidence):
 
 @_mark("SC-03-07", "P1", "集成", ["D"], ["D06", "D07"])
 def test_SC_03_07(scenario_evidence):
-    """大模型成功/失败/非法方案：正常成功已由 03-04 覆盖；本节点以受控配置 seam
-    （baseline 缺 n_bounds/多项范围）验证非法/失败结果**不能变可执行方案**。
-    超时子形态无注入 seam → 精确披露 pending。"""
+    """大模型 timeout / failure / 非法形状：generation_status 绝不为 ready，
+    T12 可重试至预算耗尽落终态 failed。成功态已由 SC-03-04 覆盖。"""
     se = scenario_evidence
     _decl(se)
-    g, tok = live.gimbal_with_token()
-    malformed = {"MVP_PLAN_CAPABILITY_BASELINE": json.dumps({
+    malformed_baseline = json.dumps({
         "schema_version": 1, "capability_id": "mvp-double-capability", "revision": 1,
         "parameter_ranges": {"intensity": {"unit": "percent", "min": 0.0, "max": 100.0}},
-        "approved_regions": ["forehead", "left_cheek", "right_cheek", "nose"]})}
-    c, b = live.multipart_a01(tok, str(uuid.uuid4()))
-    _rec(se, "POST", "/api/v1/skin-assessment-tasks", c, b)
-    tid = (b.get("data") or {}).get("taskId")
-    plan = ""
-    st = ""
-    for _ in range(30):
-        plan = CC.scalar(f"SELECT id::text FROM care_plans WHERE assessment_id='{tid}'") or plan
-        st = CC.scalar(f"SELECT generation_status FROM care_plans WHERE id='{plan}'") if plan else ""
-        if st in ("failed", "ready"):
-            break
-        I.worker_once(env_extra=malformed, timeout=180)
-    detail = CC.scalar(f"SELECT coalesce(failure_detail::text,'') FROM care_plans WHERE id='{plan}'") if plan else ""
-    ready_rows = CC.scalar(f"SELECT count(*) FROM care_plans WHERE id='{plan}' AND generation_status='ready'") if plan else "0"
-    _audit(se, "SC-03-07 malformed-baseline plan result", 0,
-           {"status": st, "detail": detail[:120]})
-    assert c == 202 and bool(plan) and st == "failed" and ready_rows == "0", (c, plan, st)
-    assert "PLAN_SNAPSHOT_INVALID" in (detail or "")
+        "approved_regions": ["forehead", "left_cheek", "right_cheek", "nose"]})
+
+    def _observe(tag):
+        a = live.app_login(f"sc0307-{tag}")
+        serial = f"mc-{uuid.uuid4().hex[:8]}"
+        co, bo, _ = live.observe_microcrystal(a, serial, live.CAP_BASELINE)
+        _rec(se, "POST", "/api/v1/microcrystal-observations", co, bo, req={"tag": tag})
+        assert co == 200, (co, bo)
+
+    def _run(tag, env):
+        _observe(tag)  # 能力先行，使 plan 能进入 generating 后调用 provider
+        g, tok = live.gimbal_with_token()
+        c, b = live.multipart_a01(tok, str(uuid.uuid4()))
+        _rec(se, "POST", "/api/v1/skin-assessment-tasks", c, b, req={"tag": tag})
+        tid = (b.get("data") or {}).get("taskId")
+        assert c == 202 and tid, (c, b)
+        plan = ""
+        statuses: list[str] = []
+        for _ in range(25):
+            plan = CC.scalar(f"SELECT id::text FROM care_plans WHERE assessment_id='{tid}'") or plan
+            st = CC.scalar(f"SELECT generation_status FROM care_plans WHERE id='{plan}'") if plan else ""
+            if st:
+                statuses.append(st)
+            if st in ("failed", "ready"):
+                break
+            I.worker_once(env_extra=env, timeout=180)
+        plan = plan or CC.scalar(f"SELECT id::text FROM care_plans WHERE assessment_id='{tid}'")
+        st = CC.scalar(f"SELECT generation_status FROM care_plans WHERE id='{plan}'")
+        ready_rows = CC.scalar(f"SELECT count(*) FROM care_plans WHERE id='{plan}' "
+                               "AND generation_status='ready'")
+        detail = CC.scalar(f"SELECT coalesce(failure_detail::text,'') FROM care_plans "
+                           f"WHERE id='{plan}'")
+        jst = CC.scalar(f"SELECT status FROM async_jobs WHERE owner_type='plan' "
+                        f"AND owner_id='{plan}'")
+        jatt = CC.scalar(f"SELECT attempt_count FROM async_jobs WHERE owner_type='plan' "
+                         f"AND owner_id='{plan}'")
+        jerr = live.sql_json(f"SELECT last_error::text FROM async_jobs WHERE owner_type='plan' "
+                             f"AND owner_id='{plan}'")
+        return {"plan": plan, "status": st, "statuses": statuses, "ready_rows": ready_rows,
+                "detail": detail, "job_status": jst, "attempt": jatt, "last_error": jerr}
+
+    # ① timeout：绝不 ready，重试至预算耗尽终态 failed
+    for mode in ("timeout", "failure"):
+        r = _run(mode, {"MVP_D_PLAN_DOUBLE_MODE": mode,
+                        "MVP_WORKER_BACKOFF_BASE_SECONDS": "0"})
+        _audit(se, f"SC-03-07 {mode}", 0,
+               {"status": r["status"], "ready_rows": r["ready_rows"],
+                "job_status": r["job_status"], "attempt": r["attempt"],
+                "last_error": r["last_error"]})
+        assert "ready" not in r["statuses"], (mode, r["statuses"])
+        assert r["ready_rows"] == "0", (mode, r["ready_rows"])
+        assert r["status"] == "failed", (mode, r["status"])
+        assert r["job_status"] == "failed", (mode, r["job_status"])
+        assert int(r["attempt"]) >= 2, (mode, r["attempt"])  # 确有重试而非一次即弃
+        assert r["last_error"] and r["last_error"].get("retryable") is False, r["last_error"]
+    # ② 非法形状（既有报文）：PLAN_SNAPSHOT_INVALID 终态，不产生可执行方案
+    r = _run("malformed", {"MVP_PLAN_CAPABILITY_BASELINE": malformed_baseline,
+                           "MVP_WORKER_BACKOFF_BASE_SECONDS": "0"})
+    _audit(se, "SC-03-07 malformed shape", 0,
+           {"status": r["status"], "ready_rows": r["ready_rows"], "detail": r["detail"][:120]})
+    assert "ready" not in r["statuses"] and r["ready_rows"] == "0"
+    assert r["status"] == "failed" and "PLAN_SNAPSHOT_INVALID" in (r["detail"] or "")
     se.seal()
-    pytest.skip(gate.PENDING_PREFIX + "plan 超时子形态无注入 seam（D 未提供）；"
-                "非法/失败结果已实测（PLAN_SNAPSHOT_INVALID），超时待 D seam 后补写")
 
 
 @_mark("SC-03-08", "P0", "后端", ["C", "D"], ["D01"])

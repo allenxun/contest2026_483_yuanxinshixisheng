@@ -1,5 +1,15 @@
 # E → 最终基线全集成验收报告（94 场景矩阵实测）
 
+> **增量更新（2026-09-13，增量基线 HEAD `73dbd19`，含 B 注入缝）**：七 seam（SC-02-05/06/08/09/10、
+> SC-03-07、SC-C-05）已由 E 补全为**完整要求实测**并全部 **passed**。正式 matrix RUN_ID
+> `E-20260912T163252Z-21bc4a75`（`run.sh matrix`，reviewed_sha `73dbd19`，evidence
+> `evidence/Integration-2026-09-13-73dbd19/E-20260912T163252Z-21bc4a75/`）终态：
+> settled **94/94 = 61 业务 passed + 33 device_pending + 0 seam + 0 staged**；PASSED=146（61 业务 +
+> 85 框架自检，框架自检不计业务判定）/PENDING=33/FAILED=0/SKIPPED_OTHER=0，exit=3；doubles_pass=61、
+> real_pass=0；selfcheck rc=0（85 passed，原 80+新增 5）。业务哈希 `86bfa7b721b6f285` 不变。详见
+> `reports/first-round-integration.md` 末节「七 seam 补全（B 基线 73dbd19）— 已执行」。以下为上轮
+> （bd73c59）终态记录，保留为历史，未覆盖。
+
 - 日期：2026-09-12 ｜ 包：E（feature/mvp-acceptance，工作树 `.worktrees/mvp-e`）
 - **最终 E 代码 SHA：`bd73c5924d66adbb550ccab1df146d92a534aea1`**（其后仅证据/报告提交）
 - **Oracle 终判：第 23 轮 PASS_WITH_WARNINGS @ bd73c59，blockingFindings 无**（会话 ora-2；轮次台账见 `E-oracle.md` R20-R23）

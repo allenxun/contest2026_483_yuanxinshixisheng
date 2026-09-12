@@ -85,6 +85,12 @@ AUTHORED_REASON_C1 = "已编写步骤（集成轮 batch 2 lane C1）；gate=open
 AUTHORED_IDS_C2 = {f"SC-R-{i:02d}" for i in range(1,15)}
 AUTHORED_REASON_C2 = "已编写步骤（集成轮 batch 2 lane C2）；gate=open 下真实执行并结算"
 
+# 七 seam 注入节点（D 注入旋钮 + Java 存储注入；B 基线 73dbd19 后由 E 补全完整实测）。
+# 仅同步 pending_reason 文案，不改业务语义（业务哈希不变）。
+SEAM_CLOSED_IDS = {"SC-02-05", "SC-02-06", "SC-02-08", "SC-02-09", "SC-02-10",
+                   "SC-03-07", "SC-C-05"}
+AUTHORED_REASON_SEAM = "已编写步骤（七 seam 注入实测补全 @73dbd19）；gate=open 下真实执行并结算"
+
 
 
 def parse_apis() -> dict[str, dict]:
@@ -163,7 +169,9 @@ def parse_scenarios(all_api_ids: list[str]) -> list[dict]:
         authored = (sid in AUTHORED_IDS or sid in AUTHORED_IDS_B2 or sid in AUTHORED_IDS_A2
                     or sid in AUTHORED_IDS_B1 or sid in AUTHORED_IDS_B2L2 or sid in AUTHORED_IDS_C1
                     or sid in AUTHORED_IDS_C2)
-        if sid in AUTHORED_IDS_A2:
+        if sid in SEAM_CLOSED_IDS:
+            authored_reason = AUTHORED_REASON_SEAM
+        elif sid in AUTHORED_IDS_A2:
             authored_reason = AUTHORED_REASON_A2
         elif sid in AUTHORED_IDS_B2:
             authored_reason = AUTHORED_REASON_B2

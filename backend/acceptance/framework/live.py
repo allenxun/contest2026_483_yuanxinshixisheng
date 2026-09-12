@@ -174,6 +174,95 @@ def scanners_once(env_extra: dict | None = None):
                  log_name="scanners-once.log")
 
 
+# ---------------- 注入 seam 复验辅助（B-seam-repro handoff） ----------------
+#
+# 全部为测试驱动侧辅助：只组 env / 起后台 --once 进程 / 等待文件 / 读日志，
+# 不写任何业务表、不伪造 DB 状态。注入旋钮本身由被测 worker/Java 读取。
+
+def marker_image(tag: str | None = None) -> bytes:
+    """最小合法 PNG + 唯一尾标记（sha256 命中 barrier 用；与 _png 头兼容）。"""
+    return _png() + b"marker-" + (tag or uuid.uuid4().hex).encode() + b"-" \
+        + uuid.uuid4().hex.encode()
+
+
+def sha256_hex(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def barrier_dir(tag: str) -> pathlib.Path:
+    """每 RUN_ID + tag 独立的 barrier sentinel 目录（绝不共享默认临时目录）。"""
+    d = I.REPORTS / f"barrier-{I.RUN_ID}-{tag}"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def barrier_env(directory, marker_sha256: str, timeout_s: int = 180) -> dict:
+    """SC-02-09 barried env：一次性、有界、显式 DIR/SHA256/TIMEOUT。"""
+    return {
+        "MVP_D_DOUBLE_LATE_BARRIER": "true",
+        "MVP_D_DOUBLE_LATE_BARRIER_DIR": str(directory),
+        "MVP_D_DOUBLE_LATE_BARRIER_SHA256": marker_sha256,
+        "MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS": str(timeout_s),
+    }
+
+
+def start_bg_worker(env_extra: dict | None, log_name: str):
+    """后台 `mvp_worker --once`（轻量 python 进程）；返回 (Popen, log_path)。
+
+    仅供 SC-02-09 的 worker A/B 交错使用；调用方必须回收（stop_bg_worker）。
+    """
+    log = I.REPORTS / log_name
+    f = open(log, "w", encoding="utf-8")
+    env = {**os.environ, **I.WORKER_ENV, **(env_extra or {})}
+    proc = subprocess.Popen([str(I.PY), "-m", "mvp_worker", "--once"],
+                            cwd=str(I.WORKER_DIR), env=env,
+                            stdout=f, stderr=subprocess.STDOUT)
+    return proc, log
+
+
+def stop_bg_worker(proc, timeout_s: int = 10) -> None:
+    """进程卫生：kill → 有界等待 → kill -9，绝不遗留后台 worker。"""
+    if proc is None:
+        return
+    if proc.poll() is None:
+        proc.kill()
+        try:
+            proc.wait(timeout=timeout_s)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=10)
+
+
+def wait_path(path, timeout_s: float = 60.0, poll: float = 0.2) -> bool:
+    """等待文件出现（barrier consumed 等）；有界轮询。"""
+    end = time.time() + timeout_s
+    while time.time() < end:
+        if pathlib.Path(path).exists():
+            return True
+        time.sleep(poll)
+    return pathlib.Path(path).exists()
+
+
+def log_text(path) -> str:
+    p = pathlib.Path(path)
+    return p.read_text(encoding="utf-8", errors="replace") if p.exists() else ""
+
+
+def log_has(path, substr: str) -> bool:
+    return substr in log_text(path)
+
+
+def sql_json(sql: str):
+    """取 jsonb 列并解析为 Python 对象（列缺失/非 JSON 返回 None）。"""
+    raw = I.sql_scalar(sql)
+    if not raw or raw == "":
+        return None
+    try:
+        return json.loads(raw)
+    except Exception:
+        return None
+
+
 #: D 受控能力基线（与 worker dshared.dconfig.DEFAULT_PLAN_CAPABILITY_BASELINE 一致）。
 CAP_BASELINE = {
     "capability_id": "mvp-double-capability",
