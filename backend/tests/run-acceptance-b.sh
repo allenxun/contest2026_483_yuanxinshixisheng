@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # =====================================================================
-# backend/tests/run-acceptance-b.sh — B 包端到端验收（b1..b39）
+# backend/tests/run-acceptance-b.sh — B 包端到端验收（b1..b41）
 #
-# 覆盖 .coordination/B-work/spec/lane-acceptance.md 的 b1..b39，驱动真实进程：
+# 覆盖 .coordination/B-work/spec/lane-acceptance.md 的 b1..b41，驱动真实进程：
 #   - Spring Boot jar @127.0.0.1:18083（APP / 云台 HTTP，12 个 B API）
 #   - Python worker 活体循环 @127.0.0.1:18084（真实通知投递）
 #   - python -m mvp_worker.scanners --once（离线/异常扫描；C7/C8 裁定核验）
@@ -232,6 +232,16 @@ scanner_once() { env MVP_WORKER_PG_DSN="$B_DSN" MVP_NOTIFY_ENV=dev "$WPY" -m mvp
 
 cleanup() {
   set +e
+  # b40 的后台 Worker A（barrier hold）：无论成败都必须回收
+  if [[ -f "$TMP/b40a.pid" ]]; then
+    local ap; ap=$(cat "$TMP/b40a.pid" 2>/dev/null || true)
+    if [[ -n "$ap" ]]; then
+      kill "$ap" 2>/dev/null || true
+      local ai; for ai in $(seq 1 40); do kill -0 "$ap" 2>/dev/null || break; sleep 0.25; done
+      kill -9 "$ap" 2>/dev/null || true
+    fi
+    rm -f "$TMP/b40a.pid"
+  fi
   stop_worker
   stop_app
   if [[ "${B_ACCEPT_KEEP_DB:-0}" == "1" ]]; then
@@ -371,6 +381,8 @@ maybe_check b37 "Python 全量 pytest：0 failed / 0 errors（合并 8afd0e5 后
 maybe_check b38 "注册含两类；违规 payload → failed/UNSUPPORTED_CONTRACT 不循环" b38
 maybe_check b39 "运行前后 git status 无 tracked 业务文件被改（HEAD 不变）" b39
 maybe_check b14 "契约驱动：错误信封形状 + 每端点码白名单（全量观测）" b14_contract
+maybe_check b40 "SC-02-09 真实迟到返回：租约过期接管 + 旧结果被围栏丢弃不覆盖 v2" b40
+maybe_check b41 "SC-02-10 确定性终态失败：1 轮 PROVIDER_CONTRACT_VIOLATION + A03 投影一致无泄漏" b41
 
 # =====================================================================
 # 汇总
