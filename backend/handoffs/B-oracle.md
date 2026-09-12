@@ -362,6 +362,54 @@ git diff --name-only ccee6e28..e6812d49 -- 'backend/web-java/src/main/java/cn/yu
 
 **本轮 Oracle 调用小结**：公共集成修复轮共 **3 次实际调用**（`2d6c723` 有界复审 → `c59a18b` 窄范围重绑定 → `76a01f0` 最终窄范围重绑定），全部为真实只读审查、均给出可核查的文件:行依据与实际执行命令清单，三次结论均为 **PASS-with-notes** 且明确许可合入 dev；无任何轮次以"内容评估"替代 SHA 绑定。
 
+### 4.14 第十/十一轮：测试注入缝轮（6+1 项 `seam_pending`）的有界复审（会话 `ora-1`）
+
+**第十轮 —— 被审 SHA `f4b9546ae17a2b36739b4e72690681e3333556cd`：`VERDICT: FAIL`，明确"不可合入 dev"。**
+- **判为通过**（含依据行号）：业务 handler/runtime/notifications/Java 业务包/配置/资源/契约/迁移 **diff 均为空**；注入仅改变 doubles（`providers.py:499-575`、`media/storage.py:23-26,72-79`、`FileSystemStorageDouble.java:70-123`）；未增错误码/表/列/迁移、未放宽业务条件；默认值与原行为一致（`application.yml` 未改）；生产信号覆盖解析环境 + 三组 raw env + `prod/production` profile（`dconfig.py:183-225`）、启动校验早于 DB/健康端口（`__main__.py:25-40,124-128`）、Java 矛盾组合在 bean 装配期失败（`TestDoubleProvidersConfig.java:56-82`）；无任何 HTTP 可开启路径；质量缝/身份缝/补拍态入口/plan 确定性超时均通过；Java purpose 白名单由 `MediaPurpose.values()` 派生、key 第二段与 `MediaService.java:63-72` 一致；`f4b9546` 删端口探针改为验证 root cause 与 `storagePort` bean 创建失败**属加强而非弱化**。
+- **BLOCKER**：进程级 hold 不满足 SC-02-09 的黑盒时序要求——hold 只是立即抛 `ProviderUnavailable`（`providers.py:546-557`），被重驱时会**重新读取当前 DB 输入**，故证明的是"陈旧代次被忽略"而非"旧版本已算出的结果迟到返回"；handler 在调用 provider 前已把 T05 置 `analyzing`（`assessment_analyze.py:63-69,239-286`），而 HTTP 补拍只允许 `needs_retake`（`AssessmentAcceptanceService.java:241-251`）；且其定向测试直接 seed 新报告并手工 enqueue 旧 revision，**正是清单禁止作为唯一证据的 DB 伪造迟到**。Oracle 明确：**不要直接扩展 SkinPort**（task/revision 不是供应商职责）。
+- **IMPORTANT**：布尔注入值不严格校验，未知值静默当 false（`dconfig.py:148-152`、`:163-180`、`storage.py:23-26`），`MVP_D_FACE_DOUBLE_SAME_PERSON=bogus` 会**静默触发 NOT_SAME_PERSON 分支**；`REQUIRED_VIEWS=,,,` 不失败。
+- **2 SUGGESTION**：`FileSystemStorageDoubleFailModeTest.java:99` EOF 多余空行致 `git diff --check` 非零；范围声明称 13 个文件、实际 12。
+- **orchestrator 的自我更正（重要）**：我曾断言该交错"经真实 HTTP+worker 结构性不可达"，依据是 `_MARK_RETAKE` 经 `business_tx` 与 `complete_success` 同事务原子提交（`runtime/complete.py:187-189`）、`_mark_analyzing` 为自有短事务（`assessment_analyze.py:239-241`）、A02 要求 `needs_retake`。**该论证范围有误**：未覆盖**租约过期后由另一执行者接管同一旧任务**。总协调指出该候选后，我复核源码确认可达（`expire.py:41-47` + `recover_expired:87`、`claim.py:26-41` 的 `lease_revision+1`、`complete.py` 的 `StaleGeneration` 整体回滚、`assessment_analyze.py:176-190` 的 `analyze.fenced_write_stale`、`_publish:705-727` 双重守卫），并据此实现 barrier。
+
+**整改提交**：`d312d2a`（EOF 空行）→ `40f5fde`（严格布尔解析，闭合 IMPORTANT）→ `181676d`（真实迟到返回 barrier + SC-02-10 确定性终态失败）→ `8343ba5`（工装 b40/b41 端到端）。
+
+**第十一轮 —— 被审 SHA `8343ba5a4dd9ee611da979617d2982943fc61af9`：`VERDICT: PASS-with-notes`，明确"可以合入 dev"。**
+- **21 项逐条裁定全部闭合/通过**，关键项：①`LateReturnBarrier`（`providers.py:168-227`）先构造结果再等待、`O_CREAT|O_EXCL` 独占、接管者见 `consumed` 立即返回、monotonic deadline 有界、`finally` 清理两个 sentinel、**不接触 DB**；②`FaceDouble.quality()`（`:264-275`）先构造 `QualityResult` 再调 barrier，命中依据输入字节 SHA-256（`:191-198`），**未修改 FacePort 签名**；③assessment handler、claim/recover/complete/renew 与 A02 **均未修改**，b40 用短 lease + 延迟续租模拟 renewer 未及时成功，**仍走真实回收、`lease_revision+1` 与完成围栏，没有绕过 DB 租约机制**；④`test_seam_boundary_repro.py:159-282` 真实调用 claim/recover/handler/complete，`:111-138` 仅铺初始 fixture、**时序状态由实际 Worker 路径产生**；⑤`b-checks-3.sh:384-503` 完整实现 A01→A 在飞→recover→B 接管写 `needs_retake`→A02 v2→C 发布 v2→release→stale fence→快照保持，**没有通过直接更新 T05/T12 伪造阶段**；⑥新增区无直接时序状态写入、排队清理由真实 `--once` 完成、`run-acceptance-b.sh:233-258` 与 `b-checks-3.sh:373-382` 均回收 Worker A；⑦**b1–b39 逻辑未删弱**；⑧⑨⑩严格布尔解析闭合（`dconfig.py:175-203`、`:222-242,364-403`、`storage.py:23-33` 复用同一解析；`_env_list` 对 `,,,` fail fast；旧 `_env_bool` 仅余 `MVP_D_ALIYUN_ACTIVATED`）；⑪⑫SC-02-10 仅改 `SkinDouble` 输出、仍由 `_validate_metrics` 进入**既有** `PROVIDER_CONTRACT_VIOLATION` 终态（`assessment_analyze.py:282-305`），三种 invalid 均**第一次执行确定终结**（`attempt=1`）；⑬⑭五个新旋钮均在 `DOUBLE_INJECTION_SWITCHES`（`dconfig.py:107-128`），校验见 `:427-469`，未新增 HTTP 面、默认值保持原行为。
+- **能力结论（Oracle 原文）**：**SC-02-09 与 SC-02-10 的注入能力已就绪、可由 E 黑盒驱动**；b40 已证明真实 HTTP、lease 回收、接管、v2 完成与旧执行迟到围栏；SC-02-10 可在首次实际 worker 执行中稳定进入既有 `PROVIDER_CONTRACT_VIOLATION` 终态并由 HTTP 读取安全投影。**最终场景 PASS 仍应由 E matrix 独立结算。**
+- **对 15–21 的裁定**：barrier 超时后重试会再等一个有界 timeout = **可接受但须持续披露**；timeout 非数字抛裸 `ValueError` = **非阻塞**（建议统一包装）；双重围栏取证口径 = **代码路径充分、验收断言可加强**；Worker C 有界多轮 + 零 backoff = **可接受**（测试配置而非业务修改）；保留 `MVP_D_SKIN_DOUBLE_HOLD` = **可接受**（但文档需避免把 HOLD 描述成真实迟到返回）；以「唯一 T05 + 唯一 `report_ready` + 完整快照不变 + `members` 不变」等价断言"无第二报告/未覆盖" = **充分**；上轮 19–22 项 = **维持非阻塞裁定**。
+- **3 项新 IMPORTANT + 1 SUGGESTION（Oracle 判"不改变生产业务正确性、不构成合入阻塞，但前三项应在 E 最终矩阵结算前修正或明确接受测试约束"）**：
+  1. `b-checks-3.sh:481-488`：b40 **忽略 Worker A 的退出码**，且日志正则允许任意 `StaleGeneration` 字样或 DEBUG 事件 ⇒ 若 A 因未处理异常非零退出，只要快照未变且日志含该词，**b40 仍可能通过**。修法：`wait "$pid"` 须返回 0，并精确断言 `job.complete_stale_generation`。
+  2. `test_seam_boundary_repro.py:392-406` 与 `b-checks-3.sh:526-529`：`owner_id=assessmentId` 的 job 计数**不能**证明无 `identity.enroll`/`plan.generate` 后继（两类后继用**不同 owner_id**）⇒ 人工存在同 assessment 的 plan/enroll job 时 count 仍可能为 1。修法：按 `job_type` 与 `payload.assessment_id` 查询，`plan.generate` 另以对应 `care_plans` 行验证。
+  3. `providers.py:163-166`、`dconfig.py:394-469`：barrier 启用时 `DIR` 可为空并**回退共享 `/tmp/mvp-double-late-barrier`**，未强制 RUN_ID 隔离 ⇒ 两个并跑实例会互相消费 sentinel。修法：`barrier=true` 时要求 `DIR` 非空，或在 sentinel 名中加入不可碰撞的 RUN_ID。
+  4. SUGGESTION `dconfig.py:162-164,400-403`：timeout 非数字抛裸 `ValueError`，与其他注入错误类型不统一 ⇒ 转换为含变量名与值域的 `ProviderConfigError`。
+- **orchestrator 处置决定**：**四项全部修，不接受"明确接受测试约束"**。理由：三项 IMPORTANT 都属**可能导致假 PASS 的证据完整性缺陷**（其一可使崩溃的被测进程被记为通过、其二使"无脏后继"断言实际无判别力、其三使并跑实例互相污染），与本项目"绝不把受控替代或伪造效果当真实、要求独立验证"的一贯要求直接冲突；且四项全在 B 自有写域（工装 + 注入缝 + 定向测试），修复成本低、不触碰业务代码。修复后将产生新 SHA，需再做一次窄范围重绑定（沿用 `c59a18b`/`76a01f0` 已被接受的模式），并请求轮次边界声明。
+- **Oracle 本轮实际执行的核查命令**：`git rev-parse HEAD`、`git log --oneline f4b9546..8343ba5`、`git diff --stat f4b9546..8343ba5`、`git diff --check 5bd22d3..8343ba5`、`git show --stat --oneline d312d2a 40f5fde 181676d 8343ba5`、`git status --short --branch`、对 `backend/acceptance/**`/`contracts/**`/`handoffs/**`/`db/migration/**`/`deploy/**`/`src/main/resources/**` 的越界核查（结果为空）、对 `assessment_analyze.py`/`plan_generate.py`/`identity_enroll.py`/`dmedia.py`/`runtime`/`handlers/__init__.py`/`web-java/src/main` 的"应无 diff"核查、`git diff --numstat f4b9546..8343ba5 -- backend/tests/...`；另只读检查全部增量主代码、定向测试、b40/b41 与既有 handler/fence/media 路径。**未修改文件、未运行测试或验收。**
+- **Oracle 要求新增/持续披露的残留限制**：barrier 为**文件式进程间测试同步机制**，E 必须使用**每 RUN_ID 独立目录**；barrier timeout 后重试会再等一个有界 timeout；barrier 当前拦截的是 `FaceDouble.quality` 返回，后续 skin/search 虽在释放后运行但仍使用**释放前加载的旧照片快照**；stale 旧执行可能在结果图归档 tx1/存储阶段留下**不可见 pending 媒体或孤儿字节**，依赖既有 `media.cleanup` 回收（**不会产生 available/report 引用**）；`HOLD` 只是可重试失败、**不等同**真实迟到返回；timeout 非数字异常类型暂为 `ValueError`。上轮非阻塞项继续保留（`matched` 无 `face_subject_ref` env seam、`execution_face`/`revalidation_face` 缺 C 端点专项 IT、pytest 共享 DSN/迁移 fixture 待统一、Java `assessment_result` 失败模式通常不命中 Java 上传路径、C25/C26 与真实 provider 未接入）。
+
+### 4.15 第十二轮：四项证据完整性修复的**窄范围重绑定**（被审 SHA `11e42c8ea29c97312059cab886f39c5c3418e8f8`，会话 `ora-1`）
+
+**`VERDICT: PASS-with-notes`，新发现：无。**
+
+**六点裁定（全部闭合）**
+1. **IMPORTANT 1 已闭合**（`b-checks-3.sh:481-495`）：明确断言 Worker A `a_rc==0`；只接受**精确** WARNING 事件 `job.complete_stale_generation`；拒绝 traceback；原有 v2 快照、唯一 T05/`report_ready`、`members` 与 sentinel 断言**均保留**（`:497-508`）。
+2. **IMPORTANT 2 已闭合**：b41 按真实关联方式检查后继（`b-checks-3.sh:532-539`）；Python 定向测试分别检查 analyze / identity.enroll / care_plans / plan.generate（`test_seam_boundary_repro.py:393-433`）；**判别力测试有效**（`:436-506`）——临时 plan job 不影响旧 `owner_id` 计数、却会被新 `care_plan`/join 查询命中，随后确实清理并验证零残留。
+3. **IMPORTANT 3 已闭合**：barrier=true 时**强制独立 DIR**（`dconfig.py:481-487`）；`default_late_barrier_dir()` 已明确只供显式构造（`providers.py:163-170`）；测试覆盖缺 DIR、缺 SHA、非法 SHA、非法 timeout 与完整合法配置（`test_seam_boundary_repro.py:550-570`）。
+4. **SUGGESTION 4 已闭合**：`_strict_env_int()` 将非数字与低于下界**统一转换为 `ProviderConfigError`**（`dconfig.py:167-186`）；barrier timeout 使用该解析器（`:422-428`）；`abc` 定向测试验证变量名与值域（`test_seam_boundary_repro.py:573-585`）。
+5. **负向验证成立、交付代码无临时残留**：当前断言会分别拒绝非零退出、缺精确 WARNING 与 traceback，所述三种负向实验与代码行为一致；被审 diff 中**未发现** `TEMP-NEG`/`TEMP_NEG`/`neg-fix`/`intended.sh` 或被篡改基准；临时判别力数据只存在测试事务/fixture 中，并有显式删除与清理断言。
+6. **原结论可重新绑定**：可以合入 dev；SC-02-09、SC-02-10 注入能力仍可由 E 黑盒驱动；最终场景结算仍由 E matrix 独立负责。
+
+**最终 SHA 与验收要求（Oracle 原文）**：**可以将 `11e42c8ea29c97312059cab886f39c5c3418e8f8` 作为本轮最终交付 SHA 合入 dev**；**不要求再次重跑端到端验收**（orchestrator 已在该精确 SHA 上完成 41/41；本轮代码与断言核查未发现证据失效或行为缺口）；工作树中的 `B.md`/`B-oracle.md` 修改与新增 `B-seam-repro.md` 不属于该 SHA，应按既定 **report-only** 流程单独处理。
+
+**轮次边界声明（Oracle 原文）**：**"`11e42c8ea29c97312059cab886f39c5c3418e8f8` 为本轮最终交付 SHA；无需再因测试断言精度或文档措辞发起新的重新绑定轮次。"** 只有 E matrix 发现新的实际行为缺陷，才需要重开代码审查。
+
+**持续披露的残留限制（Oracle 据实更新）**
+- **已移除**：①"barrier DIR 可省略、需调用方自觉隔离"——现在**代码强制独立目录**；②"非数字 timeout 抛 `ValueError`"——现在**统一为 `ProviderConfigError`**。
+- **继续披露**：barrier timeout 后重试可能再次等待一个有界 timeout；barrier 拦截 `FaceDouble.quality` 返回，后续处理仍使用**释放前加载的旧照片快照**；stale 旧执行可能留下**不可见 pending 媒体/孤儿字节**，由既有 `media.cleanup` 回收（**不会形成 available/report 引用**）；`HOLD` 是可重试失败、**不等同**真实迟到返回；`matched` 尚无 `face_subject_ref` 环境 seam；`execution_face`/`revalidation_face` 缺 C 端点专项 IT；pytest 共享 DSN/迁移 fixture 待统一；Java `assessment_result` 注入值通常不命中 Java 上传路径；**E matrix 尚需独立完成最终场景结算**。
+
+**Oracle 该轮实际执行的核查命令**：`git rev-parse HEAD`、`git log --oneline 8343ba5..11e42c8`、`git diff --stat 8343ba5..11e42c8`、`git diff 8343ba5..11e42c8`、`git diff --check 5bd22d3..11e42c8`、`git show --stat --oneline 11e42c8`、`git status --short --branch`；对 `backend/web-java/**`、`acceptance/**`、`contracts/**`、`handoffs/**`、`db/migration/**`、`deploy/**`、`run-acceptance-b.sh`、`runtime`、`assessment_analyze.py`、`plan_generate.py`、`identity_enroll.py`、`dmedia.py`、`media/storage.py` 的越界核查（结果为空）；以及 `git grep -n -E 'TEMP-NEG|TEMP_NEG|neg-fix|intended\.sh' 11e42c8 -- <四个增量文件>`（零命中）。另只读检查四个增量文件。**未运行测试、进程或验收，未修改文件。**
+
+**本轮（测试注入缝轮）Oracle 调用小结**：共 **3 次实际调用**——`f4b9546` 有界复审（**FAIL**：1 BLOCKER + 1 IMPORTANT + 2 SUGGESTION，明确不可合入）→ `8343ba5` 有界复审（**PASS-with-notes**：21 项闭合、许可合入、3 新 IMPORTANT + 1 SUGGESTION）→ `11e42c8` 窄范围重绑定（**PASS-with-notes**：六点闭合、新发现无、最终交付 SHA + 轮次边界声明）。三次均为真实只读审查、均给出可核查的 `文件:行` 依据与实际命令清单，无任何轮次以"内容评估"替代 SHA 绑定。
+
 
 
 ## 5. 验证证据（orchestrator 亲自执行，最终状态）
