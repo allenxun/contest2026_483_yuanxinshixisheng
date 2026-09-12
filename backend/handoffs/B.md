@@ -263,3 +263,98 @@ kill $(cat .coordination/B-work/swagger-preview/app.pid)   # 验证后请停止�
   1. `DocsProductionGuard.java:49` 只识别正式 profile 名 `prod`，不识别常见别名 `production`；复现需 `spring.profiles.active=production` + `app.env=dev` + 显式强开 springdoc 开关。**项目正式 profile 约定为 `prod`**（见 `application.yml`），且基础段默认关闭、`OpenApiDocsConfig` 仅 dev/test 注册，故残余风险低。后续可选修法：改为 `Profiles.of("prod","production")`，或在部署文档明确只允许 `prod`。
   2. `DocsProductionGuard.java:17` 的 javadoc 仍链接已删除 import 的 `@ConditionalOnProperty`，且"无条件 ConditionalOnProperty"表述含混；建议改为"无 `@ConditionalOnProperty` 条件"并去掉未解析链接。
 - **必须持续披露的文档准确性限制**（Oracle 本轮重申，已写入 `info.description`）：生成文档非权威契约、冲突以 `backend/contracts/openapi/openapi.yaml` 为准；生成 OpenAPI **3.1.0** vs 契约 **3.0.3**；所有 `Object`/`Map`/`JsonNode` 字段可能只显示自由 object；response content type 可能为 `*/*`；`operationId` 由 Java 方法名派生、未对齐契约；未逐端点附着完整错误码集合；**全局 bearer 只表达"是否需要 token"，不表达 APP/GIMBAL 主体类型、成员查看授权、绑定或当前任务等细粒度权限**；**Swagger UI 仅限 dev/test，不得作为公网生产文档面**；正式生产 profile 名为 `prod`，若将来支持 `production` 别名须同步扩展护栏。
+
+## 12. 公共集成修复轮（总协调指定 B 为唯一实施负责人，最终代码 SHA `2d6c7231f2d2aa58ec0501e8550a0f35b8bd2533`）
+
+**授权范围**：用户授权重启后继续集成测试、**不启动 Swagger 预览**；总协调扩展范围，指定 B 为本轮公共集成修复唯一实施负责人（不恢复 A/C/D 会话），复用 mvp-b 工作树与本会话；允许最小 runtime/config/deploy 说明与最小 auth 公共修改；**不得修改验收驱动放宽校验**；候选提交后由**实际 Oracle 有界审最终 SHA**；总协调合 dev、E 独立验收；B **不自行推送/归档/合入 dev**。
+
+**基线合并**：安全合入总协调指定的本地 dev 基线 `f045433`（"Merge reviewed Swagger integration into dev"）→ 合并提交 **`39adc57c290e6cef4af336935ee7112f34bdca0b`**（parents = `551f166` + `f045433`）。合并前以 `git merge-tree --write-tree` 预演：**退出码 0、冲突 0**；传入基线**不触及**本轮三个目标写域，实质为 E 的独立验收资产（115 份 evidence + driver/matrix/run.sh/requirements/config）与 4 份 E 交付文档。合并后树 clean、`git grep` 零冲突标记。**只把基线合入本 feature，未反向合并、未推送。**
+
+**本轮提交链**：`39adc57`(merge) → `2bd768a`(契约 13 处) → `d0e9b84`(登出代次) → `2d6c723`(Worker 有界周期调度)；合计 **10 个文件、0 工件、0 个 E 资产文件**。
+
+### 12.1 项 1：扫描器接入既有 Worker 的有界周期调度（`2d6c723`）
+
+闭合 Oracle BLOCKER **#4**（"扫描器未接入既有 Worker，手动 CLI 不等于生产接入"）与 C8 裁定（MVP 用既有 Python Worker **进程内周期触发**，不加常驻进程/cron/部署调度）。
+
+- **调度**（新增 `scanners/scheduler.py`，**不新增进程/线程/队列**）：`PeriodicTask` 以 `time.monotonic` 维护 `due_at`，并用 `threading.Lock` 的**非阻塞 acquire** 作重入守卫（上一轮未结束则本轮跳过并顺延，绝不叠加并发）；`PeriodicScheduler.run_due()` 只运行到期任务；`next_wait_seconds(max_wait)=min(最近到期, max_wait)`；`build_worker_scanner()` 装配两个任务（B incident、D `media.cleanup` 候选发现），各自独立间隔与批量上限。
+- **挂载点**：`runtime/loop.py` 新增 `_scanner_or_build()`（`:60`）；`run_forever` 在每轮 `run_cycle()` 之后调用 `scanner.run_due()`（`:242`），空闲等待改为 `stop_event.wait(scanner.next_wait_seconds(poll_interval_seconds))`（`:247-248`）⇒ 批处理间隙、同线程、到期才跑、异常自隔离，且 `stop_event` 仍能及时停机。**`process_job`/`run_cycle` 未改。**
+- **有界性**：`incident_scanner.py` 新增 `ScanCursors`（offline/recovery/notify 三段各自独立游标），`run_once(engine, settings, *, limit=None, cursors=None)`；三个候选 SQL 加 `AND (CAST(:after_id AS uuid) IS NULL OR id > CAST(:after_id AS uuid)) ORDER BY id LIMIT :limit`；`_page_rows` 取满则推进到最后 id、取不满则归零下轮从头 ⇒ **单轮每阶段 ≤limit 行且不重扫前缀**。`ScanReport` 仅**追加** `scan_limit`，既有字段全保留；`--once`/`--loop` 退出码语义不变（`--loop` 跨轮持游标），新增 `--limit`。
+- **D 的代码未改**：`handlers/media_cleanup.py` 的 `_SELECT_ORPHAN_CANDIDATES` 原本已带 `ORDER BY created_at, id LIMIT :limit`，故仅由调度器透传 `limit`（该文件 diff 为空）。
+- **红线保持**：`runtime/claim.py`/`complete.py`/`renew.py`/`expire.py`/`rows.py` 与 `handlers/__init__.py` 的 **diff 为空** ⇒ 租约（`lease_owner`/`lease_revision`/租约时钟）与 `business_tx` 同事务收敛机制原样；扫描回调只做 DB（单表 SELECT/UPDATE + `INSERT…ON CONFLICT` + `enqueue_job`），真正的存储删除仍在 D 的 `fenced_business_tx` **之外**由后续 job 锁外执行 ⇒ **网络不在 PG 锁内**；**C7 红线**：离线扫描**绝不写** `gimbals.last_seen_at`（只读用于判定，有 SQL 级断言测试）；多实例安全**不引入新锁**，依赖既有 `FOR UPDATE`+`status_revision`、`uq_notification_dedup`/`uq_job_dedup`、D 的 `media:{id}:cleanup:1` dedup。
+- **配置**（`config.py` 新增 4 个旋钮，env 可覆盖，dev 联调起点）：`MVP_WORKER_INCIDENT_SCAN_INTERVAL_SECONDS`（未设时回退 B 既有 `MVP_NOTIFY_SCAN_INTERVAL_SECONDS`，再回退 30）/ `MVP_WORKER_INCIDENT_SCAN_BATCH=200` / `MVP_WORKER_MEDIA_CLEANUP_SCAN_INTERVAL_SECONDS=30` / `MVP_WORKER_MEDIA_CLEANUP_SCAN_BATCH=100`；`backend/deploy/README.md` 最小补充 4 行；`.coordination/B-work/scanner-integration.md` 已重写为与实现一致。
+- **测试**：新增 `tests/test_scanner_scheduler.py` 8 项（到期才触发/未到期不触发；等待窗口=min(poll,到期)；上一轮在跑时不叠加；两任务独立间隔与批量；`run_forever` 在 `stop_event` 后 <3s 退出；`limit=2` 时 5 行分 3 轮推进且游标取满推进/到尾归零、`limit=None` 向后兼容；离线扫描前后 `last_seen_at` SQL 级相等且状态转 offline；D 发现单轮 ≤limit 且二次幂等为 0）。**未放宽或删除任何既有断言**，D 的 `tests/test_media_cleanup.py` 全绿。
+
+### 12.2 项 2：登出失效通知目标时同事务递增 `destination_revision`（`d0e9b84`）
+
+闭合 Oracle **#8**（原属 A 归属待修；B 侧投递安全此前靠"探针要求 `status='active'`"闭合，但代次语义不完整，存在旧任务写回风险）。
+
+- **修法**（`web/auth/AuthController.java` 的 `invalidateDestinations`）：在**同一条原子 UPDATE** 内完成 `status='invalid'` + `invalidated_at`/`updated_at` + **`destination_revision = destination_revision + 1`**，`WHERE session_ref=? AND status='active'` 守卫不变 ⇒ 不存在"已失效但代次未变"的可观测中间态。
+- **幂等与竞态**：`WHERE … AND status='active'` 只命中真实变更行；已 invalid 的行不重复递增、不刷新 `invalidated_at`；以**受影响行数**判定（`n=0` 即幂等无操作）；**单条语句、无 SELECT-then-UPDATE ⇒ 无 TOCTOU**。
+- **HTTP 行为未变**：登出仍 `ResponseEntity.noContent()` → **204 无体**（响应构造未改）；T09 更新失败仍不反转登出（保留"撤销已生效、目标失效可补偿"，DD 4.1）；warn 日志**不再回显 `session_ref` 明文**，改用 `installationId`。
+- **一致性边界（如实，不夸大）**：控制器无 `@Transactional`（auth 包内无任何事务注解），`JdbcTemplate.update` 走连接池 autocommit ⇒ 该 UPDATE 是**单条语句、单一事务**；但会话撤销发生在 `SessionProvider`（dev/test 为内存 double，14 表设计无 session 表）、**不在 DB 事务内**，故**不能**声称"与撤销同一事务"——能达到的最强边界即 T09 侧"失效+代次递增"原子。
+- **未削弱既有代次语义**：`NotificationDestinationService` 的"仅同会话且已 active 的纯幂等重登记不递增、`session_ref` 变化或 invalid 重新激活一律 +1 且带 `WHERE id=? AND destination_revision=?` 守卫"仍成立；**Python 侧无需改动**（既有 T03→T09→T10 投递前重检会因代次失配判 `destination_changed`/`route_recheck_failed`，与"探针要求 active"形成双重防护）。不改表结构、不加列、不加迁移。
+- **测试**：新增 B 自有 `LogoutDestinationRevisionIT` 4 项（恰好 +1 且 204 空体；重复登出幂等含影响 0 行；旧 T10 写回被守卫拦为 **0 行**且通知仍 pending；登出后重新登记代次继续递增）。**未修改任何既有断言。**
+
+### 12.3 项 3：修正 CC-11 的 13 处 OpenAPI 建模缺陷（`2bd768a`）
+
+E 的独立验收以**严格 OAS 3.0.3 语义**校验 9 个 M4 成功响应，发现 **13 个不同字段路径**的契约建模缺陷（归属 `openapi.yaml`，**非 C 运行时缺陷**）：12 处 `nullable:true` 与 `$ref`/`allOf` **同层**（OAS 3.0.3 下不生效——`nullable` 必须与 `type` 同一 schema 对象），致 C 按契约意图返回 `null` 被判 `type` 违规；1 处 `ProgressWithSync` 经 `allOf` 叠加 `lastSyncedAt`，被 `Progress.additionalProperties:false` 误伤（`allOf` 某分支看不到其他分支的 properties）。
+
+- **12 处 nullable**：改为**与 `type` 同对象**的内联可空标量 —— `Progress.completedAt`、`Verification.validUntil`、`ControllerRef.gimbalId`、`CareExecutionListItem.closedAt` → `{type: string, format: date-time|uuid, nullable: true}`，覆盖 A01/A02/A03/A04/A05/A07/A08/A09 的 12 个字段路径。选择**就地内联**而非新增公共 schema：各字段仅出现一次、无复用需求，可把 diff 严格限制在 5 个授权组件内。
+- **第 13 处 A08 `$.data`**：`ProgressWithSync` 由 `allOf:[Progress,{lastSyncedAt}]` **展平为显式单 schema**（7 属性 = `Progress` 的 6 个 + `lastSyncedAt`），保留 `required:[completedCount,remainingCount,progressRevision]` 与 `additionalProperties:false` ⇒ **允许字段集合与严格性均不变**（第 8 个未知字段仍被拒）。**未**采用"去掉 `Progress.additionalProperties:false`"（那会放宽 A01/02/03/04/05/07）。
+- **不变量（已逐项核实）**：未增删任何业务字段、未改 `required` 集合、未改 `format`/`enum`/`pattern`/`minimum` 等约束、未改任何端点的状态码集合/`x-error-codes`/`operationId`/`x-api-id`；A01..A09 的响应引用链未被触碰。**属性集精确比对**：`Progress`/`ControllerRef`/`Verification`/`CareExecutionListItem` 的 properties 名称集合 PRE=POST **完全一致**；`ProgressWithSync` 由 allOf 形式（无自有 properties）→ 显式 7 属性。
+- **未修改 E 的任何验收资产**：`git status`/`git diff` 对 `backend/acceptance/**` **为空**（含 `driver/c_care.py` 与 `tests/test_framework_selfcheck.py`）。
+
+### 12.4 验证（orchestrator 亲自执行，绑定最终 SHA `2d6c7231`）
+
+| 项 | 结果 |
+|---|---|
+| Java 全量 `mvn -B test`（限堆 `-Xmx768m`、`MVP_A_PG_JDBC=…55435/postgres`、未设 `APP_STORAGE_DEV_DIR`） | **Tests run: 401, Failures: 0, Errors: 0, Skipped: 0；BUILD SUCCESS；rc=0**（基线 397 + 新增 4；`LogoutDestinationRevisionIT` 4/4、`NotificationDestinationsIT` 11/11） |
+| Python 全量 `pytest -q`（真实 PG 55435） | **230 passed / 0 failed / 0 errors；rc=0**（基线 222 + 新增 8） |
+| `python -m mvp_worker.scanners --once` | **rc=0**，报告含新增 `"scan_limit":200` |
+| 契约四项（`backend/contracts/.venv`） | `openapi-spec-validator` **VALID** rc=0；`validate_responses.py --selftest` **10 passed/0 failed** rc=0（含 4 项 nullable-shape 判别）；`validate_samples.py` **50 checks/0 failed** rc=0（**未改 samples**）；`jcs.py selftest` **PASS（26 checks, 23 number pairs）** rc=0；**修复前后数字一致 ⇒ 无校验被削弱** |
+| 契约定向严格校验（自建只读脚本，独立实现严格 OAS 3.0.3 语义：`nullable` 仅在与 `type` 同对象时生效、`allOf` 不展平；**未 import/未改 E 驱动**） | 对**修复前** YAML `--expect-defects` → **14/14 复现缺陷**（12 `type` + 2 处 A08 `additionalProperties`）；对**修复后** YAML → **14/14 全过** ⇒ **双向判别力成立、非恒真** |
+| **端到端验收 `backend/tests/run-acceptance-b.sh`** | **ALL PASS 39/39，`SCRIPT_RC=0`**（含 b26 C7 `last_seen_at` 不变、b27 扫描→通知→真实 worker、b30–b35 投递链、b36 Java 全量、b37 Python 全量、b39 HEAD 与 tracked 文件未变、b14 契约驱动 37 条错误信封/12 端点白名单） |
+| 写域与纪律 | 本轮 10 个文件全在授权写域；`backend/acceptance/**` 零改动；0 工件；未触碰 18080/E 的端口与 `.worktrees/mvp-e`；未改/未重置 `swagger_preview`；未停 PG；无遗留 JVM；运行文件在 `.coordination/B-work/integration-fix/`（未用 /tmp） |
+
+### 12.5 本轮新增/延续的待协调项（B 未自行扩大范围，均如实披露）
+
+1. **E 的自检断言将失败，需由 E 自行更新**（B 未改 E 任何文件）：`backend/acceptance/tests/test_framework_selfcheck.py:958` 的 `assert errs_clean` 断言 A08 仍存在 `additionalProperties` 缺陷 ⇒ 修复后**必然失败**；`c_care.py:996` 的 `assert len(CC11_CONTRACT_ALLOWLIST)==13` 仍通过但 allowlist 已陈旧；修复后 CC-11 的契约缺陷计数应为 **0**、`impl_bad` 仍为空，状态由 INFO 转 PASS。
+2. **32 处 off-path `allOf+nullable` 旧式写法**（如 `ExecutionClosureResult.closedAt`、`CareExecutionView.closedAt`、`ProgressWithSync.targetCount`）不在 E 的 13 处清单内、未被任何验收观测命中，本轮**只报告不修改**（依据 `contracts/decisions-notes.md` 已记录的"遗留跟随项"）。故 **A08 若返回 `targetCount=null`，严格语义下仍会被拒** —— 属既有遗留，需后续授权统一修订。
+3. **D 的候选发现有 `LIMIT` 但无 keyset**：头部 `limit` 个候选若长期被安全跳过（被引用或处理者租约活跃），其后可清理候选会延迟。改 keyset 需动 D 文件，故未做；可选方案 A=给 `discover_and_enqueue_orphans` 加可选 `after` 游标，方案 B=维持现状 + 运维调大 batch。
+4. **`gimbals.active_incidents` 保留已 resolved episode** ⇒ recovery/notify 候选集不随事件关闭收缩；keyset 保证每轮有界推进，但彻底消除需专用索引/标记列（**需迁移**，属集成方裁定）。
+5. **`worker-python/tests/conftest.py` 只读 `MVP_A_PG_*`**（默认指向被禁用的 55432）⇒ 仅给 `MVP_WORKER_PG_DSN` 时 pytest **无法收集用例**；正确调用须补 `MVP_A_PG_DSN`/`MVP_A_PG_HOST_PORT`/`MVP_A_PG_USER`/`MVP_A_PG_PASSWORD`/`MVP_A_PG_CONTAINER=mvp-b-pg`。该文件属共享测试基础设施，B 未擅自改，提请裁定归属。
+6. **`NotificationDestinationService` 类注释**中"若登出侧 invalid 失效不改代次…"一句现已不成立（登出会 +1），但**行为不受影响**；因写域限制未改注释，建议总协调统一措辞。
+7. **C25**（延续）：APP 须跨登录/refresh/重启**持久化** `observationEpoch` 与每微晶单调 `observationSeq`，否则该次观察被 `accepted=false`；若产品要求"重启后 seq 可从 1 开始"，须改用方向②（由 B 自有 `ConnectionProofVerifier` 从已验证的 connectionProof 返回单调可信 generation）。**本轮未改任何业务规则。**
+8. **C26**（延续）：`app.devices.max-observation-sessions` 默认 8，生产初值建议 32~64；需配置 `branch=session-table-full-fail-closed` 告警与凭据轮换/受控重置 runbook；**APP 侧无自动恢复途径**，且"仅调高上限不是恢复机制"。
+
+### 12.6 Oracle 有界复审结论（绑定 `2d6c7231f2d2aa58ec0501e8550a0f35b8bd2533`）
+
+**`VERDICT: PASS-with-notes`** —— 三项授权目标**均已正确实现、无代码级 blocker**，Oracle 明确 **"可以合入 dev"**。范围限定本轮三项 + 基线合并，未重审 R6 已通过的 B 业务代码与 R8 已通过的 Swagger。完整记录（19 点逐条裁定 + 依据行号 + Oracle 实际核查命令）见 `B-oracle.md` §4.13。
+
+- **关键红线经 Oracle 独立确认**：`process_job`/`run_cycle` 与 `claim`/`complete`/`renew`/`expire`/`rows`、handler 注册表**零 diff**（租约与失败事务守卫原样）；网络仍在锁外（真正存储删除在 `media_cleanup.py:216-222` 的业务事务外）；**C7 红线保持**（扫描器只读 `last_seen_at`、UPDATE 不含该列）；停机不被扫描间隔阻塞；`ProgressWithSync` 展平后**严格性保持**（七属性 + 原 `required` + `additionalProperties:false`）；`backend/acceptance/**` 与 `backend/tests/**` **diff 为空**；登出的一致性边界**表述准确未夸大**（只声称 T09 侧同一原子 UPDATE，未声称与 `SessionProvider` 撤销同事务）。
+- **新发现 1 IMPORTANT + 4 SUGGESTION，均非 blocker**。IMPORTANT：`incident_scanner.py:389-422` 的 `LIMIT` 只约束 **gimbal 候选数**，单 gimbal 的 `active episodes × active destinations` 扇出**无每轮总预算** ⇒ 单轮总事务/通知数并非严格有界；Oracle 判"**MVP 可暂按运营规模接受并监控**，后续增加每轮总工作预算或对 episode/destination 分页"。**本轮未修**，理由：需设计决策（预算口径或分页语义）属业务规则变更、超出本轮授权且风险不对等 ⇒ 如实披露并移交集成方。
+- **合入附带条件（Oracle 原文）**：①合入后 **E 的一项旧缺陷自检会按预期失败**（`test_framework_selfcheck.py:958 assert errs_clean` 断言 A08 仍存在 `additionalProperties` 缺陷），E/集成方必须同步更新其期望并清理 `c_care.py:98-154` 的陈旧 allowlist，之后才能宣称整体验收全绿；②incident scanner 的总扇出不是绝对硬上限，应进入后续预算化治理。
+- **对 12.5 待协调项的裁定**：D 候选发现无 keyset = **非阻塞但应修**（影响清理及时性，**不造成误删**；调 batch 不能根治永久头阻塞，归 D/集成方）；resolved episodes 长期保留 = **非阻塞 MVP 残留**（归集成/数据所有者设计压缩、索引或迁移）；`conftest.py` 只认 `MVP_A_PG_*` = **非生产阻塞、测试基础设施应修**（归共享基础设施所有者/A 或总协调）；`NotificationDestinationService` 旧注释 = **非阻塞文档修正**（归 B/集成方）；**C25/C26 = 维持非阻塞待冻结项**（归总协调与 APP/设备协议提供方）。
+
+**纯注释后续提交 `c59a18bac95dae3e262f06d93993cee85b5a620b`**：据 4 条 SUGGESTION 中"注释与现状不符"的 3 条（其中 2 条 Oracle 判给 B）做了**纯注释/文档**更正——`scanners/__init__.py`（模块 docstring 与 `--loop` 帮助文本改为如实反映"周期触发已接入既有 Worker、CLI 仅供验证排障"）、`scheduler.py`（明确 **fixed-rate/best-effort** 语义：`due_at` 以尝试开始前的 `now` 顺延，回调超时则下轮立即到期，不补偿漂移也不跳过周期；采 Oracle 给的"明确说明"选项而非改行为）、`NotificationDestinationService.java`（类 javadoc 更正为当前 +1 语义）、`contracts/decisions-notes.md`（遗留旧式 nullable 计数 **36 → 32**，给出 `36−5+1` 沿革并同步增删清单条目）。**自证零行为变更**：Java 侧该 diff 的**非 javadoc 行数为 0**、Python 侧仅 docstring/注释/`help=` 文本、契约侧**只有 `decisions-notes.md`（`openapi.yaml` 未在 diff 中）**；相称验证为 `py_compile` OK、定向 pytest **13 passed rc=0**、`scanners --once` **rc=0**、`mvn -B -DskipTests compile` **rc=0**。
+
+**重新绑定结论（`c59a18b`）：`PASS-with-notes`，且明确"可以将 `c59a18b` 合入 dev"、"不要求重跑端到端验收"**。Oracle 五点裁定：①确为文档性变更、无业务/调度语义变化（并诚实指出 docstring 与 `help=` 属运行时字符串、会改变 `__doc__`/`--help` 输出，但不影响参数解析、控制流、配置、退出码或扫描行为）；②三条注释类 SUGGESTION 中 `scanners/__init__.py` 与 `NotificationDestinationService.java` **已正确处置**；③**32 处计数准确**——Oracle 独立递归最终 `openapi.yaml` 命中**恰好 32** 个"`nullable=true`、无本地 `type`、含 `allOf/oneOf/anyOf`"节点，与 `decisions-notes.md:178-204` 的 32 项清单**逐项一致**，`36−5+1` 沿革成立、**无虚报或漏报**；④扇出 IMPORTANT 的"披露 + 移交集成方"处置**可接受**，不要求在合入 dev 前修复；⑤结论可原样重新绑定，定向编译/测试已足够，**无需再次执行完整 39 项端到端验收**（该证据绑定在 `2d6c723`）。Oracle 另提醒：12.5 的扇出披露当时仍是工作树未提交修改，**交付前必须经 report-only 提交纳入版本记录**（已照办）。
+
+**注释精确化提交 `76a01f06a5ac015f243d277db66c99dea8a01004`**：Oracle 在 `c59a18b` 轮给出唯一一条新 SUGGESTION——`scheduler.py:57-61` 措辞不完全准确，实现实为"以上次尝试开始时间为基准的 **best-effort start-to-start** 调度"，回调耗时超过 `interval` 时**错过的多个周期会被合并**，而非原注释所写的"不跳过周期"。orchestrator 认为"事实性错误注释"正是本轮刚修掉的那类缺陷、不应自留，故**严格按 Oracle 给出的措辞**更正（删除不准确的 "fixed-rate"/"不跳过周期"，改为①超时后下一轮立即到期、不补偿漂移；②错过周期**合并为一次**执行、**不追赶补跑**，并附 interval=30s/回调 95s 的具体例子）。自证零行为变更：该 diff 中**非注释行数为 0**（全部以 `#` 开头）、`py_compile` OK、定向 `pytest tests/test_scanner_scheduler.py` **8 passed rc=0**。
+
+**最终重绑定结论（`76a01f0`）：`PASS-with-notes`，新发现：无。** Oracle 明确 **"可以将 `76a01f06a5ac015f243d277db66c99dea8a01004` 作为本轮最终交付 SHA 合入 dev"**、**"不要求重跑端到端验收"**（差异仅为注释、执行语义完全未变），并给出**轮次边界声明**：`76a01f0` 为本轮最终交付 SHA，**无需再因纯注释/文档措辞发起新的重新绑定轮次**。三点裁定：①`c59a18b..76a01f0` 仅修改 `scheduler.py:57-63` 的 `#` 注释，未触及语句/签名/常量/控制流/配置/契约，`git diff --check` 通过；②新措辞与实现（`scheduler.py:66-78` 的 `due_at = now + interval` 使用尝试开始前的 `now`）**一致**，正确说明超时后立即到期、错过周期合并且不追赶补跑，30s 间隔/95s 回调的示例**准确**，非阻塞重入守卫与未来 fixed-delay 修法说明均保留；③原结论可**原样重新绑定**（代码门禁维持 PASS-with-notes、可合入 dev、不要求重跑端到端、E 仍需更新过时的 CC-11 selfcheck/allowlist）。Oracle 并指出：工作树中的 `B.md`/`B-oracle.md` 修改不属被审 SHA，应按既定 report-only 流程单独处理（即本提交）。
+
+### 12.7 本轮最终交付 SHA 与持续披露的残留限制
+
+**本轮最终交付 SHA = `76a01f06a5ac015f243d277db66c99dea8a01004`**（三项业务修复绑定在 `2d6c723`；Oracle 对该 SHA 与其后两个纯注释提交共三轮均判 **PASS-with-notes** 并许可合入 dev）。提交链：`39adc57`(merge `f045433`) → `2bd768a`(契约 13 处) → `d0e9b84`(登出代次) → `2d6c723`(Worker 有界周期调度) → `c59a18b`(注释与遗留计数更正) → `76a01f0`(调度语义注释精确化)。
+
+残留限制**与上轮一致**（已消除唯一的 scheduler 语义措辞不准确项），须持续披露：
+1. incident 扫描的 `episode × destination` **总扇出无硬预算**（候选 gimbal 数有界；Oracle 判 MVP 可按运营规模接受并监控，后续应预算化治理）；
+2. D 的 cleanup 候选发现**无 keyset**，永久被安全跳过的头部候选可造成后续候选**饥饿**（非阻塞但应修，归 D/集成方；调大 batch 不能根治）；
+3. `resolved` incident episode **不自动压缩**，规模增长会延长扫描周期（归集成/数据所有者设计压缩、索引或迁移）；
+4. 仍有 **32 处**旧式 `allOf/oneOf/anyOf + nullable` 建模（含 `ProgressWithSync.targetCount`；清单见 `contracts/decisions-notes.md:178-204`）；
+5. **E 的 CC-11 selfcheck/allowlist 待更新**（`test_framework_selfcheck.py:958`、`c_care.py:98-154`）——在此之前**不得宣称整体集成验收全绿**；
+6. 登出的**会话撤销与 T09 更新不是跨资源原子事务**（T09 侧为单条原子 UPDATE；撤销在 `SessionProvider` 内、不在 DB 事务中；T09 失败依赖既有补偿与投递侧 fail-closed）；
+7. Worker 停机可立即打断等待，但**不能中断正在执行的同步 DB 扫描**；
+8. Python 测试基础设施仍依赖 `MVP_A_PG_*`（`tests/conftest.py` 默认指向被禁用的 55432）；
+9. **C25/C26** 协议、generation 表容量告警与受控恢复 runbook **待冻结**（归总协调与 APP/设备协议提供方）。
