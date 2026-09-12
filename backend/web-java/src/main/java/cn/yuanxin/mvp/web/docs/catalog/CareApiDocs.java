@@ -987,8 +987,8 @@ public class CareApiDocs implements ApiDocsCatalog {
                 Map.entry("M4A04Metadata.reportedMicrocrystalState", new FreeFormDoc(
                         """
                         用途：M4-A04 重新核验时客户端上报的微晶实际状态，写入方为 APP/云台控制端。
-                        必须为 JSON 对象或 null（否则 400 INVALID_INPUT），并参与本轮 T13 幂等载荷（canonical payload）哈希。
-                        服务端当前不将其持久化到执行快照、也不据此放行或拒绝恢复，仅作核验上下文留痕；
+                        必须为 JSON 对象或 null（否则 400 INVALID_INPUT）。该对象仅参与幂等载荷哈希（JCS + SHA-256）
+                        以区分同键不同内容；服务端不持久化该对象、不据此放行或拒绝恢复，也不会在任何响应中回显；
                         不含服务端注入的 schema_version。内部诊断键（失败细节/原始错误）绝不外发。
                         """,
                         Map.of(),

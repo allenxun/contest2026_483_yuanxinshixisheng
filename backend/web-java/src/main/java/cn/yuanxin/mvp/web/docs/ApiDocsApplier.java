@@ -111,6 +111,7 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
         Map<String, ApiDocEntry> entries = new LinkedHashMap<>();
         Map<String, Map<String, ApiDocsCatalog.PropertyDoc>> propertyDocs = new LinkedHashMap<>();
         Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs = new LinkedHashMap<>();
+        Map<String, Set<String>> requiredProperties = new LinkedHashMap<>();
         List<Tag> tags = new ArrayList<>();
         for (ApiDocsCatalog catalog : catalogs) {
             if (catalog.tags() != null) {
@@ -140,6 +141,12 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
                     if (freeFormDocs.putIfAbsent(f.getKey(), f.getValue()) != null) {
                         report.duplicateFreeFormDocs.add(f.getKey());
                     }
+                }
+            }
+            if (catalog.requiredProperties() != null) {
+                for (Map.Entry<String, Set<String>> r : catalog.requiredProperties().entrySet()) {
+                    requiredProperties.computeIfAbsent(r.getKey(), k -> new LinkedHashSet<>())
+                            .addAll(r.getValue());
                 }
             }
         }
@@ -192,6 +199,9 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
 
         // 6) 属性级文档（含响应 data 新注册的类型）。
         applyPropertyDocs(components, propertyDocs);
+
+        // 6.5) 属性级 required 修正（契约要求必填、Java 未强制时；与 springdoc 推导取并集）。
+        applyRequiredProperties(components, requiredProperties);
 
         // 7) 自由结构展开。
         applyFreeFormDocs(components, freeFormDocs);
@@ -286,7 +296,9 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
                 }
                 prop.setDescription(part.description());
                 multipart.addProperty(part.name(), prop);
-                required.add(part.name());
+                if (part.required()) {
+                    required.add(part.name());
+                }
                 if (part.contentType() != null) {
                     Encoding encoding = new Encoding();
                     encoding.setContentType(part.contentType());
@@ -430,6 +442,37 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
         }
     }
 
+    /**
+     * 施加属性级 required 修正：与 springdoc 已推导的 required 取并集（去重、稳定排序），
+     * 只在契约要求必填而 Java 未强制时使用。目标 schema/属性不存在 → 记入校验清单并 fail fast。
+     */
+    private void applyRequiredProperties(Components components,
+                                         Map<String, Set<String>> requiredProperties) {
+        for (Map.Entry<String, Set<String>> schemaEntry : requiredProperties.entrySet()) {
+            String schemaName = schemaEntry.getKey();
+            Schema<?> schema = components.getSchemas().get(schemaName);
+            if (schema == null) {
+                report.unknownPropertySchemas.add(schemaName);
+                continue;
+            }
+            Map<String, Schema> props = schema.getProperties();
+            List<String> additions = new ArrayList<>(schemaEntry.getValue());
+            java.util.Collections.sort(additions);
+            for (String propName : additions) {
+                if (props == null || !props.containsKey(propName)) {
+                    report.unknownRequiredProperties.add(schemaName + "." + propName);
+                    continue;
+                }
+                List<String> required = schema.getRequired() == null
+                        ? new ArrayList<>() : new ArrayList<>(schema.getRequired());
+                if (!required.contains(propName)) {
+                    required.add(propName);
+                }
+                schema.setRequired(required);
+            }
+        }
+    }
+
     private void applyFreeFormDocs(Components components,
                                    Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs) {
         for (Map.Entry<String, ApiDocsCatalog.FreeFormDoc> e : freeFormDocs.entrySet()) {
@@ -454,6 +497,9 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
 
     @SuppressWarnings("unchecked")
     private void applyFreeForm(Schema<?> prop, ApiDocsCatalog.FreeFormDoc doc) {
+        // 自由结构常被 springdoc 生成为 `$ref`（如 JsonNode）。展开为显式结构时必须清除 `$ref`，
+        // 否则 OpenAPI 3.1 下 `$ref` 优先，联调方看到的仍是空壳对象。
+        prop.set$ref(null);
         boolean array = "array".equals(prop.getType()) || prop.getItems() != null;
         boolean opaque = isExplicitOpaqueDeclaration(doc);
         String description = opaque ? opaqueDescription(doc) : structureDescription(doc);
@@ -561,6 +607,40 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
             return FreeFormGate.OPAQUE_MISSING_ADDITIONAL_PROPERTIES;
         }
         return FreeFormGate.NOT_DECLARED;
+    }
+
+    /**
+     * 判定某属性是否是"无结构对象"（必须被自由结构文档覆盖的候选）：
+     * ① {@code type=object} 且无 properties 且无 additionalProperties；或
+     * ② {@code $ref} 指向空壳 schema（如 {@code JsonNode}：无 properties 且无 additionalProperties）。
+     * <p>有结构（properties 非空 / additionalProperties 已设）或指向有结构 schema 的 {@code $ref}
+     * 均不算候选，避免把正常 {@code $ref} 误判。</p>
+     */
+    public static boolean isUnstructuredObject(JsonNode prop, JsonNode schemas) {
+        if (prop == null || prop.isMissingNode() || schemas == null) {
+            return false;
+        }
+        if (prop.has("$ref")) {
+            String ref = prop.path("$ref").asText("");
+            String name = ref.substring(ref.lastIndexOf('/') + 1);
+            JsonNode target = schemas.path(name);
+            if (target.isMissingNode() || target.has("$ref")) {
+                return false;
+            }
+            boolean empty = target.path("properties").size() == 0
+                    && !target.has("additionalProperties");
+            boolean objectish = !target.has("type")
+                    || "object".equals(target.path("type").asText());
+            return empty && objectish;
+        }
+        if ("array".equals(prop.path("type").asText())) {
+            // 数组型自由结构：items 为无结构对象同样须文档化（如 HeartbeatBody.incidents）。
+            return isUnstructuredObject(prop.path("items"), schemas);
+        }
+        if (!"object".equals(prop.path("type").asText())) {
+            return false;
+        }
+        return prop.path("properties").size() == 0 && !prop.has("additionalProperties");
     }
 
     /**
@@ -848,6 +928,7 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
         public final List<String> emptySuccesses = new ArrayList<>();
         public final List<String> unknownPropertySchemas = new ArrayList<>();
         public final List<String> unknownPropertyNames = new ArrayList<>();
+        public final List<String> unknownRequiredProperties = new ArrayList<>();
         public final List<String> duplicatePropertyDocs = new ArrayList<>();
         public final List<String> unknownFreeFormTargets = new ArrayList<>();
         public final List<String> duplicateFreeFormDocs = new ArrayList<>();
@@ -863,6 +944,7 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
             emptySuccesses.clear();
             unknownPropertySchemas.clear();
             unknownPropertyNames.clear();
+            unknownRequiredProperties.clear();
             duplicatePropertyDocs.clear();
             unknownFreeFormTargets.clear();
             duplicateFreeFormDocs.clear();
@@ -875,6 +957,7 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
             return !unknownCatalogKeys.isEmpty() || !duplicateCatalogKeys.isEmpty()
                     || !paramMismatches.isEmpty() || !emptySuccesses.isEmpty()
                     || !unknownPropertySchemas.isEmpty() || !unknownPropertyNames.isEmpty()
+                    || !unknownRequiredProperties.isEmpty()
                     || !duplicatePropertyDocs.isEmpty() || !unknownFreeFormTargets.isEmpty()
                     || !duplicateFreeFormDocs.isEmpty();
         }
@@ -898,6 +981,9 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
             }
             if (!unknownPropertyNames.isEmpty()) {
                 errors.add("unknownPropertyNames=" + unknownPropertyNames);
+            }
+            if (!unknownRequiredProperties.isEmpty()) {
+                errors.add("unknownRequiredProperties=" + unknownRequiredProperties);
             }
             if (!duplicatePropertyDocs.isEmpty()) {
                 errors.add("duplicatePropertyDocs=" + duplicatePropertyDocs);

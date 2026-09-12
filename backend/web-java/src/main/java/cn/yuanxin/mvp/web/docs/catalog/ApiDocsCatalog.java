@@ -53,6 +53,27 @@ public interface ApiDocsCatalog {
     Map<String, Map<String, PropertyDoc>> propertyDocs();
 
     /**
+     * <strong>属性级 required 修正</strong>：外层 key = 生成文档中的 schema 名，
+     * 内层 = 该 schema 中<strong>应当标记为必填</strong>的属性名集合。
+     *
+     * <p>用途：当<strong>契约</strong>要求某属性必填、而 Java 代码未以校验注解强制时，
+     * springdoc 生成的 {@code required} 会缺失该属性，文档因而与权威契约不一致
+     * （实例：{@code EchoJobRequestBody.numbersAsStrings} 在契约
+     * {@code SystemEchoJobRequest.required} 中，但代码未强制）。本方法让目录在
+     * <strong>不改任何 DTO/业务代码</strong>的前提下修正生成文档的 {@code required}。</p>
+     *
+     * <p>纪律：①只在"契约要求必填"时使用，<strong>不得</strong>用它放宽或 invent 必填性；
+     * ②被修正的属性必须在 {@link #propertyDocs()} 的 description 中写明
+     * "契约要求必填、当前实现未强制（缺失会被容忍属实现偏差）"，使联调方同时看到两个口径；
+     * ③覆盖率门禁会把本方法声明的集合与契约 {@code required} 交叉校验。</p>
+     *
+     * <p>默认空实现：大多数目录无需修正。</p>
+     */
+    default Map<String, java.util.Set<String>> requiredProperties() {
+        return Map.of();
+    }
+
+    /**
      * 自由结构字段（Java 侧声明为 {@code Object}/{@code Map}/{@code JsonNode}，
      * springdoc 只能生成无结构 {@code object}）的<strong>显式结构</strong>文档。
      *
