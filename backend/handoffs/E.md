@@ -262,7 +262,26 @@ E 新增两个独立黑盒验收驱动：
 - **首轮活体矩阵**：RUN_ID=`E-20260911T134511Z-f15497bb`，**settled 94/94**，counts PASSED=88 / DEPENDENCY_PENDING=81 / FAILED=0，exit=**3**；EVIDENCE_TAGS doubles_pass=13。
   13 活体场景 = SC-01-03/04/05/06/09/10/12（B HTTP+SQL）+ SC-05-01/02/03/04/05/07（M1 授权/C 侧撤销 404）；12 设备APP 后端子步骤已验、真实联调待办；69 staged。
 - **c-acceptance 集成树重跑**：RUN_ID=`E-AB-20260911T134713Z-47c79fbd`，settled 14/14，{PASS:13,INFO:1}，exit=0；CC-01 改为仅断言 **C care 代码 diff=0**（契约面 B 错误码补丁单独记录）。
-- **待修/披露**：C8 scanner 周期未接线（须手动 `python -m mvp_worker.scanners --once`，SC-01-15/16/18 已照此并在证据标注）；#8 A 登出未递增 destination_revision（SC-01-17 只断言投递取消语义）；OAS 13 字段沿用 CC-11 allowlist 披露待裁定。
+- **待修/披露**：C8 scanner 周期未接线（须手动 `python -m mvp_worker.scanners --once`，SC-01-15/16/18 已照此并在证据标注）；#8 A 登出未递增 destination_revision（SC-01-17 只断言投递取消语义）；OAS 13 字段沿用 CC-11 allowlist 披露。**上述三项总协调已指定 B 唯一修复，当前树未修，待新修复基线后差异复验**（措辞更新于 lane A1）。
 - **缺陷**：无业务缺陷；驱动侧修正 5 项（陈旧 jar→SHA 戳重建、M1-A01 multipart 必须文件段、登录 phone 派生碰撞、CC-01 契约适用性、selfcheck 嵌套守卫触发活体）。
 - **边界**：仅 `backend/acceptance/**`+`handoffs/E*.md`；未改业务/契约/迁移/站点；E 资源用毕清理；历史证据零覆盖；未 commit。
 - **status**：矩阵执行中（batch 1）——13 通过 + 12 设备待联调 + 69 staged；nextAction=继续 batch 2 场景步骤编写（并按裁定处理 C8/#8/OAS13）。
+
+## 集成基线 lane A1（batch 2）：SC-02 测肤任务/补拍/归档（2026-09-12）
+
+> 基线同 batch1（HEAD `cbbec46`）；复用 batch1 plumbing（staged 三态、framework/live.py 活体夹具）。
+> 精简版见 `backend/acceptance/reports/first-round-integration.md`「Lane A1」节（reports/ gitignored）。
+
+- **11 节点结果（failed 0）**：**passed 7**（SC-02-01/02/03/04/07/10/11 真实 M3 云台链 + worker `--once` + SQL 侧证）；
+  **pending 4（seam 缺口，如实披露，非业务缺陷）**：SC-02-05/06/08/09——D `build_face_port/build_skin_port`
+  恒用 `FaceDouble()/SkinDouble()` 默认参数，**未提供 env 故障注入 seam**，无法黑盒产生
+  `quality=needs_retake`/`same_person=false`/`search=uncertain`；补拍 A02 仅在该态合法。
+  已编写**可达安全边界断言**并通过（05/06 不冒充报告/不误建档；08/09 非补拍态 A02 被拒且状态不变），
+  正例待 **D/总协调补注入 seam** 后补写。
+- **驱动侧修正 4 项**：A02 必须 **PUT**（原 POST→405）；报告在 T05 `skin_assessments`（`report_id`/`report_payload`，非 `skin_reports` 表）；幂等重放须 metadata 完全一致（`captureSessionId` 固定）；worker 轮次调至 140 排空队列。
+- **lane A1 正式 matrix**：RUN_ID=`E-20260912T073913Z-7d0e7b49`，settled **94/94**，counts PASSED=95 / DEPENDENCY_PENDING=74 / FAILED=0，exit=**3**，doubles_pass=20。
+- **scenarios.json**：SC-02 11 条 flipped authored；业务语义哈希 **`86bfa7b721b6f285` 不变**、`blocked_by=[]×94`、再生成幂等；authored 36 / staged 58。
+- **selfcheck** rc=0（75，零回归）。
+- **披露措辞更新**：C8 scanner/#8 logout 代次/OAS 13 字段——**总协调已指定 B 唯一修复，当前树未修**；E 维持如实披露，待新修复基线后差异复验。
+- **清理**：`docker stop mvp-e-pg`（**保留卷**，未 rm）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
+- **status**：矩阵执行中——20 通过（13+7）+ 12 设备 + 58 staged + 4 seam-pending；nextAction=等 D 注入 seam 补 05/06/08/09 正例，及新基线后差异复验。

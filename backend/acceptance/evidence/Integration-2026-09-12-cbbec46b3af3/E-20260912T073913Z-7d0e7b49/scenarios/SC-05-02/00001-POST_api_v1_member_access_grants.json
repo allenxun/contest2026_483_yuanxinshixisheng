@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/member-access-grants",
+  "status": 403,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "case": "no-member"
+  },
+  "response_excerpt": "{\"requestId\": \"8fbbe01d-d162-4556-942c-e5909816d6d3\", \"error\": {\"code\": \"FACE_NOT_VERIFIED\", \"message\": \"identity could not be confirmed and no linkable profile is available\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T073913Z-7d0e7b49"
+}
