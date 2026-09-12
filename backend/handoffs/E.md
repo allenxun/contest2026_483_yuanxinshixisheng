@@ -360,4 +360,6 @@ E 新增两个独立黑盒验收驱动：
 - **selfcheck** rc=0（**80**）；矩阵业务哈希 `86bfa7b721b6f285` 全程不变；authored 94 / staged 0；历史证据（含失败迭代 e8ba213c/33ffeb3c/7cc1b7dd）零覆盖。
 - **业务缺陷：本次运行未报告 0**（措辞限于本轮观察面，非缺陷不存在证明）。
 - **清理**：`docker stop mvp-e-pg`（保留卷）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
-- Oracle 第二十二轮（R21 六项+污染隔离+持久化实证收口）将于 62cd7c1 执行，结果记 E-oracle.md；最终集成验收报告见 E-integration-acceptance.md（第 22 轮后定稿）。
+- Oracle 第二十二轮判 **BLOCKED@62cd7c1**（2 BLOCKER：SC-01-10 未断 K=1 前置+`accepted is not True` 非精确配对、SC-R-13 未断 rc==202/rtid 非空/cur==rtid；5 IMPORTANT：登出 204 允许非空 `_raw`、SC-R-14 data={} 可通过、SC-04-02/03 按 member 限定漏检误写他员、settlement 持久化吞异常/同 SHA 互覆/缺 final_exit、conftest 251-254 文案修复未落地）→ **bd73c59** 七项修复（conftest 文案项：fixer 报告声称已改，协调者验证发现旧「B/C/D 业务实现未集成」文本仍在，由协调者直接补齐，commit message 如实记录）。
+- **终态正式 matrix**：RUN_ID=`E-20260912T143402Z-c4409fa0`@**bd73c59**（协调者独立复跑）：settled **94/94** = 场景 passed **54** + device_pending **33** + seam-pending **7** + staged **0**；PASSED=**134**（80 框架+54 场景）/ PENDING=**40** / FAILED=**0**，exit=**3**；doubles_pass=54、real_pass=0；`settlement.json`（final_exit=3+reviewed_sha 绑定）按 RUN_ID 持久化于证据目录（R22 项 6 生效实证）。
+- Oracle 第二十三轮（ora-2）判 **PASS_WITH_WARNINGS@bd73c59，blockingFindings 无**（七项闭合逐项核验；admit-first 双成功=准入先线性化的一致结局；非阻塞遗留：本节 E.md 终态同步与 checklist「55 项」措辞——均于本报告定稿轮完成）。**最终集成验收报告见 `E-integration-acceptance.md`；Oracle 轮次台账见 `E-oracle.md` R20-R23。**

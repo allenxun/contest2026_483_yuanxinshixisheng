@@ -290,3 +290,48 @@ PYTEST_ADDOPTS 入口命令均 exit=4，实际输出均为"拒绝外部 PYTEST_A
   完整 MVP/真实供应商/生产就绪。
 - nextAction：**waiting_dependency** —— 总协调裁定上述事项并决定 B 集成/94 场景
   开闸；B 集成后 E 按矩阵补场景级步骤继续验收。
+
+## 集成验收轮 Oracle 门禁（R20-R23，2026-09-12，最终基线 94 场景全量实测）
+
+> 上节状态为 edbc7c1 时代（94 场景开闸前）终态。总协调批准最终代码基线 f045433
+> 与公共修复基线 5bd22d3 合入 E 树后，E 完成 94 场景全部编写与活体实测
+> （见 `E-integration-acceptance.md`），Oracle 门禁续四轮如下。
+> **会话记录（如实）**：R20 由原会话 ora-1（ses_f7592f1b7ffe…，第 20 次调用）执行，
+> 该会话随后 stalled 不可复用；R21-R23 经调度板确认以新会话 ora-2
+> （ses_f6a49a544ffe…）执行——同为已安装 omo-slim 真实 `oracle` 子代理、沿用现有
+> 模型配置，非换模型、非冒充。
+
+| 轮次 | reviewedCommit | 判定 | 要点 |
+| --- | --- | --- | --- |
+| R20 | afed44e | **BLOCKED**（ora-1） | 4 场景假 PASS BLOCKER（SC-01-10 迟到副作用未验、SC-02-10 analyzing 即 PASS、SC-R-13 放行被禁矛盾态、SC-R-14 恢复接口未断言）+5 IMPORTANT（终态证据未绑定 reviewedCommit、sessionToken 入证据、pending 无证据门禁、登出未断 HTTP、文案陈旧）→ af348c4 八项修复（SC-02-10 诚实改判 seam-pending：场景 passed 55→54、seam 6→7；SC-R-14 如实披露 `current-assessment-status` 在代码/契约不存在、未伪造；响应体 11 键递归脱敏；pending 证据门禁）+6b95ebe（协调者复跑 33ffeb3c 经新门禁捕获 SC-R-03 零证据→补落盘+守护，未弱化未豁免） |
+| R21 | 6b95ebe | **BLOCKED**（ora-2 新会话） | 2 BLOCKER（SC-01-10 无前置执行/占用态且未逐响应断状态码——副作用承诺未真验；SC-R-13 竞态前已有 open execution——验既有占用非原子竞态+布尔优先级缺陷）+4 IMPORTANT（登出信封 or 链近恒真、SC-R-14 空态断言过宽、聚合 settlement 未持久化入提交证据、conftest/E.md 文案）→ fc9a7f6 六项修复；协调者正式复跑 7cc1b7dd 捕获 FAILED=5（SC-01-10 真实前置链遗留 ready 报告+open 执行+微晶观察，污染文件序其后 SC-02-03/03-05/06/04-02/03 的全局计数断言——驱动侧隔离缺陷，非业务缺陷）→ 62cd7c1 实体/plan 限定隔离+run.sh 持久化接线（E_ACCEPTANCE_EVIDENCE_DIR/REVIEWED_SHA） |
+| R22 | 62cd7c1 | **BLOCKED**（ora-2） | 2 BLOCKER 未严格闭合（SC-01-10 sync 返回值忽略/K=1 前置未断+`accepted is not True` 允许缺字段或无关 409 假通过；SC-R-13 未断 rc==202/rtid 非空/cur==rtid——replacement 失败或指针未更新仍可通过）+5 IMPORTANT（登出 204 允许任意非空 `_raw`、SC-R-14 data={}/字段缺失可通过、SC-04-02/03 按 member 限定漏检误写他员 execution、持久化吞异常/同 SHA 互覆/缺 final_exit、conftest 251-254 文案声称已改实际未落地+checklist 缺 SC-02-10）→ **bd73c59** 七项修复（conftest 文案项由协调者验证发现残留后直接补齐，commit 如实记录） |
+| R23 | **bd73c59** | **PASS_WITH_WARNINGS（blockingFindings 无）** | 七项闭合逐项核验：SC-01-10 sync 200+K=1+open=1 前置断言（test_sc01.py:221-224）+精确 (200,true)/(200,false) 配对（:258-263）；SC-R-13 rc==202+rtid 非空+`cur == rtid`（test_scr.py:331-332）+admit-first/replace-first 双完整终态白名单（admit-first 双成功=准入先线性化的一致结局）；登出 204 真空体；SC-R-14 isinstance+字段存在+严格 None；SC-04 按 plan IDs 限定（可捕获误写他员）；持久化 fail-closed/按 RUN_ID/final_exit 实证（已提交 settlement.json 绑定 bd73c59：134/0/40/0、94/94、exit 3、doubles_pass 54）；文案三类+checklist 七项齐备。无回归确认（五 mode 哨兵/退出码优先级/PYTEST_ADDOPTS 防注入/pass-requires-evidence/pending 门禁/递归脱敏/flock/诊断隔离）。非阻塞遗留：IMPORTANT——E.md 终态未同步 bd73c59/c4409fa0（报告定稿轮已同步）；SUGGESTION——checklist「已有55项证据」措辞（已改 54+历史值标注） |
+
+### R20-R23 测试命令与退出码（协调者于最终代码 bd73c59 真实执行，2026-09-12）
+
+| 命令 | 退出码 | 结果 |
+| --- | --- | --- |
+| `backend/acceptance/run.sh selfcheck` | **0** | 80 passed |
+| `backend/acceptance/run.sh matrix` | **3** | PASSED=134（80 框架+54 场景）/PENDING=40（33 device+7 seam）/FAILED=0；SETTLED 94/94；RUN_ID=`E-20260912T143402Z-c4409fa0`；doubles_pass=54/real_pass=0；settlement.json（final_exit=3+reviewed_sha）按 RUN_ID 持久化于提交证据 |
+| `backend/acceptance/run.sh c-acceptance` | **0** | 14/14（D1 轮 ee4aad22@修复基线：CC-11 allowlist 13→0、9 API 严格全过、INFO→PASS） |
+
+cd-chain 未在新基线重跑：CD-02「11 占位 501」断言因 B 集成失效，领域已由场景节点接管（27 API 全真实实现）；历史证据 73a69cce/39d01667 如实保留。A 系历史门禁（a-baseline/a-reverify/a-rv5）证据保留，适用性台账见 `E-A-acceptance.md`。失败迭代史（e8ba213c flake/33ffeb3c 门禁捕获/7cc1b7dd 污染）零覆盖保留。
+
+## 状态（第二十三轮后定稿，取代上方 edbc7c1 时代状态节）
+
+- **最终基线全集成验收（E 侧黑盒覆盖边界）完成**：E 代码最终 **bd73c59**，Oracle
+  R23 **PASS_WITH_WARNINGS（blockingFindings 无）**；终态 94 = 场景 passed **54**
+  （全部 doubles_pass 上限）+ device_pending **33**（真实设备/APP 联调待办）+
+  seam-pending **7**（注入 seam 待 B 实施，`E-injection-checklist.md` 七项）+
+  staged **0**；业务缺陷：**本次运行未报告**（限本轮观察面，非缺陷不存在证明）。
+- 公共修复三项（常驻周期/登出代次/CC-11 契约收敛）经 lane D1 实测闭合；残留风险
+  （32 处历史 nullable 含 A08 targetCount、incident 扇出无硬预算、cleanup LIMIT 无
+  keyset、resolved episode 不压缩、C25/C26）如实披露、归属契约/A follow-up，
+  未触发实测、不与 13 处修复混同，不宣称全契约通过。
+- **待总协调**：①放行判断（本证据支持形成最终基线全集成验收判断；放行权在总协调）
+  ②七项注入 seam 指定 B 唯一实施，实施后 E 定向重验③33 设备 APP 真实联调安排
+  ④残留风险裁定⑤C 三项协调请求续办（E-C-acceptance.md）。
+- 诚实边界：不宣称完整 MVP/真实设备/真实供应商/生产就绪；部署前镜像/产物须从当前
+  源码重建；af348c4 前历史证据中 sessionToken 不改写（已过期、停止传播、如实披露）。
+- nextAction：**waiting_dependency**。

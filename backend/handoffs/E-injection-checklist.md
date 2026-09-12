@@ -17,7 +17,7 @@
 
 B交接：最终代码SHA、实际Oracle结果、注入配置/作用范围/复位方式、生产禁用证明、可执行最小调用示例。注入按测试实例或RUN_ID隔离，不能污染其他任务，保留默认替身行为。
 
-E收到基线后：安全保存当前工作并同步；SC逐项保存HTTP/SQL/Worker证据与RUN_ID/基线SHA；正常分支与受影响公共路径差异回归，禁止用替身冒充33项真实设备联调。最终验收代码有变化才实际Oracle审最终SHA。已有55项证据先核对适用性，不反复运行无变化全套。
+E收到基线后：安全保存当前工作并同步；SC逐项保存HTTP/SQL/Worker证据与RUN_ID/基线SHA；正常分支与受影响公共路径差异回归，禁止用替身冒充33项真实设备联调。最终验收代码有变化才实际Oracle审最终SHA。已有54项 passed 证据（55 为 SC-02-10 重分类前历史值）先核对适用性，不反复运行无变化全套。
 
 来源：backend/handoffs/E.md 的 lane A1/A2/C1/C2；backend/acceptance/tests/scenarios/test_sc02.py、test_sc03.py、test_scc.py。代码当前仅测试已可达安全边界，七项完整通过仍待新注入能力。
 
