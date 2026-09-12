@@ -124,6 +124,47 @@ def multipart_grant(token: str, image: bytes, *, purpose: str = "grant",
         return 0, {"exception": repr(exc)}
 
 
+def gimbal_with_token() -> tuple[str, str | None]:
+    """新建云台并签发设备会话；返回 (gimbalId, token)。"""
+    g = CC.seed_gimbal()
+    return g, CC.gimbal_token(g)
+
+
+def _multipart_post(path: str, token: str, key: str, metadata: dict,
+                    images: dict[str, bytes], method: str = "POST") -> tuple[int, dict]:
+    headers = {"Authorization": f"Bearer {token}", "Idempotency-Key": key}
+    files = [("metadata", ("metadata.json", json.dumps(metadata).encode(), "application/json"))]
+    for name, data in images.items():
+        files.append((name, (f"{name}.png", data, "image/png")))
+    try:
+        r = requests.request(method, I.APP_BASE + path, headers=headers, files=files,
+                             timeout=60, proxies=None)
+        return r.status_code, (r.json() if r.text else {})
+    except Exception as exc:  # pragma: no cover
+        return 0, {"exception": repr(exc)}
+
+
+def images3(seed: bytes | None = None) -> dict[str, bytes]:
+    base = seed if seed is not None else _png()
+    return {"front": base + b"F", "left": base + b"L", "right": base + b"R"}
+
+
+def multipart_a01(token: str, key: str, *, photo_version: str = "1",
+                  images: dict[str, bytes] | None = None,
+                  capture_session_id: str | None = None) -> tuple[int, dict]:
+    md = {"photoVersion": photo_version,
+          "captureSessionId": capture_session_id or f"cs-{uuid.uuid4().hex[:8]}",
+          "consentEvidenceRef": "consent-m3"}
+    return _multipart_post("/api/v1/skin-assessment-tasks", token, key, md,
+                           images if images is not None else images3())
+
+
+def multipart_a02(token: str, key: str, task_id: str, photo_version: str,
+                  metadata: dict, images: dict[str, bytes]) -> tuple[int, dict]:
+    return _multipart_post(f"/api/v1/skin-assessment-tasks/{task_id}/photo-versions/"
+                           f"{photo_version}", token, key, metadata, images, method="PUT")
+
+
 def scanners_once(env_extra: dict | None = None):
     """手动事件发现（C8：scanner 周期未接线，集成轮以 --once 触发并披露）。"""
     return I.run([str(I.PY), "-m", "mvp_worker.scanners", "--once"], cwd=I.WORKER_DIR,
@@ -176,7 +217,12 @@ def start_services() -> None:
     ok, why = I.acquire_single_instance_lock()
     if not ok:
         raise RuntimeError(f"无法取得单实例锁：{why}")
-    if not I.container_exists():
+    if I.container_exists():
+        # 复用既有 E 容器（stop 保留卷；下次 docker start 复用，recreate_db 保数据新鲜）
+        cp = I.run(["docker", "start", I.PG_CONTAINER], timeout=120, log_name="pg-start.log")
+        if cp.returncode != 0:
+            raise RuntimeError(f"PG 容器复用启动失败：{cp.stdout} {cp.stderr}")
+    else:
         cp = I.start_pg()
         if cp.returncode != 0:
             raise RuntimeError(f"PG 容器启动失败：{cp.stdout} {cp.stderr}")
@@ -196,13 +242,18 @@ def start_services() -> None:
 
 
 def stop_services() -> None:
-    """停止 Java、删除本 run 容器、释放锁（文件保留）。"""
+    """停止 Java、**stop（不 rm）** PG 容器以保留卷、释放锁（文件保留）。
+
+    总协调 §440 增量纪律：清理改为 `docker stop mvp-e-pg`，保留数据库卷；
+    下轮 start_services 复用（recreate_db 保证每 run 数据新鲜）。
+    """
     try:
         I.stop_java()
     finally:
         I.kill_own_java()
     try:
-        I.remove_container()
+        if I.container_exists():
+            I.run(["docker", "stop", I.PG_CONTAINER], timeout=180, log_name="pg-stop.log")
     finally:
         I.release_single_instance_lock()
     STATE["started"] = False
