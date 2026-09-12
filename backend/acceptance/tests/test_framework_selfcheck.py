@@ -718,3 +718,308 @@ def test_rv5_conclusion_policy():
     assert "未通过" in r5.rv5_conclusion(st(p=9, b=1))
     assert "未通过" in r5.rv5_conclusion(st(p=9, missing=["RV5-3"]))
     assert "拒绝" in r5.rv5_conclusion({**st(p=9), "unknown_status": ["X"]})
+
+
+# ---------- C 验收驱动：CC-02/CC-03 回归锁定 ----------
+
+def test_cc02_other_active_grant_must_be_200():
+    """CC-02 唯一曾写反的谓词：另一仍 active 的授权账号必须 200（非 404）。"""
+    from driver import c_care
+
+    base = dict(statuses=[404] * 6, canon=["{}"] * 6,
+                codes=["RESOURCE_NOT_VISIBLE"] * 6, c403=403,
+                b403={"error": {"code": "CALLER_NOT_ALLOWED"}}, c401=401, cA=200, cB=404)
+    ok, flags = c_care.cc02_verdict(cC=200, **base)
+    assert ok is True and flags["cC"] is True          # active 授权 → 200 判通过
+    ok2, flags2 = c_care.cc02_verdict(cC=404, **base)
+    assert ok2 is False and flags2["cC"] is False      # 若再误写 404 → 必须 FAIL
+    # 其余既有断言不得因修谓词被弱化
+    for key, bad in (("statuses", [200] * 6), ("codes", ["NOT_FOUND"] * 6),
+                     ("cA", 404), ("cB", 200)):
+        kw = {**base, "cC": 200, key: bad}
+        assert c_care.cc02_verdict(**kw)[0] is False, key
+
+
+def test_cc03_variant_env_explicit_and_isolated():
+    """CC-03 启动封装：逐变体三键显式构造，不依赖继承/残留（防正例 503 回归）。"""
+    from driver import c_care
+
+    m = "11111111-1111-4111-8111-111111111111"
+    dev = c_care.variant_env(profiles="dev", bound_member=m)
+    prod = c_care.variant_env(profiles="prod")
+    mixed = c_care.variant_env(profiles="prod,dev", bound_member=m)
+    penv = c_care.variant_env(profiles="dev", bound_member=m, app_env="production")
+    bad = c_care.variant_env(profiles="dev", bound_member="not-a-uuid")
+    keys = {"SPRING_PROFILES_ACTIVE", "APP_C_FACE_BOUND_MEMBER", "APP_ENV"}
+    for env in (dev, prod, mixed, penv, bad):
+        assert set(env) == keys, env
+    assert dev["SPRING_PROFILES_ACTIVE"] == "dev" and dev["APP_C_FACE_BOUND_MEMBER"] == m
+    assert prod["APP_C_FACE_BOUND_MEMBER"] == ""       # 无绑定变体显式清空，防继承污染
+    assert mixed["SPRING_PROFILES_ACTIVE"] == "prod,dev" and mixed["APP_C_FACE_BOUND_MEMBER"] == m
+    assert penv["APP_ENV"] == "production" and penv["SPRING_PROFILES_ACTIVE"] == "dev"
+    assert bad["APP_C_FACE_BOUND_MEMBER"] == "not-a-uuid"
+    assert dev["APP_ENV"] == ""                        # 非 production 显式置空
+
+
+# ---------- C 验收驱动：R14 加强断言负例回归 ----------
+
+def test_cc03_unrelated_startup_failure_must_not_pass():
+    """CC-03：无关原因退出（构建/DB/端口/成功启动）不得冒充生产拒绝。"""
+    from driver import c_care
+
+    assert c_care.cc03_failfast_reason("prod-only", "java.lang.OutOfMemoryError") == \
+        (False, "no_production_signature")
+    assert c_care.cc03_failfast_reason(
+        "prod-only", "Started WebJavaApplication\nProductionFailClosedValidator")[0] is False
+    assert c_care.cc03_failfast_reason(
+        "prod-only", "APPLICATION FAILED TO START: No qualifying bean of type SessionProvider")[0] \
+        is True
+    assert c_care.cc03_failfast_reason(
+        "dev+APP_ENV=production", "ProductionFailClosedValidator production fail-closed")[0] is True
+    assert c_care.cc03_failfast_reason("dev+APP_ENV=production", "OutOfMemoryError")[0] is False
+    assert c_care.cc03_failfast_reason(
+        "dev+invalid-bound", "MemberBindingFaceDouble must be a UUID or blank: x")[0] is True
+    assert c_care.cc03_failfast_reason("dev+invalid-bound", "APPLICATION FAILED TO START")[0] is False
+
+
+def test_cc05_any_landing_or_empty_body_must_not_pass():
+    """CC-05：任一落点非期望状态或空体/快照不满足 → 不得 PASS。"""
+    from driver import c_care
+
+    good = dict(hit=[], no_schema_version=True, vd_ok=True, regions_kept=True, full_kept=True,
+                a01_sum_ok=True, proj_ok=True, snap_ok=True, a09_ok=True)
+    ok_land = {"A01": 200, "A02": 200, "A03": 201, "A08": 200, "A09": 200}
+    assert c_care.cc05_verdict(ok_land, **good) is True
+    for bad in ok_land:
+        st = dict(ok_land)
+        st[bad] = 500 if bad != "A03" else 200
+        assert c_care.cc05_verdict(st, **good) is False, bad
+    assert c_care.cc05_verdict(ok_land, **{**good, "vd_ok": False}) is False
+    assert c_care.cc05_verdict(ok_land, **{**good, "snap_ok": False}) is False
+    assert c_care.cc05_verdict(ok_land, **{**good, "hit": ["provider_raw_response"]}) is False
+
+
+def test_cc06_requires_exact_409_and_token():
+    """CC-06：非 409 或 token 不精确（含前缀匹配）不得计为畸形拒绝。"""
+    from driver import c_care
+
+    assert c_care.cc06_variant_ok(
+        409, "PLAN_NOT_READY", "region_not_supported", "region_not_supported") is True
+    assert c_care.cc06_variant_ok(200, "", "", "malformed_frozen_capability") is False
+    assert c_care.cc06_variant_ok(
+        409, "PLAN_NOT_READY", "region_not_supported", "malformed_frozen_capability") is False
+    assert c_care.cc06_variant_ok(
+        409, "INVALID_INPUT", "malformed_frozen_capability",
+        "malformed_frozen_capability") is False
+
+
+def test_cc09_empty_duplicate_must_not_pass():
+    """CC-09：空 disp（all([])==True）不得 PASS；K 边界不满足不得 PASS。"""
+    from driver import c_care
+
+    base = dict(k9_ok=True, k10_ok=True, k11_ok=True, gating_ok=True, conflict_ok=True,
+                stopped_ok=True, overflow_ok=True)
+    assert c_care.cc09_verdict(dup_ok=True, **base) is True
+    assert c_care.cc09_verdict(dup_ok=False, **base) is False
+    assert c_care.cc09_verdict(dup_ok=True, **{**base, "k11_ok": False}) is False
+    assert c_care.cc09_verdict(dup_ok=True, **{**base, "overflow_ok": False}) is False
+
+
+def test_cc10_new_key_replay_must_not_claim_manifest_unchanged():
+    """CC-10：新键重放/未关/缺口未覆盖 → 不得宣称重放 manifest 不变或闭合。"""
+    from driver import c_care
+
+    good = dict(stop_ok=True, gaps_ok=True, one_ok=True, closed=True, occ_rel=True,
+                replay_ok=True, freeze_ok=True, late_ok=True, ack_ok=True, still_close=True,
+                minimal=True, get_2xx=True)
+    assert c_care.cc10_verdict(**good) is True
+    assert c_care.cc10_verdict(**{**good, "replay_ok": False}) is False
+    assert c_care.cc10_verdict(**{**good, "gaps_ok": False}) is False
+    assert c_care.cc10_verdict(**{**good, "closed": False}) is False
+
+
+def test_cc11_missing_strict_validation_must_not_pass():
+    """CC-11：缺捕获或任一 API 严格校验失败 → 不得 PASS。"""
+    from driver import c_care
+
+    assert c_care.cc11_verdict(True, 9, [], []) is True
+    assert c_care.cc11_verdict(True, 9, [], ["A01:missing required"]) is False
+    assert c_care.cc11_verdict(True, 8, [], []) is False
+    assert c_care.cc11_verdict(False, 9, [], []) is False
+    assert c_care.cc11_verdict(True, 9, ["A03=500"], []) is False
+
+
+# ---------- CD-chain 验收驱动回归 ----------
+
+def test_cd_chain_sentinel_mode_and_expected(tmp_path):
+    """cd-chain 哨兵：EXPECTED_CD 10 项、mode 绑定、错 mode 必须拒绝。"""
+    from driver import verify_reverify_sentinel as vs
+
+    assert len(vs.EXPECTED_CD) == 10
+    assert "CD-01" in vs.EXPECTED_CD and "CD-08" in vs.EXPECTED_CD
+    assert "CLEANUP" in vs.EXPECTED_CD and "CLEANUP-ports" in vs.EXPECTED_CD
+    settle = {"counts": {"pass": 10, "fail": 0, "blocked": 0, "info": 0}, "settled": 10,
+              "expected": 10, "rows": 10, "missing": [], "extra": [], "duplicates": [],
+              "unknown_status": []}
+    vs.write_sentinel("E-CD-test", settle, 0, reports_dir=tmp_path, mode="cd-chain",
+                      expected=vs.EXPECTED_CD)
+    ok, _ = vs.verify("E-CD-test", reports_dir=tmp_path, driver_rc=0, mode="cd-chain",
+                      expected=vs.EXPECTED_CD)
+    assert ok is True
+    bad, why = vs.verify("E-CD-test", reports_dir=tmp_path, driver_rc=0, mode="c-care",
+                         expected=vs.EXPECTED_C)
+    assert bad is False and "mode" in why          # 错 mode 拒绝
+    rc_bad, _ = vs.verify("E-CD-test", reports_dir=tmp_path, driver_rc=1, mode="cd-chain",
+                          expected=vs.EXPECTED_CD)
+    assert rc_bad is False                          # final_exit==驱动 rc
+
+
+def test_cd_conclusion_policy():
+    """CD-chain 结论政策：FAIL/BLOCKED/缺项/未知状态不通过；全 PASS 完整才通过。"""
+    from driver import cd_chain
+
+    def st(p=0, f=0, b=0, i=0, missing=()):
+        counts = {"pass": p, "fail": f, "blocked": b, "info": i}
+        return {"counts": counts, "settled": p + f + b + i, "expected": 10,
+                "rows": p + f + b + i, "missing": list(missing), "extra": [],
+                "duplicates": [], "unknown_status": []}
+
+    assert "未通过" in cd_chain.cd_conclusion(st(p=9, f=1))
+    assert "未通过" in cd_chain.cd_conclusion(st(p=9, b=1))
+    assert "未通过" in cd_chain.cd_conclusion(st(p=9, missing=["CD-3"]))
+    assert "拒绝" in cd_chain.cd_conclusion({**st(p=9), "unknown_status": ["X"]})
+    assert "通过" in cd_chain.cd_conclusion(st(p=10))
+
+
+def test_cd01_binding_is_ancestry_not_head_equality():
+    """CD-01 绑定=祖先关系+业务路径 diff 空；HEAD 前移（仅 E 提交）不得 FAIL。"""
+    from driver import cd_chain
+
+    base = dict(anc_c=True, anc_d=True, anc_merged=True, business_diff=[],
+                care_files=[], contract_files=[], mvn_rc=0, venv_ok=True, health_up=True)
+    assert cd_chain.cd01_binding_ok(**base) is True
+    # 负例 1：merged..HEAD 业务路径非空 diff → 必须 FAIL
+    assert cd_chain.cd01_binding_ok(
+        **{**base, "business_diff": ["M\tbackend/web-java/src/x.java"]}) is False
+    # 负例 2：merged 非当前 HEAD 祖先 → 必须 FAIL
+    assert cd_chain.cd01_binding_ok(**{**base, "anc_merged": False}) is False
+    # 负例 3：C/D 非祖先 / 既有 care、contracts diff 回归 → 必须 FAIL
+    assert cd_chain.cd01_binding_ok(**{**base, "anc_c": False}) is False
+    assert cd_chain.cd01_binding_ok(**{**base, "anc_d": False}) is False
+    assert cd_chain.cd01_binding_ok(**{**base, "care_files": ["M\tcare/x.java"]}) is False
+    assert cd_chain.cd01_binding_ok(**{**base, "contract_files": ["M\tcontracts/x"]}) is False
+
+
+def test_cc11_strict_oas_semantics_and_discrimination():
+    """CC-11 严格语义：nullable over $ref/allOf 拒绝 null、allOf 不展平；状态/实现缺陷→FAIL。"""
+    from driver import c_care
+
+    doc = {"components": {"schemas": {"X": {
+        "type": "object", "properties": {"a": {"type": "string"}}, "required": ["a"],
+        "additionalProperties": False}}}}
+    node_null = {"allOf": [{"$ref": "#/components/schemas/X"}], "nullable": True}
+    errs_null = c_care.oas_errors_node(node_null, doc, None)
+    assert errs_null                                        # 旧 nullable 形状必须拒绝 null
+    # allOf 不展平：兄弟分支新增属性仍被 X 的 additionalProperties:false 拒绝
+    node_allof = {"allOf": [{"$ref": "#/components/schemas/X"},
+                            {"type": "object", "properties": {"b": {"type": "string"}}}]}
+    assert c_care.oas_errors_node(node_allof, doc, {"a": "x", "b": "y"})
+    assert not c_care.oas_errors_node({"$ref": "#/components/schemas/X"}, doc, {"a": "x"})
+    # 结论政策：状态不符/实现缺陷→FAIL；仅契约建模→INFO；全过→PASS
+    assert c_care.cc11_outcome(True, 9, [], [], []) == "PASS"
+    assert c_care.cc11_outcome(True, 9, ["A03=200 not in (201,)"], [], []) == "FAIL"
+    assert c_care.cc11_outcome(True, 9, [], ["A01 $: enum violated"], []) == "FAIL"
+    assert c_care.cc11_outcome(
+        True, 9, [], [], ["A03 $.data.x [contract:nullable-over-$ref/allOf]"]) == "INFO"
+    assert c_care.cc11_outcome(True, 8, [], [], []) == "FAIL"
+
+
+def _cc11_synth_errors(api, node, doc, body):
+    from driver import c_care
+    return [(e, c_care.classify_strict_error(api, e))
+            for e in c_care.oas_errors_node(node, doc, body)]
+
+
+def test_cc11_a08_unknown_field_set_and_schema_path_binding():
+    """R17 判别：A08 未知字段集合必须恰为 {lastSyncedAt}；schema path/API 绑定必须精确。"""
+    import pathlib
+    import yaml
+    from driver import c_care
+
+    doc = yaml.safe_load((pathlib.Path(c_care.I.CONTRACTS) / "openapi" / "openapi.yaml")
+                         .read_text("utf-8"))
+    node_a08 = doc["paths"]["/api/v1/care-plans/{planId}/progress"]["get"]["responses"]["200"][
+        "content"]["application/json"]["schema"]
+    data_clean = {"targetCount": "3", "completedCount": "1", "remainingCount": "2",
+                  "isCompleted": False, "progressRevision": "1", "completedAt": None,
+                  "lastSyncedAt": "2026-01-01T00:00:00Z"}
+    errs_clean = [e for e in c_care.oas_errors_node(node_a08, doc, {"data": data_clean})
+                  if e.validator == "additionalProperties"]
+    assert errs_clean
+    assert c_care.unknown_fields_of_additional_properties(errs_clean[0]) == {"lastSyncedAt"}
+    assert c_care.classify_strict_error("A08", errs_clean[0]).startswith("contract:")
+    assert c_care.classify_strict_error("A02", errs_clean[0]) == "impl-or-other"  # API/schema path 不符
+    # 判别：任意额外未知字段（含引号字段名 / 多字段）→ 结构化集合 != {lastSyncedAt} → impl FAIL
+    for extra in ({"secret": "LEAK"}, {"secret'x": "LEAK"}, {'sec"y': "LEAK"},
+                  {"a1": "L", "a2": "L"}):
+        errs = [e for e in c_care.oas_errors_node(node_a08, doc, {"data": {**data_clean, **extra}})
+                if e.validator == "additionalProperties"]
+        assert errs, extra
+        unknown = c_care.unknown_fields_of_additional_properties(errs[0])
+        assert unknown == {"lastSyncedAt"} | set(extra), (extra, unknown)
+        assert c_care.classify_strict_error("A08", errs[0]) == "impl-or-other", extra
+
+
+def test_cc11_allowlist_precise_no_impl_downgrade():
+    """R17 判别：schema path 不符 / 普通非 nullable 收 null / 普通 additionalProperties→impl FAIL。"""
+    from driver import c_care
+
+    # 1) allowlist 路径命中但 schema path 不符（模拟契约变化）→ 必须 impl FAIL
+    doc2 = {"components": {"schemas": {"P": {
+        "type": "object", "additionalProperties": False,
+        "properties": {"completedAt": {"type": "string"}}, "required": ["completedAt"]}}}}
+    node2 = {"type": "object", "properties": {"data": {"type": "object", "properties": {
+        "progress": {"$ref": "#/components/schemas/P"}}}}}
+    e2 = [e for e in c_care.oas_errors_node(node2, doc2, {"data": {"progress": {"completedAt": None}}})
+          if e.validator == "type"][0]
+    assert c_care.normalize_json_path(e2.json_path) == "$.data.progress.completedAt"
+    assert c_care.classify_strict_error("A02", e2) == "impl-or-other"
+    # 2) 普通 additionalProperties:false（非 allOf 误伤）出现未声明字段 → impl
+    node3 = {"$ref": "#/components/schemas/P"}
+    e3 = [e for e in c_care.oas_errors_node(node3, doc2, {"completedAt": "x", "b": "y"})
+          if e.validator == "additionalProperties"][0]
+    assert c_care.classify_strict_error("A08", e3) == "impl-or-other"
+    # 3) 非 nullable 字段收 null（allowlist 外路径）→ impl
+    e4 = [e for e in c_care.oas_errors_node(node2, doc2, {"data": {"progress": {"completedAt": None}}})
+          if e.validator == "type"][0]
+    assert c_care.classify_strict_error("A09", e4) == "impl-or-other"
+    assert len(c_care.CC11_CONTRACT_ALLOWLIST) == 13
+
+
+def test_cd03_expected_baseline_precise_values():
+    """CD-03 精确基线：ranges_match 严判 unit/min/max，常量与 D 受控基线一致。"""
+    from driver import cd_chain
+
+    assert cd_chain.ranges_match(
+        {"intensity": {"unit": "percent", "min": 0.0, "max": 100.0}},
+        {"intensity": {"unit": "percent", "min": 0.0, "max": 100.0}}) is True
+    assert cd_chain.ranges_match(
+        {"intensity": {"unit": "percent", "min": 0.0, "max": 99.0}},
+        cd_chain.EXPECTED_RANGES) is False
+    assert cd_chain.ranges_match(
+        {"intensity": {"unit": "kg", "min": 0.0, "max": 100.0}},
+        cd_chain.EXPECTED_RANGES) is False
+    assert cd_chain.EXPECTED_CAP_ID == "mvp-double-capability"
+    assert cd_chain.EXPECTED_REGIONS == {"forehead", "left_cheek", "right_cheek", "nose"}
+    assert cd_chain.EXPECTED_N_BOUNDS == {"min": 1, "max": 100}
+    assert cd_chain.EXPECTED_TARGET == 30
+
+
+def test_cd06_enroll_bound_to_chain_not_earliest():
+    """CD-06：enroll 必须为本链新增；预存无关 succeeded enroll + 本链缺失 → 绑定空 → 不得 PASS。"""
+    from driver import cd_chain
+
+    assert cd_chain.new_job_ids({"old"}, ["old"]) == []          # 本链 enroll 缺失 → 空
+    assert cd_chain.new_job_ids({"old"}, ["old", "new"]) == ["new"]
+    assert cd_chain.new_job_ids(set(), ["a", "b"]) == ["a", "b"]
+    assert cd_chain.new_job_ids({"a", "b"}, ["a", "b", "a"]) == []  # 预存顶替不算新增

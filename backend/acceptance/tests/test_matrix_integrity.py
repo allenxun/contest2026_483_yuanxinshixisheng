@@ -114,9 +114,11 @@ def test_required_fields_and_pending_status():
         for k in REQUIRED:
             assert k in s, f"{s.get('id')} 缺字段 {k}"
         assert s["status"] == "dependency_pending", s["id"]
-        # A 基线已交付；真实阻塞 = 场景归属的 B/C/D 业务包未集成（端点 501 stub）。
-        assert s["blocked_by"] == s["owner_package"], s["id"]
-        assert set(s["blocked_by"]) <= {"B", "C", "D"} and s["blocked_by"], s["id"]
+        # C/D 已集成（merged aebccc7）；真实阻塞 = 场景归属中的 B 未集成（M1/M2/M5 501 stub）。
+        assert s["blocked_by"] == sorted(set(s["owner_package"]) - {"C", "D"}), s["id"]
+        assert set(s["blocked_by"]) <= {"B"}, s["id"]
+        if "B" in s["owner_package"]:
+            assert s["blocked_by"], s["id"]
         assert s["pending_reason"].strip(), s["id"]
         assert s["priority"] in ("P0", "P1") and s["scope"] in ("后端", "集成", "联调")
         assert s["automation_tier"] in ("现在可自动", "需替身", "需真实设备或APP")
@@ -134,6 +136,27 @@ def test_owner_package_mapping():
     for s in scenarios:
         expect = sorted({owner(a) for a in s["apis"]})
         assert s["owner_package"] == expect, f"{s['id']} owner_package {s['owner_package']} != {expect}"
+
+
+def test_blocked_by_excludes_integrated_packages():
+    """blocked_by = owner_package − 已集成包（C/D 已集成 @merged aebccc7；B 未集成）。"""
+    integrated = {"C", "D"}
+    for s in scenarios:
+        expect = sorted(set(s["owner_package"]) - integrated)
+        assert s["blocked_by"] == expect, f"{s['id']} {s['blocked_by']} != {expect}"
+        if "B" in s["owner_package"]:
+            assert "B 未集成" in s["pending_reason"], s["id"]
+        else:
+            assert "C/D 已集成" in s["pending_reason"], s["id"]
+
+
+def test_blocked_by_distribution_54_empty_40_b():
+    """C/D 已集成后分布恰为 []×54 / B×40（全量逐条，非抽查）。"""
+    dist: dict[str, int] = {}
+    for s in scenarios:
+        key = "".join(s["blocked_by"])
+        dist[key] = dist.get(key, 0) + 1
+    assert dist == {"": 54, "B": 40}, dist
 
 
 def test_automation_tier_matches_scope():

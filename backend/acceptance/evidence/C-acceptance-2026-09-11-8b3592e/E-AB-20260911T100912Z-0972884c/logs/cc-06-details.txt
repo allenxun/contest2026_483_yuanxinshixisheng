@@ -1,0 +1,22 @@
+capability={}: status=409 code=PLAN_NOT_READY reason=malformed_frozen_capability expected=malformed_frozen_capability ok=True
+缺 capability_id: status=409 code=PLAN_NOT_READY reason=malformed_frozen_capability expected=malformed_frozen_capability ok=True
+缺 parameter_ranges: status=409 code=PLAN_NOT_READY reason=malformed_frozen_capability expected=malformed_frozen_capability ok=True
+缺 approved_regions: status=409 code=PLAN_NOT_READY reason=malformed_frozen_capability expected=malformed_frozen_capability ok=True
+缺 n_bounds: status=409 code=PLAN_NOT_READY reason=malformed_frozen_capability expected=malformed_frozen_capability ok=True
+单边缺 unit: status=409 code=PLAN_NOT_READY reason=malformed_frozen_capability expected=malformed_frozen_capability ok=True
+min>max: status=409 code=PLAN_NOT_READY reason=malformed_frozen_capability expected=malformed_frozen_capability ok=True
+n_bounds 畸形(缺 max): status=409 code=PLAN_NOT_READY reason=malformed_frozen_capability expected=malformed_frozen_capability ok=True
+region 不支持: status=409 code=PLAN_NOT_READY reason=region_not_supported expected=region_not_supported ok=True
+冻结 capability 缺失: status=409 code=PLAN_NOT_READY reason=frozen_capability_requirement_missing expected=frozen_capability_requirement_missing ok=True
+设备能力缺失: status=409 code=PLAN_NOT_READY reason=device_capabilities_missing expected=device_capabilities_missing ok=True
+capability_id 不等: status=409 code=PLAN_NOT_READY reason=capability_id_mismatch expected=capability_id_mismatch ok=True
+设备 unit 不等: status=409 code=PLAN_NOT_READY reason=parameter_range_not_covered expected=parameter_range_not_covered ok=True
+设备范围不覆盖: status=409 code=PLAN_NOT_READY reason=parameter_range_not_covered expected=parameter_range_not_covered ok=True
+region∉设备支持: status=409 code=PLAN_NOT_READY reason=region_not_supported expected=region_not_supported ok=True
+N∉n_bounds: status=409 code=PLAN_NOT_READY reason=n_out_of_bounds expected=n_out_of_bounds ok=True
+步骤值出双侧区间: status=409 code=PLAN_NOT_READY reason=step_parameters_not_covered expected=step_parameters_not_covered ok=True
+步骤参数名未知: status=409 code=PLAN_NOT_READY reason=step_parameters_not_covered expected=step_parameters_not_covered ok=True
+步骤参数 unit 不等: status=409 code=PLAN_NOT_READY reason=step_parameters_not_covered expected=step_parameters_not_covered ok=True
+步骤缺 region: status=409 code=PLAN_NOT_READY reason=malformed_frozen_step expected=malformed_frozen_step ok=True
+步骤 parameters 非对象: status=409 code=PLAN_NOT_READY reason=malformed_frozen_step expected=malformed_frozen_step ok=True
+steps 空数组: status=409 code=PLAN_NOT_READY reason=malformed_frozen_step expected=malformed_frozen_step ok=True
