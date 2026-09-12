@@ -21,9 +21,16 @@ class StorageError(RuntimeError):
 
 
 def storage_put_failure_injected() -> bool:
-    """读取注入开关的语义值（默认 false；1/true/yes/on 视为开启）。"""
-    raw = os.environ.get(STORAGE_DOUBLE_FAIL_PUT_ENV, "").strip().lower()
-    return raw in ("1", "true", "yes", "on")
+    """读取注入开关的**严格**语义值（与 DConfig / 生产守卫复用同一解析）。
+
+    合法值域 ``1/true/yes/on`` → True，``0/false/no/off`` → False；未设/空 → False；
+    **非法值 → ``ProviderConfigError``**（加载期已由 ``DConfig.storage_double_fail_put``
+    校验，此处保证运行时读取与守卫语义完全一致）。延迟 import 以避免
+    ``dconfig → storage`` 的模块级循环。
+    """
+    from ..handlers.dshared.dconfig import strict_env_bool
+
+    return strict_env_bool(STORAGE_DOUBLE_FAIL_PUT_ENV, False)
 
 
 def _object_purpose(object_key: str) -> str:

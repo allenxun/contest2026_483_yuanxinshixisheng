@@ -16,12 +16,12 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | ``MVP_PLAN_WAIT_CHECK_SECONDS`` | ``30`` | 能力待补齐的 defer 再检查间隔（合法等待态，不消耗 attempt） |
 | ``MVP_D_PLAN_PROMPT_VERSION`` | ``1`` | 方案提示模板版本 |
 | ``MVP_D_FACE_DOUBLE_QUALITY`` | ``accepted`` | 测试注入：face 质量（``accepted``/``needs_retake``；后者可配 required views） |
-| ``MVP_D_FACE_DOUBLE_REQUIRED_VIEWS`` | 空 | 测试注入：逗号分隔补拍视角（仅 ``front``/``left``/``right`` 子集；空=替身默认） |
-| ``MVP_D_FACE_DOUBLE_SAME_PERSON`` | ``true`` | 测试注入：同人判定（``false`` → NOT_SAME_PERSON） |
+| ``MVP_D_FACE_DOUBLE_REQUIRED_VIEWS`` | 空 | 测试注入：逗号分隔补拍视角（仅 ``front``/``left``/``right`` 子集；空=替身默认；全空段如 ``",,,"`` → 加载期 fail fast） |
+| ``MVP_D_FACE_DOUBLE_SAME_PERSON`` | ``true`` | 测试注入：同人判定（严格布尔 ``1/true/yes/on`` 或 ``0/false/no/off``；``false`` → NOT_SAME_PERSON） |
 | ``MVP_D_FACE_DOUBLE_SEARCH`` | ``reliable_new`` | 测试注入：1:N 分类（``reliable_new``/``matched``/``uncertain``/``ambiguous``/``dependency_failed``） |
-| ``MVP_D_SKIN_DOUBLE_HOLD`` | ``false`` | 测试注入：进程级 hold（analyze 可重试失败，旧执行停在 queued，可释放） |
+| ``MVP_D_SKIN_DOUBLE_HOLD`` | ``false`` | 测试注入：进程级 hold（严格布尔；analyze 可重试失败，旧执行停在 queued，可释放） |
 | ``MVP_D_PLAN_DOUBLE_MODE`` | ``valid`` | 测试注入：``valid``/``timeout``/``failure`` 或 PlanDouble 既有非法形状名 |
-| ``MVP_D_STORAGE_DOUBLE_FAIL_PUT`` | ``false`` | 测试注入：``assessment_result`` 用途 put 受控失败（可重试 RESULT_ARCHIVE_FAILED） |
+| ``MVP_D_STORAGE_DOUBLE_FAIL_PUT`` | ``false`` | 测试注入：``assessment_result`` 用途 put 受控失败（严格布尔；可重试 RESULT_ARCHIVE_FAILED） |
 | ``MVP_D_ALIYUN_ACTIVATED`` | ``false`` | 阿里云适配器真实激活开关（需凭据 + PoC） |
 | ``MVP_D_ALIYUN_ENDPOINT`` / ``_ACCESS_KEY_ID`` / ``_ACCESS_KEY_SECRET`` | 未设 | 阿里云凭据（只走 env，绝不入仓） |
 | ``MVP_D_ALIYUN_FACE_DB_NAME`` / ``MVP_D_ALIYUN_LLM_MODEL`` | 未设 | 人脸库 DbName / 大模型名 |
@@ -36,10 +36,7 @@ import os
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from ...media.storage import (
-    STORAGE_DOUBLE_FAIL_PUT_ENV,
-    storage_put_failure_injected,
-)
+from ...media.storage import STORAGE_DOUBLE_FAIL_PUT_ENV
 from .constants import REQUIRED_VIEWS_ALL
 
 
@@ -146,24 +143,66 @@ def _env_int(name: str, default: int) -> int:
 
 
 def _env_bool(name: str, default: bool) -> bool:
+    """既有非注入旋钮的宽松布尔解析（**保持不变**；未知值静默按 False）。"""
     raw = os.environ.get(name, "").strip().lower()
     if not raw:
         return default
     return raw in ("1", "true", "yes", "on")
 
 
+#: 注入开关专用严格布尔值域（仅显式真/假；其余任何值 → 加载期 fail fast）。
+BOOL_TRUE_VALUES = frozenset({"1", "true", "yes", "on"})
+BOOL_FALSE_VALUES = frozenset({"0", "false", "no", "off"})
+BOOL_ENV_DOMAIN = "1/true/yes/on | 0/false/no/off"
+
+
+def strict_env_bool(name: str, default: bool) -> bool:
+    """**注入开关专用**严格布尔解析（唯一语义，守卫与运行时共用）。
+
+    - 未设 / 空（trim 后）→ ``default``；
+    - ``1/true/yes/on``（忽略大小写与首尾空白）→ True；
+    - ``0/false/no/off`` → False；
+    - 其它任何值 → :class:`ProviderConfigError`（消息含变量名、实际取值、允许值域）。
+
+    与 :func:`_env_bool` 不同：绝不把未知值静默当 False，避免"注入开关被误配却
+    悄悄生效/失效"。
+    """
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    normalized = raw.lower()
+    if normalized in BOOL_TRUE_VALUES:
+        return True
+    if normalized in BOOL_FALSE_VALUES:
+        return False
+    raise ProviderConfigError(
+        f"invalid boolean for {name}={raw!r}; allowed values: {BOOL_ENV_DOMAIN}"
+        f" (or unset/empty → {default})"
+    )
+
+
 def _env_list(name: str) -> tuple[str, ...]:
-    """逗号分隔清单；缺省/空 → ()（= 使用替身自身默认）。"""
+    """逗号分隔清单；缺省/空 → ()（= 使用替身自身默认）。
+
+    非空但**全为空段**（如 ``",,,"``）→ 加载期 fail fast，不静默回退默认。
+    """
     raw = os.environ.get(name, "").strip()
     if not raw:
         return ()
-    return tuple(part.strip() for part in raw.split(",") if part.strip())
+    parts = tuple(part.strip() for part in raw.split(",") if part.strip())
+    if not parts:
+        raise ProviderConfigError(
+            f"invalid list for {name}={raw!r}; expected comma-separated non-empty values"
+        )
+    return parts
 
 
 def double_injection_overrides() -> dict[str, str]:
     """返回被**显式设为非默认语义值**的注入开关（缺失/默认值不算）。
 
-    布尔开关按语义比较（``0/no/off`` 与默认 false 等价），避免误判为注入。
+    布尔开关复用 :func:`strict_env_bool`（与 DConfig / 运行时读取**同一语义**）：
+    合法值按语义比较（``0/no/off`` 与默认 false 等价），**非法值直接抛
+    :class:`ProviderConfigError`**（守卫路径明确报错，不按 False 比较后放过）。
     """
     overrides: dict[str, str] = {}
     for name, default in DOUBLE_INJECTION_SWITCHES.items():
@@ -171,7 +210,8 @@ def double_injection_overrides() -> dict[str, str]:
         if not raw:
             continue
         if name in _BOOLEAN_INJECTION_SWITCHES:
-            if (raw.lower() in ("1", "true", "yes", "on")) != bool(default):
+            value = strict_env_bool(name, bool(default))  # 非法值 → 明确报错
+            if value != bool(default):
                 overrides[name] = raw
         elif name == "MVP_D_FACE_DOUBLE_REQUIRED_VIEWS":
             overrides[name] = raw  # 非空即非默认
@@ -299,8 +339,9 @@ class DConfig:
     face_double_required_views: tuple[str, ...] = field(
         default_factory=lambda: _env_list("MVP_D_FACE_DOUBLE_REQUIRED_VIEWS")
     )
+    # 布尔注入开关三者均用严格解析（未知值加载期 fail fast；既有 _env_bool 不动）。
     face_double_same_person: bool = field(
-        default_factory=lambda: _env_bool("MVP_D_FACE_DOUBLE_SAME_PERSON", True)
+        default_factory=lambda: strict_env_bool("MVP_D_FACE_DOUBLE_SAME_PERSON", True)
     )
     face_double_search: str = field(
         default_factory=lambda: _env("MVP_D_FACE_DOUBLE_SEARCH", DEFAULT_FACE_DOUBLE_SEARCH)
@@ -311,7 +352,12 @@ class DConfig:
     # 进程级 hold：置 true 时测肤 analyze 以既有可重试异常失败 → job 保持在
     # queued（可释放，不 sleep/不改 DB）；用于 SC-02-09 旧分析完成时机控制。
     skin_double_hold: bool = field(
-        default_factory=lambda: _env_bool("MVP_D_SKIN_DOUBLE_HOLD", DEFAULT_SKIN_DOUBLE_HOLD)
+        default_factory=lambda: strict_env_bool("MVP_D_SKIN_DOUBLE_HOLD", DEFAULT_SKIN_DOUBLE_HOLD)
+    )
+    # 存储注入开关：严格校验纳入 DConfig，使 __main__ 启动校验路径可见；
+    # storage.storage_put_failure_injected() 复用同一 strict_env_bool（单一语义）。
+    storage_double_fail_put: bool = field(
+        default_factory=lambda: strict_env_bool(STORAGE_DOUBLE_FAIL_PUT_ENV, False)
     )
     # --- 阿里云形状边界（真实激活需总协调授权凭据 + PoC，当前默认未激活） ---
     aliyun_activated: bool = field(
