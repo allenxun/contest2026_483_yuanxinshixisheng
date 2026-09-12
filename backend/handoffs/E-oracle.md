@@ -335,3 +335,30 @@ cd-chain 未在新基线重跑：CD-02「11 占位 501」断言因 B 集成失�
 - 诚实边界：不宣称完整 MVP/真实设备/真实供应商/生产就绪；部署前镜像/产物须从当前
   源码重建；af348c4 前历史证据中 sessionToken 不改写（已过期、停止传播、如实披露）。
 - nextAction：**waiting_dependency**。
+
+## 第二十四轮（七项注入 seam 补全增量，2026-09-12/13，ora-2）
+
+| 轮次 | reviewedCommit | 判定 | 要点 |
+| --- | --- | --- | --- |
+| R24 | **377e3eb** | **PASS_WITH_WARNINGS（blockingFindings 无）** | 基线=总协调批准七项测试注入 `73dbd19`（B 代码 11e42c8，B Oracle PASS-with-notes，配方 B-seam-repro.md）；实施=新会话 fix-3（fix-2 预算耗尽如实报缺口零半成品）。七节点（SC-02-05/06/08/09/10、SC-03-07、SC-C-05）**逐项闭合**：完整要求实测、非安全边界代替；SC-02-09 b40 序列保真（marker sha256 键控、自然租约过期+--recover、B 一次性接管 attempt=2、围栏 WARNING、快照/清理断言；lease_revision「≥2」与配方「推进」口径一致非弱化；无伪造 DB/拆事务/放宽门禁/关续租）；SC-02-10 确定性终态+投影无泄漏；SC-C-05 四 purpose 真实 HTTP+C 域端点闭合 B 文档 §6.3 缺口+重启可读字节一致。**横切**：默认关闭=套件层成立（部分节点以邻接场景为对照，可接受，但「每节点本地对照」表述不准确——报告已更正）；Python 守卫函数实测、真实 CLI 启动接线引用 B 已审证据；**Java 生产守卫引用 B 证据裁定可接受**（守卫属已过 Oracle 的 B 基线，E 实测 dev 侧 seam 生效，重复六种 JVM 变体无新增判别价值）；54 项复用核实成立（18 文件、业务面 diff 空，且终态 matrix 实际重跑原 54 场景）。**61 判定**：settlement cb762349 绑定提交后 377e3eb+final_exit=3；146=61 业务+85 框架、33 device、0 seam、94/94、exit 3、doubles_pass=61；与实施跑 21bc4a75 一致；94 目录 380 JSON RUN_ID 一致；业务哈希守卫完好；五 mode/退出码/防注入/证据门禁/脱敏/flock/诊断隔离无弱化。**总体**：证据足以供总协调在黑盒覆盖边界内形成最终基线全集成验收判断；不代表完整 MVP/真实设备/真实供应商/Swagger 后续完成 |
+
+**R24 非阻塞遗留与处置**（不循环审查：377e3eb 为已审最终代码 SHA，以下不改代码或随下一验收代码变更轮同修）：
+1. **IMPORTANT** `E-integration-acceptance.md` 正文混有 bd73c59 时代旧终态（54/7、旧命令）→ **本报告定稿轮已整体同步**为 377e3eb/cb762349/61+33+0/selfcheck 85，历史数据移入明确历史小节（report-only，无需复审）。
+2. **IMPORTANT** `test_sc02.py:398-405` 泄漏守卫仅排除 `failure_detail` 未排除 camelCase `failureDetail` 等（当前正式响应实际无泄漏，不阻塞本基线）→ **记为待办**：随下一验收代码变更轮补「解析后响应递归禁止 failure_detail/failureDetail/reason/stack 内部诊断键」+回归；届时属验收代码变更须 Oracle 审新最终 SHA。
+3. **SUGGESTION** `test_framework_selfcheck.py:1155-1166` Python 启动守卫测试名略过度声明（子进程调守卫函数非真实 worker CLI）→ 同上待办轮改文案「守卫函数实测、启动接线引用 B 证据」或补不连库的真实入口负例。
+
+## 状态（第二十四轮后定稿，取代上方 R23 时代状态节）
+
+- **最终基线全集成验收（E 侧黑盒覆盖边界）完成**：E 代码最终 **377e3eb**，Oracle
+  R24 **PASS_WITH_WARNINGS（blockingFindings 无）**；终态 94 = 业务 passed **61**
+  （全部 doubles_pass 上限）+ device_pending **33**（真实设备/APP 联调待办）+
+  seam **0** + staged **0**；双跑一致（21bc4a75/cb762349）；业务缺陷：本次运行
+  未报告（限观察面措辞）。
+- **待总协调**：①放行判断（证据支持黑盒覆盖边界内的最终基线全集成验收判断）
+  ②33 项设备 APP 真实联调安排③残留风险裁定（32 处历史 nullable 含 A08
+  targetCount、incident 扇出、cleanup LIMIT、episode 压缩、C25/C26）④C 三项
+  协调请求续办⑤R24 两项非阻塞待办随下一验收代码变更轮同修⑥Swagger 后续
+  工作于 61 完成后由总协调触发。
+- 诚实边界：不宣称完整 MVP/真实设备/真实供应商/生产就绪；七 seam 节点全为
+  doubles_pass 上限（注入仅替身层，业务路径全真实）。
+- nextAction：**waiting_dependency**。
