@@ -175,28 +175,33 @@ additionalProperties；正例含真实 `lastError:null`，反例额外字段 / �
 校验；`format`（uuid/date-time）注解不强制；当前仅覆盖 echo-view 路径。
 `nullable` 为 true 但无本地 `type` 的旧式写法一律按严格语义处理（不并 null）。
 
-**遗留跟随项（off-path，本次未改，待下次授权的契约修订）**：全文档仍有
-**36 处** `allOf/oneOf/anyOf + nullable` 且无本地 `type` 的旧式 schema
-（审计见 round-6 报告；严格校验当前只覆盖 echo-view 路径，这些路径在严格
-消费者下同样可能错误拒绝合法 `null`）：
-`SystemEchoJobRequest.jobId`、`Verification.validUntil`、
-`Progress.targetCount`、`Progress.completedAt`、
-`ProgressWithSync.allOf[1].lastSyncedAt`、`GimbalHeartbeatRequest.taskId`、
-`GimbalHeartbeatRequest.executionId`、`GimbalStatusView.lastSeenAt`、
+**遗留跟随项（off-path，本轮未改，待下次授权的契约修订）**：全文档仍有
+**32 处** `allOf/oneOf/anyOf + nullable` 且无本地 `type` 的旧式 schema。
+计数沿革：原审计 **36 处**（见 round-6 报告）；**2026-09-12 公共集成修复轮
+`2bd768a` 修掉其中 5 处** —— `Verification.validUntil`、`Progress.completedAt`、
+`ProgressWithSync.allOf[1].lastSyncedAt`、`ControllerRef.gimbalId`、
+`CareExecutionListItem.closedAt`（即 E 报告 CC-11 的 13 个字段路径所依赖的 4 个
+叶子字段，外加 `ProgressWithSync` 由 `allOf` 展平为显式 schema）；展平时原样复制的
+`ProgressWithSync.targetCount` 构成**新增的一处**旧式写法，故 **36 − 5 + 1 = 32**。
+严格校验当前只覆盖 echo-view 路径，这些路径在严格消费者下同样可能错误拒绝合法
+`null`：
+`SystemEchoJobRequest.jobId`、
+`Progress.targetCount`、`ProgressWithSync.targetCount`、
+`GimbalHeartbeatRequest.taskId`、`GimbalHeartbeatRequest.executionId`、
+`GimbalStatusView.lastSeenAt`、
 `MicrocrystalCapabilitiesView.observedAt`、`MicrocrystalCapabilitiesView.receivedAt`、
 `AssessmentTaskAccepted.currentAssessmentRevision`、`AssessmentTaskView.reportId`、
 `SkinReportView.memberId`、`SkinReportView.reportReadyAt`、
 `GimbalCurrentAssessmentView.currentAssessment.reportId`、`CarePlanListItem.progress`、
 `CarePlanFullView.progress`、`M4A03Metadata.planId`、`M4A03Metadata.currentTaskId`、
-`M4A03Metadata.currentAssessmentRevision`、`ControllerRef.gimbalId`、
+`M4A03Metadata.currentAssessmentRevision`、
 `CareExecutionAdmission.memberId`、`CareExecutionAdmission.planId`、
 `CareExecutionRevalidation.planId`、`ExecutionObservation.verificationRevision`、
 `ExecutionObservationSyncRequest.observation`、`ExecutionObservationAck.progress`、
 `ExecutionClosureResult.closedAt`、`CareExecutionView.controller`、
 `CareExecutionView.memberId`、`CareExecutionView.planId`、
 `CareExecutionView.microcrystalId`、`CareExecutionView.latestObservation`、
-`CareExecutionView.closedAt`、`CareExecutionView.progress`、
-`CareExecutionListItem.closedAt`。
+`CareExecutionView.closedAt`、`CareExecutionView.progress`。
 
 **媒体授权语义（oracle round-2 R2-1）**：A 包生产安全默认 =
 **deny-all**（`DenyAllMediaAccessPolicy`，`app.media.access-mode=deny-all`）：
