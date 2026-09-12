@@ -952,7 +952,7 @@ def _cc11_synth_errors(api, node, doc, body):
 
 
 def test_cc11_a08_unknown_field_set_and_schema_path_binding():
-    """R17 判别：A08 未知字段集合必须恰为 {lastSyncedAt}；schema path/API 绑定必须精确。"""
+    """D1 收敛后判别：A08 干净响应无 additionalProperties 错误；任意未知字段→impl。"""
     import pathlib
     import yaml
     from driver import c_care
@@ -966,26 +966,22 @@ def test_cc11_a08_unknown_field_set_and_schema_path_binding():
                   "lastSyncedAt": "2026-01-01T00:00:00Z"}
     errs_clean = [e for e in c_care.oas_errors_node(node_a08, doc, {"data": data_clean})
                   if e.validator == "additionalProperties"]
-    assert errs_clean
-    assert c_care.unknown_fields_of_additional_properties(errs_clean[0]) == {"lastSyncedAt"}
-    assert c_care.classify_strict_error("A08", errs_clean[0]).startswith("contract:")
-    assert c_care.classify_strict_error("A02", errs_clean[0]) == "impl-or-other"  # API/schema path 不符
-    # 判别：任意额外未知字段（含引号字段名 / 多字段）→ 结构化集合 != {lastSyncedAt} → impl FAIL
+    assert errs_clean == []  # 展平后 lastSyncedAt 已声明 → 无 additionalProperties 错误
+    # 任意额外未知字段（含引号字段名 / 多字段）→ allowlist 已空 → 一律 impl FAIL
     for extra in ({"secret": "LEAK"}, {"secret'x": "LEAK"}, {'sec"y': "LEAK"},
                   {"a1": "L", "a2": "L"}):
         errs = [e for e in c_care.oas_errors_node(node_a08, doc, {"data": {**data_clean, **extra}})
                 if e.validator == "additionalProperties"]
         assert errs, extra
-        unknown = c_care.unknown_fields_of_additional_properties(errs[0])
-        assert unknown == {"lastSyncedAt"} | set(extra), (extra, unknown)
         assert c_care.classify_strict_error("A08", errs[0]) == "impl-or-other", extra
 
 
 def test_cc11_allowlist_precise_no_impl_downgrade():
-    """R17 判别：schema path 不符 / 普通非 nullable 收 null / 普通 additionalProperties→impl FAIL。"""
+    """D1 收敛：allowlist 空表；schema path 不符 / 收 null / 普通 additionalProperties→impl FAIL。"""
     from driver import c_care
 
-    # 1) allowlist 路径命中但 schema path 不符（模拟契约变化）→ 必须 impl FAIL
+    assert c_care.CC11_CONTRACT_ALLOWLIST == {}, c_care.CC11_CONTRACT_ALLOWLIST
+    # 1) 曾为契约缺陷的 nullable-over-$ref 形状（收 null）→ 收敛后一律 impl FAIL
     doc2 = {"components": {"schemas": {"P": {
         "type": "object", "additionalProperties": False,
         "properties": {"completedAt": {"type": "string"}}, "required": ["completedAt"]}}}}
@@ -995,16 +991,26 @@ def test_cc11_allowlist_precise_no_impl_downgrade():
           if e.validator == "type"][0]
     assert c_care.normalize_json_path(e2.json_path) == "$.data.progress.completedAt"
     assert c_care.classify_strict_error("A02", e2) == "impl-or-other"
-    # 2) 普通 additionalProperties:false（非 allOf 误伤）出现未声明字段 → impl
+    # 2) 普通 additionalProperties:false 出现未声明字段 → impl
     node3 = {"$ref": "#/components/schemas/P"}
     e3 = [e for e in c_care.oas_errors_node(node3, doc2, {"completedAt": "x", "b": "y"})
           if e.validator == "additionalProperties"][0]
     assert c_care.classify_strict_error("A08", e3) == "impl-or-other"
-    # 3) 非 nullable 字段收 null（allowlist 外路径）→ impl
-    e4 = [e for e in c_care.oas_errors_node(node2, doc2, {"data": {"progress": {"completedAt": None}}})
-          if e.validator == "type"][0]
-    assert c_care.classify_strict_error("A09", e4) == "impl-or-other"
-    assert len(c_care.CC11_CONTRACT_ALLOWLIST) == 13
+    # 3) allowlist 外路径 → impl
+    assert c_care.classify_strict_error("A09", e2) == "impl-or-other"
+
+
+def test_d1_periodic_and_logout_semantics():
+    """D1 回归：常驻周期日志判定 + 登出代次同事务语义（纯函数）。"""
+    from framework import live
+
+    assert live.log_has_text("x scanner.task_ran task=incident.scan y", "incident.scan")
+    assert live.log_has_text("task=media.cleanup.discover", "media.cleanup.discover")
+    assert not live.log_has_text("no marker", "incident.scan")
+    assert live.logout_revision_ok("invalid", 2, 1, "2026-01-01T00:00:00Z", True) is True
+    assert live.logout_revision_ok("invalid", 1, 1, "", True) is False      # 未 +1 / 无 invalidated_at
+    assert live.logout_revision_ok("active", 2, 1, "t", True) is False     # 未失效
+    assert live.logout_revision_ok("invalid", 2, 1, "t", False) is False   # 重复登出不幂等
 
 
 def test_cd03_expected_baseline_precise_values():

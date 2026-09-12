@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import time
 import uuid
 
 import pytest
@@ -366,64 +367,76 @@ def test_SC_01_14(scenario_evidence):
 
 @_mark("SC-01-15", "P0", "联调", ["B"], ["D02", "D03"])
 def test_SC_01_15(scenario_evidence):
-    """后端可先验：扫描触发离线 episode 需绑定+有效目标；无绑定不建通知。真实推送联调待办。
+    """后端可先验：**常驻 worker 周期自动触发**离线 episode；无绑定不建通知。真实推送联调待办。
 
-    C8 披露：scanner 周期未接线，本步以 `python -m mvp_worker.scanners --once` 手动事件发现。
+    C8 已接线：run_forever 进程内 incident.scan + media.cleanup.discover 周期任务
+    （env 短周期），**无 CLI 调用**；错过周期合并/start-to-start 语义见 scheduler.py。
     """
     se = scenario_evidence
     se.doubles.add("push_channel", "double", "推送通道 dev 替身")
     se.doubles.add("gimbal_device", "double", "设备 dev 替身")
-    # 无绑定无目标：scanners --once 不产生通知
     CC.sql("UPDATE gimbals SET last_seen_at = now() - interval '1 hour',"
-           " connection_status='awake' WHERE bound_account_id IS NULL")
-    cp = live.scanners_once(env_extra={"MVP_NOTIFY_OFFLINE_THRESHOLD_SECONDS": "1"})
-    se.record_raw(method="CLI", path="mvp_worker.scanners --once", status=cp.returncode,
-                  request_headers={}, request_json={"argv": ["scanners", "--once"]},
-                  response_excerpt=(cp.stdout or "")[-1500:], started_at=0.0, elapsed_ms=0.0)
-    notif_unbound = CC.scalar("SELECT count(*) FROM notifications")
-    assert notif_unbound == "0", notif_unbound
-    _device_done(se, 1)
+           " connection_status='online' WHERE bound_account_id IS NULL")
+    env = {"MVP_NOTIFY_OFFLINE_THRESHOLD_SECONDS": "1",
+           "MVP_WORKER_INCIDENT_SCAN_INTERVAL_SECONDS": "2",
+           "MVP_WORKER_MEDIA_CLEANUP_SCAN_INTERVAL_SECONDS": "2",
+           "MVP_WORKER_POLL_INTERVAL_SECONDS": "1"}
+    live.start_resident_worker(env)
+    try:
+        time.sleep(6)  # 至少两个 incident 周期（无绑定 → 无通知）
+        notif_unbound = CC.scalar("SELECT count(*) FROM notifications")
+        media_ran = live.resident_log_has("media.cleanup.discover")
+        se.record_raw(method="OBSERVE", path="resident-worker 周期自动触发", status=0,
+                      request_headers={}, request_json={"env": env},
+                      response_excerpt=(f"notifications={notif_unbound} "
+                                        f"media_cleanup_task_ran={media_ran} "
+                                        f"incident_task_ran={live.resident_log_has('incident.scan')}"),
+                      started_at=0.0, elapsed_ms=0.0)
+        assert notif_unbound == "0", notif_unbound
+        assert live.resident_log_has("incident.scan"), "incident.scan 周期任务未运行"
+        assert media_ran, "media.cleanup.discover 周期任务未运行（C8 接线）"
+    finally:
+        live.stop_resident_worker()
+    _device_done(se, 2)
 
 
 @_mark("SC-01-16", "P1", "联调", ["B"], ["D02", "D03"])
 def test_SC_01_16(scenario_evidence):
-    """后端可先验：重复提醒抑制/重试不误发（复合唯一键）。真实推送联调待办。
-
-    C8 披露：以 scanners --once 手动触发事件发现。
-    """
+    """后端可先验：**常驻周期自动**触发后重复提醒按唯一键抑制、不误发。真实推送联调待办。"""
     se = scenario_evidence
     se.doubles.add("push_channel", "double", "推送通道 dev 替身")
     se.doubles.add("gimbal_device", "double", "设备 dev 替身")
     sess = live.app_login("sc0116")
     g, _rev = _status(sess)
     CC.sql(f"UPDATE gimbals SET last_seen_at = now() - interval '1 hour',"
-           f" connection_status='awake' WHERE id='{g}'")
+           f" connection_status='online' WHERE id='{g}'")
     I.http("PUT", f"/api/v1/me/notification-destinations/{sess['installationId']}",
            token=sess["access"], body={"provider": "dev", "platform": "android",
-                                       "registration": {"pushToken": "dev-token"}, "expectedDestinationRevision": "0"},
+                                       "registration": {"pushToken": "dev-token"},
+                                       "expectedDestinationRevision": "0"},
            headers={"Idempotency-Key": str(uuid.uuid4())})
-    before = CC.scalar("SELECT count(*) FROM notifications")
-    cp = live.scanners_once(env_extra={"MVP_NOTIFY_OFFLINE_THRESHOLD_SECONDS": "1"})
-    se.record_raw(method="CLI", path="mvp_worker.scanners --once", status=cp.returncode,
-                  request_headers={}, request_json={"argv": ["scanners", "--once"]},
-                  response_excerpt=(cp.stdout or "")[-1500:], started_at=0.0, elapsed_ms=0.0)
-    mid = CC.scalar("SELECT count(*) FROM notifications")
-    cp2 = live.scanners_once(env_extra={"MVP_NOTIFY_OFFLINE_THRESHOLD_SECONDS": "1"})
-    se.record_raw(method="CLI", path="mvp_worker.scanners --once#2", status=cp2.returncode,
-                  request_headers={}, request_json={"argv": ["scanners", "--once"]},
-                  response_excerpt=(cp2.stdout or "")[-1500:], started_at=0.0, elapsed_ms=0.0)
-    after = CC.scalar("SELECT count(*) FROM notifications")
-    assert int(mid) >= int(before) and after == mid, (before, mid, after)
-    _device_done(se, 2)
+    env = {"MVP_NOTIFY_OFFLINE_THRESHOLD_SECONDS": "1",
+           "MVP_WORKER_INCIDENT_SCAN_INTERVAL_SECONDS": "2",
+           "MVP_WORKER_MEDIA_CLEANUP_SCAN_INTERVAL_SECONDS": "2",
+           "MVP_WORKER_POLL_INTERVAL_SECONDS": "1"}
+    live.start_resident_worker(env)
+    try:
+        assert live.wait_cond("SELECT (count(*)>=1)::int FROM notifications", 30), "周期未产生通知"
+        mid = CC.scalar("SELECT count(*) FROM notifications")
+        time.sleep(6)  # 多个后续周期：重复 episode 不应重复建行
+        after = CC.scalar("SELECT count(*) FROM notifications")
+        se.record_raw(method="OBSERVE", path="resident-worker 周期重复抑制", status=0,
+                      request_headers={}, request_json={"env": env},
+                      response_excerpt=f"notifications mid={mid} after={after}", started_at=0.0, elapsed_ms=0.0)
+        assert after == mid, (mid, after)
+    finally:
+        live.stop_resident_worker()
+    _device_done(se, 3)
 
 
 @_mark("SC-01-17", "P0", "联调", ["B"], ["D02"])
 def test_SC_01_17(scenario_evidence):
-    """登出后旧账号通知目标失效、投递必取消/不误发（B probe active 守卫+锁内重检）。
-
-    #8 披露：A 的登出失效不递增 destination_revision；本节点不断言 revision 数值，
-    仅断言投递安全语义（探针要求 status='active'，锁内重检 status!=active→cancelled）。
-    """
+    """登出后旧账号目标失效 + destination_revision 同事务 +1（#8 已修实测）。"""
     se = scenario_evidence
     se.doubles.add("push_channel", "double", "推送通道 dev 替身")
     sess = live.app_login("sc0117")
@@ -435,37 +448,48 @@ def test_SC_01_17(scenario_evidence):
                        headers={"Idempotency-Key": str(uuid.uuid4())})
     _rec(se, "PUT", f"/api/v1/me/notification-destinations/{inst}", cp, bp)
     assert cp in (200, 201), (cp, bp)
-    # 登出（当前会话撤销）——A 基础路径
+    rev0 = CC.scalar(f"SELECT destination_revision FROM notification_destinations "
+                     f"WHERE installation_id='{inst}'")
     c, b, _ = I.http("DELETE", "/api/v1/auth/sessions/current", token=sess["access"])
     _rec(se, "DELETE", "/api/v1/auth/sessions/current", c, b)
-    status = CC.scalar("SELECT status FROM notification_destinations "
-                       f"WHERE installation_id='{inst}'")
-    # 旧 token 已失效
-    c2, b2, _ = I.http("GET", "/api/v1/me/member-access-grants", token=sess["access"])
-    _rec(se, "GET", "/api/v1/me/member-access-grants", c2, b2)
-    assert status == "invalid", status
-    assert c2 == 401
-    _device_done(se, 2)
+    row = CC.scalar("SELECT status||'|'||destination_revision::text||'|'||"
+                    f"coalesce(invalidated_at::text,'') FROM notification_destinations "
+                    f"WHERE installation_id='{inst}'")
+    _rec(se, "SQL", "logout T09 invalidate + revision+1", 0, {"row": row})
+    # 重复登出幂等：revision / invalidated_at 不变
+    c2, b2, _ = I.http("DELETE", "/api/v1/auth/sessions/current", token=sess["access"])
+    row2 = CC.scalar("SELECT status||'|'||destination_revision::text||'|'||"
+                     f"coalesce(invalidated_at::text,'') FROM notification_destinations "
+                     f"WHERE installation_id='{inst}'")
+    parts = row.split("|")
+    assert parts[0] == "invalid" and int(parts[1]) == int(rev0) + 1 and parts[2]
+    assert row2 == row, (row, row2)
+    _device_done(se, 3)
 
 
 @_mark("SC-01-18", "P1", "联调", ["B"], ["D02"])
 def test_SC_01_18(scenario_evidence):
-    """后端可先验：无有效目标/不可达不伪报已收到（submitted≠delivered）。真实手机联调待办。
-
-    C8 披露：以 scanners --once 手动触发。
-    """
+    """后端可先验：**常驻周期自动**触发但无有效目标 → 不伪报 submitted/delivered。"""
     se = scenario_evidence
     se.doubles.add("push_channel", "double", "推送通道 dev 替身")
     se.doubles.add("gimbal_device", "double", "设备 dev 替身")
     sess = live.app_login("sc0118")
     g, _rev = _status(sess)
     CC.sql(f"UPDATE gimbals SET last_seen_at = now() - interval '1 hour',"
-           f" connection_status='awake' WHERE id='{g}'")
-    cp = live.scanners_once(env_extra={"MVP_NOTIFY_OFFLINE_THRESHOLD_SECONDS": "1"})
-    se.record_raw(method="CLI", path="mvp_worker.scanners --once", status=cp.returncode,
-                  request_headers={}, request_json={"argv": ["scanners", "--once"]},
-                  response_excerpt=(cp.stdout or "")[-1500:], started_at=0.0, elapsed_ms=0.0)
-    # 无有效目标 → 不得存在 submitted/delivered 记录
-    delivered = CC.scalar("SELECT count(*) FROM notifications WHERE status IN ('submitted','delivered')")
-    assert delivered == "0", delivered
-    _device_done(se, 1)
+           f" connection_status='online' WHERE id='{g}'")
+    env = {"MVP_NOTIFY_OFFLINE_THRESHOLD_SECONDS": "1",
+           "MVP_WORKER_INCIDENT_SCAN_INTERVAL_SECONDS": "2",
+           "MVP_WORKER_MEDIA_CLEANUP_SCAN_INTERVAL_SECONDS": "2",
+           "MVP_WORKER_POLL_INTERVAL_SECONDS": "1"}
+    live.start_resident_worker(env)
+    try:
+        time.sleep(8)
+        delivered = CC.scalar("SELECT count(*) FROM notifications "
+                              f"WHERE gimbal_id='{g}' AND status IN ('submitted','delivered')")
+        se.record_raw(method="OBSERVE", path="resident-worker 无有效目标", status=0,
+                      request_headers={}, request_json={"env": env},
+                      response_excerpt=f"submitted_or_delivered={delivered}", started_at=0.0, elapsed_ms=0.0)
+        assert delivered == "0", delivered
+    finally:
+        live.stop_resident_worker()
+    _device_done(se, 2)

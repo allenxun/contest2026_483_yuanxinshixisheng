@@ -12,6 +12,7 @@
 - 正式跑（最终，R18 修复后@edbc7c1）：**双跑一致**——实施 RUN_ID=`E-AB-20260911T111832Z-28c4994f` + 协调者复跑 `E-AB-20260911T112206Z-15ad40d0`，均 settled 14/14，counts={PASS:13, FAIL:0, BLOCKED:0, INFO:1}，exit=0；哨兵 `run_id` 入口绑定且 `final_exit==驱动 rc`。INFO=CC-11（真四元组 allowlist 精确命中 13 路径、`impl_bad=[]`；未知字段集合改为**结构化计算**，杜绝字段名引号绕过——R19 独立复现核定；契约缺陷**已发现并升级待裁定**）。
 - 历史迭代 run（保留、零覆盖）：R15 `E-AB-20260911T100912Z-0972884c`（13 PASS/1 INFO）；R14 `E-AB-20260911T090147Z-6d8dbb55`（**14 PASS/0 INFO**）；merged 重跑 `f724f2ba` 等；其 summary 历史措辞不改写。
 - **集成基线 batch1 重跑（B+C+D+Swagger @ `08404f8`）**：RUN_ID=`E-AB-20260911T134713Z-47c79fbd`，settled 14/14，counts={PASS:13,FAIL:0,BLOCKED:0,INFO:1}，exit=0；CC-01 因集成树 `contracts` 含 B 错误码补丁，改为**仅断言 C care 代码（care main/test）diff=0**，契约面单独记录（`contracts_diff` 入 excerpt），C 证据继续适用。
+- **lane D1 新基线定向复验（@ `244b895`）**：RUN_ID=`E-AB-20260912T092138Z-ee4aad22`，settled 14/14，counts={PASS:14,FAIL:0,BLOCKED:0,INFO:0}，exit=0；CC-11 随公共契约修复**收敛为 PASS**（allowlist 13→0）。
 - 历史迭代 run（保留、零覆盖）：`E-AB-20260911T082701Z-73350e3c`（14 PASS）、`E-AB-20260911T081747Z-feeb86d8`（12 PASS / 2 FAIL 驱动侧归因）；连同早期 4 个 run 目录均未被覆盖。
 - `run.sh selfcheck` rc=0（**75 passed**，集成轮 batch1 新增 staged 三态/矩阵不变量哈希回归）；`run.sh matrix` rc=3（集成树活体：settled 94/94、81 dependency_pending、0 failed）。
 
@@ -29,7 +30,7 @@
 | CC-08 | PASS | 同微晶并发恰一 201 一 409 **DEVICE_OCCUPIED**；**占用仅 closed 释放**（closed 前再准入 409 / closed 后 201）；**SQL 移动 T03 指针（test_seed）→ 旧任务 A03/A08 均 409 TASK_REPLACED** |
 | CC-09 | PASS | duplicate 重放 **disp 非空==2**；首批 HTTP 200；**K=9/10/11 边界**（completed_at 于 K=10 首达、K=11 不改写、K 不截断）；observation 连续性失效不 running、unknown 拒绝 →running、stopped 冻结；**同记录键异内容（不同幂等键）409 RECORD_CONFLICT 零持久化**；溢出 400 count_overflow |
 | CC-10 | PASS | 未 stopped 409 STOP_NOT_CONFIRMED；**缺口 409 CLOSURE_GAPS + 有界 missingRanges/more**；水位完整→closed+occupancyReleased；**并发双收尾恰一成功**；**同一收尾键重放 200 且 manifest 逐字节不变**；closed 冻结 + 迟到记录入账且 `closure_manifest.late_variance` 留痕、不重开；**撤销后 A05 最小 ack(progress=null) + A06 仍可收尾 + A07 最小视图**；A07/A08/A09 2xx |
-| CC-11 | **INFO** | selftest 10/10、samples 50、OpenAPI VALID；9 个 M4 API（A01-A09）按**实际 HTTP 状态**对应 schema 用 RV-6 严格转换器校验（**不扩展 nullable、不展平 allOf**）。`status_bad=[]`、`impl_bad=[]`（无 C 运行时缺陷）；**13 个不同字段路径契约建模缺陷**（12 处 `nullable:true` 与 `$ref/allOf` 同层不生效→C 按契约意图返回 null 被判 type 违规，含 `A08 $.data.completedAt`；1 处 A08 `ProgressWithSync.lastSyncedAt` 被 `Progress.additionalProperties:false` 经 allOf 误伤）→ **allowlist 四元组精确绑定（API+归一化路径+validator+契约上下文），allowlist 外一律 impl→FAIL，绝不降级 INFO**；如实披露、附条件接受，归属=契约/OAS（openapi.yaml），非 C 实现缺陷 |
+| CC-11 | **PASS** | selftest 10/10、samples 50、OpenAPI VALID；9 个 M4 API（A01-A09）按**实际 HTTP 状态**对应 schema 用 RV-6 严格转换器校验（不扩展 nullable、不展平 allOf）。公共修复基线（HEAD `244b895`）后 **`status_bad=[]`、`impl_bad=[]`、`contract_issues=[]`**，原 13 处契约建模缺陷已由契约修复、**allowlist 收敛为空表（13→0）**，CC-11 由 INFO→**PASS**。残留（实测未触发、归属契约/A follow-up，不与原 13 混同）：`Progress/ProgressWithSync.targetCount` 仍 `allOf:[BigintString]+nullable`（未 ready null 会触发严格 type 拒绝）、历史 32 处 nullable、incident 扇出无硬预算、cleanup LIMIT 无 keyset、resolved episode 不压缩、C25/C26；**不宣称全契约通过** |
 | CC-12 | PASS | 矩阵再生成幂等；94 ID 唯一；含 C 场景 blocked_by 不含 C；全部 dependency_pending |
 
 ## 替身与依赖区分

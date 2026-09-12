@@ -14,7 +14,9 @@ import hmac
 import json
 import os
 import pathlib
+import signal
 import subprocess
+import time
 import uuid
 
 import requests
@@ -228,6 +230,67 @@ def get_capabilities(microcrystal_id: str, sess=None, *, proof: str | None = Non
     headers = {"X-Connection-Proof": proof} if proof else {}
     return I.http("GET", f"/api/v1/microcrystals/{microcrystal_id}/capabilities",
                   token=token or (sess["access"] if sess else None), headers=headers)
+
+
+# ---------------- 常驻 worker（run_forever + 进程内周期扫描，C8 接线后） ----------------
+
+RESIDENT: dict = {"proc": None, "log": None}
+
+
+def start_resident_worker(env_extra: dict | None = None) -> subprocess.Popen:
+    """启动常驻 worker（run_forever；进程内 incident/media.cleanup 周期扫描）。
+
+    低内存单进程；**不得用于 --once 冒充周期**。结束须 stop_resident_worker()。
+    """
+    stop_resident_worker()
+    log = I.REPORTS / "integration-resident-worker.log"
+    f = open(log, "w", encoding="utf-8")
+    env = {**os.environ, **I.WORKER_ENV, **(env_extra or {})}
+    proc = subprocess.Popen([str(I.PY), "-m", "mvp_worker"], cwd=str(I.WORKER_DIR),
+                            env=env, stdout=f, stderr=subprocess.STDOUT)
+    RESIDENT["proc"] = proc
+    RESIDENT["log"] = log
+    return proc
+
+
+def stop_resident_worker(timeout_s: int = 40) -> None:
+    proc = RESIDENT.get("proc")
+    if proc is not None and proc.poll() is None:
+        proc.send_signal(signal.SIGTERM)
+        try:
+            proc.wait(timeout=timeout_s)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=10)
+    RESIDENT["proc"] = None
+
+
+def wait_cond(sql_cond: str, timeout_s: float = 60.0, poll: float = 1.0) -> bool:
+    end = time.time() + timeout_s
+    while time.time() < end:
+        if I.sql_scalar(sql_cond) == "1":
+            return True
+        time.sleep(poll)
+    return I.sql_scalar(sql_cond) == "1"
+
+
+def resident_log_has(substr: str) -> bool:
+    p = RESIDENT.get("log")
+    if p is None or not pathlib.Path(p).exists():
+        return False
+    return log_has_text(pathlib.Path(p).read_text(encoding="utf-8", errors="replace"), substr)
+
+
+def log_has_text(text: str, substr: str) -> bool:
+    """常驻周期判定纯函数：worker 日志是否出现某任务标记（如 incident.scan）。"""
+    return substr in (text or "")
+
+
+def logout_revision_ok(status: str, rev_after: int, rev_before: int,
+                       invalidated_at: str, repeat_idempotent: bool) -> bool:
+    """登出代次语义纯函数：status=invalid + revision 恰 +1 + invalidated_at 非空 + 重复幂等。"""
+    return (status == "invalid" and int(rev_after) == int(rev_before) + 1
+            and bool(invalidated_at) and bool(repeat_idempotent))
 
 
 # ---------------- 活体服务生命周期 ----------------

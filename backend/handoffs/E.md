@@ -298,3 +298,24 @@ E 新增两个独立黑盒验收驱动：
 - **selfcheck** rc=0（75，零回归）。
 - **清理**：`docker stop mvp-e-pg`（**保留卷**）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
 - **status**：矩阵执行中——**28 通过**（13+7+8）+ 12 设备 + 49 staged + **5 seam-pending**（A1: SC-02-05/06/08/09；A2: SC-03-07）= 94；nextAction=等 D 注入 seam 补 5 节点正例，及新基线后对 C8/#8/OAS13 差异复验。
+
+## 集成基线 lane D1（新基线定向复验，2026-09-12；HEAD 244b895）
+
+> 公共修复基线合入（merge 5bd22d3；B Oracle PASS-with-notes）。三项定向复验，非全量重跑。
+
+- **①常驻周期（C8 已接线）**：SC-01-15/16/18 以 `run_forever`+`scanners/scheduler.py` **常驻 worker**
+  （env 短周期）真实观察，无 CLI；日志证明 `incident.scan` + `media.cleanup.discover` 周期运行；
+  SC-01-16 周期自动建 T10 且重复不重发；SC-01-18 无目标不伪报 submitted/delivered。语义为
+  **best-effort start-to-start**（错过合并/不追赶），合并/追赶未构造→观察边界如实标注。**C8=已接线+实测**。
+- **②登出代次同事务（#8 已修）**：SC-01-17 登出后 `status=invalid` 且 `destination_revision` **恰 +1**、
+  `invalidated_at` 非空（同一原子 UPDATE），重复登出幂等。**#8=已修+实测**。
+- **③CC-11 收敛**：新契约下 9 API **严格校验全过**（`status_bad/impl_bad/contract_issues` 全空），
+  **allowlist 13→0 条**，CC-11 **INFO→PASS**。残留（实测未触发、归属契约/A，不与原 13 混同）：
+  `Progress/ProgressWithSync.targetCount` 仍 `allOf+nullable`（未 ready null 会触发严格拒绝）、历史 32 处
+  nullable、incident 扇出无硬预算、cleanup LIMIT 无 keyset、resolved episode 不压缩、C25/C26。
+- **重跑**：c-acceptance `E-AB-20260912T092138Z-ee4aad22` 14/14 PASS exit=0；matrix
+  `E-20260912T091512Z-5e3e8e20` settled 94/94，PASSED=107 / PENDING=63 / FAILED=0，exit=3；selfcheck 76。
+- **驱动侧修正**：c_care setup/cleanup 改 `docker start` 复用 + `docker stop` 保留卷（§440）；
+  live.py 常驻 worker helper + 周期/登出纯函数回归；scanner 候选须 `connection_status='online'`。
+- **缺陷**：无业务/契约缺陷（复验未发现修复不完整）。
+- **清理**：`docker stop mvp-e-pg`（保留卷）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。

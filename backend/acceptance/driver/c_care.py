@@ -95,63 +95,13 @@ def oas_errors_node(node, doc, body):
                   key=lambda e: list(e.absolute_path))
 
 
-#: R17：13 条契约建模缺陷精确 allowlist（真四元组：API + 归一化实例路径 + validator +
-#: absolute_schema_path）。从实际观测错误（0972884c/735fb16d 的 cc-11-captured.json）派生，
-#: 硬编码 schema path；任何字段不符（含 schema path 变化）一律 impl → CC-11 FAIL。
-_NULLABLE_CTX = "nullable:true 与 $ref/allOf 同层（OAS 3.0.3 不生效）→ C 按契约意图返回 null"
-CC11_CONTRACT_ALLOWLIST = {
-    ("A01", "$.data.items[*].progress.completedAt", "type",
-     ("allOf", 1, "properties", "data", "allOf", 1, "properties", "items", "items",
-      "properties", "progress", "allOf", 0, "properties", "completedAt", "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A02", "$.data.progress.completedAt", "type",
-     ("allOf", 1, "properties", "data", "properties", "progress", "allOf", 0,
-      "properties", "completedAt", "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A03", "$.data.controller.gimbalId", "type",
-     ("allOf", 1, "properties", "data", "properties", "controller", "properties",
-      "gimbalId", "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ ControllerRef.gimbalId",
-    ("A03", "$.data.progress.completedAt", "type",
-     ("allOf", 1, "properties", "data", "properties", "progress", "properties",
-      "completedAt", "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A03", "$.data.verification.validUntil", "type",
-     ("allOf", 1, "properties", "data", "properties", "verification", "properties",
-      "validUntil", "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ Verification.validUntil",
-    ("A04", "$.data.progress.completedAt", "type",
-     ("allOf", 1, "properties", "data", "properties", "progress", "properties",
-      "completedAt", "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A04", "$.data.verification.validUntil", "type",
-     ("allOf", 1, "properties", "data", "properties", "verification", "properties",
-      "validUntil", "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ Verification.validUntil",
-    ("A05", "$.data.progress.completedAt", "type",
-     ("allOf", 1, "properties", "data", "properties", "progress", "allOf", 0,
-      "properties", "completedAt", "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A07", "$.data.controller.gimbalId", "type",
-     ("allOf", 1, "properties", "data", "properties", "controller", "allOf", 0,
-      "properties", "gimbalId", "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ ControllerRef.gimbalId",
-    ("A07", "$.data.progress.completedAt", "type",
-     ("allOf", 1, "properties", "data", "properties", "progress", "allOf", 0,
-      "properties", "completedAt", "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A08", "$.data.completedAt", "type",
-     ("allOf", 1, "properties", "data", "allOf", 0, "properties", "completedAt",
-      "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ Progress.completedAt",
-    ("A09", "$.data.items[*].closedAt", "type",
-     ("allOf", 1, "properties", "data", "allOf", 1, "properties", "items", "items",
-      "properties", "closedAt", "allOf", 0, "type")):
-        _NULLABLE_CTX + " @ CareExecutionListItem.closedAt",
-    ("A08", "$.data", "additionalProperties",
-     ("allOf", 1, "properties", "data", "allOf", 0, "additionalProperties")):
-        "allOf: ProgressWithSync.lastSyncedAt 被 Progress.additionalProperties:false 误伤",
-}
+#: R19/D1：契约建模缺陷精确 allowlist（真四元组：API + 归一化实例路径 + validator +
+#: absolute_schema_path）。公共修复基线（validUntil/completedAt 直接 `type:string,
+#: format:date-time, nullable:true`；ProgressWithSync 展平）已修复原 13 处；D1 重跑 9 API
+#: 严格校验**零残留触发** → 收敛为空表：**任何严格错误一律 impl → CC-11 FAIL，绝不放宽**。
+#: 历史 32 处 nullable / A08 targetCount `allOf+nullable` 残留等按报告披露；
+#: 仅当后续基线实测触发时才登记精确条目（当前无）。
+CC11_CONTRACT_ALLOWLIST: dict = {}
 
 
 def normalize_json_path(json_path):
@@ -1413,10 +1363,15 @@ def main() -> int:
         print(f"[FATAL] {why}")
         return 4
     try:
-        if not all(I.check_ports().values()) or I.container_exists():
-            _add("SETUP", "前置：端口空闲且无同名容器", "FAIL", "ss/docker", "1", "环境未净")
+        if not I.container_exists() and not all(I.check_ports().values()):
+            _add("SETUP", "前置：端口空闲（无既有 E 容器）", "FAIL", "ss/docker", "1", "环境未净")
         else:
-            cp = I.start_pg()
+            # §440：优先复用既有 E 容器（docker start，保留卷；recreate_db 保数据新鲜）
+            if I.container_exists():
+                cp = I.run(["docker", "start", I.PG_CONTAINER], cwd=I.REPO, timeout=180,
+                           log_name="cc-pg-start.log")
+            else:
+                cp = I.start_pg()
             if cp.returncode != 0 or not I.wait_pg():
                 _add("SETUP", "启动 E 专用 PG", "FAIL", "docker run mvp-e-pg", cp.returncode, "")
             else:
@@ -1476,12 +1431,14 @@ def main() -> int:
             I.stop_java()
             I.kill_own_java()
             try:
-                I.remove_container()
+                if I.container_exists():
+                    I.run(["docker", "stop", I.PG_CONTAINER], cwd=I.REPO, timeout=180,
+                          log_name="cc-pg-stop.log")
             except Exception as exc:
-                _add("CLEANUP", "按 run 标签删除 E 容器", "FAIL", "docker rm", "1", str(exc))
+                _add("CLEANUP", "停止 E 容器（docker stop，保留卷）", "FAIL", "docker stop", "1", str(exc))
             if "CLEANUP" not in {r["id"] for r in R.rows}:
-                _add("CLEANUP", "停进程并按 run 标签删除 mvp-e-pg",
-                     "PASS" if not I.container_exists() else "FAIL", "docker rm -f -v", "0", "")
+                # §440：docker stop 保留卷（不 rm）；容器可 Exited 复用
+                _add("CLEANUP", "停止 E 容器（docker stop，保留卷）", "PASS", "docker stop", "0", "")
             import time as _t
             freed = False
             for _ in range(20):
