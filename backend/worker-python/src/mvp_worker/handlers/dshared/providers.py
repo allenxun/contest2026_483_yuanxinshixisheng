@@ -14,8 +14,13 @@
 from __future__ import annotations
 
 import base64
+import hashlib
+import os
+import tempfile
+import time
 from dataclasses import dataclass
-from typing import Any, Optional, Protocol, runtime_checkable
+from pathlib import Path
+from typing import Any, Mapping, Optional, Protocol, runtime_checkable
 
 from .dconfig import (
     DEFAULT_PLAN_CAPABILITY_BASELINE,
@@ -155,6 +160,73 @@ _ONE_PX_PNG = base64.b64decode(
 )
 
 
+def default_late_barrier_dir() -> str:
+    """barrier 文件目录缺省（测试基础设施；E 应显式指定每场景独立目录）。"""
+    return os.path.join(tempfile.gettempdir(), "mvp-double-late-barrier")
+
+
+class LateReturnBarrier:
+    """文件式、一次性、有界的"先算后等"barrier（仅测试注入；默认关闭）。
+
+    用于 SC-02-09「旧结果迟到」：命中标记的**首次** provider 调用先把旧结果算好，
+    再阻塞等待释放；释放后返回**入 barrier 前算好的旧结果**（不重算）。后续命中
+    标记的调用（如接管者 B）看到 ``consumed`` 立即返回，故 B 不被阻塞。
+
+    - 命中标记来自**输入照片内容**的 sha256（不改端口签名）；
+    - 状态只在文件（``consumed`` / ``released``），不写任何 DB 业务表；
+    - 有界：等待上限 ``timeout_seconds``、百毫秒轮询；超时清理并抛既有
+      :class:`ProviderUnavailable`（走既有可重试路径），绝不永久挂起；
+    - 释放/超时后清理本目录内 sentinel，不留残留影响后续测试。
+    """
+
+    _CONSUMED = "consumed"
+    _RELEASED = "released"
+    _POLL_SECONDS = 0.1
+
+    def __init__(self, *, directory: str, marker_sha256: str, timeout_seconds: int) -> None:
+        self._dir = Path(directory or default_late_barrier_dir())
+        self._marker = marker_sha256.strip().lower()
+        self._timeout = float(timeout_seconds)
+
+    def matches(self, images: Mapping[str, bytes]) -> bool:
+        if not self._marker:
+            return False
+        for data in images.values():
+            if isinstance(data, (bytes, bytearray)):
+                if hashlib.sha256(bytes(data)).hexdigest() == self._marker:
+                    return True
+        return False
+
+    def compute_then_wait(self, images: Mapping[str, bytes], result: Any) -> Any:
+        """返回调用方**已算好**的旧结果；命中且首次时先等后返回，超时抛错。"""
+        if not self.matches(images):
+            return result
+        self._dir.mkdir(parents=True, exist_ok=True)
+        consumed = self._dir / self._CONSUMED
+        try:
+            fd = os.open(str(consumed), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.close(fd)
+        except FileExistsError:
+            return result  # 已被消费：接管者/后续调用不阻塞
+        released = self._dir / self._RELEASED
+        deadline = time.monotonic() + self._timeout
+        try:
+            while True:
+                if released.exists():
+                    return result
+                if time.monotonic() >= deadline:
+                    raise ProviderUnavailable(
+                        "late-return barrier timed out waiting for release sentinel"
+                    )
+                time.sleep(self._POLL_SECONDS)
+        finally:
+            for path in (consumed, released):
+                try:
+                    path.unlink()
+                except FileNotFoundError:
+                    pass
+
+
 class FaceDouble:
     """确定性人脸替身；测试可注入 search 分类、登记/对账行为与瞬时异常。"""
 
@@ -172,6 +244,7 @@ class FaceDouble:
         register: str = "success",
         query: str = "registered",
         faults: Optional[dict[str, list[BaseException]]] = None,
+        barrier: Optional[LateReturnBarrier] = None,
     ) -> None:
         self._search = search
         self._face_subject_ref = face_subject_ref
@@ -181,6 +254,7 @@ class FaceDouble:
         self._register = register
         self._query = query
         self._faults = _FaultInjector(faults)
+        self._barrier = barrier
         self.calls: dict[str, int] = {}
         self.registered: dict[str, str] = {}
 
@@ -192,8 +266,13 @@ class FaceDouble:
         self._faults.maybe_raise("quality")
         if self._quality == "needs_retake":
             views = tuple(self._required_views) if self._required_views else ("front",)
-            return QualityResult("needs_retake", views)
-        return QualityResult("accepted", ())
+            result = QualityResult("needs_retake", views)
+        else:
+            result = QualityResult("accepted", ())
+        if self._barrier is not None:
+            # 先算后等：result 已在入 barrier 前算出，释放后原样返回（不重算）。
+            result = self._barrier.compute_then_wait(images, result)
+        return result
 
     def same_person(self, images: dict[str, bytes]) -> SamePersonResult:
         self._tick("same_person")
@@ -503,15 +582,25 @@ def _face_double_from_config(cfg: DConfig) -> FaceDouble:
     - ``same_person=false`` → NOT_SAME_PERSON；
     - ``search`` ∈ reliable_new/matched/uncertain/ambiguous/dependency_failed。
 
-    "旧分析完成时机"的 hold/release 见 ``_skin_double_from_config``
-    （``MVP_D_SKIN_DOUBLE_HOLD`` 或既有 aliyun provider 失败注入），进程级、
-    不能按 task/照片版本键控（见 seam 说明文档）。
+    - ``MVP_D_DOUBLE_LATE_BARRIER`` → 首个命中标记的 ``quality`` 调用先算后等（SC-02-09）。
+
+    "旧分析完成时机"另见 ``_skin_double_from_config``（``MVP_D_SKIN_DOUBLE_HOLD``），
+    两者关系：hold 是进程级可重试失败（无输入标记）；barrier 是输入标记驱动、
+    先算后等的真实迟到返回（更贴合 SC-02-09），可并存。
     """
+    barrier: Optional[LateReturnBarrier] = None
+    if cfg.double_late_barrier:
+        barrier = LateReturnBarrier(
+            directory=cfg.double_late_barrier_dir,
+            marker_sha256=cfg.double_late_barrier_sha256,
+            timeout_seconds=cfg.double_late_barrier_timeout_seconds,
+        )
     return FaceDouble(
         search=cfg.face_double_search,
         same_person=cfg.face_double_same_person,
         quality=cfg.face_double_quality,
         required_views=tuple(cfg.face_double_required_views),
+        barrier=barrier,
     )
 
 
@@ -550,12 +639,17 @@ def _skin_double_from_config(cfg: DConfig) -> SkinDouble:
     ``DEPENDENCY_UNAVAILABLE``，job 退避重排队）：旧分析停在可释放态，不 sleep、
     不改 DB、不改业务判定。端口无 task/照片版本入参，故只能进程级（E 用
     ``worker_once(env_extra=...)`` 逐次控制时机）。
+
+    ``MVP_D_SKIN_DOUBLE_INVALID``：返回违反既有指标白名单/基线的指标 → handler 经
+    既有 ``_ContractViolation`` 落 **PROVIDER_CONTRACT_VIOLATION** 终态（确定性，1 次）。
     """
+    invalid = None if cfg.skin_double_invalid == "none" else cfg.skin_double_invalid
     if cfg.skin_double_hold:
         return SkinDouble(
-            faults={"analyze": [ProviderUnavailable("analyze hold: injected retryable hold")]}
+            invalid=invalid,
+            faults={"analyze": [ProviderUnavailable("analyze hold: injected retryable hold")]},
         )
-    return SkinDouble()
+    return SkinDouble(invalid=invalid)
 
 
 def build_skin_port(cfg: DConfig, *, environment: str) -> SkinPort:
