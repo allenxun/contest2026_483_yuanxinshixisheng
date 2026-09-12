@@ -131,7 +131,8 @@ def test_SC_04_02(scenario_evidence):
     cu, bu = _admit(a2, c1)
     _rec(se, "POST", "/api/v1/care-executions", cu, bu, req={"case": "unbound"})
     _bind(c1["mid"])
-    t07 = CC.scalar(f"SELECT count(*) FROM care_executions WHERE member_id IN ('{c1['mid']}','{c2['mid']}')")
+    t07 = CC.scalar(f"SELECT count(*) FROM care_executions WHERE plan_id IN "
+                    f"('{c1['plan']}','{c2['plan']}')")
     assert ca == 403 and ba["error"]["code"] == "FACE_NOT_VERIFIED"
     assert "planExecution" not in json.dumps(ba) and "plan" not in (ba.get("data") or {})
     assert cu == 503 and bu["error"]["code"] == "DEPENDENCY_UNAVAILABLE"
@@ -174,8 +175,8 @@ def test_SC_04_03(scenario_evidence):
     CC.sql(f"UPDATE care_plans SET completed_count=target_count WHERE id='{c['plan']}'")
     cc2, bb2 = _admit(a, c)
     _rec(se, "POST", "/api/v1/care-executions", cc2, bb2, req={"case": "plan_completed"})
-    exec_cw = CC.scalar(f"SELECT count(*) FROM care_executions WHERE member_id='{cw['mid']}'")
-    exec_c = CC.scalar(f"SELECT count(*) FROM care_executions WHERE member_id='{c['mid']}'")
+    exec_cw = CC.scalar(f"SELECT count(*) FROM care_executions WHERE plan_id='{cw['plan']}'")
+    exec_c = CC.scalar(f"SELECT count(*) FROM care_executions WHERE plan_id='{c['plan']}'")
     assert cc1 == 409 and bb1["error"]["code"] == "PLAN_NOT_READY"
     assert bb1["error"].get("details", {}).get("reason") in (
         "device_capabilities_missing", "capability_id_mismatch", "parameter_range_not_covered",
