@@ -172,6 +172,62 @@ def scanners_once(env_extra: dict | None = None):
                  log_name="scanners-once.log")
 
 
+#: D 受控能力基线（与 worker dshared.dconfig.DEFAULT_PLAN_CAPABILITY_BASELINE 一致）。
+CAP_BASELINE = {
+    "capability_id": "mvp-double-capability",
+    "revision": "1",
+    "parameter_ranges": {
+        "intensity": {"unit": "percent", "min": 0.0, "max": 100.0},
+        "duration": {"unit": "second", "min": 1.0, "max": 600.0},
+        "pulse_count": {"unit": "count", "min": 1.0, "max": 1000.0},
+    },
+    "approved_regions": ["forehead", "left_cheek", "right_cheek", "nose"],
+    "n_bounds": {"min": 1, "max": 100},
+}
+
+
+def utcnow_iso() -> str:
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def connection_proof(serial: str, *, observer_type: str, observer_ref: str,
+                     account_id: str | None = None, installation_id: str | None = None,
+                     gimbal_id: str | None = None, ttl_s: int = 600) -> str:
+    payload = {"purpose": "connection", "microcrystalSerial": serial,
+               "observerType": observer_type, "observerRef": observer_ref,
+               "exp": int(datetime.datetime.now(datetime.timezone.utc).timestamp()) + ttl_s,
+               "nonce": uuid.uuid4().hex}
+    if observer_type == "app_account":
+        payload["accountId"] = account_id
+        payload["installationId"] = installation_id
+    else:
+        payload["gimbalId"] = gimbal_id
+    return encode_proof(payload)
+
+
+def observe_microcrystal(sess, serial: str, caps: dict, *, epoch: str | None = None,
+                         seq: str = "1") -> tuple[int, dict, dict]:
+    """真实 B M2-A04 观察（APP observer）；caps 覆盖 capability_id/revision/ranges/regions/n_bounds。"""
+    proof = connection_proof(serial, observer_type="app_account",
+                             observer_ref=f"{sess['accountId']}:{sess['installationId']}",
+                             account_id=sess["accountId"],
+                             installation_id=sess["installationId"])
+    body = {"microcrystalSerial": serial, "connectionProof": proof,
+            "capabilities": {"schemaVersion": 1, **caps},
+            "observationEpoch": epoch or f"obs-{uuid.uuid4().hex[:8]}",
+            "observationSeq": seq, "observedAt": utcnow_iso(),
+            "state": {"mode": "idle", "source": "e_acceptance"}}
+    return I.http("POST", "/api/v1/microcrystal-observations", token=sess["access"],
+                  body=body, headers={"Idempotency-Key": str(uuid.uuid4())})
+
+
+def get_capabilities(microcrystal_id: str, sess=None, *, proof: str | None = None,
+                     token: str | None = None) -> tuple[int, dict, dict]:
+    headers = {"X-Connection-Proof": proof} if proof else {}
+    return I.http("GET", f"/api/v1/microcrystals/{microcrystal_id}/capabilities",
+                  token=token or (sess["access"] if sess else None), headers=headers)
+
+
 # ---------------- 活体服务生命周期 ----------------
 
 STATE: dict[str, object] = {"started": False, "jar_built": False}

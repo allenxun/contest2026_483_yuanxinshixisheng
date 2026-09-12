@@ -160,11 +160,11 @@ def test_blocked_by_distribution_all_empty():
 
 
 def test_staged_pending_three_state_and_authored_first_wave():
-    """staged 三态：batch1 25 + batch2 lane A1（SC-02 11）已编写，其余 58 staged_pending。"""
+    """staged 三态：batch1 25 + lane A1（SC-02 11）+ lane A2（SC-03 9）已编写，其余 49 staged。"""
     authored = [s for s in scenarios if s["authored"]]
     staged = [s for s in scenarios if s["staged_pending"]]
-    assert len(authored) == 36, len(authored)
-    assert len(staged) == 58, len(staged)
+    assert len(authored) == 45, len(authored)
+    assert len(staged) == 49, len(staged)
     batch1 = {
         "SC-01-01", "SC-01-02", "SC-01-03", "SC-01-04", "SC-01-05", "SC-01-06",
         "SC-01-07", "SC-01-08", "SC-01-09", "SC-01-10", "SC-01-11", "SC-01-12",
@@ -172,7 +172,8 @@ def test_staged_pending_three_state_and_authored_first_wave():
         "SC-05-01", "SC-05-02", "SC-05-03", "SC-05-04", "SC-05-05", "SC-05-06",
         "SC-05-07"}
     batch2 = {f"SC-02-{i:02d}" for i in range(1, 12)}
-    assert {s["id"] for s in authored} == batch1 | batch2
+    batch3 = {f"SC-03-{i:02d}" for i in range(1, 10)}
+    assert {s["id"] for s in authored} == batch1 | batch2 | batch3
     device = [s for s in authored if s["automation_tier"] == "需真实设备或APP"]
     assert len(device) == 12, len(device)
     for s in device:

@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from typing import Iterable
 
 #: 本版外部协作方（来源：运行组件说明/API 设计；不含内部实现细节）
-DOUBLE_KINDS = ("face_algo", "llm_plan", "push_channel", "oss", "gimbal_device", "microcrystal")
+DOUBLE_KINDS = ("face_algo", "skin_algo", "llm_plan", "push_channel", "oss", "gimbal_device", "microcrystal")
 
 #: 联调硬门槛：这些结论即使全 double 也必须另行真实验证，不能只记 doubles_pass
 REAL_ONLY_CHECKPOINTS = ("设备实际停止", "人脸连续性", "手机实际收到通知", "真实算法准确率")

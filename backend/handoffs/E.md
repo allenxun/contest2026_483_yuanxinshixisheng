@@ -285,3 +285,16 @@ E 新增两个独立黑盒验收驱动：
 - **披露措辞更新**：C8 scanner/#8 logout 代次/OAS 13 字段——**总协调已指定 B 唯一修复，当前树未修**；E 维持如实披露，待新修复基线后差异复验。
 - **清理**：`docker stop mvp-e-pg`（**保留卷**，未 rm）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
 - **status**：矩阵执行中——20 通过（13+7）+ 12 设备 + 58 staged + 4 seam-pending；nextAction=等 D 注入 seam 补 05/06/08/09 正例，及新基线后差异复验。
+
+## 集成基线 lane A2（batch 2）：SC-03 报告/方案生成与两端视图（2026-09-12）
+
+> 基线 HEAD `1cd87d8`（lane A1 已提交）；复用全部 plumbing 与 M3/M4/M2 链经验。
+
+- **9 节点结果（failed 0）**：**passed 8**（SC-03-01 报告成员隔离/02 APP full vs 云台 brief/03 报告就绪方案 waiting_inputs 不阻塞/04 真实 B M2-A04 观察补齐→plan.generate ready 且同版本不重生成/05 伪造证明 403 不篡改归属/06 M2-A05 能力读取范围/08 APP 方案 vs 云台 403/09 重复 GET 零副作用 SQL 前后全等）；
+  **pending 1（seam 缺口，如实披露）**：SC-03-07——`PLAN_SNAPSHOT_INVALID` 失败/非法方案已实测（malformed baseline 全链→T06 failed、ready_rows=0），**超时子形态无注入 seam** 待 D 补。
+- **lane A2 正式 matrix**：RUN_ID=`E-20260912T081619Z-93ef0046`，settled **94/94**，counts PASSED=**103** / DEPENDENCY_PENDING=**66** / FAILED=0，exit=**3**，doubles_pass=28。
+- **scenarios.json**：SC-03 9 条 flipped authored；哈希 **`86bfa7b721b6f285` 不变**、`blocked_by=[]×94`、再生成幂等；authored 45 / staged 49。
+- **驱动侧修正 3**：DOUBLE_KINDS 增 `skin_algo`；M2-A04 `revision` 须 BigintString；M2-A05 字段名 `capabilityRevision`。
+- **selfcheck** rc=0（75，零回归）。
+- **清理**：`docker stop mvp-e-pg`（**保留卷**）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
+- **status**：矩阵执行中——**28 通过**（13+7+8）+ 12 设备 + 49 staged + **5 seam-pending**（A1: SC-02-05/06/08/09；A2: SC-03-07）= 94；nextAction=等 D 注入 seam 补 5 节点正例，及新基线后对 C8/#8/OAS13 差异复验。
