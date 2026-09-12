@@ -96,4 +96,3 @@ class FileSystemStorageDoubleFailModeTest {
                 () -> new FileSystemStorageDouble(root().toString(), "fail-put:not_a_purpose"));
     }
 }
-
