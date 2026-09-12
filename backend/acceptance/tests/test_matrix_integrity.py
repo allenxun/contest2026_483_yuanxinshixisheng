@@ -163,8 +163,8 @@ def test_staged_pending_three_state_and_authored_first_wave():
     """staged 三态：batch1 25 + lane A1（SC-02 11）+ lane A2（SC-03 9）+ lane B1（SC-04 10）=55。"""
     authored = [s for s in scenarios if s["authored"]]
     staged = [s for s in scenarios if s["staged_pending"]]
-    assert len(authored) == 55, len(authored)
-    assert len(staged) == 39, len(staged)
+    assert len(authored) == 71, len(authored)
+    assert len(staged) == 23, len(staged)
     batch1 = {
         "SC-01-01", "SC-01-02", "SC-01-03", "SC-01-04", "SC-01-05", "SC-01-06",
         "SC-01-07", "SC-01-08", "SC-01-09", "SC-01-10", "SC-01-11", "SC-01-12",
@@ -174,9 +174,10 @@ def test_staged_pending_three_state_and_authored_first_wave():
     batch2 = {f"SC-02-{i:02d}" for i in range(1, 12)}
     batch3 = {f"SC-03-{i:02d}" for i in range(1, 10)}
     batch4 = {f"SC-04-{i:02d}" for i in range(1, 11)}
-    assert {s["id"] for s in authored} == batch1 | batch2 | batch3 | batch4
+    batch5 = {f"SC-06-{i:02d}" for i in range(1, 10)} | {f"SC-07-{i:02d}" for i in range(1, 8)}
+    assert {s["id"] for s in authored} == batch1 | batch2 | batch3 | batch4 | batch5
     device = [s for s in authored if s["automation_tier"] == "需真实设备或APP"]
-    assert len(device) == 19, len(device)
+    assert len(device) == 23, len(device)
     for s in device:
         assert s["pending_reason"].startswith("真实设备/APP 联调待办"), s["id"]
     for s in authored:

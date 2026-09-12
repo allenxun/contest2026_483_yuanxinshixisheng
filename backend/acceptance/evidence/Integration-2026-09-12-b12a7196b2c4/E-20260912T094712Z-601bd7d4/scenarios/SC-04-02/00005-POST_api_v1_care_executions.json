@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions",
+  "status": 403,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "case": "mismatch"
+  },
+  "response_excerpt": "{\"requestId\": \"c1bdf491-e13c-4d23-8dd1-0a23809fa120\", \"error\": {\"code\": \"FACE_NOT_VERIFIED\", \"message\": \"face does not match the plan member\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T094712Z-601bd7d4"
+}

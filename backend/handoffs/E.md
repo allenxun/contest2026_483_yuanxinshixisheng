@@ -319,3 +319,13 @@ E 新增两个独立黑盒验收驱动：
   live.py 常驻 worker helper + 周期/登出纯函数回归；scanner 候选须 `connection_status='online'`。
 - **缺陷**：无业务/契约缺陷（复验未发现修复不完整）。
 - **清理**：`docker stop mvp-e-pg`（保留卷）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
+
+## 集成基线 lane B2（batch 2）：SC-06 + SC-07（2026-09-12）
+
+- **SC-06（9）**：passed 8（K 边界 N=10 K=9/10/11+completed_at 首达不改写+不截断；双键去重+同标识异内容 409 RECORD_CONFLICT；epoch 归属不计 K；状态上报不计次数；迟到入账 late_variance 不重开；K≥N 拒新执行+补传不重开；进度查询范围/新鲜度；历史查询权限）；device_pending 1（SC-06-05 客户端缓存待联调）。
+- **SC-07（7）**：passed 4（停止对账关闭+占用释放/未停止 409；抢占 409 DEVICE_OCCUPIED 占用唯一；收尾重放 manifest 不变+非原控制端拒绝+closed 不重开；执行详情越权 404）；device_pending 3（SC-07-01/02/03 端侧行为待联调）。
+- **正式 matrix**：RUN_ID=`E-20260912T094712Z-601bd7d4`，settled **94/94**，counts PASSED=**119** / DEPENDENCY_PENDING=**51** / FAILED=0，exit=**3**，doubles_pass=43。
+- **scenarios.json**：SC-06×9 + SC-07×7 翻转 authored；哈希 **`86bfa7b721b6f285` 不变**、`blocked_by=[]×94`、再生成幂等；authored 71 / staged 23。
+- **selfcheck** rc=0（76，零回归）。
+- **缺陷**：无业务缺陷；驱动侧修正 3（SC-06-06 收尾水位、SC-06-02 确定性去重、SC-07-07 详情字段）。
+- **清理**：`docker stop mvp-e-pg`（保留卷）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
