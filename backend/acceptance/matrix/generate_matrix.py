@@ -78,6 +78,9 @@ AUTHORED_REASON_B1 = "已编写步骤（集成轮 batch 2 lane B1）；gate=open
 # batch 2 lane B2：SC-06 记账/去重/进度（9）+ SC-07 直控与收尾（7）
 AUTHORED_IDS_B2L2 = {f"SC-06-{i:02d}" for i in range(1, 10)} | {f"SC-07-{i:02d}" for i in range(1, 8)}
 AUTHORED_REASON_B2L2 = "已编写步骤（集成轮 batch 2 lane B2）；gate=open 下真实执行并结算；设备APP 节点后端子步骤"
+# batch 2 lane C1：SC-00 完整业务流程（4，设备）+ SC-C 跨流程与异步（5）
+AUTHORED_IDS_C1 = {f"SC-00-{i:02d}" for i in range(1,5)} | {f"SC-C-{i:02d}" for i in range(1,6)}
+AUTHORED_REASON_C1 = "已编写步骤（集成轮 batch 2 lane C1）；gate=open 下真实执行并结算"
 
 
 
@@ -155,7 +158,7 @@ def parse_scenarios(all_api_ids: list[str]) -> list[dict]:
         tier = SCOPE_TO_TIER[scope]
         blocked = sorted(set(packages) - INTEGRATED_PACKAGES)  # B/C/D 均集成 → []
         authored = (sid in AUTHORED_IDS or sid in AUTHORED_IDS_B2 or sid in AUTHORED_IDS_A2
-                    or sid in AUTHORED_IDS_B1 or sid in AUTHORED_IDS_B2L2)
+                    or sid in AUTHORED_IDS_B1 or sid in AUTHORED_IDS_B2L2 or sid in AUTHORED_IDS_C1)
         if sid in AUTHORED_IDS_A2:
             authored_reason = AUTHORED_REASON_A2
         elif sid in AUTHORED_IDS_B2:
@@ -164,6 +167,8 @@ def parse_scenarios(all_api_ids: list[str]) -> list[dict]:
             authored_reason = AUTHORED_REASON_B1
         elif sid in AUTHORED_IDS_B2L2:
             authored_reason = AUTHORED_REASON_B2L2
+        elif sid in AUTHORED_IDS_C1:
+            authored_reason = AUTHORED_REASON_C1
         else:
             authored_reason = AUTHORED_REASON
         is_device = tier == "需真实设备或APP"

@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions/3adc7644-9ea7-452d-8ab5-b811822b5b18/observations",
+  "status": 200,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "epoch": "bogus"
+  },
+  "response_excerpt": "{\"requestId\": \"dc9d8317-1b28-42c7-9e40-b6ec6c6f49f8\", \"data\": {\"acknowledgedRecords\": [{\"recordId\": \"r-epoch-54-1\", \"disposition\": \"rejected\", \"rejectReason\": \"epoch_mismatch\"}], \"executionStatus\": \"running\", \"acceptedCount\": \"0\", \"progress\": {\"targetCount\": \"10\", \"completedCount\": \"0\", \"remainingCount\": \"10\", \"isCompleted\": false, \"progressRevision\": \"0\", \"completedAt\": null}}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-12T10:27:58Z\"}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T102052Z-eac64451"
+}

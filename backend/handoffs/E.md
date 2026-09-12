@@ -329,3 +329,13 @@ E 新增两个独立黑盒验收驱动：
 - **selfcheck** rc=0（76，零回归）。
 - **缺陷**：无业务缺陷；驱动侧修正 3（SC-06-06 收尾水位、SC-06-02 确定性去重、SC-07-07 详情字段）。
 - **清理**：`docker stop mvp-e-pg`（保留卷）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
+
+## 集成基线 lane C1（batch 2）：SC-00 + SC-C（2026-09-12）
+
+- **SC-00（4，设备）**：device_pending 4（全链后端子步骤：受理→报告→方案→APP 授权→A03→A05→A08→A06+控制端指针替换；跨端同成员/方案；切换后 K 沿用；未绑定云台独立测肤无通知）。
+- **SC-C（5）**：passed 4（C-01 按 API 族抽样认证/隔离/零写入；C-02 入库+job 同存/重试同任务/处理失败不丢；C-03 真实 kill worker 后恢复无重复归档；C-04 两 worker 并发恰一次执行）；seam-pending 1（C-05 存储/策略矩阵已实测，上传失败注入待 seam）。
+- **正式 matrix**：RUN_ID=`E-20260912T102052Z-eac64451`，settled **94/94**，counts PASSED=**123** / DEPENDENCY_PENDING=**47** / FAILED=0，exit=**3**，doubles_pass=47。
+- **scenarios.json**：SC-00×4+SC-C×5 翻转；哈希 **`86bfa7b721b6f285` 不变**、`blocked_by=[]×94`、再生成幂等；authored 80 / staged 14。
+- **selfcheck** rc=0（76，零回归）。
+- **驱动侧修正**：SC-00 更名 `test_zz_sc00.py` 最后执行（消除全局计数干扰）；SC-C-01/02/04 修正。
+- **清理**：`docker stop mvp-e-pg`（保留卷）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
