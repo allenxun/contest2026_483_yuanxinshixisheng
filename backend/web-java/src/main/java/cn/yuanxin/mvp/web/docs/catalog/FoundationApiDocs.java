@@ -517,7 +517,11 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                 Map.entry("GimbalSessionData", Set.of("gimbalId", "sessionToken", "expiresAt", "serverTime")),
                 Map.entry("EchoJobAcceptedData", Set.of("jobId", "dedupKey", "status")),
                 Map.entry("EchoJobViewData", Set.of("jobId", "status", "attemptCount", "leaseRevision",
-                        "finishedAt", "lastError")));
+                        "finishedAt", "lastError")),
+                // EchoJobLastError 为契约 inline 定义（pointer
+                // #/components/schemas/SystemEchoJobView/properties/lastError）：required=[reason, retryable]、
+                // additionalProperties=false；生成文档中它是命名 component（由 lastError 递归注册），故同样声明。
+                Map.entry("EchoJobLastError", Set.of("reason", "retryable")));
     }
 
     @Override

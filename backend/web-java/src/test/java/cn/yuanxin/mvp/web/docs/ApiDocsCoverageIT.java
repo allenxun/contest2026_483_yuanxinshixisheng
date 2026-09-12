@@ -60,6 +60,40 @@ class ApiDocsCoverageIT extends AbstractWebIT {
             "M4A04Metadata.reportedMicrocrystalState",
             "AppSessionRequestBody.installBindingMaterial");
 
+    /**
+     * 经 orchestrator 审议核准的 {@code any} 节点路径（无 {@code type}、无 {@code $ref}、无
+     * {@code properties}/{@code additionalProperties}）。只允许<strong>恰好这三处</strong>方案参数映射的值
+     * （依据写入方 {@code CarePlanProjection.projectParameter}：参数值真实存在"标量 或
+     * {@code {value,unit}} 对象"的联合形态）。路径按 {@link #scanStructure} 的递归扫描格式：
+     *
+     * <pre>
+     * CarePlanFullView.plan.parameters.*
+     * CarePlanFullView.plan.steps[].parameters.*
+     * CareExecutionAdmission.planExecution.parameters.*
+     * CareExecutionAdmission.planExecution.steps[].parameters.*
+     * CareExecutionRevalidation.planExecution.parameters.*
+     * CareExecutionRevalidation.planExecution.steps[].parameters.*
+     * </pre>
+     *
+     * <p>三处方案结构各自出现两个 {@code any} 节点（顶层 {@code parameters.*} 与步骤内
+     * {@code steps[].parameters.*}，二者共用同一 {@code KnownKeyDoc.any} 定义），故清单共 6 条路径，
+     * 恰等于真实文档中出现的 6 个 {@code any} 节点，不多不少。任何其它路径上的 {@code any}
+     * 一律失败——防止 <strong>用 {@code any} 绕过"对象/数组结构必须显式声明"的递归门禁</strong>。
+     * 协议最终冻结时应把这三处改为 {@code oneOf}，届时本清单随之删除。</p>
+     *
+     * <p><b>匹配规则</b>：采用<strong>精确成员判定</strong>（{@code APPROVED_ANY_PATHS.contains(path)}），
+     * 而非"以 {@code .parameters.*} 结尾且前缀含 {@code .plan.}/{@code .planExecution.}"式模式匹配——
+     * 后者会顺带放行未来任何 {@code *plan*.parameters.*} 路径。精确集合由上述三处结构<strong>逐字</strong>
+     * 推导，新增/改名任一结构都会使门禁失败并暴露待审路径，不会静默放行。</p>
+     */
+    private static final Set<String> APPROVED_ANY_PATHS = Set.of(
+            "CarePlanFullView.plan.parameters.*",
+            "CarePlanFullView.plan.steps[].parameters.*",
+            "CareExecutionAdmission.planExecution.parameters.*",
+            "CareExecutionAdmission.planExecution.steps[].parameters.*",
+            "CareExecutionRevalidation.planExecution.parameters.*",
+            "CareExecutionRevalidation.planExecution.steps[].parameters.*");
+
     /** 生成 schema 名 → 契约 components schema 名（仅列已知不一致者；其余按同名对照）。 */
     private static final Map<String, String> CONTRACT_REQUEST_SCHEMA_ALIASES = Map.ofEntries(
             Map.entry("GimbalSessionRequestBody", "GimbalSessionRequest"),
@@ -123,6 +157,55 @@ class ApiDocsCoverageIT extends AbstractWebIT {
             Map.entry("ClosureResultDto", "ExecutionClosureResult"),
             Map.entry("VerificationDto", "Verification"),
             Map.entry("AcknowledgedRecordDto", "AcknowledgedRecord"));
+
+    /**
+     * 生成 component 名 → 契约 <strong>inline</strong> schema 的 <strong>JSON pointer</strong>。
+     *
+     * <p>这些结构在契约中<strong>只以内联（inline）形式出现，没有同名
+     * {@code components.schemas} 定义</strong>，故既有 {@link #CONTRACT_RESPONSE_SCHEMA_ALIASES}
+     * 按组件名对照会"跳过并打印"，Oracle 判定其"未与契约同等交叉校验"（三类重要嵌套响应缺少
+     * required 承诺）。此处按 pointer 直接取契约 inline 节点的 {@code required} 做<strong>双向</strong>
+     * 比对（少于=未修正、多于=invent，皆失败）。pointer 均已用 snakeyaml 实读
+     * {@code backend/contracts/openapi/openapi.yaml} 复核（见各类 javadoc）。
+     *
+     * <ul>
+     *   <li>{@code EchoJobLastError} → {@code /components/schemas/SystemEchoJobView/properties/lastError}
+     *       （契约 {@code required=[reason, retryable]}、{@code additionalProperties=false}）。
+     *       生成文档中它是命名 component（由 {@code lastError} 递归注册）。</li>
+     *   <li>{@code SkinReportImage} → {@code /components/schemas/SkinReportView/properties/images/items}
+     *       （契约 {@code required=[mediaId, contentUrl]}、{@code additionalProperties=false}）。</li>
+     *   <li>{@code CurrentAssessment} →
+     *       {@code /components/schemas/GimbalCurrentAssessmentView/properties/currentAssessment}
+     *       （契约 {@code required=[taskId, status, photoVersion]}；{@code reportId} 不在 required 中）。</li>
+     *   <li>{@code RecordWatermark} →
+     *       {@code /components/schemas/CareExecutionView/properties/recordWatermark}
+     *       （契约 {@code required} 缺省=空集、{@code additionalProperties=false}）⇒ 生成侧为空集时通过，
+     *       不再进入"跳过"清单。</li>
+     * </ul>
+     */
+    private static final Map<String, String> CONTRACT_INLINE_RESPONSE_POINTERS = Map.ofEntries(
+            Map.entry("EchoJobLastError", "/components/schemas/SystemEchoJobView/properties/lastError"),
+            Map.entry("SkinReportImage", "/components/schemas/SkinReportView/properties/images/items"),
+            Map.entry("CurrentAssessment",
+                    "/components/schemas/GimbalCurrentAssessmentView/properties/currentAssessment"),
+            Map.entry("RecordWatermark",
+                    "/components/schemas/CareExecutionView/properties/recordWatermark"));
+
+    /**
+     * 契约<strong>确实未定义</strong>任何对应响应投影结构的生成 component（核查结论，非"暂无映射"）。
+     *
+     * <p>{@code IncidentView}：按属性集（{@code incidentId}/{@code openedAt}/{@code lastReportedAt}）全量
+     * 搜索契约，<strong>没有任何</strong> inline 节点含这些键；契约请求侧
+     * {@code GimbalHeartbeatRequest.incidents}/{@code GimbalStatusView.incidents} 仅标
+     * {@code x-detail: skeleton}、结构为 {@code {type:object, additionalProperties:true}}，未定义响应投影。
+     * 故它确实<strong>无可比对对象</strong>：保留"跳过并披露"，但披露文案必须写明
+     * <strong>契约未定义该结构</strong>，而非笼统的"无契约可比对"。Oracle 曾主张应与"空 required 集"
+     * 比较，该主张与契约事实不符。</p>
+     */
+    private static final Map<String, String> CONTRACT_UNDEFINED_RESPONSE_SCHEMAS = Map.of(
+            "IncidentView", "契约未定义该结构：请求侧 incidents 仅 x-detail: skeleton、"
+                    + "结构为 {type:object, additionalProperties:true}，无任何含 incidentId/openedAt/"
+                    + "lastReportedAt 的 inline 响应节点");
 
     @Autowired
     private ApiDocsApplier apiDocsApplier;
@@ -302,6 +385,18 @@ class ApiDocsCoverageIT extends AbstractWebIT {
         //     已有 properties 被判 EXPANDED）。递归进入 properties/*、items、additionalProperties。
         problems.addAll(findStructureProblems(schemas));
 
+        // 6a-2) 嵌套 required 落地证据（Oracle BLOCKER A 的精确复现点）：契约
+        //       components.schemas.MissingRange.required=[from,to]，故真实文档的
+        //       ErrorBody.details.missingRanges.items.required 必须为 [from,to]。此处断言的是
+        //       /v3/api-docs 的<strong>序列化结果</strong>（Node 来自响应体 JSON），而非内存态。
+        JsonNode missingRangeItems = schemas.path("ErrorBody").path("properties").path("details")
+                .path("properties").path("missingRanges").path("items");
+        if (!stringSet(missingRangeItems.path("required")).equals(Set.of("from", "to"))) {
+            problems.add("嵌套 required 未落地：ErrorBody.details.missingRanges.items.required 应为"
+                    + " [from,to]（契约 MissingRange），实际=" + missingRangeItems.path("required")
+                    + "；节点=" + missingRangeItems);
+        }
+
         // 6b) 契约 required 交叉校验：multipart part 必填性 + 请求体 schema required 集。
         crossCheckContractRequired(generated, schemas, problems);
 
@@ -399,6 +494,15 @@ class ApiDocsCoverageIT extends AbstractWebIT {
         boolean hasAdditional = node.has("additionalProperties");
         boolean objectish = "object".equals(type)
                 || (type.isEmpty() && (node.has("properties") || hasAdditional));
+        // any 节点（无 type、无 $ref、无 properties、无 items、无 additionalProperties）必须受
+        // APPROVED_ANY_PATHS 约束：否则可用它绕开"对象/数组结构必须显式声明"的递归门禁。
+        // 注意：springdoc 对 record 派生的 47 个 component<strong>不带 type 键</strong>（只有
+        // properties/required），这是 OpenAPI 3.1 的正常输出，故<strong>不能</strong>以"无 type"
+        // 作为 any 的唯一判据；真正只带 description 的值节点才命中本判定。
+        if (type.isEmpty() && !node.has("properties") && !node.has("items") && !hasAdditional
+                && !APPROVED_ANY_PATHS.contains(path)) {
+            problems.add("未核准的无 type 节点（any；只允许已核准的方案参数映射值）: " + path);
+        }
         if (objectish) {
             boolean approvedOpaque = node.path("description").asText("")
                     .contains(ApiDocsApplier.OPAQUE_MARKER)
@@ -466,12 +570,17 @@ class ApiDocsCoverageIT extends AbstractWebIT {
      * {@code data} schema（含列表 {@code items} 条目类型，递归嵌套 {@code $ref}）的 {@code required}
      * 与契约 components 比对（生成名经 {@link #CONTRACT_RESPONSE_SCHEMA_ALIASES} 映射）。
      * 少于契约 → 失败（应经 {@code requiredProperties()} 修正）；多于契约 → 失败（不得 invent）。
-     * 无契约对应者<strong>跳过并在输出中披露计数</strong>，不静默。
+     * 无契约对应者<strong>跳过并在输出中披露计数</strong>，不静默；（d）在契约中<strong>只有 inline
+     * 定义</strong>的响应 component（{@link #CONTRACT_INLINE_RESPONSE_POINTERS}）按其 JSON pointer
+     * 取 inline 节点的 {@code required} 做双向比对——此前这些结构被"跳过并打印"，不等同于与契约
+     * 交叉校验。契约<strong>确实未定义</strong>对应结构者（{@link #CONTRACT_UNDEFINED_RESPONSE_SCHEMAS}）
+     * 跳过并<strong>明确披露"契约未定义该结构"</strong>，不静默。
      */
     private static void crossCheckContractRequired(Map<String, JsonNode> generated, JsonNode schemas,
                                                    List<String> problems) throws Exception {
-        Map<String, Set<String>> contractMultipart = contractMultipartRequired();
-        Map<String, Set<String>> contractSchemas = contractComponentRequired();
+        Map<String, Object> contract = loadContract();
+        Map<String, Set<String>> contractMultipart = contractMultipartRequired(contract);
+        Map<String, Set<String>> contractSchemas = contractComponentRequired(contract);
 
         // (a) multipart part required 精确比对。
         List<String> skippedMultipart = new ArrayList<>();
@@ -531,7 +640,23 @@ class ApiDocsCoverageIT extends AbstractWebIT {
         //     生成名经 CONTRACT_RESPONSE_SCHEMA_ALIASES 映射；少于契约 → 失败（应经 requiredProperties()
         //     修正）；多于契约 → 失败（不得 invent）。无契约对应者跳过并计数披露，不静默。
         List<String> skippedResponses = new ArrayList<>();
+        List<String> undefinedInlineResponses = new ArrayList<>();
         for (String generatedName : responseSchemaNames(generated, schemas)) {
+            // (d) 契约 inline schema：这些生成 component 在契约中只有 inline 定义（无同名
+            //     components.schemas），按 JSON pointer 取 inline 节点 required 做双向比对，
+            //     而不是"跳过并打印"了事。
+            String inlinePointer = CONTRACT_INLINE_RESPONSE_POINTERS.get(generatedName);
+            if (inlinePointer != null) {
+                problems.addAll(crossCheckInlineRequired(generatedName, inlinePointer,
+                        stringSet(schemas.path(generatedName).path("required")), contract));
+                continue;
+            }
+            if (CONTRACT_UNDEFINED_RESPONSE_SCHEMAS.containsKey(generatedName)) {
+                // 契约确实未定义该结构：保留跳过，但明确披露"契约未定义该结构"。
+                undefinedInlineResponses.add(generatedName
+                        + "（" + CONTRACT_UNDEFINED_RESPONSE_SCHEMAS.get(generatedName) + "）");
+                continue;
+            }
             String contractName = CONTRACT_RESPONSE_SCHEMA_ALIASES.getOrDefault(generatedName, generatedName);
             if (!contractSchemas.containsKey(contractName)) {
                 skippedResponses.add(generatedName + "→" + contractName);
@@ -560,6 +685,78 @@ class ApiDocsCoverageIT extends AbstractWebIT {
             System.out.println("[coverage-gate] 无契约可比对、已跳过并披露的响应 data schema:"
                     + " responseSchemas=" + skippedResponses);
         }
+        if (!undefinedInlineResponses.isEmpty()) {
+            System.out.println("[coverage-gate] 契约未定义对应结构、已跳过并披露的响应 component"
+                    + "（披露口径：契约未定义该结构，而非笼统'无契约可比对'）:"
+                    + " undefined=" + undefinedInlineResponses);
+        }
+    }
+
+    /**
+     * 契约 inline 响应 schema 的 required 双向交叉校验（section d）。
+     *
+     * <p>按 JSON pointer 取契约中 inline 节点的 {@code required}（缺省视为空集），与生成 component
+     * 的 {@code required} 比对：少于契约 = 未修正；多于契约 = invent；两者皆失败。pointer 无法解析
+     * 或节点非对象时也报告（防止映射表陈旧而静默通过）。</p>
+     *
+     * <p>本方法为 {@code static} 且只依赖入参，供门禁与<strong>单元负向测试</strong>共用——
+     * 测试可构造合成契约根证明"少于契约"确实被捕获（见 {@code ApiDocsApplierTest}）。</p>
+     */
+    static List<String> crossCheckInlineRequired(String generatedName, String pointer,
+                                                 Set<String> generatedRequired,
+                                                 Map<String, Object> contractRoot) {
+        List<String> problems = new ArrayList<>();
+        Object node = resolvePointer(contractRoot, pointer);
+        if (!(node instanceof Map<?, ?> nodeMap)) {
+            problems.add("契约 inline pointer 无法解析（映射表可能陈旧）: "
+                    + generatedName + " → " + pointer);
+            return problems;
+        }
+        Set<String> expected = new LinkedHashSet<>();
+        Object req = nodeMap.get("required");
+        if (req instanceof List<?> list) {
+            list.forEach(r -> expected.add(String.valueOf(r)));
+        }
+        if (generatedRequired.equals(expected)) {
+            return problems;
+        }
+        Set<String> missing = new LinkedHashSet<>(expected);
+        missing.removeAll(generatedRequired);
+        Set<String> extra = new LinkedHashSet<>(generatedRequired);
+        extra.removeAll(expected);
+        if (!extra.isEmpty()) {
+            problems.add("inline 响应 schema required 多于契约（不得 invent 必填性）: "
+                    + generatedName + " → " + pointer + " extra=" + extra
+                    + " generated=" + generatedRequired + " contract=" + expected);
+        } else {
+            problems.add("inline 响应 schema required 少于契约（应经 requiredProperties() 修正）: "
+                    + generatedName + " → " + pointer + " missing=" + missing
+                    + " generated=" + generatedRequired + " contract=" + expected);
+        }
+        return problems;
+    }
+
+    /**
+     * 解析 RFC6901 JSON pointer（如 {@code /components/schemas/X/properties/y}）到 snakeyaml 加载的
+     * 契约对象；任一段缺失返回 {@code null}。支持 {@code ~1}→{@code /}、{@code ~0}→{@code ~} 转义。
+     */
+    static Object resolvePointer(Map<String, Object> root, String pointer) {
+        if (root == null || pointer == null) {
+            return null;
+        }
+        Object node = root;
+        String[] parts = pointer.split("/", -1);
+        for (int i = 1; i < parts.length; i++) {
+            if (!(node instanceof Map<?, ?> map)) {
+                return null;
+            }
+            String key = parts[i].replace("~1", "/").replace("~0", "~");
+            node = map.get(key);
+            if (node == null) {
+                return null;
+            }
+        }
+        return node;
     }
 
     /**
@@ -642,8 +839,7 @@ class ApiDocsCoverageIT extends AbstractWebIT {
 
     /** 契约全部 multipart 操作的 part required（key = "METHOD {}"）。 */
     @SuppressWarnings("unchecked")
-    private static Map<String, Set<String>> contractMultipartRequired() throws Exception {
-        Map<String, Object> contract = loadContract();
+    private static Map<String, Set<String>> contractMultipartRequired(Map<String, Object> contract) {
         Map<String, Object> paths = (Map<String, Object>) contract.get("paths");
         Map<String, Set<String>> out = new LinkedHashMap<>();
         if (paths == null) {
@@ -685,8 +881,7 @@ class ApiDocsCoverageIT extends AbstractWebIT {
 
     /** 契约 components.schemas 中对象 schema 的 required 集（无 required 者视为空集）。 */
     @SuppressWarnings("unchecked")
-    private static Map<String, Set<String>> contractComponentRequired() throws Exception {
-        Map<String, Object> contract = loadContract();
+    private static Map<String, Set<String>> contractComponentRequired(Map<String, Object> contract) {
         Object compsRaw = contract.get("components");
         if (!(compsRaw instanceof Map<?, ?> comps)) {
             return Map.of();

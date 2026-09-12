@@ -164,6 +164,13 @@ public interface ApiDocsCatalog {
      *                                   引擎据此生成 {@code additionalProperties: <该结构>}；
      *                                   非动态映射传 {@code null}
      * @param example                    脱敏示例（JSON 字面量字符串），可为 {@code null}
+     * @param required                   {@code type=object} 时的<strong>必填属性名子集</strong>
+     *                                   （必须是 {@link #properties} 的键），用于表达嵌套层级的
+     *                                   required（如契约 {@code MissingRange.required=[from,to]}）；
+     *                                   {@code null} 表示不声明。<strong>只在权威契约或写入方代码
+     *                                   确实要求必填时声明</strong>，不得 invent；覆盖率门禁会与
+     *                                   契约交叉校验（少于=未修正、多于=invent，皆失败）。
+     *                                   便捷入口：{@link #closedObject(Map, List, String)}
      */
     record KnownKeyDoc(
             String type,
@@ -172,7 +179,45 @@ public interface ApiDocsCatalog {
             KnownKeyDoc items,
             Boolean additionalProperties,
             KnownKeyDoc additionalPropertiesSchema,
-            String example) {
+            String example,
+            List<String> required) {
+
+        /**
+         * 7 参便捷构造器（<strong>向后兼容</strong>）：{@code required} 缺省为 {@code null}，
+         * 即"该层不声明必填子集"。既有工厂与既有目录调用点无需改动。
+         */
+        public KnownKeyDoc(String type, String description, Map<String, KnownKeyDoc> properties,
+                           KnownKeyDoc items, Boolean additionalProperties,
+                           KnownKeyDoc additionalPropertiesSchema, String example) {
+            this(type, description, properties, items, additionalProperties,
+                    additionalPropertiesSchema, example, null);
+        }
+
+        /**
+         * 联合/多形态值：不写 {@code type} 关键字、仅给 description。
+         * 用于真实存在的"标量 或 对象"联合（如 {@code CarePlanProjection.projectParameter}）。
+         * <strong>受门禁核准清单约束</strong>（{@code APPROVED_ANY_PATHS}），不得用于规避取证。
+         */
+        public static KnownKeyDoc any(String description) {
+            return new KnownKeyDoc("any", description, null, null, null, null, null);
+        }
+
+        /**
+         * 封闭白名单对象，并<strong>显式声明必填子集</strong>。
+         *
+         * <p>用于嵌套层级的 required 表达（{@link #closedObject(Map, String)} 无法表达）。
+         * 实例：契约 {@code components.schemas.MissingRange} 的 {@code required: [from, to]}
+         * 且 {@code additionalProperties: false} ⇒ 生成文档的
+         * {@code ErrorBody.details.missingRanges.items.required} 必须为 {@code ["from","to"]}，
+         * 否则机器契约比权威契约更宽松，代码生成器会允许客户端漏填。</p>
+         *
+         * @param required 必填属性名子集（必须是 {@code properties} 的键）；{@code null} 表示不声明
+         */
+        public static KnownKeyDoc closedObject(Map<String, KnownKeyDoc> properties,
+                                               List<String> required, String description) {
+            return new KnownKeyDoc("object", description, properties, null, Boolean.FALSE,
+                    null, null, required);
+        }
 
         public static KnownKeyDoc str(String description) {
             return new KnownKeyDoc("string", description, null, null, null, null, null);

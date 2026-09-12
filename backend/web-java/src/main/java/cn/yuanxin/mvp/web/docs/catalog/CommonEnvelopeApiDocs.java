@@ -153,6 +153,9 @@ public class CommonEnvelopeApiDocs implements ApiDocsCatalog {
                                         "单个字段违规项；元素为对象而非字符串"),
                                 "array，逐字段违规原因（code=INVALID_INPUT 且由 @Valid 校验触发时出现）"),
                         "missingRanges", KnownKeyDoc.array(
+                                // 契约 components.schemas.MissingRange：required=[from,to]、
+                                // additionalProperties=false ⇒ 嵌套层也必须声明 required，
+                                // 否则机器契约比权威契约更宽松，代码生成器会允许客户端漏填。
                                 KnownKeyDoc.closedObject(
                                         Map.of(
                                                 "from", KnownKeyDoc.str(
@@ -161,6 +164,7 @@ public class CommonEnvelopeApiDocs implements ApiDocsCatalog {
                                                 "to", KnownKeyDoc.str(
                                                         "缺口区间终点序号（含），无符号 bigint 十进制字符串",
                                                         "17")),
+                                        List.of("from", "to"),
                                         "单个记录缺口区间（契约 MissingRange：from/to 均必填、封闭，"
                                                 + "不生成与巨大 W 成比例的数组）"),
                                 "array，收尾时缺失的记录序号区间（code=CLOSURE_GAPS 时出现；"
