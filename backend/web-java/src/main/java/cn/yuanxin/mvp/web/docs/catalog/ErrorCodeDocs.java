@@ -14,11 +14,15 @@ import java.util.Map;
  * components.responses 与各 operation description。引擎把本表用于生成错误响应的 description
  * （同一 HTTP 状态多个业务码合并为一个响应、逐码列出）。</p>
  *
- * <p><b>契约缺口（如实标注，不自行改契约）</b>：{@code PROVIDER_CONTRACT_VIOLATION}
- * 已在实现中产生并进入 {@code FailureProjection.PUBLIC_FAILURE_CODES}（M3-A03 会外发为
- * 业务 {@code failureCode}），但<strong>不在</strong> {@code web/error/ErrorCode.java}
- * 的枚举、也不在契约 {@code ErrorCode} enum 与 DD 3.2 表中；因 {@link ErrorCode} 无此常量，
- * 本类无法为其建条，需上报总协调裁定（补契约/枚举 vs. 视为 failureCode 专用命名空间）。</p>
+ * <p><b>{@code PROVIDER_CONTRACT_VIOLATION} 不在本表</b>：它<strong>刻意</strong>属于
+ * {@code AssessmentTaskView.failureCode} 的独立封闭枚举（测肤任务的投影字段），
+ * <strong>不属于</strong> HTTP {@code ErrorCode} 枚举。该码由 D 的 Worker 写入
+ * {@code skin_assessments.failure_code}，经 {@code assessments/FailureProjection} 的公开
+ * 白名单投影（{@code PUBLIC_FAILURE_CODES}，共 9 码，见其 {@code :45-53}）后由 M3-A03 外发，
+ * {@code retryable} 对所有非 null 取值恒为 {@code false}。因此联调方在 HTTP {@code error.code}
+ * 枚举中找不到它是正常的——它只出现在任务的 {@code failureCode} 字段里（以契约
+ * {@code components.schemas.AssessmentTaskView.properties.failureCode} 的 enum 为准），
+ * 本类不为其建条。</p>
  *
  * <p>HTTP 状态与 retryable 不在本表重复：以 {@link ErrorCode#defaultStatus()} 与
  * {@link ErrorCode#defaultRetryable()} 为唯一事实来源。{@code INTERNAL}(500) 只用于未映射

@@ -103,8 +103,13 @@ public class CommonEnvelopeApiDocs implements ApiDocsCatalog {
                                         + "429 RATE_LIMITED；500 INTERNAL；501 NOT_IMPLEMENTED；"
                                         + "503 DEPENDENCY_UNAVAILABLE；504 DEPENDENCY_TIMEOUT。"
                                         + "逐码触发条件与客户端动作见各端点的错误响应描述。"
-                                        + "注意：测肤任务的 failureCode 字段是<strong>另一套</strong>投影白名单"
-                                        + "（含 PROVIDER_CONTRACT_VIOLATION，该码不在本枚举内，属已知契约缺口）。",
+                                        + "注意：测肤任务的 failureCode 字段是<strong>另一套独立的封闭枚举</strong>"
+                                        + "（AssessmentTaskView.failureCode，含 PROVIDER_CONTRACT_VIOLATION）；"
+                                        + "该码<strong>刻意</strong>不属于本 HTTP error.code 枚举：它由 Worker 写入"
+                                        + "skin_assessments.failure_code，经 assessments/FailureProjection 公开白名单"
+                                        + "（共 9 码）投影后由 M3-A03 外发，retryable 对所有非 null 取值恒为 false。"
+                                        + "因此在 HTTP 错误码枚举中找不到它是正常的，应以任务 failureCode 字段"
+                                        + "（契约 AssessmentTaskView.failureCode 的 enum）为准。",
                                 null, ERROR_CODES, "INVALID_INPUT", null),
                         "message", new PropertyDoc(
                                 "供人阅读的简述，<strong>不保证稳定、不得用于程序分支</strong>；"
