@@ -63,10 +63,13 @@ def test_gate_open_without_steps_fails(monkeypatch):
 
 
 def test_gate_open_staged_scenario_skips_pending(monkeypatch):
-    # SC-R-01 显式 staged_pending=true → skip 且 reason=场景步骤编写中（集成轮 batch N）
+    # staged 三态（staged 归零后以注入样本验证 gate 语义保持不变）
     monkeypatch.setattr(gate, "current_gate", lambda path=None: "open")
+    monkeypatch.setattr(gate, "_scenarios_cache",
+                        {"SC-ZZ-99": {"id": "SC-ZZ-99", "staged_pending": True,
+                                      "authored": False}})
     with pytest.raises(pytest.skip.Exception) as ei:
-        gate.run_scenario_gate("SC-R-01")
+        gate.run_scenario_gate("SC-ZZ-99")
     assert str(ei.value).startswith(gate.PENDING_PREFIX)
     assert "场景步骤编写中（集成轮" in str(ei.value)
 

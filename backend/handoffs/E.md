@@ -339,3 +339,12 @@ E 新增两个独立黑盒验收驱动：
 - **selfcheck** rc=0（76，零回归）。
 - **驱动侧修正**：SC-00 更名 `test_zz_sc00.py` 最后执行（消除全局计数干扰）；SC-C-01/02/04 修正。
 - **清理**：`docker stop mvp-e-pg`（保留卷）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
+
+## 集成基线 lane C2（最后一批）：SC-R（2026-09-12）
+
+- **SC-R（14）**：passed 8（R-02 原子再校验；R-04 解绑不改成员/K/指针；R-05 重复解绑幂等+旧 If-Match 拒绝；R-08 指针原子替换；R-09 无效提交不换指针/旧请求不重指向；R-10 替换后旧 ID/旧执行不可取；R-13 D 替换+C 准入真实并发一致结局；R-14 空状态+冒充零写入）；device_pending 6（R-01/03/06/07/11/12 端侧待联调）。
+- **终态（staged 归零）**：94 场景 = passed 55 + device_pending 33 + seam-pending 6（SC-02-05/06/08/09、SC-03-07、SC-C-05）+ staged 0。
+- **正式 matrix**：RUN_ID=`E-20260912T105030Z-8b5a243f`，settled **94/94**，PASSED=**131** / PENDING=**39** / FAILED=0，exit=**3**，doubles_pass=55。
+- **scenarios.json**：SC-R×14 翻转；哈希 **`86bfa7b721b6f285` 不变**；authored 94 / staged 0。
+- **selfcheck** rc=0（76，零回归）；驱动侧修正：binding-status 必带 X-Pairing-Proof、If-Match 格式 `binding-{rev}`、重绑 revision、_ctx 重启后重签云台 token。
+- **清理**：`docker stop mvp-e-pg`（保留卷）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
