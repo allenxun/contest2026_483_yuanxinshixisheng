@@ -129,9 +129,12 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                         List.of(ApiDocEntry.SuccessDoc.json("200",
                                 "会话签发：返回本地 accountId 与 APP 会话凭据（refreshToken 可能为 null）",
                                 AuthController.AppSessionData.class)),
+                        // 契约 x-error-codes 同序；SESSION_INVALID 本轮补入：AuthController:181 对
+                        // 非 active（停用）账号签发会话时确实抛 401 SESSION_INVALID（oracle B2），
+                        // 此前契约漏声明（其余 32 个操作均已声明该码）。
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED,
-                                ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
-                                ErrorCode.DEPENDENCY_TIMEOUT)),
+                                ErrorCode.SESSION_INVALID, ErrorCode.RATE_LIMITED,
+                                ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT)),
 
                 // ---------------------------------------------------------- f03
                 "POST /api/v1/auth/session-refreshes",
@@ -221,9 +224,12 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                         字段要点：credential ≤256 字符；proof ≤512 字符；expiresAt/serverTime 为 RFC3339 UTC
                         秒精度时间。
                         错误处理：INVALID_INPUT 修正字段（含 credentialVersion 越界）；AUTH_REQUIRED 设备凭据未通过；
-                        SESSION_INVALID/RATE_LIMITED/DEPENDENCY_* 按错误响应动作。契约当前还声明了
-                        SESSION_INVALID 与 IDEMPOTENCY_CONTENT_CONFLICT：在 A 包薄实现中两者不主动触发
-                        （契约过声明，按保持一致原则保留，待总协调裁定），客户端按错误响应动作处理即可。
+                        RATE_LIMITED 与 DEPENDENCY_* 按错误响应动作受限退避。
+                        历史背景：本操作曾声明 SESSION_INVALID 与 IDEMPOTENCY_CONTENT_CONFLICT（契约过声明）。
+                        本轮经实现取证确认均不可达——本端点为公开端点、不经过 BearerAuthFilter，故 SESSION_INVALID
+                        无入口；本端点无 Idempotency-Key，而 IDEMPOTENCY_CONTENT_CONFLICT 全仓唯一抛出点为
+                        idempotency/IdempotencyService.java:104，故亦无入口。已从契约 x-error-codes 与本文档同步移除；
+                        HTTP 行为与序列化语义未变。
                         未冻结：设备签名算法、密钥预置/轮换、credential/proof 具体格式、sessionToken 字段名与
                         token 有效期均随设备团队与会话协议，待定（dev/test 为 DeviceCredentialProvider 替身）。
                         """,
@@ -235,7 +241,6 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                                 "云台设备会话签发成功（不返回成员资料）",
                                 GimbalSessionController.GimbalSessionData.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED,
-                                ErrorCode.SESSION_INVALID, ErrorCode.IDEMPOTENCY_CONTENT_CONFLICT,
                                 ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
                                 ErrorCode.DEPENDENCY_TIMEOUT)),
 
@@ -265,8 +270,13 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                         对该成员 active 的查看授权，云台须满足 current_assessment_id 与 credential_version 双匹配；
                         ④单请求最多 3 条单表只读 SELECT、无缓存，授权撤销/任务替换立即生效
                         （依据 BusinessMediaAccessPolicy 判定与 contracts/decisions-notes.md #10）。
-                        错误处理：AUTH_REQUIRED/SESSION_INVALID → 重新登录/握手；CALLER_NOT_ALLOWED（契约声明，
-                        当前基础实现不主动抛）；RESOURCE_NOT_VISIBLE → 不要换 ID 探测；DEPENDENCY_* 受限重试。
+                        错误处理：AUTH_REQUIRED/SESSION_INVALID → 重新登录/握手；RESOURCE_NOT_VISIBLE → 不要换 ID 探测；
+                        DEPENDENCY_* 受限重试。
+                        历史背景：本操作曾声明 CALLER_NOT_ALLOWED（契约过声明）。本轮经实现取证确认不可达——
+                        MediaController.content 授权失败一律 404 RESOURCE_NOT_VISIBLE 以防存在性推断，三个
+                        MediaAccessPolicy 实现中该码命中 0（media 包 0 处）。已从契约 x-error-codes 与本文档同步移除；
+                        注意 SESSION_INVALID 仍然保留：它由 BearerAuthFilter 对所有已认证请求统一抛出，本端点需 Bearer。
+                        HTTP 行为与序列化语义未变。
                         """,
                         List.of(ApiDocEntry.ParamDoc.of("mediaId", "path",
                                 "必填，路径参数，UUID 字符串（T11.id），媒体对象引用。",
@@ -280,8 +290,8 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                                         + "X-Content-Type-Options: nosniff。",
                                 "image/jpeg")),
                         List.of(ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
-                                ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.RESOURCE_NOT_VISIBLE,
-                                ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT)),
+                                ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.DEPENDENCY_UNAVAILABLE,
+                                ErrorCode.DEPENDENCY_TIMEOUT)),
 
                 // ---------------------------------------------------------- f06
                 "POST /api/v1/system/echo-jobs",

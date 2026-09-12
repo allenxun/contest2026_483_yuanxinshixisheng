@@ -206,8 +206,11 @@ public class IdentityDeviceApiDocs implements ApiDocsCatalog {
                         观察写入 task_ref/execution_ref，绝不移动 current_assessment 指针、不累计次数、不释放占用、不建执行。
                         status_revision 仅在 connection_status 由 unknown/offline → online 时 +1；本端点从不写 offline
                         （离线判定归扫描器）。重复旧心跳不延长在线时间、不覆盖新状态。
-                        契约过声明（如实标注）：本端点契约声明 TASK_REPLACED，但 GimbalHeartbeatService 明确不使用该码
-                        （taskId/executionId 与当前指针不符也不拒绝）；为与契约 x-error-codes 保持一致而保留，当前实现不触发。
+                        历史背景：本操作曾声明 TASK_REPLACED（契约过声明）。本轮经实现取证确认不可达——心跳不移动
+                        current_assessment 指针（GimbalHeartbeatService.java:44-45 javadoc 明示“本实现不使用
+                        TASK_REPLACED”），任务被替换只由测肤受理/补拍与 care 查询路径表达。已从契约 x-error-codes
+                        与本文档同步移除；CALLER_NOT_ALLOWED 仍保留（仅云台主体，GimbalHeartbeatService.java:79）。
+                        HTTP 行为与序列化语义未变。
                         错误处理：INVALID_INPUT（含 observationSeq 越界）修正后重试；SESSION_INVALID 凭据代次已变 →
                         重新握手；RESOURCE_NOT_VISIBLE 不换 ID 探测；DEPENDENCY_* 受限退避重试。
                         """,
@@ -221,9 +224,9 @@ public class IdentityDeviceApiDocs implements ApiDocsCatalog {
                                 DeviceDtos.HeartbeatAck.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED,
                                 ErrorCode.SESSION_INVALID, ErrorCode.CALLER_NOT_ALLOWED,
-                                ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.TASK_REPLACED,
-                                ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
-                                ErrorCode.DEPENDENCY_TIMEOUT, ErrorCode.NOT_IMPLEMENTED))),
+                                ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.RATE_LIMITED,
+                                ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT,
+                                ErrorCode.NOT_IMPLEMENTED))),
 
                 // ---------------------------------------------------------- M2-A03
                 Map.entry("GET /api/v1/gimbals/{gimbalId}/status", new ApiDocEntry(
@@ -240,6 +243,10 @@ public class IdentityDeviceApiDocs implements ApiDocsCatalog {
                         表示从未心跳；isStale = last_seen_at 为空或距今超过 staleness 阈值（默认 300 秒）；
                         statusRevision 为无符号 bigint 十进制字符串；incidents 仅投影 active episode。
                         错误处理：RESOURCE_NOT_VISIBLE 不换 ID 探测；DEPENDENCY_* 受限退避重试。
+                        历史背景：本操作曾声明 CALLER_NOT_ALLOWED（契约过声明）。本轮经实现取证确认不可达——
+                        GimbalStatusService 对 GIMBAL/APP 两种主体分支分别放行或统一 404 RESOURCE_NOT_VISIBLE，
+                        无 403 CALLER_NOT_ALLOWED 抛出点。已从契约 x-error-codes 与本文档同步移除；
+                        HTTP 行为与序列化语义未变。
                         """,
                         List.of(gimbalIdPath()),
                         List.of(),
@@ -249,9 +256,9 @@ public class IdentityDeviceApiDocs implements ApiDocsCatalog {
                                 "已知状态投影（不伪装成实时；isStale=true 表示过期或从未心跳）",
                                 DeviceDtos.StatusView.class)),
                         List.of(ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
-                                ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.RESOURCE_NOT_VISIBLE,
-                                ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
-                                ErrorCode.DEPENDENCY_TIMEOUT, ErrorCode.NOT_IMPLEMENTED))),
+                                ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.RATE_LIMITED,
+                                ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT,
+                                ErrorCode.NOT_IMPLEMENTED))),
 
                 // ---------------------------------------------------------- M2-A04
                 Map.entry("POST /api/v1/microcrystal-observations", new ApiDocEntry(

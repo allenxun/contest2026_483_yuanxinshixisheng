@@ -399,6 +399,7 @@ class ApiDocsCoverageIT extends AbstractWebIT {
 
         // 6b) 契约 required 交叉校验：multipart part 必填性 + 请求体 schema required 集。
         crossCheckContractRequired(generated, schemas, problems);
+        crossCheckFailureCodeEnum(schemas, problems);
 
         // 7) 至少 5 个关键 schema 带脱敏 example（component 属性级或 schema 级）。
         int withExample = 0;
@@ -444,6 +445,106 @@ class ApiDocsCoverageIT extends AbstractWebIT {
         missingContractRoutes.removeAll(generated.keySet());
         if (!missingContractRoutes.isEmpty()) {
             problems.add("契约业务路由未出现在生成文档: " + missingContractRoutes);
+        }
+
+        // 8) 不可达错误码回归守卫（锁定本轮"最小契约一致性修正"的成果）。
+        //    依据：只读侦察道逐操作追踪 controller→service→授权路径，orchestrator 复核后
+        //    同步删除契约 x-error-codes 与目录 errorCodes()（24 处码-操作对 / 17 个操作）。
+        //    本守卫防止将来任一侧把"实现不可能返回的码"重新加回声明——那会让联调方
+        //    实现永不发生的分支。键一律经 normalize() 构造，与 generated/contract 同源；
+        //    "操作未出现在生成文档"本身记为 problem，避免路径笔误使检查静默失效（恒真）。
+        //    另设正向对照：可达码必须继续声明，使"全删"无法通过本守卫。
+        java.util.function.BiFunction<String, String, String> opKey =
+                (m, p) -> m.toUpperCase() + " " + normalize(p);
+        Map<String, Set<String>> unreachableCodes = new LinkedHashMap<>();
+        unreachableCodes.put(opKey.apply("post", "/api/v1/gimbal-sessions"),
+                Set.of("SESSION_INVALID", "IDEMPOTENCY_CONTENT_CONFLICT"));
+        unreachableCodes.put(opKey.apply("post", "/api/v1/gimbals/{gimbalId}/heartbeats"),
+                Set.of("TASK_REPLACED"));
+        unreachableCodes.put(opKey.apply("get", "/api/v1/gimbals/{gimbalId}/status"),
+                Set.of("CALLER_NOT_ALLOWED"));
+        unreachableCodes.put(opKey.apply("post", "/api/v1/skin-assessment-tasks"),
+                Set.of("TASK_REPLACED"));
+        unreachableCodes.put(opKey.apply("get", "/api/v1/skin-assessment-tasks/{taskId}"),
+                Set.of("CALLER_NOT_ALLOWED"));
+        unreachableCodes.put(opKey.apply("get", "/api/v1/members/{memberId}/skin-reports"),
+                Set.of("GRANT_REVOKED"));
+        unreachableCodes.put(opKey.apply("get", "/api/v1/skin-reports/{reportId}"),
+                Set.of("GRANT_REVOKED"));
+        unreachableCodes.put(opKey.apply("get", "/api/v1/members/{memberId}/care-plans"),
+                Set.of("GRANT_REVOKED"));
+        unreachableCodes.put(opKey.apply("get", "/api/v1/care-plans/{planId}"),
+                Set.of("PLAN_NOT_READY", "GRANT_REVOKED"));
+        unreachableCodes.put(opKey.apply("post", "/api/v1/care-executions"),
+                Set.of("CALLER_NOT_ALLOWED", "BINDING_CHANGED"));
+        unreachableCodes.put(opKey.apply("post", "/api/v1/care-executions/{executionId}/revalidations"),
+                Set.of("CALLER_NOT_ALLOWED", "RECORD_CONFLICT"));
+        unreachableCodes.put(opKey.apply("post", "/api/v1/care-executions/{executionId}/observations"),
+                Set.of("CALLER_NOT_ALLOWED", "BINDING_CHANGED"));
+        unreachableCodes.put(opKey.apply("post", "/api/v1/care-executions/{executionId}/closure-confirmations"),
+                Set.of("CALLER_NOT_ALLOWED"));
+        unreachableCodes.put(opKey.apply("get", "/api/v1/care-executions/{executionId}"),
+                Set.of("CALLER_NOT_ALLOWED", "GRANT_REVOKED"));
+        unreachableCodes.put(opKey.apply("get", "/api/v1/care-plans/{planId}/progress"),
+                Set.of("CALLER_NOT_ALLOWED", "GRANT_REVOKED"));
+        unreachableCodes.put(opKey.apply("get", "/api/v1/members/{memberId}/care-executions"),
+                Set.of("GRANT_REVOKED"));
+        unreachableCodes.put(opKey.apply("get", "/api/v1/media/{mediaId}/content"),
+                Set.of("CALLER_NOT_ALLOWED"));
+        // 正向对照：经取证确认可达，必须继续声明。
+        // GRANT_REVOKED 全仓唯一抛出点 MemberAccessGrantService:151（M1-A01 幂等重放）；
+        // TASK_REPLACED 在 revalidate(:427,:430,:470,:473)/admit(:203,:207,:266,:270)/
+        // SkinReportService:129/CareQueryService:205 可达；PLAN_NOT_READY 在
+        // CareAdmissionService:774,775 与 CareQueryService:198,216 可达；
+        // SESSION_INVALID 由 BearerAuthFilter:89,104 对所有已认证请求统一抛出（f05 需 Bearer）；
+        // CALLER_NOT_ALLOWED 经 CareAuthorization.requireApp 仅被 CareQueryService:69,107,227 调用。
+        Map<String, Set<String>> reachableCodesMustStay = new LinkedHashMap<>();
+        reachableCodesMustStay.put(opKey.apply("post", "/api/v1/member-access-grants"),
+                Set.of("GRANT_REVOKED"));
+        reachableCodesMustStay.put(opKey.apply("post", "/api/v1/care-executions/{executionId}/revalidations"),
+                Set.of("TASK_REPLACED"));
+        reachableCodesMustStay.put(opKey.apply("get", "/api/v1/skin-reports/{reportId}"),
+                Set.of("TASK_REPLACED", "CALLER_NOT_ALLOWED"));
+        reachableCodesMustStay.put(opKey.apply("post", "/api/v1/care-executions"),
+                Set.of("PLAN_NOT_READY", "TASK_REPLACED"));
+        reachableCodesMustStay.put(opKey.apply("get", "/api/v1/care-plans/{planId}/progress"),
+                Set.of("PLAN_NOT_READY", "TASK_REPLACED"));
+        reachableCodesMustStay.put(opKey.apply("get", "/api/v1/media/{mediaId}/content"),
+                Set.of("SESSION_INVALID"));
+        reachableCodesMustStay.put(opKey.apply("post", "/api/v1/gimbals/{gimbalId}/heartbeats"),
+                Set.of("CALLER_NOT_ALLOWED"));
+        reachableCodesMustStay.put(opKey.apply("get", "/api/v1/members/{memberId}/care-plans"),
+                Set.of("CALLER_NOT_ALLOWED"));
+        reachableCodesMustStay.put(opKey.apply("get", "/api/v1/care-plans/{planId}"),
+                Set.of("CALLER_NOT_ALLOWED"));
+        reachableCodesMustStay.put(opKey.apply("get", "/api/v1/members/{memberId}/care-executions"),
+                Set.of("CALLER_NOT_ALLOWED"));
+
+        for (Map.Entry<String, Set<String>> e : unreachableCodes.entrySet()) {
+            JsonNode op = generated.get(e.getKey());
+            if (op == null) {
+                problems.add("不可达码守卫失效：操作未出现在生成文档（路径或键格式已变）: " + e.getKey());
+                continue;
+            }
+            Set<String> still = new LinkedHashSet<>(e.getValue());
+            still.retainAll(generatedErrorCodes(op));
+            if (!still.isEmpty()) {
+                problems.add("不可达错误码仍被声明（实现无抛出点，将误导联调方实现永不发生的分支）: "
+                        + e.getKey() + " -> " + still);
+            }
+        }
+        for (Map.Entry<String, Set<String>> e : reachableCodesMustStay.entrySet()) {
+            JsonNode op = generated.get(e.getKey());
+            if (op == null) {
+                problems.add("可达码守卫失效：操作未出现在生成文档: " + e.getKey());
+                continue;
+            }
+            Set<String> miss = new LinkedHashSet<>(e.getValue());
+            miss.removeAll(generatedErrorCodes(op));
+            if (!miss.isEmpty()) {
+                problems.add("可达错误码被误删（不得以“全删”方式通过不可达码守卫）: "
+                        + e.getKey() + " -> 缺 " + miss);
+            }
         }
 
         assertTrue(problems.isEmpty(),
@@ -816,6 +917,66 @@ class ApiDocsCoverageIT extends AbstractWebIT {
             collectSchemaRefs(schema, out, queue);
         }
         return out;
+    }
+
+    /**
+     * 交叉校验：生成文档中 {@code AssessmentTaskView.failureCode} 的封闭 {@code enum}
+     * 必须与权威契约 {@code components.schemas.AssessmentTaskView.properties.failureCode.enum}
+     * <strong>逐字同序</strong>相等。
+     *
+     * <p>本轮经总协调授权把 {@code FailureProjection.PUBLIC_FAILURE_CODES} 的 9 个公开白名单码
+     * （含此前只在实现中存在的 {@code PROVIDER_CONTRACT_VIOLATION}）写入契约 enum，并在目录侧
+     * 用 {@code PropertyDoc.enumOf} 使生成文档同样机器可读。两侧任一漂移都会让联调方穷举出错，
+     * 故此处双向锁定（顺序亦须一致，便于人工对照）。</p>
+     */
+    @SuppressWarnings("unchecked")
+    private static void crossCheckFailureCodeEnum(JsonNode schemas, List<String> problems)
+            throws Exception {
+        Path yamlPath = Path.of("..", "contracts", "openapi", "openapi.yaml");
+        if (!Files.exists(yamlPath)) {
+            problems.add("failureCode enum 交叉校验无法进行：契约不存在于 " + yamlPath.toAbsolutePath());
+            return;
+        }
+        Map<String, Object> contract;
+        try (InputStream in = Files.newInputStream(yamlPath)) {
+            contract = new Yaml().load(in);
+        }
+        Map<String, Object> cs = (Map<String, Object>) contract.get("components");
+        Map<String, Object> csSchemas = cs == null ? null : (Map<String, Object>) cs.get("schemas");
+        Map<String, Object> view = csSchemas == null ? null
+                : (Map<String, Object>) csSchemas.get("AssessmentTaskView");
+        Map<String, Object> viewProps = view == null ? null
+                : (Map<String, Object>) view.get("properties");
+        Map<String, Object> fc = viewProps == null ? null
+                : (Map<String, Object>) viewProps.get("failureCode");
+        List<Object> contractEnum = fc == null ? null : (List<Object>) fc.get("enum");
+        if (contractEnum == null || contractEnum.isEmpty()) {
+            problems.add("契约 AssessmentTaskView.failureCode 缺少 enum（本轮应已补入 9 个公开白名单码）");
+            return;
+        }
+        List<String> expected = new ArrayList<>();
+        for (Object o : contractEnum) {
+            expected.add(String.valueOf(o));
+        }
+        JsonNode node = schemas.path("AssessmentTaskView").path("properties").path("failureCode");
+        if (node.isMissingNode()) {
+            problems.add("生成文档缺少 AssessmentTaskView.failureCode 节点，无法交叉校验 enum");
+            return;
+        }
+        JsonNode gen = node.path("enum");
+        if (!gen.isArray()) {
+            problems.add("生成文档 AssessmentTaskView.failureCode 未带 enum（目录应使用 PropertyDoc.enumOf）");
+            return;
+        }
+        List<String> actual = new ArrayList<>();
+        gen.forEach(v -> actual.add(v.asText()));
+        if (!actual.equals(expected)) {
+            problems.add("AssessmentTaskView.failureCode enum 与契约不一致（须逐字同序）：generated="
+                    + actual + " contract=" + expected);
+        }
+        if (!expected.contains("PROVIDER_CONTRACT_VIOLATION")) {
+            problems.add("契约 failureCode enum 缺 PROVIDER_CONTRACT_VIOLATION（该码已实现并经 M3-A03 外发）");
+        }
     }
 
     private static void collectSchemaRefs(JsonNode node, Set<String> out, java.util.Deque<String> queue) {
