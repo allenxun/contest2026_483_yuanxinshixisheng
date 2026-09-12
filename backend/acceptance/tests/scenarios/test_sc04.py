@@ -131,7 +131,7 @@ def test_SC_04_02(scenario_evidence):
     cu, bu = _admit(a2, c1)
     _rec(se, "POST", "/api/v1/care-executions", cu, bu, req={"case": "unbound"})
     _bind(c1["mid"])
-    t07 = CC.scalar("SELECT count(*) FROM care_executions")
+    t07 = CC.scalar(f"SELECT count(*) FROM care_executions WHERE member_id IN ('{c1['mid']}','{c2['mid']}')")
     assert ca == 403 and ba["error"]["code"] == "FACE_NOT_VERIFIED"
     assert "planExecution" not in json.dumps(ba) and "plan" not in (ba.get("data") or {})
     assert cu == 503 and bu["error"]["code"] == "DEPENDENCY_UNAVAILABLE"
@@ -146,7 +146,7 @@ def test_SC_04_03(scenario_evidence):
     """方案未就绪/已完成/能力不满足：409 精确 reason，均不登记新执行（T07 零行）。"""
     se = scenario_evidence
     _decl(se)
-    before = CC.scalar("SELECT count(*) FROM care_executions")
+
     # A) 方案未就绪（waiting_inputs）→ 409 PLAN_NOT_READY，且 M4-A02 明确 waitingReason
     cw = _chain(se, observe=False)
     _bind(cw["mid"])
@@ -174,14 +174,15 @@ def test_SC_04_03(scenario_evidence):
     CC.sql(f"UPDATE care_plans SET completed_count=target_count WHERE id='{c['plan']}'")
     cc2, bb2 = _admit(a, c)
     _rec(se, "POST", "/api/v1/care-executions", cc2, bb2, req={"case": "plan_completed"})
-    after = CC.scalar("SELECT count(*) FROM care_executions")
+    exec_cw = CC.scalar(f"SELECT count(*) FROM care_executions WHERE member_id='{cw['mid']}'")
+    exec_c = CC.scalar(f"SELECT count(*) FROM care_executions WHERE member_id='{c['mid']}'")
     assert cc1 == 409 and bb1["error"]["code"] == "PLAN_NOT_READY"
     assert bb1["error"].get("details", {}).get("reason") in (
         "device_capabilities_missing", "capability_id_mismatch", "parameter_range_not_covered",
         "region_not_supported", "n_out_of_bounds", "frozen_capability_requirement_missing",
         "malformed_frozen_capability", "step_parameters_not_covered", "malformed_frozen_step")
     assert cc2 == 409 and bb2["error"]["code"] == "PLAN_COMPLETED"
-    assert before == after == "0"
+    assert exec_cw == "0" and exec_c == "0"
     se.seal()
 
 

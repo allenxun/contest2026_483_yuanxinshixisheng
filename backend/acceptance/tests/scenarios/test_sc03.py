@@ -192,7 +192,7 @@ def test_SC_03_05(scenario_evidence):
                        headers={"Idempotency-Key": str(uuid.uuid4())})
     _rec(se, "POST", "/api/v1/microcrystal-observations", cb, bb, req={"serial": serial, "forged": True})
     rev_after = CC.scalar(f"SELECT capabilities->>'revision' FROM microcrystals WHERE id='{mid}'")
-    executions = CC.scalar("SELECT count(*) FROM care_executions")
+    executions = CC.scalar(f"SELECT count(*) FROM care_executions WHERE microcrystal_id='{mid}'")
     assert co == 200
     assert cb == 403 and bb["error"]["code"] == "CALLER_NOT_ALLOWED"
     assert rev_before == rev_after and executions == "0"
@@ -214,7 +214,7 @@ def test_SC_03_06(scenario_evidence):
     _rec(se, "GET", f"/api/v1/microcrystals/{mid}/capabilities", c1, b1, req={"observer": "a"})
     c2, b2, _ = live.get_capabilities(mid, c)
     _rec(se, "GET", f"/api/v1/microcrystals/{mid}/capabilities", c2, b2, req={"observer": "unrelated"})
-    executions = CC.scalar("SELECT count(*) FROM care_executions")
+    executions = CC.scalar(f"SELECT count(*) FROM care_executions WHERE microcrystal_id='{mid}'")
     data = b1.get("data") or {}
     assert co == 200 and c1 == 200
     assert str(data.get("capabilityRevision")) == "1"

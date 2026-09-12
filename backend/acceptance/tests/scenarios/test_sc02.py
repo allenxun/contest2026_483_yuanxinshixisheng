@@ -114,7 +114,7 @@ def test_SC_02_03(scenario_evidence):
     se = scenario_evidence
     _decl(se)
     _g, tok = live.gimbal_with_token()
-    before = CC.scalar("SELECT count(*) FROM skin_assessments")
+    before = CC.scalar(f"SELECT count(*) FROM skin_assessments WHERE gimbal_id='{_g}'")
     # 缺 right 视角
     c1, b1 = live.multipart_a01(tok, str(uuid.uuid4()),
                                 images={"front": live._png(), "left": live._png()})
@@ -122,8 +122,8 @@ def test_SC_02_03(scenario_evidence):
     # metadata 非法（photoVersion 非 "1"）
     c2, b2 = live.multipart_a01(tok, str(uuid.uuid4()), photo_version="2")
     _rec(se, "POST", "/api/v1/skin-assessment-tasks", c2, b2, req={"photoVersion": "2"})
-    after = CC.scalar("SELECT count(*) FROM skin_assessments")
-    reports = CC.scalar("SELECT count(*) FROM skin_assessments WHERE report_payload IS NOT NULL")
+    after = CC.scalar(f"SELECT count(*) FROM skin_assessments WHERE gimbal_id='{_g}'")
+    reports = CC.scalar(f"SELECT count(*) FROM skin_assessments WHERE gimbal_id='{_g}' AND report_payload IS NOT NULL")
     assert c1 == 400 and c2 == 400
     assert before == after and reports == "0"
     se.seal()

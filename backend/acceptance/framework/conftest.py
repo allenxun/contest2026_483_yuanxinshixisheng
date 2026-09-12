@@ -262,7 +262,9 @@ def _persist_evidence_summary(st) -> None:
     d = pathlib.Path(ev)
     try:
         d.mkdir(parents=True, exist_ok=True)
-        payload = {"run_id": st.run_id, "mode": st.mode, "counts": dict(st.counts),
+        payload = {"run_id": st.run_id, "mode": st.mode,
+                   "reviewed_sha": os.environ.get("E_ACCEPTANCE_REVIEWED_SHA", ""),
+                   "command": "run.sh matrix", "counts": dict(st.counts),
                    "settled": len(st.settled), "required": len(st.required),
                    "evidence_tags": dict(st.evidence_tags),
                    "pending_gate_failures": list(getattr(st, "pending_gate_failures", []))}
