@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 「照护方案与执行」域联调文档目录（M4-A01..A09，共 9 个操作）。
@@ -923,13 +924,12 @@ public class CareApiDocs implements ApiDocsCatalog {
                         Map.of(
                                 "title", "string，方案标题",
                                 "description", "string，方案说明",
-                                "steps", "array，护理步骤数组；每元素仅为对象 {region(string), parameters(object)}，过滤后为空的步骤被丢弃",
-                                "regions", "array，允许的护理区域字符串数组（仅保留 string 元素）",
-                                "parameters", "object，参数名 → 参数定义；参数定义可为标量，或仅保留 {value(标量), unit(string)}"),
+                                "regions", "array<string>，允许的护理区域字符串数组（仅保留 string 元素）"),
                         false,
                         "封闭白名单（additionalProperties=false）：服务端只放行 title/description/steps/regions/parameters；"
                                 + "未知键、类型不符值、供应商原始响应/提示词与内部版本标记 schema_version 一律丢弃。"
-                                + "步骤/参数/区域及微晶参数名、单位、范围尚未在契约冻结，属于 C 侧保守提案，待总协调/D 确认后冻结。",
+                                + "steps 与 parameters 的递归结构见 structuredKeys()；步骤/参数/区域及微晶参数名、单位、范围"
+                                + "尚未在契约冻结，属于 C 侧保守提案，待总协调/D 确认后冻结。",
                         "{\"title\":\"示例方案\",\"description\":\"示例说明\","
                                 + "\"steps\":[{\"region\":\"face\",\"parameters\":{\"intensity\":{\"value\":\"3\",\"unit\":\"level\"}}}],"
                                 + "\"regions\":[\"face\"],\"parameters\":{\"intensity\":{\"value\":\"3\",\"unit\":\"level\"}}}")),
@@ -959,11 +959,10 @@ public class CareApiDocs implements ApiDocsCatalog {
                         不含历史列表或无关成员资料。未就绪/空投影时为 null。
                         """,
                         Map.of(
-                                "steps", "array，执行步骤数组；每元素仅为对象 {region(string), parameters(object)}",
-                                "regions", "array，允许区域字符串数组（仅 string 元素）",
-                                "parameters", "object，参数名 → 参数定义；可为标量或 {value(标量), unit(string)}"),
+                                "regions", "array<string>，允许区域字符串数组（仅 string 元素）"),
                         false,
                         "封闭白名单（additionalProperties=false）：服务端只放行 steps/regions/parameters；"
+                                + "steps 与 parameters 的递归结构见 structuredKeys()；"
                                 + "微晶参数名、单位、范围尚未在契约冻结，须来自已验证微晶协议，属 C 侧保守提案，"
                                 + "待总协调/D 确认后冻结。",
                         "{\"steps\":[{\"region\":\"face\",\"parameters\":{\"intensity\":\"3\"}}],"
@@ -975,11 +974,10 @@ public class CareApiDocs implements ApiDocsCatalog {
                         原方案 plan_payload 做递归白名单投影）。不含内部 schema_version；未知键与供应商原文一律丢弃。
                         """,
                         Map.of(
-                                "steps", "array，执行步骤数组；每元素仅为对象 {region(string), parameters(object)}",
-                                "regions", "array，允许区域字符串数组（仅 string 元素）",
-                                "parameters", "object，参数名 → 参数定义；可为标量或 {value(标量), unit(string)}"),
+                                "regions", "array<string>，允许区域字符串数组（仅 string 元素）"),
                         false,
                         "封闭白名单（additionalProperties=false）：服务端只放行 steps/regions/parameters；"
+                                + "steps 与 parameters 的递归结构见 structuredKeys()；"
                                 + "微晶参数名、单位、范围尚未在契约冻结，属 C 侧保守提案，待总协调/D 确认后冻结。",
                         "{\"steps\":[{\"region\":\"face\",\"parameters\":{\"intensity\":\"3\"}}],"
                                 + "\"regions\":[\"face\"],\"parameters\":{\"intensity\":\"3\"}}")),
@@ -999,5 +997,109 @@ public class CareApiDocs implements ApiDocsCatalog {
                                 + "x-detail: skeleton 与 DD 6.2；服务端当前仅做对象/null 校验与载荷哈希，不解释内部键。",
                         null))
         );
+    }
+
+    /**
+     * 方案正文/执行简版内部<strong>嵌套</strong>键（{@code steps}、{@code parameters}）的递归结构。
+     *
+     * <p>取证：{@code care/CarePlanProjection.java} 的 {@code projectStep()}（step 必须是对象，
+     * 只保留 {@code region}（须 textual）与 {@code parameters}，其余键一律丢弃）、
+     * {@code projectParameters()}（必须是对象，键名不固定=参数名，逐个键递归 {@code projectParameter}）、
+     * {@code projectParameter()}（标量原样返回；对象只保留 {@code value}（须标量）与 {@code unit}
+     * （须 textual），其余丢弃；null 或过滤后为空则整体丢弃）。若只给一层 DSL，
+     * {@code steps} 会被生成为 {@code array<string>}、{@code parameters} 为空映射，与真实响应冲突。</p>
+     *
+     * <p>扁平键（{@code title}/{@code description}/{@code regions}）仍由 {@link #freeFormDocs()} 的
+     * {@code knownKeys} 提供；本方法只补充真正的嵌套键，两者按并集施加。</p>
+     */
+    @Override
+    public Map<String, Map<String, KnownKeyDoc>> structuredKeys() {
+        // projectParameter 的真实值域是「标量 或 封闭对象 {value, unit}」的联合：
+        // 标量分支用 any（不写 type、仅描述）表达，对象分支在同一描述中写明，避免把标量误报为对象。
+        KnownKeyDoc parameterValue = new KnownKeyDoc(
+                "any",
+                "参数值：为标量（string/number/boolean）时原样保留；为对象时只保留 value（标量）与 "
+                        + "unit（字符串），其余键一律丢弃；null 或过滤后为空的对象整体丢弃。"
+                        + "参数名/单位/取值范围未冻结，须来自已验证微晶协议，不发明任何设备参数。",
+                null, null, null, null, null);
+        KnownKeyDoc parameters = KnownKeyDoc.mapOf(parameterValue,
+                "动态映射：键为参数名（不固定，服务端不发明参数名），值为参数定义（标量或 {value, unit}）；"
+                        + "参数名/单位/范围未冻结，须来自已验证微晶协议。");
+        KnownKeyDoc steps = KnownKeyDoc.array(
+                KnownKeyDoc.closedObject(
+                        Map.of(
+                                "region", KnownKeyDoc.str(
+                                        "护理区域标识（字符串）；非 string 元素一律丢弃；区域枚举未冻结，"
+                                                + "须来自已验证测肤/微晶协议，不发明。", "face"),
+                                "parameters", parameters),
+                        "单个护理步骤；服务端只保留 region 与 parameters，其余键一律丢弃"
+                                + "（过滤后为空的步骤会被整体丢弃）"),
+                "护理步骤数组；每元素为封闭对象 {region, parameters}，过滤后为空的步骤会被整体丢弃");
+        return Map.of(
+                "CarePlanFullView.plan", Map.of(
+                        "steps", steps,
+                        "parameters", parameters),
+                "CareExecutionAdmission.planExecution", Map.of(
+                        "steps", steps,
+                        "parameters", parameters),
+                "CareExecutionRevalidation.planExecution", Map.of(
+                        "steps", steps,
+                        "parameters", parameters));
+    }
+
+    /**
+     * 响应 data schema 的契约 {@code required} 修正：springdoc 无法从"无 Bean Validation 注解的 record"
+     * 推导必填，故由目录显式声明，引擎并入生成 schema 的 {@code required}。
+     *
+     * <p>纪律：集合<strong>逐字等于</strong>{@code backend/contracts/openapi/openapi.yaml components.schemas}
+     * 对应 schema 的 {@code required}（snakeyaml 实读核实）；生成名→契约名映射与
+     * {@code ApiDocsCoverageIT.CONTRACT_RESPONSE_SCHEMA_ALIASES} 一致。契约 {@code required} 表达
+     * <strong>服务端保证该键必然存在</strong>；未列入者意为"可能为 null 或在某些视图下省略"
+     * （如 {@code Progress.targetCount}/{@code isCompleted}、{@code Verification.validUntil}、
+     * {@code ExecutionClosureResult.closedAt}、{@code CareExecutionView.controller} 等），客户端不得依赖，
+     * 这<strong>不是</strong>实现偏差。</p>
+     *
+     * <p>存在性核实（本域响应 DTO 全为 record，且全库无 {@code @JsonInclude(NON_NULL)} 于 care 域——见
+     * {@code care/CareAdmissionDtos.java}、{@code care/CareLedgerDtos.java}、{@code care/CareProjections.java}）：
+     * record 组件恒被序列化；下列声明的字段在实现中亦恒有值（DB NOT NULL 列或构造路径保证），逐条注释见各 entry。</p>
+     */
+    @Override
+    public Map<String, Set<String>> requiredProperties() {
+        return Map.ofEntries(
+                // CarePlanListItem：planId←row.id()（T06.id，非空）；generationStatus←DB NOT NULL。
+                Map.entry("CarePlanListItem", Set.of("planId", "generationStatus")),
+                // CarePlanFullView：planId、generationStatus 恒非空；plan/progress/waitingReason 可空。
+                Map.entry("CarePlanFullView", Set.of("planId", "generationStatus")),
+                // CareExecutionAdmission：构造路径恒给 executionId/status/controller/progress/verification。
+                Map.entry("CareExecutionAdmission",
+                        Set.of("executionId", "status", "controller", "progress", "verification")),
+                // CareExecutionRevalidation：构造路径恒给 executionId/status/progress/verification。
+                Map.entry("CareExecutionRevalidation",
+                        Set.of("executionId", "status", "progress", "verification")),
+                // CareExecutionListItem：createdAt←care_executions.created_at NOT NULL；acceptedCount NOT NULL。
+                Map.entry("CareExecutionListItem",
+                        Set.of("executionId", "status", "createdAt", "acceptedCount")),
+                // CareExecutionView：最小对账视图与完整摘要均保留 executionId/status/acceptedCount。
+                Map.entry("CareExecutionView", Set.of("executionId", "status", "acceptedCount")),
+                // ObservationAckDto→ExecutionObservationAck：构造路径恒给三键；progress 仅具读权限时附带。
+                Map.entry("ObservationAckDto",
+                        Set.of("acknowledgedRecords", "executionStatus", "acceptedCount")),
+                // ClosureResultDto→ExecutionClosureResult：closed/occupancyReleased 恒布尔；closedAt 未关闭为 null。
+                Map.entry("ClosureResultDto", Set.of("closed", "occupancyReleased")),
+                // ProgressWithSync（契约展平 7 属性）：三键由 CareBigints 恒产出；targetCount/isCompleted 可空。
+                Map.entry("ProgressWithSync",
+                        Set.of("completedCount", "remainingCount", "progressRevision")),
+                // Progress（独立 component，被 6 个 schema 共享，只声明一次）。
+                Map.entry("Progress", Set.of("completedCount", "remainingCount", "progressRevision")),
+                // VerificationDto→Verification：6 键在构造路径恒给；validUntil 当前恒为 null（非 required）。
+                Map.entry("VerificationDto",
+                        Set.of("verificationRevision", "captureId", "clientContinuityId",
+                                "verifiedAt", "applicablePurpose", "replayed")),
+                // ControllerRef：controllerType←DB CHECK controller_type IN ('app','gimbal')，恒非空。
+                Map.entry("ControllerRef", Set.of("controllerType")),
+                // ExecutionObservation：对象存在时 epoch/seq/state/occurredAt 均经校验非空。
+                Map.entry("ExecutionObservation", Set.of("epoch", "seq", "state", "occurredAt")),
+                // AcknowledgedRecordDto→AcknowledgedRecord：recordId 来自 @NotBlank 请求记录；disposition 恒有值。
+                Map.entry("AcknowledgedRecordDto", Set.of("recordId", "disposition")));
     }
 }

@@ -124,6 +124,49 @@ public class CommonEnvelopeApiDocs implements ApiDocsCatalog {
                                 null, null, null, null)));
     }
 
+    /**
+     * {@code ErrorBody.details} 内部<strong>嵌套</strong>键的递归结构。
+     *
+     * <p>两个键的真实元素是<strong>对象</strong>而非字符串，若沿用一层 DSL 会被生成为
+     * {@code array<string>}，从而与真实响应冲突并误导代码生成器：</p>
+     * <ul>
+     *   <li>{@code fields}：{@code List.of(Map.of("field", …, "reason", …))}
+     *       （取证 {@code MemberAccessGrantController.java:209}）；注意部分生产者只给
+     *       {@code field} 而无 {@code reason}（如 {@code CareBigints.java:50}），故为开放对象。</li>
+     *   <li>{@code missingRanges}：契约 {@code components.schemas.MissingRange} =
+     *       {@code {from, to}}，两键均 <strong>required</strong>、{@code additionalProperties: false}
+     *       ⇒ 封闭对象；两值均为无符号 bigint 十进制字符串。</li>
+     * </ul>
+     */
+    @Override
+    public Map<String, Map<String, KnownKeyDoc>> structuredKeys() {
+        return Map.of(
+                "ErrorBody.details", Map.of(
+                        "fields", KnownKeyDoc.array(
+                                KnownKeyDoc.openObject(
+                                        Map.of(
+                                                "field", KnownKeyDoc.str(
+                                                        "违规字段名（JSON 字段名，camelCase）"),
+                                                "reason", KnownKeyDoc.str(
+                                                        "违规原因概述；部分生产者只给 field 而不给 reason，"
+                                                                + "客户端不得假设其存在")),
+                                        "单个字段违规项；元素为对象而非字符串"),
+                                "array，逐字段违规原因（code=INVALID_INPUT 且由 @Valid 校验触发时出现）"),
+                        "missingRanges", KnownKeyDoc.array(
+                                KnownKeyDoc.closedObject(
+                                        Map.of(
+                                                "from", KnownKeyDoc.str(
+                                                        "缺口区间起点序号（含），无符号 bigint 十进制字符串",
+                                                        "12"),
+                                                "to", KnownKeyDoc.str(
+                                                        "缺口区间终点序号（含），无符号 bigint 十进制字符串",
+                                                        "17")),
+                                        "单个记录缺口区间（契约 MissingRange：from/to 均必填、封闭，"
+                                                + "不生成与巨大 W 成比例的数组）"),
+                                "array，收尾时缺失的记录序号区间（code=CLOSURE_GAPS 时出现；"
+                                        + "受输出上限约束，配合 more 判断是否被截断）")));
+    }
+
     @Override
     public Map<String, FreeFormDoc> freeFormDocs() {
         return Map.of(
@@ -155,7 +198,7 @@ public class CommonEnvelopeApiDocs implements ApiDocsCatalog {
                                         "string，当前通知目标代次（无符号 bigint 十进制字符串）；"
                                                 + "code=BINDING_CHANGED 且发生于通知目标登记时出现"),
                                 Map.entry("conflictingRecordIds",
-                                        "array，冲突的实际完成记录 ID（最多 20 个）；"
+                                        "array<string>，冲突的实际完成记录 ID（最多 20 个）；"
                                                 + "code=RECORD_CONFLICT 时出现"),
                                 Map.entry("totalConflicts",
                                         "integer，冲突总数（可能大于已列出的 conflictingRecordIds 数量）"),

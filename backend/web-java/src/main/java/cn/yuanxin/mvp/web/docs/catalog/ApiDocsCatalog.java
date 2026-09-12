@@ -56,18 +56,36 @@ public interface ApiDocsCatalog {
      * <strong>属性级 required 修正</strong>：外层 key = 生成文档中的 schema 名，
      * 内层 = 该 schema 中<strong>应当标记为必填</strong>的属性名集合。
      *
-     * <p>用途：当<strong>契约</strong>要求某属性必填、而 Java 代码未以校验注解强制时，
-     * springdoc 生成的 {@code required} 会缺失该属性，文档因而与权威契约不一致
-     * （实例：{@code EchoJobRequestBody.numbersAsStrings} 在契约
-     * {@code SystemEchoJobRequest.required} 中，但代码未强制）。本方法让目录在
-     * <strong>不改任何 DTO/业务代码</strong>的前提下修正生成文档的 {@code required}。</p>
+     * <p>springdoc 只从 Bean Validation 注解（{@code @NotNull} 等）推导 {@code required}，
+     * 本项目的 DTO 多为 record 且以<strong>手工校验</strong>为主，故生成结果与权威契约不一致。
+     * 本方法让目录在<strong>不改任何 DTO/业务代码</strong>的前提下，把 {@code required}
+     * 修正为与契约一致。覆盖率门禁会把它与契约 {@code required} 交叉校验
+     * （<strong>少于</strong>契约 = 未修正；<strong>多于</strong>契约 = invent，两者皆构建失败）。</p>
      *
-     * <p>纪律：①只在"契约要求必填"时使用，<strong>不得</strong>用它放宽或 invent 必填性；
-     * ②被修正的属性必须在 {@link #propertyDocs()} 的 description 中写明
-     * "契约要求必填、当前实现未强制（缺失会被容忍属实现偏差）"，使联调方同时看到两个口径；
-     * ③覆盖率门禁会把本方法声明的集合与契约 {@code required} 交叉校验。</p>
+     * <p><b>两种方向的语义不同，描述口径必须区分（不得混为一谈）</b>：</p>
+     * <ol>
+     *   <li><strong>请求体 schema</strong>：契约要求必填。此时须进一步区分——
+     *     <ul>
+     *       <li>服务端<strong>确实强制</strong>（如 multipart 解析器/控制器手工校验，缺失即
+     *           400 {@code INVALID_INPUT} + {@code details.fields}）⇒ 在 {@link #propertyDocs()}
+     *           的描述中写明"服务端强制、只是未用注解声明，<strong>这不是实现偏差</strong>"；</li>
+     *       <li>服务端<strong>并不强制</strong>（如 {@code EchoJobRequestBody.numbersAsStrings}）
+     *           ⇒ 必须写明"契约要求必填、当前实现未强制（缺失会被容忍）属<strong>实现偏差</strong>，
+     *           不得据此改写契约"。</li>
+     *     </ul>
+     *   </li>
+     *   <li><strong>响应 schema</strong>：契约的 {@code required} 表达的是<strong>服务端保证该键必然存在</strong>。
+     *       record 组件恒被序列化，故未列入 {@code required} 的字段意为"可能为 {@code null}
+     *       或在某些视图下省略，客户端<strong>不得依赖</strong>"（例如 {@code AssessmentTaskView}
+     *       的 {@code failureCode}/{@code reportId} 仅在对应状态下有值、{@code VerificationDto.validUntil}
+     *       当前恒为 null）。这<strong>不是</strong>实现偏差，描述中不得如此表述。</li>
+     * </ol>
      *
-     * <p>默认空实现：大多数目录无需修正。</p>
+     * <p>纪律：①声明集合必须<strong>逐字等于</strong>契约对应 schema 的 {@code required}
+     * （请用 snakeyaml 实读契约核实，<strong>不得</strong>凭 DTO 字段推断）；
+     * ②不得用它放宽或 invent 必填性；③契约未声明 {@code required} 的 schema 不要声明。</p>
+     *
+     * <p>默认空实现。</p>
      */
     default Map<String, java.util.Set<String>> requiredProperties() {
         return Map.of();
@@ -108,6 +126,124 @@ public interface ApiDocsCatalog {
             boolean extensible,
             String extensibilityNote,
             String example) {
+    }
+
+    /**
+     * <strong>递归的</strong>结构化已知键定义，用于自由结构字段<strong>内部</strong>的嵌套类型。
+     *
+     * <p><b>为何需要它</b>：{@link FreeFormDoc#knownKeys()} 的值是"类型前缀 + 中文说明"的一层 DSL，
+     * 引擎对 {@code array} 只能生成 {@code array<string>}。而真实结构常是嵌套的，例如
+     * {@code CarePlanFullView.plan.steps} 实为 {@code array<object{region, parameters}>}
+     * （权威源 {@code CarePlanProjection.projectStep/projectParameters/projectParameter}）、
+     * {@code ErrorBody.details.missingRanges} 实为 {@code array<object{from,to}>}
+     * （权威源契约 {@code components.schemas.MissingRange}，两键均必填、封闭）。
+     * 若文档写成 {@code array<string>}，Swagger UI 与代码生成器会产出<strong>与真实响应冲突</strong>的
+     * 客户端模型——这比缺少描述更有害。</p>
+     *
+     * <p><b>纪律</b>：结构必须来自<strong>写入方/投影方代码</strong>或<strong>权威契约</strong>取证，
+     * 不得发明键名；未冻结的层级用 {@link #opaqueObject(String)}（显式开放、无已知键）表达，
+     * 而不是猜测其内部结构。</p>
+     *
+     * @param type                       {@code object}/{@code array}/{@code string}/{@code integer}/
+     *                                   {@code number}/{@code boolean}；另支持 {@code any} =
+     *                                   <strong>不写 type 关键字</strong>、仅给 description，
+     *                                   用于"标量或对象"这类真实存在的联合形态
+     *                                   （例：{@code CarePlanProjection.projectParameter} 允许参数值
+     *                                   直接是标量，也允许 {@code {value, unit}} 对象；而 {@code value}
+     *                                   本身可为 string/number/boolean）。
+     *                                   <strong>不得</strong>用 {@code any} 规避取证——
+     *                                   凡能确定单一类型者必须写明具体类型
+     * @param description                中文说明（含义、来源、单位、未冻结状态）
+     * @param properties                 {@code type=object} 时的已知键（递归）；否则为 {@code null}/空
+     * @param items                      {@code type=array} 时的元素结构（递归）；否则为 {@code null}
+     * @param additionalProperties       {@code type=object} 时的可扩展边界：{@code TRUE} = 开放扩展
+     *                                   （客户端必须容忍未来新增键）、{@code FALSE} = 封闭白名单
+     *                                   （服务端只认 {@link #properties} 中的键）、{@code null} = 不设置该关键字
+     * @param additionalPropertiesSchema {@code type=object} 且键名<strong>不固定</strong>（动态映射，
+     *                                   如 {@code {参数名: 参数定义}}）时，给出<strong>值</strong>的递归结构，
+     *                                   引擎据此生成 {@code additionalProperties: <该结构>}；
+     *                                   非动态映射传 {@code null}
+     * @param example                    脱敏示例（JSON 字面量字符串），可为 {@code null}
+     */
+    record KnownKeyDoc(
+            String type,
+            String description,
+            Map<String, KnownKeyDoc> properties,
+            KnownKeyDoc items,
+            Boolean additionalProperties,
+            KnownKeyDoc additionalPropertiesSchema,
+            String example) {
+
+        public static KnownKeyDoc str(String description) {
+            return new KnownKeyDoc("string", description, null, null, null, null, null);
+        }
+
+        public static KnownKeyDoc str(String description, String example) {
+            return new KnownKeyDoc("string", description, null, null, null, null, example);
+        }
+
+        public static KnownKeyDoc integer(String description) {
+            return new KnownKeyDoc("integer", description, null, null, null, null, null);
+        }
+
+        public static KnownKeyDoc number(String description) {
+            return new KnownKeyDoc("number", description, null, null, null, null, null);
+        }
+
+        public static KnownKeyDoc bool(String description) {
+            return new KnownKeyDoc("boolean", description, null, null, null, null, null);
+        }
+
+        /** 数组；{@code items} 必须是完整的递归定义（不得为 {@code null}）。 */
+        public static KnownKeyDoc array(KnownKeyDoc items, String description) {
+            return new KnownKeyDoc("array", description, null, items, null, null, null);
+        }
+
+        /** 封闭白名单对象：{@code additionalProperties=false}，服务端只认列出的键。 */
+        public static KnownKeyDoc closedObject(Map<String, KnownKeyDoc> properties, String description) {
+            return new KnownKeyDoc("object", description, properties, null, Boolean.FALSE, null, null);
+        }
+
+        /** 开放扩展对象：{@code additionalProperties=true}，已知键之外的未来键客户端必须容忍。 */
+        public static KnownKeyDoc openObject(Map<String, KnownKeyDoc> properties, String description) {
+            return new KnownKeyDoc("object", description, properties, null, Boolean.TRUE, null, null);
+        }
+
+        /**
+         * 动态映射：键名不固定（如 {@code {参数名: 参数定义}}），值结构由 {@code valueSchema} 给出，
+         * 引擎生成 {@code type=object} + {@code additionalProperties: <valueSchema>}。
+         */
+        public static KnownKeyDoc mapOf(KnownKeyDoc valueSchema, String description) {
+            return new KnownKeyDoc("object", description, Map.of(), null, Boolean.TRUE, valueSchema, null);
+        }
+
+        /**
+         * 显式不透明的嵌套对象：无已知键、{@code additionalProperties=true}。
+         * 用于"结构未冻结"的层级——<strong>诚实标注而非猜测</strong>。
+         */
+        public static KnownKeyDoc opaqueObject(String description) {
+            return new KnownKeyDoc("object", description, Map.of(), null, Boolean.TRUE, null, null);
+        }
+    }
+
+    /**
+     * <strong>嵌套结构化键</strong>：为自由结构字段内部的键给出<strong>递归</strong>类型定义。
+     *
+     * <p>外层 key 与 {@link #freeFormDocs()} 同键空间（{@code "SchemaName.propertyName"}）；
+     * 内层 key = 该自由结构字段的<strong>顶层已知键名</strong>，value = 其递归结构。</p>
+     *
+     * <p><b>与 {@link FreeFormDoc#knownKeys()} 的关系</b>：两者按<strong>并集</strong>施加，
+     * 同名键以本方法（结构化定义）为准。只需为<strong>真正嵌套</strong>的键使用本方法
+     * （数组元素为对象、对象内部还有对象/映射）；一层标量键继续用 {@code knownKeys} 即可。</p>
+     *
+     * <p>覆盖率门禁会<strong>递归</strong>检查生成结果：任何 {@code object} 必须有 {@code properties}
+     * 或显式 {@code additionalProperties}（或属经核准的显式不透明声明）；任何 {@code array} 必须有
+     * 带 {@code type} 的 {@code items}。把对象数组写成 {@code array<string>} 会直接构建失败。</p>
+     *
+     * <p>默认空实现：只有存在嵌套结构的目录需要覆写。</p>
+     */
+    default Map<String, Map<String, KnownKeyDoc>> structuredKeys() {
+        return Map.of();
     }
 
     /**

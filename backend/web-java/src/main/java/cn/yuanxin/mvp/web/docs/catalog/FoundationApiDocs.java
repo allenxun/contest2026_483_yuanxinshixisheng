@@ -507,7 +507,17 @@ public class FoundationApiDocs implements ApiDocsCatalog {
 
     @Override
     public Map<String, Set<String>> requiredProperties() {
-        return Map.of("EchoJobRequestBody", Set.of("message", "numbersAsStrings"));
+        return Map.ofEntries(
+                // 请求体：契约要求必填；numbersAsStrings 当前实现未强制，属实现偏差（见 propertyDocs）。
+                Map.entry("EchoJobRequestBody", Set.of("message", "numbersAsStrings")),
+                // 响应 data schema：契约 required 表示服务端保证该键必然存在；未列入者意为可能为 null
+                // 或在某些视图下省略，客户端不得依赖（record 组件恒被序列化，故声明即为存在性承诺）。
+                Map.entry("SmsChallengeData", Set.of("challengeId", "retryAfter")),
+                Map.entry("AppSessionData", Set.of("accountId", "accessToken", "tokenType", "expiresAt")),
+                Map.entry("GimbalSessionData", Set.of("gimbalId", "sessionToken", "expiresAt", "serverTime")),
+                Map.entry("EchoJobAcceptedData", Set.of("jobId", "dedupKey", "status")),
+                Map.entry("EchoJobViewData", Set.of("jobId", "status", "attemptCount", "leaseRevision",
+                        "finishedAt", "lastError")));
     }
 
     @Override
