@@ -1003,6 +1003,16 @@ def test_cc11_allowlist_precise_no_impl_downgrade():
     assert c_care.classify_strict_error("A09", e2) == "impl-or-other"
 
 
+def test_c2_rec_resend_determinism():
+    """SC-06-05 守护：补传复用同一记录对象；rec(ts=) 固定时间戳时字节一致，跨秒则不同。"""
+    from driver import c_care
+
+    t0 = "2026-01-01T00:00:00Z"
+    assert c_care.rec("ep", 1, ts=t0) == c_care.rec("ep", 1, ts=t0)
+    assert c_care.rec("ep", 1, ts=t0)["occurredAt"] == t0
+    assert c_care.rec("ep", 1, ts=t0) != c_care.rec("ep", 1, ts="2026-01-01T00:00:01Z")
+
+
 def test_d1_periodic_and_logout_semantics():
     """D1 回归：常驻周期日志判定 + 登出代次同事务语义（纯函数）。"""
     from framework import live

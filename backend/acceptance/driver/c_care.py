@@ -442,9 +442,11 @@ def obs_body(epoch, seq=1, state="running", rev="1", continuity=True):
                             "continuityValid": continuity}, "records": []}
 
 
-def rec(epoch, seq, delta="1", rid=None):
+def rec(epoch, seq, delta="1", rid=None, ts=None):
+    # ts 可选：补传/重放同一份缓存记录时须复用同一对象或固定时间戳，避免跨秒 occurredAt
+    # 变化被 C 判为「同标识异内容」→ 409（驱动侧 flake）。
     return {"recordId": rid or f"r-{epoch[:8]}-{seq}", "sourceEpoch": epoch, "sourceSeq": str(seq),
-            "countDelta": str(delta), "occurredAt": utcnow()}
+            "countDelta": str(delta), "occurredAt": ts or utcnow()}
 
 
 def obs_records(epoch, records, seq=1, state="running", rev="1", continuity=True):
