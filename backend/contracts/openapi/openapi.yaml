@@ -2049,7 +2049,7 @@ components:
         captureId: { type: string }
         clientContinuityId: { type: string }
         verifiedAt: { $ref: '#/components/schemas/Rfc3339Utc' }
-        validUntil: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        validUntil: { type: string, format: date-time, nullable: true }
         applicablePurpose: { type: string, enum: [grant, admission, revalidation, assessment] }
         replayed: { type: boolean, description: 重放响应不获得新的启动有效性 }
     Progress:
@@ -2066,17 +2066,25 @@ components:
         remainingCount: { $ref: '#/components/schemas/BigintString' }
         isCompleted: { type: boolean, nullable: true }
         progressRevision: { $ref: '#/components/schemas/BigintString' }
-        completedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        completedAt: { type: string, format: date-time, nullable: true }
     ProgressWithSync:
-      allOf:
-        - $ref: '#/components/schemas/Progress'
-        - type: object
-          description: >-
-            M4-A08 附加最后同步信息（从业务更新时间/入账摘要取得，不伪造
-            设备实时值）。x-detail: skeleton
-          x-detail: skeleton
-          properties:
-            lastSyncedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+      type: object
+      description: >-
+        方案进度（DD 6.1 示例）附加 M4-A08 最后同步信息（从业务更新时间/
+        入账摘要取得，不伪造设备实时值）。未 ready 时 targetCount/isCompleted
+        可为 null，不用 0 表示“已完成”；剩余 = max(N-K,0)；完成条件 K>=N；
+        K 不截断。bigint 全为字符串。x-detail: skeleton
+      x-detail: skeleton
+      required: [completedCount, remainingCount, progressRevision]
+      additionalProperties: false
+      properties:
+        targetCount: { allOf: [{ $ref: '#/components/schemas/BigintString' }], nullable: true }
+        completedCount: { $ref: '#/components/schemas/BigintString' }
+        remainingCount: { $ref: '#/components/schemas/BigintString' }
+        isCompleted: { type: boolean, nullable: true }
+        progressRevision: { $ref: '#/components/schemas/BigintString' }
+        completedAt: { type: string, format: date-time, nullable: true }
+        lastSyncedAt: { type: string, format: date-time, nullable: true }
     # ---------- M1 ----------
     M1A01Metadata:
       type: object
@@ -2464,7 +2472,7 @@ components:
       properties:
         controllerType: { type: string, enum: [app_account, gimbal] }
         installationId: { type: string, nullable: true, description: APP 控制端安装实例 }
-        gimbalId: { allOf: [{ type: string, format: uuid }], nullable: true, description: 云台控制端 }
+        gimbalId: { type: string, format: uuid, nullable: true, description: 云台控制端 }
     CareExecutionAdmission:
       type: object
       description: >-
@@ -2655,7 +2663,7 @@ components:
         executionId: { type: string, format: uuid }
         status: { type: string, enum: [admitted, running, paused, unknown, stopped, closed] }
         createdAt: { $ref: '#/components/schemas/Rfc3339Utc' }
-        closedAt: { allOf: [{ $ref: '#/components/schemas/Rfc3339Utc' }], nullable: true }
+        closedAt: { type: string, format: date-time, nullable: true }
         acceptedCount: { $ref: '#/components/schemas/BigintString' }
         planSnapshotSummary: { type: object, additionalProperties: true, nullable: true }
     CareExecutionListData:
