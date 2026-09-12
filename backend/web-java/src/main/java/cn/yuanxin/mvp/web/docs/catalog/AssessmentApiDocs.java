@@ -418,6 +418,11 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
      * <p><strong>这不是实现偏差</strong>（与 {@code EchoJobRequestBody.numbersAsStrings}
      * "契约必填而代码不强制"的情形性质不同）：服务端确实强制，只是未用注解声明，
      * 故 springdoc 看不见。</p>
+     *
+     * <p>响应侧口径：响应 schema 的契约 {@code required} 表示"<strong>服务端保证该键必然存在</strong>"，
+     * 未列入者可能为 {@code null} 或按视图相关省略，客户端<strong>不得依赖</strong>；这同样
+     * <strong>不是实现偏差</strong>（口径与 {@code ApiDocsCatalog.requiredProperties()} 接口 javadoc
+     * 区分的两种方向一致）。</p>
      */
     @Override
     public Map<String, Set<String>> requiredProperties() {
@@ -430,7 +435,13 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                 "SkinReportListItem", Set.of("reportId", "reportReadyAt"),
                 "SkinReportView", Set.of("reportId", "view"),
                 "GimbalCurrentAssessmentView",
-                Set.of("currentAssessment", "currentAssessmentRevision"));
+                Set.of("currentAssessment", "currentAssessmentRevision"),
+                // 契约 #/components/schemas/SkinReportView/properties/images/items
+                // （required=[mediaId, contentUrl]，additionalProperties=false）
+                "SkinReportImage", Set.of("mediaId", "contentUrl"),
+                // 契约 #/components/schemas/GimbalCurrentAssessmentView/properties/currentAssessment
+                // （required=[taskId, status, photoVersion]；reportId 不在契约 required 中、报告未就绪时可为 null，不得声明）
+                "CurrentAssessment", Set.of("taskId", "status", "photoVersion"));
     }
 
     @Override
@@ -529,7 +540,8 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                         "photoVersion", PropertyDoc.of(
                                 "字符串，无符号 bigint 十进制字符串，当前输入照片版本。", "1"),
                         "reportId", PropertyDoc.of(
-                                "可空字符串，UUID 格式。仅任务 report_ready 且报告存在时给出，否则 null。",
+                                "可空字符串，UUID 格式。仅任务 report_ready 且报告存在时给出；报告未就绪时为 null，"
+                                        + "但键仍存在（契约 required 不含该键，客户端不得依赖其非空）。",
                                 "9e8d7c6b-5a4f-4e3d-9c2b-1a0f9e8d7c6b"))),
 
                 Map.entry("SkinReportListItem", Map.of(

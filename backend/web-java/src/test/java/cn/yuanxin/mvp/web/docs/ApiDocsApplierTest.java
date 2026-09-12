@@ -786,7 +786,7 @@ class ApiDocsApplierTest {
     }
 
     @Test
-    @DisplayName("门禁递归扫描：嵌套空 object / 无 type 的 items 必须失败；mapOf/any/核准不透明形态通过，且消息含完整路径")
+    @DisplayName("门禁递归扫描：嵌套空 object / 无 type 的 items 必须失败；mapOf/核准不透明形态通过，且消息含完整路径")
     void recursiveStructureScanHasDiscriminatingPower() throws Exception {
         JsonNode nestedEmpty = MAPPER.readTree(
                 "{\"Outer\":{\"type\":\"object\",\"properties\":{\"inner\":{\"type\":\"object\"}}}}");
@@ -807,11 +807,142 @@ class ApiDocsApplierTest {
 
         JsonNode valid = MAPPER.readTree("{\"Outer\":{\"type\":\"object\",\"properties\":{"
                 + "\"inner\":{\"type\":\"object\",\"additionalProperties\":true},"
-                + "\"map\":{\"type\":\"object\",\"additionalProperties\":{\"type\":\"string\"}},"
-                + "\"flex\":{\"description\":\"标量或对象联合\"}}}}");
+                + "\"map\":{\"type\":\"object\",\"additionalProperties\":{\"type\":\"string\"}}}}}");
         assertTrue(ApiDocsCoverageIT.findStructureProblems(valid).isEmpty(),
-                "有 additionalProperties/any 的形态不得误报: "
+                "有 additionalProperties 的形态不得误报: "
                         + ApiDocsCoverageIT.findStructureProblems(valid));
+    }
+
+    @Test
+    @DisplayName("门禁 any 约束：未核准路径的无 type 节点必须失败；恰好三处方案参数映射值（含 steps[] 形态）通过")
+    void unapprovedAnyNodeFailsGate() throws Exception {
+        // 负向：未核准路径的 any（无 type、无 $ref、无 properties/additionalProperties）必须失败。
+        JsonNode unapproved = MAPPER.readTree(
+                "{\"Outer\":{\"type\":\"object\",\"properties\":{\"flex\":{\"description\":\"标量或对象联合\"}}}}");
+        List<String> p = ApiDocsCoverageIT.findStructureProblems(unapproved);
+        assertFalse(p.isEmpty(), "未核准的 any 节点必须被门禁发现");
+        assertTrue(p.get(0).contains("Outer.flex"), "消息须含完整路径: " + p);
+
+        // 正向：恰好三处方案参数映射值对应的 6 条真实路径（顶层 parameters.* 与 steps[].parameters.*）通过。
+        JsonNode approved = MAPPER.readTree("{\"CarePlanFullView\":{\"type\":\"object\",\"properties\":{"
+                + "\"plan\":{\"type\":\"object\",\"properties\":{"
+                + "\"parameters\":{\"type\":\"object\",\"additionalProperties\":{\"description\":\"联合\"}},"
+                + "\"steps\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{"
+                + "\"region\":{\"type\":\"string\"},"
+                + "\"parameters\":{\"type\":\"object\",\"additionalProperties\":"
+                + "{\"description\":\"联合\"}}}}}}}}}}");
+        assertTrue(ApiDocsCoverageIT.findStructureProblems(approved).isEmpty(),
+                "已核准的方案参数映射任何形态不得误报: "
+                        + ApiDocsCoverageIT.findStructureProblems(approved));
+    }
+
+    // ------------------------------------------------------------------ nested required (BLOCKER A)
+
+    @Test
+    @DisplayName("BLOCKER-A 正向：嵌套 required 写入生成 schema，并经 OpenAPI 3.1 序列化输出；负向证明不施加时序列化确无 required")
+    void nestedRequiredAppliedAndSerialized() throws Exception {
+        OpenAPI openApi = syntheticDoc();
+        ApiDocsCatalog.KnownKeyDoc element = ApiDocsCatalog.KnownKeyDoc.closedObject(
+                Map.of("a", ApiDocsCatalog.KnownKeyDoc.str("A 键"),
+                        "b", ApiDocsCatalog.KnownKeyDoc.str("B 键")),
+                List.of("a"), "元素对象（required=[a]）");
+        Map<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> sk = Map.of(
+                "SyntheticBody.state", Map.of(
+                        "rows", ApiDocsCatalog.KnownKeyDoc.array(element, "行数组")));
+        ApiDocsApplier applier = new ApiDocsApplier(List.of(new TestCatalog(
+                validCatalog().entries(), Map.of(), Map.of(),
+                List.of(new Tag().name("Synthetic")), Map.of(), sk)), MAPPER);
+        applier.customise(openApi);
+
+        Schema<?> state = (Schema<?>) openApi.getComponents().getSchemas()
+                .get("SyntheticBody").getProperties().get("state");
+        Schema<?> rows = (Schema<?>) state.getProperties().get("rows");
+        Schema<?> items = rows.getItems();
+        assertEquals(List.of("a"), items.getRequired(), "嵌套 required 必须施加到 items（顺序按声明）");
+        assertFalse(applier.report().hasStructuralErrors(), applier.report().structuralErrors().toString());
+
+        // 序列化层（与生产同源 Json31，Schema31Mixin 以 types 集合序列化 type）；required 是
+        // List<String>，无同类 mixin 忽略，但必须以序列化后的 JSON 为证据，不得只断言内存态。
+        JsonNode serItems = MAPPER.readTree(Json31.mapper().writeValueAsString(openApi))
+                .path("components").path("schemas").path("SyntheticBody")
+                .path("properties").path("state").path("properties").path("rows").path("items");
+        assertTrue(serItems.has("required"), "3.1 序列化结果必须含 required: " + serItems);
+        assertEquals(1, serItems.path("required").size());
+        assertEquals("a", serItems.path("required").get(0).asText());
+
+        // 负向判别力：不调用 setRequired（修复前行为）时 3.1 序列化确实无 required，
+        // 证明上面的"序列化必须含 required"断言能捕获原缺陷、不是恒真。
+        ObjectSchema unfixed = new ObjectSchema();
+        unfixed.addProperty("a", new StringSchema());
+        JsonNode unfixedSer = MAPPER.readTree(Json31.mapper().writeValueAsString(unfixed));
+        assertFalse(unfixedSer.has("required"),
+                "未施加 required 时 3.1 序列化不含 required（本测试判别力来源）");
+    }
+
+    @Test
+    @DisplayName("BLOCKER-A 负向：嵌套 required 含不在 properties 的名字 → 引擎 fail fast，报告含完整字段路径")
+    void invalidNestedRequiredFailsFast() {
+        OpenAPI openApi = syntheticDoc();
+        ApiDocsCatalog.KnownKeyDoc bad = ApiDocsCatalog.KnownKeyDoc.closedObject(
+                Map.of("a", ApiDocsCatalog.KnownKeyDoc.str("A 键")),
+                List.of("a", "ghost"), "坏元素（ghost 不在 properties）");
+        Map<String, Map<String, ApiDocsCatalog.KnownKeyDoc>> sk = Map.of(
+                "SyntheticBody.state", Map.of(
+                        "rows", ApiDocsCatalog.KnownKeyDoc.array(bad, "行数组")));
+        ApiDocsApplier applier = new ApiDocsApplier(List.of(new TestCatalog(
+                validCatalog().entries(), Map.of(), Map.of(),
+                List.of(new Tag().name("Synthetic")), Map.of(), sk)), MAPPER);
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> applier.customise(openApi));
+        assertTrue(ex.getMessage().contains("invalidNestedRequired"), ex.getMessage());
+        assertTrue(applier.report().hasStructuralErrors());
+        assertTrue(applier.report().invalidNestedRequired.stream()
+                        .anyMatch(p -> p.equals("SyntheticBody.state.rows[].ghost")),
+                "错误必须含完整字段路径: " + applier.report().invalidNestedRequired);
+    }
+
+    // ------------------------------------------------------------------ inline contract pointer (BLOCKER B)
+
+    @Test
+    @DisplayName("BLOCKER-B：inline 契约 pointer 双向比对——相等通过；少于契约/多于 invent/pointer 失效皆被捕获")
+    void inlineContractPointerComparisonHasDiscriminatingPower() {
+        // 合成契约根，模拟 openapi.yaml 的 inline 节点形态（required 列表）。
+        Map<String, Object> contract = new LinkedHashMap<>();
+        Map<String, Object> schemas = new LinkedHashMap<>();
+        Map<String, Object> image = new LinkedHashMap<>();
+        image.put("required", List.of("mediaId", "contentUrl"));
+        image.put("additionalProperties", false);
+        Map<String, Object> view = new LinkedHashMap<>();
+        view.put("properties", Map.of("image", image));
+        schemas.put("View", view);
+        contract.put("components", Map.of("schemas", schemas));
+        String pointer = "/components/schemas/View/properties/image";
+
+        // 正向：与契约逐字相等 → 通过。
+        assertTrue(ApiDocsCoverageIT.crossCheckInlineRequired("Image", pointer,
+                Set.of("mediaId", "contentUrl"), contract).isEmpty());
+
+        // 负向①：生成侧为空集（修复前"跳过并打印"的形态）→ 必须被捕获，证明不是跳过就算过。
+        List<String> missing = ApiDocsCoverageIT.crossCheckInlineRequired("Image", pointer,
+                Set.of(), contract);
+        assertFalse(missing.isEmpty());
+        assertTrue(missing.get(0).contains("少于契约"), missing.toString());
+
+        // 负向②：多于契约（invent）→ 失败。
+        List<String> extra = ApiDocsCoverageIT.crossCheckInlineRequired("Image", pointer,
+                Set.of("mediaId", "contentUrl", "ghost"), contract);
+        assertFalse(extra.isEmpty());
+        assertTrue(extra.get(0).contains("多于契约"), extra.toString());
+
+        // 负向③：pointer 无法解析（映射表陈旧）→ 失败并披露，不静默通过。
+        List<String> badPointer = ApiDocsCoverageIT.crossCheckInlineRequired("Image",
+                "/components/schemas/NoSuch/properties/x", Set.of(), contract);
+        assertFalse(badPointer.isEmpty());
+        assertTrue(badPointer.get(0).contains("pointer 无法解析"), badPointer.toString());
+
+        // resolvePointer 基本正确性（缺失段返回 null）。
+        assertNull(ApiDocsCoverageIT.resolvePointer(contract, "/components/schemas/View/properties/no"));
     }
 
     // ------------------------------------------------------------------ fixtures

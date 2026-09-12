@@ -664,6 +664,23 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
                     if (!props.isEmpty()) {
                         obj.setProperties(props);
                     }
+                    // 嵌套 required：契约/写入方确实要求必填的子集（如契约 MissingRange.required=[from,to]）。
+                    // 顺序按声明；施加前 fail fast 校验 required 中的名字必须是本层 properties 的键，
+                    // 否则记入 invalidNestedRequired（消息含完整字段路径，如
+                    // ErrorBody.details.missingRanges[].to）并参与 hasStructuralErrors()。
+                    if (doc.required() != null && !doc.required().isEmpty()) {
+                        List<String> required = new ArrayList<>();
+                        for (String name : doc.required()) {
+                            if (!props.containsKey(name)) {
+                                report.invalidNestedRequired.add(fieldPath + "." + name);
+                            } else if (!required.contains(name)) {
+                                required.add(name);
+                            }
+                        }
+                        if (!required.isEmpty()) {
+                            obj.setRequired(required);
+                        }
+                    }
                     if (doc.additionalPropertiesSchema() != null) {
                         // 动态映射优先：additionalProperties 为 <值 schema>，不再用布尔值。
                         obj.setAdditionalProperties(
@@ -1164,6 +1181,11 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
         public final List<String> duplicateFreeFormDocs = new ArrayList<>();
         public final List<String> duplicateStructuredKeys = new ArrayList<>();
         public final List<String> invalidKnownKeyTypes = new ArrayList<>();
+        /**
+         * 嵌套 required 非法项：{@code KnownKeyDoc.required} 中的名字不是同层 {@code properties} 的键。
+         * 每项含完整字段路径（如 {@code ErrorBody.details.missingRanges[].to}），参与 fail fast。
+         */
+        public final List<String> invalidNestedRequired = new ArrayList<>();
         public final List<String> undeclaredTags = new ArrayList<>();
         public final Set<String> coveredOperations = new LinkedHashSet<>();
         public final Set<String> prunedSchemas = new LinkedHashSet<>();
@@ -1182,6 +1204,7 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
             duplicateFreeFormDocs.clear();
             duplicateStructuredKeys.clear();
             invalidKnownKeyTypes.clear();
+            invalidNestedRequired.clear();
             undeclaredTags.clear();
             coveredOperations.clear();
             prunedSchemas.clear();
@@ -1194,7 +1217,8 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
                     || !unknownRequiredProperties.isEmpty()
                     || !duplicatePropertyDocs.isEmpty() || !unknownFreeFormTargets.isEmpty()
                     || !duplicateFreeFormDocs.isEmpty()
-                    || !duplicateStructuredKeys.isEmpty() || !invalidKnownKeyTypes.isEmpty();
+                    || !duplicateStructuredKeys.isEmpty() || !invalidKnownKeyTypes.isEmpty()
+                    || !invalidNestedRequired.isEmpty();
         }
 
         public List<String> structuralErrors() {
@@ -1234,6 +1258,9 @@ public class ApiDocsApplier implements OpenApiCustomizer, Ordered {
             }
             if (!invalidKnownKeyTypes.isEmpty()) {
                 errors.add("invalidKnownKeyTypes=" + invalidKnownKeyTypes);
+            }
+            if (!invalidNestedRequired.isEmpty()) {
+                errors.add("invalidNestedRequired=" + invalidNestedRequired);
             }
             return errors;
         }
