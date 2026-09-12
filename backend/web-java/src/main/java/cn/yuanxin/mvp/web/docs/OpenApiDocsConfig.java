@@ -1,5 +1,7 @@
 package cn.yuanxin.mvp.web.docs;
 
+import cn.yuanxin.mvp.web.docs.catalog.ApiDocsCatalog;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -12,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.Ordered;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -60,61 +63,71 @@ public class OpenApiDocsConfig {
                                 本页由运行中的 Java 后端（Spring MVC + springdoc 2.8.x）从实际 Controller/DTO
                                 生成，非手写 YAML 回显。它**不是**权威契约：字段级/错误码级契约的权威来源是
                                 backend/contracts/openapi/openapi.yaml；两者不一致时以契约文件为准。
+                                生成文档为 OpenAPI 3.1.0，权威契约为 OpenAPI 3.0.3；operationId 由 Java 方法名
+                                派生，未对齐契约 operationId。
 
-                                生成器差异（如实声明）：
-                                - 生成文档为 OpenAPI 3.1.0，权威契约为 OpenAPI 3.0.3。
-                                - 响应 content type 可能显示为 */*（控制器未强制 produces: application/json）。
-                                - operationId 由 Java 方法名派生，未对齐契约中的 operationId。
-                                - 未逐端点附着完整错误码表/错误响应集合；适用错误码以契约各操作
-                                  的 x-error-codes 为准，本页只提供通用文字说明。
+                                == 联调导读 ==
 
-                                统一响应信封：
-                                - 成功：{requestId, data, meta:{replayed, serverTime}}；204 无响应体。
-                                - 列表：data = {items:[], nextCursor: string|null}；limit 默认 20、上限 100。
-                                - 错误：{requestId, error:{code, message, retryable, details}}；
-                                  错误经 GlobalExceptionHandler 统一渲染，控制器不自拼错误体。
-                                - 每个响应（含错误与 204）带 X-Request-Id 头；每次 HTTP 尝试生成
-                                  新的 requestId，与 T13 稳定逻辑请求 ID 区分。
+                                【统一响应信封】
+                                - 成功：{requestId, data, meta:{replayed, serverTime}}；每个成功响应的 data 均为该端点的
+                                  真实类型（见各响应 schema，不再是不可展开的 object）。
+                                - 204：无响应体（requestId 见 X-Request-Id 头）。
+                                - 错误：{requestId, error:{code, message, retryable, details?}}；由
+                                  GlobalExceptionHandler 统一渲染，控制器不自拼错误体。
+                                - 列表：data = {items:[], nextCursor:string|null}；分页 limit 默认 20、上限 100；
+                                  cursor 为不透明游标（原样回传；非法游标 400 INVALID_INPUT，details.reason=invalid_cursor）。
+                                - 每个响应（含错误与 204）都带 X-Request-Id 头；每个 HTTP 尝试生成新的 requestId，
+                                  与 T13 稳定逻辑请求 ID 区分，不能用作幂等键。
 
-                                鉴权（含语义粒度限制）：全局默认 BearerAuth；下列 4 个公开端点无 Bearer
-                                （契约中为 security: []）：
+                                【类型与格式】
+                                - JSON 字段 camelCase；DB/任务内 payload 为 snake_case。
+                                - bigint（N/K/revision/seq/计数/版本）在 JSON 中一律为十进制字符串（pattern ^(0|[1-9][0-9]*)$）。
+                                - schema_version 为 JSON 整数（如 1）。
+                                - 时间为 RFC3339 UTC、秒精度（如 2026-09-13T08:30:00Z）。
+
+                                【鉴权】全局默认 BearerAuth；下列 4 个公开端点无 Bearer（契约 security: []）：
                                 POST /api/v1/auth/sms-challenges、POST /api/v1/auth/sessions、
                                 POST /api/v1/auth/session-refreshes、POST /api/v1/gimbal-sessions。
                                 其余端点要求 Authorization: Bearer <APP session token | gimbal device session token>。
-                                主体身份只由服务端从会话派生，请求体不能声明 accountId/gimbalId。
-                                注意：本页全局 bearer 只表达“是否需要 token”，**不表达** APP/GIMBAL 主体类型
-                                限制、成员查看授权、当前任务/绑定关系等细粒度权限——这些由后端在运行时强制，
-                                以契约各端点描述为准。
-                                BearerAuthFilter 仅保护 /api/**；本文档端点（/v3/api-docs、
-                                /swagger-ui/**）不在 /api/** 下，故无需为文档放行鉴权。
+                                主体身份只由服务端从 token 派生，请求体不能声明 accountId/gimbalId。
+                                本页全局 bearer 只表达“是否需要 token”，不表达 APP/GIMBAL 类型限制与
+                                成员查看授权/当前任务/绑定关系等细粒度权限（由后端运行时强制，以契约各端点描述为准）。
 
-                                其他公共规则：JSON 字段 camelCase、DB/任务 payload snake_case；
-                                bigint（N/K/revision/seq/计数）在 JSON 中为十进制字符串
-                                （pattern ^(0|[1-9][0-9]*)$）；时间为 RFC3339 UTC。
-                                业务写接口（除 M2-A01 握手与 M2-A02 心跳按 epoch/seq 去重外）要求
-                                Idempotency-Key（1-128 字符），相同键相同内容重放原结果
-                                （meta.replayed=true），相同键不同内容 409 IDEMPOTENCY_CONTENT_CONFLICT。
+                                【幂等（Idempotency-Key）】
+                                - 除 M2-A01 握手与 M2-A02 心跳（按 epoch/seq 去重）外，业务写接口要求
+                                  Idempotency-Key（1-128 字符）。
+                                - 同键同内容：重放原结果，meta.replayed=true（不重做写入）。
+                                - 同键不同内容：409 IDEMPOTENCY_CONTENT_CONFLICT；这是新的逻辑请求，必须换新键。
+                                - 处理中：409 REQUEST_IN_PROGRESS（retryable），按 Retry-After 等待后以同一逻辑键重试。
+                                - T13 主键为 (principal_type, principal_id, operation, idempotency_key)；**无 TTL**，
+                                  不得按短 TTL 清理。返回体各错误码的客户端动作见对应错误响应 description。
 
-                                自由结构字段（统一声明）：所有在 Java 侧声明为 Object / Map / JsonNode 的
-                                字段，在生成文档中可能只显示为自由结构 object，**无法展开为字段级 schema**。
-                                典型字段（非穷举）：
-                                - A web/web/SuccessEnvelope.data（Object）、
-                                  web/web/ErrorEnvelope.details（Map）
-                                - B devices/DeviceDtos：HeartbeatBody.incidents（List<Map>）、
-                                  MicrocrystalObservationBody.capabilities 与 .state（Map）、
-                                  CapabilitiesView.capabilities（Map）；
-                                  notifications/NotificationDestinationDtos.Request.registration（Map）
-                                - C care/CareProjections：CarePlanListItem.planSummary、
-                                  CarePlanFullView.plan（Object）
-                                - D assessments/dto：SkinReportListItem.reportSummary（JsonNode）、
-                                  SkinReportView.metrics（List<Map>）
-                                另有 M1-A01 的 multipart metadata 部件为严格 JSON（capture +
-                                consentEvidenceRef），字段级 schema 同样见契约，不在本页展开。
-                                因此本页“由实际 Controller/DTO 生成”指的是路由与可静态推导的
-                                请求/响应形状，不宣称所有自由结构成员都已具备字段级 schema。
+                                【multipart 约定】metadata part 为 application/json（严格解析），图片 part 为二进制
+                                （image/jpeg、image/png 等，单图上限开发初值 10MiB，以内容嗅探为准）；响应
+                                Cache-Control: no-store。
 
-                                部署限制：本页面仅在 dev/test 启用，Swagger UI 不得用于公网生产；
-                                app.env=production 或 prod profile 下文档端点关闭，强制启用将拒绝启动。
+                                【主要调用链与顺序】
+                                1) 测肤链：POST /api/v1/gimbal-sessions（云台握手）→ POST /api/v1/skin-assessment-tasks
+                                   （M3-A01，202 受理）→ worker 分析 → GET /api/v1/skin-assessment-tasks/{taskId} 轮询
+                                   status；需补拍时 PUT …/photo-versions/{photoVersion}（M3-A02，202；须 needs_retake 且
+                                   版本=当前版本+1）。
+                                2) 护理链：GET /api/v1/members/{memberId}/skin-reports → GET /api/v1/skin-reports/{reportId}
+                                   → GET /api/v1/members/{memberId}/care-plans → GET /api/v1/care-plans/{planId}（就绪后）
+                                   → POST /api/v1/care-executions（开始执行，multipart）→ POST …/observations 同步测量
+                                   → POST …/closure-confirmations 收尾 → GET /api/v1/care-executions/{executionId}
+                                   读进度/记录。
+                                3) 配网绑定通知链：POST /api/v1/gimbal-sessions → PUT /api/v1/me/gimbal-bindings/{gimbalId}
+                                   （绑定）→ GET /api/v1/gimbals/{gimbalId}/binding-status（轮询绑定结果）→
+                                   PUT /api/v1/me/notification-destinations/{installationId}（登记推送目标）→
+                                   DELETE /api/v1/me/gimbal-bindings/{gimbalId} 解绑（204）。
+
+                                【自由结构】Java 侧声明为 Object/Map/JsonNode 的字段若无法静态展开为字段级 schema，
+                                会在该字段 description 中给出已知键、schema_version 口径与**可扩展边界**（哪些键封闭、
+                                哪些开放扩展）；客户端必须容忍开放扩展键；服务端内部诊断键（failure_detail/last_error
+                                原始内容等）绝不外发。
+
+                                【部署限制】本页仅在 dev/test 启用；生产（app.env=production 或 prod profile）文档端点
+                                关闭，强制启用将拒绝启动。Swagger UI 不得用于公网生产。
                                 """));
     }
 
@@ -129,7 +142,7 @@ public class OpenApiDocsConfig {
      */
     @Bean
     public OpenApiCustomizer contractSecurityCustomizer() {
-        return openApi -> {
+        return new OrderedOpenApiCustomizer(Ordered.HIGHEST_PRECEDENCE, openApi -> {
             // springdoc 会用自身生成的 components 覆盖 OpenAPI bean 上的 components，
             // 故安全方案/全局 security 必须在生成后的 customizer 里设置。
             Components components = openApi.getComponents() == null
@@ -155,7 +168,38 @@ public class OpenApiDocsConfig {
                     removeAuthenticatedPrincipalParameter(operation);
                 }
             });
-        };
+        });
+    }
+
+    /**
+     * 集中式联调文档施加引擎：在各目录道提供 {@link ApiDocsCatalog} bean 后生效。
+     * 未提供任何目录时为空操作，{@code /v3/api-docs} 仍 200（覆盖率缺口由门禁测试断言，
+     * 不在运行期抛错）；结构性错误（重复/漂移键、参数不符）则 fail fast。
+     */
+    @Bean
+    public ApiDocsApplier apiDocsApplier(List<ApiDocsCatalog> catalogs, ObjectMapper objectMapper) {
+        return new ApiDocsApplier(catalogs, objectMapper);
+    }
+
+    /** 可排序的 {@link OpenApiCustomizer} 包装，用于保证施加顺序确定。 */
+    private static final class OrderedOpenApiCustomizer implements OpenApiCustomizer, Ordered {
+        private final int order;
+        private final OpenApiCustomizer delegate;
+
+        private OrderedOpenApiCustomizer(int order, OpenApiCustomizer delegate) {
+            this.order = order;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public int getOrder() {
+            return order;
+        }
+
+        @Override
+        public void customise(OpenAPI openApi) {
+            delegate.customise(openApi);
+        }
     }
 
     /**
