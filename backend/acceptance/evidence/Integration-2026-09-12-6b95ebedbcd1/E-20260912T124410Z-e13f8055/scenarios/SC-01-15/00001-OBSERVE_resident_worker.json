@@ -1,0 +1,18 @@
+{
+  "method": "OBSERVE",
+  "path": "resident-worker 周期自动触发",
+  "status": 0,
+  "request_headers": {},
+  "request_json": {
+    "env": {
+      "MVP_NOTIFY_OFFLINE_THRESHOLD_SECONDS": "1",
+      "MVP_WORKER_INCIDENT_SCAN_INTERVAL_SECONDS": "2",
+      "MVP_WORKER_MEDIA_CLEANUP_SCAN_INTERVAL_SECONDS": "2",
+      "MVP_WORKER_POLL_INTERVAL_SECONDS": "1"
+    }
+  },
+  "response_excerpt": "notifications=0 media_cleanup_task_ran=True incident_task_ran=True",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T124410Z-e13f8055"
+}
