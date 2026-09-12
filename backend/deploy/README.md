@@ -155,6 +155,10 @@ docker build -f deploy/worker-python/Dockerfile -t mvp-a/worker-python:local wor
 | MVP_WORKER_RENEW_INTERVAL_SECONDS | 15 | 条件续租间隔 |
 | MVP_WORKER_RETRY_MAX_ATTEMPTS / BACKOFF_BASE_SECONDS / BACKOFF_CAP_SECONDS | 5 / 5 / 300 | 重试与退避（min(base·2^(n-1),cap)+抖动） |
 | MVP_WORKER_POLL_INTERVAL_SECONDS | 2 | 空闲轮询间隔 |
+| MVP_WORKER_INCIDENT_SCAN_INTERVAL_SECONDS | 30（未设→MVP_NOTIFY_SCAN_INTERVAL_SECONDS→30） | 进程内离线/异常扫描间隔；只在既有 Worker 循环按到期触发，无新进程/cron |
+| MVP_WORKER_INCIDENT_SCAN_BATCH | 200 | 单轮每个候选阶段的批量上限（keyset 分页 `id > after LIMIT n`，绝不整表扫） |
+| MVP_WORKER_MEDIA_CLEANUP_SCAN_INTERVAL_SECONDS | 30 | 进程内 `media.cleanup` 孤儿候选发现间隔 |
+| MVP_WORKER_MEDIA_CLEANUP_SCAN_BATCH | 100 | 单轮孤儿候选发现上限（透传 D 的有界 `discover_and_enqueue_orphans`） |
 | MVP_WORKER_HEALTH_HOST / PORT | 127.0.0.1（compose 0.0.0.0）/ 8081 | /healthz /readyz |
 | MVP_WORKER_ENVIRONMENT | dev | 媒体 key 前缀 |
 | MVP_CONTRACTS_DIR | ../contracts（可选） | 测试期契约目录位置 |
