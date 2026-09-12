@@ -20,6 +20,7 @@ from typing import Any, Optional, Protocol, runtime_checkable
 from .dconfig import (
     DEFAULT_PLAN_CAPABILITY_BASELINE,
     DConfig,
+    ProviderConfigError,
 )
 
 # ---------------------------------------------------------------- errors
@@ -33,9 +34,8 @@ class ProviderNotActivated(ProviderUnavailable):
     """适配器尚未真实激活（无授权凭据/未过 PoC）→ 可重试，不伪造结果。"""
 
 
-class ProviderConfigError(RuntimeError):
-    """配置错误（如生产环境解析到替身）。"""
-
+# ``ProviderConfigError`` 定义在 ``dconfig``（避免循环依赖），此处重导出以保证既有
+# ``from ...providers import ProviderConfigError`` 不变。
 
 # ---------------------------------------------------------------- result values
 
@@ -496,21 +496,73 @@ def _forbid_double_in_production(environment: str, provider: str) -> None:
         )
 
 
+def _face_double_from_config(cfg: DConfig) -> FaceDouble:
+    """按 env 装配 face 替身注入缝（默认值 = 当前行为；仅 double 分支读取）。
+
+    - ``quality=needs_retake`` + ``required_views`` → 质量不合格正例；
+    - ``same_person=false`` → NOT_SAME_PERSON；
+    - ``search`` ∈ reliable_new/matched/uncertain/ambiguous/dependency_failed。
+
+    "旧分析完成时机"的 hold/release 见 ``_skin_double_from_config``
+    （``MVP_D_SKIN_DOUBLE_HOLD`` 或既有 aliyun provider 失败注入），进程级、
+    不能按 task/照片版本键控（见 seam 说明文档）。
+    """
+    return FaceDouble(
+        search=cfg.face_double_search,
+        same_person=cfg.face_double_same_person,
+        quality=cfg.face_double_quality,
+        required_views=tuple(cfg.face_double_required_views),
+    )
+
+
+def _plan_double_from_config(cfg: DConfig) -> PlanDouble:
+    """按 env 装配 plan 替身注入缝（默认=当前行为；非法取值已在 DConfig 校验）。"""
+    mode = cfg.plan_double_mode
+    if mode == "valid":
+        return PlanDouble()
+    if mode == "timeout":
+        # 既有瞬时异常分类（非真实 sleep）→ handler 映射为可重试 DEPENDENCY_UNAVAILABLE，
+        # attempt 预算耗尽后经 _transient_or_terminal 落终态 failed（确定性）。
+        return PlanDouble(
+            faults={"generate": [ProviderUnavailable("plan double: injected timeout")]}
+        )
+    if mode == "failure":
+        return PlanDouble(
+            faults={"generate": [RuntimeError("plan double: injected provider failure")]}
+        )
+    return PlanDouble(invalid=mode)  # PlanDouble 既有非法形状
+
+
 def build_face_port(cfg: DConfig, *, environment: str) -> FacePort:
     provider = cfg.face_provider
     if provider == "double":
         _forbid_double_in_production(environment, provider)
-        return FaceDouble()
+        return _face_double_from_config(cfg)
     if provider == "aliyun_face":
         return AliyunFaceAdapter(cfg)
     raise ProviderConfigError(f"unknown face provider: {provider}")
+
+
+def _skin_double_from_config(cfg: DConfig) -> SkinDouble:
+    """按 env 装配 skin 替身；``MVP_D_SKIN_DOUBLE_HOLD=true`` 为**进程级 hold**。
+
+    hold 复用既有可重试失败语义（``ProviderUnavailable`` → handler 映射为可重试
+    ``DEPENDENCY_UNAVAILABLE``，job 退避重排队）：旧分析停在可释放态，不 sleep、
+    不改 DB、不改业务判定。端口无 task/照片版本入参，故只能进程级（E 用
+    ``worker_once(env_extra=...)`` 逐次控制时机）。
+    """
+    if cfg.skin_double_hold:
+        return SkinDouble(
+            faults={"analyze": [ProviderUnavailable("analyze hold: injected retryable hold")]}
+        )
+    return SkinDouble()
 
 
 def build_skin_port(cfg: DConfig, *, environment: str) -> SkinPort:
     provider = cfg.skin_provider
     if provider == "double":
         _forbid_double_in_production(environment, provider)
-        return SkinDouble()
+        return _skin_double_from_config(cfg)
     if provider == "aliyun_skin":
         return AliyunSkinAdapter(cfg)
     raise ProviderConfigError(f"unknown skin provider: {provider}")
@@ -520,7 +572,7 @@ def build_plan_port(cfg: DConfig, *, environment: str) -> PlanPort:
     provider = cfg.plan_provider
     if provider == "double":
         _forbid_double_in_production(environment, provider)
-        return PlanDouble()
+        return _plan_double_from_config(cfg)
     if provider == "aliyun_llm":
         return AliyunPlanAdapter(cfg)
     raise ProviderConfigError(f"unknown plan provider: {provider}")
