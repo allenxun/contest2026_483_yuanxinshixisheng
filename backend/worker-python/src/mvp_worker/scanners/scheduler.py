@@ -54,9 +54,11 @@ class PeriodicTask:
         self._guard = threading.Lock()
         # 首个周期立即到期：进程启动即补扫一次，之后按 interval 顺延。
         #
-        # 调度语义为 **fixed-rate / best-effort**（有意如此，非缺陷）：``due_at`` 以
-        # 本次尝试**开始前**的 ``now`` 顺延（见 :meth:`attempt` 的 finally），故当回调
-        # 耗时超过 ``interval`` 时下一轮会立即到期——不补偿漂移、也不跳过周期。
+        # 调度语义为 **best-effort start-to-start**（有意如此，非缺陷）：``due_at`` 以
+        # 本次尝试**开始前**的 ``now`` 顺延（见 :meth:`attempt` 的 finally）。因此：
+        # ① 回调耗时超过 ``interval`` 时，回调结束后下一轮**立即到期**（不补偿漂移）；
+        # ② 回调期间**错过的多个周期会被合并为一次**执行，**不追赶补跑**
+        #    （例：interval=30s 而回调耗时 95s，则结束后只立即再跑一次，而非补跑两次）。
         # 叠加并发由下面的非阻塞守卫排除；若将来需要"固定延迟"语义（回调结束后再等
         # 一个 interval），应在 finally 中改用回调结束时的 monotonic 时间。
         self.due_at = 0.0
