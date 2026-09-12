@@ -20,6 +20,11 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | ``MVP_D_FACE_DOUBLE_SAME_PERSON`` | ``true`` | 测试注入：同人判定（严格布尔 ``1/true/yes/on`` 或 ``0/false/no/off``；``false`` → NOT_SAME_PERSON） |
 | ``MVP_D_FACE_DOUBLE_SEARCH`` | ``reliable_new`` | 测试注入：1:N 分类（``reliable_new``/``matched``/``uncertain``/``ambiguous``/``dependency_failed``） |
 | ``MVP_D_SKIN_DOUBLE_HOLD`` | ``false`` | 测试注入：进程级 hold（严格布尔；analyze 可重试失败，旧执行停在 queued，可释放） |
+| ``MVP_D_SKIN_DOUBLE_INVALID`` | ``none`` | 测试注入：skin 指标违约（``none``/``unknown_metric``/``out_of_range``/``bad_unit``）→ 既有 ``PROVIDER_CONTRACT_VIOLATION`` 终态 |
+| ``MVP_D_DOUBLE_LATE_BARRIER`` | ``false`` | 测试注入：SC-02-09 迟到返回 barrier（严格布尔；一次性/有界；仅 face 首个调用） |
+| ``MVP_D_DOUBLE_LATE_BARRIER_DIR`` | 空（临时目录） | barrier 文件目录（每场景独立，释放=写 ``released``） |
+| ``MVP_D_DOUBLE_LATE_BARRIER_SHA256`` | 空 | 命中标记：被拦照片内容的 sha256（64 hex），barrier 开启时必填 |
+| ``MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS`` | ``30`` | barrier 等待上限（秒，>=1；超时清理并抛 ProviderUnavailable） |
 | ``MVP_D_PLAN_DOUBLE_MODE`` | ``valid`` | 测试注入：``valid``/``timeout``/``failure`` 或 PlanDouble 既有非法形状名 |
 | ``MVP_D_STORAGE_DOUBLE_FAIL_PUT`` | ``false`` | 测试注入：``assessment_result`` 用途 put 受控失败（严格布尔；可重试 RESULT_ARCHIVE_FAILED） |
 | ``MVP_D_ALIYUN_ACTIVATED`` | ``false`` | 阿里云适配器真实激活开关（需凭据 + PoC） |
@@ -63,6 +68,17 @@ DEFAULT_FACE_DOUBLE_QUALITY = "accepted"
 DEFAULT_FACE_DOUBLE_SEARCH = "reliable_new"
 DEFAULT_PLAN_DOUBLE_MODE = "valid"
 DEFAULT_SKIN_DOUBLE_HOLD = False
+DEFAULT_SKIN_DOUBLE_INVALID = "none"
+DEFAULT_DOUBLE_LATE_BARRIER = False
+DEFAULT_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS = 30
+
+#: SC-02-09 迟到返回 barrier 的 env 名（一次性、文件态、有界；默认关闭）。
+DOUBLE_LATE_BARRIER_DIR_ENV = "MVP_D_DOUBLE_LATE_BARRIER_DIR"
+DOUBLE_LATE_BARRIER_SHA256_ENV = "MVP_D_DOUBLE_LATE_BARRIER_SHA256"
+DOUBLE_LATE_BARRIER_TIMEOUT_ENV = "MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS"
+
+# SkinDouble._apply_invalid 的既有非法形状名（与 providers.SkinDouble 一一对应）。
+SKIN_DOUBLE_INVALID_MODES = ("none", "unknown_metric", "out_of_range", "bad_unit")
 
 FACE_DOUBLE_QUALITY_MODES = ("accepted", "needs_retake")
 FACE_DOUBLE_SEARCH_MODES = (
@@ -96,12 +112,18 @@ DOUBLE_INJECTION_SWITCHES: dict[str, Any] = {
     "MVP_D_FACE_DOUBLE_SEARCH": DEFAULT_FACE_DOUBLE_SEARCH,
     "MVP_D_PLAN_DOUBLE_MODE": DEFAULT_PLAN_DOUBLE_MODE,
     "MVP_D_SKIN_DOUBLE_HOLD": DEFAULT_SKIN_DOUBLE_HOLD,
+    "MVP_D_SKIN_DOUBLE_INVALID": DEFAULT_SKIN_DOUBLE_INVALID,
+    "MVP_D_DOUBLE_LATE_BARRIER": DEFAULT_DOUBLE_LATE_BARRIER,
+    DOUBLE_LATE_BARRIER_DIR_ENV: "",
+    DOUBLE_LATE_BARRIER_SHA256_ENV: "",
+    DOUBLE_LATE_BARRIER_TIMEOUT_ENV: str(DEFAULT_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS),
     STORAGE_DOUBLE_FAIL_PUT_ENV: False,
 }
 _BOOLEAN_INJECTION_SWITCHES = frozenset(
     {
         "MVP_D_FACE_DOUBLE_SAME_PERSON",
         "MVP_D_SKIN_DOUBLE_HOLD",
+        "MVP_D_DOUBLE_LATE_BARRIER",
         STORAGE_DOUBLE_FAIL_PUT_ENV,
     }
 )
@@ -359,6 +381,27 @@ class DConfig:
     storage_double_fail_put: bool = field(
         default_factory=lambda: strict_env_bool(STORAGE_DOUBLE_FAIL_PUT_ENV, False)
     )
+    # SC-02-10：skin 替身返回违反既有白名单/基线的指标 → 既有 PROVIDER_CONTRACT_VIOLATION 终态。
+    skin_double_invalid: str = field(
+        default_factory=lambda: _env("MVP_D_SKIN_DOUBLE_INVALID", DEFAULT_SKIN_DOUBLE_INVALID)
+    )
+    # SC-02-09：文件式一次性 barrier（先算后等/有界/默认关闭），仅 FaceDouble 首个调用读取。
+    double_late_barrier: bool = field(
+        default_factory=lambda: strict_env_bool(
+            "MVP_D_DOUBLE_LATE_BARRIER", DEFAULT_DOUBLE_LATE_BARRIER
+        )
+    )
+    double_late_barrier_dir: str = field(
+        default_factory=lambda: _env(DOUBLE_LATE_BARRIER_DIR_ENV, "")
+    )
+    double_late_barrier_sha256: str = field(
+        default_factory=lambda: _env(DOUBLE_LATE_BARRIER_SHA256_ENV, "")
+    )
+    double_late_barrier_timeout_seconds: int = field(
+        default_factory=lambda: _env_int(
+            DOUBLE_LATE_BARRIER_TIMEOUT_ENV, DEFAULT_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS
+        )
+    )
     # --- 阿里云形状边界（真实激活需总协调授权凭据 + PoC，当前默认未激活） ---
     aliyun_activated: bool = field(
         default_factory=lambda: _env_bool("MVP_D_ALIYUN_ACTIVATED", False)
@@ -406,6 +449,24 @@ class DConfig:
                 f"invalid MVP_D_FACE_DOUBLE_REQUIRED_VIEWS={list(unknown_views)!r};"
                 f" allowed views are {list(REQUIRED_VIEWS_ALL)}"
             )
+        if self.skin_double_invalid not in SKIN_DOUBLE_INVALID_MODES:
+            raise ProviderConfigError(
+                f"invalid MVP_D_SKIN_DOUBLE_INVALID={self.skin_double_invalid!r};"
+                f" expected one of {SKIN_DOUBLE_INVALID_MODES}"
+            )
+        if self.double_late_barrier:
+            if self.double_late_barrier_timeout_seconds < 1:
+                raise ProviderConfigError(
+                    f"invalid {DOUBLE_LATE_BARRIER_TIMEOUT_ENV}="
+                    f"{self.double_late_barrier_timeout_seconds!r}; expected integer >= 1"
+                )
+            marker = self.double_late_barrier_sha256.strip().lower()
+            if len(marker) != 64 or any(c not in "0123456789abcdef" for c in marker):
+                raise ProviderConfigError(
+                    f"invalid {DOUBLE_LATE_BARRIER_SHA256_ENV}="
+                    f"{self.double_late_barrier_sha256!r}; expected 64-char hex sha256"
+                    " of the marked image (barrier enabled)"
+                )
 
     # --- 基线访问器（结构性读取，缺失返回 None） ---
     def metric_baseline_by_name(self) -> dict[str, dict[str, Any]]:
