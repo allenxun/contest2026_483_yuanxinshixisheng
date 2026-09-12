@@ -32,8 +32,11 @@ import java.util.UUID;
  * <p><b>代次/换号语义</b>：内容变化、换号接管，以及相同内容但会话引用变化
  * （含 {@code invalid} 行重新激活）都 {@code destination_revision + 1}，使旧
  * 会话目标的 T10 通知路由快照全部失配并取消；仅"同会话且已 {@code active}"
- * 的纯幂等重登记不递增代次。若登出侧 {@code invalid} 失效不改代次，重新激活
- * 仍会由本服务 +1，故旧 revision 不被复用。
+ * 的纯幂等重登记不递增代次。登出侧（{@code AuthController.invalidateDestinations}）
+ * 置 {@code invalid} 时在<b>同一条原子 UPDATE</b> 内一并 {@code destination_revision + 1}
+ * （{@code WHERE session_ref=? AND status='active'}，故重复登出幂等、已失效行不再
+ * 递增也不刷新 {@code invalidated_at}），使建单于登出前的 T10 路由快照立即失配、
+ * 阻断旧任务写回；重新激活仍由本服务按上述守卫 +1，旧 revision 不会被复用。
  * {@code expectedDestinationRevision} 不符复用 409 {@code BINDING_CHANGED}
  * ——契约无"目标代次不符"专用码且 B 不得新增错误码；DD 3.2 该码语义正是
  * "刷新当前状态并重新操作；旧请求不得改写新事实"，details 只含

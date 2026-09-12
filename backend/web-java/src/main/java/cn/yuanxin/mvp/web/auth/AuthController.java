@@ -37,7 +37,9 @@ import java.util.UUID;
  *
  * <p>不建会话存储表（14 表设计无 session 表）；token 不透明、只由提供方
  * 派生身份；请求体手机号不作为认证结果。退出：先撤会话，再按 session_ref
- * 条件失效 T09 目标（幂等补偿、字段级 UPDATE、只影响本次会话对应目标）。</p>
+ * 条件失效 T09 目标（幂等补偿、字段级 UPDATE、只影响本次会话对应目标）；
+ * 失效与 {@code destination_revision + 1} 在同一原子 UPDATE 内完成，阻断该
+ * 会话遗留 T10 路由快照的旧任务写回。</p>
  */
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -186,19 +188,32 @@ public class AuthController {
                 accountId);
     }
 
-    /** T09 会话目标失效：按 session_ref 条件更新（不得失效后来新登录的目标）。 */
+    /**
+     * T09 会话目标失效：按 session_ref 条件更新（不得失效后来新登录的目标）。
+     *
+     * <p>置 {@code status='invalid'} 与 {@code destination_revision + 1} 必须在
+     * <b>同一条原子 UPDATE</b> 内完成，否则存在"目标已失效但代次未变"的窗口，
+     * 该会话遗留的 T10 路由快照（建单时锁定旧代次）仍可能被旧任务投递写回。
+     * 递增后投递前重检（T03→T09→T10）必判代次失配而取消。</p>
+     *
+     * <p>{@code WHERE ... AND status='active'} 只命中真实变更的行：已 invalid 的
+     * 行既不重复递增也不刷新 {@code invalidated_at}，受影响行数为 0 即为幂等
+     * （重复/并发登出）。不在 Java 侧先查后改，避免 TOCTOU 竞态。</p>
+     */
     private void invalidateDestinations(SessionProvider.RevokedSession revoked) {
         try {
             int n = jdbc.update("UPDATE notification_destinations"
-                            + " SET status = 'invalid', invalidated_at = now(), updated_at = now()"
+                            + " SET status = 'invalid', invalidated_at = now(), updated_at = now(),"
+                            + " destination_revision = destination_revision + 1"
                             + " WHERE session_ref = ? AND status = 'active'",
                     revoked.sessionId());
             log.info("revoked session invalidated {} notification destination(s) (installation={})",
                     n, revoked.installationId());
         } catch (RuntimeException e) {
-            // 幂等补偿语义：撤销已生效；目标失效可后续补偿（DD 4.1），不反转登出
-            log.warn("T09 invalidation failed for session_ref={} (compensable)",
-                    revoked.sessionId(), e);
+            // 幂等补偿语义：撤销已生效；目标失效可后续补偿（DD 4.1），不反转登出。
+            // 不回显 session_ref/token，避免会话标识进入日志。
+            log.warn("T09 invalidation failed (installation={}, compensable)",
+                    revoked.installationId(), e);
         }
     }
 }

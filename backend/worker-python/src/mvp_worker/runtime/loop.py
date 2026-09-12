@@ -50,9 +50,20 @@ class WorkerRuntime:
             max_overflow=config.max_overflow,
         )
         self.stop_event = threading.Event()
+        # 进程内周期扫描器（C8）：延迟构造，只有 run_forever 需要；--once/--recover
+        # 不触发，保持既有单周期/回收语义不变。
+        self._scanner = None
 
     def dispose(self) -> None:
         self.engine.dispose()
+
+    def _scanner_or_build(self):
+        """构造/复用进程内周期扫描器（B 的 incident.scan + D 的 media.cleanup.discover）。"""
+        if self._scanner is None:
+            from ..scanners.scheduler import build_worker_scanner
+
+            self._scanner = build_worker_scanner(self.cfg, self.engine)
+        return self._scanner
 
     # ---------------- dispatch ----------------
 
@@ -216,6 +227,11 @@ class WorkerRuntime:
     def run_forever(self) -> None:
         mlog(log, logging.INFO, "worker.start",
              workerId=self.cfg.worker_id, environment=self.cfg.environment)
+        # C8：两个有界周期扫描任务挂在既有循环里，与 run_cycle 同线程：
+        # - 挂载点 = 每轮 run_cycle 之后（批处理间隙），到期才跑、上一轮未完成不叠加；
+        # - 扫描回调只做有界 DB 读写/入队，异常自隔离，绝不终止 Worker；
+        # - 等待窗口收敛到最近到期时间，stop_event 仍可立即唤醒（停机延迟不变大）。
+        scanner = self._scanner_or_build()
         while not self.stop_event.is_set():
             try:
                 processed = self.run_cycle()
@@ -223,8 +239,13 @@ class WorkerRuntime:
                 mlog(log, logging.ERROR, "worker.cycle_error",
                      workerId=self.cfg.worker_id, errorClass=type(exc).__name__)
                 processed = 0
+            scanner.run_due()
+            if self.stop_event.is_set():
+                break
             if processed == 0:
-                # 空闲：可被 stop_event 立即唤醒
-                self.stop_event.wait(self.cfg.poll_interval_seconds)
+                # 空闲：等待 min(poll, 最近扫描到期)，两者都能被 stop_event 立即唤醒
+                self.stop_event.wait(
+                    scanner.next_wait_seconds(self.cfg.poll_interval_seconds)
+                )
         # 优雅停机：run_cycle 等待了全部在途 future；此处无遗留领取
         mlog(log, logging.INFO, "worker.stopped", workerId=self.cfg.worker_id)
