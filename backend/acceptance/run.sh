@@ -77,6 +77,8 @@ run_pytest() { # $1=mode 其余=pytest 参数
     # 避免 gate=open 下嵌套运行重复启动活体服务。
     export E_SELFCHECK_NESTED=1
   fi
+  export E_ACCEPTANCE_EVIDENCE_DIR="${E_ACCEPTANCE_EVIDENCE_DIR:-$PWD/evidence/Integration-$(date +%F)-$(git rev-parse --short HEAD)}"
+  export E_ACCEPTANCE_REVIEWED_SHA="$(git rev-parse HEAD)"
   env -u PYTEST_ADDOPTS E_ACCEPTANCE_MODE="$mode" E_ACCEPTANCE_RUN_ID="$rid" \
     "$PYTEST" "$@" 2>&1 | tee "$log"
   rc=${PIPESTATUS[0]}
