@@ -93,14 +93,37 @@ public record ApiDocEntry(
             String contentType,
             String description,
             Class<?> jsonSchema,
-            String binaryFormat) {
+            String binaryFormat,
+            boolean required) {
 
+        /** JSON part，<strong>必填</strong>。 */
         public static MultipartPartDoc json(String name, String description, Class<?> jsonSchema) {
-            return new MultipartPartDoc(name, "application/json", description, jsonSchema, null);
+            return new MultipartPartDoc(name, "application/json", description, jsonSchema, null, true);
         }
 
+        /** JSON part，必填性显式指定。 */
+        public static MultipartPartDoc json(String name, String description, Class<?> jsonSchema,
+                                           boolean required) {
+            return new MultipartPartDoc(name, "application/json", description, jsonSchema, null, required);
+        }
+
+        /** 二进制 part，<strong>必填</strong>。 */
         public static MultipartPartDoc binary(String name, String contentType, String description) {
-            return new MultipartPartDoc(name, contentType, description, null, "binary");
+            return new MultipartPartDoc(name, contentType, description, null, "binary", true);
+        }
+
+        /**
+         * 二进制 part，必填性显式指定。
+         *
+         * <p><strong>条件必填的 part 必须用本工厂并传 {@code required=false}</strong>，
+         * 把条件规则写进 description：例如 M3-A02 补拍的 {@code front}/{@code left}/{@code right}
+         * 只在 {@code metadata.replacedViews} 列出该视角时才必须上传（契约
+         * {@code required: [metadata]}）。若一律标 required，生成的客户端会提交未列入
+         * {@code replacedViews} 的多余 part，从而被真实服务拒绝。</p>
+         */
+        public static MultipartPartDoc binary(String name, String contentType, String description,
+                                             boolean required) {
+            return new MultipartPartDoc(name, contentType, description, null, "binary", required);
         }
     }
 

@@ -46,13 +46,39 @@ class ApiDocsCoverageIT extends AbstractWebIT {
      */
     private static final Pattern CJK_PATTERN = Pattern.compile("[\\u4e00-\\u9fff]");
 
-    /** 5 个基线自由结构字段（key = "Schema.property"）。 */
-    private static final List<String> FREE_FORM_FIELDS = List.of(
-            "Request.registration",
-            "MicrocrystalObservationBody.capabilities",
+    /**
+     * 经 orchestrator 审议核准的<strong>显式不透明</strong>自由结构字段（key = "Schema.property"）。
+     * 只有这三项允许"零已知键 + 不透明声明"形态；文档中任何其它 {@code EXPLICIT_OPAQUE} 字段一律失败，
+     * 防止"随便写一句 note"冒充权威不透明声明。
+     *
+     * <p>注意：{@code SkinReportListItem.reportSummary} <strong>不在</strong>清单内——Worker
+     * （{@code assessment_analyze.py}）固定写入 {@code schema_version}/{@code conclusion}/
+     * {@code headline_metrics} 三键，应在 freeFormDocs 中展开为 knownKeys 形态。</p>
+     */
+    private static final Set<String> APPROVED_OPAQUE_FIELDS = Set.of(
             "MicrocrystalObservationBody.state",
-            "HeartbeatBody.incidents",
+            "M4A04Metadata.reportedMicrocrystalState",
             "AppSessionRequestBody.installBindingMaterial");
+
+    /** 生成 schema 名 → 契约 components schema 名（仅列已知不一致者；其余按同名对照）。 */
+    private static final Map<String, String> CONTRACT_REQUEST_SCHEMA_ALIASES = Map.ofEntries(
+            Map.entry("GimbalSessionRequestBody", "GimbalSessionRequest"),
+            Map.entry("BindingBody", "GimbalBindingRequest"),
+            Map.entry("EchoJobRequestBody", "SystemEchoJobRequest"),
+            Map.entry("EchoJobAcceptedData", "SystemEchoJobAccepted"),
+            Map.entry("EchoJobViewData", "SystemEchoJobView"),
+            Map.entry("MicrocrystalObservationBody", "MicrocrystalObservationRequest"),
+            Map.entry("HeartbeatBody", "GimbalHeartbeatRequest"),
+            Map.entry("AppSessionRequestBody", "AppSessionRequest"),
+            Map.entry("SessionRefreshRequestBody", "SessionRefreshRequest"),
+            Map.entry("Request", "NotificationDestinationRequest"),
+            Map.entry("SyncRequestDto", "ExecutionObservationSyncRequest"),
+            Map.entry("ClosureRequestDto", "ExecutionClosureRequest"),
+            Map.entry("A01Metadata", "M3A01Metadata"),
+            Map.entry("A02Metadata", "M3A02Metadata"),
+            Map.entry("CaptureDto", "Capture"),
+            Map.entry("ExecutionObservationDto", "ExecutionObservation"),
+            Map.entry("ExecutionRecordDto", "ExecutionRecord"));
 
     @Autowired
     private ApiDocsApplier apiDocsApplier;
@@ -186,27 +212,49 @@ class ApiDocsCoverageIT extends AbstractWebIT {
             });
         });
 
-        // 6) 5 个自由结构字段：要么显式展开（properties 非空），要么显式不透明声明
-        //    （描述含不透明/未冻结表述且显式设置 additionalProperties）。二者皆无才失败。
-        for (String fq : FREE_FORM_FIELDS) {
-            int dot = fq.indexOf('.');
-            JsonNode schema = schemas.path(fq.substring(0, dot));
-            JsonNode prop = schema.path("properties").path(fq.substring(dot + 1));
-            if (prop.isMissingNode()) {
-                problems.add("自由结构字段缺失: " + fq);
-                continue;
-            }
-            switch (ApiDocsApplier.classifyFreeForm(prop)) {
-                case EXPANDED, EXPLICIT_OPAQUE -> {
-                    // 通过：显式展开 或 显式不透明声明
+        // 6) 自由结构<strong>动态扫描</strong>：遍历全部 components.schemas[*].properties[*]，
+        //    凡"无结构对象"（type=object 且无 properties 且无 additionalProperties；或 $ref 指向
+        //    空壳 schema 如 JsonNode）都必须 EXPANDED 或 EXPLICIT_OPAQUE；不透明声明还须在核准清单内。
+        Set<String> opaqueFound = new LinkedHashSet<>();
+        for (java.util.Iterator<String> sit = schemas.fieldNames(); sit.hasNext(); ) {
+            String schemaName = sit.next();
+            JsonNode props = schemas.path(schemaName).path("properties");
+            for (java.util.Iterator<String> pit = props.fieldNames(); pit.hasNext(); ) {
+                String propName = pit.next();
+                JsonNode prop = props.path(propName);
+                String fq = schemaName + "." + propName;
+                ApiDocsApplier.FreeFormGate gate = ApiDocsApplier.classifyFreeForm(prop);
+                if (gate == ApiDocsApplier.FreeFormGate.EXPLICIT_OPAQUE) {
+                    opaqueFound.add(fq);
+                    if (!APPROVED_OPAQUE_FIELDS.contains(fq)) {
+                        problems.add("未经核准的不透明声明: " + fq
+                                + " —— 请补充经取证的 knownKeys，或由 orchestrator 审议后加入核准清单");
+                    }
+                    continue;
                 }
-                case OPAQUE_MISSING_ADDITIONAL_PROPERTIES -> problems.add(
-                        "自由结构有不透明声明但未显式设置 additionalProperties: " + fq + " = " + prop);
-                case NOT_DECLARED -> problems.add(
-                        "自由结构未展开且无不透明声明（既无 properties 也无显式不透明说明）: "
-                                + fq + " = " + prop);
+                if (ApiDocsApplier.isUnstructuredObject(prop, schemas)) {
+                    switch (gate) {
+                        case OPAQUE_MISSING_ADDITIONAL_PROPERTIES -> problems.add(
+                                "自由结构有不透明声明但未显式设置 additionalProperties: "
+                                        + fq + " = " + prop);
+                        case NOT_DECLARED -> problems.add(
+                                "自由结构未展开且无不透明声明（既无 properties 也无显式不透明说明）: "
+                                        + fq + " = " + prop);
+                        default -> {
+                            // 候选按定义不含 properties，不会走到 EXPANDED/EXPLICIT_OPAQUE
+                        }
+                    }
+                }
             }
         }
+        for (String approved : APPROVED_OPAQUE_FIELDS) {
+            if (!opaqueFound.contains(approved)) {
+                problems.add("核准清单字段在文档中并非显式不透明形态（清单可能陈旧）: " + approved);
+            }
+        }
+
+        // 6b) 契约 required 交叉校验：multipart part 必填性 + 请求体 schema required 集。
+        crossCheckContractRequired(generated, schemas, problems);
 
         // 7) 至少 5 个关键 schema 带脱敏 example（component 属性级或 schema 级）。
         int withExample = 0;
@@ -286,6 +334,199 @@ class ApiDocsCoverageIT extends AbstractWebIT {
 
     private static String normalizeKey(String key) {
         return key.replaceAll("\\{[^/]*\\}", "{}");
+    }
+
+    // ---------------- 6b) 契约 required 交叉校验 ----------------
+
+    /**
+     * （a）multipart part required 与契约操作 {@code requestBody.content.multipart/form-data.schema.required}
+     * 精确比对；（b）生成文档中全部请求体相关 schema 的 {@code required} 与契约 components 比对
+     * （生成名经 {@link #CONTRACT_REQUEST_SCHEMA_ALIASES} 映射）。
+     * 少于契约 → 失败（应经 {@code requiredProperties()} 修正）；多于契约 → 失败（不得 invent）。
+     * 无契约对应者<strong>跳过并在输出中披露计数</strong>，不静默。
+     */
+    private static void crossCheckContractRequired(Map<String, JsonNode> generated, JsonNode schemas,
+                                                   List<String> problems) throws Exception {
+        Map<String, Set<String>> contractMultipart = contractMultipartRequired();
+        Map<String, Set<String>> contractSchemas = contractComponentRequired();
+
+        // (a) multipart part required 精确比对。
+        List<String> skippedMultipart = new ArrayList<>();
+        for (Map.Entry<String, JsonNode> e : generated.entrySet()) {
+            JsonNode multipart = e.getValue().path("requestBody")
+                    .path("content").path("multipart/form-data").path("schema");
+            if (multipart.isMissingNode()) {
+                continue;
+            }
+            Set<String> expected = contractMultipart.get(e.getKey());
+            if (expected == null) {
+                skippedMultipart.add(e.getKey());
+                continue;
+            }
+            Set<String> actual = stringSet(multipart.path("required"));
+            if (!actual.equals(expected)) {
+                problems.add("multipart part required 与契约不一致: " + e.getKey()
+                        + " generated=" + actual + " contract=" + expected
+                        + "（条件必填 part 用 MultipartPartDoc.binary(..., required=false)）");
+            }
+        }
+
+        // (b) 请求体 schema required 集比对（JSON 顶层 + multipart JSON part + 递归嵌套）。
+        List<String> skippedSchemas = new ArrayList<>();
+        for (String generatedName : requestSchemaNames(generated, schemas)) {
+            String contractName = CONTRACT_REQUEST_SCHEMA_ALIASES.getOrDefault(generatedName, generatedName);
+            if (!contractSchemas.containsKey(contractName)) {
+                skippedSchemas.add(generatedName + "→" + contractName);
+                continue;
+            }
+            Set<String> actual = stringSet(schemas.path(generatedName).path("required"));
+            Set<String> expected = contractSchemas.get(contractName);
+            if (actual.equals(expected)) {
+                continue;
+            }
+            Set<String> missing = new LinkedHashSet<>(expected);
+            missing.removeAll(actual);
+            Set<String> extra = new LinkedHashSet<>(actual);
+            extra.removeAll(expected);
+            if (!extra.isEmpty()) {
+                problems.add("请求体 schema required 多于契约（不得 invent 必填性）: "
+                        + generatedName + "→" + contractName + " extra=" + extra
+                        + " generated=" + actual + " contract=" + expected);
+            } else {
+                problems.add("请求体 schema required 少于契约（应经 requiredProperties() 修正）: "
+                        + generatedName + "→" + contractName + " missing=" + missing
+                        + " generated=" + actual + " contract=" + expected);
+            }
+        }
+
+        if (!skippedMultipart.isEmpty() || !skippedSchemas.isEmpty()) {
+            System.out.println("[coverage-gate] 无契约可比对、已跳过并披露的请求体:"
+                    + " multipartOps=" + skippedMultipart + " requestSchemas=" + skippedSchemas);
+        }
+    }
+
+    private static Set<String> stringSet(JsonNode arrayNode) {
+        Set<String> out = new LinkedHashSet<>();
+        if (arrayNode != null && arrayNode.isArray()) {
+            arrayNode.forEach(n -> out.add(n.asText()));
+        }
+        return out;
+    }
+
+    /** 生成文档中全部请求体相关 schema 名（走 requestBody 树 + 递归进入 components 的嵌套 $ref）。 */
+    private static Set<String> requestSchemaNames(Map<String, JsonNode> generated, JsonNode schemas) {
+        Set<String> out = new LinkedHashSet<>();
+        java.util.Deque<String> queue = new java.util.ArrayDeque<>();
+        for (JsonNode op : generated.values()) {
+            collectSchemaRefs(op.path("requestBody"), out, queue);
+        }
+        while (!queue.isEmpty()) {
+            String name = queue.poll();
+            JsonNode schema = schemas.path(name);
+            if (schema.isMissingNode()) {
+                continue;
+            }
+            collectSchemaRefs(schema, out, queue);
+        }
+        return out;
+    }
+
+    private static void collectSchemaRefs(JsonNode node, Set<String> out, java.util.Deque<String> queue) {
+        if (node == null || node.isMissingNode() || node.isNull()) {
+            return;
+        }
+        if (node.isObject()) {
+            JsonNode ref = node.get("$ref");
+            if (ref != null && ref.isTextual()) {
+                String v = ref.asText();
+                String name = v.substring(v.lastIndexOf('/') + 1);
+                if (out.add(name)) {
+                    queue.add(name);
+                }
+            }
+            node.fields().forEachRemaining(e -> collectSchemaRefs(e.getValue(), out, queue));
+        } else if (node.isArray()) {
+            node.forEach(child -> collectSchemaRefs(child, out, queue));
+        }
+    }
+
+    /** 契约全部 multipart 操作的 part required（key = "METHOD {}"）。 */
+    @SuppressWarnings("unchecked")
+    private static Map<String, Set<String>> contractMultipartRequired() throws Exception {
+        Map<String, Object> contract = loadContract();
+        Map<String, Object> paths = (Map<String, Object>) contract.get("paths");
+        Map<String, Set<String>> out = new LinkedHashMap<>();
+        if (paths == null) {
+            return out;
+        }
+        for (Map.Entry<String, Object> e : paths.entrySet()) {
+            Map<String, Object> item = (Map<String, Object>) e.getValue();
+            for (String m : METHODS) {
+                Object raw = item.get(m);
+                if (!(raw instanceof Map<?, ?> opMap)) {
+                    continue;
+                }
+                Object rb = opMap.get("requestBody");
+                if (!(rb instanceof Map<?, ?> rbMap)) {
+                    continue;
+                }
+                Object content = rbMap.get("content");
+                if (!(content instanceof Map<?, ?> contentMap)) {
+                    continue;
+                }
+                Object mp = contentMap.get("multipart/form-data");
+                if (!(mp instanceof Map<?, ?> mpMap)) {
+                    continue;
+                }
+                Object schema = mpMap.get("schema");
+                if (!(schema instanceof Map<?, ?> schemaMap)) {
+                    continue;
+                }
+                Set<String> required = new LinkedHashSet<>();
+                Object req = schemaMap.get("required");
+                if (req instanceof List<?> list) {
+                    list.forEach(r -> required.add(String.valueOf(r)));
+                }
+                out.put(m.toUpperCase() + " " + normalize(e.getKey()), required);
+            }
+        }
+        return out;
+    }
+
+    /** 契约 components.schemas 中对象 schema 的 required 集（无 required 者视为空集）。 */
+    @SuppressWarnings("unchecked")
+    private static Map<String, Set<String>> contractComponentRequired() throws Exception {
+        Map<String, Object> contract = loadContract();
+        Object compsRaw = contract.get("components");
+        if (!(compsRaw instanceof Map<?, ?> comps)) {
+            return Map.of();
+        }
+        Object schemasRaw = comps.get("schemas");
+        if (!(schemasRaw instanceof Map<?, ?> schemas)) {
+            return Map.of();
+        }
+        Map<String, Set<String>> out = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> e : schemas.entrySet()) {
+            if (!(e.getValue() instanceof Map<?, ?> s) || !(s.get("properties") instanceof Map<?, ?>)) {
+                continue; // 只对照对象 schema
+            }
+            Set<String> required = new LinkedHashSet<>();
+            Object req = s.get("required");
+            if (req instanceof List<?> list) {
+                list.forEach(r -> required.add(String.valueOf(r)));
+            }
+            out.put(String.valueOf(e.getKey()), required);
+        }
+        return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> loadContract() throws Exception {
+        Path yamlPath = Path.of("..", "contracts", "openapi", "openapi.yaml");
+        assertTrue(Files.exists(yamlPath), "contract not found at " + yamlPath.toAbsolutePath());
+        try (InputStream in = Files.newInputStream(yamlPath)) {
+            return new Yaml().load(in);
+        }
     }
 
     private static Set<String> generatedErrorCodes(JsonNode op) {

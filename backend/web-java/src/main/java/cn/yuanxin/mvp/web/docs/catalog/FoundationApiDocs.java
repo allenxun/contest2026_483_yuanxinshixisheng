@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Foundation 域联调文档目录：手机号账号与会话、云台设备会话握手、受控媒体二进制读取、
@@ -171,12 +172,14 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                         调用方：已登录 APP（Authorization: Bearer APP session token）。本端点由控制器手工读取
                         Authorization 头，故生成文档包含该 header 参数（required）。
                         成功：204 无响应体（requestId 见响应头 X-Request-Id），不使用统一成功信封。
-                        关键规则与顺序：先撤销会话，再按 session_ref 条件更新 T09 notification_destinations——
-                        status='invalid' 与 destination_revision+1 必须在同一条原子 UPDATE 内完成，以阻断该会话
-                        遗留的 T10 路由快照被旧任务写回；只影响本次会话对应的目标，不影响其他安装实例，
+                        关键规则与顺序：先从当前会话/提供方撤销会话（SessionProvider，当前为内存替身；不在 DB 事务中），
+                        再按 session_ref 条件更新 T09 notification_destinations——置 status='invalid' 并
+                        destination_revision+1 在单条 PG UPDATE 内原子完成，以阻断该会话遗留的 T10 路由快照被
+                        旧任务写回；会话撤销与 T09 更新不是同一事务。只影响本次会话对应的目标，不影响其他安装实例，
                         也不失效后来新登录的目标；WHERE status='active' 保证重复/并发登出幂等（受影响行数为 0，
                         不重复递增，也不刷新 invalidated_at）。
-                        幂等语义：重复/并发登出幂等；PG 目标更新失败允许幂等补偿，登出结果不反转。
+                        幂等语义：重复/并发登出幂等；T09 目标更新失败不回滚登出（登出已生效），失败走 DD 4.1
+                        幂等补偿，不反转登出结果。
                         字段要点：Authorization 形如 "Bearer <APP session token>"（合成占位，非真实 token）。
                         错误处理：AUTH_REQUIRED 缺少/格式错误 Bearer → 重新登录；SESSION_INVALID 会话已撤销/失效；
                         RATE_LIMITED 与 DEPENDENCY_* 按错误响应动作受限退避。
@@ -190,8 +193,9 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                         null,
                         null,
                         List.of(ApiDocEntry.SuccessDoc.noContent("204",
-                                "登出成功且无响应体；先撤销会话，再同事务失效本会话对应的通知目标并递增 "
-                                        + "destination_revision。requestId 见 X-Request-Id 头。")),
+                                "登出成功且无响应体；先撤销会话，随后 T09 目标失效（status='invalid' 且 "
+                                        + "destination_revision+1）在单条 PG UPDATE 内原子完成——与会话撤销不是同一事务，"
+                                        + "T09 更新失败不回滚登出、按 DD 4.1 幂等补偿。requestId 见 X-Request-Id 头。")),
                         List.of(ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
                                 ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
                                 ErrorCode.DEPENDENCY_TIMEOUT)),
@@ -252,9 +256,15 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                         404 RESOURCE_NOT_VISIBLE（不泄露存在性，也不返回内部 bucket/key）；鉴权代理不重定向至
                         长效签名 URL；本版可不支持 Range，请求不因此绕过鉴权；available ≠ 可访问，已下载字节
                         无法远程收回。
-                        生产安全默认：媒体策略为 deny-all（直到 B/C/D 安装业务策略）；dev/test 可使用 owner-dev/
-                        any-authenticated 便利，但核验用途图片即使对上传者也不经此便利放行
-                        （依据 contracts/decisions-notes.md #10）。
+                        当前业务策略（web/mediapolicy/BusinessMediaAccessPolicy，@Primary“唯一业务策略”；
+                        原生产安全默认 deny-all 不再生效（被该 @Primary 覆盖），dev/test 的 owner-dev 与
+                        any-authenticated 便利、注入缝委托亦已全部移除：
+                        ①核验用途图片（purpose=grant_face/execution_face/revalidation_face 或 purpose 为 null）
+                        一律拒绝且零查询，即使上传者本人也不放行；②仅 report_ready 报告的 assessment_result 可读，
+                        且必须被该报告 report_payload.images[].media_id 显式引用（冻结格式，下划线键）；③APP 须持有
+                        对该成员 active 的查看授权，云台须满足 current_assessment_id 与 credential_version 双匹配；
+                        ④单请求最多 3 条单表只读 SELECT、无缓存，授权撤销/任务替换立即生效
+                        （依据 BusinessMediaAccessPolicy 判定与 contracts/decisions-notes.md #10）。
                         错误处理：AUTH_REQUIRED/SESSION_INVALID → 重新登录/握手；CALLER_NOT_ALLOWED（契约声明，
                         当前基础实现不主动抛）；RESOURCE_NOT_VISIBLE → 不要换 ID 探测；DEPENDENCY_* 受限重试。
                         """,
@@ -304,8 +314,8 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                                 "echo-20260913-user-0001", null)),
                         List.of(),
                         null,
-                        "system.echo 入队请求体：message（≤512，允许中文）+ numbersAsStrings（≤32 项 bigint 十进制字符串）"
-                                + "+ 可选 jobId（客户端 UUID）。",
+                        "system.echo 入队请求体：message（契约必填，≤512，允许中文）+ numbersAsStrings"
+                                + "（契约必填，≤32 项 bigint 十进制字符串，保持原序）+ 可选 jobId（客户端 UUID）。",
                         List.of(ApiDocEntry.SuccessDoc.json("200",
                                 "受理/重放：新入队 data.status=queued；同键同内容重放返回同一 jobId 且 "
                                         + "meta.replayed=true",
@@ -407,7 +417,9 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                                 "必填，字符串，任务消息，≤512 字符（允许中文）。",
                                 "联调回声 0001"),
                         "numbersAsStrings", PropertyDoc.of(
-                                "可选，数组，≤32 项；每项为无符号 bigint 十进制字符串（有序数组保持原序）。"),
+                                "契约要求必填（SystemEchoJobRequest.required 含 message 与 numbersAsStrings），数组、"
+                                        + "≤32 项，每项为无符号 bigint 十进制字符串，保持原序；当前 Java 实现未以校验注解"
+                                        + "强制、缺失会被容忍属实现偏差，不能据此改写契约。"),
                         "jobId", PropertyDoc.of(
                                 "可选，可空字符串，UUID；作为 dedup_key=system:echo:<jobId> 的后缀，"
                                         + "缺省由服务端生成。",
@@ -491,6 +503,11 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                         "retryable", new PropertyDoc(
                                 "布尔，该失败是否可以受限重试。", null, null, "false", null)))
         );
+    }
+
+    @Override
+    public Map<String, Set<String>> requiredProperties() {
+        return Map.of("EchoJobRequestBody", Set.of("message", "numbersAsStrings"));
     }
 
     @Override

@@ -3,6 +3,7 @@ package cn.yuanxin.mvp.web.docs;
 import cn.yuanxin.mvp.web.docs.catalog.ApiDocEntry;
 import cn.yuanxin.mvp.web.docs.catalog.ApiDocsCatalog;
 import cn.yuanxin.mvp.web.error.ErrorCode;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -25,8 +26,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -449,6 +452,100 @@ class ApiDocsApplierTest {
         assertTrue(ex.getMessage().contains("unknownFreeFormTargets"));
     }
 
+    // ------------------------------------------------------------------ multipart required / requiredProperties / unstructured detection
+
+    @Test
+    @DisplayName("BLOCKER1：multipart required 只含 required=true 的 part；properties/encoding 含全部 part")
+    void multipartRequiredRespectsPartFlag() {
+        OpenAPI openApi = syntheticDoc();
+        Map<String, ApiDocEntry> entries = new LinkedHashMap<>(validCatalog().entries());
+        entries.put("POST /api/v1/synthetic/items", new ApiDocEntry(
+                "Synthetic", "创建合成项", "multipart 必填性按 part 指定",
+                List.of(ParamDoc("Idempotency-Key", "header", "幂等键", "key-1", true)),
+                List.of(
+                        ApiDocEntry.MultipartPartDoc.json("metadata", "metadata", SyntheticMetadata.class, true),
+                        ApiDocEntry.MultipartPartDoc.binary("front", "image/png",
+                                "仅当 replacedViews 含 front 时必填", false),
+                        ApiDocEntry.MultipartPartDoc.binary("left", "image/png",
+                                "仅当 replacedViews 含 left 时必填", false),
+                        ApiDocEntry.MultipartPartDoc.binary("right", "image/png",
+                                "仅当 replacedViews 含 right 时必填", false)),
+                null, "multipart",
+                List.of(ApiDocEntry.SuccessDoc.json("201", "创建成功", SyntheticResult.class)),
+                List.of(ErrorCode.INVALID_INPUT)));
+        new ApiDocsApplier(List.of(new TestCatalog(entries, validCatalog().propertyDocs(),
+                validCatalog().freeFormDocs(), List.of(new Tag().name("Synthetic")))), MAPPER)
+                .customise(openApi);
+
+        Operation post = op(openApi, "/api/v1/synthetic/items", PathItem.HttpMethod.POST);
+        MediaType multipart = post.getRequestBody().getContent().get("multipart/form-data");
+        Schema<?> schema = multipart.getSchema();
+        assertEquals(List.of("metadata"), schema.getRequired(),
+                "只有 required=true 的 part 进入 required");
+        assertTrue(schema.getProperties().keySet().containsAll(
+                List.of("metadata", "front", "left", "right")), "properties 含全部 part");
+        assertEquals(Set.of("metadata", "front", "left", "right"), multipart.getEncoding().keySet(),
+                "encoding 含全部 part");
+    }
+
+    @Test
+    @DisplayName("IMPORTANT6：requiredProperties 合并进 schema.required；拼错 schema 名/属性名 → fail fast")
+    void requiredPropertiesAppliedAndValidated() {
+        // 正向：把 SyntheticResult.value 追加为必填
+        OpenAPI openApi = syntheticDoc();
+        Map<String, Set<String>> required = Map.of(
+                "SyntheticResult", new LinkedHashSet<>(List.of("value")));
+        new ApiDocsApplier(List.of(new TestCatalog(validCatalog().entries(), validCatalog().propertyDocs(),
+                validCatalog().freeFormDocs(), List.of(new Tag().name("Synthetic")), required)), MAPPER)
+                .customise(openApi);
+        Schema<?> result = openApi.getComponents().getSchemas().get("SyntheticResult");
+        assertNotNull(result.getRequired());
+        assertTrue(result.getRequired().contains("value"), "requiredProperties 应合并进 required");
+
+        // 负向：拼错 schema 名
+        OpenAPI badSchemaDoc = syntheticDoc();
+        ApiDocsApplier badSchema = new ApiDocsApplier(List.of(new TestCatalog(
+                validCatalog().entries(), Map.of(), Map.of(),
+                List.of(new Tag().name("Synthetic")),
+                Map.of("NoSuchSchema", Set.of("x")))), MAPPER);
+        IllegalStateException ex1 = assertThrows(IllegalStateException.class,
+                () -> badSchema.customise(badSchemaDoc));
+        assertTrue(ex1.getMessage().contains("unknownPropertySchemas"), ex1.getMessage());
+
+        // 负向：属性名在该 schema 中不存在
+        OpenAPI badPropDoc = syntheticDoc();
+        ApiDocsApplier badProp = new ApiDocsApplier(List.of(new TestCatalog(
+                validCatalog().entries(), Map.of(), Map.of(),
+                List.of(new Tag().name("Synthetic")),
+                Map.of("SyntheticResult", Set.of("nope")))), MAPPER);
+        IllegalStateException ex2 = assertThrows(IllegalStateException.class,
+                () -> badProp.customise(badPropDoc));
+        assertTrue(ex2.getMessage().contains("unknownRequiredProperties"), ex2.getMessage());
+    }
+
+    @Test
+    @DisplayName("IMPORTANT6：无结构对象检测（type=object 空壳 / $ref 空壳；有结构或指向有结构 schema 不误判）")
+    void unstructuredObjectDetection() throws Exception {
+        JsonNode schemas = MAPPER.readTree("{\"JsonNode\":{\"type\":\"object\"},"
+                + "\"CaptureDto\":{\"type\":\"object\",\"properties\":{\"a\":{}}}}");
+        assertTrue(ApiDocsApplier.isUnstructuredObject(
+                MAPPER.readTree("{\"type\":\"object\"}"), schemas));
+        assertTrue(ApiDocsApplier.isUnstructuredObject(
+                MAPPER.readTree("{\"$ref\":\"#/components/schemas/JsonNode\"}"), schemas));
+        assertFalse(ApiDocsApplier.isUnstructuredObject(
+                MAPPER.readTree("{\"type\":\"object\",\"properties\":{\"a\":{}}}"), schemas));
+        assertFalse(ApiDocsApplier.isUnstructuredObject(
+                MAPPER.readTree("{\"type\":\"object\",\"additionalProperties\":true}"), schemas));
+        assertFalse(ApiDocsApplier.isUnstructuredObject(
+                MAPPER.readTree("{\"$ref\":\"#/components/schemas/CaptureDto\"}"), schemas));
+        // 数组型自由结构：items 无结构对象亦为候选（如 HeartbeatBody.incidents）
+        assertTrue(ApiDocsApplier.isUnstructuredObject(
+                MAPPER.readTree("{\"type\":\"array\",\"items\":{\"type\":\"object\"}}"), schemas));
+        assertFalse(ApiDocsApplier.isUnstructuredObject(
+                MAPPER.readTree("{\"type\":\"array\",\"items\":{\"type\":\"object\","
+                        + "\"properties\":{\"a\":{}}}}"), schemas));
+    }
+
     // ------------------------------------------------------------------ fixtures
 
     private static ApiDocEntry.ParamDoc ParamDoc(String name, String in, String desc,
@@ -585,10 +682,32 @@ class ApiDocsApplierTest {
     }
 
     /** 合成目录。 */
-    private record TestCatalog(Map<String, ApiDocEntry> entries,
-                               Map<String, Map<String, ApiDocsCatalog.PropertyDoc>> propertyDocs,
-                               Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs,
-                               List<Tag> tags) implements ApiDocsCatalog {
+    private static final class TestCatalog implements ApiDocsCatalog {
+        private final Map<String, ApiDocEntry> entries;
+        private final Map<String, Map<String, ApiDocsCatalog.PropertyDoc>> propertyDocs;
+        private final Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs;
+        private final List<Tag> tags;
+        private final Map<String, Set<String>> requiredProperties;
+
+        private TestCatalog(Map<String, ApiDocEntry> entries,
+                            Map<String, Map<String, ApiDocsCatalog.PropertyDoc>> propertyDocs,
+                            Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs,
+                            List<Tag> tags) {
+            this(entries, propertyDocs, freeFormDocs, tags, Map.of());
+        }
+
+        private TestCatalog(Map<String, ApiDocEntry> entries,
+                            Map<String, Map<String, ApiDocsCatalog.PropertyDoc>> propertyDocs,
+                            Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs,
+                            List<Tag> tags,
+                            Map<String, Set<String>> requiredProperties) {
+            this.entries = entries;
+            this.propertyDocs = propertyDocs;
+            this.freeFormDocs = freeFormDocs;
+            this.tags = tags;
+            this.requiredProperties = requiredProperties;
+        }
+
         @Override
         public String domain() {
             return "synthetic";
@@ -607,6 +726,11 @@ class ApiDocsApplierTest {
         @Override
         public Map<String, ApiDocsCatalog.FreeFormDoc> freeFormDocs() {
             return freeFormDocs;
+        }
+
+        @Override
+        public Map<String, Set<String>> requiredProperties() {
+            return requiredProperties;
         }
 
         @Override

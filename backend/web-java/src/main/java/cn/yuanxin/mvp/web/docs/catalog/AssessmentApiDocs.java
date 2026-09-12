@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Assessment 域联调文档目录：测肤任务提交/补拍/查询、成员报告列表、报告受控投影、
@@ -182,16 +183,22 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                                         "必填，application/json。结构见 A02Metadata：expectedPhotoVersion 为"
                                                 + "十进制 bigint 字符串且须等于当前版本；replacedViews 为非空、去重、"
                                                 + "仅含 front/left/right 的清单。",
-                                        A02Metadata.class),
+                                        A02Metadata.class, true),
                                 ApiDocEntry.MultipartPartDoc.binary("front", "image/png",
-                                        "当 replacedViews 含 front 时必填：更换后的正面视角照片二进制。"
-                                                + "单图 ≤10MiB；按内容嗅探（JPEG/PNG/GIF/WebP）。"),
+                                        "条件必填：仅当 metadata.replacedViews 列出 front 时必须上传更换后的正面视角"
+                                                + "照片二进制；未列入的视角不得上传多余 part（服务端要求 part 集合与"
+                                                + "replacedViews 精确一致）。单图 ≤10MiB；按内容嗅探（JPEG/PNG/GIF/WebP）。",
+                                        false),
                                 ApiDocEntry.MultipartPartDoc.binary("left", "image/png",
-                                        "当 replacedViews 含 left 时必填：更换后的左侧视角照片二进制。"
-                                                + "单图 ≤10MiB；按内容嗅探（JPEG/PNG/GIF/WebP）。"),
+                                        "条件必填：仅当 metadata.replacedViews 列出 left 时必须上传更换后的左侧视角"
+                                                + "照片二进制；未列入的视角不得上传多余 part（服务端要求 part 集合与"
+                                                + "replacedViews 精确一致）。单图 ≤10MiB；按内容嗅探（JPEG/PNG/GIF/WebP）。",
+                                        false),
                                 ApiDocEntry.MultipartPartDoc.binary("right", "image/png",
-                                        "当 replacedViews 含 right 时必填：更换后的右侧视角照片二进制。"
-                                                + "单图 ≤10MiB；按内容嗅探（JPEG/PNG/GIF/WebP）。")),
+                                        "条件必填：仅当 metadata.replacedViews 列出 right 时必须上传更换后的右侧视角"
+                                                + "照片二进制；未列入的视角不得上传多余 part（服务端要求 part 集合与"
+                                                + "replacedViews 精确一致）。单图 ≤10MiB；按内容嗅探（JPEG/PNG/GIF/WebP）。",
+                                        false)),
                         null,
                         "multipart/form-data。metadata（application/json，结构见 A02Metadata）+ 本次更换视角的图片"
                                 + "二进制 part：图片 part 名必须与 metadata.replacedViews 集合完全一致（part 名即视角名"
@@ -396,6 +403,29 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
         );
     }
 
+    /**
+     * 契约要求必填、但服务端以 <strong>multipart 解析器手工严格校验</strong>（而非 Bean Validation
+     * 注解）实现的属性 ⇒ springdoc 推导出的 {@code required} 为空，此处按<strong>契约与服务端实际
+     * 行为</strong>修正生成文档。
+     *
+     * <p>取证：{@code AssessmentMultipartParser.java:60-61}（{@code photoVersion} 须为十进制
+     * bigint 串且新任务只接受 {@code "1"}）、{@code :63}（{@code captureSessionId} requireText，
+     * 1-128）、{@code :64}（{@code consentEvidenceRef} requireText，1-128）、{@code :73-74}
+     * （{@code expectedPhotoVersion} 须为十进制 bigint 串且等于当前版本）、{@code :76-88}
+     * （{@code replacedViews} 非空、元素 ∈ front/left/right、不可重复）；违规一律
+     * 400 {@code INVALID_INPUT}。</p>
+     *
+     * <p><strong>这不是实现偏差</strong>（与 {@code EchoJobRequestBody.numbersAsStrings}
+     * "契约必填而代码不强制"的情形性质不同）：服务端确实强制，只是未用注解声明，
+     * 故 springdoc 看不见。</p>
+     */
+    @Override
+    public Map<String, Set<String>> requiredProperties() {
+        return Map.of(
+                "A01Metadata", Set.of("photoVersion", "captureSessionId", "consentEvidenceRef"),
+                "A02Metadata", Set.of("expectedPhotoVersion", "replacedViews"));
+    }
+
     @Override
     public Map<String, Map<String, PropertyDoc>> propertyDocs() {
         return Map.ofEntries(
@@ -552,17 +582,23 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
 
                 "SkinReportListItem.reportSummary", new FreeFormDoc(
                         """
-                        测肤报告摘要：写入方为测肤 Worker，与正式报告同事务生成，落库于 T05.report_summary（JSONB，可空）；
-                        列表端点将其原样解析为 JSON 返回，不加载完整 report_payload。本字段不是客户端可写字段。
-                        键结构未在任何权威文档中定义（DD/数据架构标注“摘要结构未冻结”），SkinReportService.listReports
-                        仅 parseJson 后原样返回、未读取任何固定键，故无经取证的键可列。内部诊断键（failure_detail/
+                        测肤报告摘要：写入方为测肤 Worker（assessment_analyze.py:412-417 固定构造），与正式报告
+                        同事务生成，落库于 T05.report_summary（JSONB，可空）；列表端点（SkinReportService.java:87）
+                        将其 parseJson 后原样外发，不加载完整 report_payload。本字段不是客户端可写字段。
+                        权威文档未定义该结构，以下键取自写入方实现（assessment_analyze.py:412-417）：
+                        schema_version、conclusion、headline_metrics。内部诊断键（failure_detail/
                         identity_result 等）绝不外发。
                         """,
-                        Map.of(),
+                        Map.of(
+                                "schema_version", "integer，摘要结构版本，当前写入方固定为 1。",
+                                "conclusion", "string，测肤结论（取自测肤算法 provider 返回的 conclusion 字段；"
+                                        + "取值集合当前未冻结、无枚举约束，dev/test 替身默认为 balanced）。",
+                                "headline_metrics", "array，要点指标名列表，最多 8 项；元素为指标名（string），"
+                                        + "指标名集合未冻结、须来自测肤协议契约。"),
                         true,
-                        "键集合未冻结：已知键为空（无经取证的键）。服务端按开放对象处理"
-                                + "（additionalProperties=true），客户端必须容忍未来新增键，不得依赖任何具体键名或"
-                                + "假设字段存在；内容不得包含服务端内部诊断。",
+                        "已知键来自写入方 assessment_analyze.py:412-417 的固定构造（schema_version/conclusion/"
+                                + "headline_metrics）；写入方未来可能新增键，客户端必须容忍（additionalProperties=true），"
+                                + "不得依赖任何具体键名或假设字段存在。failure_detail/identity_result 等内部诊断绝不外发。",
                         null),
 
                 "SkinReportView.metrics", new FreeFormDoc(

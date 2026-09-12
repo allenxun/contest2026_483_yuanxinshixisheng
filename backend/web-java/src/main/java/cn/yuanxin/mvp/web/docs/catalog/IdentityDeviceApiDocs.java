@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Identity + Device + Notification 域联调文档目录：成员访问授权（M1-A01—A03）、
@@ -478,6 +479,28 @@ public class IdentityDeviceApiDocs implements ApiDocsCatalog {
                                 ErrorCode.DEPENDENCY_TIMEOUT, ErrorCode.NOT_IMPLEMENTED))));
     }
 
+    /**
+     * 契约要求必填、但服务端以<strong>控制器手工严格校验</strong>（而非 Bean Validation 注解）
+     * 实现的属性 ⇒ springdoc 推导出的 {@code required} 为空，此处按<strong>契约与服务端实际
+     * 行为</strong>修正生成文档。
+     *
+     * <p>取证：{@code MemberAccessGrantController.java:162-163}（{@code metadata.capture} 必填）、
+     * {@code :165}（{@code captureId} requireText 1-128）、{@code :166}（{@code clientContinuityId}
+     * requireText 1-128）、{@code :167}（{@code consentEvidenceRef} requireText 1-128）、
+     * {@code :168} 与 {@code :197-203}（{@code capturedAt} 必填且须为 RFC3339 时间戳）、
+     * {@code :169-170}（{@code purpose} 须为 {@code grant}，缺失即不满足）；违规一律
+     * 400 {@code INVALID_INPUT} 且带 {@code details.fields[{field,reason}]}（{@code :207-210}）。
+     * {@code captureProofRef} 契约未要求必填，故不在此列。</p>
+     *
+     * <p><strong>这不是实现偏差</strong>：服务端确实强制，只是未用注解声明，故 springdoc 看不见。</p>
+     */
+    @Override
+    public Map<String, Set<String>> requiredProperties() {
+        return Map.of(
+                "M1A01Metadata", Set.of("capture", "consentEvidenceRef"),
+                "Capture", Set.of("captureId", "capturedAt", "clientContinuityId", "purpose"));
+    }
+
     @Override
     public Map<String, Map<String, PropertyDoc>> propertyDocs() {
         return Map.ofEntries(
@@ -793,8 +816,9 @@ public class IdentityDeviceApiDocs implements ApiDocsCatalog {
                         能力存在不意味着微晶空闲或现场就绪；占用在执行准入时检查。
                         """,
                         Map.of(
-                                "schema_version", "integer，能力结构版本（DB JSONB 列名，与上报 schemaVersion 对应）；"
-                                        + "由服务端写入，当前为 1。",
+                                "schema_version", "integer，能力结构版本（DB JSONB 列名用下划线 schema_version，"
+                                        + "与上报 camelCase schemaVersion 对应）；由服务端从已校验的请求 schemaVersion "
+                                        + "映射写入（整数 ≥1，可大于 1），不是固定常量。",
                                 "revision", "string，能力版本号；无符号 bigint 十进制字符串（与上报 revision 对应）。"),
                         true,
                         "schema_version/revision 为服务端写入的固定键；其余键来自上报透传，属未冻结微晶协议，"
