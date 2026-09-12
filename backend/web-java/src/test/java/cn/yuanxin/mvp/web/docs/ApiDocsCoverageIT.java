@@ -207,6 +207,29 @@ class ApiDocsCoverageIT extends AbstractWebIT {
                     + "结构为 {type:object, additionalProperties:true}，无任何含 incidentId/openedAt/"
                     + "lastReportedAt 的 inline 响应节点");
 
+    /**
+     * 孤儿 4xx 响应的<strong>显式例外清单</strong>：契约中既有的（非本轮造成）、且不在本轮
+     * 授权范围内的"疑似过声明"。孤儿 4xx = 操作声明了某 4xx {@code responses} 条目，但其
+     * {@code x-error-codes} 无任何剩余码经 {@link #httpStatusOf(String)} 映射到该状态；联调方
+     * 会据此实现永不发生的分支。此处<strong>显式列出而非静默忽略</strong>，清单外任何孤儿 4xx
+     * 一律使门禁失败。
+     *
+     * <p>当前两条是 M3-A01 / M3-A02 的 422：本轮同步移除不可达错误码后，这两个端点已无任何
+     * 剩余码映射到 422（{@code FACE_QUALITY_REJECTED}/{@code UNSUPPORTED_CONTRACT} 均不再属于
+     * 它们），Oracle 判定为既有疑似同类过声明、本轮只报告、不在授权范围，待总协调裁定。</p>
+     *
+     * <p><b>反向守卫</b>：若清单中某条在契约里已<strong>不再</strong>孤儿（即已被修复），门禁同样
+     * 记 problem 提示"例外清单已过时，应删除该条"，防止清单随时间陈旧化。</p>
+     *
+     * <p>键 = {@code x-api-id}，值 = 该操作下已知未受支撑的 4xx 状态集合。</p>
+     */
+    private static final Map<String, Set<String>> KNOWN_UNSUPPORTED_4XX_RESPONSES = Map.of(
+            // 既有疑似同类过声明：M3-A01 声明 422 响应，但其 x-error-codes 无任何剩余码映射到 422。
+            // Oracle 判本轮只报告、不在授权范围，待总协调裁定（本轮不得擅自删除该响应/修改契约）。
+            "M3-A01", Set.of("422"),
+            // 既有疑似同类过声明：M3-A02 同上。
+            "M3-A02", Set.of("422"));
+
     @Autowired
     private ApiDocsApplier apiDocsApplier;
 
@@ -519,6 +542,13 @@ class ApiDocsCoverageIT extends AbstractWebIT {
                 Set.of("CALLER_NOT_ALLOWED"));
         reachableCodesMustStay.put(opKey.apply("get", "/api/v1/members/{memberId}/care-executions"),
                 Set.of("CALLER_NOT_ALLOWED"));
+        // 本轮补入的 3 对正向对照（缺此 3 对时，"同时从契约与目录删除这些可达码"仍会通过一般一致性检查）。
+        reachableCodesMustStay.put(opKey.apply("get", "/api/v1/skin-assessment-tasks/{taskId}"),
+                Set.of("TASK_REPLACED")); // AssessmentReadService.getTask:48
+        reachableCodesMustStay.put(opKey.apply("post", "/api/v1/care-executions/{executionId}/observations"),
+                Set.of("RECORD_CONFLICT")); // CareLedgerService:349,368
+        reachableCodesMustStay.put(opKey.apply("post", "/api/v1/care-executions/{executionId}/closure-confirmations"),
+                Set.of("RECORD_CONFLICT")); // CareLedgerService:527,807
 
         for (Map.Entry<String, Set<String>> e : unreachableCodes.entrySet()) {
             JsonNode op = generated.get(e.getKey());
@@ -546,6 +576,19 @@ class ApiDocsCoverageIT extends AbstractWebIT {
                         + e.getKey() + " -> 缺 " + miss);
             }
         }
+
+        // 9) 孤儿 4xx 响应守卫（仓内回归，锁定 orchestrator 本轮契约修复）：
+        //    删除映射到某 HTTP 状态的最后一个码后，契约仍可能残留该状态的 responses 条目，
+        //    联调方会据此实现永不发生的分支。对契约中每个带 x-api-id 或 x-foundation 的操作，
+        //    由其 x-error-codes 经门禁既有 httpStatusOf(code) 推出"受支撑的 HTTP 状态集"，
+        //    responses 中每个 4xx 状态都必须在该集合内，否则记为 problem。
+        //    5xx 一律排除本检查：500 是未捕获异常的通用路径，29 个 ErrorCode 中无码
+        //    defaultStatus()==500（INTERNAL 按设计不出现在任何端点 x-error-codes 中），
+        //    全部操作声明 500 但无 x-error-codes 支撑，属既有约定、待总协调裁定，不在本轮授权。
+        problems.addAll(orphan4xxResponseProblems());
+
+        // 9b) 弱断言（只打印不失败）：披露既有契约缺口，供总协调后续裁定，不参与 problems。
+        discloseExistingContractGaps(generated);
 
         assertTrue(problems.isEmpty(),
                 "联调文档覆盖率门禁未通过（" + problems.size() + " 项）：\n  - "
@@ -977,6 +1020,137 @@ class ApiDocsCoverageIT extends AbstractWebIT {
         if (!expected.contains("PROVIDER_CONTRACT_VIOLATION")) {
             problems.add("契约 failureCode enum 缺 PROVIDER_CONTRACT_VIOLATION（该码已实现并经 M3-A03 外发）");
         }
+    }
+
+    /**
+     * 孤儿 4xx 响应守卫（第 9 节）：对契约中每个带 {@code x-api-id} 或 {@code x-foundation} 的
+     * 操作，由其 {@code x-error-codes} 经 {@link #httpStatusOf(String)} 推出"受支撑的 HTTP 状态集"，
+     * 其 {@code responses} 中每个 4xx 状态都必须落在该集合内；否则记为 problem（该响应无任何
+     * 剩余 {@code x-error-codes} 支撑）。
+     *
+     * <p><b>5xx 一律排除</b>：500 是未捕获异常的通用路径，29 个 {@code ErrorCode} 中无码
+     * {@code defaultStatus()==500}（{@code INTERNAL} 按设计不出现在任何端点 {@code x-error-codes}），
+     * 全部 34 个操作都声明 500 却无 {@code x-error-codes} 支撑——属既有约定，待总协调裁定，
+     * 不在本轮授权范围，故不做孤儿判定。</p>
+     *
+     * <p>{@link #KNOWN_UNSUPPORTED_4XX_RESPONSES} 内条目豁免；并做反向守卫：清单条目若已不再
+     * 孤儿（契约已修复）也记 problem，提示删除陈旧条目。</p>
+     */
+    @SuppressWarnings("unchecked")
+    private static List<String> orphan4xxResponseProblems() throws Exception {
+        Map<String, Object> contract = loadContract();
+        Map<String, Object> paths = (Map<String, Object>) contract.get("paths");
+        List<String> problems = new ArrayList<>();
+        if (paths == null) {
+            problems.add("孤儿 4xx 守卫失效：契约无 paths 段");
+            return problems;
+        }
+        Set<String> knownMatched = new LinkedHashSet<>();
+        for (Map.Entry<String, Object> e : paths.entrySet()) {
+            Map<String, Object> item = (Map<String, Object>) e.getValue();
+            for (String m : METHODS) {
+                Object raw = item.get(m);
+                if (!(raw instanceof Map<?, ?> opMap)) {
+                    continue;
+                }
+                // 与 contractOperations() 同口径的"受文档化操作"判定：x-api-id 或 x-foundation。
+                Object apiIdRaw = opMap.get("x-api-id");
+                if (apiIdRaw == null && !opMap.containsKey("x-foundation")) {
+                    continue;
+                }
+                String apiId = apiIdRaw == null ? null : String.valueOf(apiIdRaw);
+                String opKey = m.toUpperCase() + " " + normalize(e.getKey());
+                Set<String> supported = new LinkedHashSet<>();
+                Object xec = opMap.get("x-error-codes");
+                if (xec instanceof List<?> list) {
+                    for (Object c : list) {
+                        String status = httpStatusOf(String.valueOf(c));
+                        if (status != null) {
+                            supported.add(status);
+                        }
+                    }
+                }
+                Object responses = opMap.get("responses");
+                if (!(responses instanceof Map<?, ?> respMap)) {
+                    continue;
+                }
+                Set<String> known = apiId == null ? Set.of()
+                        : KNOWN_UNSUPPORTED_4XX_RESPONSES.getOrDefault(apiId, Set.of());
+                for (Object codeRaw : respMap.keySet()) {
+                    String code = String.valueOf(codeRaw);
+                    if (code.length() != 3 || code.charAt(0) != '4' || supported.contains(code)) {
+                        continue;
+                    }
+                    if (known.contains(code)) {
+                        knownMatched.add(apiId + " " + code);
+                        continue;
+                    }
+                    problems.add("孤儿 4xx 响应（无任何剩余 x-error-codes 支撑，联调方会实现永不发生的分支）: "
+                            + opKey + (apiId == null ? "（x-foundation）" : "（" + apiId + "）")
+                            + " -> HTTP " + code);
+                }
+            }
+        }
+        // 反向守卫：例外清单条目若在契约里已不再孤儿（即已修复），清单陈旧，应删除该条。
+        for (Map.Entry<String, Set<String>> e : KNOWN_UNSUPPORTED_4XX_RESPONSES.entrySet()) {
+            for (String code : e.getValue()) {
+                if (!knownMatched.contains(e.getKey() + " " + code)) {
+                    problems.add("例外清单已过时：KNOWN_UNSUPPORTED_4XX_RESPONSES 中的 "
+                            + e.getKey() + " HTTP " + code + " 在契约里已不再孤儿，应删除该条");
+                }
+            }
+        }
+        return problems;
+    }
+
+    /**
+     * 弱断言（第 9b 节，<strong>只打印不失败</strong>）：披露既有契约不一致，便于总协调后续
+     * 裁定，不参与 {@code problems}。披露三项：
+     * <ul>
+     *   <li>契约声明 500 响应但生成文档无 500 的操作数（500 是未捕获异常通用路径，生成文档
+     *       从不为任何操作输出 500——INTERNAL 按设计不出现在任何端点 {@code x-error-codes}）。</li>
+     *   <li>M1-A02 声明 {@code RESOURCE_NOT_VISIBLE}（隐含 404）但契约 {@code responses} 无 404。</li>
+     *   <li>M2-A04 的码隐含 422（{@code UNSUPPORTED_CONTRACT}）但契约 {@code responses} 无 422。</li>
+     * </ul>
+     * 三项均为既有（非本轮造成）、不在本轮授权范围，仅披露、不改动。
+     */
+    @SuppressWarnings("unchecked")
+    private static void discloseExistingContractGaps(Map<String, JsonNode> generated) throws Exception {
+        Map<String, Object> contract = loadContract();
+        Map<String, Object> paths = (Map<String, Object>) contract.get("paths");
+        int contract500WithoutGenerated = 0;
+        List<String> sample = new ArrayList<>();
+        if (paths != null) {
+            for (Map.Entry<String, Object> e : paths.entrySet()) {
+                Map<String, Object> item = (Map<String, Object>) e.getValue();
+                for (String m : METHODS) {
+                    Object raw = item.get(m);
+                    if (!(raw instanceof Map<?, ?> opMap)) {
+                        continue;
+                    }
+                    if (opMap.get("x-api-id") == null && !opMap.containsKey("x-foundation")) {
+                        continue;
+                    }
+                    Object responses = opMap.get("responses");
+                    if (!(responses instanceof Map<?, ?> respMap) || !respMap.containsKey("500")) {
+                        continue;
+                    }
+                    String key = m.toUpperCase() + " " + normalize(e.getKey());
+                    JsonNode gen = generated.get(key);
+                    if (gen == null || !gen.path("responses").has("500")) {
+                        contract500WithoutGenerated++;
+                        if (sample.size() < 3) {
+                            sample.add(key);
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println("[coverage-gate] 弱断言披露（既有契约不一致，只报告待总协调裁定、本轮不改）："
+                + " 契约声明 500 但生成文档无 500 的操作数=" + contract500WithoutGenerated
+                + "（样例=" + sample + "；500 为未捕获异常通用路径，29 个 ErrorCode 无码映射到 500）；"
+                + " M1-A02 声明 RESOURCE_NOT_VISIBLE（隐含 404）但契约 responses 无 404；"
+                + " M2-A04 的码隐含 422（UNSUPPORTED_CONTRACT）但契约 responses 无 422。");
     }
 
     private static void collectSchemaRefs(JsonNode node, Set<String> out, java.util.Deque<String> queue) {
