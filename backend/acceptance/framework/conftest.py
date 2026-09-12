@@ -250,28 +250,26 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config) -> None:
             terminalreporter.write_line(f"SETTLEMENT_INCOMPLETE: {why}")
     if c["pending"]:
         terminalreporter.write_line(
-            "说明：dependency_pending = B/C/D 业务实现未集成（A 基线已交付并验收）导致的依赖挂起，"
+            "说明：dependency_pending = 真实设备/APP 联调待办（device_pending）、注入 seam 待总协调"
+            "指定 B 实施（seam_pending）或场景步骤待编写（staged）导致的依赖挂起，"
             "不是通过，也不是普通跳过。")
 
 
-def _persist_evidence_summary(st) -> None:
-    """把脱敏 settlement + 运行摘要写入正式证据目录（若设置），便于从提交内容复核计数。"""
+def _persist_evidence_summary(st, final_exit: int) -> None:
+    """脱敏 settlement 摘要写入正式证据目录（fail-closed；按 RUN_ID 分目录）。"""
     ev = os.environ.get(isolation.ENV_EVIDENCE_DIR)
     if not ev:
         return
-    d = pathlib.Path(ev)
-    try:
-        d.mkdir(parents=True, exist_ok=True)
-        payload = {"run_id": st.run_id, "mode": st.mode,
-                   "reviewed_sha": os.environ.get("E_ACCEPTANCE_REVIEWED_SHA", ""),
-                   "command": "run.sh matrix", "counts": dict(st.counts),
-                   "settled": len(st.settled), "required": len(st.required),
-                   "evidence_tags": dict(st.evidence_tags),
-                   "pending_gate_failures": list(getattr(st, "pending_gate_failures", []))}
-        (d / "settlement.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2),
-                                           encoding="utf-8")
-    except Exception:
-        pass
+    d = pathlib.Path(ev) / st.run_id
+    payload = {"run_id": st.run_id, "mode": st.mode,
+               "reviewed_sha": os.environ.get("E_ACCEPTANCE_REVIEWED_SHA", ""),
+               "command": "run.sh matrix", "final_exit": int(final_exit),
+               "counts": dict(st.counts), "settled": len(st.settled),
+               "required": len(st.required), "evidence_tags": dict(st.evidence_tags),
+               "pending_gate_failures": list(getattr(st, "pending_gate_failures", []))}
+    d.mkdir(parents=True, exist_ok=True)  # 失败向上抛 → 非零退出（fail-closed）
+    (d / "settlement.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2),
+                                       encoding="utf-8")
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
@@ -286,7 +284,12 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         elif c["pending"] > 0:
             session.exitstatus = 3                              # 依赖挂起
         # 否则维持 0：94 全部真实通过且证据齐备
-    _persist_evidence_summary(st)
+    try:
+        _persist_evidence_summary(st, int(session.exitstatus))
+    except Exception as exc:
+        import sys as _sys
+        print(f"[PERSIST-FAIL] settlement 摘要写入失败：{exc!r}", file=_sys.stderr)
+        session.exitstatus = EXIT_SETTLEMENT_INCOMPLETE
     _write_settlement_sentinel(st, int(session.exitstatus))
 
 

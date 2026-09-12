@@ -1018,11 +1018,12 @@ def test_r21_evidence_summary_persist(tmp_path, monkeypatch):
         evidence_tags = {"doubles_pass": 1}
         pending_gate_failures = []
     monkeypatch.setenv(isolation.ENV_EVIDENCE_DIR, str(tmp_path / "ev"))
-    C._persist_evidence_summary(_St())
-    p = tmp_path / "ev" / "settlement.json"
+    C._persist_evidence_summary(_St(), 3)
+    p = tmp_path / "ev" / "E-TEST" / "settlement.json"
     assert p.exists()
     d = _json.loads(p.read_text(encoding="utf-8"))
     assert d["run_id"] == "E-TEST" and d["counts"]["passed"] == 1 and d["settled"] == 1
+    assert d["final_exit"] == 3 and "reviewed_sha" in d
 
 
 def test_r20_zero_evidence_pending_is_not_ok(tmp_path):

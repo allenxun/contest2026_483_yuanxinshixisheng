@@ -218,8 +218,10 @@ def test_SC_01_10(scenario_evidence):
     ex = (body.get("data") or {}).get("executionId")
     ep = (body.get("data") or {}).get("recordStreamEpoch") or ex
     rev = CC.scalar(f"SELECT verification_revision FROM care_executions WHERE id='{ex}'")
-    CC.sync(a["access"], ex, CC.obs_records(ep, [CC.rec(ep, 1)], seq=1, state="running", rev=rev),
-            str(uuid.uuid4()))
+    cs, cb_, _ = CC.sync(a["access"], ex, CC.obs_records(ep, [CC.rec(ep, 1)], seq=1,
+                                                         state="running", rev=rev), str(uuid.uuid4()))
+    assert cs == 200 and CC.scalar(f"SELECT coalesce(completed_count,0) FROM care_plans WHERE id='{plan}'") == "1"
+    assert CC.scalar(f"SELECT count(*) FROM care_executions WHERE id='{ex}' AND closed_at IS NULL") == "1"
     def care():
         return "|".join(CC.scalar(s) for s in (
             f"SELECT coalesce(completed_count,0) FROM care_plans WHERE id='{plan}'",
@@ -253,11 +255,12 @@ def test_SC_01_10(scenario_evidence):
     c5, b5, _ = I.http("POST", f"/api/v1/gimbals/{g}/heartbeats", token=tok,
                        body={**base, "observationSeq": "2", "observedAt": old_ts})
     _rec(se, "POST", f"/api/v1/gimbals/{g}/heartbeats", c5, b5, req={"old_observed_at": old_ts})
-    assert c1 in (200, 201) and (b1.get("data") or {}).get("accepted") is True
-    assert c3 in (200, 201) and (b3.get("data") or {}).get("accepted") is True
-    assert c2 in (200, 409) and (b2.get("data") or {}).get("accepted") is not True
-    assert c4 in (200, 409) and (b4.get("data") or {}).get("accepted") is not True
-    assert c5 in (200, 409) and (b5.get("data") or {}).get("accepted") is not True
+    # B 心跳契约：新序号 200+accepted=true；旧序号/重复 200+accepted=false（仍确认收到）
+    assert c1 == 200 and (b1.get("data") or {}).get("accepted") is True
+    assert c3 == 200 and (b3.get("data") or {}).get("accepted") is True
+    for cc_, bb_ in ((c2, b2), (c4, b4), (c5, b5)):
+        assert cc_ == 200, (cc_, bb_)
+        assert (bb_.get("data") or {}).get("accepted") is False, bb_
     assert care() == care0, (care0, care())      # 业务列（K/执行状态/占用/revision/绑定）全等
     assert hb() == hb1, (hb1, hb())              # 迟到不误改心跳信息列
     se.seal()
@@ -507,7 +510,7 @@ def test_SC_01_17(scenario_evidence):
     _rec(se, "DELETE", "/api/v1/auth/sessions/current", c, b)
     assert c in (200, 204)
     if c == 204:
-        assert not b or set(b.keys()) == {"_raw"}, f"204 须空体：{b}"
+        assert ("_raw" not in b) or (b.get("_raw") == ""), f"204 须真空体：{b}"
     else:
         assert b.get("requestId") and b.get("data") is not None and "error" not in b, b
     row = CC.scalar("SELECT status||'|'||destination_revision::text||'|'||"
@@ -519,7 +522,7 @@ def test_SC_01_17(scenario_evidence):
     _rec(se, "DELETE", "/api/v1/auth/sessions/current", c2, b2, req={"repeat": True})
     assert c2 in (200, 204, 401)
     if c2 == 204:
-        assert not b2 or set(b2.keys()) == {"_raw"}, f"204 须空体：{b2}"
+        assert ("_raw" not in b2) or (b2.get("_raw") == ""), f"204 须真空体：{b2}"
     elif c2 == 200:
         assert b2.get("requestId") and b2.get("data") is not None and "error" not in b2, b2
     else:

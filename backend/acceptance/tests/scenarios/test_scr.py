@@ -328,13 +328,19 @@ def test_SC_R_13(scenario_evidence):
     #  (a) 准入先成 → 201 + open 恰一 + 指针已替换；
     #  (b) 替换先成 → A03 409 TASK_REPLACED（允许 DEVICE_OCCUPIED/PLAN_NOT_READY 不属此竞态）
     acode = (ab.get("error") or {}).get("code")
-    branch_a = (ac == 201)
-    branch_b = (ac == 409 and acode == "TASK_REPLACED")
-    assert branch_a or branch_b, (ac, acode)
-    if branch_b:  # 替换先成 → 旧方案零 open
-        assert open_new == "0", open_new
-    else:         # 准入先成 → 生命周期一致：恰一 open（该准入执行）
-        assert open_new == "1", open_new
+    assert rc == 202 and rtid, (rc, rtid)
+    assert cur == rtid, (cur, rtid)  # 指针确已替换
+    branch_a = (ac == 201)                                        # admit-first
+    branch_b = (ac == 409 and acode == "TASK_REPLACED")           # replace-first
+    if branch_a:
+        assert open_new == "1", open_new                          # 该 plan 恰一 open（该准入执行）
+        # 旧执行生命周期一致：该 open 执行即为本次准入且未悬挂
+        exid = (ab.get("data") or {}).get("executionId")
+        assert CC.scalar(f"SELECT (closed_at IS NULL)::int FROM care_executions WHERE id='{exid}'") == "1"
+    elif branch_b:
+        assert open_new == "0", open_new                          # 旧方案零 open
+    else:
+        raise AssertionError(("非白名单结局", ac, acode))
     _rec(se, "AUDIT", "R13 race outcome", ac, {"branch": "a" if branch_a else "b",
                                                 "replace": rc, "code": acode, "open": open_new})
     se.seal()
@@ -361,8 +367,8 @@ def test_SC_R_14(scenario_evidence):
     _rec(se, "AUDIT", "R20: second recovery endpoint current-assessment-status absent",
          l1, {"impersonate": c1})
     assert l1 == 200 and lb1.get("requestId")
-    d1 = lb1.get("data") or {}
-    assert d1.get("currentAssessment") is None, d1
+    d1 = lb1.get("data")
+    assert isinstance(d1, dict) and "currentAssessment" in d1 and d1["currentAssessment"] is None, d1
     assert c1 in (403, 404)
     assert cnt0 == cnt1  # 零写入、不自动建任务
     se.seal()

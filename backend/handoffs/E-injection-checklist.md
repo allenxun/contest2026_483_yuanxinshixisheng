@@ -1,6 +1,6 @@
-# E 六项测试注入缺口与最小复验清单
+# E 七项测试注入缺口与最小复验清单
 
-依据：E 提交 11a5248；矩阵报告 55 业务通过 + 33 真实设备/APP 待联调 + 6 注入缺口，staged=0。55/61 不是阶段完成。以下为待验证要求，不是通过证据。
+依据：E 提交 11a5248；矩阵终态 54 业务通过 + 33 真实设备/APP 待联调 + 7 注入缺口，staged=0。55/61 不是阶段完成。以下为待验证要求，不是通过证据。
 
 总协调指定 B 唯一实施；E 仅在收到总协调集成的新基线后补验。不改场景原始分类，不使用真实算法/OSS。测试注入默认关闭，生产环境不可启用（含混合 profile 与 app.env 矛盾组合）；不得从未经授权的业务请求开启。配置名称和实现位置由 B 选择并交接。
 
@@ -17,6 +17,8 @@
 
 B交接：最终代码SHA、实际Oracle结果、注入配置/作用范围/复位方式、生产禁用证明、可执行最小调用示例。注入按测试实例或RUN_ID隔离，不能污染其他任务，保留默认替身行为。
 
-E收到基线后：安全保存当前工作并同步；六SC逐项保存HTTP/SQL/Worker证据与RUN_ID/基线SHA；正常分支与受影响公共路径差异回归，禁止用替身冒充33项真实设备联调。最终验收代码有变化才实际Oracle审最终SHA。已有55项证据先核对适用性，不反复运行无变化全套。
+E收到基线后：安全保存当前工作并同步；SC逐项保存HTTP/SQL/Worker证据与RUN_ID/基线SHA；正常分支与受影响公共路径差异回归，禁止用替身冒充33项真实设备联调。最终验收代码有变化才实际Oracle审最终SHA。已有55项证据先核对适用性，不反复运行无变化全套。
 
-来源：backend/handoffs/E.md 的 lane A1/A2/C1/C2；backend/acceptance/tests/scenarios/test_sc02.py、test_sc03.py、test_scc.py。代码当前仅测试已可达安全边界，六项完整通过仍待新注入能力。
+来源：backend/handoffs/E.md 的 lane A1/A2/C1/C2；backend/acceptance/tests/scenarios/test_sc02.py、test_sc03.py、test_scc.py。代码当前仅测试已可达安全边界，七项完整通过仍待新注入能力。
+
+- **SC-02-10（注入缺口 #7）**：D skin 失败无终端 seam——`aliyun_skin` 仅致 retrying/analyzing，`failureCode` 不可观察；需 B/D 补可注入的 failed 终态（如 `MVP_D_SKIN_DOUBLE_FAILURE`）后补写正例。
