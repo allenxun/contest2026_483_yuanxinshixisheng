@@ -156,7 +156,8 @@ def test_SC_06_02(scenario_evidence):
     se = scenario_evidence
     _decl(se)
     c = _ctx_after_admit(se, target=10)
-    body = CC.obs_records(c["ep"], [CC.rec(c["ep"], 1, delta="1"), CC.rec(c["ep"], 1, delta="1")],
+    dup_rec = CC.rec(c["ep"], 1, delta="1")
+    body = CC.obs_records(c["ep"], [dup_rec, dup_rec],
                           seq=1, state="running", rev=c["rev"])
     key = str(uuid.uuid4())
     c1, b1, _ = CC.sync(c["app"]["access"], c["ex"], body, key)
@@ -204,10 +205,13 @@ def test_SC_06_05(scenario_evidence):
     se = scenario_evidence
     _decl(se)
     c = _ctx_after_admit(se, target=10)
-    c1, b1, _ = _sync(c, [CC.rec(c["ep"], 1), CC.rec(c["ep"], 2)], seq=1)
+    r1, r2 = CC.rec(c["ep"], 1), CC.rec(c["ep"], 2)
+    c1, b1, _ = _sync(c, [r1, r2], seq=1)
     _rec(se, "POST", f"{CARE}/care-executions/{c['ex']}/observations", c1, b1, req={"n": 1})
     k1 = _k(c["plan"])
-    c2, b2, _ = _sync(c, [CC.rec(c["ep"], 1), CC.rec(c["ep"], 2), CC.rec(c["ep"], 3)], seq=2)
+    # 补传=客户端重发同一份缓存记录（复用同一 dict，禁止重新构造）
+    r3 = CC.rec(c["ep"], 3)
+    c2, b2, _ = _sync(c, [r1, r2, r3], seq=2)
     _rec(se, "POST", f"{CARE}/care-executions/{c['ex']}/observations", c2, b2, req={"n": 2, "resend": True})
     k2 = _k(c["plan"])
     assert c1 == 200 and k1 == "2" and c2 == 200 and k2 == "3"

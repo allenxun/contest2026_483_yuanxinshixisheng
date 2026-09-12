@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions/7d6e65bc-4302-4218-b507-c45fe111e51b/closure-confirmations",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "not_stopped": true
+  },
+  "response_excerpt": "{\"requestId\": \"49a44890-6482-450d-a78b-35aa98a2822b\", \"error\": {\"code\": \"STOP_NOT_CONFIRMED\", \"message\": \"care execution stop is not confirmed\", \"retryable\": false, \"details\": {\"reason\": \"not_stopped\"}}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T110730Z-e8ba213c"
+}
