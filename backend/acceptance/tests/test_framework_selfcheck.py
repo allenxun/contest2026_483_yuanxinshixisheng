@@ -1100,3 +1100,95 @@ def test_cd06_enroll_bound_to_chain_not_earliest():
     assert cd_chain.new_job_ids({"old"}, ["old", "new"]) == ["new"]
     assert cd_chain.new_job_ids(set(), ["a", "b"]) == ["a", "b"]
     assert cd_chain.new_job_ids({"a", "b"}, ["a", "b", "a"]) == []  # 预存顶替不算新增
+
+
+# ---------- 七 seam 补全（73dbd19）：注入管道 / 生产守卫负例 / 61 映射 ----------
+
+WORKER_SRC = ROOT.parent / "worker-python" / "src"
+# 生产守卫/旋钮解析需要 worker 运行期依赖（sqlalchemy 等）→ 用 driver venv 解释器。
+_VENV_PY = ROOT / ".venv-driver" / "bin" / "python"
+
+
+def _guard_py(code: str, env_extra: dict):
+    return _run([str(_VENV_PY), "-c", code],
+                {"PYTHONPATH": str(WORKER_SRC), **env_extra}, timeout=120)
+
+
+def test_seam_barrier_env_and_marker_helpers(tmp_path, monkeypatch):
+    """barrier helper 纯函数：每 RUN_ID 独立目录、env 显式 DIR/SHA/TIMEOUT、sha256 事实。"""
+    from framework import live
+
+    monkeypatch.setattr(live.I, "REPORTS", tmp_path)
+    monkeypatch.setattr(live.I, "RUN_ID", "E-TEST-20260912T000000Z-deadbeef")
+    b1 = live.marker_image("a")
+    b2 = live.marker_image("a")
+    assert b1 != b2 and b1.startswith(live._png())
+    digest = live.sha256_hex(b1)
+    assert len(digest) == 64 and int(digest, 16) >= 0
+    d = live.barrier_dir("tag")
+    assert d.exists() and str(d).startswith(str(tmp_path))
+    env = live.barrier_env(d, digest, 180)
+    assert env["MVP_D_DOUBLE_LATE_BARRIER"] == "true"
+    assert env["MVP_D_DOUBLE_LATE_BARRIER_DIR"] == str(d)
+    assert env["MVP_D_DOUBLE_LATE_BARRIER_SHA256"] == digest
+    assert env["MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS"] == "180"
+
+
+def test_seam_knob_env_pipeline_detects_overrides():
+    """旋钮 env 管道：显式非默认值被生产守卫识别为 override；默认值不产生 override。"""
+    code = ("import json; from mvp_worker.handlers.dshared.dconfig import "
+            "double_injection_overrides as f; print(json.dumps(sorted(f())))")
+    on = _guard_py(code, {"MVP_D_FACE_DOUBLE_QUALITY": "needs_retake",
+                          "MVP_D_STORAGE_DOUBLE_FAIL_PUT": "true"})
+    assert on.returncode == 0, on.stderr
+    assert "MVP_D_FACE_DOUBLE_QUALITY" in on.stdout and "MVP_D_STORAGE_DOUBLE_FAIL_PUT" in on.stdout
+    off = _guard_py(code, {})
+    assert off.returncode == 0 and off.stdout.strip() == "[]", off.stdout
+    barrier = _guard_py(code, {
+        "MVP_D_DOUBLE_LATE_BARRIER": "true",
+        "MVP_D_DOUBLE_LATE_BARRIER_DIR": "/tmp/e-barrier-test",
+        "MVP_D_DOUBLE_LATE_BARRIER_SHA256": "a" * 64})
+    assert barrier.returncode == 0, barrier.stderr
+    assert "MVP_D_DOUBLE_LATE_BARRIER" in barrier.stdout
+
+
+def test_seam_python_production_guard_negative_and_positive():
+    """生产守卫实测：production/混合信号 + 注入 → 拒启；production 全默认 → 不误拦。"""
+    guard = ("from mvp_worker.handlers.dshared.dconfig import "
+             "assert_no_double_injection_in_production as f; f(); print('GUARD_OK')")
+    bad = _guard_py(guard, {"APP_ENV": "production", "MVP_D_SKIN_DOUBLE_HOLD": "true"})
+    assert bad.returncode != 0 and "production fail-closed" in bad.stderr, (bad.returncode, bad.stderr)
+    assert "MVP_D_SKIN_DOUBLE_HOLD" in bad.stderr
+    mixed = _guard_py(guard, {"SPRING_PROFILES_ACTIVE": "prod,dev", "APP_ENV": "dev",
+                              "MVP_D_PLAN_DOUBLE_MODE": "timeout"})
+    assert mixed.returncode != 0 and "SPRING_PROFILES_ACTIVE=prod,dev" in mixed.stderr
+    ok = _guard_py(guard, {"APP_ENV": "production"})
+    assert ok.returncode == 0 and "GUARD_OK" in ok.stdout, (ok.returncode, ok.stderr)
+
+
+def test_seam_knob_invalid_value_fail_fast():
+    """非法取值 fail fast：消息含变量名/取值/值域，绝不静默当默认。"""
+    bad = _guard_py(
+        "from mvp_worker.handlers.dshared.dconfig import DConfig; DConfig.from_env()",
+        {"MVP_D_FACE_DOUBLE_SAME_PERSON": "bogus"})
+    assert bad.returncode != 0, bad.stdout
+    assert "MVP_D_FACE_DOUBLE_SAME_PERSON" in bad.stderr and "bogus" in bad.stderr
+    bad2 = _guard_py(
+        "from mvp_worker.handlers.dshared.dconfig import DConfig; DConfig.from_env()",
+        {"MVP_D_SKIN_DOUBLE_INVALID": "bogus"})
+    assert bad2.returncode != 0 and "MVP_D_SKIN_DOUBLE_INVALID" in bad2.stderr
+
+
+def test_seam_seven_scenarios_are_business_non_device():
+    """61 业务判定映射：94 − 33 设备 = 61；7 seam 节点均属业务面（非设备）且已编写步骤。"""
+    scenarios = json.loads((ROOT / "matrix" / "scenarios.json").read_text(encoding="utf-8"))
+    seam = {"SC-02-05", "SC-02-06", "SC-02-08", "SC-02-09", "SC-02-10",
+            "SC-03-07", "SC-C-05"}
+    device = {s["id"] for s in scenarios if s["automation_tier"] == "需真实设备或APP"}
+    business = [s for s in scenarios if s["id"] not in device]
+    assert len(device) == 33 and len(business) == 61, (len(device), len(business))
+    assert seam <= {s["id"] for s in business}
+    for s in scenarios:
+        if s["id"] in seam:
+            assert s["pending_reason"].startswith("已编写步骤"), s["id"]
+            assert s["staged_pending"] is False and s["authored"] is True, s["id"]

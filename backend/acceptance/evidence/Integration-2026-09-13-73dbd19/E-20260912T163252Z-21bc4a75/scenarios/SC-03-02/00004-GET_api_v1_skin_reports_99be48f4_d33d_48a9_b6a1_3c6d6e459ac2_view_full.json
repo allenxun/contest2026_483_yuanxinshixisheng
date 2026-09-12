@@ -1,0 +1,14 @@
+{
+  "method": "GET",
+  "path": "/api/v1/skin-reports/99be48f4-d33d-48a9-b6a1-3c6d6e459ac2?view=full",
+  "status": 403,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "caller": "gimbal-full"
+  },
+  "response_excerpt": "{\"requestId\": \"7fb74ed2-ddd2-43a5-8a1c-76edbaa8c2ef\", \"error\": {\"code\": \"CALLER_NOT_ALLOWED\", \"message\": \"gimbal may only read the brief report view\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T163252Z-21bc4a75"
+}

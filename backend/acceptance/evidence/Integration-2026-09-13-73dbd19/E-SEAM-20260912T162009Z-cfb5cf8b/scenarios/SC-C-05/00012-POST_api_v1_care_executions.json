@@ -1,0 +1,15 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions",
+  "status": 503,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "inject": "fail-put:execution_face",
+    "purpose": "execution_face"
+  },
+  "response_excerpt": "{\"requestId\": \"f57654bd-5e2d-4cdf-84ef-484bd52c9cee\", \"error\": {\"code\": \"DEPENDENCY_UNAVAILABLE\", \"message\": \"storage write failed\", \"retryable\": true}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-SEAM-20260912T162009Z-cfb5cf8b"
+}
