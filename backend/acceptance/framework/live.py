@@ -182,6 +182,8 @@ CAP_BASELINE = {
         "pulse_count": {"unit": "count", "min": 1.0, "max": 1000.0},
     },
     "approved_regions": ["forehead", "left_cheek", "right_cheek", "nose"],
+    # C 能力校验器读取设备支持区域键为 supported_regions（冻结基线用 approved_regions）。
+    "supported_regions": ["forehead", "left_cheek", "right_cheek", "nose"],
     "n_bounds": {"min": 1, "max": 100},
 }
 
