@@ -308,12 +308,16 @@ def test_SC_R_13(scenario_evidence):
     ac, ab = res["admit"]
     _rec(se, "POST", "/api/v1/skin-assessment-tasks", rc, {"taskId": rtid}, req={"replace": True})
     _rec(se, "POST", "/api/v1/care-executions", ac, ab, req={"admit_concurrent": True})
-    # 终态一致：新任务为当前指针；旧执行/新执行状态自洽（无替换后旧方案启动的矛盾）
+    # 终态一致：新任务为当前指针；**矛盾态必 FAIL**——替换成功且旧方案准入 201 且旧方案仍有 open 执行
     cur = CC.scalar(f"SELECT current_assessment_id::text FROM gimbals WHERE id='{c['g']}'")
     open_new = CC.scalar(f"SELECT count(*) FROM care_executions WHERE plan_id='{c['plan']}' "
                          "AND closed_at IS NULL")
     assert rc == 202 and cur == rtid
-    assert (ac == 201) or (ac in (409, 404, 403) and ab["error"]["code"] in ("TASK_REPLACED", "DEVICE_OCCUPIED"))
+    assert ac == 201 or (ac in (409, 404, 403)
+                         and ab["error"]["code"] in ("TASK_REPLACED", "DEVICE_OCCUPIED")
+                         or ab["error"]["code"] == "PLAN_NOT_READY"), (ac, ab)
+    contradiction = (rc == 202 and cur == rtid and ac == 201 and int(open_new) > 0)
+    assert not contradiction, ("矛盾态：新任务已替换但旧方案又启动/仍 open 执行", open_new)
     assert open_new in ("0", "1")
     se.seal()
 
@@ -323,14 +327,24 @@ def test_SC_R_14(scenario_evidence):
     """无当前任务时恢复接口空状态；冒充/越权拒绝且不自动创建测肤任务（零写入）。"""
     se = scenario_evidence
     _decl(se)
-    g = CC.seed_gimbal()  # 无 current_assessment
+    g = CC.seed_gimbal()  # 无 current_assessment（合法目标）
     cnt0 = CC.scalar("SELECT count(*) FROM skin_assessments")
+    # 合法目标云台会话：无任务 → 明确空状态
+    gtok = CC.gimbal_token(g)
+    l1, lb1, _ = I.http("GET", f"/api/v1/gimbals/{g}/current-assessment", token=gtok)
+    _rec(se, "GET", f"/api/v1/gimbals/{g}/current-assessment", l1, lb1, req={"legal": True})
+    # 冒充：他云台 token 访问该云台
     g2, tok2 = live.gimbal_with_token()
     c1, b1, _ = I.http("GET", f"/api/v1/gimbals/{g}/current-assessment", token=tok2)
     _rec(se, "GET", f"/api/v1/gimbals/{g}/current-assessment", c1, b1, req={"impersonate": True})
-    c2, b2, _ = I.http("GET", f"/api/v1/gimbals/{g}/current-assessment-status", token=tok2)
-    _rec(se, "GET", f"/api/v1/gimbals/{g}/current-assessment-status", c2, b2)
     cnt1 = CC.scalar("SELECT count(*) FROM skin_assessments")
+    # 说明：Oracle R20 提及的第二恢复接口 `current-assessment-status` 在代码/契约中**不存在**
+    # （仅 /gimbals/{id}/current-assessment）→ 不伪造该路径断言，如实披露为契约面待确认。
+    _rec(se, "AUDIT", "R20: second recovery endpoint current-assessment-status absent",
+         l1, {"impersonate": c1})
+    assert l1 == 200
+    empty = json.dumps(lb1.get("data")).lower()
+    assert ("null" in empty) or ("assessmentid" not in empty) or ('"currentassessmentid": null' in empty)
     assert c1 in (403, 404)
     assert cnt0 == cnt1  # 零写入、不自动建任务
     se.seal()

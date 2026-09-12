@@ -60,11 +60,39 @@ class EvidenceRecorder:
         self._seq += 1
         self.count += 1
         entry = {**entry,
-                 "request_headers": safe_headers(dict(entry.get("request_headers") or {}))}
+                 "request_headers": safe_headers(dict(entry.get("request_headers") or {})),
+                 "request_json": redact_credentials(entry.get("request_json")),
+                 "response_excerpt": redact_credentials(entry.get("response_excerpt"))}
         name = f"{self._seq:05d}-{_path_slug(entry['method'], entry['path'])}.json"
         p = self.dir / name
         p.write_text(json.dumps(entry, ensure_ascii=False, indent=2), encoding="utf-8")
         return p
+
+
+
+REDACT_KEYS = {"accesstoken", "refreshtoken", "sessiontoken", "access_token",
+               "refresh_token", "session_token", "pushtoken", "password", "secret",
+               "clientsecret", "credential", "credentials", "authorization"}
+
+
+def redact_credentials(value: Any) -> Any:
+    """递归脱敏响应/请求体中的凭据键（仅落盘面；断言用活对象不受影响）。"""
+    if isinstance(value, dict):
+        out = {}
+        for k, v in value.items():
+            out[k] = "***REDACTED***" if str(k).lower() in REDACT_KEYS else redact_credentials(v)
+        return out
+    if isinstance(value, list):
+        return [redact_credentials(v) for v in value]
+    if isinstance(value, str):
+        s = value.strip()
+        if s[:1] in ("{", "["):
+            try:
+                return json.dumps(redact_credentials(json.loads(value)), ensure_ascii=False)
+            except Exception:
+                return value
+        return value
+    return value
 
 
 class BlackBoxClient:

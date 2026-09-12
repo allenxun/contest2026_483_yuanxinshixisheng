@@ -204,9 +204,31 @@ def test_SC_01_10(scenario_evidence):
     c3, b3, _ = I.http("POST", f"/api/v1/gimbals/{g}/heartbeats", token=tok,
                        body={**base, "observationSeq": "2"})
     _rec(se, "POST", f"/api/v1/gimbals/{g}/heartbeats", c3, b3)
+    c3row = CC.scalar("SELECT last_seen_at::text||'|'||status_revision||'|'||connection_status "
+                      f"FROM gimbals WHERE id='{g}'")
+    def biz():
+        return c3row + "##" + "|".join(CC.scalar(s) for s in (
+            "SELECT count(*) FROM care_executions",
+            "SELECT count(*) FROM notifications",
+            "SELECT count(*) FROM async_jobs"))
+    biz_before = biz()
+    # 真实迟到/旧上报：旧 seq + 旧 observedAt（新 seq 已推进）→ 不误改业务状态
+    old_ts = "2020-01-01T00:00:00Z"
+    c4, b4, _ = I.http("POST", f"/api/v1/gimbals/{g}/heartbeats", token=tok,
+                       body={**base, "observationSeq": "1", "observedAt": old_ts})
+    _rec(se, "POST", f"/api/v1/gimbals/{g}/heartbeats", c4, b4, req={"late_seq": 1})
+    c5, b5, _ = I.http("POST", f"/api/v1/gimbals/{g}/heartbeats", token=tok,
+                       body={**base, "observationSeq": "2", "observedAt": old_ts})
+    _rec(se, "POST", f"/api/v1/gimbals/{g}/heartbeats", c5, b5, req={"old_observed_at": old_ts})
+    biz_after = biz()
+    late_row = CC.scalar("SELECT last_seen_at::text||'|'||status_revision||'|'||connection_status "
+                         f"FROM gimbals WHERE id='{g}'")
     assert c1 == 200 and (b1.get("data") or {}).get("accepted") is True
     assert after1 == after2, (after1, after2)
     assert c3 == 200 and (b3.get("data") or {}).get("accepted") is True
+    assert (b4.get("data") or {}).get("accepted") is not True
+    assert (b5.get("data") or {}).get("accepted") is not True
+    assert biz_before == biz_after and late_row == c3row  # 迟到不误改业务状态/不累计/不释放占用
     se.seal()
 
 
@@ -452,12 +474,17 @@ def test_SC_01_17(scenario_evidence):
                      f"WHERE installation_id='{inst}'")
     c, b, _ = I.http("DELETE", "/api/v1/auth/sessions/current", token=sess["access"])
     _rec(se, "DELETE", "/api/v1/auth/sessions/current", c, b)
+    assert c in (200, 204)
+    if c != 204:
+        assert b.get("requestId") or b.get("error") is None or "error" in b
     row = CC.scalar("SELECT status||'|'||destination_revision::text||'|'||"
                     f"coalesce(invalidated_at::text,'') FROM notification_destinations "
                     f"WHERE installation_id='{inst}'")
     _rec(se, "SQL", "logout T09 invalidate + revision+1", 0, {"row": row})
     # 重复登出幂等：revision / invalidated_at 不变
     c2, b2, _ = I.http("DELETE", "/api/v1/auth/sessions/current", token=sess["access"])
+    _rec(se, "DELETE", "/api/v1/auth/sessions/current", c2, b2, req={"repeat": True})
+    assert c2 in (200, 204, 401)
     row2 = CC.scalar("SELECT status||'|'||destination_revision::text||'|'||"
                      f"coalesce(invalidated_at::text,'') FROM notification_destinations "
                      f"WHERE installation_id='{inst}'")
