@@ -201,7 +201,28 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo):
     if rep.when == "call" and rep.passed:
         c["passed"] += 1
     elif rep.skipped and PENDING_PREFIX in str(rep.longrepr or ""):
-        c["pending"] += 1
+        reason = str(rep.longrepr or "")
+        force = os.environ.get("E_ACCEPTANCE_FORCE_GATE") == "closed"
+        # makereport 对 setup/call 多阶段触发：force-closed 的 gate skip 记 setup 一次；
+        # 真实 pending（device/seam）在测试体内 skip，记 call 一次。
+        if (force and rep.when != "setup") or ((not force) and rep.when != "call"):
+            return
+        if force:
+            se_obj = None  # 自检强制 closed：非真实结算路径，豁免证据门禁
+            evid_ok = cat_ok = True
+        else:
+            se_obj = getattr(st, "node_settlements", {}).get(rep.nodeid)
+            evid_ok = (se_obj is not None and se_obj.recorder.count >= 1 and se_obj._sealed)
+            cat_ok = ("真实设备/APP 联调待办" in reason) or ("seam" in reason.lower())
+        if evid_ok and cat_ok:
+            c["pending"] += 1
+        else:
+            c["failed"] += 1
+            lst = getattr(st, "pending_gate_failures", None)
+            if lst is None:
+                st.pending_gate_failures = []
+                lst = st.pending_gate_failures
+            lst.append(f"{rep.nodeid} (evidence={evid_ok}, category={cat_ok})")
     elif rep.failed:
         c["failed"] += 1
     elif rep.skipped:
@@ -298,4 +319,9 @@ def scenario_evidence(request):
     recorder = EvidenceRecorder(pathlib.Path(ev_dir), st.run_id, namespace=f"scenarios/{sid}")
     sm = ScenarioSettlement(sid, recorder)
     st.settlements[sid] = sm
+    nm = getattr(st, "node_settlements", None)
+    if nm is None:
+        st.node_settlements = {}
+        nm = st.node_settlements
+    nm[request.node.nodeid] = sm
     yield sm

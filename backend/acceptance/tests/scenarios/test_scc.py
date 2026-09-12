@@ -247,5 +247,5 @@ def test_SC_C_05(scenario_evidence):
     assert cs == 404
     assert cg2 == 404
     se.seal()
-    pytest.skip(gate.PENDING_PREFIX + "上传/保存失败不可黑盒注入；入 dev 存储+PG 引用+重启可读"
-                "（见 filesystem storage 证据）与 B 策略授权矩阵已实测，失败注入形态待 seam 后补写")
+    pytest.skip(gate.PENDING_PREFIX + "上传/保存失败不可黑盒注入；入 dev 存储+PG 引用与 B 策略授权矩阵已实测，"
+                "**进程重启后可读未做**（未宣称）；失败注入形态待 seam 后补写")

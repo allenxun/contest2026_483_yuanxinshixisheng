@@ -1003,6 +1003,20 @@ def test_cc11_allowlist_precise_no_impl_downgrade():
     assert c_care.classify_strict_error("A09", e2) == "impl-or-other"
 
 
+def test_r20_redaction_recursive():
+    """R20：响应/请求体凭据递归脱敏（仅落盘面），accessToken/refreshToken/sessionToken 等。"""
+    import json as _json
+    from framework.client import redact_credentials
+
+    r = redact_credentials({"accessToken": "abc", "nested": {"refreshToken": "x"},
+                            "list": [{"sessionToken": "y"}], "ok": "v"})
+    assert r["accessToken"] == "***REDACTED***"
+    assert r["nested"]["refreshToken"] == "***REDACTED***"
+    assert r["list"][0]["sessionToken"] == "***REDACTED***"
+    assert r["ok"] == "v"
+    assert "abc" not in _json.dumps(r)
+
+
 def test_c2_rec_resend_determinism():
     """SC-06-05 守护：补传复用同一记录对象；rec(ts=) 固定时间戳时字节一致，跨秒则不同。"""
     from driver import c_care
