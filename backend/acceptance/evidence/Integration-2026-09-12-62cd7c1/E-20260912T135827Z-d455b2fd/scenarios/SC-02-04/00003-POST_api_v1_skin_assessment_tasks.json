@@ -1,0 +1,15 @@
+{
+  "method": "POST",
+  "path": "/api/v1/skin-assessment-tasks",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "key": "14f3e53d-7fce-4495-a974-0be952a426a8",
+    "diff": true
+  },
+  "response_excerpt": "{\"requestId\": \"2f7922ca-7fe6-4615-8dcd-3d8b1b5faabd\", \"error\": {\"code\": \"IDEMPOTENCY_CONTENT_CONFLICT\", \"message\": \"Idempotency-Key reused with different request content; use a new key for a new logical request\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T135827Z-d455b2fd"
+}

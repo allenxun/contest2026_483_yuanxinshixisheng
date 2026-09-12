@@ -348,3 +348,16 @@ E 新增两个独立黑盒验收驱动：
 - **scenarios.json**：SC-R×14 翻转；哈希 **`86bfa7b721b6f285` 不变**；authored 94 / staged 0。
 - **selfcheck** rc=0（76，零回归）；驱动侧修正：binding-status 必带 X-Pairing-Proof、If-Match 格式 `binding-{rev}`、重绑 revision、_ctx 重启后重签云台 token。
 - **清理**：`docker stop mvp-e-pg`（保留卷）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
+
+## 终态事实同步（R20-R22 修复轮，2026-09-12）
+
+> 本节更正上方 lane C2 节的陈旧终态记录（passed 55 / seam 6 / RUN 8b5a243f / 131/39 / selfcheck 76），以下列为准。
+
+- **SC-06-05 flake 轮**：协调者复跑 `e8ba213c` 捕获 FAILED=1——根因驱动侧补传时间戳 flake（rec() 嵌 utcnow，补传批重构记录跨秒→同键异内容；C 409 RECORD_CONFLICT 为正确行为，非业务缺陷）→ afed44e 修复（补传复用同一 dict+rec(ts=) 可选固定+71 处构造点排查+判别回归）。
+- **Oracle 第二十轮（原会话 ora-1）BLOCKED@afed44e**：4 场景假 PASS BLOCKER（SC-01-10 迟到副作用未验、SC-02-10 analyzing 即 PASS、SC-R-13 放行被禁矛盾态、SC-R-14 第二恢复接口未断言）+5 IMPORTANT（终态证据未绑定 reviewedCommit、sessionToken 入证据、pending 无证据门禁、登出未断 HTTP、文案陈旧）→ **af348c4** 八项修复：SC-02-10 诚实改判 passed→seam-pending（aliyun_skin 仅 transient retry、failureCode 不可观察、failed 终态黑盒不可诱导；场景 passed 55→54、seam 6→7）；SC-R-14 如实披露 R20 所引 `current-assessment-status` 接口在代码/契约中不存在（仅 current-assessment），未伪造断言；响应体凭据递归脱敏（11 键，仅落盘面，历史证据不改写、token 已过期、停止传播）；device/seam pending 证据门禁（≥1 证据+sealed+明确类别，缺失改判 fail）。**6b95ebe**：协调者复跑 `33ffeb3c` 经新门禁捕获 SC-R-03 FAILED=1（节点自编写起零证据落盘）→补三次交互落盘+守护回归，未弱化门禁未开豁免（门禁+双跑纪律价值实证）。
+- **Oracle 第二十一轮（新会话 ora-2；原会话 ora-1 stalled 不可复用，如实记录）BLOCKED@6b95ebe**：2 BLOCKER（SC-01-10 无前置执行/占用态且未逐响应断状态码——副作用承诺未真验；SC-R-13 竞态前已有 open execution——验既有占用非原子竞态+布尔优先级缺陷）+4 IMPORTANT（登出信封 or 链近恒真、SC-R-14 空态断言过宽、聚合 settlement 未持久化入提交证据、conftest/E.md 文案陈旧）→ **fc9a7f6** 六项修复（SC-01-10 真实前置链 M3→worker→T06→绑定→A03 201→A05 K=1→open 占用+逐响应 (status,accepted)+业务列/心跳信息列分离逐列比对、SC-R-13 零 open 起点+(status,code) 配对白名单、登出逐结局精确信封、R-14 `data.currentAssessment is None`、pytest_sessionfinish 脱敏摘要持久化、conftest 三类文案）。协调者正式复跑 `7cc1b7dd` 捕获 **FAILED=5**（SC-02-03/03-05/06/04-02/03）——根因 SC-01-10 真实前置链遗留 ready 报告+open 执行+微晶观察，污染后续节点**全局计数断言**（驱动侧状态隔离缺陷，非业务缺陷；单节点独立全过印证）→ **62cd7c1** 隔离修复（5 节点 SQL 断言限定各自实体：gimbal_id/microcrystal_id/member_id 集合/逐成员计数，语义不变；SC-01-10 真实前置保留）+settlement 持久化接线（run.sh 正式模式导出 E_ACCEPTANCE_EVIDENCE_DIR+E_ACCEPTANCE_REVIEWED_SHA）。
+- **终态正式 matrix**：RUN_ID=`E-20260912T135827Z-d455b2fd` @ **62cd7c1**，settled **94/94** = 场景 passed **54** + device_pending **33** + seam-pending **7** + staged **0**；PASSED=**134**（80 框架+54 场景）/ PENDING=**40** / FAILED=**0**，exit=**3**，doubles_pass=54、real_pass=0；聚合 `settlement.json` 已持久化于提交证据目录（run_id/mode/reviewed_sha/command/counts/settled/tags/pending_gate_failures 可从提交内容独立复核——R21 IMPORTANT-3 生效实证）。
+- **selfcheck** rc=0（**80**）；矩阵业务哈希 `86bfa7b721b6f285` 全程不变；authored 94 / staged 0；历史证据（含失败迭代 e8ba213c/33ffeb3c/7cc1b7dd）零覆盖。
+- **业务缺陷：本次运行未报告 0**（措辞限于本轮观察面，非缺陷不存在证明）。
+- **清理**：`docker stop mvp-e-pg`（保留卷）；E 端口空闲、无 E JVM/worker、锁释放（文件保留）。
+- Oracle 第二十二轮（R21 六项+污染隔离+持久化实证收口）将于 62cd7c1 执行，结果记 E-oracle.md；最终集成验收报告见 E-integration-acceptance.md（第 22 轮后定稿）。
