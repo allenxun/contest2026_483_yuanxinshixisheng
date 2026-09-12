@@ -478,14 +478,20 @@ b40() {
 
   # 9) 释放 A 的迟到旧结果 → 既有围栏拒绝 → v2 快照逐值不变
   : > "$bdir/released"
-  wait "$(cat "$TMP/b40a.pid")" 2>/dev/null || true
-  local i2; for i2 in $(seq 1 40); do
-    kill -0 "$(cat "$TMP/b40a.pid" 2>/dev/null || echo 0)" 2>/dev/null || break; sleep 0.25
-  done
-  grep -qE 'job.complete_stale_generation|analyze.fenced_write_stale|StaleGeneration' "$TMP/b40a.log" \
-    || { tail -n 25 "$TMP/b40a.log"; fail "A 无 StaleGeneration 围栏丢弃证据"; }
-  local fence_line; fence_line=$(grep -E 'job.complete_stale_generation|analyze.fenced_write_stale|StaleGeneration' "$TMP/b40a.log" | tail -n 1 || true)
-  vlog "A fence: ${fence_line:0:240}"
+  local a_rc=0
+  wait "$(cat "$TMP/b40a.pid")" || a_rc=$?
+  if [[ "$a_rc" != 0 ]]; then
+    tail -n 30 "$TMP/b40a.log"
+    fail "Worker A 退出码=$a_rc（期望 0：正常收敛，非未处理异常）"
+  fi
+  # 精确断言既有 WARNING 事件；不匹配 DEBUG analyze.fenced_write_stale（默认不落日志）
+  # 或裸 "StaleGeneration" 字样，避免"崩溃但快照恰好未变"的假通过。
+  grep -qE '"event": *"job.complete_stale_generation"' "$TMP/b40a.log" \
+    || { tail -n 30 "$TMP/b40a.log"; fail "A 日志缺既有 WARNING job.complete_stale_generation"; }
+  grep -q 'Traceback (most recent call last)' "$TMP/b40a.log" \
+    && { tail -n 30 "$TMP/b40a.log"; fail "A 日志含未处理异常 traceback"; }
+  local fence_line; fence_line=$(grep -E '"event": *"job.complete_stale_generation"' "$TMP/b40a.log" | tail -n 1 || true)
+  vlog "A exit=0; fence: ${fence_line:0:240}"
   b40_stop_a
 
   aeq "$(psql_b "SELECT report_id::text FROM skin_assessments WHERE id='$tid'")" "$snap_rid" "A 未覆盖 report_id"
@@ -526,10 +532,14 @@ b41() {
   aeq "$(psql_b "SELECT status FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" failed "T12 failed"
   aeq "$(psql_b "SELECT attempt_count FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" 1 "attempt=1"
   aeq "$(psql_b "SELECT last_error->>'retryable' FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" false "retryable=false"
-  aeq "$(psql_b "SELECT count(*) FROM async_jobs WHERE owner_id='$tid'")" 1 "无后继 job"
+  # 无后继任务（口径：identity.enroll 用 payload.assessment_id；plan.generate owner_id=care_plans.id）
+  aeq "$(psql_b "SELECT count(*) FROM async_jobs WHERE job_type='assessment.analyze' AND owner_id='$tid'")" 1 "该 assessment 的 analyze job 恰 1"
+  aeq "$(psql_b "SELECT count(*) FROM async_jobs WHERE job_type='identity.enroll' AND payload->>'assessment_id'='$tid'")" 0 "无 identity.enroll 后继"
+  aeq "$(psql_b "SELECT count(*) FROM care_plans WHERE assessment_id='$tid'")" 0 "无 care_plans 行（即无 plan.generate）"
+  aeq "$(psql_b "SELECT count(*) FROM async_jobs j JOIN care_plans p ON j.owner_id=p.id WHERE j.job_type='plan.generate' AND p.assessment_id='$tid'")" 0 "无 plan.generate 后继"
   vlog "failure_detail.reason=$(psql_b "SELECT coalesce(failure_detail->>'reason','') FROM skin_assessments WHERE id='$tid'")"
   vlog "T12 last_error=$(psql_b "SELECT last_error::text FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")"
-  vlog "T05 failed/PROVIDER_CONTRACT_VIOLATION；attempt=1；无后继 job"
+  vlog "T05 failed/PROVIDER_CONTRACT_VIOLATION；attempt=1；无 identity.enroll/plan.generate 后继"
 
   # 3) M3-A03 投影一致 + 不外泄 + 查询无副作用
   local jobs_before; jobs_before=$(psql_b "SELECT count(*) FROM async_jobs WHERE owner_id='$tid'")
