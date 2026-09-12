@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "case": "plan_waiting"
+  },
+  "response_excerpt": "{\"requestId\": \"9763b46e-499b-4a43-b998-5ada398c432c\", \"error\": {\"code\": \"PLAN_NOT_READY\", \"message\": \"care plan is not ready\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T084501Z-d963b780"
+}

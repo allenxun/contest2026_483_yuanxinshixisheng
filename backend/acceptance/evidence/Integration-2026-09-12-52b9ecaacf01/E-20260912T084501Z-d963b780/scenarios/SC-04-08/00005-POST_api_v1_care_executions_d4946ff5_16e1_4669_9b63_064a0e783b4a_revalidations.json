@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions/d4946ff5-16e1-4669-9b63-064a0e783b4a/revalidations",
+  "status": 200,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "original": true
+  },
+  "response_excerpt": "{\"requestId\": \"b7d49f47-23fa-4195-bcb3-64103caa2c59\", \"data\": {\"executionId\": \"d4946ff5-16e1-4669-9b63-064a0e783b4a\", \"status\": \"paused\", \"planId\": \"c5c03d47-aab2-4325-813a-c9ce17287559\", \"planExecution\": {\"steps\": [{\"region\": \"forehead\", \"parameters\": {\"duration\": 120, \"intensity\": 40}}, {\"region\": \"left_cheek\", \"parameters\": {\"duration\": 90, \"intensity\": 30}}]}, \"progress\": {\"targetCount\": \"30\", \"completedCount\": \"0\", \"remainingCount\": \"30\", \"isCompleted\": false, \"progressRevision\": \"0\", \"completedAt\": null}, \"verification\": {\"verificationRevision\": \"2\", \"captureId\": \"cdf72ca8-9b77-4df9-9299-a1a1b0a8489c\", \"clientContinuityId\": \"cc-ok\", \"verifiedAt\": \"2026-09-12T08:50:30Z\", \"validUntil\": null, \"applicablePurpose\": \"revalidation\", \"replayed\": false}}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-12T08:50:30Z\"}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T084501Z-d963b780"
+}
