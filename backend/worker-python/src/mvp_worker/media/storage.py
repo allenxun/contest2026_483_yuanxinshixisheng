@@ -9,9 +9,26 @@ import os
 from pathlib import Path
 from typing import Protocol
 
+#: 受控 put 失败注入开关（测试专用，默认关闭，仅 dev/test 可达；生产由
+#: ``dconfig.assert_no_double_injection_in_production`` fail-closed）。
+#: 只影响对象 key 用途段为 ``assessment_result`` 的写入（worker 结果图归档），
+#: 与 Java 侧上传（``assessment_source`` / 核验等用途）**按用途可区分**。
+STORAGE_DOUBLE_FAIL_PUT_ENV = "MVP_D_STORAGE_DOUBLE_FAIL_PUT"
+
 
 class StorageError(RuntimeError):
     pass
+
+
+def storage_put_failure_injected() -> bool:
+    """读取注入开关的语义值（默认 false；1/true/yes/on 视为开启）。"""
+    raw = os.environ.get(STORAGE_DOUBLE_FAIL_PUT_ENV, "").strip().lower()
+    return raw in ("1", "true", "yes", "on")
+
+
+def _object_purpose(object_key: str) -> str:
+    parts = object_key.split("/")
+    return parts[1] if len(parts) >= 2 else ""
 
 
 class StoragePort(Protocol):
@@ -53,6 +70,13 @@ class FilesystemStorageDouble:
         return candidate
 
     def put(self, object_key: str, data: bytes) -> None:
+        if storage_put_failure_injected() and _object_purpose(object_key) == "assessment_result":
+            # 受控失败：镜像真实 OSS 结果图写入失败（dmedia 捕获后映射为既有
+            # RESULT_ARCHIVE_FAILED，terminal=False → 可重试，绝不伪报成功）。
+            raise StorageError(
+                "injected result-image storage put failure"
+                f" ({STORAGE_DOUBLE_FAIL_PUT_ENV}=true, purpose=assessment_result)"
+            )
         path = self._path(object_key)
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_suffix(path.suffix + ".tmp")
