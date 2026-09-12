@@ -358,3 +358,163 @@ E 的独立验收以**严格 OAS 3.0.3 语义**校验 9 个 M4 成功响应，�
 7. Worker 停机可立即打断等待，但**不能中断正在执行的同步 DB 扫描**；
 8. Python 测试基础设施仍依赖 `MVP_A_PG_*`（`tests/conftest.py` 默认指向被禁用的 55432）；
 9. **C25/C26** 协议、generation 表容量告警与受控恢复 runbook **待冻结**（归总协调与 APP/设备协议提供方）。
+
+## 13. 测试注入缝轮（E 余下 6 项 `seam_pending`；总协调指定 B 为唯一业务/运行时代码负责人）
+
+**授权与边界**：E 的完整 matrix 运行 `E-20260912T105030Z-8b5a243f` 结算 **55 PASS + 33 device_pending + 6 seam_pending（staged=0）**。总协调指定 B 为这 6 项**测试注入能力的唯一业务/运行时代码负责人**，要求让 E 能**从真实 HTTP 入口驱动实际 worker 业务路径**，证明**失败持久化、重试/恢复、无脏成功**；允许 Python Worker 端口工厂/测试配置与必要最小 runtime 代码 + 定向测试；**禁止生产可调用后门、禁止公共 HTTP 任意故障开关**；**仅测试环境显式启用、默认关闭并验证生产 fail-closed（含混合 profile 与 `app.env` 矛盾组合）**；**不得由未授权业务请求开启**；**不改业务判定迎合测试**；E 只在总协调合入后验收。
+
+**基线与同步**：dev 指定 SHA `5bd22d3` **已等于本轮起点 HEAD**（`HEAD..dev` 为空、树 clean）⇒ 同步为**空操作**。**E 实测的代码 SHA `5a871bf` 相对 `5bd22d3` 的业务代码 diff 为空**（`git diff --stat 5bd22d3..5a871bf -- backend/web-java backend/worker-python backend/contracts backend/deploy backend/doc` 无输出；其 2709+ 改动全是 E 自己的 `backend/acceptance/**` 与 2 份 E 交付文档）⇒ **E 所测业务代码与本轮起点逐字节相同**，可安全在 `5bd22d3` 上实施。`seam_pending` 不在 `matrix/scenarios.json`（E 分支上 94 项均为 `dependency_pending`），它是**该次运行的结算分类**；权威条件取自 E 已编写的场景步骤（`tests/scenarios/test_sc02.py`/`test_sc03.py`/`test_scc.py` @ `5a871bf`）与总协调转述的 `handoffs/E-injection-checklist.md`。**B 未修改 `backend/acceptance/**` 任何文件、未运行其任何脚本、未进入 `.worktrees/mvp-e`。**
+
+**提交链**：`5bd22d3` → **`7524714`**（Java 侧 SC-C-05 存储失败注入缝，按 purpose 粒度）→ **`9b3d802`**（Python 侧 7 个注入旋钮 + 生产启动守卫 + 29 项定向测试）→ **`f4b9546`**（仅测试：消除硬编码 18083 端口冲突）。**本轮最终代码 SHA = `f4b9546ae17a2b36739b4e72690681e3333556cd`**；变更面 **12 文件 / +1579 −8**，**0 个禁域文件**（`acceptance`/`contracts`/`backend/tests`/迁移/`deploy`/`handoffs` 全空）。
+
+### 13.1 旋钮总表（8 个；全部默认关闭，默认值 = 当前行为）
+
+| env | 侧 | 值域 | 默认 | 服务的场景 |
+|---|---|---|---|---|
+| `MVP_D_FACE_DOUBLE_QUALITY` | Python | `accepted` \| `needs_retake` | `accepted` | SC-02-05、SC-02-08/09 的入口 |
+| `MVP_D_FACE_DOUBLE_REQUIRED_VIEWS` | Python | `front`/`left`/`right` 子集（逗号分隔） | 空（用替身默认） | SC-02-05 的 `requiredViews` |
+| `MVP_D_FACE_DOUBLE_SAME_PERSON` | Python | `true` \| `false` | `true` | SC-02-06（`NOT_SAME_PERSON`） |
+| `MVP_D_FACE_DOUBLE_SEARCH` | Python | `reliable_new`\|`matched`\|`uncertain`\|`ambiguous`\|`dependency_failed` | `reliable_new` | SC-02-06（`IDENTITY_UNCERTAIN`）、SC-02-07 的 matched 分支 |
+| `MVP_D_PLAN_DOUBLE_MODE` | Python | `valid`\|`timeout`\|`failure` + `PlanDouble` 既有 10 种非法形状 | `valid` | SC-03-07 |
+| `MVP_D_SKIN_DOUBLE_HOLD` | Python | `true` \| `false` | `false` | SC-02-09 的 hold/release |
+| `MVP_D_STORAGE_DOUBLE_FAIL_PUT` | Python | `true` \| `false` | `false` | SC-C-05 要求③（Worker 结果图保存） |
+| `APP_DOUBLE_STORAGE_FAIL_MODE` | Java | `none`\|`fail-put`\|`fail-put:<purpose>[,…]` | `none` | SC-C-05 要求①②（云台原图、APP 授权/核验证据上传） |
+
+实现要点：**只经既有适配端口/端口工厂注入**（`providers.py` 的 `_face_double_from_config`/`_skin_double_from_config`/`_plan_double_from_config` 仅给**既有替身构造参数**赋值；Java 仅在 `FileSystemStorageDouble` 内受控抛**既有** `UncheckedIOException`）；**未新增端口、未新增业务错误码、未新增表/列/迁移、未改任何业务判定**（`assessment_analyze.py`/`plan_generate.py`/`identity_enroll.py`/`dmedia.py`/`runtime/**`/`handlers/__init__.py`/`notifications/**` 与 Java 的 `media`/`assessments`/`identity`/`care`/`mediapolicy`/`ProductionFailClosedValidator`/`AppProperties`/`src/main/resources` 的 **diff 全空**）；**无任何 HTTP 可开启路径**（两个 Java main 文件中 `RequestParam|RequestHeader|PathVariable|RequestBody|@*Mapping` 计数 0；Python diff 中无 route/endpoint）；**无 sleep、无改 DB 伪造迟到**（diff grep 为空）。
+
+### 13.2 生产 fail-closed（双判据 + 启动期守卫，orchestrator 亲自取真实进程证据）
+
+- **Java**：`TestDoubleProvidersConfig.requireNoProductionSignals`——`environment.acceptsProfiles(Profiles.of("prod"))` **或** `app.env`（trim + 忽略大小写）等于 `production` ⇒ 抛 `IllegalStateException` **拒绝装配替身**（与 `DocsProductionGuard` 同款双判据）；纯 prod profile 下 `StoragePort` 替身根本不装配；生产若刻意 `mode=real` 绕开本配置，另有**既有** `ProductionFailClosedValidator` 兜底（未改）。
+- **Python**：`dconfig.py` 新增 `DOUBLE_INJECTION_SWITCHES`（7 项及默认值）、`double_injection_overrides()`（**语义比较**，`0/no/off` 不算注入）、`production_environment_signals()`（解析后环境沿用 `notifications/config.py` 优先级 + `MVP_NOTIFY_ENV`/`MVP_WORKER_ENVIRONMENT`/`APP_ENV` 三处 raw env + **`SPRING_PROFILES_ACTIVE`**）、`assert_no_double_injection_in_production()`；`__main__.py:_validate_startup_config()` 在 `main()` 中**早于 DB 与健康端口**调用；`__post_init__` 对非法取值**加载期 fail fast**。
+- **orchestrator 亲验的真实进程证据**：
+  - Java：打包 jar 后以 `APP_ENV=dev APP_PROVIDERS_MODE=doubles APP_DOUBLE_STORAGE_FAIL_MODE=fail-put` + `--spring.profiles.active=prod,dev --server.port=18083 --spring.flyway.enabled=false` 启动 → **`APP_EXIT=1`**；日志逐字含 `production fail-closed: test-double providers refused under production signals (active-profile-prod=true, app.env=dev, activeProfiles=[prod, dev])`；**`grep -c "Tomcat started on port"` = 0**；退出后 18083 **空闲（从未绑定）**；无遗留 JVM。
+  - Python（`python -m mvp_worker --check`，DSN 指向 55435）：`APP_ENV=production` + `MVP_D_SKIN_DOUBLE_HOLD=true` → **rc=1**，`ProviderConfigError: production fail-closed … signals=['resolved_environment=production','APP_ENV=production'] switches=['MVP_D_SKIN_DOUBLE_HOLD']; refusing to start`（**早于 DB**）；`APP_ENV=production` + `MVP_D_FACE_DOUBLE_SEARCH=uncertain` → rc=1；**`SPRING_PROFILES_ACTIVE=prod,dev` + `APP_ENV=dev` + `MVP_D_PLAN_DOUBLE_MODE=timeout` → rc=1，`signals=['SPRING_PROFILES_ACTIVE=prod,dev']`**（矛盾组合亦拒）。
+  - **不误拦默认态**：生产 + 全默认 → **rc=0**；混合 `prod,dev` + `app.env=dev` + 全默认 → **rc=0**；dev + 注入 → rc=0；**dev + 7 个开关全非默认 → rc=0**。
+  - **非法值 fail fast**：`MVP_D_FACE_DOUBLE_QUALITY=bogus`、`MVP_D_PLAN_DOUBLE_MODE=bogus` → **rc=1** 且列出完整允许值域。
+
+### 13.3 SC-02-09：从"进程级 hold"到"租约接管 + 真实迟到返回"（含 orchestrator 自身论证错误的更正）
+
+**第一版实现（`9b3d802`，已被判不足）**：因端口方法签名不含 task id / photo version，实现为**进程级 hold**——`MVP_D_SKIN_DOUBLE_HOLD=true` 时 `analyze` 经 `_FaultInjector` 抛 `ProviderUnavailable` → handler 映射为 `JobFailed(DEPENDENCY_UNAVAILABLE, retryable=True)` → 复用 A 既有退避重排队，旧执行停在 `queued`；撤 env 即 release。无 sleep、无改 DB、无改业务判定。
+
+**Oracle 判此项为 BLOCKER**（理由经我读码核实成立）：hold 只是立即抛错并重排队，**被重驱时会重新读取当前 DB 输入**，因此它证明的是"陈旧代次被忽略"，**不是**"旧版本已算出的结果迟到返回"；且其定向测试 `test_sc0209_old_revision_released_does_not_overwrite_new_report` 用 `_seed_analysis_case(...status="analyzing")` + `mark_report_ready(...)` + `_enqueue_analyze(aid, 1)` **直接种库并手工入队旧代次**，正是清单禁止作为唯一证据的 DB 伪造迟到。**总协调裁定同此**：`ProviderUnavailable` 重排 queued、撤 env 重跑**不等同**真实迟到发布竞争；必须"旧算法调用已取得旧版本输入并延迟返回，待新版本成功后旧结果才返回"，**不能以静态 revision 守卫代替证据**。
+
+**orchestrator 的论证错误（如实记录）**：我曾据三条证据断言该交错"经真实 HTTP+worker 路径结构性不可达"——①`_retake_result` 返回 `HandlerResult(business_tx=tx)`，`runtime/complete.py:187-189` 证明 business_tx 与 `complete_success` **同一事务原子提交**（`:179` docstring 明写）；②`_mark_analyzing` 是**自有短事务**且在调用任何 provider 之前提交（`assessment_analyze.py:239-241`）；③A02 要求 `status='needs_retake'`（`AssessmentAcceptanceService.java:241-243`）。**该论证范围有误**：它只考虑了"同一执行者原子完成"，**未覆盖租约过期后由另一执行者接管同一旧任务**的路径。总协调指出该候选后，我复核源码确认其**可达**：`runtime/expire.py:41-47` 把 `status='running' AND lease_until < CURRENT_TIMESTAMP` 的任务重置为 `queued`（`recover_expired` 在 `:87`）⇒ 另一执行者可接管；`claim.py:26-41` 接管时改写 `lease_owner` 并 `lease_revision+1`（推进围栏令牌）；`complete.py` 的守卫 0 行 → `StaleGeneration` 且**整体回滚**；`assessment_analyze.py:176-190` 捕获 `StaleGeneration` 记 `analyze.fenced_write_stale`（"lease lost; business write rolled back"）后返回 None；`_publish:705-727` 另有 `processing_revision`/`report_ready` 双重守卫。且 `config.py:24-25,70-75` 已有 `MVP_WORKER_LEASE_SECONDS`/`MVP_WORKER_RENEW_INTERVAL_SECONDS` ⇒ **测试租约配置无需新增、更无需关闭租约机制**。
+
+**总协调裁定的实施边界**：**不拆** `_MARK_RETAKE` 与任务完成的原子事务；**不放宽** A02 门禁；**保留业务规则**；允许**有界测试 barrier** 与**测试租约配置**；**不得**直接改 DB 伪造状态；**不得**关闭正常租约机制来构造竞争；该项为**待核实路径、不预断可达**，若仍不可达须给出最小源码/事务/租约证据与已验证的可达替代边界交裁定，**不得擅标 PASS、不得改业务使测试可达**。
+
+**目标时序（实施中，须全程经真实 HTTP + 正常 worker/租约机制）**：M3-A01 受理 v1（照片含可识别标记）→ Worker A（短租约）领取并 `_mark_analyzing` → provider **先按 v1 输入算出旧结果**再在**一次性有界 barrier** 上等待 → 租约自然过期 → `recover_expired` 重置 queued → Worker B（`quality=needs_retake`，barrier 已消费故不阻塞）接管并**原子提交 `needs_retake`** → M3-A02 补拍 v2 **受理**（rev=2）→ Worker C 跑 J2 → `report_ready`/`report_photo_version=2` → **释放 barrier** → Worker A 返回**第 2 步算出的旧结果** → 被既有围栏（`StaleGeneration` + `_publish` 守卫）拒绝、业务写整体回滚。断言：`report_photo_version` 仍为 2、`report_payload`/`report_id`/`report_summary` 逐值未变、`member_id` 未被旧执行改写、仅一个 `report_ready`、`async_jobs` 无伪终态、可见围栏丢弃证据。
+
+### 13.4 SC-C-05 的按用途粒度（总协调加严项）
+
+- **Java（上传路径）**：`fail-put:<purpose>[,…]`，purpose 白名单**由 `MediaPurpose.values()` 派生**（非硬编码子集）⇒ 覆盖全部 5 种用途（`assessment_source` 云台原图 / `grant_face` APP 授权人脸 / `assessment_result` / `execution_face`、`revalidation_face` 核验证据）。`purposeOf(objectKey)=split("/")[1]` 与 `MediaService.java:66` 的 `objectKey = env + "/" + purpose.dbValue() + "/" + id` **格式吻合**（若不吻合则按用途选择会**静默失效**，已核实）。只注入 `put`，读/存在性/删除不受影响。
+- **Python（结果图）**：`MVP_D_STORAGE_DOUBLE_FAIL_PUT=true` 仅对 key 用途段为 `assessment_result` 的写入抛 `StorageError` → 走**既有** `RESULT_ARCHIVE_FAILED`（可重试）路径。
+- **无脏成功**（断言级证据）：注入 `assessment_source` 时 M3-A01/A02 → **503 `DEPENDENCY_UNAVAILABLE`**、`media_objects` 中 `available` 行数 **=0**、`failed ≥1`、`skin_assessments` 任务数 **=0**、`report_ready` **=0**；注入 `grant_face` 时 M1-A01 → **503**、available=0、failed=1、**`member_access_grants`=0**、`idempotency_requests.status ≠ succeeded`。**按用途互不干扰**：注入 `assessment_source` 时 M1-A01 仍 **201** 且 available；注入 `grant_face` 时 M3-A01 仍 **202** 且 available。**复位与重启可读**：默认 `none` → A01 **202**、三视角 available、对象真实落盘且字节一致、**新建替身实例（模拟重启）`exists`+`get` 可读回**。
+
+### 13.5 b36 端口冲突：取证、我自己的断言用法错误与修复（`f4b9546`）
+
+端到端验收在 `9b3d802` 上为 **38 PASS / 1 FAIL（b36 = Java 全量 mvn）**。orchestrator 取证根因**不是产品回归**：新测试 `StorageFailModeProductionFailClosedTest.java:121/:129` **硬编码 `new ServerSocket(18083)`**，而验收 harness 把真实 Spring 应用跑在 18083 且 b36 在其存活期间执行 mvn。复现证据：用哑监听占住 18083 后跑该测试类 → `Tests run: 7, Failures: 0, **Errors: 1**`、`java.net.BindException: Address already in use` at `:121`、BUILD FAILURE、rc=1；释放后 → `7/0/0`、BUILD SUCCESS、rc=0。该缺陷会使**任何**在 18083 有进程的环境（含 E 的 harness 与总协调预览实例）失败，故必须修。
+
+修法**不弱化断言、反而加强**：移除两处端口探针与 `ServerSocket` import（该 runner 为非 web 的 `ApplicationContextRunner`，端口探针证明力极弱却带来真实冲突），改断言 ①`ctx.hasFailed()` ②根因 `IllegalStateException` ③消息含 `Error creating bean with name 'storagePort'` 与 `Failed to instantiate [cn.yuanxin.mvp.web.media.StoragePort]`（即拒装发生在 `storagePort` @Bean 装配期 ⇒ 无可注入替身）④堆栈含 `production fail-closed`/`active-profile-prod=true`/`app.env=dev`；"端口从未绑定"改由 13.2 的**真实进程证据**承担。**并如实记录 orchestrator 自己的一处错误**：首次改写时用了 `assertThat(ctx).doesNotHaveBean(StoragePort.class)`，而 AssertJ 对**启动失败的上下文**不允许 bean 断言（报 "but context failed to start"）——以真实失败输出定位后改为上述等价证据，并把该陷阱写入测试注释。修复后**在 18083 被占用条件下**该测试类 **7/0/0 rc=0**，端到端验收在 `f4b9546` 上 **ALL PASS 39/39 `SCRIPT_RC=0`**（b36 转 PASS）。
+
+### 13.6 验证（orchestrator 亲自执行，绑定 `f4b9546`）
+
+| 项 | 结果 |
+|---|---|
+| Java 全量 `mvn -B test`（限堆 768m、55435、未设 `APP_STORAGE_DEV_DIR`） | **419 / 0 failures / 0 errors / 0 skipped，BUILD SUCCESS，rc=0**（基线 401 + 新增 18） |
+| **18083 被占用条件下**单跑 `StorageFailModeProductionFailClosedTest` | **7 / 0 / 0，BUILD SUCCESS，rc=0**（修复前同条件 `Errors: 1` + `BindException`） |
+| `mvn -B -q test-compile` | **rc=0**（据此判定 LSP 对该文件 `[147:1] Syntax error` 为**过期误报**，未据此改码） |
+| Python 全量 `pytest -q`（真实 PG 55435，须补 `MVP_A_PG_DSN/HOST_PORT/USER/PASSWORD/CONTAINER`） | **259 passed / 0 failed / 0 errors，rc=0**（基线 230 + 新增 29）；新测试单跑 29 passed |
+| Python 启动守卫真实进程（A1–A7 七组） | 见 13.2（生产/矛盾组合拒启 rc=1；默认态与 dev 注入 rc=0；非法值 rc=1） |
+| Java 真实进程生产 fail-closed | `APP_EXIT=1`、守卫消息逐字命中、`Tomcat started on port` 计数 **0**、18083 从未绑定、无遗留 JVM |
+| **端到端验收 `backend/tests/run-acceptance-b.sh`** | 在 `9b3d802` 为 38/39（b36 因端口硬编码 FAIL，已取证）；**在 `f4b9546` 为 ALL PASS 39/39、`SCRIPT_RC=0`**，HEAD 未变 |
+| 写域与纪律 | 12 文件全在授权写域；`backend/acceptance/**`、`backend/tests/**`、`backend/contracts/**`、迁移、`deploy`、`handoffs` **diff 全空**；未触碰 18080/E 的端口与 `.worktrees/mvp-e`；未停 PG、未清库/卷、未动 `swagger_preview`；运行文件在 `.coordination/B-work/seam-injection/`（未用 /tmp） |
+
+### 13.6.1 Oracle FAIL 后的两次整改提交（orchestrator 亲自验证）
+
+| 提交 | 内容 | 我的验证 |
+|---|---|---|
+| **`d312d2a`** | 删除 `FileSystemStorageDoubleFailModeTest` 文件尾多余空行（Oracle SUGGESTION：`git diff --check` 报 `:99 new blank line at EOF`） | `od` 确认文件尾由 `}\n}\n}\n\n` 变为 `}\n}\n}\n`；**`git diff --check 5bd22d3..HEAD` rc=0**；定向 `mvn -B test -Dtest=FileSystemStorageDoubleFailModeTest` **5/0/0 BUILD SUCCESS** |
+| **`40f5fde`** | 闭合 Oracle **IMPORTANT**：三个布尔注入开关改用严格解析（`strict_env_bool`，只接受 `1/true/yes/on` 与 `0/false/no/off`，其余加载期抛 `ProviderConfigError`），`double_injection_overrides()` 与 `media/storage.py` 运行时读取**复用同一解析**（单一语义、消除守卫与运行时不一致窗口），`REQUIRED_VIEWS=,,,` 亦 fail fast；既有非注入旋钮的宽松 `_env_bool` **行为未改** | 我亲跑 Oracle 指定 4 条命令**全部 rc=1** 且消息含变量名与实际取值及值域；全量 `pytest -q` **279 passed / 0 failed / 0 errors，rc=0**（基线 259 + 20）；生产守卫三态抽查：production+注入 rc=1、production+全默认 rc=0、dev+`off` 别名 rc=0；`providers.py` 与两个 `test_sc0209_*` 测试**未被改动**（无删除/弱化断言） |
+
+**更正一处我自己的计数错误**：我在送 Oracle 的任务书中写"变更面 13 个文件"，实际为 **12 个**（Oracle 指出，`git diff --name-only 5bd22d3..f4b9546 | wc -l` = 12）。本节表格与 13 节正文均以 12 为准。
+
+**另需说明的证据时序**：Oracle 复审报告中称"`f4b9546` 最终 39/39 尚未提供" —— 那是因为我**先派发复审、后完成验收复跑**；该复跑结果已于  取得：**在 `f4b9546` 上 ALL PASS 39/39、`SCRIPT_RC=0`、HEAD 未变**（其中 b36 由 FAIL 转 PASS，证明端口冲突修复在 harness 真实条件下成立）。
+
+### 13.7 本轮待裁定 / 持续披露项
+
+1. **SC-02-09（BLOCKER，整改中）**：第一版进程级 hold 被判不等同真实迟到返回；总协调已裁定实施边界（见 13.3），改以"**租约过期 + 另一执行者接管 + 一次性有界 barrier + 释放后返回接管前算出的旧结果**"构造真实交错，须由既有围栏（`StaleGeneration` / `_publish` 守卫）拒绝旧写，**不得**拆原子事务、放宽 A02 门禁、改 DB 伪造或关闭租约机制。**状态：实施中，未交付**；若复核后仍不可达，将按裁定提交最小源码/事务/租约证据与可达替代边界，**不擅标 PASS**。
+1b. **SC-02-10（总协调新增第 7 项，整改中）**：E 的 `af348c4` 把 SC-02-10 由 PASS 纠正为 `seam_pending`（现 **54 PASS + 7 seam**），因其现用的 `MVP_D_SKIN_PROVIDER=aliyun_skin`（`ProviderNotActivated`）**只触发瞬态重试**，黑盒无法确定到达测肤**终态失败**与 `failure_code`。要求：经**真实 HTTP 受理 + worker 正常失败/重试流程**确定性到达**既有终态失败**，让 E 断言错误信息/任务状态一致、**无伪 ready**，且**不改变生产失败规则**（推荐落点：让 skin 替身返回违反**既有**白名单/基线校验的指标，走既有 `_ContractViolation` → `_terminal(PROVIDER_CONTRACT_VIOLATION)` 路径，注入只改替身返回值）。**状态：实施中，未交付。**
+2. **`search=matched` 的黑盒驱动受限**：`FaceDouble.face_subject_ref` 无 env 旋钮（不在本轮清单，未擅自新增），故 env 只能置分类；已用 `extras` 注入证明分支可用、env 值域与工厂透传可用。若 E 需黑盒驱动"可靠匹配既有成员"（影响 **SC-02-07** 的完整覆盖，**不属本 6 项**），需追加 `MVP_D_FACE_DOUBLE_FACE_SUBJECT_REF`（请裁定）。
+3. **`execution_face`/`revalidation_face` 无专用端到端 IT**（其上传端点属 C 域）：机制同构、值域由 `MediaPurpose.values()` 派生、按用途选择性已由单元测试与两条 HTTP 端到端 IT（`assessment_source`/`grant_face`）证明。
+4. **共享测试基建**：`worker-python/tests/conftest.py` 的 session fixture 会调 `backend/deploy/dev/migrate.sh`（内含 `mvn flyway:migrate`）；`WorkerConfig.check_dsn` 只读 `MVP_A_PG_DSN`（默认指向被禁用的 55432，故 `--check` 须显式给该变量）。两者均属共享基建，**B 未改**，提请裁定归属。
+5. **Java 侧接受 `assessment_result` 值但结果图由 Worker 写入**，故 Java 侧对该 purpose 的注入通常不命中上传路径（语义冗余，是否收窄值域请裁定）。
+6. 注入为**进程级**（启动时读取），不支持运行中动态切换或按单次请求切换——**刻意设计**，以满足"不能由未授权业务请求开启"。
+7. 第 12.5/12.7 节的全部残留限制**继续有效**（扇出无硬预算、D cleanup 无 keyset、resolved episode 不压缩、32 处旧式 nullable、E 的 CC-11 selfcheck/allowlist 待更新、登出非跨资源原子事务、C25/C26 待冻结）。
+
+### 13.8 E 复验入口（配置 / 复位 / 最小调用示例）
+
+- **Java 侧**：`.coordination/B-work/seam-injection/SC-C-05-java-E-repro.md`（旋钮值域、purpose→真实 HTTP 入口对应表、5 组最小调用示例、预期 HTTP 码与 DB 可观测量、复位与重启可读、生产不可达的 6 种组合表、已知边界）。**关键操作细节**：`APP_DOUBLE_STORAGE_FAIL_MODE` 在 **bean 装配期读取一次**，改变取值须**重启 Java 进程**；启动日志出现 `storage test-double write-failure injection ARMED: …` 即生效。
+- **Python 侧**：`.coordination/B-work/seam-injection/README-seams.md`（7 个旋钮总表、SC-02-09 hold/release 驱动时序、与 Java 侧按用途的区分、6 组复验命令示例）。已核实其旋钮名与默认值与 `dconfig.py:18-23,65-68,96-101`、`media/storage.py:16` **逐项一致**。
+- 两份手册均在 gitignored 的运行目录内；如需随代码入库供 E 直接使用，请总协调指定落地路径（B 不擅自写入 `backend/acceptance/**`）。
+
+### 13.9 Oracle 有界复审结论（绑定 `f4b9546ae17a2b36739b4e72690681e3333556cd`）
+
+**`VERDICT: FAIL`，明确"不可合入 dev"**。范围限本轮注入缝（未重审 R6 已通过的 B 业务代码、R8 已通过的 Swagger、上一轮已通过的公共集成修复）。
+
+**判为通过的项（逐条，含 Oracle 依据行号）**：①业务 handler/runtime/notifications/Java 业务包/配置/资源/契约/迁移 **diff 均为空**；②注入仅改变 doubles（`providers.py:499-575`、`media/storage.py:23-26,72-79`、`FileSystemStorageDouble.java:70-123`），未改业务判定；③未增错误码/表/列/迁移、未放宽业务条件；④默认值与原行为一致（`dconfig.py:64-102,295-315`、`storage.py:23-26`、`FileSystemStorageDouble.java:70-78`，`application.yml` 未改）；⑤生产信号覆盖解析环境 + 三组 raw env + `prod/production` profile（`dconfig.py:183-225`）、启动校验早于 DB/健康端口（`__main__.py:25-40,124-128`）、Java `prod,dev + app.env=dev` 在 bean 装配期失败（`TestDoubleProvidersConfig.java:56-82`）；⑦未新增任何 Controller mapping/参数/header/route/endpoint，注入不能由业务请求开启；⑨⑩⑪⑬质量缝、身份缝、补拍态入口、plan 确定性超时均判通过；⑭Java purpose 白名单由 `MediaPurpose.values()` 派生、key 第二段与 `MediaService.java:63-72` 一致；⑮`f4b9546` 删端口探针改为验证 root cause 与 `storagePort` bean 创建失败，**属加强而非弱化**。
+
+**未通过 / 需整改**：
+- **BLOCKER（第 12/18 项）**：进程级 hold 不满足 SC-02-09 的黑盒时序要求（理由与我的核实见 13.3），且其测试以直接种库 + 手工入队旧代次作为证据，属清单禁止的 DB 伪造迟到。Oracle 明确：**不要直接扩展 SkinPort**（task/revision 不是供应商职责）；如需保留该验收，应授权独立的 test-profile、按 assessmentId+processingRevision 定向的 **worker 完成边界 seam**，且生产启动守卫强制拒绝。→ 总协调随后裁定走"租约过期 + 接管 + 有界 barrier"路径（见 13.3）。
+- **IMPORTANT（第 6/8 项）**：布尔注入值不严格校验，未知值静默当 false（`dconfig.py:148-152`、`:163-180`、`storage.py:23-26`），`MVP_D_FACE_DOUBLE_SAME_PERSON=bogus` 会**静默触发 NOT_SAME_PERSON 分支**；`REQUIRED_VIEWS=,,,` 不失败。→ **已闭合于 `40f5fde`**（我已亲验 4 条命令 rc=1 与 pytest 279 passed）。
+- **SUGGESTION**：`FileSystemStorageDoubleFailModeTest.java:99` EOF 多余空行致 `git diff --check` 非零 → **已闭合于 `d312d2a`**（我已亲验 rc=0）；范围声明称 13 个文件、实际 12 → **已在 13.6.1 更正**。
+
+**Oracle 对 18–22 的归属裁定**：18 进程级 hold = **阻塞**（总协调先裁定验收语义）；19 `matched` 的 `face_subject_ref` = 非阻塞、本六项范围外（若重开 SC-02-07 再由 D/B seam 负责人最小追加）；20 `execution_face`/`revalidation_face` 专用 HTTP 证据 = 非阻塞代码项但属**最终证据缺口**，由 E 用 C 的 HTTP 端点验证，B 无需改 C；21 `conftest`/DSN = 非阻塞生产项，归共享测试基建所有者或总协调；22 Java 接受 `assessment_result` = 非阻塞、可接受冗余，文档说明即可。
+
+**Oracle 要求持续披露的残留限制**：注入开关是**进程级** env、非 task/RUN_ID 级，同一 worker 会影响其领取的所有同类任务，测试必须隔离队列/DB 并禁止并行污染；SC-02-09 当前只能证明 retry 与 revision guard；`matched` 分类无可配置 `face_subject_ref`；`execution_face`/`revalidation_face` 缺专用 HTTP 端到端证据；Java `assessment_result` 模式通常不命中实际上传路径；真实提供方仍未接入（seams 仅限 doubles）；Java 正式生产信号约定仍是 profile `prod` 或 `app.env=production`；共享 pytest DSN/迁移 fixture 仍依赖 `MVP_A_PG_*`。
+
+### 13.10 BLOCKER 整改与总协调新增第 7 项（`181676d`）
+
+**项 A —— SC-02-09 改为"真实迟到返回"**：按总协调裁定（不拆原子事务、不放宽 A02 门禁、保留业务规则；允许有界测试 barrier 与测试租约配置；不得改 DB 伪造状态、不得关闭租约机制），新增 `providers.py:163-229` 的 `LateReturnBarrier`：**文件态**（`consumed`/`released` sentinel，不写任何 DB 业务表）、**一次性**（`os.open(O_CREAT|O_EXCL)`，`FileExistsError` 即立即返回 ⇒ 接管者不被阻塞）、**先算后等**（`compute_then_wait` 返回调用方已算好的旧结果、不重算）、**有界**（monotonic deadline + 0.1s 轮询，超时清理并抛**既有** `ProviderUnavailable`）、`finally` 清理两个 sentinel。命中标记取**上传照片内容 sha256** ⇒ **未扩展端口签名**（Oracle 明确 task/revision 不是供应商职责）。新增 4 个 barrier 旋钮全部登记进 `DOUBLE_INJECTION_SWITCHES` 并走严格解析。
+
+**已由真实围栏路径实测的子时序**（`tests/test_seam_boundary_repro.py:159-283`；`_seed_marked_case` 只铺初始 fixture，**不伪造时序状态**；领取/回收/接管/完成全部走真实 `claim_batch`/`recover_expired`/`handle`/`complete_success`）：`A_in_barrier{owner=A,lease_revision=1,attempt=1,assessment=analyzing}` → `after_recover_expired{queued,lease_owner=null,lease_revision=2}` → `B_takeover{owner=B,lease_revision=3,attempt=2}` → `B_committed{job=succeeded,assessment=needs_retake}` → `A_released_old_result{HandlerResult}` → **`A_fenced{StaleGeneration}`**；终态 `needs_retake`、`report_id`/`report_payload`/`member_id` 均 null、`report_ready` 行数 0、barrier 无残留。关键断言为 `with pytest.raises(StaleGeneration): complete_success(engine, claim_a, handler_result_tx=result_a.business_tx)`。短租约经既有 `lease_seconds` 参数自然过期（单次 handle 无续租线程），**未关闭续租机制**。
+
+**项 B —— SC-02-10（总协调新增第 7 项）**：E 的 `af348c4` 把它由 PASS 纠正为 `seam_pending`，因其现用的 `MVP_D_SKIN_PROVIDER=aliyun_skin`（`ProviderNotActivated`）**只触发瞬态重试**、黑盒无法确定到达终态失败。新增 `MVP_D_SKIN_DOUBLE_INVALID`（`none|unknown_metric|out_of_range|bad_unit`，默认 `none`）：让 skin 替身返回违反**既有**白名单/基线校验的指标，经**既有** `_ContractViolation` → `_terminal(PROVIDER_CONTRACT_VIOLATION)` 路径，**1 轮确定性**（`attempt_count==1`，不靠预算耗尽）到达 `status='failed'`、`retryable=false`、`report_id`/`report_payload` null、**无后继 job**（`async_jobs==1`，即未产生 `identity.enroll`/`plan.generate`）。三形态的 `failure_detail.reason` 实测为 `$.metrics[3].name: not in approved baseline` / `$.metrics[3].value: out of approved range` / `$.metrics[3].unit: not in approved baseline`。投影一致性：`FailureProjection.PUBLIC_FAILURE_CODES` 含该码且 `retryable(code)→false`（`FailureProjection.java:45-54,66-82`），`failure_detail` **不投影**。**未改任何生产失败规则**（`_transient_or_terminal`/`_terminal`/`_validate_metrics`/`_publish` 与 `assessment_analyze.py` 整体 diff 为空），未新增业务错误码。
+
+**orchestrator 独立核验（不采信自报）**：写域恰 3 路径，业务文件（`assessment_analyze.py`/`plan_generate.py`/`identity_enroll.py`/`dmedia.py`/`runtime/**`/`handlers/__init__.py`/`media/storage.py`/`notifications/**`）与 Java/`acceptance`/`contracts`/`backend/tests`/`deploy` 的 **diff 全空**；`providers.py` 中 `engine|connect|execute|text(` 计数 **0** ⇒ barrier 确实不触 DB；我亲跑 **pytest 291 passed / 0 failed / 0 errors，rc=0**（基线 279 + 12）；守卫 CLI **七组全符预期**（production+barrier rc=1 且列明 `switches=['MVP_D_DOUBLE_LATE_BARRIER','MVP_D_DOUBLE_LATE_BARRIER_SHA256']`、production+`SKIN_DOUBLE_INVALID` rc=1、production+全默认 rc=0、dev+全合法非默认 rc=0、缺 SHA256 / `SHA256=zz` / `SKIN_DOUBLE_INVALID=bogus` / `TIMEOUT_SECONDS=0` 四组 fail-fast 均 rc=1 且消息含值域）；并逐行核实两个核心测试的**尾部断言**确为真实（`StaleGeneration` 抛起、v2 快照逐值未变、sentinel 已清理、`attempt_count==1`、`async_jobs==1`、`report_ready==0`），非空跑。
+
+**端到端缺口已闭合（`8343ba5`，orchestrator 亲跑 `ALL PASS 41/41`）**：`181676d` 交付时如实标注的唯一缺口——SC-02-09 的 Java HTTP 步骤（`PUT …/photo-versions/2` → J2 → `report_ready(v2)`）与 SC-02-10 的 M3-A03 投影一致性——已由 B 自有验收工装的新检查 **b40/b41** 以**真实 HTTP + 真实 worker/租约/围栏**打通（详见 `B-seam-repro.md` §5.1/§5.2 的实测中间态与 E 可照抄序列）。**红线核实**：b40/b41 新增区（`b-checks-3.sh` 第 315 行起）`UPDATE|INSERT INTO|DELETE FROM` **零命中**、`psql_b` 调用**全为 SELECT** ⇒ 未以改 DB 伪造时序状态；`b_drain_queue` 仅用真实 `mvp_worker --once` 排空（注释明写"不直接改状态"）；`cleanup()` 增加后台 Worker A 的强制回收（pid → kill → 最多 10s → `kill -9`）⇒ 无遗留进程；**b1–b39 断言零改动**（本提交删除行仅 3 行文件头注释，numstat = `run-acceptance-b.sh +14/−2`、`b-checks-3.sh +266/−1`）。
+
+**如实披露（仍未闭合或需注意）**：①barrier 超时后同一 job 若被重试会**再阻塞一个 timeout**（有界、不永久挂起；复验方应把 `TIMEOUT_SECONDS` 设为足以覆盖整个驱动序列，B 的工装用 180）。②`TIMEOUT_SECONDS` 传**非数字**时抛 `ValueError` 而非 `ProviderConfigError`（两者均在启动前失败，不进入运行期）。③未设 `_DIR` 时落到**系统临时目录**，多场景并跑须各自指定独立目录，否则会互相消费 sentinel。④`MVP_D_SKIN_DOUBLE_HOLD` 与其两个既有测试**保留未弱化**（与 barrier 正交：hold=进程级可重试失败、无输入标记；barrier=输入标记驱动的真实迟到返回）。⑤A 的迟到结果被**双重围栏**：先在 `archive_result_images` 的 `fenced_business_tx` 抛 `StaleGeneration`（`handle` 内捕获，**DEBUG 级默认不落日志**），随后 `complete_success` 守卫再次拒绝并落 **WARNING `job.complete_stale_generation`**；b40 断言后者。⑥Worker C 需**有界多轮** `--once`（`reliable_new` 先建档→重搜发布，约 2 轮；工装用 `MVP_WORKER_BACKOFF_BASE_SECONDS=0` + `claim_batch=5`，循环上界 60×0.4s），**未改业务、未伪造**。⑦库中**无 `skin_reports` 表**（报告落 `skin_assessments.report_id/report_payload`），故 b40 以「该 gimbal T05 行数=1 + `report_ready` 行=1 + 快照逐值一致」等价断言「members、报告行数不变」。
+
+### 13.11 当前门禁状态（截至最终代码 SHA `8343ba5a4dd9ee611da979617d2982943fc61af9`）
+
+- **`f4b9546` 未通过 Oracle 门禁（`VERDICT: FAIL`，明确"不可合入 dev"）**；该结论**不被沿用**，最终以新 SHA 的复审为准。
+- **已闭合**：BLOCKER（SC-02-09 改为真实迟到返回 barrier，`181676d`；端到端 b40，`8343ba5`）、IMPORTANT（严格布尔解析，`40f5fde`）、2 项 SUGGESTION（EOF 空行 `d312d2a`、12-vs-13 计数更正见 13.6.1）；并按总协调新增第 7 项 **SC-02-10**（确定性终态失败，`181676d` + 端到端 b41，`8343ba5`）。
+- **已完成的全量验证（orchestrator 亲自执行，绑定 `8343ba5`）**：端到端工装 **`ALL PASS 41/41`、`SCRIPT_RC=0`**（b1–b39 无回归；b36 Java **419/0/0**；b37 Python **291 passed**；b39 HEAD 未变）；我另独立亲跑 **pytest 291 passed rc=0** 与守卫 CLI 七组、Oracle 指定 4 条命令、严格红线 grep（`providers.py` 无 DB API；工装新增区无业务表写入）。跑后 18083/18084 空闲、无我方遗留 JVM/worker。
+- **Oracle 第十一轮对 `8343ba5` 判 `VERDICT: PASS-with-notes`，明确"可以合入 dev"**：21 项逐条裁定全部闭合/通过（BLOCKER 与 IMPORTANT 与 2 SUGGESTION 均确认闭合），并判定 **SC-02-09 与 SC-02-10 的注入能力已就绪、可由 E 黑盒驱动**（b40 已证明真实 HTTP、lease 回收、接管、v2 完成与旧执行迟到围栏；SC-02-10 可在首次实际 worker 执行中稳定进入既有 `PROVIDER_CONTRACT_VIOLATION` 终态并由 HTTP 读取安全投影）；**最终场景 PASS 仍由 E 的 matrix 独立结算，B 不代宣**。完整记录见 `B-oracle.md` §4.14。
+- **但 Oracle 同时给出 3 项新 IMPORTANT + 1 SUGGESTION**，判其"不改变生产业务正确性、不构成合入阻塞，**但前三项应在 E 最终矩阵结算前修正或明确接受测试约束**"：①`b-checks-3.sh:481-488` b40 **忽略 Worker A 退出码**且日志正则过宽（允许任意 `StaleGeneration` 字样或 DEBUG 事件）⇒ A 崩溃非零退出时 b40 仍可能通过；②`test_seam_boundary_repro.py:392-406` 与 `b-checks-3.sh:526-529` 以 `owner_id=assessmentId` 计数**不能**证明无 `identity.enroll`/`plan.generate` 后继（两类后继用**不同 owner_id**）；③`providers.py:163-166`/`dconfig.py:394-469` barrier 启用时 `DIR` 可为空并**回退共享 `/tmp/mvp-double-late-barrier`**，未强制 RUN_ID 隔离 ⇒ 并跑实例互相消费 sentinel；④timeout 非数字抛裸 `ValueError`，异常类型不统一。
+- **orchestrator 处置：四项全部修，不接受"明确接受测试约束"**。理由：前三项都属**可能导致假 PASS 的证据完整性缺陷**（其一可把崩溃的被测进程记为通过、其二使"无脏后继"断言实际无判别力、其三使并跑实例互相污染），与本项目"绝不把受控替代或伪造效果当真实、要求独立验证"的一贯要求直接冲突；四项全在 B 自有写域（工装 + 注入缝 + 定向测试），不触碰业务代码。**修复中，未交付。**
+- **最终门禁状态（已闭合）**：Oracle 对 **`11e42c8ea29c97312059cab886f39c5c3418e8f8`** 的窄范围重绑定判 **`VERDICT: PASS-with-notes`**，六点全部闭合、**新发现：无**，明确 **"可以将 `11e42c8` 作为本轮最终交付 SHA 合入 dev"**、**"不要求再次重跑端到端验收"**（orchestrator 已在该精确 SHA 上亲跑 `ALL PASS 41/41`、`SCRIPT_RC=0`），并确认 **SC-02-09 与 SC-02-10 的注入能力仍可由 E 黑盒驱动、最终场景结算仍由 E matrix 独立负责**。
+- **轮次边界声明（Oracle 原文）**：**"`11e42c8ea29c97312059cab886f39c5c3418e8f8` 为本轮最终交付 SHA；无需再因测试断言精度或文档措辞发起新的重新绑定轮次。只有 E matrix 发现新的实际行为缺陷，才需要重开代码审查。"**
+- **本轮最终交付 SHA = `11e42c8ea29c97312059cab886f39c5c3418e8f8`**；提交链 `5bd22d3` → `7524714`(Java 存储缝) → `9b3d802`(Python 7 旋钮) → `f4b9546`(测试端口冲突) → `d312d2a`(EOF) → `40f5fde`(严格布尔，闭合 IMPORTANT) → `181676d`(barrier + SC-02-10) → `8343ba5`(工装 b40/b41) → **`11e42c8`**(四项证据完整性修复)。相对 `5bd22d3` 共 **15 文件 / +2820 −14**，`git diff --check` **rc=0**。Oracle 共 **3 次实际调用**（`f4b9546` FAIL → `8343ba5` PASS-with-notes → `11e42c8` PASS-with-notes 重绑定），全部为真实只读审查并给出可核查的 `文件:行` 与命令清单。
+- **纪律**：B **未合并、未推送、未归档**；三份交付文档以 report-only 提交入库（`git diff 11e42c8..HEAD` 对全部代码目录为空）；E 只在总协调合入后验收，**B 不代 E 宣布任何场景 PASS**。
+
+### 13.12 四项证据完整性修复（`11e42c8`）与负向验证
+
+| # | Oracle 原判定 | 修复 |
+|---|---|---|
+| 1 | **IMPORTANT** `b-checks-3.sh:481-488`：b40 **忽略 Worker A 退出码**，日志正则允许任意 `StaleGeneration` 字样或 DEBUG 事件 ⇒ A 崩溃非零退出时仍可能假 PASS | `wait … \|\| a_rc=$?` 后**断言 `a_rc==0`**（非零则打印 A 日志尾部并 `fail`）；日志判据收紧为**精确** `"event": *"job.complete_stale_generation"`（移除 DEBUG `analyze.fenced_write_stale` 与裸字样匹配）；**新增**"A 日志不含 `Traceback (most recent call last)`"断言；既有断言（v2 快照逐值未变、`report_ready`=1、T05 行=1、`members` 不变、sentinel 无残留）**全部保留** |
+| 2 | **IMPORTANT** `test_seam_boundary_repro.py:392-406`、`b-checks-3.sh:526-529`：`owner_id=assessmentId` 计数**不能**证明无 `identity.enroll`/`plan.generate` 后继（两类后继用**不同 owner_id**） | 改为按真实 schema 四路判别：`assessment.analyze` 按 `(job_type, owner_id)` 恰 1（+`attempt_count=1`、`last_error->>'retryable'=false`）；`identity.enroll` 按 `payload->>'assessment_id'`=0；`care_plans WHERE assessment_id`=0；`plan.generate` 经 `JOIN care_plans ON j.owner_id=p.id`=0。另加**判别力测试** `test_successor_job_assertions_have_discriminating_power` |
+| 3 | **IMPORTANT** `providers.py:163-166`、`dconfig.py:394-469`：barrier 启用时 `DIR` 可空并**回退共享 `/tmp/mvp-double-late-barrier`**，未强制 RUN_ID 隔离 ⇒ 并跑实例互相消费 sentinel | `__post_init__` 的 barrier 分支：`DIR` 空/未设 → **加载期 `ProviderConfigError`**（`barrier=true requires an explicit dedicated directory (per-RUN_ID isolation; no shared default allowed)`）；`default_late_barrier_dir()` 收窄为**仅供显式构造/测试**，env 装配路径绝不使用；新增 `test_barrier_enabled_requires_dir_sha_and_timeout`（缺 DIR/缺 sha/非 hex/timeout<1/齐备五情形） |
+| 4 | **SUGGESTION** `dconfig.py:162-164,400-403`：timeout 非数字抛裸 `ValueError`，异常类型不统一 | 新增 `_strict_env_int(name, default, *, minimum)`：非数字与越界均转为含变量名与 `expected integer >= {minimum}` 的 **`ProviderConfigError`**；barrier timeout 字段改用之；新增 `test_barrier_timeout_non_numeric_fails_fast` |
+
+**负向验证（关键：证明收紧后的判据有判别力而非恒真；三次临时缺陷均已完全还原）**
+- 临时把 A 的真实 WARNING 事件重写为 DEBUG `analyze.fenced_write_stale` → b40 **FAIL**：`ASSERT-FAIL: A 日志缺既有 WARNING job.complete_stale_generation`、`SCRIPT_RC=1`（**旧宽松正则本会匹配并通过**）
+- 临时向 A 日志追加 `Traceback (most recent call last)` → b40 **FAIL**：`ASSERT-FAIL: A 日志含未处理异常 traceback`、rc=1（**旧无此断言**）
+- 临时强制 `a_rc=9` → b40 **FAIL**：`ASSERT-FAIL: Worker A 退出码=9（期望 0）`、rc=1（**旧忽略退出码**）
+- 修复 2 的判别力：临时插入一条 `plan.generate`（`owner_id=plan_id`、payload 指向同 assessment）→ 实测 `old_owner_id_count=1`（**旧断言被骗过、会假 PASS**）而 `new_care_plans_count=1`、`new_plan_join_count=1`（**新断言命中**）；随后显式 DELETE 并断言 `left_jobs=0, left_plans=0`
+- **零泄漏核实**（orchestrator 独立 grep）：交付文件中 `TEMP-NEG|TEMP_NEG|neg-fix|intended.sh` **零命中**；还原基准 `b-checks-3.intended.sh` 仅存于 gitignored 运行目录、**未进入暂存面**（工件计数 0）
+
+**orchestrator 独立核验（绑定 `11e42c8`）**：写域恰 4 文件；业务文件（`assessment_analyze`/`plan_generate`/`identity_enroll`/`dmedia`/`runtime/**`/`handlers/__init__`/`media/storage`/`notifications/**`）、任何 Java `src/main/**`、`run-acceptance-b.sh`、`acceptance/**`、`contracts/**`、迁移、`deploy`、`handoffs/**` 的 **diff 全空**；我亲自读码确认 `__post_init__` 的 barrier 三重校验（DIR 非空、timeout≥1、sha256 为 64-hex）确实存在（此前一次 grep 未命中只因消息被 f-string 拆行）；**全量 pytest 293 passed / 0 failed / 0 errors，rc=0**（基线 291+2）；**完整工装 `ALL PASS 41/41`、`SCRIPT_RC=0`**（b40/b41 PASS、b36 Java 419/0/0、b37 Python 293、b39 HEAD 未变）；守卫 CLI 五组（缺 DIR→rc=1、合法 DIR→rc=0、`TIMEOUT_SECONDS=abc`→rc=1 且为 `ProviderConfigError`、production+barrier→rc=1 列出 3 个 switches、production+全默认→rc=0）；`git diff --check 5bd22d3..11e42c8` **rc=0**；本轮总变更面 **15 文件 / +2820 −14**；跑后 18083/18084 空闲、无遗留进程、`mvp-b-pg` Up。
+- **纪律**：B 不自行合并、不推送、不归档；E 只在总协调合入后验收；场景最终结算（含 SC-02-09/SC-02-10 由 `seam_pending` 转 PASS）由 **E 在其 matrix 中完成**，B 只提供能力与自证，**不代 E 宣布 PASS**。
+- 交付物 `backend/handoffs/B-seam-repro.md`（总协调要求随交付提交、不得只放 gitignored 目录）已补齐全部内容，随 report-only 提交入库。

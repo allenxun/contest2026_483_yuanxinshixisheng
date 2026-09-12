@@ -22,6 +22,24 @@ from .logging_setup import mlog, setup_logging
 log = logging.getLogger("mvp_worker.main")
 
 
+def _validate_startup_config() -> None:
+    """加载期配置守卫（始终执行，先于任何 DB/进程启动）。
+
+    1. ``DConfig.from_env()``：非法注入取值 → :class:`ProviderConfigError`（fail fast）；
+    2. ``assert_no_double_injection_in_production()``：生产信号（含混合 profile /
+       矛盾 env）且任一注入开关非默认 → 拒绝启动（fail-closed）。
+
+    与既有 per-provider ``_forbid_double_in_production`` 互补，不重复报错。
+    """
+    from .handlers.dshared.dconfig import (
+        DConfig,
+        assert_no_double_injection_in_production,
+    )
+
+    DConfig.from_env()
+    assert_no_double_injection_in_production()
+
+
 def _check(cfg: WorkerConfig) -> int:
     with psycopg.connect(cfg.check_dsn) as cur:  # type: ignore[call-arg]
         row = cur.execute("SHOW server_version").fetchone()
@@ -103,6 +121,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    # 加载期守卫：非法注入取值 / 生产环境出现注入开关 → 启动即拒（早于 DB/健康端口）。
+    _validate_startup_config()
     cfg = WorkerConfig()
     if args.check:
         return _check(cfg)
