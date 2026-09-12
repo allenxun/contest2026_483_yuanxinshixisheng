@@ -1,0 +1,14 @@
+{
+  "method": "PUT",
+  "path": "/api/v1/skin-assessment-tasks/65b0f3c8-ef56-4fa2-a154-d46094f532e0/photo-versions/2",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "n": 1
+  },
+  "response_excerpt": "{\"requestId\": \"60c7cc80-bd72-4166-aa67-10aa996a247b\", \"error\": {\"code\": \"PHOTO_VERSION_CONFLICT\", \"message\": \"retake is only allowed while the task requires a retake\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T122015Z-33ffeb3c"
+}

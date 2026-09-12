@@ -1003,6 +1003,16 @@ def test_cc11_allowlist_precise_no_impl_downgrade():
     assert c_care.classify_strict_error("A09", e2) == "impl-or-other"
 
 
+def test_r20_zero_evidence_pending_is_not_ok(tmp_path):
+    """R20-6 守护：零证据即使 seal() 也不可结算为可用（防 device/seam pending 假结算）。"""
+    from framework.client import EvidenceRecorder
+    from framework.conftest import ScenarioSettlement
+
+    sm = ScenarioSettlement("SC-ZZ", EvidenceRecorder(tmp_path, "RUN-R20"))
+    sm.seal()
+    assert sm.ok_reason() is not None  # 无 HTTP 证据记录 → 不可用
+
+
 def test_r20_redaction_recursive():
     """R20：响应/请求体凭据递归脱敏（仅落盘面），accessToken/refreshToken/sessionToken 等。"""
     import json as _json

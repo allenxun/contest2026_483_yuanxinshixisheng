@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "admit_concurrent": true
+  },
+  "response_excerpt": "{\"requestId\": \"071e9276-a053-466a-9c29-c96f5dc62dbc\", \"error\": {\"code\": \"DEVICE_OCCUPIED\", \"message\": \"device is occupied by another open execution\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T122015Z-33ffeb3c"
+}

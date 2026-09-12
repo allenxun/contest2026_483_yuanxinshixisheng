@@ -399,6 +399,12 @@ def test_SC_R_03(scenario_evidence):
                        body={"expectedBindingRevision": str(rev + 1), "pairingProof": proofb},
                        headers={"Idempotency-Key": str(uuid.uuid4())})
     owner2 = CC.scalar(f"SELECT bound_account_id::text FROM gimbals WHERE id='{g}'")
+    _rec(se, "DELETE", f"/api/v1/me/gimbal-bindings/{g}", cbad, bbad,
+         req={"by": "B", "if_match": f"binding-{rev}", "case": "not_owner"})
+    _rec(se, "DELETE", f"/api/v1/me/gimbal-bindings/{g}", cd, bd,
+         req={"by": "A", "if_match": f"binding-{rev}", "case": "owner"})
+    _rec(se, "PUT", f"/api/v1/me/gimbal-bindings/{g}", cb, bb,
+         req={"by": "B", "expected_rev": str(rev + 1), "case": "rebind"})
     assert cbad in (403, 404, 409, 412) and owner == a["accountId"]
     assert cd in (204, 200) and cb == 200 and owner2 == b["accountId"]
     _device_done(se, 3)
