@@ -41,6 +41,7 @@ from d_support import (
 
 from mvp_worker.handlers.assessment_analyze import handler as analyze_handler
 from mvp_worker.handlers.dshared.dconfig import (
+    BOOL_ENV_DOMAIN,
     DConfig,
     ProviderConfigError,
     assert_no_double_injection_in_production,
@@ -55,6 +56,7 @@ from mvp_worker.media.storage import (
     STORAGE_DOUBLE_FAIL_PUT_ENV,
     FilesystemStorageDouble,
     StorageError,
+    storage_put_failure_injected,
 )
 
 # 本批注入开关（默认关闭）；autouse 清空保证测试实例/RUN_ID 间不串扰。
@@ -468,14 +470,116 @@ def test_storage_fail_put_result_archive_retryable_then_recovery(
         ("MVP_D_FACE_DOUBLE_SEARCH", "bogus"),
         ("MVP_D_PLAN_DOUBLE_MODE", "bogus"),
         ("MVP_D_FACE_DOUBLE_REQUIRED_VIEWS", "eye"),
+        # Oracle IMPORTANT：布尔注入开关未知值必须加载期 fail fast，不得静默当 false
+        ("MVP_D_FACE_DOUBLE_SAME_PERSON", "bogus"),
+        ("MVP_D_SKIN_DOUBLE_HOLD", "maybe"),
+        (STORAGE_DOUBLE_FAIL_PUT_ENV, "2"),
+        # 全空段（仅逗号）也必须 fail fast，不得静默回退默认
+        ("MVP_D_FACE_DOUBLE_REQUIRED_VIEWS", ",,,"),
     ],
 )
 def test_invalid_injection_value_fails_fast(
     monkeypatch: Any, name: str, value: str
 ) -> None:
     monkeypatch.setenv(name, value)
+    with pytest.raises(ProviderConfigError) as ei:
+        DConfig.from_env()
+    assert name in str(ei.value)  # 错误须含变量名，便于定位
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("1", True),
+        ("true", True),
+        ("TRUE", True),
+        (" yes ", True),
+        ("On", True),
+        ("0", False),
+        ("false", False),
+        ("FALSE", False),
+        (" no ", False),
+        ("Off", False),
+    ],
+)
+def test_strict_boolean_accepts_documented_values(
+    monkeypatch: Any, raw: str, expected: bool
+) -> None:
+    """三个布尔注入开关严格接受文档值域（含大小写与首尾空白），且读取一致。"""
+    monkeypatch.setenv("MVP_D_FACE_DOUBLE_SAME_PERSON", raw)
+    monkeypatch.setenv("MVP_D_SKIN_DOUBLE_HOLD", raw)
+    monkeypatch.setenv(STORAGE_DOUBLE_FAIL_PUT_ENV, raw)
+
+    cfg = DConfig.from_env()
+    assert cfg.face_double_same_person is expected
+    assert cfg.skin_double_hold is expected
+    assert cfg.storage_double_fail_put is expected
+    # 运行时读取点（storage）与 DConfig / 守卫同一语义
+    assert storage_put_failure_injected() is expected
+
+
+def test_strict_boolean_default_when_unset() -> None:
+    """未设任何开关：默认值与当前行为一致、守卫不误判为注入。"""
+    cfg = DConfig.from_env()
+    assert cfg.face_double_same_person is True
+    assert cfg.skin_double_hold is False
+    assert cfg.storage_double_fail_put is False
+    assert storage_put_failure_injected() is False
+    assert double_injection_overrides() == {}
+
+
+def test_storage_put_failure_injected_strict(monkeypatch: Any) -> None:
+    """storage.py 读取点也严格：合法值可用，非法值明确报错（含变量名+值域）。"""
+    for raw, expected in (("off", False), ("no", False), ("yes", True), ("on", True)):
+        monkeypatch.setenv(STORAGE_DOUBLE_FAIL_PUT_ENV, raw)
+        assert storage_put_failure_injected() is expected
+
+    monkeypatch.setenv(STORAGE_DOUBLE_FAIL_PUT_ENV, "bogus")
+    with pytest.raises(ProviderConfigError) as ei:
+        storage_put_failure_injected()
+    assert STORAGE_DOUBLE_FAIL_PUT_ENV in str(ei.value)
+    assert BOOL_ENV_DOMAIN in str(ei.value)
+
+
+def test_guard_and_runtime_boolean_semantics_identical(monkeypatch: Any) -> None:
+    """守卫判定与运行时读取不可能"一边判未注入、一边生效"（同一 strict_env_bool）。"""
+    # 合法非默认：守卫视为注入；运行时读取一致
+    monkeypatch.setenv("MVP_D_SKIN_DOUBLE_HOLD", "on")
+    assert "MVP_D_SKIN_DOUBLE_HOLD" in double_injection_overrides()
+    assert DConfig.from_env().skin_double_hold is True
+
+    # 合法默认值：守卫不视为注入；运行时读取一致
+    monkeypatch.setenv("MVP_D_SKIN_DOUBLE_HOLD", "off")
+    assert "MVP_D_SKIN_DOUBLE_HOLD" not in double_injection_overrides()
+    assert DConfig.from_env().skin_double_hold is False
+
+    # 非法：守卫与运行时读取都明确报错，不存在静默放过
+    monkeypatch.setenv("MVP_D_SKIN_DOUBLE_HOLD", "bogus")
+    with pytest.raises(ProviderConfigError):
+        double_injection_overrides()
     with pytest.raises(ProviderConfigError):
         DConfig.from_env()
+
+
+@pytest.mark.parametrize(
+    "name,value",
+    [
+        ("MVP_D_FACE_DOUBLE_SAME_PERSON", "bogus"),
+        ("MVP_D_SKIN_DOUBLE_HOLD", "bogus"),
+        (STORAGE_DOUBLE_FAIL_PUT_ENV, "bogus"),
+    ],
+)
+def test_production_with_invalid_boolean_rejected_explicitly(
+    monkeypatch: Any, name: str, value: str
+) -> None:
+    """生产信号 + 非法布尔 → 真实启动校验路径明确报错（不静默放过）。"""
+    from mvp_worker.__main__ import _validate_startup_config
+
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv(name, value)
+    with pytest.raises(ProviderConfigError) as ei:
+        _validate_startup_config()
+    assert name in str(ei.value)
 
 
 @pytest.mark.parametrize(
