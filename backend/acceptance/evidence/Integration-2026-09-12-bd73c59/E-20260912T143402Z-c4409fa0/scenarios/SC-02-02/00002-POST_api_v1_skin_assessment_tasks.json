@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/skin-assessment-tasks",
+  "status": 403,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "caller": "app"
+  },
+  "response_excerpt": "{\"requestId\": \"e185052b-3ea1-4827-8d6b-b944ab7b22bd\", \"error\": {\"code\": \"CALLER_NOT_ALLOWED\", \"message\": \"only a gimbal may submit skin assessment tasks\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T143402Z-c4409fa0"
+}
