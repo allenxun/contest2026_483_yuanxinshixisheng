@@ -30,6 +30,7 @@ from d_support import (
     run_claimed,
     seed_assessment,
     seed_member,
+    seed_plan,
     seed_source_media,
 )
 
@@ -389,10 +390,33 @@ def test_sc0210_skin_invalid_reaches_existing_terminal_failure(
         retryable=exc.retryable,
     )
 
-    # 无伪 report_ready；失败路径不产生后继任务（无 identity.enroll / plan.generate）
+    # 无伪 report_ready；失败路径不产生后继任务。
+    # 口径（真实 schema）：identity.enroll 用 payload.assessment_id 关联（owner_id=namespace）；
+    # plan.generate owner_id=care_plans.id（其 payload 无 assessment_id），须经 care_plans 关联。
     with engine.connect() as conn:
-        jobs = conn.execute(
-            text("SELECT count(*) FROM async_jobs WHERE owner_id = CAST(:a AS uuid)"),
+        analyze_jobs = conn.execute(
+            text(
+                "SELECT count(*) FROM async_jobs WHERE job_type='assessment.analyze'"
+                " AND owner_id = CAST(:a AS uuid)"
+            ),
+            {"a": aid},
+        ).scalar_one()
+        enroll_jobs = conn.execute(
+            text(
+                "SELECT count(*) FROM async_jobs WHERE job_type='identity.enroll'"
+                " AND payload->>'assessment_id' = :a"
+            ),
+            {"a": aid},
+        ).scalar_one()
+        plans = conn.execute(
+            text("SELECT count(*) FROM care_plans WHERE assessment_id = CAST(:a AS uuid)"),
+            {"a": aid},
+        ).scalar_one()
+        plan_jobs = conn.execute(
+            text(
+                "SELECT count(*) FROM async_jobs j JOIN care_plans p ON j.owner_id = p.id"
+                " WHERE j.job_type='plan.generate' AND p.assessment_id = CAST(:a AS uuid)"
+            ),
             {"a": aid},
         ).scalar_one()
         ready = conn.execute(
@@ -402,8 +426,84 @@ def test_sc0210_skin_invalid_reaches_existing_terminal_failure(
             ),
             {"a": aid},
         ).scalar_one()
-    assert int(jobs) == 1
+    assert int(analyze_jobs) == 1  # 该 assessment 的 analyze job 恰 1
+    assert int(enroll_jobs) == 0  # 无 identity.enroll 后继
+    assert int(plans) == 0  # 无 care_plans 行（即无 plan.generate 的 owner 行）
+    assert int(plan_jobs) == 0  # 经 care_plans 关联亦无 plan.generate
     assert int(ready) == 0
+
+
+def test_successor_job_assertions_have_discriminating_power(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """负向验证（Oracle fix 2）：同 assessment 的 `plan.generate` 其 `owner_id=plan_id`
+    而非 assessmentId，故**旧** `owner_id=assessmentId` 计数发现不了它（旧断言无判别力）；
+    **新**断言（`care_plans` / join）能发现。
+    """
+    aid = seed_assessment(
+        engine, status="failed", current_photo_version=1, processing_revision=2
+    )
+    member = seed_member(engine, ns=DEFAULT_NS, ref=str(uuid.uuid4()), assessment_id=aid)
+    _enqueue_analyze(engine, aid, 2, max_attempts=5)
+    # 人为后继 plan.generate：owner_id=plan_id（≠ assessmentId），payload 不含 assessment_id
+    pid = seed_plan(engine, assessment_id=aid, member_id=member, generation_status="failed")
+    enqueue(
+        engine,
+        job_type="plan.generate",
+        dedup_key=f"plan:{pid}:0",
+        owner_type="plan",
+        owner_id=pid,
+        input_revision=0,
+        payload={"schema_version": 1, "plan_id": pid, "generation_revision": "0"},
+        max_attempts=5,
+    )
+    with engine.connect() as conn:
+        old = conn.execute(
+            text("SELECT count(*) FROM async_jobs WHERE owner_id = CAST(:a AS uuid)"),
+            {"a": aid},
+        ).scalar_one()
+        plans = conn.execute(
+            text("SELECT count(*) FROM care_plans WHERE assessment_id = CAST(:a AS uuid)"),
+            {"a": aid},
+        ).scalar_one()
+        plan_jobs = conn.execute(
+            text(
+                "SELECT count(*) FROM async_jobs j JOIN care_plans p ON j.owner_id = p.id"
+                " WHERE j.job_type='plan.generate' AND p.assessment_id = CAST(:a AS uuid)"
+            ),
+            {"a": aid},
+        ).scalar_one()
+    _evidence(
+        "fix2_discrimination",
+        old_owner_id_count=int(old),
+        new_care_plans_count=int(plans),
+        new_plan_join_count=int(plan_jobs),
+        plan_id=pid,
+    )
+    assert int(old) == 1  # 旧断言会被该后继 job 骗过（仍=1）→ 无判别力
+    assert int(plans) == 1  # 新断言：care_plans 行存在 → 可判别
+    assert int(plan_jobs) == 1  # 新断言：join 命中 → 可判别
+
+    # 显式清理本次临时插入（不依赖 autouse fixture），并证明清理生效
+    with engine.begin() as conn:
+        conn.execute(
+            text("DELETE FROM async_jobs WHERE job_type='plan.generate' AND owner_id=CAST(:p AS uuid)"),
+            {"p": pid},
+        )
+        conn.execute(text("DELETE FROM care_plans WHERE id=CAST(:p AS uuid)"), {"p": pid})
+    with engine.connect() as conn:
+        left_jobs = conn.execute(
+            text(
+                "SELECT count(*) FROM async_jobs WHERE job_type='plan.generate'"
+                " AND owner_id=CAST(:p AS uuid)"
+            ),
+            {"p": pid},
+        ).scalar_one()
+        left_plans = conn.execute(
+            text("SELECT count(*) FROM care_plans WHERE assessment_id=CAST(:a AS uuid)"),
+            {"a": aid},
+        ).scalar_one()
+    assert int(left_jobs) == 0 and int(left_plans) == 0  # 临时行已清理
 
 
 def test_skin_invalid_default_off_regression(engine: Engine, tmp_path: Any) -> None:
@@ -447,10 +547,17 @@ def test_new_knob_invalid_value_fails_fast(
     assert name in str(ei.value)
 
 
-def test_barrier_enabled_requires_valid_sha_and_timeout(monkeypatch: Any) -> None:
+def test_barrier_enabled_requires_dir_sha_and_timeout(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
     monkeypatch.setenv("MVP_D_DOUBLE_LATE_BARRIER", "true")
-    with pytest.raises(ProviderConfigError):
+    with pytest.raises(ProviderConfigError) as ei:
+        DConfig.from_env()  # 缺 DIR → 强制每 RUN_ID 独立目录
+    assert "MVP_D_DOUBLE_LATE_BARRIER_DIR" in str(ei.value)
+    monkeypatch.setenv("MVP_D_DOUBLE_LATE_BARRIER_DIR", str(tmp_path / "b"))
+    with pytest.raises(ProviderConfigError) as ei:
         DConfig.from_env()  # 缺 sha
+    assert "MVP_D_DOUBLE_LATE_BARRIER_SHA256" in str(ei.value)
     monkeypatch.setenv("MVP_D_DOUBLE_LATE_BARRIER_SHA256", "z" * 64)
     with pytest.raises(ProviderConfigError):
         DConfig.from_env()  # 非 hex
@@ -458,6 +565,24 @@ def test_barrier_enabled_requires_valid_sha_and_timeout(monkeypatch: Any) -> Non
     monkeypatch.setenv("MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS", "0")
     with pytest.raises(ProviderConfigError):
         DConfig.from_env()  # timeout < 1
+    monkeypatch.delenv("MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS")
+    cfg = DConfig.from_env()  # DIR+sha 齐 → 合法
+    assert cfg.double_late_barrier is True
+
+
+def test_barrier_timeout_non_numeric_fails_fast(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    """Oracle SUGGESTION：非数字 timeout → ProviderConfigError（含变量名与 integer >= 1 值域）。"""
+    monkeypatch.setenv("MVP_D_DOUBLE_LATE_BARRIER", "true")
+    monkeypatch.setenv("MVP_D_DOUBLE_LATE_BARRIER_DIR", str(tmp_path / "b"))
+    monkeypatch.setenv("MVP_D_DOUBLE_LATE_BARRIER_SHA256", "a" * 64)
+    monkeypatch.setenv("MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS", "abc")
+    with pytest.raises(ProviderConfigError) as ei:
+        DConfig.from_env()
+    msg = str(ei.value)
+    assert "MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS" in msg
+    assert "integer >= 1" in msg
 
 
 def test_new_knobs_covered_by_production_guard(monkeypatch: Any) -> None:

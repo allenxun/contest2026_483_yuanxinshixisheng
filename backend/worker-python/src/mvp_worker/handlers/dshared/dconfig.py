@@ -22,9 +22,9 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | ``MVP_D_SKIN_DOUBLE_HOLD`` | ``false`` | 测试注入：进程级 hold（严格布尔；analyze 可重试失败，旧执行停在 queued，可释放） |
 | ``MVP_D_SKIN_DOUBLE_INVALID`` | ``none`` | 测试注入：skin 指标违约（``none``/``unknown_metric``/``out_of_range``/``bad_unit``）→ 既有 ``PROVIDER_CONTRACT_VIOLATION`` 终态 |
 | ``MVP_D_DOUBLE_LATE_BARRIER`` | ``false`` | 测试注入：SC-02-09 迟到返回 barrier（严格布尔；一次性/有界；仅 face 首个调用） |
-| ``MVP_D_DOUBLE_LATE_BARRIER_DIR`` | 空（临时目录） | barrier 文件目录（每场景独立，释放=写 ``released``） |
+| ``MVP_D_DOUBLE_LATE_BARRIER_DIR`` | 空 | barrier 文件目录（**barrier=true 时必填**，须每 RUN_ID 独立；空→加载期 fail fast；释放=写 ``released``） |
 | ``MVP_D_DOUBLE_LATE_BARRIER_SHA256`` | 空 | 命中标记：被拦照片内容的 sha256（64 hex），barrier 开启时必填 |
-| ``MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS`` | ``30`` | barrier 等待上限（秒，>=1；超时清理并抛 ProviderUnavailable） |
+| ``MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS`` | ``30`` | barrier 等待上限（整数 >=1；非数字/越界→加载期 fail fast；超时清理并抛 ProviderUnavailable） |
 | ``MVP_D_PLAN_DOUBLE_MODE`` | ``valid`` | 测试注入：``valid``/``timeout``/``failure`` 或 PlanDouble 既有非法形状名 |
 | ``MVP_D_STORAGE_DOUBLE_FAIL_PUT`` | ``false`` | 测试注入：``assessment_result`` 用途 put 受控失败（严格布尔；可重试 RESULT_ARCHIVE_FAILED） |
 | ``MVP_D_ALIYUN_ACTIVATED`` | ``false`` | 阿里云适配器真实激活开关（需凭据 + PoC） |
@@ -162,6 +162,28 @@ def _env(name: str, default: str) -> str:
 def _env_int(name: str, default: int) -> int:
     raw = os.environ.get(name, "").strip()
     return int(raw) if raw else default
+
+
+def _strict_env_int(name: str, default: int, *, minimum: int) -> int:
+    """注入开关专用严格整数解析：非数字 / 低于下界 → 加载期 ``ProviderConfigError``。
+
+    与既有 ``_env_int``（裸 ``ValueError``、仅内部旋钮）区分：本函数统一异常类型并
+    在消息中给出变量名与取值域，保证 DB/端口启动前 fail fast。
+    """
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        raise ProviderConfigError(
+            f"invalid {name}={raw!r}; expected integer >= {minimum}"
+        ) from None
+    if value < minimum:
+        raise ProviderConfigError(
+            f"invalid {name}={raw!r}; expected integer >= {minimum}"
+        )
+    return value
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -398,8 +420,10 @@ class DConfig:
         default_factory=lambda: _env(DOUBLE_LATE_BARRIER_SHA256_ENV, "")
     )
     double_late_barrier_timeout_seconds: int = field(
-        default_factory=lambda: _env_int(
-            DOUBLE_LATE_BARRIER_TIMEOUT_ENV, DEFAULT_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS
+        default_factory=lambda: _strict_env_int(
+            DOUBLE_LATE_BARRIER_TIMEOUT_ENV,
+            DEFAULT_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS,
+            minimum=1,
         )
     )
     # --- 阿里云形状边界（真实激活需总协调授权凭据 + PoC，当前默认未激活） ---
@@ -455,6 +479,12 @@ class DConfig:
                 f" expected one of {SKIN_DOUBLE_INVALID_MODES}"
             )
         if self.double_late_barrier:
+            if not self.double_late_barrier_dir.strip():
+                raise ProviderConfigError(
+                    f"invalid {DOUBLE_LATE_BARRIER_DIR_ENV}="
+                    f"{self.double_late_barrier_dir!r}; barrier=true requires an explicit"
+                    " dedicated directory (per-RUN_ID isolation; no shared default allowed)"
+                )
             if self.double_late_barrier_timeout_seconds < 1:
                 raise ProviderConfigError(
                     f"invalid {DOUBLE_LATE_BARRIER_TIMEOUT_ENV}="

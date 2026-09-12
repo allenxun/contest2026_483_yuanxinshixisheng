@@ -161,7 +161,12 @@ _ONE_PX_PNG = base64.b64decode(
 
 
 def default_late_barrier_dir() -> str:
-    """barrier 文件目录缺省（测试基础设施；E 应显式指定每场景独立目录）。"""
+    """``LateReturnBarrier`` **显式构造**时的目录缺省（仅供测试/手工构造使用）。
+
+    注意：env 装配路径（``DConfig.double_late_barrier_dir``）在
+    ``MVP_D_DOUBLE_LATE_BARRIER=true`` 时**强制要求非空独立目录**，绝不会走到本回退；
+    因此不存在"两个并行运行共享默认临时目录"的串扰路径。
+    """
     return os.path.join(tempfile.gettempdir(), "mvp-double-late-barrier")
 
 
