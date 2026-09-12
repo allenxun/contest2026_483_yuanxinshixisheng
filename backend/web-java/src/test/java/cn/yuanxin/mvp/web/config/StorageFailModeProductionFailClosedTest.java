@@ -10,8 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.net.ServerSocket;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -116,18 +114,33 @@ class StorageFailModeProductionFailClosedTest {
     }
 
     @Test
-    @DisplayName("生产信号拒装期间端口 18083 始终空闲（隔离 runner 无 web 服务器）")
-    void productionSignalFailsWithoutBindingPort() throws Exception {
-        try (ServerSocket before = new ServerSocket(18083)) {
-            assertThat(before.isBound()).isTrue();
-        }
+    @DisplayName("混合生产信号 → 装配期即拒（根因 IllegalStateException），且上下文不存在任何 StoragePort 替身")
+    void productionSignalRefusesAssemblyBeforeAnyStoragePortExists() {
+        // 刻意不探测固定端口：本类是非 web 的隔离 runner，硬编码端口（曾用 18083）会与
+        // 同时运行真实应用的端到端验收 harness 冲突并报 BindException，证明力却极弱。
+        // "端口从未绑定"由真实进程证据承担（打包 jar 以 prod,dev + app.env=dev + fail-put
+        // 启动 → 退出码非 0、日志中 "Tomcat started on port" 出现 0 次、端口空闲）。
         runner("prod", "dev")
                 .withPropertyValues("app.env=dev", "app.providers.mode=doubles",
                         "APP_DOUBLE_STORAGE_FAIL_MODE=fail-put")
-                .run(ctx -> assertThat(ctx).hasFailed()
-                        .getFailure().hasMessageContaining("production fail-closed"));
-        try (ServerSocket after = new ServerSocket(18083)) {
-            assertThat(after.isBound()).isTrue();
-        }
+                .run(ctx -> {
+                    assertThat(ctx).hasFailed();
+                    // 拒装发生在 @Bean 装配期：根因必须是守卫抛出的 IllegalStateException，
+                    // 且消息须体现双判据的实际取值（profile 命中、app.env 矛盾）。
+                    assertThat(ctx.getStartupFailure())
+                            .hasRootCauseInstanceOf(IllegalStateException.class)
+                            .hasStackTraceContaining("production fail-closed")
+                            .hasStackTraceContaining("active-profile-prod=true")
+                            .hasStackTraceContaining("app.env=dev");
+                    // 拒装发生在 storagePort 这个 @Bean 的装配期：该 bean 无法被创建 ⇒
+                    // 上下文中不存在任何可注入的 StoragePort 替身，注入开关在生产信号下不可达。
+                    // 注意：启动失败的上下文**不能**用 doesNotHaveBean（AssertJ 要求上下文
+                    // 启动成功，否则报 "but context failed to start"），故以"创建 storagePort
+                    // bean 失败 + 无法实例化 StoragePort"作为等价且可断言的证据。
+                    assertThat(ctx.getStartupFailure())
+                            .hasMessageContaining("Error creating bean with name 'storagePort'")
+                            .hasMessageContaining(
+                                    "Failed to instantiate [cn.yuanxin.mvp.web.media.StoragePort]");
+                });
     }
 }
