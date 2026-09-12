@@ -14,9 +14,11 @@
 - 绝不写 ``bound_account_id/binding_revision/bound_at/current_assessment_*``，
   绝不写 T13，绝不整行覆盖，禁 JOIN / 关联子查询（有限次单表 SELECT/UPDATE）。
 
-运行形态（C8）：暴露可重入纯函数 :func:`run_once(engine, settings) -> ScanReport`，
-供既有 Worker 进程内周期触发（由总协调接入）；**不新增常驻进程/定时服务**，
-``python -m mvp_worker.scanners --once`` 用于验证。
+运行形态（C8）：暴露可重入纯函数
+:func:`run_once(engine, settings, *, limit=None, cursors=None) -> ScanReport`，供既有
+Worker 进程内周期触发（``scanners/scheduler.py``，在 ``runtime/loop.py::run_forever``
+挂载）；**不新增常驻进程/定时服务**。``limit`` 非空时三个候选阶段走 keyset 有界分页
+（``id > after LIMIT n``），``--once`` CLI 用于单轮验证。
 """
 from __future__ import annotations
 
@@ -42,7 +44,11 @@ _EVENT_DEVICE_DEFAULT = "device_incident"
 
 @dataclass
 class ScanReport:
-    """单轮扫描可观测量（纯数据；不含 payload/token）。"""
+    """单轮扫描可观测量（纯数据；不含 payload/token）。
+
+    ``scan_limit`` 为本轮批量上限（None=不分页，兼容既有整轮语义）；既有字段
+    一律保留，仅追加。
+    """
 
     offline_candidates: int = 0
     marked_offline: int = 0
@@ -57,6 +63,7 @@ class ScanReport:
     jobs_enqueued: int = 0
     failures: int = 0
     failure_codes: list[str] = field(default_factory=list)
+    scan_limit: Optional[int] = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -73,7 +80,23 @@ class ScanReport:
             "jobs_enqueued": self.jobs_enqueued,
             "failures": self.failures,
             "failure_codes": list(self.failure_codes),
+            "scan_limit": self.scan_limit,
         }
+
+
+@dataclass
+class ScanCursors:
+    """跨轮有界分页的 keyset 游标（仅调度器持有；不传则为单轮从头开始）。
+
+    三个候选阶段各自独立推进 ``id > after_id ORDER BY id LIMIT n``；一页取满则
+    游标推进到最后一行，取不满（到尾部）则归零，下一轮从头部重扫。游标只在内存、
+    每个 Worker 实例各自持有；多实例重叠由复合唯一键 / ``status_revision`` 守卫
+    兜底，不需要跨进程锁。
+    """
+
+    offline_after_id: Optional[str] = None
+    recovery_after_id: Optional[str] = None
+    notify_after_id: Optional[str] = None
 
 
 _SELECT_OFFLINE_CANDIDATES = text(
@@ -82,6 +105,9 @@ SELECT id FROM gimbals
 WHERE connection_status = 'online'
   AND last_seen_at IS NOT NULL
   AND last_seen_at < now() - make_interval(secs => :threshold)
+  AND (CAST(:after_id AS uuid) IS NULL OR id > CAST(:after_id AS uuid))
+ORDER BY id
+LIMIT :limit
 """
 )
 
@@ -97,6 +123,9 @@ _SELECT_GIMBALS_WITH_INCIDENTS = text(
     """
 SELECT id, bound_account_id, binding_revision, active_incidents::text AS active_incidents
 FROM gimbals WHERE active_incidents <> '{}'::jsonb
+  AND (CAST(:after_id AS uuid) IS NULL OR id > CAST(:after_id AS uuid))
+ORDER BY id
+LIMIT :limit
 """
 )
 
@@ -104,6 +133,9 @@ _SELECT_RECOVERY_CANDIDATES = text(
     """
 SELECT id FROM gimbals
 WHERE connection_status = 'online' AND active_incidents <> '{}'::jsonb
+  AND (CAST(:after_id AS uuid) IS NULL OR id > CAST(:after_id AS uuid))
+ORDER BY id
+LIMIT :limit
 """
 )
 
@@ -139,17 +171,61 @@ ON CONFLICT (dedup_key) DO NOTHING
 )
 
 
-def run_once(engine: Engine, settings: Optional[NotificationSettings] = None) -> ScanReport:
-    """执行一轮扫描；无全局状态、可重入。每行独立短事务，单行失败隔离。"""
+def run_once(
+    engine: Engine,
+    settings: Optional[NotificationSettings] = None,
+    *,
+    limit: Optional[int] = None,
+    cursors: Optional[ScanCursors] = None,
+) -> ScanReport:
+    """执行一轮扫描；无全局状态、可重入。每行独立短事务，单行失败隔离。
+
+    - ``limit=None``（默认）：每个候选阶段不分页，保持既有整轮语义（既有测试与
+      ``--once`` 直接调用不受影响）；
+    - ``limit=n``：每个候选阶段最多取 ``n`` 行，配合调用方持有的 ``cursors`` 做
+      keyset 分页（``id > after_id ORDER BY id LIMIT n``），单轮工作量有界，且不会
+      随表行数增长退化为全表扫描。调度器（``scanners.scheduler``）始终传显式
+      ``limit`` + 持久 ``cursors``。
+    """
     settings = settings or load_settings()
-    report = ScanReport()
+    report = ScanReport(scan_limit=None if limit is None else max(1, int(limit)))
+    cursors = cursors if cursors is not None else ScanCursors()
     now = datetime.now(timezone.utc)
     max_attempts = WorkerConfig().retry_max_attempts
 
-    _mark_offline(engine, settings, now, report)
-    _recover(engine, now, report)
-    _create_notifications(engine, max_attempts, report)
+    _mark_offline(engine, settings, now, report, limit=limit, cursors=cursors)
+    _recover(engine, now, report, limit=limit, cursors=cursors)
+    _create_notifications(engine, max_attempts, report, limit=limit, cursors=cursors)
     return report
+
+
+def _page_rows(
+    engine: Engine,
+    statement: Any,
+    params: dict[str, Any],
+    *,
+    limit: Optional[int],
+    cursors: ScanCursors,
+    cursor_attr: str,
+) -> list[Any]:
+    """按 keyset 取一页候选行（列 0 必须是 ``id``）；游标仅在分页模式下推进。
+
+    有界性：``LIMIT n`` 限定返回行数，``id > after_id`` 保证互不重叠的稳定推进，
+    ``ORDER BY id`` 走主键索引；到尾部（取不满 n 行）游标归零，下一轮从头部重扫，
+    因此不会重复扫描同一前缀，也不会每轮整表扫描。
+    """
+    effective_limit = None if limit is None else max(1, int(limit))
+    bound = dict(params)
+    bound["limit"] = effective_limit
+    bound["after_id"] = getattr(cursors, cursor_attr)
+    with engine.connect() as conn:
+        rows = conn.execute(statement, bound).mappings().all()
+    if effective_limit is not None:
+        if rows and len(rows) == effective_limit:
+            setattr(cursors, cursor_attr, str(rows[-1]["id"]))
+        else:
+            setattr(cursors, cursor_attr, None)
+    return list(rows)
 
 
 # ---------------- 1. 离线判定 ----------------
@@ -160,12 +236,22 @@ def _mark_offline(
     settings: NotificationSettings,
     now: datetime,
     report: ScanReport,
+    *,
+    limit: Optional[int],
+    cursors: ScanCursors,
 ) -> None:
     threshold = settings.offline_threshold_seconds
-    with engine.connect() as conn:
-        candidates = [str(r[0]) for r in conn.execute(
-            _SELECT_OFFLINE_CANDIDATES, {"threshold": threshold}
-        ).all()]
+    candidates = [
+        str(row["id"])
+        for row in _page_rows(
+            engine,
+            _SELECT_OFFLINE_CANDIDATES,
+            {"threshold": threshold},
+            limit=limit,
+            cursors=cursors,
+            cursor_attr="offline_after_id",
+        )
+    ]
     report.offline_candidates = len(candidates)
 
     for gimbal_id in candidates:
@@ -222,9 +308,25 @@ def _mark_offline(
 # ---------------- 2. 恢复关闭 ----------------
 
 
-def _recover(engine: Engine, now: datetime, report: ScanReport) -> None:
-    with engine.connect() as conn:
-        candidates = [str(r[0]) for r in conn.execute(_SELECT_RECOVERY_CANDIDATES).all()]
+def _recover(
+    engine: Engine,
+    now: datetime,
+    report: ScanReport,
+    *,
+    limit: Optional[int],
+    cursors: ScanCursors,
+) -> None:
+    candidates = [
+        str(row["id"])
+        for row in _page_rows(
+            engine,
+            _SELECT_RECOVERY_CANDIDATES,
+            {},
+            limit=limit,
+            cursors=cursors,
+            cursor_attr="recovery_after_id",
+        )
+    ]
     for gimbal_id in candidates:
         try:
             with engine.begin() as conn:
@@ -267,9 +369,22 @@ def _recover(engine: Engine, now: datetime, report: ScanReport) -> None:
 # ---------------- 3. 建通知 ----------------
 
 
-def _create_notifications(engine: Engine, max_attempts: int, report: ScanReport) -> None:
-    with engine.connect() as conn:
-        gimbals = conn.execute(_SELECT_GIMBALS_WITH_INCIDENTS).mappings().all()
+def _create_notifications(
+    engine: Engine,
+    max_attempts: int,
+    report: ScanReport,
+    *,
+    limit: Optional[int],
+    cursors: ScanCursors,
+) -> None:
+    gimbals = _page_rows(
+        engine,
+        _SELECT_GIMBALS_WITH_INCIDENTS,
+        {},
+        limit=limit,
+        cursors=cursors,
+        cursor_attr="notify_after_id",
+    )
 
     for gimbal in gimbals:
         try:

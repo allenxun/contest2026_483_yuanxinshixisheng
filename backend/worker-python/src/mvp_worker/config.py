@@ -27,6 +27,12 @@ DEFAULT_RETRY_MAX_ATTEMPTS = 5
 DEFAULT_BACKOFF_BASE_SECONDS = 5
 DEFAULT_BACKOFF_CAP_SECONDS = 300
 DEFAULT_POLL_INTERVAL_SECONDS = 2
+# 进程内周期扫描（C8：不加常驻进程/cron；只在既有 Worker 循环里按到期触发）。
+# 间隔 dev 初值 30s（≤ 离线阈值 120s/2）；批量上限约束单轮实际处理的候选行数。
+DEFAULT_INCIDENT_SCAN_INTERVAL_SECONDS = 30
+DEFAULT_INCIDENT_SCAN_BATCH = 200
+DEFAULT_MEDIA_CLEANUP_SCAN_INTERVAL_SECONDS = 30
+DEFAULT_MEDIA_CLEANUP_SCAN_BATCH = 100
 DEFAULT_ENVIRONMENT = "dev"
 DEFAULT_STORAGE_DEV_DIR = "/tmp/mvp-a-storage"
 
@@ -91,6 +97,34 @@ class WorkerConfig:
     poll_interval_seconds: int = field(
         default_factory=lambda: _env_int(
             "MVP_WORKER_POLL_INTERVAL_SECONDS", DEFAULT_POLL_INTERVAL_SECONDS
+        )
+    )
+
+    # --- 进程内周期扫描（C8；两个任务各自独立间隔/批量，env 可覆盖） ---
+    # 触发间隔（秒）：到期才运行，上一轮未完成不叠加（调度层非阻塞重入守卫）。
+    # 缺省回退 B 已有的 MVP_NOTIFY_SCAN_INTERVAL_SECONDS，避免两套间隔相互打架。
+    incident_scan_interval_seconds: int = field(
+        default_factory=lambda: _env_int(
+            "MVP_WORKER_INCIDENT_SCAN_INTERVAL_SECONDS",
+            _env_int("MVP_NOTIFY_SCAN_INTERVAL_SECONDS", DEFAULT_INCIDENT_SCAN_INTERVAL_SECONDS),
+        )
+    )
+    # 单轮离线/异常扫描每个候选分页的批量上限（LIMIT + keyset 游标，绝不整表扫）。
+    incident_scan_batch: int = field(
+        default_factory=lambda: _env_int(
+            "MVP_WORKER_INCIDENT_SCAN_BATCH", DEFAULT_INCIDENT_SCAN_BATCH
+        )
+    )
+    media_cleanup_scan_interval_seconds: int = field(
+        default_factory=lambda: _env_int(
+            "MVP_WORKER_MEDIA_CLEANUP_SCAN_INTERVAL_SECONDS",
+            DEFAULT_MEDIA_CLEANUP_SCAN_INTERVAL_SECONDS,
+        )
+    )
+    # 单轮 media.cleanup 候选发现批量上限（透传 D 的 discover_and_enqueue_orphans）。
+    media_cleanup_scan_batch: int = field(
+        default_factory=lambda: _env_int(
+            "MVP_WORKER_MEDIA_CLEANUP_SCAN_BATCH", DEFAULT_MEDIA_CLEANUP_SCAN_BATCH
         )
     )
 
