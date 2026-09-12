@@ -1,5 +1,6 @@
 # shellcheck shell=bash
-# B 验收检查定义（组 5/6 + b39/b14）：b27..b38、b39、b14。由 run-acceptance-b.sh source。
+# B 验收检查定义（组 5/6 + b39/b14 + b40/b41）：b27..b38、b39、b14、b40、b41。
+# 由 run-acceptance-b.sh source。
 
 b27() {
   local fx; fx=$($FIX episode-gimbal --bound 1 --dest active --episode device)
@@ -305,4 +306,268 @@ b14_contract() {
   vlog "契约驱动：$n 条错误信封形状 OK；12 端点全覆盖"
   [[ $viol -eq 0 ]] || fail "$viol 条观测码不在端点声明集合（见上方 CONTRACT-GAP）"
   vlog "所有观测码均属声明集合"
+}
+
+# =====================================================================
+# b40 / b41：SC-02-09 真实迟到返回、SC-02-10 确定性终态失败（真实 HTTP + 真实 worker）
+# =====================================================================
+
+# 排空「可立即领取」的历史遗留 job（真实 worker_once 消费；不直接改状态）。
+b_drain_queue() {
+  local i n
+  for i in $(seq 1 30); do
+    n=$(psql_b "SELECT count(*) FROM async_jobs WHERE status='queued' AND available_at<=now()")
+    [[ "$n" == "0" ]] && return 0
+    env MVP_WORKER_PG_DSN="$B_DSN" MVP_NOTIFY_ENV=dev \
+      MVP_A_STORAGE_DEV_DIR="$STORAGE_ROOT" MVP_WORKER_CLAIM_BATCH=5 \
+      MVP_WORKER_BACKOFF_BASE_SECONDS=0 MVP_WORKER_BACKOFF_CAP_SECONDS=0 \
+      MVP_NOTIFY_PUSH_DOUBLE=accepted MVP_NOTIFY_PUSH_RECEIPT=not_found \
+      "$WPY" -m mvp_worker --once >/dev/null 2>&1 || true
+  done
+  return 0
+}
+
+# M3-A01 multipart：b_a01_upload <token> <idem> <front> <left> <right> <capture> <consent>
+b_a01_upload() {
+  local tok="$1" key="$2" front="$3" left="$4" right="$5" cap="$6" consent="$7"
+  local meta="$TMP/b40.a01.meta"
+  printf '{"photoVersion":"1","captureSessionId":"%s","consentEvidenceRef":"%s"}' \
+    "$cap" "$consent" > "$meta"
+  call POST "$WEB/api/v1/skin-assessment-tasks" \
+    -H "Authorization: Bearer $tok" -H "Idempotency-Key: $key" \
+    -F "metadata=@$meta;type=application/json" \
+    -F "front=@$front;type=image/png" \
+    -F "left=@$left;type=image/png" \
+    -F "right=@$right;type=image/png"
+}
+
+# M3-A02 multipart：b_a02_upload <token> <idem> <taskId> <new-front> <expectedVersion>
+b_a02_upload() {
+  local tok="$1" key="$2" tid="$3" front="$4" expected="$5"
+  local meta="$TMP/b40.a02.meta"
+  printf '{"expectedPhotoVersion":"%s","replacedViews":["front"]}' "$expected" > "$meta"
+  call PUT "$WEB/api/v1/skin-assessment-tasks/$tid/photo-versions/2" \
+    -H "Authorization: Bearer $tok" -H "Idempotency-Key: $key" \
+    -F "metadata=@$meta;type=application/json" -F "front=@$front;type=image/png"
+}
+
+b40_wait_file() { # <file> <seconds>
+  local i n=$(( $2 * 4 ))
+  for i in $(seq 1 "$n"); do [[ -e "$1" ]] && return 0; sleep 0.25; done
+  return 1
+}
+
+# 后台 Worker A：barrier hold；短租约、长续租间隔（不关闭续租机制）
+b40_start_a() { # <barrier-dir> <marker-sha256>
+  nohup env MVP_WORKER_PG_DSN="$B_DSN" MVP_NOTIFY_ENV=dev \
+    MVP_A_STORAGE_DEV_DIR="$STORAGE_ROOT" \
+    MVP_WORKER_CLAIM_BATCH=1 MVP_WORKER_LEASE_SECONDS=2 MVP_WORKER_RENEW_INTERVAL_SECONDS=600 \
+    MVP_D_DOUBLE_LATE_BARRIER=true \
+    MVP_D_DOUBLE_LATE_BARRIER_DIR="$1" \
+    MVP_D_DOUBLE_LATE_BARRIER_SHA256="$2" \
+    MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS=180 \
+    "$WPY" -m mvp_worker --once >"$TMP/b40a.log" 2>&1 &
+  echo $! > "$TMP/b40a.pid"
+}
+
+b40_stop_a() {
+  [[ -f "$TMP/b40a.pid" ]] || return 0
+  local pid; pid=$(cat "$TMP/b40a.pid" 2>/dev/null || true)
+  if [[ -n "$pid" ]]; then
+    kill "$pid" 2>/dev/null || true
+    local i; for i in $(seq 1 40); do kill -0 "$pid" 2>/dev/null || break; sleep 0.25; done
+    kill -9 "$pid" 2>/dev/null || true
+  fi
+  rm -f "$TMP/b40a.pid"
+}
+
+b40() {
+  local bdir="$TMP/b40-barrier"
+  rm -rf "$bdir"; mkdir -p "$bdir"
+  b_drain_queue
+
+  # 1) 含可识别标记的照片（标记 = front 字节 sha256）
+  make_face "$TMP/b40.front" "b40-marker-$RANDOM"
+  make_face "$TMP/b40.left" "b40-left-$RANDOM"
+  make_face "$TMP/b40.right" "b40-right-$RANDOM"
+  local marker; marker=$($HELP sha256 "$TMP/b40.front")
+  [[ "${#marker}" == 64 ]] || fail "marker sha256 形态非法"
+
+  # 2) 真实 HTTP M3-A01 → J1(rev=1)
+  local aref="A-B40-$RANDOM"; seed_gimbal "G-B40-$RANDOM" "$aref" 1 >/dev/null
+  gimbal_login "$aref" 1
+  b_a01_upload "$G_TOKEN" "k40-a01-$RANDOM" "$TMP/b40.front" "$TMP/b40.left" "$TMP/b40.right" "cs-b40" "consent-b40"
+  aeq "$CODE" 202 "M3-A01 202"
+  local tid; tid=$(jget data.taskId) || fail "no taskId"
+  aeq "$(jget data.status)" queued "A01 status"
+  aeq "$(psql_b "SELECT current_photo_version FROM skin_assessments WHERE id='$tid'")" 1 "v1"
+  aeq "$(psql_b "SELECT processing_revision FROM skin_assessments WHERE id='$tid'")" 1 "rev=1"
+  aeq "$(psql_b "SELECT lease_revision FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" 0 "J1 入队 rev=0"
+
+  # 3) 后台 Worker A（barrier hold）
+  b40_start_a "$bdir" "$marker"
+
+  # 4) 等 consumed：A 已算出旧结果并阻塞
+  b40_wait_file "$bdir/consumed" 60 || { tail -n 20 "$TMP/b40a.log"; fail "A 未进入 barrier"; }
+  local rev_hold owner_hold att_hold st_hold
+  st_hold=$(psql_b "SELECT status FROM skin_assessments WHERE id='$tid'")
+  rev_hold=$(psql_b "SELECT lease_revision FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")
+  owner_hold=$(psql_b "SELECT coalesce(lease_owner,'NULL') FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")
+  att_hold=$(psql_b "SELECT attempt_count FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")
+  aeq "$st_hold" analyzing "A 已置 analyzing"
+  aeq "$att_hold" 1 "A 首次领取 attempt=1"
+  [[ "$owner_hold" != NULL ]] || fail "A hold 时应有 lease_owner"
+  vlog "A hold: T05=$st_hold rev=$rev_hold attempt=$att_hold"
+
+  # 5) 短租约自然过期 → 真实回收 → J1 回 queued 且 rev 推进
+  sleep 2.5
+  env MVP_WORKER_PG_DSN="$B_DSN" "$WPY" -m mvp_worker --recover > "$TMP/b40.recover.log" 2>&1 || fail "recover rc"
+  local rev_rec
+  rev_rec=$(psql_b "SELECT lease_revision FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")
+  aeq "$(psql_b "SELECT status FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" queued "回收→queued"
+  aeq "$(psql_b "SELECT coalesce(lease_owner,'NULL') FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" NULL "回收清 owner"
+  [[ "$rev_rec" -gt "$rev_hold" ]] || fail "回收未推进 lease_revision ($rev_hold→$rev_rec)"
+  vlog "recover: J1 queued rev=$rev_hold→$rev_rec"
+
+  # 6) Worker B 接管（同 barrier env → 证明一次性，B 不被阻塞）
+  env MVP_WORKER_PG_DSN="$B_DSN" MVP_NOTIFY_ENV=dev \
+    MVP_A_STORAGE_DEV_DIR="$STORAGE_ROOT" MVP_WORKER_CLAIM_BATCH=1 \
+    MVP_D_DOUBLE_LATE_BARRIER=true \
+    MVP_D_DOUBLE_LATE_BARRIER_DIR="$bdir" \
+    MVP_D_DOUBLE_LATE_BARRIER_SHA256="$marker" \
+    MVP_D_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS=180 \
+    MVP_D_FACE_DOUBLE_QUALITY=needs_retake MVP_D_FACE_DOUBLE_REQUIRED_VIEWS=front \
+    "$WPY" -m mvp_worker --once > "$TMP/b40.workerB.log" 2>&1 || { tail -n 10 "$TMP/b40.workerB.log"; fail "B rc"; }
+  aeq "$(psql_b "SELECT status FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" succeeded "B 接管 succeeded"
+  aeq "$(psql_b "SELECT attempt_count FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" 2 "接管 attempt=2"
+  aeq "$(psql_b "SELECT status FROM skin_assessments WHERE id='$tid'")" needs_retake "B 提交 needs_retake"
+  vlog "B takeover: J1 succeeded attempt=2; T05 needs_retake"
+
+  # 7) 真实 HTTP M3-A02 补拍 v2
+  make_face "$TMP/b40v2.front" "b40-v2-$RANDOM"
+  b_a02_upload "$G_TOKEN" "k40-a02-$RANDOM" "$tid" "$TMP/b40v2.front" 1
+  aeq "$CODE" 202 "M3-A02 202"
+  aeq "$(jget data.photoVersion)" 2 "A02 photoVersion=2"
+  aeq "$(psql_b "SELECT current_photo_version FROM skin_assessments WHERE id='$tid'")" 2 "v2"
+  aeq "$(psql_b "SELECT processing_revision FROM skin_assessments WHERE id='$tid'")" 2 "rev=2"
+  aeq "$(psql_b "SELECT count(*) FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze' AND input_revision=2")" 1 "J2 入队"
+  vlog "A02: v2 rev=2; J2 入队"
+
+  # 8) Worker C 正常 env 跑到 report_ready（有界循环）
+  local i st
+  for i in $(seq 1 60); do
+    st=$(psql_b "SELECT status FROM skin_assessments WHERE id='$tid'")
+    [[ "$st" == report_ready ]] && break
+    env MVP_WORKER_PG_DSN="$B_DSN" MVP_NOTIFY_ENV=dev \
+      MVP_A_STORAGE_DEV_DIR="$STORAGE_ROOT" MVP_WORKER_CLAIM_BATCH=5 \
+      MVP_WORKER_BACKOFF_BASE_SECONDS=0 MVP_WORKER_BACKOFF_CAP_SECONDS=0 \
+      MVP_NOTIFY_PUSH_DOUBLE=accepted MVP_NOTIFY_PUSH_RECEIPT=not_found \
+      "$WPY" -m mvp_worker --once > "$TMP/b40.workerC.$i.log" 2>&1 || true
+    sleep 0.4
+  done
+  aeq "$st" report_ready "C 到达 report_ready"
+  aeq "$(psql_b "SELECT report_photo_version FROM skin_assessments WHERE id='$tid'")" 2 "report_photo_version=2"
+  local snap_rid snap_payload snap_summary snap_member members_before
+  snap_rid=$(psql_b "SELECT report_id::text FROM skin_assessments WHERE id='$tid'")
+  snap_payload=$(psql_b "SELECT coalesce(report_payload::text,'NULL') FROM skin_assessments WHERE id='$tid'")
+  snap_summary=$(psql_b "SELECT coalesce(report_summary::text,'NULL') FROM skin_assessments WHERE id='$tid'")
+  snap_member=$(psql_b "SELECT coalesce(member_id::text,'NULL') FROM skin_assessments WHERE id='$tid'")
+  members_before=$(psql_b "SELECT count(*) FROM members")
+  [[ -n "$snap_rid" ]] || fail "v2 report_id 为空"
+  vlog "C: report_ready v2 rid=${snap_rid:0:8}… member=${snap_member:0:8}…"
+
+  # 9) 释放 A 的迟到旧结果 → 既有围栏拒绝 → v2 快照逐值不变
+  : > "$bdir/released"
+  wait "$(cat "$TMP/b40a.pid")" 2>/dev/null || true
+  local i2; for i2 in $(seq 1 40); do
+    kill -0 "$(cat "$TMP/b40a.pid" 2>/dev/null || echo 0)" 2>/dev/null || break; sleep 0.25
+  done
+  grep -qE 'job.complete_stale_generation|analyze.fenced_write_stale|StaleGeneration' "$TMP/b40a.log" \
+    || { tail -n 25 "$TMP/b40a.log"; fail "A 无 StaleGeneration 围栏丢弃证据"; }
+  local fence_line; fence_line=$(grep -E 'job.complete_stale_generation|analyze.fenced_write_stale|StaleGeneration' "$TMP/b40a.log" | tail -n 1 || true)
+  vlog "A fence: ${fence_line:0:240}"
+  b40_stop_a
+
+  aeq "$(psql_b "SELECT report_id::text FROM skin_assessments WHERE id='$tid'")" "$snap_rid" "A 未覆盖 report_id"
+  aeq "$(psql_b "SELECT coalesce(report_payload::text,'NULL') FROM skin_assessments WHERE id='$tid'")" "$snap_payload" "A 未覆盖 report_payload"
+  aeq "$(psql_b "SELECT coalesce(report_summary::text,'NULL') FROM skin_assessments WHERE id='$tid'")" "$snap_summary" "A 未覆盖 report_summary"
+  aeq "$(psql_b "SELECT coalesce(member_id::text,'NULL') FROM skin_assessments WHERE id='$tid'")" "$snap_member" "A 未覆盖 member_id"
+  aeq "$(psql_b "SELECT report_photo_version FROM skin_assessments WHERE id='$tid'")" 2 "report_photo_version 仍 2"
+  aeq "$(psql_b "SELECT count(*) FROM skin_assessments WHERE id='$tid' AND status='report_ready'")" 1 "恰一份 report_ready"
+  aeq "$(psql_b "SELECT count(*) FROM members")" "$members_before" "A 未创建额外成员"
+  # 该云台恰一行 T05（A 未新建第二行；全库可能含其它检查的 T05，故按 gimbal 收窄）
+  aeq "$(psql_b "SELECT count(*) FROM skin_assessments WHERE gimbal_id='$G_ID'")" 1 "该云台仅一行 T05"
+  aeq "$(psql_b "SELECT count(*) FROM skin_assessments WHERE id='$tid'")" 1 "taskId 唯一 T05 行"
+  [[ ! -e "$bdir/consumed" && ! -e "$bdir/released" ]] || fail "barrier 有残留 sentinel"
+  vlog "A 被围栏丢弃；v2 快照逐值未变；report_ready=1；members 不变；sentinel 已清理"
+}
+
+b41() {
+  b_drain_queue
+  local aref="A-B41-$RANDOM"; seed_gimbal "G-B41-$RANDOM" "$aref" 1 >/dev/null
+  gimbal_login "$aref" 1
+  make_face "$TMP/b41.front" "b41-$RANDOM"
+  make_face "$TMP/b41.left" "b41-left-$RANDOM"
+  make_face "$TMP/b41.right" "b41-right-$RANDOM"
+  b_a01_upload "$G_TOKEN" "k41-a01-$RANDOM" "$TMP/b41.front" "$TMP/b41.left" "$TMP/b41.right" "cs-b41" "consent-b41"
+  aeq "$CODE" 202 "M3-A01 202"
+  local tid; tid=$(jget data.taskId) || fail "no taskId"
+
+  # 2) 1 轮确定性终态失败（既有 PROVIDER_CONTRACT_VIOLATION）
+  env MVP_WORKER_PG_DSN="$B_DSN" MVP_NOTIFY_ENV=dev \
+    MVP_A_STORAGE_DEV_DIR="$STORAGE_ROOT" MVP_WORKER_CLAIM_BATCH=1 \
+    MVP_D_SKIN_DOUBLE_INVALID=out_of_range \
+    "$WPY" -m mvp_worker --once > "$TMP/b41.w1.log" 2>&1 || true
+  aeq "$(psql_b "SELECT status FROM skin_assessments WHERE id='$tid'")" failed "T05 failed"
+  aeq "$(psql_b "SELECT failure_code FROM skin_assessments WHERE id='$tid'")" PROVIDER_CONTRACT_VIOLATION "failure_code"
+  [[ -n "$(psql_b "SELECT coalesce(failure_detail->>'reason','') FROM skin_assessments WHERE id='$tid'")" ]] || fail "failure_detail.reason 空"
+  aeq "$(psql_b "SELECT coalesce(report_id::text,'NULL') FROM skin_assessments WHERE id='$tid'")" NULL "report_id null"
+  aeq "$(psql_b "SELECT coalesce(report_payload::text,'NULL') FROM skin_assessments WHERE id='$tid'")" NULL "report_payload null"
+  aeq "$(psql_b "SELECT status FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" failed "T12 failed"
+  aeq "$(psql_b "SELECT attempt_count FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" 1 "attempt=1"
+  aeq "$(psql_b "SELECT last_error->>'retryable' FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" false "retryable=false"
+  aeq "$(psql_b "SELECT count(*) FROM async_jobs WHERE owner_id='$tid'")" 1 "无后继 job"
+  vlog "failure_detail.reason=$(psql_b "SELECT coalesce(failure_detail->>'reason','') FROM skin_assessments WHERE id='$tid'")"
+  vlog "T12 last_error=$(psql_b "SELECT last_error::text FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")"
+  vlog "T05 failed/PROVIDER_CONTRACT_VIOLATION；attempt=1；无后继 job"
+
+  # 3) M3-A03 投影一致 + 不外泄 + 查询无副作用
+  local jobs_before; jobs_before=$(psql_b "SELECT count(*) FROM async_jobs WHERE owner_id='$tid'")
+  call GET "$WEB/api/v1/skin-assessment-tasks/$tid" -H "Authorization: Bearer $G_TOKEN"
+  aeq "$CODE" 200 "M3-A03 200"
+  aeq "$(jget data.status)" failed "A03 status"
+  aeq "$(jget data.failureCode)" PROVIDER_CONTRACT_VIOLATION "A03 failureCode"
+  aeq "$(jget data.retryable)" false "A03 retryable"
+  aeq "$(jget data.reportId)" null "A03 reportId null"
+  grep -qE 'failure_detail|failureDetail|"reason"|stack' <<<"$BODY" && fail "A03 泄漏内部诊断"
+  aeq "$(psql_b "SELECT count(*) FROM async_jobs WHERE owner_id='$tid'")" "$jobs_before" "GET 不新增 job"
+  vlog "A03 投影：status=$(jget data.status) failureCode=$(jget data.failureCode) retryable=$(jget data.retryable) reportId=$(jget data.reportId) requiredViews=$(jget data.requiredViews)"
+  vlog "A03 无内部诊断泄漏；GET 不新增 job（before/after=$jobs_before）"
+
+  # 4) 再跑一次仍终态、attempt 不增长
+  local att2; att2=$(psql_b "SELECT attempt_count FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")
+  env MVP_WORKER_PG_DSN="$B_DSN" MVP_NOTIFY_ENV=dev MVP_A_STORAGE_DEV_DIR="$STORAGE_ROOT" \
+    MVP_WORKER_CLAIM_BATCH=1 MVP_D_SKIN_DOUBLE_INVALID=out_of_range \
+    "$WPY" -m mvp_worker --once > "$TMP/b41.w2.log" 2>&1 || true
+  aeq "$(psql_b "SELECT status FROM skin_assessments WHERE id='$tid'")" failed "仍 failed"
+  aeq "$(psql_b "SELECT attempt_count FROM async_jobs WHERE owner_id='$tid' AND job_type='assessment.analyze'")" "$att2" "attempt 不增长"
+
+  # 5) 对照：复位后同一流程可正常到达 report_ready（证明失败受控）
+  local aref2="A-B41C-$RANDOM"; seed_gimbal "G-B41C-$RANDOM" "$aref2" 1 >/dev/null
+  gimbal_login "$aref2" 1
+  b_a01_upload "$G_TOKEN" "k41c-a01-$RANDOM" "$TMP/b41.front" "$TMP/b41.left" "$TMP/b41.right" "cs-b41c" "consent-b41c"
+  aeq "$CODE" 202 "对照 A01 202"
+  local tid2; tid2=$(jget data.taskId) || fail "no tid2"
+  local i st
+  for i in $(seq 1 60); do
+    st=$(psql_b "SELECT status FROM skin_assessments WHERE id='$tid2'")
+    [[ "$st" == report_ready ]] && break
+    env MVP_WORKER_PG_DSN="$B_DSN" MVP_NOTIFY_ENV=dev MVP_A_STORAGE_DEV_DIR="$STORAGE_ROOT" \
+      MVP_WORKER_CLAIM_BATCH=5 MVP_WORKER_BACKOFF_BASE_SECONDS=0 MVP_WORKER_BACKOFF_CAP_SECONDS=0 \
+      MVP_NOTIFY_PUSH_DOUBLE=accepted MVP_NOTIFY_PUSH_RECEIPT=not_found \
+      "$WPY" -m mvp_worker --once > "$TMP/b41.c.$i.log" 2>&1 || true
+    sleep 0.4
+  done
+  aeq "$st" report_ready "复位对照 report_ready"
+  vlog "确定性终态失败（1 轮）；A03 投影一致/无泄漏/无副作用；复位后可达 report_ready"
 }
