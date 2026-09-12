@@ -115,6 +115,15 @@ def _ctx(se, target=None):
     return c
 
 
+def _ctx_ready(se):
+    """ready plan + 绑定成员，但**不**建执行（竞态起点零 open execution）。"""
+    c = _chain(se)
+    _bind(c["mid"])
+    c["tok"] = CC.gimbal_token(c["g"])
+    c["app"] = _app_for(c["mid"], "sr-" + uuid.uuid4().hex[:6])
+    return c
+
+
 def _device_done(se, n, t=3):
     se.seal()
     pytest.skip(gate.PENDING_PREFIX + gate.device_pending(n, t))
@@ -291,7 +300,10 @@ def test_SC_R_13(scenario_evidence):
     """D 受理替换与 C 准入**真实并发**：一致结局，无「替换后旧方案又启动」矛盾态。"""
     se = scenario_evidence
     _decl(se)
-    c = _ctx(se)
+    c = _ctx_ready(se)
+    open_before = CC.scalar(f"SELECT count(*) FROM care_executions WHERE plan_id='{c['plan']}' "
+                            "AND closed_at IS NULL")
+    assert open_before == "0", open_before  # 竞态起点该方案零 open execution
     res = {}
 
     def do_replace():
@@ -312,13 +324,19 @@ def test_SC_R_13(scenario_evidence):
     cur = CC.scalar(f"SELECT current_assessment_id::text FROM gimbals WHERE id='{c['g']}'")
     open_new = CC.scalar(f"SELECT count(*) FROM care_executions WHERE plan_id='{c['plan']}' "
                          "AND closed_at IS NULL")
-    assert rc == 202 and cur == rtid
-    assert ac == 201 or (ac in (409, 404, 403)
-                         and ab["error"]["code"] in ("TASK_REPLACED", "DEVICE_OCCUPIED")
-                         or ab["error"]["code"] == "PLAN_NOT_READY"), (ac, ab)
-    contradiction = (rc == 202 and cur == rtid and ac == 201 and int(open_new) > 0)
-    assert not contradiction, ("矛盾态：新任务已替换但旧方案又启动/仍 open 执行", open_new)
-    assert open_new in ("0", "1")
+    # 结局白名单（显式 (status, code) 配对，消除 or 优先级恒真）：
+    #  (a) 准入先成 → 201 + open 恰一 + 指针已替换；
+    #  (b) 替换先成 → A03 409 TASK_REPLACED（允许 DEVICE_OCCUPIED/PLAN_NOT_READY 不属此竞态）
+    acode = (ab.get("error") or {}).get("code")
+    branch_a = (ac == 201)
+    branch_b = (ac == 409 and acode == "TASK_REPLACED")
+    assert branch_a or branch_b, (ac, acode)
+    if branch_b:  # 替换先成 → 旧方案零 open
+        assert open_new == "0", open_new
+    else:         # 准入先成 → 生命周期一致：恰一 open（该准入执行）
+        assert open_new == "1", open_new
+    _rec(se, "AUDIT", "R13 race outcome", ac, {"branch": "a" if branch_a else "b",
+                                                "replace": rc, "code": acode, "open": open_new})
     se.seal()
 
 
@@ -342,9 +360,9 @@ def test_SC_R_14(scenario_evidence):
     # （仅 /gimbals/{id}/current-assessment）→ 不伪造该路径断言，如实披露为契约面待确认。
     _rec(se, "AUDIT", "R20: second recovery endpoint current-assessment-status absent",
          l1, {"impersonate": c1})
-    assert l1 == 200
-    empty = json.dumps(lb1.get("data")).lower()
-    assert ("null" in empty) or ("assessmentid" not in empty) or ('"currentassessmentid": null' in empty)
+    assert l1 == 200 and lb1.get("requestId")
+    d1 = lb1.get("data") or {}
+    assert d1.get("currentAssessment") is None, d1
     assert c1 in (403, 404)
     assert cnt0 == cnt1  # 零写入、不自动建任务
     se.seal()

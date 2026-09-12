@@ -1003,6 +1003,28 @@ def test_cc11_allowlist_precise_no_impl_downgrade():
     assert c_care.classify_strict_error("A09", e2) == "impl-or-other"
 
 
+def test_r21_evidence_summary_persist(tmp_path, monkeypatch):
+    """R21-5：证据目录设置时持久化脱敏 settlement 摘要（可从提交内容复核计数）。"""
+    import json as _json
+    from framework import conftest as C
+    from framework import isolation
+
+    class _St:
+        run_id = "E-TEST"
+        mode = "matrix"
+        counts = {"passed": 1, "failed": 0, "pending": 0, "skipped_other": 0}
+        settled = {"SC-ZZ"}
+        required = {"SC-ZZ"}
+        evidence_tags = {"doubles_pass": 1}
+        pending_gate_failures = []
+    monkeypatch.setenv(isolation.ENV_EVIDENCE_DIR, str(tmp_path / "ev"))
+    C._persist_evidence_summary(_St())
+    p = tmp_path / "ev" / "settlement.json"
+    assert p.exists()
+    d = _json.loads(p.read_text(encoding="utf-8"))
+    assert d["run_id"] == "E-TEST" and d["counts"]["passed"] == 1 and d["settled"] == 1
+
+
 def test_r20_zero_evidence_pending_is_not_ok(tmp_path):
     """R20-6 守护：零证据即使 seal() 也不可结算为可用（防 device/seam pending 假结算）。"""
     from framework.client import EvidenceRecorder
