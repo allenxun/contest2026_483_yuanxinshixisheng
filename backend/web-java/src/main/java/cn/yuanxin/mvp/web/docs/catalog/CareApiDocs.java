@@ -89,8 +89,10 @@ public class CareApiDocs implements ApiDocsCatalog {
                         所有计数/代次为无符号 bigint 十进制字符串。
                         错误处理：INVALID_INPUT 修正参数；AUTH_REQUIRED/SESSION_INVALID 重新登录；CALLER_NOT_ALLOWED
                         （云台主体）改用正确端点；RESOURCE_NOT_VISIBLE 不要换 ID 探测；RATE_LIMITED/DEPENDENCY_* 受限退避重试。
-                        契约过声明：GRANT_REVOKED 在本端点当前实现中不触发（实现统一用 RESOURCE_NOT_VISIBLE 表达
-                        不可见/已撤销）；按契约一致性保留该码，待总协调裁定。
+                        历史背景：本操作曾声明 GRANT_REVOKED（契约过声明）。本轮经实现取证确认不可达——该码全仓唯一抛出点为
+                        MemberAccessGrantService.java:151（成员访问授权的幂等重放指向已撤销授权），care 域读取授权只判 active
+                        与否、不区分“已撤销”与“从未授权”，统一 404 RESOURCE_NOT_VISIBLE（防存在性推断）。已从契约 x-error-codes
+                        与本文档同步移除；HTTP 行为与序列化语义未变（该码原本就不会由本操作返回）。
                         """,
                         List.of(
                                 ApiDocEntry.ParamDoc.of("memberId", "path",
@@ -111,7 +113,7 @@ public class CareApiDocs implements ApiDocsCatalog {
                                 CarePlanListItem.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
                                 ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.RESOURCE_NOT_VISIBLE,
-                                ErrorCode.GRANT_REVOKED, ErrorCode.RATE_LIMITED,
+                                ErrorCode.RATE_LIMITED,
                                 ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT,
                                 ErrorCode.NOT_IMPLEMENTED))),
 
@@ -134,8 +136,10 @@ public class CareApiDocs implements ApiDocsCatalog {
                         CarePlanProjection 白名单为 C 侧保守提案（其注释明示待总协调/D 契约确认后冻结），客户端不得据此假设固定键集。
                         错误处理：INVALID_INPUT（view≠full）；AUTH_REQUIRED/SESSION_INVALID；CALLER_NOT_ALLOWED（云台）；
                         RESOURCE_NOT_VISIBLE；RATE_LIMITED/DEPENDENCY_* 受限退避重试。
-                        契约过声明：GRANT_REVOKED、PLAN_NOT_READY 在本端点当前实现中均不触发——未就绪以 200 +
-                        waitingReason 返回，撤销/不可见统一 404 RESOURCE_NOT_VISIBLE；按契约一致性保留，待总协调裁定。
+                        历史背景：本操作曾声明 GRANT_REVOKED 与 PLAN_NOT_READY（契约过声明）。经实现取证：未就绪方案返回
+                        200 + waitingReason（waiting_inputs/generating/generation_failed），不抛错（CareQueryService.getCarePlan:116-130）；
+                        GRANT_REVOKED 全仓唯一抛出点为 MemberAccessGrantService.java:151，care 域撤销/不可见统一 404
+                        RESOURCE_NOT_VISIBLE。已从契约 x-error-codes 与本文档同步移除；HTTP 行为与序列化语义未变。
                         """,
                         List.of(
                                 ApiDocEntry.ParamDoc.of("planId", "path",
@@ -151,7 +155,7 @@ public class CareApiDocs implements ApiDocsCatalog {
                                 CarePlanFullView.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
                                 ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.RESOURCE_NOT_VISIBLE,
-                                ErrorCode.PLAN_NOT_READY, ErrorCode.GRANT_REVOKED, ErrorCode.RATE_LIMITED,
+                                ErrorCode.RATE_LIMITED,
                                 ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT,
                                 ErrorCode.NOT_IMPLEMENTED))),
 
@@ -190,8 +194,11 @@ public class CareApiDocs implements ApiDocsCatalog {
                         （换内容须用新 Idempotency-Key）；FACE_NOT_VERIFIED 重新采集本人清晰照片（不泄露成员是否存在）；
                         DEVICE_OCCUPIED 先停止并收尾在跑执行；TASK_REPLACED 以云台当前任务为准；AUTH_REQUIRED/SESSION_INVALID
                         重新登录/握手；RATE_LIMITED/DEPENDENCY_* 受限退避重试。
-                        契约过声明：CALLER_NOT_ALLOWED、BINDING_CHANGED 在本端点当前实现中不触发（本端点同时接受 APP 与云台，
-                        错误主体/入参组合走 INVALID_INPUT；护理准入无绑定代次入参）；按契约一致性保留，待总协调裁定。
+                        历史背景：本操作曾声明 CALLER_NOT_ALLOWED 与 BINDING_CHANGED（契约过声明）。经实现取证：本操作同时接纳
+                        APP 与云台主体（controllerType 可为 gimbal），CareAuthorization.requireApp 在 care 包仅被
+                        CareQueryService:69,107,227 调用，故本路径无 403 主体拒绝；BINDING_CHANGED 只在
+                        devices/GimbalBindingService.java:357 与 notifications/NotificationDestinationService.java:324,327，
+                        护理路径无绑定代次入参。已从契约 x-error-codes 与本文档同步移除；HTTP 行为与序列化语义未变。
                         """,
                         List.of(new ApiDocEntry.ParamDoc("Idempotency-Key", "header",
                                 "必填，请求头，字符串 1—128 字符；控制器强制（缺失/空白 → 400 INVALID_INPUT）。T13 逻辑请求"
@@ -219,9 +226,9 @@ public class CareApiDocs implements ApiDocsCatalog {
                                         CareExecutionAdmission.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.UPLOAD_TOO_LARGE, ErrorCode.UNSUPPORTED_IMAGE,
                                 ErrorCode.FACE_QUALITY_REJECTED, ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
-                                ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.FACE_NOT_VERIFIED,
+                                ErrorCode.FACE_NOT_VERIFIED,
                                 ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.DEVICE_OCCUPIED, ErrorCode.PLAN_NOT_READY,
-                                ErrorCode.PLAN_COMPLETED, ErrorCode.TASK_REPLACED, ErrorCode.BINDING_CHANGED,
+                                ErrorCode.PLAN_COMPLETED, ErrorCode.TASK_REPLACED,
                                 ErrorCode.IDEMPOTENCY_CONTENT_CONFLICT, ErrorCode.REQUEST_IN_PROGRESS,
                                 ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
                                 ErrorCode.DEPENDENCY_TIMEOUT, ErrorCode.NOT_IMPLEMENTED))),
@@ -254,9 +261,10 @@ public class CareApiDocs implements ApiDocsCatalog {
                         UPLOAD_TOO_LARGE 重新采集；RESOURCE_NOT_VISIBLE 非原控制端/无授权/不存在同 404；TASK_REPLACED 以当前任务为准；
                         拟补记录与既有冲突 409 RECORD_CONFLICT，先以服务端为准修正本地；AUTH_REQUIRED/SESSION_INVALID 重新登录/握手；
                         RATE_LIMITED/DEPENDENCY_* 受限退避。
-                        契约过声明：CALLER_NOT_ALLOWED、RECORD_CONFLICT 在本端点当前实现中不触发（本端点同时接受 APP 与云台，
-                        错误主体走 INVALID_INPUT/RESOURCE_NOT_VISIBLE；本端点不接受记录批次，冲突由 M4-A05 处理）；
-                        按契约一致性保留，待总协调裁定。
+                        历史背景：本操作曾声明 CALLER_NOT_ALLOWED 与 RECORD_CONFLICT（契约过声明）。经实现取证：本操作同时接纳
+                        APP 与云台主体，requireApp 在 care 包仅被 CareQueryService:69,107,227 调用，无 403 主体拒绝路径；
+                        重新核验路径不写台账记录，RECORD_CONFLICT 只在 CareLedgerService:349,368（M4-A05）与 :527,807（M4-A06）。
+                        已从契约 x-error-codes 与本文档同步移除；HTTP 行为与序列化语义未变。
                         """,
                         List.of(
                                 ApiDocEntry.ParamDoc.of("executionId", "path",
@@ -281,9 +289,9 @@ public class CareApiDocs implements ApiDocsCatalog {
                                 CareExecutionRevalidation.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.UPLOAD_TOO_LARGE, ErrorCode.UNSUPPORTED_IMAGE,
                                 ErrorCode.FACE_QUALITY_REJECTED, ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
-                                ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.FACE_NOT_VERIFIED,
+                                ErrorCode.FACE_NOT_VERIFIED,
                                 ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.EXECUTION_NOT_RESUMABLE,
-                                ErrorCode.TASK_REPLACED, ErrorCode.RECORD_CONFLICT,
+                                ErrorCode.TASK_REPLACED,
                                 ErrorCode.IDEMPOTENCY_CONTENT_CONFLICT, ErrorCode.REQUEST_IN_PROGRESS,
                                 ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
                                 ErrorCode.DEPENDENCY_TIMEOUT, ErrorCode.NOT_IMPLEMENTED))),
@@ -312,8 +320,11 @@ public class CareApiDocs implements ApiDocsCatalog {
                         verificationRevision 为无符号 bigint 十进制字符串；occurredAt 为 RFC3339 UTC。
                         错误处理：INVALID_INPUT（批次超 200/格式非法/计数溢出）；RECORD_CONFLICT → 以服务端已接受记录为准修正本地，
                         只重传缺失区间；RESOURCE_NOT_VISIBLE 非原控制端；AUTH_REQUIRED/SESSION_INVALID；RATE_LIMITED/DEPENDENCY_* 受限退避。
-                        契约过声明：CALLER_NOT_ALLOWED、BINDING_CHANGED 在本端点当前实现中不触发（本端点接受 APP 与云台，
-                        错误主体走 RESOURCE_NOT_VISIBLE；护理记录路径无绑定代次入参）；按契约一致性保留，待总协调裁定。
+                        历史背景：本操作曾声明 CALLER_NOT_ALLOWED 与 BINDING_CHANGED（契约过声明）。经实现取证：本操作同时接纳
+                        APP 与云台主体，requireApp 在 care 包仅被 CareQueryService:69,107,227 调用，无 403 主体拒绝路径；
+                        BINDING_CHANGED 只在 devices/GimbalBindingService.java:357 与
+                        notifications/NotificationDestinationService.java:324,327，护理记录路径无绑定代次入参。
+                        已从契约 x-error-codes 与本文档同步移除；HTTP 行为与序列化语义未变。
                         """,
                         List.of(
                                 ApiDocEntry.ParamDoc.of("executionId", "path",
@@ -332,8 +343,8 @@ public class CareApiDocs implements ApiDocsCatalog {
                                 "逐记录处置结果 + 后端累计进度",
                                 ObservationAckDto.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
-                                ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.RESOURCE_NOT_VISIBLE,
-                                ErrorCode.RECORD_CONFLICT, ErrorCode.BINDING_CHANGED,
+                                ErrorCode.RESOURCE_NOT_VISIBLE,
+                                ErrorCode.RECORD_CONFLICT,
                                 ErrorCode.IDEMPOTENCY_CONTENT_CONFLICT, ErrorCode.REQUEST_IN_PROGRESS,
                                 ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
                                 ErrorCode.DEPENDENCY_TIMEOUT, ErrorCode.NOT_IMPLEMENTED))),
@@ -364,8 +375,9 @@ public class CareApiDocs implements ApiDocsCatalog {
                         错误处理：STOP_NOT_CONFIRMED 先停止并同步观察后重试；CLOSURE_GAPS 按 missingRanges 补齐后重新提交；
                         RECORD_CONFLICT 核对记录流 epoch；EXECUTION_NOT_RESUMABLE（已 closed）不要再重开；AUTH_REQUIRED/
                         SESSION_INVALID；RATE_LIMITED/DEPENDENCY_* 受限退避。
-                        契约过声明：CALLER_NOT_ALLOWED 在本端点当前实现中不触发（本端点接受 APP 与云台，非原控制端统一
-                        RESOURCE_NOT_VISIBLE）；按契约一致性保留，待总协调裁定。
+                        历史背景：本操作曾声明 CALLER_NOT_ALLOWED（契约过声明）。经实现取证：本操作同时接纳 APP 与云台主体，
+                        CareAuthorization.requireApp 在 care 包仅被 CareQueryService:69,107,227 调用，非原控制端统一 404
+                        RESOURCE_NOT_VISIBLE，无 403 主体拒绝路径。已从契约 x-error-codes 与本文档同步移除；HTTP 行为与序列化语义未变。
                         """,
                         List.of(
                                 ApiDocEntry.ParamDoc.of("executionId", "path",
@@ -384,7 +396,7 @@ public class CareApiDocs implements ApiDocsCatalog {
                                 "关闭结果：closed=true、closedAt 为服务端确认时间、occupancyReleased=true",
                                 ClosureResultDto.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
-                                ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.RESOURCE_NOT_VISIBLE,
+                                ErrorCode.RESOURCE_NOT_VISIBLE,
                                 ErrorCode.STOP_NOT_CONFIRMED, ErrorCode.CLOSURE_GAPS, ErrorCode.RECORD_CONFLICT,
                                 ErrorCode.EXECUTION_NOT_RESUMABLE, ErrorCode.IDEMPOTENCY_CONTENT_CONFLICT,
                                 ErrorCode.REQUEST_IN_PROGRESS, ErrorCode.RATE_LIMITED,
@@ -408,8 +420,10 @@ public class CareApiDocs implements ApiDocsCatalog {
                         记录序号是两条独立序列；acceptedCount/maxSourceSeq 为无符号 bigint 十进制字符串；时间字段为 RFC3339 UTC。
                         错误处理：INVALID_INPUT（recordsAfterSeq 非 bigint 或 limit 越界）；AUTH_REQUIRED/SESSION_INVALID；
                         RESOURCE_NOT_VISIBLE 既非原控制端也无查看权（与不存在同响应，不泄露）；RATE_LIMITED/DEPENDENCY_* 受限退避。
-                        契约过声明：GRANT_REVOKED、CALLER_NOT_ALLOWED 在本端点当前实现中不触发（本端点接受 APP 与云台，
-                        不可见统一 RESOURCE_NOT_VISIBLE）；按契约一致性保留该码，待总协调裁定。
+                        历史背景：本操作曾声明 GRANT_REVOKED 与 CALLER_NOT_ALLOWED（契约过声明）。经实现取证：本操作同时接纳
+                        APP 与云台主体，不可见统一 404 RESOURCE_NOT_VISIBLE，requireApp 在 care 包仅被 CareQueryService:69,107,227
+                        调用；GRANT_REVOKED 全仓唯一抛出点为 MemberAccessGrantService.java:151。已从契约 x-error-codes 与本文档
+                        同步移除；HTTP 行为与序列化语义未变。
                         """,
                         List.of(
                                 ApiDocEntry.ParamDoc.of("executionId", "path",
@@ -428,8 +442,8 @@ public class CareApiDocs implements ApiDocsCatalog {
                                 "执行投影（按调用角色裁剪）：完整摘要或原控制端最小对账视图",
                                 CareExecutionView.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
-                                ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.RESOURCE_NOT_VISIBLE,
-                                ErrorCode.GRANT_REVOKED, ErrorCode.RATE_LIMITED,
+                                ErrorCode.RESOURCE_NOT_VISIBLE,
+                                ErrorCode.RATE_LIMITED,
                                 ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT,
                                 ErrorCode.NOT_IMPLEMENTED))),
 
@@ -453,8 +467,10 @@ public class CareApiDocs implements ApiDocsCatalog {
                         错误处理：INVALID_INPUT（云台缺 executionId/verificationRevision 或非 UUID/bigint）；
                         PLAN_NOT_READY 轮询等待；TASK_REPLACED 以当前任务为准；AUTH_REQUIRED/SESSION_INVALID；
                         RESOURCE_NOT_VISIBLE 不要换 ID 探测；RATE_LIMITED/DEPENDENCY_* 受限退避。
-                        契约过声明：GRANT_REVOKED、CALLER_NOT_ALLOWED 在本端点当前实现中不触发（本端点接受 APP 与具备
-                        核验上下文的云台，不可见统一 RESOURCE_NOT_VISIBLE）；按契约一致性保留，待总协调裁定。
+                        历史背景：本操作曾声明 GRANT_REVOKED 与 CALLER_NOT_ALLOWED（契约过声明）。经实现取证：本操作接受 APP
+                        与具备核验上下文的云台，不可见统一 404 RESOURCE_NOT_VISIBLE，requireApp 在 care 包仅被
+                        CareQueryService:69,107,227 调用；GRANT_REVOKED 全仓唯一抛出点为 MemberAccessGrantService.java:151。
+                        已从契约 x-error-codes 与本文档同步移除；HTTP 行为与序列化语义未变。
                         """,
                         List.of(
                                 ApiDocEntry.ParamDoc.of("planId", "path",
@@ -475,8 +491,8 @@ public class CareApiDocs implements ApiDocsCatalog {
                                 "Progress + lastSyncedAt（N、已同步 K、剩余 max(N-K,0)、完成 K>=N、最后同步信息）",
                                 ProgressWithSync.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
-                                ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.RESOURCE_NOT_VISIBLE,
-                                ErrorCode.PLAN_NOT_READY, ErrorCode.TASK_REPLACED, ErrorCode.GRANT_REVOKED,
+                                ErrorCode.RESOURCE_NOT_VISIBLE,
+                                ErrorCode.PLAN_NOT_READY, ErrorCode.TASK_REPLACED,
                                 ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
                                 ErrorCode.DEPENDENCY_TIMEOUT, ErrorCode.NOT_IMPLEMENTED))),
 
@@ -498,8 +514,10 @@ public class CareApiDocs implements ApiDocsCatalog {
                         acceptedCount 为无符号 bigint 十进制字符串；createdAt/closedAt 为 RFC3339 UTC（closedAt 未关闭为 null）。
                         错误处理：INVALID_INPUT（时间格式/游标/limit）；AUTH_REQUIRED/SESSION_INVALID；CALLER_NOT_ALLOWED（云台）；
                         RESOURCE_NOT_VISIBLE；RATE_LIMITED/DEPENDENCY_* 受限退避。
-                        契约过声明：GRANT_REVOKED 在本端点当前实现中不触发（实现统一用 RESOURCE_NOT_VISIBLE 表达不可见/已撤销）；
-                        按契约一致性保留该码，待总协调裁定。
+                        历史背景：本操作曾声明 GRANT_REVOKED（契约过声明）。经实现取证：该码全仓唯一抛出点为
+                        MemberAccessGrantService.java:151（成员访问授权的幂等重放指向已撤销授权），care 域读取授权只判 active
+                        与否、不区分“已撤销”与“从未授权”，统一 404 RESOURCE_NOT_VISIBLE。已从契约 x-error-codes 与本文档同步移除；
+                        HTTP 行为与序列化语义未变。
                         """,
                         List.of(
                                 ApiDocEntry.ParamDoc.of("memberId", "path",
@@ -528,7 +546,7 @@ public class CareApiDocs implements ApiDocsCatalog {
                                 CareExecutionListItem.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
                                 ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.RESOURCE_NOT_VISIBLE,
-                                ErrorCode.GRANT_REVOKED, ErrorCode.RATE_LIMITED,
+                                ErrorCode.RATE_LIMITED,
                                 ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT,
                                 ErrorCode.NOT_IMPLEMENTED)))
         );

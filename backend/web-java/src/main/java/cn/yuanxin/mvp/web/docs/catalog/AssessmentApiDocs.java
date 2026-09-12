@@ -90,7 +90,9 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                         错误处理：INVALID_INPUT 修正 metadata/parts；UPLOAD_TOO_LARGE 压缩降分辨率后以新逻辑键重试；
                         UNSUPPORTED_IMAGE 改用受支持格式；DEVICE_OCCUPIED/STOP_NOT_CONFIRMED 先结束并收尾护理；
                         CALLER_NOT_ALLOWED 改用云台主体（重试无意义）；DEPENDENCY_* 受限退避重试。
-                        过声明（如实标注）：契约声明 TASK_REPLACED，但本端点实现以“受理即替换”完成，当前实现不返回该码。
+                        历史背景（该码已从契约本端点移除）：早期契约曾声明 TASK_REPLACED，但本端点实现以
+                        “受理即替换”完成（TASK_REPLACED 仅在 M3-A02 补拍路径抛出），当前实现从不返回该码；
+                        本轮已将 TASK_REPLACED 从契约本端点的 x-error-codes 移除，生成文档与契约一致。
                         """,
                         List.of(new ApiDocEntry.ParamDoc("Idempotency-Key", "header",
                                 "必填，header，字符串，1—128 字符。逻辑写请求去重键（T13）。同键同内容重放返回 200 且 "
@@ -129,11 +131,11 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.UPLOAD_TOO_LARGE,
                                 ErrorCode.UNSUPPORTED_IMAGE, ErrorCode.AUTH_REQUIRED,
                                 ErrorCode.SESSION_INVALID, ErrorCode.CALLER_NOT_ALLOWED,
-                                ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.TASK_REPLACED,
-                                ErrorCode.DEVICE_OCCUPIED, ErrorCode.STOP_NOT_CONFIRMED,
-                                ErrorCode.IDEMPOTENCY_CONTENT_CONFLICT, ErrorCode.REQUEST_IN_PROGRESS,
-                                ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
-                                ErrorCode.DEPENDENCY_TIMEOUT, ErrorCode.NOT_IMPLEMENTED)),
+                                ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.DEVICE_OCCUPIED,
+                                ErrorCode.STOP_NOT_CONFIRMED, ErrorCode.IDEMPOTENCY_CONTENT_CONFLICT,
+                                ErrorCode.REQUEST_IN_PROGRESS, ErrorCode.RATE_LIMITED,
+                                ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT,
+                                ErrorCode.NOT_IMPLEMENTED)),
 
                 // --------------------------------------------------------- M3-A02
                 "PUT /api/v1/skin-assessment-tasks/{taskId}/photo-versions/{photoVersion}",
@@ -250,12 +252,18 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                         SOURCE_IMAGE_UNAVAILABLE、RESULT_ARCHIVE_FAILED、PROVIDER_CONTRACT_VIOLATION、
                         MEMBER_NOT_VISIBLE、DEPENDENCY_UNAVAILABLE。白名单外一律投影 null。
                         failure_detail 属内部诊断，绝不外泄。
-                        契约缺口（如实标注，待总协调裁定）：failureCode 还可能返回 PROVIDER_CONTRACT_VIOLATION
-                        （算法结果违约的终态失败，retryable=false）——该码尚未列入契约 ErrorCode enum、也不在
-                        DD 3.2 表中，属已知契约缺口；本端点 errorCodes 只列契约枚举成员，不包含该码。
+                        failureCode 与契约已同步（原"契约缺口"本轮经总协调授权闭合）：上述 9 个白名单码
+                        已作为**封闭 enum** 写入契约 components.schemas.AssessmentTaskView.properties.failureCode
+                        （含 PROVIDER_CONTRACT_VIOLATION——算法结果违反已核准指标白名单/基线的确定性终态
+                        失败，1 轮到达终态、无后继任务），并在契约中注明：当前所有非 null 取值的 retryable
+                        均为 false，true 仅为未来允许瞬时可重试失败暴露而预留。该码是**任务投影字段**
+                        （failureCode），不是 HTTP 错误码，故不出现在本端点 errorCodes
+                        （errorCodes 只列契约 ErrorCode enum 成员）。
                         响应头：Cache-Control: no-store（成员敏感数据与图片响应恒定）。
-                        过声明（如实标注）：契约声明 CALLER_NOT_ALLOWED，但本端点对主体/归属不匹配统一以
-                        RESOURCE_NOT_VISIBLE 处理（防存在性推断），当前实现不返回该码。
+                        历史背景（该码已从契约本端点移除）：早期契约曾声明 CALLER_NOT_ALLOWED，但本端点对
+                        主体/归属不匹配统一以 RESOURCE_NOT_VISIBLE 处理（防存在性推断），当前实现从不返回该码
+                        （CALLER_NOT_ALLOWED 只在 M3-A06 currentAssessment 路径抛出）；本轮已将该码从契约本端点的
+                        x-error-codes 移除，生成文档与契约一致。
                         """,
                         List.of(new ApiDocEntry.ParamDoc("taskId", "path",
                                 "必填，path，UUID 字符串（T05.id），测肤任务引用。",
@@ -267,10 +275,9 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                                 "任务状态与补拍要求（受控投影；failure_detail 绝不外泄）",
                                 AssessmentTaskView.class)),
                         List.of(ErrorCode.AUTH_REQUIRED, ErrorCode.SESSION_INVALID,
-                                ErrorCode.CALLER_NOT_ALLOWED, ErrorCode.RESOURCE_NOT_VISIBLE,
-                                ErrorCode.TASK_REPLACED, ErrorCode.RATE_LIMITED,
-                                ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT,
-                                ErrorCode.NOT_IMPLEMENTED)),
+                                ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.TASK_REPLACED,
+                                ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
+                                ErrorCode.DEPENDENCY_TIMEOUT, ErrorCode.NOT_IMPLEMENTED)),
 
                 // --------------------------------------------------------- M3-A04
                 "GET /api/v1/members/{memberId}/skin-reports",
@@ -291,8 +298,10 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                         响应头：Cache-Control: no-store。
                         错误处理：INVALID_INPUT 丢弃本地游标从第一页重取；RESOURCE_NOT_VISIBLE 不换 memberId
                         探测；云台应改用 M3-A06。
-                        过声明（如实标注）：契约声明 GRANT_REVOKED，但当前实现对“无 active 授权/不可见”统一用
-                        RESOURCE_NOT_VISIBLE（SkinReportService 不抛 GRANT_REVOKED），该码在本端点当前实现中不触发。
+                        历史背景（该码已从契约本端点移除）：早期契约曾声明 GRANT_REVOKED，但当前实现对
+                        “无 active 授权/不可见”统一用 RESOURCE_NOT_VISIBLE（SkinReportService 不抛
+                        GRANT_REVOKED；全仓唯一抛出点在 M1-A01 的 T13 重放路径），该码在本端点当前实现中从不触发；
+                        本轮已将该码从契约本端点的 x-error-codes 移除，生成文档与契约一致。
                         """,
                         List.of(
                                 new ApiDocEntry.ParamDoc("memberId", "path",
@@ -316,9 +325,9 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                                 SkinReportListItem.class)),
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED,
                                 ErrorCode.SESSION_INVALID, ErrorCode.CALLER_NOT_ALLOWED,
-                                ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.GRANT_REVOKED,
-                                ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
-                                ErrorCode.DEPENDENCY_TIMEOUT, ErrorCode.NOT_IMPLEMENTED)),
+                                ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.RATE_LIMITED,
+                                ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT,
+                                ErrorCode.NOT_IMPLEMENTED)),
 
                 // --------------------------------------------------------- M3-A05
                 "GET /api/v1/skin-reports/{reportId}",
@@ -343,8 +352,10 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                         nosniff；不可见与不存在同 404。
                         错误处理：INVALID_INPUT（view 非 full/brief）；RESOURCE_NOT_VISIBLE 不换 reportId 探测；
                         TASK_REPLACED 以当前任务报告为准；云台传 full → CALLER_NOT_ALLOWED。
-                        过声明（如实标注）：契约声明 GRANT_REVOKED，但当前实现对无授权/不可见统一用
-                        RESOURCE_NOT_VISIBLE（SkinReportService 不抛 GRANT_REVOKED），该码在本端点当前实现中不触发。
+                        历史背景（该码已从契约本端点移除）：早期契约曾声明 GRANT_REVOKED，但当前实现对
+                        无授权/不可见统一用 RESOURCE_NOT_VISIBLE（SkinReportService 不抛 GRANT_REVOKED；
+                        全仓唯一抛出点在 M1-A01 的 T13 重放路径），该码在本端点当前实现中从不触发；本轮已将该码
+                        从契约本端点的 x-error-codes 移除，生成文档与契约一致。
                         """,
                         List.of(
                                 new ApiDocEntry.ParamDoc("reportId", "path",
@@ -364,9 +375,8 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                         List.of(ErrorCode.INVALID_INPUT, ErrorCode.AUTH_REQUIRED,
                                 ErrorCode.SESSION_INVALID, ErrorCode.CALLER_NOT_ALLOWED,
                                 ErrorCode.RESOURCE_NOT_VISIBLE, ErrorCode.TASK_REPLACED,
-                                ErrorCode.GRANT_REVOKED, ErrorCode.RATE_LIMITED,
-                                ErrorCode.DEPENDENCY_UNAVAILABLE, ErrorCode.DEPENDENCY_TIMEOUT,
-                                ErrorCode.NOT_IMPLEMENTED)),
+                                ErrorCode.RATE_LIMITED, ErrorCode.DEPENDENCY_UNAVAILABLE,
+                                ErrorCode.DEPENDENCY_TIMEOUT, ErrorCode.NOT_IMPLEMENTED)),
 
                 // --------------------------------------------------------- M3-A06
                 "GET /api/v1/gimbals/{gimbalId}/current-assessment",
@@ -500,12 +510,20 @@ public class AssessmentApiDocs implements ApiDocsCatalog {
                                 "数组：需补拍视角，元素仅可为 front/left/right。仅 needs_retake 时非空——"
                                         + "由 identity_result.quality.required_views 过滤到该枚举、去重、上限 3；"
                                         + "解析失败为空数组。"),
-                        "failureCode", PropertyDoc.of(
-                                "可空字符串，可公开失败编码。仅返回 9 个公开白名单码（QUALITY_REJECTED、"
-                                        + "NOT_SAME_PERSON、IDENTITY_UNCERTAIN、IDENTITY_ENROLLMENT_TIMEOUT、"
-                                        + "SOURCE_IMAGE_UNAVAILABLE、RESULT_ARCHIVE_FAILED、"
-                                        + "PROVIDER_CONTRACT_VIOLATION、MEMBER_NOT_VISIBLE、DEPENDENCY_UNAVAILABLE）；"
-                                        + "白名单外的内部 failure_code 一律投影为 null。",
+                        "failureCode", PropertyDoc.enumOf(
+                                "可空字符串，可公开失败编码。该字段本身可空（报告未失败时为 null），下方 enum 表达的是"
+                                        + "非 null 时的取值集合，客户端不得据此认为该键必为这 9 值之一。仅返回 9 个公开"
+                                        + "白名单码（QUALITY_REJECTED、NOT_SAME_PERSON、IDENTITY_UNCERTAIN、"
+                                        + "IDENTITY_ENROLLMENT_TIMEOUT、SOURCE_IMAGE_UNAVAILABLE、"
+                                        + "RESULT_ARCHIVE_FAILED、PROVIDER_CONTRACT_VIOLATION、MEMBER_NOT_VISIBLE、"
+                                        + "DEPENDENCY_UNAVAILABLE）；白名单外的内部 failure_code 一律投影为 null。"
+                                        + "该 9 值已作为封闭 enum 写入权威契约"
+                                        + "（components.schemas.AssessmentTaskView.failureCode），客户端可据此穷举"
+                                        + "处理；新增取值需先改契约。",
+                                List.of("QUALITY_REJECTED", "NOT_SAME_PERSON", "IDENTITY_UNCERTAIN",
+                                        "IDENTITY_ENROLLMENT_TIMEOUT", "SOURCE_IMAGE_UNAVAILABLE",
+                                        "RESULT_ARCHIVE_FAILED", "PROVIDER_CONTRACT_VIOLATION",
+                                        "MEMBER_NOT_VISIBLE", "DEPENDENCY_UNAVAILABLE"),
                                 "QUALITY_REJECTED"),
                         "retryable", PropertyDoc.of(
                                 "可空布尔：该失败是否可重试。当前任何非 null failureCode 均为 false；null 表示无失败。",
