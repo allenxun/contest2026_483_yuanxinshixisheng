@@ -1,0 +1,12 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions/1c2b4531-8de1-48bc-b152-44eae488b0f9/closure-confirmations",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": null,
+  "response_excerpt": "{\"requestId\": \"0e554e19-a047-4147-948c-48f849a8a406\", \"error\": {\"code\": \"CLOSURE_GAPS\", \"message\": \"care execution closure has reconciliation gaps\", \"retryable\": false, \"details\": {\"reason\": \"max_seq_exceeds_final\"}}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T092915Z-055e1e75"
+}
