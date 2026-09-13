@@ -67,6 +67,14 @@
       <artifactId>dysmsapi20170525</artifactId>
       <version>4.6.0</version>
     </dependency>
+    <!-- 真实阿里云 OSS（V1 SDK，与 StoragePort 的 putObject/getObject/... 面匹配）：
+         仅 app.storage.provider=aliyun 时装配。唯一 SDK 触点收敛在
+         cn.yuanxin.mvp.web.storage.OssStorageAdapter。 -->
+    <dependency>
+      <groupId>com.aliyun.oss</groupId>
+      <artifactId>aliyun-sdk-oss</artifactId>
+      <version>3.18.5</version>
+    </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
