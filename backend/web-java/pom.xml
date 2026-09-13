@@ -60,6 +60,13 @@
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
       <version>${springdoc.version}</version>
     </dependency>
+    <!-- 真实阿里云短信（V2.0 SDK，官方推荐线）：仅 app.sms.provider=aliyun 时装配。
+         唯一 SDK 触点收敛在 cn.yuanxin.mvp.web.sms.AliyunSmsSendGateway。 -->
+    <dependency>
+      <groupId>com.aliyun</groupId>
+      <artifactId>dysmsapi20170525</artifactId>
+      <version>4.6.0</version>
+    </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>

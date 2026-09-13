@@ -38,6 +38,7 @@ public class TestDoubleProvidersConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "app.sms.provider", havingValue = "doubles", matchIfMissing = true)
     public SmsCodeProvider smsCodeProvider(
             @Value("${app.testdouble.sms.fixed-code:123456}") String fixedCode) {
         return new SmsCodeDouble(fixedCode);
