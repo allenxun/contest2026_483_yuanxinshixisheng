@@ -3,18 +3,21 @@
 ``extras`` 键：``face_port`` / ``skin_port`` / ``plan_port`` / ``storage`` / ``dconfig``。
 未注入时按 :class:`DConfig` + ``WorkerConfig.environment`` 构建；生产环境解析到替身或
 阿里云适配器未激活 → 映射为可重试 ``DEPENDENCY_UNAVAILABLE``（fail-closed）。
+``storage`` 改为按 ``MVP_D_STORAGE_PROVIDER`` 选择（``double``/``aliyun_oss``）；
+``aliyun_oss`` 缺配置或生产 + ``double`` → :class:`ProviderConfigError`，**绝不**静默
+回退本地文件系统。
 """
 from __future__ import annotations
 
 from typing import Any
 
 from .. import HandlerContext, JobFailed
-from ...media.storage import FilesystemStorageDouble
 from .dconfig import DConfig
 from .providers import (
     build_face_port,
     build_plan_port,
     build_skin_port,
+    build_storage_port,
     ProviderConfigError,
     ProviderNotActivated,
     ProviderUnavailable,
@@ -67,7 +70,16 @@ def plan_port_for(ctx: HandlerContext) -> Any:
 
 
 def storage_for(ctx: HandlerContext) -> Any:
+    """按 ``MVP_D_STORAGE_PROVIDER`` 选择存储端口（**绝不**静默回退文件系统）。
+
+    未注入时构建；``aliyun_oss`` 缺 bucket/AK/SK → :class:`ProviderConfigError`
+    （消息只含键名，不含取值）；生产 + ``double`` → :class:`ProviderConfigError`。
+    """
     injected = ctx.extras.get("storage")
     if injected is not None:
         return injected
-    return FilesystemStorageDouble(ctx.config.storage_dev_dir)
+    return build_storage_port(
+        dconfig_for(ctx),
+        environment=ctx.config.environment,
+        dev_dir=ctx.config.storage_dev_dir,
+    )

@@ -26,6 +26,16 @@ from .dconfig import (
     DEFAULT_PLAN_CAPABILITY_BASELINE,
     DConfig,
     ProviderConfigError,
+    production_environment_signals,
+)
+from ...media.storage import (
+    AliyunOssStorage,
+    FilesystemStorageDouble,
+    OSS_ACCESS_KEY_ID_ENV,
+    OSS_ACCESS_KEY_SECRET_ENV,
+    OSS_BUCKET_ENV,
+    STORAGE_PROVIDER_ALIYUN_OSS,
+    STORAGE_PROVIDER_DOUBLE,
 )
 
 # ---------------------------------------------------------------- errors
@@ -675,3 +685,70 @@ def build_plan_port(cfg: DConfig, *, environment: str) -> PlanPort:
     if provider == "aliyun_llm":
         return AliyunPlanAdapter(cfg)
     raise ProviderConfigError(f"unknown plan provider: {provider}")
+
+
+# ---------------------------------------------------------------- storage factory
+
+
+def _forbid_storage_double_in_production(environment: str) -> None:
+    """存储替身生产 fail-closed（对齐 ``_forbid_double_in_production`` 语义）。
+
+    - 传入 ``environment`` 为 production/prod → 拒绝；
+    - ``production_environment_signals()`` 命中也拒绝（resolved_environment /
+      ``MVP_NOTIFY_ENV``/``MVP_WORKER_ENVIRONMENT``/``APP_ENV``/prod profile），
+      覆盖与 Java 混合 profile 场景，避免仅凭单一 env 漏判。
+    **绝不**回退到本地文件系统。
+    """
+    normalized = environment.strip().lower()
+    if normalized in ("production", "prod"):
+        raise ProviderConfigError(
+            "double storage provider is forbidden in production (fail-closed)"
+        )
+    signals = production_environment_signals()
+    if signals:
+        raise ProviderConfigError(
+            "double storage provider is forbidden in production (fail-closed;"
+            f" signals: {signals})"
+        )
+
+
+def _require_oss_config(cfg: DConfig) -> None:
+    """``aliyun_oss`` 必填项校验：消息只列**缺失的键名**，绝不回显任何取值。"""
+    missing: list[str] = []
+    if not cfg.oss_bucket.strip():
+        missing.append(OSS_BUCKET_ENV)
+    if not cfg.oss_access_key_id.strip():
+        missing.append(OSS_ACCESS_KEY_ID_ENV)
+    if not cfg.oss_access_key_secret.strip():
+        missing.append(OSS_ACCESS_KEY_SECRET_ENV)
+    if missing:
+        raise ProviderConfigError(
+            "aliyun_oss storage provider requires non-empty config: "
+            + ", ".join(missing)
+        )
+
+
+def build_storage_port(
+    cfg: DConfig, *, environment: str, dev_dir: str | None = None
+) -> Any:
+    """按 ``MVP_D_STORAGE_PROVIDER`` 选择存储实现（按服务独立，与 Java 一致选择）。
+
+    - ``double``（默认）→ :class:`FilesystemStorageDouble`；生产拒绝；
+    - ``aliyun_oss`` → :class:`AliyunOssStorage`（私有桶，真实元数据；缺字段 → 明确报错）；
+    - 其它 → :class:`ProviderConfigError`。
+    """
+    provider = cfg.storage_provider
+    if provider == STORAGE_PROVIDER_DOUBLE:
+        _forbid_storage_double_in_production(environment)
+        return FilesystemStorageDouble(dev_dir)
+    if provider == STORAGE_PROVIDER_ALIYUN_OSS:
+        _require_oss_config(cfg)
+        return AliyunOssStorage(
+            region=cfg.oss_region,
+            endpoint=cfg.oss_endpoint,
+            bucket_name=cfg.oss_bucket.strip(),
+            access_key_id=cfg.oss_access_key_id.strip(),
+            access_key_secret=cfg.oss_access_key_secret.strip(),
+            security_token=cfg.oss_security_token.strip() or None,
+        )
+    raise ProviderConfigError(f"unknown storage provider: {provider}")
