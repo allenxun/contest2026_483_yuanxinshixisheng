@@ -16,9 +16,12 @@
     （``UPDATE ... content_hash=:h WHERE id=:id AND content_hash IS NULL``）；0 行则
     复读比对（available 全匹配→复用；否则不匹配→终态），关闭 legacy 并发发散窗口；
   - 其它状态 → 终态。
-* **put（任何事务之外，不持连接）**：``storage.put(object_key, data)``。不变式：
+* **put（任何事务之外，不持连接）**：``storage.put(object_key, data, content_type)``
+  （真实 OSS 写真实 Content-Type/Content-Length）。不变式：
   任何到达 put 的调用都已通过 tx1 摘要一致 ⇒ 同一 ref 的并发 put 写入**相同字节**到
-  同一 key ⇒ 交错无害。put 失败 → pending 行保留、可重试 ``RESULT_ARCHIVE_FAILED``。
+  同一 key ⇒ 交错无害。put 失败 → pending 行保留；瞬时（网络/5xx）→ 可重试
+  ``RESULT_ARCHIVE_FAILED``（terminal=False），配置错误（凭据/权限/4xx）→ 终态
+  ``RESULT_ARCHIVE_FAILED``（terminal=True）。
 * **tx2（单连接，短事务）**：D handler 内走 :func:`fenced_business_tx` 租约围栏，
   ``UPDATE ... state='available' WHERE id=:id AND state='pending'``（写入全元数据）；
   0 行 → 复读要求 available + 同 object_key + content_type/byte_size/content_hash
@@ -49,7 +52,7 @@ from typing import Any, Optional
 
 from sqlalchemy import Connection, Engine, text
 
-from ...media.storage import build_object_key
+from ...media.storage import StorageConfigError, build_object_key
 from ...runtime.rows import JobRow
 from .constants import ALLOWED_RESULT_CONTENT_TYPES, DEFAULT_BUCKET
 from .dfence import fenced_business_tx
@@ -137,6 +140,19 @@ def _contract_violation(message: str) -> ArchiveError:
     return ArchiveError("PROVIDER_CONTRACT_VIOLATION", message, terminal=True)
 
 
+def _bucket_for(storage: Any) -> str:
+    """T11 ``media_objects.bucket`` 取值：优先存储适配器配置（aliyun_oss 真实桶），
+    否则回退既有默认 ``mvp-media``（文件系统替身/测试，保持既有行为）。
+
+    这样 ``aliyun_oss`` 模式下 DB 记录与真实 OSS 桶一致（跨语言一致性修复；
+    Java 侧默认桶见报告，需 Java lane 配合对齐）。
+    """
+    bucket = getattr(storage, "bucket_name", None)
+    if isinstance(bucket, str) and bucket:
+        return bucket
+    return DEFAULT_BUCKET
+
+
 def sniff_content_type(data: bytes) -> Optional[str]:
     if data.startswith(b"\x89PNG\r\n\x1a\n"):
         return "image/png"
@@ -193,6 +209,7 @@ def _claim_or_reuse(
     engine: Engine,
     *,
     environment: str,
+    bucket: str,
     assessment_id: str,
     photo_version: int,
     ref: str,
@@ -219,7 +236,7 @@ def _claim_or_reuse(
                 _INSERT_RESULT_MEDIA,
                 {
                     "id": media_id,
-                    "bucket": DEFAULT_BUCKET,
+                    "bucket": bucket,
                     "object_key": object_key,
                     "assessment_id": assessment_id,
                     "photo_version": int(photo_version),
@@ -298,6 +315,7 @@ def _archive_one(
     *,
     job: Optional[JobRow],
     environment: str,
+    bucket: str,
     assessment_id: str,
     photo_version: int,
     ref: str,
@@ -310,6 +328,7 @@ def _archive_one(
     media_id, object_key, decision = _claim_or_reuse(
         engine,
         environment=environment,
+        bucket=bucket,
         assessment_id=assessment_id,
         photo_version=photo_version,
         ref=ref,
@@ -321,9 +340,17 @@ def _archive_one(
         return {"media_id": media_id, "caption": caption, "content_type": content_type}
 
     # 锁外上传（不持任何连接）：同 ref put 均持相同摘要 ⇒ 交错无害。
+    # 传入真实 content_type（OSS put 写真实 Content-Type/Content-Length）。
     try:
-        storage.put(object_key, data)
+        storage.put(object_key, data, content_type=content_type)
+    except StorageConfigError as exc:
+        # 凭据/权限/签名/参数类配置错误：重试不可恢复 → 终态（fail-closed）。
+        # 消息不回显任何凭据/取值。
+        raise ArchiveError(
+            "RESULT_ARCHIVE_FAILED", "storage put failed: configuration error", terminal=True
+        ) from exc
     except Exception as exc:
+        # 瞬时故障（网络/超时/5xx）保持既有可重试路径（terminal=False）。
         raise ArchiveError(
             "RESULT_ARCHIVE_FAILED", "storage put failed", terminal=False
         ) from exc
@@ -409,6 +436,7 @@ def archive_result_images(
         )
 
     archived: list[dict[str, Any]] = []
+    bucket = _bucket_for(storage)
     for ref, caption, data, content_type, byte_size, content_hash in validated:
         archived.append(
             _archive_one(
@@ -416,6 +444,7 @@ def archive_result_images(
                 storage,
                 job=job,
                 environment=environment,
+                bucket=bucket,
                 assessment_id=assessment_id,
                 photo_version=photo_version,
                 ref=ref,

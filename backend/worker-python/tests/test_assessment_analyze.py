@@ -614,11 +614,11 @@ class _FailFirstStorage:
         self._inner = inner
         self._remaining = failures
 
-    def put(self, object_key: str, data: bytes) -> None:
+    def put(self, object_key: str, data: bytes, content_type: str | None = None) -> None:
         if self._remaining > 0:
             self._remaining -= 1
             raise StorageError("injected put failure")
-        self._inner.put(object_key, data)
+        self._inner.put(object_key, data, content_type=content_type)
 
     def get(self, object_key: str) -> bytes:
         return self._inner.get(object_key)

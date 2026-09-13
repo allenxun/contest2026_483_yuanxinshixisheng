@@ -7,6 +7,13 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | ``MVP_D_FACE_PROVIDER`` | ``double`` | double / aliyun_face |
 | ``MVP_D_SKIN_PROVIDER`` | ``double`` | double / aliyun_skin |
 | ``MVP_D_PLAN_PROVIDER`` | ``double`` | double / aliyun_llm |
+| ``MVP_D_STORAGE_PROVIDER`` | ``double`` | double / aliyun_oss（生产 double → 拒绝） |
+| ``MVP_A_STORAGE_OSS_REGION`` | ``cn-hangzhou`` | OSS 区域（对齐 Java app.storage.oss.region） |
+| ``MVP_A_STORAGE_OSS_ENDPOINT`` | ``https://oss-cn-hangzhou.aliyuncs.com`` | OSS endpoint（须与 region 同域） |
+| ``MVP_A_STORAGE_OSS_BUCKET`` | 未设（aliyun_oss 必填） | OSS 私有桶名（对齐 Java app.storage.oss.bucket） |
+| ``MVP_A_STORAGE_OSS_ACCESS_KEY_ID`` | 未设（aliyun_oss 必填） | OSS AK（只走 env，绝不入仓） |
+| ``MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET`` | 未设（aliyun_oss 必填） | OSS SK（只走 env，绝不入仓） |
+| ``MVP_A_STORAGE_OSS_SECURITY_TOKEN`` | 未设 | 可选 STS token（提供时用 V4 签名） |
 | ``MVP_IDENTITY_NAMESPACE`` | ``mvp-ns-1`` | 人脸库命名空间 |
 | ``MVP_D_PROVIDER_CONFIG_REVISION`` | ``1`` | 供应商配置代次（对账用） |
 | ``MVP_D_RESULT_IMAGE_MAX_BYTES`` | ``10485760`` | 结果图大小上限（10MiB） |
@@ -41,7 +48,21 @@ import os
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from ...media.storage import STORAGE_DOUBLE_FAIL_PUT_ENV
+from ...media.storage import (
+    DEFAULT_OSS_ENDPOINT,
+    DEFAULT_OSS_REGION,
+    OSS_ACCESS_KEY_ID_ENV,
+    OSS_ACCESS_KEY_SECRET_ENV,
+    OSS_BUCKET_ENV,
+    OSS_ENDPOINT_ENV,
+    OSS_REGION_ENV,
+    OSS_SECURITY_TOKEN_ENV,
+    STORAGE_DOUBLE_FAIL_PUT_ENV,
+    STORAGE_PROVIDER_ALIYUN_OSS,
+    STORAGE_PROVIDER_DOUBLE,
+    STORAGE_PROVIDER_ENV,
+    STORAGE_PROVIDERS,
+)
 from .constants import REQUIRED_VIEWS_ALL
 
 
@@ -56,6 +77,7 @@ class ProviderConfigError(RuntimeError):
 DEFAULT_FACE_PROVIDER = "double"
 DEFAULT_SKIN_PROVIDER = "double"
 DEFAULT_PLAN_PROVIDER = "double"
+DEFAULT_STORAGE_PROVIDER = STORAGE_PROVIDER_DOUBLE
 DEFAULT_IDENTITY_NAMESPACE = "mvp-ns-1"
 DEFAULT_PROVIDER_CONFIG_REVISION = "1"
 DEFAULT_RESULT_IMAGE_MAX_BYTES = 10 * 1024 * 1024
@@ -338,6 +360,27 @@ class DConfig:
     plan_provider: str = field(
         default_factory=lambda: _env("MVP_D_PLAN_PROVIDER", DEFAULT_PLAN_PROVIDER)
     )
+    # --- 存储 provider（按服务独立选择；生产 double → fail-closed） ---
+    storage_provider: str = field(
+        default_factory=lambda: _env(STORAGE_PROVIDER_ENV, DEFAULT_STORAGE_PROVIDER)
+    )
+    oss_region: str = field(
+        default_factory=lambda: _env(OSS_REGION_ENV, DEFAULT_OSS_REGION)
+    )
+    oss_endpoint: str = field(
+        default_factory=lambda: _env(OSS_ENDPOINT_ENV, DEFAULT_OSS_ENDPOINT)
+    )
+    # bucket/AK/SK 无默认：aliyun_oss 模式下缺失 → 构建期 ProviderConfigError（只报键名）。
+    oss_bucket: str = field(default_factory=lambda: os.environ.get(OSS_BUCKET_ENV, ""))
+    oss_access_key_id: str = field(
+        default_factory=lambda: os.environ.get(OSS_ACCESS_KEY_ID_ENV, "")
+    )
+    oss_access_key_secret: str = field(
+        default_factory=lambda: os.environ.get(OSS_ACCESS_KEY_SECRET_ENV, "")
+    )
+    oss_security_token: str = field(
+        default_factory=lambda: os.environ.get(OSS_SECURITY_TOKEN_ENV, "")
+    )
     identity_namespace: str = field(
         default_factory=lambda: _env("MVP_IDENTITY_NAMESPACE", DEFAULT_IDENTITY_NAMESPACE)
     )
@@ -450,6 +493,11 @@ class DConfig:
 
     def __post_init__(self) -> None:
         """非法注入取值在**加载期** fail fast（不接受静默回退）。"""
+        if self.storage_provider not in STORAGE_PROVIDERS:
+            raise ProviderConfigError(
+                f"invalid {STORAGE_PROVIDER_ENV}={self.storage_provider!r};"
+                f" expected one of {STORAGE_PROVIDERS}"
+            )
         if self.face_double_quality not in FACE_DOUBLE_QUALITY_MODES:
             raise ProviderConfigError(
                 f"invalid MVP_D_FACE_DOUBLE_QUALITY={self.face_double_quality!r};"

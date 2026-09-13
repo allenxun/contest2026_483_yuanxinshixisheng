@@ -148,11 +148,11 @@ def test_archive_put_failure_retains_pending_then_retry_succeeds(
         def __init__(self) -> None:
             self._remaining = 1
 
-        def put(self, object_key: str, data: bytes) -> None:
+        def put(self, object_key: str, data: bytes, content_type: str | None = None) -> None:
             if self._remaining > 0:
                 self._remaining -= 1
                 raise RuntimeError("injected put failure")
-            storage.put(object_key, data)
+            storage.put(object_key, data, content_type=content_type)
 
         def get(self, object_key: str) -> bytes:
             return storage.get(object_key)
@@ -196,7 +196,7 @@ def test_archive_crash_before_put_converges_on_retry(
         pass
 
     class _CrashBeforePutStorage:
-        def put(self, object_key: str, data: bytes) -> None:
+        def put(self, object_key: str, data: bytes, content_type: str | None = None) -> None:
             raise _SimulatedCrash()
 
         def get(self, object_key: str) -> bytes:
