@@ -16,11 +16,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.context.annotation.RequestScope;
-
-import java.util.Arrays;
 
 /**
  * 隔离测试替身接线：仅<b>非生产环境</b>（{@link NonProductionCondition}：
@@ -66,34 +63,31 @@ public class TestDoubleProvidersConfig {
     }
 
     /**
-     * 双判据生产 fail-closed（对齐 DocsProductionGuard）——<b>现为纵深防御，按设计不可达</b>。
+     * 双判据生产 fail-closed——<b>按设计不可达</b>，按授权保留既有防护。
      *
-     * <p>历史机制：本配置曾以 {@code @Profile({"dev","test"})} 为门，混合 profile
-     * {@code prod,dev} 会因含 {@code dev} 而<b>照常装配</b>，故需要本方法在 {@code storagePort()}
-     * 这个 {@code @Bean} 的装配期抛 {@link IllegalStateException} 拒装，使
-     * {@code APP_DOUBLE_STORAGE_FAIL_MODE} 等注入在矛盾组合（prod profile + app.env=dev）下不可达。</p>
+     * <p>本方法与 {@link NonProductionCondition} 复用<b>同一判据</b>
+     * （{@code !NonProductionCondition.isNonProduction(environment)}），因此与装配条件层
+     * <b>完全等价</b>，不再有强弱差异。拒装已提前到条件层与早期诊断守卫
+     * {@link ProvidersModeProductionGuard}：出现任一生产信号（生效 profiles 含
+     * {@code prod}/{@code production}，或 {@code app.env=production}）时，本配置根本
+     * 不装配，{@code storagePort()} 从不被调用，故本方法在那些场景下不会被触发。</p>
      *
-     * <p>本轮环境/实现解耦后，本配置改由 {@link NonProductionCondition} 把关，<b>拒装提前到条件层</b>：
-     * 出现任一生产信号（生效 profiles 含 {@code prod}/{@code production}，或 {@code app.env=production}）
-     * 时整个配置根本不装配、替身从不被构造，故本方法在那些场景下<b>不会再被触发</b>（它与条件层用
-     * 同样两条判据）。按授权“保留相关防护”刻意<b>不删除</b>，作为条件层被误改/被绕过时的兜底。</p>
-     *
-     * <p>两处判据的强弱差异（条件层更强，故兜底不会比条件层宽松）：本方法用
-     * {@code acceptsProfiles(Profiles.of("prod"))}，对 profile 名<b>大小写敏感</b>且不回落
-     * default profiles；{@link NonProductionCondition} 对 profile 名做小写归一并遵循
-     * “active 优先、否则 default”的生效 profiles 语义。生产刻意绕开本配置
-     * （{@code app.providers.mode=real}）时另有 ProductionFailClosedValidator 兜底。</p>
+     * <p><b>定位说明（不得夸大）：</b>它只是与条件层判据一致的运行时复核，
+     * <b>不</b>比条件层更强、<b>不</b>声称能覆盖条件层漏掉或写错的情形——若条件层门被
+     * 移除/误写，本配置会随之一同装配或一同跳过（同一判据），本方法无法独立兜底。
+     * 这里保留它仅因授权要求“保留相关防护”，并保留其异常消息的诊断价值（输出生产
+     * 信号实际取值）。生产刻意绕开本配置（{@code app.providers.mode=real}）时另有
+     * {@link ProductionFailClosedValidator} 做实现完备性校验。</p>
      */
     private static void requireNoProductionSignals(Environment environment) {
-        boolean prodProfile = environment.acceptsProfiles(Profiles.of("prod"));
-        String appEnv = environment.getProperty("app.env");
-        boolean prodEnv = appEnv != null && "production".equalsIgnoreCase(appEnv.trim());
-        if (prodProfile || prodEnv) {
-            throw new IllegalStateException("production fail-closed: test-double providers refused"
-                    + " under production signals (active-profile-prod=" + prodProfile
-                    + ", app.env=" + appEnv + ", activeProfiles="
-                    + Arrays.toString(environment.getActiveProfiles())
-                    + "); configure app.providers.mode=real with production implementations");
+        if (NonProductionCondition.isNonProduction(environment)) {
+            return;
         }
+        String appEnv = environment.getProperty("app.env", "dev");
+        throw new IllegalStateException("production fail-closed: test-double providers refused"
+                + " under production signals (effective-profiles="
+                + NonProductionCondition.effectiveProfiles(environment)
+                + ", app.env=" + appEnv
+                + "); configure app.providers.mode=real with production implementations");
     }
 }
