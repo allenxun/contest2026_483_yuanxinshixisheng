@@ -4,7 +4,6 @@ import cn.yuanxin.mvp.web.media.StoragePort;
 import cn.yuanxin.mvp.web.testdouble.FileSystemStorageDouble;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -14,27 +13,26 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * SC-C-05 存储失败注入缝的生产 fail-closed（双判据，对齐 DocsProductionGuard）：
- * 只要出现生产信号——激活 profile 含 {@code prod} <b>或</b> {@code app.env=production}
- * ——{@link TestDoubleProvidersConfig} 就拒绝装配，使
+ * SC-C-05 存储失败注入缝的生产 fail-closed：生产信号下替身配置拒装，使
  * {@code APP_DOUBLE_STORAGE_FAIL_MODE} 在混合 profile（prod,dev）与矛盾组合
- * （prod profile + app.env=dev，即便显式 mode=doubles）下均不可达；纯 prod profile
- * 下配置根本不激活（替身不被装配）。本类为隔离上下文 runner，不启动 web 服务器；
- * 真实进程"端口未绑定"证据见交付报告。
+ * （prod profile + app.env=dev，即便显式 mode=doubles）下均不可达。本类为隔离上下文
+ * runner，不启动 web 服务器；真实进程"端口未绑定"证据见交付报告。
  *
- * <p><b>本轮机制变化（环境/实现解耦）：</b>此前 {@code TestDoubleProvidersConfig} 用
- * {@code @Profile(\{"dev","test"\})} 门，混合 {@code prod,dev} 因含 {@code dev} 而照常装配，
- * 再由 {@code storagePort()} 内 {@code requireNoProductionSignals} 在 <em>@Bean 装配期</em>
- * 抛 {@link IllegalStateException} 拒绝（根因是守卫异常）。解耦后替身配置改用共享
- * {@link NonProductionCondition}（{@code app.env != production} 且生效 profiles 不含
- * prod/production），<b>拒装在条件层提前发生</b>：混合 prod,dev 或 {@code app.env=production}
- * 时整个配置根本不装配，{@code StoragePort} 替身从不被构造（安全属性增强，非弱化）。</p>
+ * <p><b>本轮机制升级（增量 2：早期明确拒绝）：</b>上一轮解耦后，生产信号下
+ * {@code TestDoubleProvidersConfig} 在<b>条件层</b>即不装配，失败根因退化为
+ * {@code NoSuchBeanDefinitionException}（如"缺 SessionProvider/StoragePort"），
+ * 把真正原因"生产信号下不允许 doubles"掩盖掉。本轮新增早于常规单例实例化的
+ * {@link ProvidersModeProductionGuard}（{@code BeanFactoryPostProcessor}），在
+ * {@code finishBeanFactoryInitialization} 之前抛出<b>诊断异常</b>。因此本类生产信号
+ * 用例的根因由"缺 bean"改为"新守卫的 {@link IllegalStateException}"，并明确断言消息
+ * 含 {@code app.providers.mode=doubles} 不允许 + 生产信号实际取值。</p>
  *
- * <p>因此本类对"生产信号"用例的断言随之改为：需要 {@code StoragePort} 的应用组件在
- * 启动时因 <b>缺 bean</b>（{@link NoSuchBeanDefinitionException}）失败，且失败消息中
- * <b>绝不出现</b> {@code FileSystemStorageDouble} / {@code APP_DOUBLE_STORAGE_FAIL_MODE}
- * ——直接证明替身未构造、注入开关不可达。断言强度不降：仍锁定失败信号、失败根因、
- * 开关不可达三点。</p>
+ * <p>断言强度对比（未弱化）：旧断言 = 启动失败 + 根因缺 StoragePort bean + 消息不含
+ * {@code FileSystemStorageDouble}/{@code APP_DOUBLE_STORAGE_FAIL_MODE}；新断言 = 启动失败 +
+ * 根因新守卫诊断（含 mode 与信号取值，诊断更明确）+ <b>同样保留</b>消息不含
+ * {@code FileSystemStorageDouble}/{@code APP_DOUBLE_STORAGE_FAIL_MODE}（证明替身从未构造、
+ * 注入开关不可达）。另因根因类型已是守卫 {@link IllegalStateException}，等价于排除了
+ * {@code NoSuchBeanDefinitionException}。</p>
  */
 class StorageFailModeProductionFailClosedTest {
 
@@ -52,7 +50,7 @@ class StorageFailModeProductionFailClosedTest {
         }
     }
 
-    /** 代表"应用真实需要 StoragePort"的消费者，用于把"替身未装配"暴露为启动失败。 */
+    /** 代表"应用真实需要 StoragePort"的消费者；守卫更早触发后它不会被实例化。 */
     record StoragePortConsumer(StoragePort storagePort) {
     }
 
@@ -64,6 +62,7 @@ class StorageFailModeProductionFailClosedTest {
         }
     }
 
+    /** 不注册新守卫：仅验证 {@link TestDoubleProvidersConfig} 自身的条件层行为（隔离）。 */
     private static ApplicationContextRunner runner(String... profiles) {
         return new ApplicationContextRunner()
                 .withUserConfiguration(PropsConfig.class, JdbcConfig.class,
@@ -71,67 +70,73 @@ class StorageFailModeProductionFailClosedTest {
                 .withInitializer(ctx -> ctx.getEnvironment().setActiveProfiles(profiles));
     }
 
-    /** 追加依赖 StoragePort 的消费者：替身被拒装 ⇒ 消费者无法创建 ⇒ 上下文启动失败。 */
-    private static ApplicationContextRunner runnerRequiringStoragePort(String... profiles) {
+    /**
+     * 注册新守卫：生产信号 + doubles 时，守卫在 {@code BeanFactoryPostProcessor}
+     * 阶段先于任何常规单例（含 StoragePort 消费者）实例化抛出诊断异常。
+     */
+    private static ApplicationContextRunner runnerWithProductionGuard(String... profiles) {
         return new ApplicationContextRunner()
                 .withUserConfiguration(PropsConfig.class, JdbcConfig.class,
-                        TestDoubleProvidersConfig.class, StoragePortConsumerConfig.class)
+                        TestDoubleProvidersConfig.class, StoragePortConsumerConfig.class,
+                        ProvidersModeProductionGuard.class)
                 .withInitializer(ctx -> ctx.getEnvironment().setActiveProfiles(profiles));
     }
 
+    /** 新守卫诊断的公共断言：根因是守卫异常、指出 mode=doubles 不被允许、且替身从未构造。 */
+    private static void assertRefusedByProductionGuard(ApplicationContextRunner runner) {
+        runner.run(ctx -> {
+            assertThat(ctx).hasFailed();
+            assertThat(ctx.getStartupFailure())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("production fail-closed")
+                    .hasMessageContaining("app.providers.mode=doubles")
+                    .hasMessageContaining("production signals")
+                    // 替身从未构造、注入开关从未被读取。
+                    .hasMessageNotContaining("FileSystemStorageDouble")
+                    .hasMessageNotContaining("APP_DOUBLE_STORAGE_FAIL_MODE");
+        });
+    }
+
     @Test
-    @DisplayName("app.env=production + test profile + fail-put → 启动失败（替身拒装，开关不可达）")
+    @DisplayName("app.env=production + test profile + fail-put → 早期诊断拒绝（mode=doubles 不允许）")
     void productionEnvFailsClosed() {
-        runnerRequiringStoragePort("test")
+        ApplicationContextRunner runner = runnerWithProductionGuard("test")
                 .withPropertyValues("app.env=production",
-                        "APP_DOUBLE_STORAGE_FAIL_MODE=fail-put")
-                .run(ctx -> {
-                    assertThat(ctx).hasFailed();
-                    // 拒装提前到条件层：根因是缺 StoragePort bean（而非守卫异常）。
-                    assertThat(ctx.getStartupFailure())
-                            .hasRootCauseInstanceOf(NoSuchBeanDefinitionException.class)
-                            .hasStackTraceContaining("No qualifying bean of type"
-                                    + " 'cn.yuanxin.mvp.web.media.StoragePort' available")
-                            // 替身从未构造、注入开关从未被读取。
-                            .hasMessageNotContaining("FileSystemStorageDouble")
-                            .hasMessageNotContaining("APP_DOUBLE_STORAGE_FAIL_MODE");
-                });
+                        "APP_DOUBLE_STORAGE_FAIL_MODE=fail-put");
+        assertRefusedByProductionGuard(runner);
+        runner.run(ctx -> assertThat(ctx.getStartupFailure())
+                .hasMessageContaining("app.env=production"));
     }
 
     @Test
-    @DisplayName("混合 profile (prod,dev) + app.env=dev + mode=doubles + fail-put → 启动失败（profile 判据）")
+    @DisplayName("混合 profile (prod,dev) + app.env=dev + mode=doubles + fail-put → 早期诊断拒绝（profile 判据）")
     void mixedProdDevProfileFailsClosed() {
-        runnerRequiringStoragePort("prod", "dev")
+        ApplicationContextRunner runner = runnerWithProductionGuard("prod", "dev")
                 .withPropertyValues("app.env=dev", "app.providers.mode=doubles",
-                        "APP_DOUBLE_STORAGE_FAIL_MODE=fail-put")
-                .run(ctx -> {
-                    assertThat(ctx).hasFailed();
-                    assertThat(ctx.getStartupFailure())
-                            .hasRootCauseInstanceOf(NoSuchBeanDefinitionException.class)
-                            .hasMessageNotContaining("FileSystemStorageDouble")
-                            .hasMessageNotContaining("APP_DOUBLE_STORAGE_FAIL_MODE");
-                });
+                        "APP_DOUBLE_STORAGE_FAIL_MODE=fail-put");
+        assertRefusedByProductionGuard(runner);
+        runner.run(ctx -> assertThat(ctx.getStartupFailure())
+                .hasMessageContaining("app.env=dev")
+                .hasMessageContaining("prod"));
     }
 
     @Test
-    @DisplayName("app.env 大小写/空白容错：' Production ' 亦判生产信号（对齐 DocsProductionGuard）")
+    @DisplayName("app.env 大小写/空白容错：' Production ' 亦判生产信号（复用共享判据）")
     void productionEnvCaseInsensitiveAndTrimmed() {
-        runnerRequiringStoragePort("test")
+        ApplicationContextRunner runner = runnerWithProductionGuard("test")
                 .withPropertyValues("app.env= Production ",
                         "app.storage.dev-dir=target/storage-it/prod-guard-case",
-                        "APP_DOUBLE_STORAGE_FAIL_MODE=fail-put")
-                .run(ctx -> {
-                    assertThat(ctx).hasFailed();
-                    assertThat(ctx.getStartupFailure())
-                            .hasRootCauseInstanceOf(NoSuchBeanDefinitionException.class)
-                            .hasMessageNotContaining("FileSystemStorageDouble")
-                            .hasMessageNotContaining("APP_DOUBLE_STORAGE_FAIL_MODE");
-                });
+                        "APP_DOUBLE_STORAGE_FAIL_MODE=fail-put");
+        assertRefusedByProductionGuard(runner);
+        runner.run(ctx -> assertThat(ctx.getStartupFailure())
+                .hasMessageContaining("app.env=Production"));
     }
 
     @Test
-    @DisplayName("纯 prod profile → 替身配置不激活，绝不装配 StoragePort 替身")
+    @DisplayName("纯 prod profile → 不注册守卫时替身配置也不激活，绝不装配 StoragePort 替身")
     void prodProfileNeverAssemblesDouble() {
+        // 注意：本用例刻意不注册 ProvidersModeProductionGuard，只验证条件层隔离行为；
+        // “prod + doubles 被早期拒绝”由 ProductionGuard 的专用用例覆盖。
         runner("prod")
                 .withPropertyValues("app.providers.mode=doubles")
                 .run(ctx -> {
@@ -168,29 +173,27 @@ class StorageFailModeProductionFailClosedTest {
     }
 
     @Test
-    @DisplayName("混合生产信号 → 条件层即拒装（缺 bean 启动失败），替身从未构造、开关不可达")
+    @DisplayName("混合生产信号 → 早期诊断即拒（守卫异常，非缺 bean），替身从未构造、开关不可达")
     void productionSignalRefusesAssemblyBeforeAnyStoragePortExists() {
-        // 刻意不探测固定端口：本类是非 web 的隔离 runner，硬编码端口（曾用 18083）会与
-        // 同时运行真实应用的端到端验收 harness 冲突并报 BindException，证明力却极弱。
-        // "端口从未绑定"由真实进程证据承担（打包 jar 以 prod,dev + app.env=dev + fail-put
-        // 启动 → 退出码非 0、日志中 "Tomcat started on port" 出现 0 次、端口空闲）。
-        runnerRequiringStoragePort("prod", "dev")
+        // 刻意不探测固定端口：本类是非 web 的隔离 runner，硬编码端口会与同时运行真实应用
+        // 的端到端验收 harness 冲突并报 BindException，证明力却极弱。"端口从未绑定"由真实
+        // 进程证据承担（打包 jar 以 prod,dev + app.env=dev + mode=doubles 启动 → 退出码非 0）。
+        ApplicationContextRunner runner = runnerWithProductionGuard("prod", "dev")
                 .withPropertyValues("app.env=dev", "app.providers.mode=doubles",
-                        "APP_DOUBLE_STORAGE_FAIL_MODE=fail-put")
-                .run(ctx -> {
-                    assertThat(ctx).hasFailed();
-                    // 机制变化：解耦后拒装发生在条件层，替身配置整体不装配，故依赖
-                    // StoragePort 的消费者因“无此 bean”失败（而非旧守卫抛 IllegalStateException）。
-                    assertThat(ctx.getStartupFailure())
-                            .hasRootCauseInstanceOf(NoSuchBeanDefinitionException.class)
-                            .hasStackTraceContaining("No qualifying bean of type"
-                                    + " 'cn.yuanxin.mvp.web.media.StoragePort' available")
-                            .hasMessageContaining("storagePortConsumer");
-                    // 替身从未构造 ⇒ 上下文不存在任何可注入的 StoragePort 替身，
-                    // 注入开关在生产信号下不可达（消息层面直接证明）。
-                    assertThat(ctx.getStartupFailure())
-                            .hasMessageNotContaining("FileSystemStorageDouble")
-                            .hasMessageNotContaining("APP_DOUBLE_STORAGE_FAIL_MODE");
-                });
+                        "APP_DOUBLE_STORAGE_FAIL_MODE=fail-put");
+        runner.run(ctx -> {
+            assertThat(ctx).hasFailed();
+            // 根因是新守卫的早期诊断，而不再是"缺 StoragePort bean"的 NoSuchBeanDefinitionException。
+            assertThat(ctx.getStartupFailure())
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("app.providers.mode=doubles is not allowed")
+                    .hasMessageContaining("production signals")
+                    .hasMessageContaining("app.env=dev")
+                    .hasMessageContaining("configure app.providers.mode=real");
+            // 替身从未构造 ⇒ 注入开关不可达（消息层面直接证明）。
+            assertThat(ctx.getStartupFailure())
+                    .hasMessageNotContaining("FileSystemStorageDouble")
+                    .hasMessageNotContaining("APP_DOUBLE_STORAGE_FAIL_MODE");
+        });
     }
 }

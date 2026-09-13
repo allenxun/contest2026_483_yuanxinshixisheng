@@ -68,6 +68,20 @@ class DocsProductionGuardTest {
                         .getFailure().hasMessageContaining("production fail-closed"));
     }
 
+    @Test
+    @DisplayName("IMPORTANT-2：字面 production profile（app.env=dev）+ 文档强开 → 启动失败（判据已统一）")
+    void productionLiteralProfileWithDevEnvAndDocsEnabledFails() {
+        runner()
+                .withInitializer(ctx -> ctx.getEnvironment().setActiveProfiles("production", "dev"))
+                .withPropertyValues("app.env=dev", "springdoc.api-docs.enabled=true",
+                        "springdoc.swagger-ui.enabled=true")
+                .run(ctx -> assertThat(ctx).hasFailed()
+                        .getFailure()
+                        .hasMessageContaining("production fail-closed")
+                        .hasMessageContaining("production")
+                        .hasMessageContaining("effective-profiles"));
+    }
+
     // ---------- 不误伤 ----------
 
     @Test
