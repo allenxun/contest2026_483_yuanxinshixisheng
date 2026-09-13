@@ -168,4 +168,3 @@ def verify():
         )
 
     return _verify
-
