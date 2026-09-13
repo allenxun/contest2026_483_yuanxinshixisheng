@@ -56,6 +56,7 @@ public class TestDoubleProvidersConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "app.storage.provider", havingValue = "doubles", matchIfMissing = true)
     public StoragePort storagePort(AppProperties props, Environment environment,
             @Value("${APP_DOUBLE_STORAGE_FAIL_MODE:none}") String failMode) {
         requireNoProductionSignals(environment);
