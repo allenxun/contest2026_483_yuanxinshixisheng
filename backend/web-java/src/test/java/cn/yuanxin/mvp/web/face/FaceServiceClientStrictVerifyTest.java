@@ -152,7 +152,7 @@ class FaceServiceClientStrictVerifyTest {
     @DisplayName("合规响应：全字段齐全 + subject_id echo 一致 ⇒ 正确解析（不默认）")
     void validStrictResponseParsed() {
         stub.verifyRaw(200, "{\"matched\":true,\"similarity\":0.87,\"threshold\":0.4,"
-                + "\"liveness\":{\"supported\":true,\"reason\":\"stub-capable\"},"
+                + "\"liveness\":{\"supported\":true,\"passed\":true,\"reason\":\"stub-capable\"},"
                 + "\"subject_id\":\"subj-1\",\"request_id\":\"r-ok\"}");
         FaceServiceClient.VerifyResult result = client.verify(SYNTHETIC_IMAGE, NAMESPACE, SUBJECT, 0.4);
         assertThat(result.matched()).isTrue();
@@ -165,7 +165,63 @@ class FaceServiceClientStrictVerifyTest {
     @DisplayName("合规响应：不返回 subject_id 时允许（仅要求'若返回则须一致'）")
     void absentSubjectIdAllowed() {
         stub.verifyRaw(200, "{\"matched\":false,\"similarity\":0.1,\"threshold\":0.4,"
-                + "\"liveness\":{\"supported\":true}}");
+                + "\"liveness\":{\"supported\":true,\"passed\":true}}");
         assertThat(client.verify(SYNTHETIC_IMAGE, NAMESPACE, SUBJECT, null).matched()).isFalse();
+    }
+
+    // ---------- IMPORTANT: liveness.passed 契约冻结 ----------
+
+    @Test
+    @DisplayName("契约冻结：supported=true 但缺 passed ⇒ 拒绝（LIVENESS_NOT_PASSED/CAPABILITY），绝不 MATCHED")
+    void supportedButMissingPassedFailsClosed() {
+        stub.verifyRaw(200, "{\"matched\":true,\"similarity\":0.99,\"threshold\":0.4,"
+                + "\"liveness\":{\"supported\":true,\"reason\":\"capable\"},\"subject_id\":\"subj-1\"}");
+        assertThatThrownBy(() -> client.verify(SYNTHETIC_IMAGE, NAMESPACE, SUBJECT, 0.4))
+                .isInstanceOf(FaceServiceException.class)
+                .satisfies(thrown -> {
+                    FaceServiceException e = (FaceServiceException) thrown;
+                    assertThat(e.error().code()).isEqualTo("LIVENESS_NOT_PASSED");
+                    assertThat(e.error().retryable()).isFalse();
+                    assertThat(e.error().httpStatus()).isEqualTo(501);
+                    assertThat(e.kind()).isEqualTo(FaceServiceFailureKind.CAPABILITY);
+                });
+    }
+
+    @Test
+    @DisplayName("契约冻结：supported=true 且 passed=false ⇒ 拒绝（绝不因 matched 放行）")
+    void supportedButPassedFalseFailsClosed() {
+        stub.verifyRaw(200, "{\"matched\":true,\"similarity\":0.99,\"threshold\":0.4,"
+                + "\"liveness\":{\"supported\":true,\"passed\":false},\"subject_id\":\"subj-1\"}");
+        assertThatThrownBy(() -> client.verify(SYNTHETIC_IMAGE, NAMESPACE, SUBJECT, 0.4))
+                .isInstanceOf(FaceServiceException.class)
+                .satisfies(thrown -> assertThat(((FaceServiceException) thrown).error().code())
+                        .isEqualTo("LIVENESS_NOT_PASSED"));
+    }
+
+    @Test
+    @DisplayName("契约冻结：supported=true 且 passed 非 JSON boolean（字符串 \"true\"）⇒ 拒绝")
+    void supportedButPassedWrongTypeFailsClosed() {
+        stub.verifyRaw(200, "{\"matched\":true,\"similarity\":0.99,\"threshold\":0.4,"
+                + "\"liveness\":{\"supported\":true,\"passed\":\"true\"},\"subject_id\":\"subj-1\"}");
+        assertThatThrownBy(() -> client.verify(SYNTHETIC_IMAGE, NAMESPACE, SUBJECT, 0.4))
+                .isInstanceOf(FaceServiceException.class)
+                .satisfies(thrown -> assertThat(((FaceServiceException) thrown).error().code())
+                        .isEqualTo("LIVENESS_NOT_PASSED"));
+    }
+
+    @Test
+    @DisplayName("契约冻结：supported=true + passed=true + matched=true ⇒ MATCHED（正向可达）")
+    void supportedPassedAndMatchedIsMatched() {
+        stub.verifyRaw(200, "{\"matched\":true,\"similarity\":0.87,\"threshold\":0.4,"
+                + "\"liveness\":{\"supported\":true,\"passed\":true},\"subject_id\":\"subj-1\"}");
+        assertThat(client.verify(SYNTHETIC_IMAGE, NAMESPACE, SUBJECT, 0.4).matched()).isTrue();
+    }
+
+    @Test
+    @DisplayName("契约冻结：supported=true + passed=true + matched=false ⇒ MISMATCH（不误判 MATCHED）")
+    void supportedPassedAndNotMatchedIsMismatch() {
+        stub.verifyRaw(200, "{\"matched\":false,\"similarity\":0.1,\"threshold\":0.4,"
+                + "\"liveness\":{\"supported\":true,\"passed\":true},\"subject_id\":\"subj-1\"}");
+        assertThat(client.verify(SYNTHETIC_IMAGE, NAMESPACE, SUBJECT, 0.4).matched()).isFalse();
     }
 }
