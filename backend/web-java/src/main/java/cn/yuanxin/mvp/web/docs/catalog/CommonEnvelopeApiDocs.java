@@ -1,7 +1,8 @@
 package cn.yuanxin.mvp.web.docs.catalog;
 
+import cn.yuanxin.mvp.web.config.NonProductionCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -26,7 +27,7 @@ import java.util.Map;
  * 只提供属性级与自由结构文档。</p>
  */
 @Component
-@Profile({"dev", "test"})
+@Conditional(NonProductionCondition.class)
 @ConditionalOnProperty(name = "springdoc.api-docs.enabled", havingValue = "true")
 public class CommonEnvelopeApiDocs implements ApiDocsCatalog {
 

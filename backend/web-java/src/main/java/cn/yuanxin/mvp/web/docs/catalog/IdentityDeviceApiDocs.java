@@ -1,13 +1,14 @@
 package cn.yuanxin.mvp.web.docs.catalog;
 
 import cn.yuanxin.mvp.web.devices.DeviceDtos;
+import cn.yuanxin.mvp.web.config.NonProductionCondition;
 import cn.yuanxin.mvp.web.error.ErrorCode;
 import cn.yuanxin.mvp.web.identity.MemberAccessGrantController;
 import cn.yuanxin.mvp.web.identity.MemberAccessGrantService;
 import cn.yuanxin.mvp.web.notifications.NotificationDestinationDtos;
 import io.swagger.v3.oas.models.tags.Tag;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.Set;
  * 不编造语义。本类只写文档内容，不触碰任何控制器/DTO/业务代码。</p>
  */
 @Component
-@Profile({"dev", "test"})
+@Conditional(NonProductionCondition.class)
 @ConditionalOnProperty(name = "springdoc.api-docs.enabled", havingValue = "true")
 public class IdentityDeviceApiDocs implements ApiDocsCatalog {
 

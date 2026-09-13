@@ -1,5 +1,6 @@
 package cn.yuanxin.mvp.web.docs;
 
+import cn.yuanxin.mvp.web.config.NonProductionCondition;
 import cn.yuanxin.mvp.web.docs.catalog.ApiDocsCatalog;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.Components;
@@ -12,8 +13,8 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -27,7 +28,7 @@ import java.util.Set;
  * 从<strong>实际 Controller/DTO</strong>（springdoc 扫描 {@code @RestController}
  * 与 handler 方法签名）生成 OpenAPI 的 B 包文档配置。
  *
- * <p><b>仅 dev/test profile 且 springdoc 明确启用时注册</b>（{@link Profile} +
+ * <p><b>仅非生产环境且 springdoc 明确启用时注册</b>（{@link NonProductionCondition} +
  * {@link ConditionalOnProperty}）：生产不注册任何文档 bean；{@link DocsProductionGuard}
  * 则始终注册，按运行时生产信号（active profile 含 prod 或 app.env=production）对任何
  * 误启用做 fail-closed，不因 profile/env 被覆盖而失效。</p>
@@ -38,7 +39,7 @@ import java.util.Set;
  * 路由表，不是旧手写 YAML 的回显。</p>
  */
 @Configuration(proxyBeanMethods = false)
-@Profile({"dev", "test"})
+@Conditional(NonProductionCondition.class)
 @ConditionalOnProperty(name = "springdoc.api-docs.enabled", havingValue = "true")
 public class OpenApiDocsConfig {
 
