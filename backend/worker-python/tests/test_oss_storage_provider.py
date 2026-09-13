@@ -16,8 +16,10 @@ from __future__ import annotations
 
 import base64
 import http.server
+import logging
 import threading
 import uuid
+from contextlib import contextmanager
 from typing import Any
 from urllib.parse import unquote, urlparse
 
@@ -37,6 +39,7 @@ from mvp_worker.handlers.dshared.dmedia import (
 )
 from mvp_worker.handlers.dshared.providers import build_storage_port
 from mvp_worker.handlers.dshared.resolve import storage_for
+from mvp_worker.logging_setup import JsonFormatter
 from mvp_worker.media.storage import (
     OSS_ACCESS_KEY_ID_ENV,
     OSS_ACCESS_KEY_SECRET_ENV,
@@ -782,3 +785,103 @@ def test_archive_existing_row_bucket_mismatch_is_terminal(
         )
     assert ei.value.terminal is True
     assert not any((tmp_path / "s").rglob("*"))  # 未写任何对象
+
+
+# ============================================= 9) 日志卫生（与 Java 侧一致）
+
+
+@contextmanager
+def _captured_storage_log() -> Any:
+    """捕获 ``mvp_worker.media.storage`` 的结构化 JSON 日志行。"""
+    logger = logging.getLogger("mvp_worker.media.storage")
+    lines: list[str] = []
+
+    class _Capture(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            lines.append(self.format(record))
+
+    handler = _Capture()
+    handler.setFormatter(JsonFormatter())
+    old_level, old_prop = logger.level, logger.propagate
+    logger.addHandler(handler)
+    logger.setLevel(logging.WARNING)
+    logger.propagate = False
+    try:
+        yield lines
+    finally:
+        logger.removeHandler(handler)
+        logger.setLevel(old_level)
+        logger.propagate = old_prop
+
+
+def test_oss_error_log_omits_bucket_and_full_key() -> None:
+    """OSS 失败日志不得含真实桶名/完整 objectKey/media_id；含新字段。"""
+    media_id = str(uuid.uuid4())
+    object_key = build_object_key("dev", "assessment_result", media_id)
+    exc = oss2.exceptions.AccessDenied(403, {}, b"", {"Code": "AccessDenied"})
+    storage = _oss_storage(_RaisingBucket(exc))
+
+    with _captured_storage_log() as lines:
+        with pytest.raises(StorageConfigError):
+            storage.put(object_key, b"x", content_type="image/png")
+
+    assert len(lines) == 1
+    text = lines[0]
+    # 必须移除：真实桶名 / 完整 key / media_id / 凭据
+    assert FAKE_BUCKET not in text
+    assert object_key not in text
+    assert media_id not in text
+    assert FAKE_AK not in text and FAKE_SK not in text
+    # 必须保留/新增：operation / bucketConfigured / purpose / ossCode / httpStatus
+    assert '"operation": "put"' in text
+    assert '"bucketConfigured": true' in text
+    assert '"purpose": "assessment_result"' in text
+    assert '"ossCode": "AccessDenied"' in text
+    assert '"httpStatus": 403' in text
+
+
+def test_oss_error_log_get_path_and_bucket_configured_false() -> None:
+    """get 路径同样脱敏；未配置桶 → bucketConfigured=false（仍不写桶名）。"""
+    media_id = str(uuid.uuid4())
+    object_key = build_object_key("dev", "assessment_source", media_id)
+    exc = oss2.exceptions.ServerError(503, {}, b"", {"Code": "ServiceUnavailable"})
+    storage = _oss_storage(_RaisingBucket(exc))
+
+    with _captured_storage_log() as lines:
+        with pytest.raises(StorageTransientError):
+            storage.get(object_key)
+
+    assert len(lines) == 1
+    text = lines[0]
+    assert FAKE_BUCKET not in text and object_key not in text and media_id not in text
+    assert '"operation": "get"' in text
+    assert '"purpose": "assessment_source"' in text
+    assert '"ossCode": "ServiceUnavailable"' in text
+
+    # 直接调用：bucket="" → false，且不出现任何桶名。
+    from mvp_worker.media.storage import _map_oss_error
+
+    with _captured_storage_log() as lines2:
+        mapped = _map_oss_error(
+            exc, operation="exists", object_key=object_key, bucket=""
+        )
+    assert isinstance(mapped, StorageTransientError)
+    assert len(lines2) == 1
+    assert '"bucketConfigured": false' in lines2[0]
+    assert object_key not in lines2[0]
+
+
+def test_oss_error_log_unparsed_purpose_never_falls_back_to_key() -> None:
+    """无法解析用途段 → "<unparsed>"，绝不回退输出完整 key。"""
+    malformed = "mediaid-without-slashes"
+    exc = oss2.exceptions.ServerError(500, {}, b"", {"Code": "InternalError"})
+    storage = _oss_storage(_RaisingBucket(exc))
+
+    with _captured_storage_log() as lines:
+        with pytest.raises(StorageTransientError):
+            storage.put(malformed, b"x", content_type="image/png")
+
+    assert len(lines) == 1
+    text = lines[0]
+    assert malformed not in text
+    assert '"purpose": "<unparsed>"' in text
