@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @Conditional(NonProductionCondition.class)
 @ConditionalOnProperty(name = "app.providers.mode", havingValue = "doubles", matchIfMissing = true)
+@ConditionalOnProperty(name = "app.face.provider", havingValue = "doubles", matchIfMissing = true)
 public class IdentityProvidersConfig {
 
     @Bean
