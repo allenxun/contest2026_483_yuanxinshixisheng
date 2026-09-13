@@ -222,21 +222,27 @@ def _map_oss_error(
     配置/数据缺陷并浪费重试预算（fail-closed）。未知 5xx/网络仍可重试，未知 4xx 以及
     无 status 的未知异常按终态处理。
 
-    日志只含 bucket / object key / request_id / OSS code / HTTP status，
-    **绝不**记录 AK/SK/SecurityToken（它们也不在本函数入参中）。
+    日志只含 ``operation`` / ``bucketConfigured``（布尔，**只表示是否已配置、
+    绝不含桶名取值**）/ 用途段 ``purpose``（objectKey 第二段，如
+    ``assessment_result``）/ ``request_id`` / OSS ``code`` / HTTP ``status``；
+    **绝不**记录真实桶名、完整 ``objectKey``、``media_id`` 或
+    AK/SK/SecurityToken（凭据也不在本函数入参中）。与 Java
+    ``OssStorageAdapter`` 的 ``op/code/requestId`` 日志卫生一致。
     """
     if isinstance(exc, StorageError):
         return exc
     status = getattr(exc, "status", None)
     code = str(getattr(exc, "code", "") or "")
     request_id = getattr(exc, "request_id", "") or ""
+    # 只取 objectKey 的第二段（用途），解析失败 → "<unparsed>"；绝不回退输出完整 key。
+    purpose = _object_purpose(object_key) or "<unparsed>"
     mlog(
         log,
         logging.WARNING,
         "oss.storage_error",
         operation=operation,
-        bucket=bucket,
-        objectKey=object_key,
+        bucketConfigured=bool(bucket),
+        purpose=purpose,
         requestId=request_id or None,
         ossCode=code or None,
         httpStatus=status if isinstance(status, int) else None,
