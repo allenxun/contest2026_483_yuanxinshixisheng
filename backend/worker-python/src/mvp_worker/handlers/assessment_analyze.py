@@ -20,6 +20,7 @@ from typing import Any, Optional
 from sqlalchemy import Connection, Engine, text
 
 from ..logging_setup import mlog
+from ..media.storage import StorageConfigError
 from ..runtime.complete import BusinessTx, StaleGeneration
 from ..runtime.rows import JobRow
 from . import HandlerContext, HandlerResult, JobFailed
@@ -222,7 +223,18 @@ class AssessmentAnalyzeHandler:
             )
             return None  # pragma: no cover - helper always raises
 
-        images = load_image_bytes(ctx.engine, storage_for(ctx), media_ids)
+        try:
+            images = load_image_bytes(ctx.engine, storage_for(ctx), media_ids)
+        except StorageConfigError:
+            # 永久性配置错误（桶不一致/权限/凭据）：终态，绝不重试、绝不吞成
+            # 可重试的 SOURCE_IMAGE_UNAVAILABLE。reason 不回显桶名/凭据。
+            self._terminal(
+                ctx, job, assessment_id, rev,
+                code="SOURCE_IMAGE_CONFIG_ERROR",
+                message="source image storage configuration error",
+                reason="source image storage configuration error",
+            )
+            return None  # pragma: no cover - _terminal always raises
         if isinstance(images, str):
             self._transient_or_terminal(
                 ctx, job, assessment_id, rev,

@@ -59,7 +59,7 @@ from .dfence import fenced_business_tx
 
 _SELECT_RESULT_MEDIA = text(
     """
-SELECT id, object_key, state, content_type, byte_size, content_hash, storage_metadata
+SELECT id, bucket, object_key, state, content_type, byte_size, content_hash, storage_metadata
 FROM media_objects
 WHERE assessment_id = CAST(:assessment_id AS uuid)
   AND photo_version = :photo_version
@@ -115,13 +115,13 @@ WHERE id = CAST(:id AS uuid) AND state = 'pending'
 
 _SELECT_MEDIA_BY_ID = text(
     """
-SELECT id, object_key, state, content_type, byte_size, content_hash
+SELECT id, bucket, object_key, state, content_type, byte_size, content_hash
 FROM media_objects WHERE id = CAST(:id AS uuid)
 """
 )
 
 _SELECT_SOURCE_MEDIA = text(
-    "SELECT id, object_key, state FROM media_objects WHERE id = CAST(:id AS uuid)"
+    "SELECT id, bucket, object_key, state FROM media_objects WHERE id = CAST(:id AS uuid)"
 )
 
 
@@ -151,6 +151,24 @@ def _bucket_for(storage: Any) -> str:
     if isinstance(bucket, str) and bucket:
         return bucket
     return DEFAULT_BUCKET
+
+
+#: bucket 不一致的终态配置错误消息：只说明来源列/配置键并声明取值省略，
+#: **绝不**输出实际桶名（日志卫生：桶名按本仓约定不视为凭据，但此处按任务要求省略）。
+_BUCKET_MISMATCH_MESSAGE = (
+    "media_objects.bucket does not match worker configured storage bucket"
+    " (column=media_objects.bucket, config=storage.bucket_name; values omitted)"
+)
+
+
+def _assert_bucket_matches(row_bucket: Any, configured_bucket: str) -> None:
+    """只读校验：T11 行记录的桶必须等于 worker 实际配置的桶。
+
+    不一致 → 终态 :class:`StorageConfigError`（避免静默按 objectKey 去**另一个桶**
+    读写）。**只校验、不改写 T11、不改业务判定**。消息不含桶名。
+    """
+    if str(row_bucket) != configured_bucket:
+        raise StorageConfigError(_BUCKET_MISMATCH_MESSAGE)
 
 
 def sniff_content_type(data: bytes) -> Optional[str]:
@@ -193,6 +211,7 @@ def _row_matches(
     byte_size: int,
     content_hash: str,
     object_key: Optional[str] = None,
+    bucket: Optional[str] = None,
 ) -> bool:
     if (
         row.get("content_type") != content_type
@@ -201,6 +220,8 @@ def _row_matches(
     ):
         return False
     if object_key is not None and str(row.get("object_key")) != object_key:
+        return False
+    if bucket is not None and str(row.get("bucket")) != bucket:
         return False
     return True
 
@@ -248,6 +269,10 @@ def _claim_or_reuse(
             )
             return media_id, object_key, "put"
 
+        # 只读校验：既有结果行记录桶必须等于当前配置桶，否则不得按 objectKey 去
+        # 另一个桶复用/覆盖（终态配置错误，不 put、不改行）。
+        _assert_bucket_matches(existing.get("bucket"), bucket)
+
         media_id = str(existing["id"])
         object_key = str(existing["object_key"])
         state = existing.get("state")
@@ -292,6 +317,7 @@ def _claim_or_reuse(
                     content_type=content_type,
                     byte_size=byte_size,
                     content_hash=content_hash,
+                    bucket=bucket,
                 ):
                     return media_id, object_key, "reuse"
                 raise _contract_violation(
@@ -325,17 +351,24 @@ def _archive_one(
     byte_size: int,
     content_hash: str,
 ) -> dict[str, Any]:
-    media_id, object_key, decision = _claim_or_reuse(
-        engine,
-        environment=environment,
-        bucket=bucket,
-        assessment_id=assessment_id,
-        photo_version=photo_version,
-        ref=ref,
-        content_type=content_type,
-        byte_size=byte_size,
-        content_hash=content_hash,
-    )
+    try:
+        media_id, object_key, decision = _claim_or_reuse(
+            engine,
+            environment=environment,
+            bucket=bucket,
+            assessment_id=assessment_id,
+            photo_version=photo_version,
+            ref=ref,
+            content_type=content_type,
+            byte_size=byte_size,
+            content_hash=content_hash,
+        )
+    except StorageConfigError as exc:
+        # 既有行记录桶与配置桶不一致等配置错误：归档路径统一映射为**终态**
+        # ArchiveError（不 put、不改行；不得伪装成可重试的瞬时故障）。
+        raise ArchiveError(
+            "RESULT_ARCHIVE_FAILED", "storage configuration error", terminal=True
+        ) from exc
     if decision == "reuse":
         return {"media_id": media_id, "caption": caption, "content_type": content_type}
 
@@ -381,6 +414,7 @@ def _archive_one(
                 byte_size=byte_size,
                 content_hash=content_hash,
                 object_key=object_key,
+                bucket=bucket,
             ):
                 raise _contract_violation("result media promotion diverged concurrently")
     return {"media_id": media_id, "caption": caption, "content_type": content_type}
@@ -465,8 +499,20 @@ def _json(value: Any) -> str:
 def load_image_bytes(
     engine: Engine, storage: Any, media_ids: dict[str, str]
 ) -> "dict[str, bytes] | str":
-    """按 media_id 读取各视角对象字节；失败返回原因字符串（保持单表读、无 JOIN）。"""
+    """按 media_id 读取各视角对象字节；失败返回原因字符串（保持单表读、无 JOIN）。
+
+    **失败语义分层**（不得混淆）：
+
+    - ``StorageConfigError``（桶不一致/权限/凭据/永久配置）→ **向上抛出**，由调用方
+      走终态配置错误路径；绝不吞成可重试字符串（避免永久故障无限重试）。
+    - 其它存储异常（网络/5xx 瞬时）→ 返回原因字符串，调用方映射为可重试
+      ``SOURCE_IMAGE_UNAVAILABLE``。
+
+    **只读 bucket 校验**：T11 行记录的桶必须等于 worker 配置桶才发起对象读取；
+    不一致 → 终态 ``StorageConfigError`` 且**不发起任何对象读取**。
+    """
     out: dict[str, bytes] = {}
+    configured_bucket = _bucket_for(storage)
     for view, media_id in media_ids.items():
         with engine.connect() as conn:
             row = conn.execute(_SELECT_SOURCE_MEDIA, {"id": media_id}).mappings().first()
@@ -474,8 +520,12 @@ def load_image_bytes(
             return f"media row missing for view {view}"
         if row["state"] != "available":
             return f"media not available for view {view}"
+        # 读取前只读校验桶：绝不静默按 objectKey 去另一个桶读（IMPORTANT 6）。
+        _assert_bucket_matches(row["bucket"], configured_bucket)
         try:
             out[view] = storage.get(str(row["object_key"]))
+        except StorageConfigError:
+            raise  # 配置/权限/永久错误不吞、不转为可重试
         except Exception:  # 存储瞬时不可读 → 可重试
             return f"storage read failed for view {view}"
     return out

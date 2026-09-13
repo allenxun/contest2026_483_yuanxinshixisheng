@@ -151,14 +151,76 @@ class FilesystemStorageDouble:
         return self._path(object_key).is_file()
 
 
+# --- OSS 错误 → 重试语义 显式分类表 -------------------------------------------
+# 不存在语义：**仅**对象缺失（NoSuchKey）。注意 ``NoSuchBucket`` 在 OSS 也返回
+# HTTP 404，但它是**永久性配置错误**（bucket 名错/未创建），必须归 CONFIG，绝不能
+# 当成"对象不存在"或可重试。
+_OSS_NOT_FOUND_CODES = frozenset({"NoSuchKey"})
+
+# 永久性配置/权限/参数错误 → :class:`StorageConfigError`（终态，不可重试）。
+# 覆盖凭据/签名/时钟/域名/bucket 参数/对象名/请求体/能力不支持/已存在/过大等
+# 重试绝不会成功的错误码（即使其 HTTP 状态是 4xx 或 404）。
+_OSS_PERMANENT_CODES = frozenset(
+    {
+        "NoSuchBucket",
+        "InvalidBucketName",
+        "AccessDenied",
+        "InvalidAccessKeyId",
+        "InvalidAccessKeyID",
+        "SignatureDoesNotMatch",
+        "RequestTimeTooSkewed",
+        "SecondLevelDomainForbidden",
+        "MissingSecurityToken",
+        "InvalidSecurityToken",
+        "SecurityTokenExpired",
+        "InvalidArgument",
+        "InvalidObjectName",
+        "MalformedXML",
+        "OperationNotSupported",
+        "ObjectAlreadyExists",
+        "EntityTooLarge",
+    }
+)
+
+# 确属瞬时的 OSS 错误码（服务端过载/超时/限流/传输完整性）→ 可重试。
+_OSS_TRANSIENT_CODES = frozenset(
+    {
+        "RequestTimeout",
+        "OperationTimeout",
+        "ServiceUnavailable",
+        "InternalError",
+        "TooManyRequests",
+    }
+)
+
+
 def _map_oss_error(
     exc: BaseException, *, operation: str, object_key: str, bucket: str
 ) -> StorageError:
     """把 oss2 异常映射为**决定重试语义**的三类 :class:`StorageError`。
 
-    - ``NoSuchKey`` / 404 → :class:`StorageNotFoundError`（"不存在"语义）；
-    - ``RequestError``（DNS/连接/超时）/ 5xx → :class:`StorageTransientError`（可重试）；
-    - 凭据/签名/``AccessDenied``/其它 4xx 参数类 → :class:`StorageConfigError`（终态）。
+    分类表（判定顺序即优先级）：
+
+    ============================== ========================= ==================
+    输入                           映射                       重试语义
+    ============================== ========================= ==================
+    ``NoSuchKey`` / code=NoSuchKey :class:`StorageNotFoundError` 不存在语义
+    code ∈ 永久码集合（含 NoSuchBucket/AccessDenied/        :class:`StorageConfigError`   **终态**
+    InvalidAccessKeyId/SignatureDoesNotMatch/RequestTimeTooSkewed/
+    SecondLevelDomainForbidden/InvalidBucketName/InvalidArgument/…）
+    ``RequestError``（DNS/连接/超时）                      :class:`StorageTransientError` **可重试**
+    ``InconsistentError``（CRC/传输完整性）/code ∈ 瞬时码集合 :class:`StorageTransientError` **可重试**
+    status 429 / ≥500                                      :class:`StorageTransientError` **可重试**
+    ``ClientError``（SDK 侧参数/配置）/ 其它 4xx（含        :class:`StorageConfigError`   **终态**
+    未识别 code 的 404）
+    **兜底（无可用 status 的未知异常）**                    :class:`StorageConfigError`   **终态**
+    ============================== ========================= ==================
+
+    **兜底方向 = 终态（StorageConfigError），理由**：oss2 已把所有传输层故障统一
+    包装为 ``RequestError``（status=-2），HTTP 响应则保留真实 status；因此能落到
+    兜底的既非网络错误也非 5xx/429，重试极可能无益，继续按可重试处理只会掩盖永久性
+    配置/数据缺陷并浪费重试预算（fail-closed）。未知 5xx/网络仍可重试，未知 4xx 以及
+    无 status 的未知异常按终态处理。
 
     日志只含 bucket / object key / request_id / OSS code / HTTP status，
     **绝不**记录 AK/SK/SecurityToken（它们也不在本函数入参中）。
@@ -166,7 +228,7 @@ def _map_oss_error(
     if isinstance(exc, StorageError):
         return exc
     status = getattr(exc, "status", None)
-    code = getattr(exc, "code", "") or ""
+    code = str(getattr(exc, "code", "") or "")
     request_id = getattr(exc, "request_id", "") or ""
     mlog(
         log,
@@ -191,22 +253,33 @@ def _map_oss_error(
     except Exception:  # pragma: no cover - oss2 缺失（非 aliyun_oss 部署不会有此路径）
         oss_exc = None  # type: ignore[assignment]
 
+    # 1) 不存在语义：仅对象缺失。
+    if code in _OSS_NOT_FOUND_CODES:
+        return _build(StorageNotFoundError)
     if oss_exc is not None and isinstance(exc, oss_exc.NoSuchKey):
         return _build(StorageNotFoundError)
-    if status == 404:
-        return _build(StorageNotFoundError)
+    # 2) 明确的永久性配置/权限/参数错误（必须先于任何 status==404/4xx 判断，
+    #    因为 NoSuchBucket 等也是 404）。
+    if code in _OSS_PERMANENT_CODES:
+        return _build(StorageConfigError)
+    # 3) 瞬时：传输层 / 传输完整性 / 限流 / 5xx。
     if oss_exc is not None and isinstance(exc, oss_exc.RequestError):
         return _build(StorageTransientError)
-    if status == -2:  # OSS_REQUEST_ERROR_STATUS
+    if oss_exc is not None and isinstance(exc, oss_exc.InconsistentError):
         return _build(StorageTransientError)
-    if isinstance(status, int) and status >= 500:
+    if status == -2:  # OSS_REQUEST_ERROR_STATUS（网络/DNS/连接/超时）
         return _build(StorageTransientError)
+    if isinstance(status, int) and (status == 429 or status >= 500):
+        return _build(StorageTransientError)
+    if code in _OSS_TRANSIENT_CODES:
+        return _build(StorageTransientError)
+    # 4) 终态：SDK 侧 ClientError / 其它 4xx 参数与权限错误（含未识别 code 的 404）。
     if oss_exc is not None and isinstance(exc, oss_exc.ClientError):
         return _build(StorageConfigError)
     if isinstance(status, int) and 400 <= status < 500:
         return _build(StorageConfigError)
-    # 未知异常：保守按瞬时处理（不把可能的网络故障误判为不可恢复终态）。
-    return _build(StorageTransientError)
+    # 5) 兜底：终态配置错误（见 docstring 取舍说明）。
+    return _build(StorageConfigError)
 
 
 class AliyunOssStorage:
