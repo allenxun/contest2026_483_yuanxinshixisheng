@@ -123,9 +123,23 @@ install -m 0644 "$UNIT_SRC" "$UNIT_DST"
 log "installed unit: $UNIT_DST"
 
 # --- 6. (re)start --------------------------------------------------------
+# NOTE: `systemctl enable --now` does **not** restart an already-running unit,
+# so a redeploy would silently keep the OLD code in memory while the script
+# reported success (observed in practice: new source on disk, old PID serving,
+# pre-fix access-log behaviour still present).  Therefore: always `restart`,
+# and assert the main PID actually changed when the unit was already active.
 systemctl --user daemon-reload
-systemctl --user enable --now "$UNIT_NAME"
-log "service enabled and started"
+PREV_ACTIVE="$(systemctl --user is-active "$UNIT_NAME" 2>/dev/null || true)"
+PREV_PID="$(systemctl --user show "$UNIT_NAME" -p ExecMainPID --value 2>/dev/null || true)"
+systemctl --user enable "$UNIT_NAME"
+systemctl --user restart "$UNIT_NAME"
+NEW_PID="$(systemctl --user show "$UNIT_NAME" -p ExecMainPID --value 2>/dev/null || true)"
+if [ "$PREV_ACTIVE" = "active" ] && [ -n "$PREV_PID" ] && [ "$PREV_PID" != "0" ] \
+   && [ "$NEW_PID" = "$PREV_PID" ]; then
+  fail "unit was NOT restarted (ExecMainPID unchanged: $PREV_PID); old code may still be serving"
+  exit 1
+fi
+log "service enabled and restarted (previous pid=${PREV_PID:-none} -> current pid=${NEW_PID:-unknown})"
 
 # --- 7. health check -----------------------------------------------------
 HOST="$(env_val FACE_SVC_HOST)"; HOST="${HOST:-10.3.6.163}"

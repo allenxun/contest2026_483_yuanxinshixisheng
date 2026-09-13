@@ -70,7 +70,9 @@ cd /home/bool/deployment/InsightFace-for-openvela
 3. `uv sync --frozen`.
 4. Creates `data/` (0700) and `logs/` (0750).
 5. Installs the unit to `~/.config/systemd/user/`.
-6. `systemctl --user daemon-reload && systemctl --user enable --now`.
+6. `systemctl --user daemon-reload && systemctl --user enable && systemctl --user restart`
+   （**必须 `restart`**：`enable --now` 对已运行的 unit 不会重启，重新部署会静默保留旧代码；
+   脚本另断言 `ExecMainPID` 确实变化，否则明确失败）。
 7. Polls `/v1/health` for up to 60 s and prints a **sanitized** summary
    (`status`, `model_loaded`, `model_version`, `library_revision`,
    `liveness.supported`) — never the token.
