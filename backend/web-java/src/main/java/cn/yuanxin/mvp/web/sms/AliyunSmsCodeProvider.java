@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 阿里云短信 {@link SmsCodeProvider} 真实实现（{@code app.sms.provider=aliyun}）。
@@ -41,9 +42,29 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 5 条 / 1 天 10 条，按 <b>UTC+8 自然窗口</b>）均由 {@link SmsRiskProperties} 配置。时间源为
  * 可注入 {@link Clock}（测试用固定/可变时钟，不用 sleep）。</p>
  *
+ * <p><b>并发安全（BLOCKER 3）</b>：{@code issue} 的「预检 → 远端发送 → 记录受理」三步在
+ * <b>按手机号分条带的固定数量 {@link ReentrantLock}</b> 内整体串行化（条带数 {@link #SEND_STRIPES}，
+ * 索引 {@code Math.floorMod(phone.hashCode(), SEND_STRIPES)}）。同手机号必须串行，才能防止
+ * 并发请求全部通过预检后各发一条<b>计费</b>短信；不同手机号落在不同条带，基本并行。
+ * <b>刻意</b>把远端发送包含在锁内（牺牲同号吞吐换取计费安全）。不用无界 per-phone 锁 map，
+ * 避免锁对象永不回收的泄漏。</p>
+ *
+ * <p><b>有界内存（IMPORTANT 8）</b>：两个内存 map 均有上限并做机会式清理：</p>
+ * <ul>
+ *   <li>{@code challenges}：每次 {@code issue}/{@code verify} 清理已过期条目；超过
+ *       {@code maxChallenges} 时<b>拒绝新签发</b>并抛 503 {@code DEPENDENCY_UNAVAILABLE}
+ *       （消息只含上限值、<b>绝不</b>含手机号）——不静默丢弃最旧的有效 challenge 导致用户无法登录；
+ *       尝试次数耗尽即刻 remove。</li>
+ *   <li>{@code acceptedSends}：按手机号剪枝超过保留窗口的历史，历史为空即移除该 key；
+ *       phone key 数量超过 {@code maxTrackedPhones} 时同样拒绝新签发（fail-closed）。</li>
+ * </ul>
+ * <p>容量上限通过构造器注入（默认 {@link #DEFAULT_MAX_CHALLENGES}/{@link #DEFAULT_MAX_TRACKED_PHONES}），
+ * 但<b>不改变</b>任何既有风控语义（TTL、一次性、尝试上限、三窗口 UTC+8 自然窗口）。</p>
+ *
  * <p><b>已知局限（如实披露）</b>：challenge 与节流历史均为<b>进程内内存</b>
  * （{@code ConcurrentHashMap}）⇒ 应用重启即失效、多实例之间不共享。本地节流仅是<b>调用计费
- * 接口前的预检</b>，平台仍可能返回 {@code isv.BUSINESS_LIMIT_CONTROL} 等平台流控。</p>
+ * 接口前的预检</b>，平台仍可能返回 {@code isv.BUSINESS_LIMIT_CONTROL} 等平台流控。
+ * 容量上限在跨条带并发下允许<b>有界</b>瞬时超出（最多为并发进行中的签发数）。</p>
  */
 public class AliyunSmsCodeProvider implements SmsCodeProvider {
 
@@ -55,54 +76,103 @@ public class AliyunSmsCodeProvider implements SmsCodeProvider {
 
     private static final int CODE_BOUND = 1_000_000;
 
+    /** 按手机号分条带的固定锁数量；不同条带基本并行，同条带串行。 */
+    static final int SEND_STRIPES = 64;
+
+    /** 未核销 challenge 的默认容量上限；超限拒绝新签发（fail-closed），不丢有效 challenge。 */
+    static final int DEFAULT_MAX_CHALLENGES = 10_000;
+
+    /** 节流历史中 phone key 的默认数量上限；超限拒绝新签发（fail-closed）。 */
+    static final int DEFAULT_MAX_TRACKED_PHONES = 10_000;
+
+    /** 节流历史的保留窗口；超出即剪枝，用于回收 phone key。 */
+    static final Duration ACCEPTED_SEND_RETENTION = Duration.ofDays(2);
+
     private final SmsSendGateway gateway;
     private final SmsRiskProperties risk;
     private final Clock clock;
     private final SecureRandom random = new SecureRandom();
     private final Map<String, Challenge> challenges = new ConcurrentHashMap<>();
     private final Map<String, Deque<Instant>> acceptedSends = new ConcurrentHashMap<>();
+    private final ReentrantLock[] sendStripes = new ReentrantLock[SEND_STRIPES];
+    private final int maxChallenges;
+    private final int maxTrackedPhones;
+    private final Object capacityMonitor = new Object();
+    private int reservedChallenges;
 
     public AliyunSmsCodeProvider(SmsSendGateway gateway, SmsRiskProperties risk) {
         this(gateway, risk, Clock.systemUTC());
     }
 
     public AliyunSmsCodeProvider(SmsSendGateway gateway, SmsRiskProperties risk, Clock clock) {
+        this(gateway, risk, clock, DEFAULT_MAX_CHALLENGES, DEFAULT_MAX_TRACKED_PHONES);
+    }
+
+    /** 可配置容量上限的构造器（测试用；生产默认走 3 参构造器）。 */
+    public AliyunSmsCodeProvider(SmsSendGateway gateway, SmsRiskProperties risk, Clock clock,
+                                 int maxChallenges, int maxTrackedPhones) {
+        if (maxChallenges <= 0 || maxTrackedPhones <= 0) {
+            throw new IllegalArgumentException("capacity limits must be positive");
+        }
         this.gateway = gateway;
         this.risk = risk;
         this.clock = clock;
+        this.maxChallenges = maxChallenges;
+        this.maxTrackedPhones = maxTrackedPhones;
+        for (int i = 0; i < SEND_STRIPES; i++) {
+            sendStripes[i] = new ReentrantLock();
+        }
     }
 
     @Override
     public ChallengeOutcome issue(String phone, String purpose) {
-        Instant now = clock.instant();
-
-        long throttleRetryAfter = throttleRetryAfterSeconds(phone, now);
-        if (throttleRetryAfter > 0) {
-            throw rateLimited(throttleRetryAfter);
-        }
-
-        String code = randomCode();
-        SendResult result;
+        // BLOCKER 3：预检 → 发送 → 记录必须在同一把按手机号分条带的锁内完成，
+        // 否则并发请求会全部通过预检、各发一条计费短信。
+        ReentrantLock stripe = sendStripes[Math.floorMod(phone.hashCode(), SEND_STRIPES)];
+        stripe.lock();
         try {
-            result = gateway.send(phone, code);
-        } catch (RuntimeException unexpected) {
-            // 缝实现异常一律视为依赖失败；绝不回退替身、绝不签发 challenge。
-            throw dependencyUnavailable("send exception " + unexpected.getClass().getSimpleName(),
-                    "retry with backoff; sms send is not idempotent");
-        }
-        if (!result.accepted()) {
-            throw mapFailure(result);
-        }
+            Instant now = clock.instant();
 
-        recordAcceptedSend(phone, now);
-        String challengeId = newChallengeId();
-        challenges.put(challengeId,
-                new Challenge(phone, code, now.plusSeconds(risk.challengeTtlSeconds())));
-        return new ChallengeOutcome(challengeId, risk.retryAfterSeconds());
+            long throttleRetryAfter = throttleRetryAfterSeconds(phone, now);
+            if (throttleRetryAfter > 0) {
+                throw rateLimited(throttleRetryAfter);
+            }
+
+            // IMPORTANT 8：有界内存检查在发送之前完成，避免"已计费发送后才因容量拒绝"。
+            ensureTrackedPhoneCapacity(phone, now);
+            reserveChallengeSlot(now);
+            try {
+                String code = randomCode();
+                SendResult result;
+                try {
+                    result = gateway.send(phone, code);
+                } catch (RuntimeException unexpected) {
+                    // 缝实现异常一律视为依赖失败；绝不回退替身、绝不签发 challenge。
+                    throw dependencyUnavailable("send exception " + unexpected.getClass().getSimpleName(),
+                            "retry with backoff; sms send is not idempotent");
+                }
+                if (!result.accepted()) {
+                    throw mapFailure(result);
+                }
+
+                // 只统计已受理发送；失败/被节流拒绝的请求绝不计入。
+                recordAcceptedSend(phone, now);
+                String challengeId = newChallengeId();
+                challenges.put(challengeId,
+                        new Challenge(phone, code, now.plusSeconds(risk.challengeTtlSeconds())));
+                return new ChallengeOutcome(challengeId, risk.retryAfterSeconds());
+            } finally {
+                releaseChallengeReservation();
+            }
+        } finally {
+            stripe.unlock();
+        }
     }
 
     @Override
     public Optional<String> verify(String challengeId, String code) {
+        // IMPORTANT 8：机会式清理已过期条目，避免过期未核销的 challenge 永不回收。
+        pruneExpiredChallenges(clock.instant());
         Challenge challenge = challenges.get(challengeId);
         if (challenge == null) {
             return Optional.empty();
@@ -116,13 +186,18 @@ public class AliyunSmsCodeProvider implements SmsCodeProvider {
                 return Optional.empty();
             }
             if (challenge.attempts.get() >= risk.maxVerifyAttempts()) {
+                // 尝试次数已耗尽：立即回收，不再占用内存。
+                challenges.remove(challengeId, challenge);
                 return Optional.empty();
             }
             boolean matches = code != null && MessageDigest.isEqual(
                     challenge.code.getBytes(StandardCharsets.UTF_8),
                     code.getBytes(StandardCharsets.UTF_8));
             if (!matches) {
-                challenge.attempts.incrementAndGet();
+                if (challenge.attempts.incrementAndGet() >= risk.maxVerifyAttempts()) {
+                    // 本次错误尝试后达到上限：立即回收。
+                    challenges.remove(challengeId, challenge);
+                }
                 return Optional.empty();
             }
             challenge.consumed = true;
@@ -195,15 +270,81 @@ public class AliyunSmsCodeProvider implements SmsCodeProvider {
         return retryAfter;
     }
 
-    private void recordAcceptedSend(String phone, Instant at) {
-        Deque<Instant> history = acceptedSends.computeIfAbsent(phone, ignored -> new ArrayDeque<>());
-        synchronized (history) {
-            history.addLast(at);
-            Instant cutoff = at.minus(Duration.ofDays(2));
-            while (!history.isEmpty() && history.peekFirst().isBefore(cutoff)) {
-                history.pollFirst();
+    /** 移除已过期 challenge（机会式，O(n)，n 受 {@code maxChallenges} 约束）。 */
+    private void pruneExpiredChallenges(Instant now) {
+        challenges.entrySet().removeIf(entry -> now.isAfter(entry.getValue().expiresAt));
+    }
+
+    /**
+     * 在发送前<b>预留</b>一个 challenge 名额：先清理过期，仍超上限则拒绝新签发。
+     * 预留计数保证跨条带并发下容量不被突破；无论发送成败，最终都须
+     * {@link #releaseChallengeReservation() 释放预留}（成功时名额转为已存 challenge）。
+     */
+    private void reserveChallengeSlot(Instant now) {
+        synchronized (capacityMonitor) {
+            pruneExpiredChallenges(now);
+            if (challenges.size() + reservedChallenges >= maxChallenges) {
+                throw dependencyUnavailable(
+                        "local sms challenge capacity reached (max=" + maxChallenges + "); retry later",
+                        "capacity guard prevents unbounded memory; no valid challenge was dropped");
             }
+            reservedChallenges++;
         }
+    }
+
+    private void releaseChallengeReservation() {
+        synchronized (capacityMonitor) {
+            reservedChallenges--;
+        }
+    }
+
+    /**
+     * 发送前检查该手机号的节流历史 key 是否可容纳：先机会式剪枝并回收历史为空的 key，
+     * 仍达上限则拒绝新签发（fail-closed；绝不静默丢弃既有节流历史，否则会放宽风控）。
+     */
+    private void ensureTrackedPhoneCapacity(String phone, Instant now) {
+        if (acceptedSends.containsKey(phone)) {
+            return;
+        }
+        pruneStaleAcceptedSends(now);
+        if (acceptedSends.size() >= maxTrackedPhones) {
+            throw dependencyUnavailable(
+                    "local sms tracking capacity reached (max=" + maxTrackedPhones + "); retry later",
+                    "fail-closed to preserve throttle integrity; retry later");
+        }
+    }
+
+    /**
+     * 机会式剪枝：移除超过保留窗口的历史；某 phone 的历史为空则移除该 key。
+     * 用 {@code computeIfPresent} 与 {@link #recordAcceptedSend} 的 {@code compute} 互斥，
+     * 避免与并发记录竞争导致历史丢失。
+     */
+    private void pruneStaleAcceptedSends(Instant now) {
+        Instant cutoff = now.minus(ACCEPTED_SEND_RETENTION);
+        for (String phone : acceptedSends.keySet()) {
+            acceptedSends.computeIfPresent(phone, (key, history) -> {
+                synchronized (history) {
+                    while (!history.isEmpty() && history.peekFirst().isBefore(cutoff)) {
+                        history.pollFirst();
+                    }
+                }
+                return history.isEmpty() ? null : history;
+            });
+        }
+    }
+
+    private void recordAcceptedSend(String phone, Instant at) {
+        Instant cutoff = at.minus(ACCEPTED_SEND_RETENTION);
+        acceptedSends.compute(phone, (key, existing) -> {
+            Deque<Instant> history = existing == null ? new ArrayDeque<>() : existing;
+            synchronized (history) {
+                history.addLast(at);
+                while (!history.isEmpty() && history.peekFirst().isBefore(cutoff)) {
+                    history.pollFirst();
+                }
+            }
+            return history;
+        });
     }
 
     private static boolean sameMinute(Instant instant, ZonedDateTime nowCn) {

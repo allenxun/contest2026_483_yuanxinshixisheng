@@ -15,11 +15,19 @@ import java.util.UUID;
  * {@code POST /v1/verify}（image + namespace + subject_id）。<b>绝不用全库 top1</b>、
  * <b>绝不默认 MATCHED</b>。</p>
  *
- * <p>映射：{@code matched=true} → {@link Outcome#MATCHED}；{@code matched=false} →
- * {@link Outcome#MISMATCH}；{@code NO_FACE}/{@code QUALITY_INSUFFICIENT}（及同族质量码）
- * → {@link Outcome#QUALITY_REJECTED}；{@code SUBJECT_NOT_FOUND}/{@code NAMESPACE_NOT_FOUND}/
- * {@code LIVENESS_UNSUPPORTED} → {@link Outcome#CAPABILITY_UNAVAILABLE}（无成员绑定即
- * fail-closed）；其余失败（配置/依赖/网络）→ {@link Outcome#DEPENDENCY_FAILED}。</p>
+ * <p><b>活体（BLOCKER 1，红线）</b>：{@code FaceServiceClient.verify} <b>恒定</b>发送
+ * {@code require_liveness=true}（不可配置、无关闭开关）。真实服务未实现活体 ⇒ 返回 501
+ * {@code LIVENESS_UNSUPPORTED} ⇒ 本类映射 {@link Outcome#CAPABILITY_UNAVAILABLE}
+ * （上层 503）。<b>后果声明：在活体能力真正落地并被服务端接入之前，insightface 模式下的
+ * 护理 1:1 准入<u>恒不可用</u>；这是刻意的 fail-closed，不是缺陷</b>——绝不允许无活体的
+ * 1:1 比对通过护理准入。响应形状亦被客户端严格校验，畸形响应不会降级为 MATCHED/MISMATCH。</p>
+ *
+ * <p>映射：{@code matched=true} → {@link Outcome#MATCHED}（仅当客户端已通过严格契约校验）；
+ * {@code matched=false} → {@link Outcome#MISMATCH}；{@code NO_FACE}/
+ * {@code QUALITY_INSUFFICIENT}（及同族质量码）→ {@link Outcome#QUALITY_REJECTED}；
+ * {@code SUBJECT_NOT_FOUND}/{@code NAMESPACE_NOT_FOUND}/{@code LIVENESS_UNSUPPORTED}
+ * → {@link Outcome#CAPABILITY_UNAVAILABLE}（无成员绑定即 fail-closed）；
+ * 其余失败（配置/依赖/网络/契约畸形）→ {@link Outcome#DEPENDENCY_FAILED}。</p>
  *
  * <p><b>生产信号处置</b>：本实现非 {@code FailClosedCareFaceVerifier}，与无条件注册的
  * {@code CareFaceVerifierProductionGuard} 冲突（守卫要求生产只允许 fail-closed 实现）。

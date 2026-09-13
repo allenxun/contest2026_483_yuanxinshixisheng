@@ -88,14 +88,39 @@ CONFIGURATION（401/413/415/400 参数类/`SUBJECT_ALREADY_EXISTS`）、CAPABILI
 `ProductionFailClosedValidator` 不检查 `CareFaceVerifier`，`InsightFaceProvider` 属真实 FaceProvider
 且不会被 `isDouble()` 误判（包 `…web.face`、类名不以 `Disabled` 开头）。**守卫未改。**
 
+## 6.5 verify 严格契约与活体证据（BLOCKER 1 / SUGGESTION 9）
+
+- **恒定要求活体**：`FaceServiceClient.verify` 恒发 `require_liveness=true`（无开关）。
+  `FaceServiceClientStrictVerifyTest.verifyAlwaysRequiresLiveness` 断言 wire body 含该字段与 `true`；
+  `extractDoesNotRequireLiveness` 断言 `classify` 路径不含（取舍见上）。
+- **严格响应校验**（`FaceServiceClient.parseVerifyResponse`）：`matched` 必须存在且为 JSON boolean；
+  `similarity`/`threshold` 必须存在且为有限数值；`liveness` 必须为对象且 `supported` 为 JSON boolean；
+  若返回 `subject_id` 必须与请求值相等。任一不符 ⇒ 抛 `FaceServiceException`
+  （code `MALFORMED_RESPONSE`，`FaceServiceFailureKind=DEPENDENCY` ⇒ `DEPENDENCY_FAILED`），
+  **绝不**默认成 MATCHED/MISMATCH。
+- **活体 fail-closed 加固**：既然请求恒定要求活体，2xx 却返回 `liveness.supported=false` 即为矛盾，
+  按 501 `LIVENESS_UNSUPPORTED` 处理（⇒ `CAPABILITY_UNAVAILABLE`），**绝不**因 `matched=true` 放行。
+  这堵住"服务忽略 `require_liveness` 却返回 matched"的伪完成路径。
+- **判别力**：`FaceServiceClientStrictVerifyTest.matchedOnlyBodyFailsClosed` 用逐字
+  `{"matched":true}`（缺 similarity/threshold/liveness）断言其失败而非 MATCHED；
+  另有缺 liveness、类型错、`subject_id` echo 不一致、不可解析 JSON 等负向用例。
+  测试用 `FaceServiceStub.verifyRaw`（不补全）保证逐字检验。
+
 ## 7. 未验证 / 未接入项（如实）
 
 1. **M1-A01 正面闭环未接入**：insightface 无全库识别 ⇒ `UnavailableFaceIdentityResolver` 恒 empty，
    M1-A01 恒 403 `FACE_NOT_VERIFIED`。
 2. **1:1 正向闭环未在真实服务上验证**：需远端 namespace 已注册该 `face_subject_ref`；B 侧禁止注册，
    且合成空白图无法检出人脸（只会 `NO_FACE`），真实照片禁止上传。
-3. **活体不支持**：服务 `liveness.supported=false`；`require_liveness=true` 会 501
-   `LIVENESS_UNSUPPORTED`（映射 `CAPABILITY_UNAVAILABLE`）。
+3. **活体不支持（刻意 fail-closed，非缺陷）**：服务 `liveness.supported=false`；
+   `FaceServiceClient.verify`（`face/FaceServiceClient.java`，`verify(...)`）**恒定**发送
+   `require_liveness=true`——**不可配置、无关闭开关**（可削弱安全的开关不可接受）。
+   因此真实服务对护理 1:1 恒返 501 `LIVENESS_UNSUPPORTED`，`InsightFaceCareVerifier`
+   恒映射 `CAPABILITY_UNAVAILABLE`（上层 503）。
+   **后果声明：在活体能力真正落地并被服务端接入之前，insightface 模式下的护理 1:1 准入恒不可用。
+   这是刻意的 fail-closed，不是缺陷；绝不允许无活体的 1:1 比对放行护理准入，也不得为"让功能可用"而放宽。**
+   （`classify`/`/v1/extract` 路径**不**加该门：服务端 extract 无此门，且 `classify` 永不 MATCHED，
+   M1-A01 因 `UnavailableFaceIdentityResolver` 恒 403，不存在准入风险。）
 4. **阈值 0.40 未标定**：`verify-threshold` 透传，未用真实样本标定。
 5. **`aliyun` 仅边界**：无任何阿里云人脸 API 调用代码。
 6. 官方/远端对 Spring Boot 3.5 / Java 21 无专项兼容声明（未证明有问题、也未证明已验证）。
