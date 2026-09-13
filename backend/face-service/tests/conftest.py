@@ -87,6 +87,9 @@ def settings(tmp_path):
     from face_service.config import Settings
 
     return Settings(
+        # Local-dev / isolated test client: loopback bind with auth explicitly
+        # off.  Production defaults are fail-closed (auth_required=True and a
+        # non-loopback host would refuse to start without a token).
         host="127.0.0.1",
         port=18099,
         data_dir=tmp_path / "data",

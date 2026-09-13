@@ -84,6 +84,11 @@ env_val() {
 }
 
 auth_required="$(env_val FACE_SVC_AUTH_REQUIRED)"
+# The service default is fail-closed true; treat an unset value as true so the
+# token-presence check below still runs.
+if [ -z "$auth_required" ]; then
+  auth_required="true"
+fi
 token_file="$(env_val FACE_SVC_INTERNAL_TOKEN_FILE)"
 if [ "$auth_required" = "true" ]; then
   if [ -z "$token_file" ] || [ ! -f "$token_file" ]; then

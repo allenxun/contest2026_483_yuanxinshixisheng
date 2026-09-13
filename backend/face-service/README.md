@@ -195,7 +195,7 @@ All variables are prefixed `FACE_SVC_`. See `.env.example`.
 | `INFERENCE_TIMEOUT_SECONDS` | `30` | |
 | `MAX_CONCURRENCY` | `2` | |
 | `INTERNAL_TOKEN` / `INTERNAL_TOKEN_FILE` | unset | prefer the 0600 file |
-| `AUTH_REQUIRED` | `false` | if true, no token ⇒ refuse to start |
+| `AUTH_REQUIRED` | `true` | fail-closed; no token ⇒ refuse to start |
 | `AUTH_HEADER` | `X-Internal-Token` | |
 | `REGISTER_ON_EXISTS` | `conflict` | or `overwrite` |
 | `QUALITY_ENFORCE` | `false` | report-only unless true |
@@ -205,9 +205,37 @@ All variables are prefixed `FACE_SVC_`. See `.env.example`.
 | `REQUEST_ID_HEADER` | `X-Request-Id` | echoed; inbound value sanitised |
 | `LOG_LEVEL` | `INFO` | |
 
-Startup validation refuses to start when a security key is missing/unsafe
-(e.g. `AUTH_REQUIRED=true` without a token, or a token file with group/other
-bits). Messages name keys only, never values.
+Booleans accept only `1/true/yes/on` or `0/false/no/off` (trimmed,
+case-insensitive). Any other non-empty value is a startup `ConfigError` that
+names the key and the allowed domain — a misspelling can never silently disable
+a security control.
+
+Startup validation refuses to start when a security key is missing/unsafe:
+
+* `AUTH_REQUIRED=true` without a token, or a non-loopback `HOST` with auth
+  disabled or without a token (allowed loopback values: `127.0.0.1`, `::1`,
+  `localhost`);
+* a token file that is unreadable or has group/other bits;
+* `INTERNAL_TOKEN` and `INTERNAL_TOKEN_FILE` configured together.
+
+Messages name keys only, never values.
+
+## Access logging
+
+Raw uvicorn access logs are **disabled** (`access_log=False`) because they print
+the expanded request path, which contains identity references (namespace /
+subject_id). The service emits its own sanitized access log on the
+`face_service.access` logger:
+
+```
+access method=POST route=/v1/namespaces/{namespace}/subjects status=201 duration_ms=1.23 request_id=<id>
+```
+
+Only the matched route **template** (`route.path_format`), HTTP method, status,
+request_id and duration are recorded. For unmatched paths it falls back to the
+first two path segments (e.g. `/v1/namespaces/...`). Real namespace/subject
+values, image bytes, embeddings and tokens are never logged.
+
 
 ## Tests
 
