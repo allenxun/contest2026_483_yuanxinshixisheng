@@ -81,7 +81,11 @@ def test_quality_insufficient_when_enforced(make_client, tmp_path):
     det = FaceDetection(bbox=(0.0, 0.0, 1.0, 1.0), det_score=0.99,
                         embedding=synthetic_embedding(img))
     custom = Settings(
+        # Loopback + explicit auth-off: this isolated TestClient exercises
+        # quality gating, not auth. The new fail-closed default would otherwise
+        # (correctly) refuse to construct a non-authenticated config.
         host="127.0.0.1",
+        auth_required=False,
         port=18099,
         data_dir=tmp_path,
         db_path=tmp_path / "faces.sqlite3",

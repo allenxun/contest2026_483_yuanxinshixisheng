@@ -51,11 +51,36 @@ def _env_float(name: str, default: float) -> float:
         raise ConfigError(f"{ENV_PREFIX}{name} must be a number") from exc
 
 
+#: Accepted boolean literals (case-insensitive, trimmed).  Anything else is a
+#: configuration error: a misspelled value must NOT silently become ``False``.
+_BOOL_TRUE = frozenset({"1", "true", "yes", "on"})
+_BOOL_FALSE = frozenset({"0", "false", "no", "off"})
+_BOOL_DOMAIN = "1, true, yes, on, 0, false, no, off"
+
+
 def _env_bool(name: str, default: bool) -> bool:
     raw = _env(name)
-    if raw is None or raw == "":
+    if raw is None or raw.strip() == "":
         return default
-    return raw.strip().lower() in {"1", "true", "yes", "on"}
+    value = raw.strip().lower()
+    if value in _BOOL_TRUE:
+        return True
+    if value in _BOOL_FALSE:
+        return False
+    # Names the key and the allowed domain only; the rejected value is NOT
+    # echoed (keeps secrets/passwords out of logs even if mis-typed into a bool).
+    raise ConfigError(
+        f"{ENV_PREFIX}{name} must be one of: {_BOOL_DOMAIN}"
+    )
+
+
+#: Hosts treated as loopback.  A non-loopback bind must be authenticated.
+_LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
+
+
+def is_loopback_host(host: str) -> bool:
+    """True only for the three well-known loopback spellings."""
+    return host.strip().lower() in _LOOPBACK_HOSTS
 
 
 @dataclass
@@ -88,7 +113,10 @@ class Settings:
     # Optional internal bearer token.
     internal_token: str | None = None
     internal_token_file: Path | None = None
-    auth_required: bool = False
+    # Fail-closed default: a non-loopback bind (the default host) refuses to
+    # start without auth + a configured token.  Local development on a loopback
+    # host may explicitly opt out with FACE_SVC_AUTH_REQUIRED=false.
+    auth_required: bool = True
     auth_header: str = "X-Internal-Token"
 
     # Register idempotency policy: "conflict" (409) or "overwrite" (replace).
@@ -125,7 +153,7 @@ class Settings:
             max_concurrency=_env_int("MAX_CONCURRENCY", 2),
             internal_token=_env("INTERNAL_TOKEN"),
             internal_token_file=token_file,
-            auth_required=_env_bool("AUTH_REQUIRED", False),
+            auth_required=_env_bool("AUTH_REQUIRED", True),
             auth_header=_env("AUTH_HEADER") or "X-Internal-Token",
             register_on_exists=(_env("REGISTER_ON_EXISTS") or "conflict").strip().lower(),
             quality_enforce=_env_bool("QUALITY_ENFORCE", False),
@@ -161,9 +189,22 @@ class Settings:
                 "configure only one of FACE_SVC_INTERNAL_TOKEN or "
                 "FACE_SVC_INTERNAL_TOKEN_FILE"
             )
-        if self.auth_required and not (self.internal_token or self.internal_token_file):
+
+        # Fail-closed coupling between bind address and authentication.  The
+        # default host is non-loopback, so the service refuses to start unless
+        # auth is on AND a token is configured.  Only loopback binds may run
+        # unauthenticated for local development.
+        has_token = bool(self.internal_token or self.internal_token_file)
+        non_loopback = not is_loopback_host(self.host)
+        if non_loopback and not self.auth_required:
             problems.append(
-                "FACE_SVC_AUTH_REQUIRED is set but no token is configured: set "
+                "non-loopback FACE_SVC_HOST requires FACE_SVC_AUTH_REQUIRED=true "
+                "(allowed loopback values: 127.0.0.1, ::1, localhost)"
+            )
+        if (self.auth_required or non_loopback) and not has_token:
+            problems.append(
+                "authentication is required (non-loopback FACE_SVC_HOST or "
+                "FACE_SVC_AUTH_REQUIRED=true) but no token is configured: set "
                 "FACE_SVC_INTERNAL_TOKEN_FILE (recommended) or FACE_SVC_INTERNAL_TOKEN"
             )
         if self.internal_token_file is not None:
@@ -184,4 +225,4 @@ class Settings:
             raise ConfigError("; ".join(problems))
 
 
-__all__ = ["Settings", "ConfigError", "SERVICE_ROOT", "ENV_PREFIX"]
+__all__ = ["Settings", "ConfigError", "SERVICE_ROOT", "ENV_PREFIX", "is_loopback_host"]

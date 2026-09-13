@@ -21,6 +21,8 @@ from .model import FaceModel, build_model
 from .store import FaceStore
 
 logger = logging.getLogger("face_service.app")
+# Dedicated logger for the sanitized request log (route template only).
+access_logger = logging.getLogger("face_service.access")
 
 _REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 
@@ -33,6 +35,9 @@ def create_app(
     auth: TokenAuth | None = None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
+    # Defense in depth: never serve a configuration that would have failed
+    # startup validation (e.g. a programmatic non-loopback bind with auth off).
+    settings.validate()
     model = model or build_model(settings)
     store = store or FaceStore(settings.db_path)
     auth = auth or TokenAuth.from_settings(settings)
@@ -82,6 +87,25 @@ def _best_effort_load(model: FaceModel) -> None:
         logger.error("face model unavailable (unexpected error)")
 
 
+def sanitized_route(request: Request) -> str:
+    """Return a route *template* that never contains real identity values.
+
+    Prefers the matched Starlette route's ``path_format`` (e.g.
+    ``/v1/namespaces/{namespace}/subjects/{subject_id}``).  When no route was
+    matched (404) it falls back to a sanitized path that keeps only the first
+    two segments, so raw namespace/subject values are never logged.
+    """
+    route = request.scope.get("route")
+    path_format = getattr(route, "path_format", None)
+    if isinstance(path_format, str) and path_format:
+        return path_format
+    parts = [segment for segment in request.url.path.split("/") if segment]
+    if not parts:
+        return "/"
+    head = "/" + "/".join(parts[:2])
+    return head + ("/..." if len(parts) > 2 else "")
+
+
 def _install_middleware(app: FastAPI, settings: Settings) -> None:
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):  # noqa: ANN001
@@ -89,13 +113,28 @@ def _install_middleware(app: FastAPI, settings: Settings) -> None:
         request_id = incoming if incoming and _REQUEST_ID_RE.match(incoming) else uuid.uuid4().hex
         request.state.request_id = request_id
         token = set_request_id(request_id)
+        started = time.monotonic()
+        response = None
         try:
             response = await call_next(request)
+            response.headers[settings.request_id_header] = request_id
+            return response
         finally:
             # Reset the contextvar so it never leaks across requests/tasks.
             reset_request_id(token)
-        response.headers[settings.request_id_header] = request_id
-        return response
+            duration_ms = (time.monotonic() - started) * 1000.0
+            status = response.status_code if response is not None else 500
+            # Sanitized access log: template + method + status + request_id +
+            # duration only.  Never the expanded path, namespace, subject_id,
+            # image bytes, embedding or token.
+            access_logger.info(
+                "access method=%s route=%s status=%s duration_ms=%.2f request_id=%s",
+                request.method,
+                sanitized_route(request),
+                status,
+                duration_ms,
+                request_id,
+            )
 
 
 def _install_exception_handlers(app: FastAPI) -> None:

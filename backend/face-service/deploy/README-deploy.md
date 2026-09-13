@@ -46,6 +46,13 @@ install -m 0600 /home/bool/deployment/InsightFace-for-openvela/.env.example \
 > The token value must never appear in any log, report, commit or chat. Clients
 > send it as the `X-Internal-Token` header.
 
+Authentication is **fail-closed**: `FACE_SVC_AUTH_REQUIRED` defaults to `true`,
+and because the bind host is non-loopback the service refuses to start without
+auth enabled *and* a configured token. A misspelled boolean (e.g. `treu`) is a
+startup error rather than a silent `false`, so a bad env file makes the unit
+fail loudly (visible via `systemctl --user status` / `deploy.sh` health poll)
+instead of exposing an unauthenticated API.
+
 ## 4. Deploy (idempotent)
 
 ```bash
@@ -105,6 +112,12 @@ sleep 3 && curl -sS $B/v1/health
 # 5.6 reboot autostart: linger=yes + WantedBy=default.target start the unit
 #     after reboot without login. Verify after the next maintenance window:
 #     systemctl --user is-enabled InsightFace-for-openvela   # -> enabled
+
+# 5.7 journal must show SANITIZED access logs only (no identity values):
+#     route templates like /v1/namespaces/{namespace}/subjects/{subject_id},
+#     and no raw uvicorn "GET /v1/namespaces/<real>/subjects/<real>" lines.
+journalctl --user -u InsightFace-for-openvela -n 50 | grep -c 'face_service.access' || true
+journalctl --user -u InsightFace-for-openvela -n 200 | grep 'deploy-smoke' || echo 'no identity values in journal'
 ```
 
 Use only **synthetic/blank fixtures** for smoke tests. Do not upload real
