@@ -11,10 +11,11 @@ import cn.yuanxin.mvp.web.care.CareProjections.CareExecutionView;
 import cn.yuanxin.mvp.web.care.CareProjections.CarePlanFullView;
 import cn.yuanxin.mvp.web.care.CareProjections.CarePlanListItem;
 import cn.yuanxin.mvp.web.care.CareProjections.ProgressWithSync;
+import cn.yuanxin.mvp.web.config.NonProductionCondition;
 import cn.yuanxin.mvp.web.error.ErrorCode;
 import io.swagger.v3.oas.models.tags.Tag;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.Set;
  * <p>本类只写文档内容，不触碰任何控制器/DTO/业务代码（零序列化/行为变更）。</p>
  */
 @Component
-@Profile({"dev", "test"})
+@Conditional(NonProductionCondition.class)
 @ConditionalOnProperty(name = "springdoc.api-docs.enabled", havingValue = "true")
 public class CareApiDocs implements ApiDocsCatalog {
 

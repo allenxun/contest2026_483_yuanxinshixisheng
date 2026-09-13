@@ -1,5 +1,6 @@
 package cn.yuanxin.mvp.web.care;
 
+import cn.yuanxin.mvp.web.config.NonProductionCondition;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Primary;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 /**
- * 成员绑定人脸核验的 <b>dev/test 替身</b>（仅开发/测试；@Primary 覆盖
+ * 成员绑定人脸核验的 <b>测试替身</b>（仅<b>非生产</b>环境；@Primary 覆盖
  * {@link FailClosedCareFaceVerifier}）。
  *
  * <p>与 {@code FaceProviderDouble} 不同，本替身<b>包含目标成员输入</b>：只有
@@ -20,14 +21,14 @@ import java.util.UUID;
  * {@code APP_C_FACE_BOUND_MEMBER}（或属性 {@code app.testdouble.care-face.bound-member}）。
  * 空白→不绑定（fail-closed 不变）；合法 UUID→初始绑定；非法非空→启动即失败
  * （fail fast）。{@link #reset()} 恢复到初始环境绑定，故测试未配置该属性时行为
- * 与既有完全一致。<b>仅 dev/test 激活</b>（{@link CareDevTestCondition}：app.env
- * 非 production、生效 profiles 不含 prod/production 且含 dev/test）：生产不注册
- * 本类，生产路径仍由 {@link FailClosedCareFaceVerifier} 恒 CAPABILITY_UNAVAILABLE。
- * 环境绑定是 E2E/活体联调便利，<b>不降低</b>异成员 MISMATCH 拒绝；真实提供方
- * 接入后应移除。</p>
+ * 与既有完全一致。<b>仅非生产环境激活</b>（{@link NonProductionCondition}：app.env
+ * 非 production 且生效 profiles 不含 prod/production；{@code local} 等自定义环境名
+ * 同样装配）：生产不注册本类，生产路径仍由 {@link FailClosedCareFaceVerifier} 恒
+ * CAPABILITY_UNAVAILABLE。环境绑定是 E2E/活体联调便利，<b>不降低</b>异成员 MISMATCH
+ * 拒绝；真实提供方接入后应移除。</p>
  */
 @Component
-@Conditional(CareDevTestCondition.class)
+@Conditional(NonProductionCondition.class)
 @Primary
 public class MemberBindingFaceDouble implements CareFaceVerifier {
 
