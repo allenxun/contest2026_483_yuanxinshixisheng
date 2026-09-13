@@ -120,7 +120,7 @@ class OssProvidersConfigTest {
     }
 
     @Test
-    @DisplayName("bucket 不一致（app.storage.oss.bucket != app.storage.bucket）→ 拒绝启动")
+    @DisplayName("bucket 不一致（app.storage.oss.bucket != app.storage.bucket）→ 拒绝启动，且不回显桶名")
     void bucketMismatchRefusesStartup() {
         runner("local").withPropertyValues("app.env=dev",
                         "app.storage.provider=aliyun",
@@ -129,11 +129,17 @@ class OssProvidersConfigTest {
                         "app.storage.oss.access-key-id=LTAI-FAKE-DO-NOT-USE",
                         "app.storage.oss.access-key-secret=FAKE-SECRET-DO-NOT-USE")
                 .run(ctx -> {
+                    // "启动被拒"断言不得弱化。
                     assertThat(ctx).hasFailed();
                     assertThat(ctx.getStartupFailure())
+                            .hasRootCauseInstanceOf(IllegalStateException.class)
                             .hasMessageContaining("bucket mismatch")
-                            .hasMessageContaining("other-bucket")
-                            .hasMessageContaining(BUCKET)
+                            .hasMessageContaining("app.storage.oss.bucket")
+                            .hasMessageContaining("app.storage.bucket")
+                            .hasMessageContaining("values omitted")
+                            // 日志卫生：绝不含任一侧真实桶名取值。
+                            .hasMessageNotContaining(BUCKET)
+                            .hasMessageNotContaining("other-bucket")
                             .hasMessageNotContaining("FAKE-SECRET-DO-NOT-USE");
                 });
     }

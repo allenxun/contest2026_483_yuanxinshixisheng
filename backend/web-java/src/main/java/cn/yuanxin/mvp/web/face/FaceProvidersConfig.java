@@ -29,6 +29,12 @@ import java.util.List;
  * 由无条件 {@code FailClosedCareFaceVerifier} 接管，避免与
  * {@code CareFaceVerifierProductionGuard} 冲突；守卫未改）。</p>
  *
+ * <p><b>活体后果声明（BLOCKER 1，红线）</b>：{@code FaceServiceClient.verify} 恒定发送
+ * {@code require_liveness=true}（无开关）。当前已部署服务未实现活体 ⇒ 恒返 501
+ * {@code LIVENESS_UNSUPPORTED} ⇒ {@link InsightFaceCareVerifier} 恒返
+ * {@code CAPABILITY_UNAVAILABLE}。<b>在活体能力真正落地前，insightface 模式下护理 1:1 准入
+ * 恒不可用；这是刻意的 fail-closed，不是缺陷。</b>不得为"让功能可用"而放宽。</p>
+ *
  * <p>{@code mode=disabled} 时本配置整体不激活，走 A 的 disabled 占位。</p>
  */
 @Configuration

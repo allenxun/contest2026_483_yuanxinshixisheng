@@ -30,7 +30,8 @@ import java.util.Objects;
  *   <li><b>bucket 一致性</b>：{@code app.storage.oss.bucket} 必须等于 {@code app.storage.bucket}
  *       ——因为 {@code MediaService} 把 {@code media_objects.bucket} 写成 {@code app.storage.bucket}
  *       （A 侧写入，B 不得改），而真实对象写在 {@code app.storage.oss.bucket}。两者不一致 ⇒
- *       拒绝启动（消息可输出 bucket 名，不输出 AK/SK/token）。</li>
+ *       拒绝启动（消息只说明哪两个<b>键名</b>不一致并标注 {@code values omitted}，
+ *       <b>绝不</b>回显任何 bucket 名、AK/SK/token）。</li>
  * </ol>
  *
  * <p>新类位于 {@code cn.yuanxin.mvp.web.storage} 且类名不以 {@code Disabled} 开头 ⇒
@@ -50,10 +51,10 @@ public class OssProvidersConfig {
                     + missing + " (values are never logged)");
         }
         if (!Objects.equals(properties.bucket(), appProperties.storage().bucket())) {
+            // 日志卫生：只暴露"哪两个键不一致"，绝不回显 bucket 名取值。
             throw new IllegalStateException("app.storage.provider=aliyun bucket mismatch:"
-                    + " app.storage.oss.bucket=" + properties.bucket()
-                    + " != app.storage.bucket=" + appProperties.storage().bucket()
-                    + "; media_objects.bucket is written from app.storage.bucket, so both must match");
+                    + " app.storage.oss.bucket != app.storage.bucket (values omitted);"
+                    + " media_objects.bucket is written from app.storage.bucket, so both must match");
         }
         ClientBuilderConfiguration clientConfiguration = new ClientBuilderConfiguration();
         clientConfiguration.setConnectionTimeout(properties.connectionTimeoutMillis());
