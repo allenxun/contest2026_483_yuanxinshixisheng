@@ -79,13 +79,19 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                         以 challengeId + code 换取会话。
                         关键规则：请求体 phone 必须为 E.164 国际格式（以 + 开头，国家码后 6—15 位数字），
                         purpose 固定为 login；服务端规范化手机号后交认证提供方；响应不泄露账号是否已存在。
+                        短信提供方由 app.sms.provider 决定：doubles（默认，隔离测试替身）固定示例码 123456，
+                        仅 doubles 下有效；aliyun（真实阿里云短信）验证码为随机 6 位，绝不写入响应或日志，
+                        123456 在 aliyun 模式下无效。
+                        风控与限流：本端点确实可能返回 429 RATE_LIMITED——服务端对同一手机号按 UTC+8 自然
+                        窗口做本地预检（默认 1 分钟 1 条、1 小时 5 条、1 天 10 条），平台亦可能返回
+                        isv.BUSINESS_LIMIT_CONTROL 等流控；此时按 Retry-After 响应头（秒）退避，
+                        响应 data.retryAfter 为建议等待秒数。
                         幂等语义：不保证幂等；重复/高频调用可能触发 RATE_LIMITED，应按下发的
                         Retry-After 退避，不要自动高频重试。
                         字段单位与枚举：challengeId 为提供方签发的字符串（≤128）；retryAfter 单位为秒（≥0）。
                         错误处理：INVALID_INPUT 修正 phone/purpose 后重试；RATE_LIMITED 按 Retry-After 退避；
-                        DEPENDENCY_UNAVAILABLE/DEPENDENCY_TIMEOUT 为依赖不可用/超时，受限退避重试。
-                        未冻结：真实短信认证提供方未选定，dev/test 使用 SmsCodeProvider 替身；验证码长度、
-                        有效 TTL 与风控阈值待定（依据 contracts/decisions-notes.md #8、DD 4.1）。
+                        DEPENDENCY_UNAVAILABLE/DEPENDENCY_TIMEOUT 为依赖不可用/超时，受限退避重试——发送失败时
+                        服务端不会签发任何有效 challenge（客户端应重新申请）。
                         """,
                         List.of(),
                         List.of(),
@@ -112,12 +118,16 @@ public class FoundationApiDocs implements ApiDocsCatalog {
                         auth_revision 快照，disabled 账号拒绝续签新会话（停用即失效）。
                         鉴权口径：主体身份只由 token 派生，请求体不得声明 accountId；APP 会话与云台设备会话
                         并存且命名空间区分。
+                        验证码来源：验证码由短信提供方签发（app.sms.provider）。doubles（默认替身）下固定
+                        示例码 123456 有效；aliyun（真实阿里云短信）下验证码为随机 6 位、仅短信可达、绝不
+                        出现在响应或日志，123456 无效。若 f01 发送失败（503 DEPENDENCY_UNAVAILABLE）则
+                        不签发 challenge，此时本端点对任意 code 返回 401 AUTH_REQUIRED。
                         幂等语义：本端点不使用 Idempotency-Key；重复提交同一验证码由提供方语义决定，
                         失败后请重新申请挑战，不要复用旧 challengeId。
                         字段要点：installationId ≤128 字符；installBindingMaterial 为提供方要求的安装绑定材料
                         （自由结构，见该字段的结构展开说明）；accessToken/refreshToken 不写日志。
                         错误处理：INVALID_INPUT 修正字段后重试；AUTH_REQUIRED 验证码错误/挑战失效 → 重新申请挑战；
-                        RATE_LIMITED 按 Retry-After 退避；DEPENDENCY_* 受限重试。
+                        RATE_LIMITED 按 Retry-After 退避；DEPENDENCY_* 受限重试，发送失败的挑战不会存在于服务端。
                         契约缺口（如实标注）：实现中账号 disabled 时抛 SESSION_INVALID，但契约 f02
                         未声明该码，待总协调裁定；客户端遇到 401 时统一重新登录。
                         未冻结：真实会话提供方未选定，token 有效期/刷新细节待定（dev/test 为替身）。
