@@ -101,6 +101,15 @@ public class FaceServiceClient {
      * {@code liveness.supported=false} 即为矛盾——按 501 {@code LIVENESS_UNSUPPORTED}
      * 处理（映射 {@code CAPABILITY_UNAVAILABLE}），<b>绝不</b>因 {@code matched=true} 而放行。
      * 这堵住"服务忽略 {@code require_liveness} 却返回 matched"的伪完成路径。</p>
+     *
+     * <p><b>活体契约冻结（IMPORTANT）</b>：当服务声明 {@code liveness.supported=true} 时，
+     * 还<b>必须</b>返回<b>本次样本</b>的活体通过结果 {@code liveness.passed}（JSON boolean）。
+     * 该字段名是 B 侧冻结的契约形状：服务端将来支持活体时<b>必须</b>提供它。缺失 / 非 boolean /
+     * 为 {@code false} ⇒ 抛 {@code LIVENESS_NOT_PASSED}（{@code retryable=false}、HTTP 501），
+     * <b>绝不</b>把"能力支持"当作"样本通过"、<b>绝不</b>因缺字段而默认通过。
+     * 注：{@code supported=true} 分支当前对真实服务<b>不可达</b>（服务无活体能力，恒返回
+     * {@code supported=false}），此为防御性契约冻结；活体真正落地时该 HTTP/业务映射须重新评估，
+     * 当前选择保守 fail-closed。</p>
      */
     public VerifyResult verify(byte[] image, String namespace, String subjectId, Double threshold) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
@@ -153,6 +162,16 @@ public class FaceServiceClient {
                     + " requestId={}", requestId == null ? "<none>" : requestId);
             throw new FaceServiceException(new FaceServiceError("LIVENESS_UNSUPPORTED",
                     "required liveness was not supported by the service", false, requestId, 501));
+        }
+
+        // 契约冻结：supported=true 还须本次样本 passed=true（缺失/非 boolean/false 一律拒绝）。
+        JsonNode passedNode = livenessNode.get("passed");
+        if (passedNode == null || !passedNode.isBoolean() || !passedNode.booleanValue()) {
+            log.warn("face service verify liveness not passed (fieldPresent={}, boolean={}) requestId={}",
+                    passedNode != null, passedNode != null && passedNode.isBoolean(),
+                    requestId == null ? "<none>" : requestId);
+            throw new FaceServiceException(new FaceServiceError("LIVENESS_NOT_PASSED",
+                    "required liveness was not passed for this sample", false, requestId, 501));
         }
 
         JsonNode subjectNode = root.get("subject_id");

@@ -25,8 +25,10 @@ import java.util.UUID;
  * <p>映射：{@code matched=true} → {@link Outcome#MATCHED}（仅当客户端已通过严格契约校验）；
  * {@code matched=false} → {@link Outcome#MISMATCH}；{@code NO_FACE}/
  * {@code QUALITY_INSUFFICIENT}（及同族质量码）→ {@link Outcome#QUALITY_REJECTED}；
- * {@code SUBJECT_NOT_FOUND}/{@code NAMESPACE_NOT_FOUND}/{@code LIVENESS_UNSUPPORTED}
- * → {@link Outcome#CAPABILITY_UNAVAILABLE}（无成员绑定即 fail-closed）；
+ * {@code SUBJECT_NOT_FOUND}/{@code NAMESPACE_NOT_FOUND}/{@code LIVENESS_UNSUPPORTED}/
+ * {@code LIVENESS_NOT_PASSED} → {@link Outcome#CAPABILITY_UNAVAILABLE}（无成员绑定即 fail-closed）。
+ * <b>理由</b>：{@code LIVENESS_NOT_PASSED} 表示"声明支持活体但本次样本未通过或未返回结果"，
+ * 属能力/前置条件不足而非比对结论，必须映射为安全结果、<b>绝不</b> MATCHED；
  * 其余失败（配置/依赖/网络/契约畸形）→ {@link Outcome#DEPENDENCY_FAILED}。</p>
  *
  * <p><b>生产信号处置</b>：本实现非 {@code FailClosedCareFaceVerifier}，与无条件注册的
@@ -59,7 +61,7 @@ public class InsightFaceCareVerifier implements CareFaceVerifier {
         } catch (FaceServiceException failure) {
             String code = failure.error().safeCode();
             if ("SUBJECT_NOT_FOUND".equals(code) || "NAMESPACE_NOT_FOUND".equals(code)
-                    || "LIVENESS_UNSUPPORTED".equals(code)) {
+                    || "LIVENESS_UNSUPPORTED".equals(code) || "LIVENESS_NOT_PASSED".equals(code)) {
                 return Outcome.CAPABILITY_UNAVAILABLE;
             }
             if (InsightFaceProvider.QUALITY_CODES.contains(code)) {

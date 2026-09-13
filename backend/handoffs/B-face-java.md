@@ -101,10 +101,20 @@ CONFIGURATION（401/413/415/400 参数类/`SUBJECT_ALREADY_EXISTS`）、CAPABILI
 - **活体 fail-closed 加固**：既然请求恒定要求活体，2xx 却返回 `liveness.supported=false` 即为矛盾，
   按 501 `LIVENESS_UNSUPPORTED` 处理（⇒ `CAPABILITY_UNAVAILABLE`），**绝不**因 `matched=true` 放行。
   这堵住"服务忽略 `require_liveness` 却返回 matched"的伪完成路径。
+- **活体契约冻结（IMPORTANT）**：当 `liveness.supported=true` 时，**必须**同时返回**本次样本**的
+  活体通过结果 `liveness.passed`（JSON boolean）。字段名 `liveness.passed` 是 B 侧冻结的契约形状，
+  **服务端将来支持活体时必须返回它**。缺失 / 非 boolean / 为 `false` ⇒ 抛 `LIVENESS_NOT_PASSED`
+  （`retryable=false`、HTTP 501）⇒ `InsightFaceCareVerifier` 映射 `CAPABILITY_UNAVAILABLE`，
+  **绝不**把"能力支持"当作"样本通过"，**绝不**因缺字段默认通过，**无**任何"跳过活体校验"开关。
+  实现：`FaceServiceClient.parseVerifyResponse`（`supported` 判断之后）。
+  注：`supported=true` 分支当前对真实服务**不可达**（服务恒返回 `supported=false`），此为防御性
+  契约冻结；活体真正落地时该 HTTP/业务映射须重新评估，当前选择保守 fail-closed。
 - **判别力**：`FaceServiceClientStrictVerifyTest.matchedOnlyBodyFailsClosed` 用逐字
   `{"matched":true}`（缺 similarity/threshold/liveness）断言其失败而非 MATCHED；
-  另有缺 liveness、类型错、`subject_id` echo 不一致、不可解析 JSON 等负向用例。
-  测试用 `FaceServiceStub.verifyRaw`（不补全）保证逐字检验。
+  另有缺 liveness、类型错、`subject_id` echo 不一致、不可解析 JSON、以及
+  `supported=true` 但缺 `passed` / `passed=false` / `passed` 非 boolean 等负向用例。
+  测试用 `FaceServiceStub.verifyRaw`（不补全）保证逐字检验；
+  `InsightFaceCareVerifierLivenessMappingTest` 断言 `LIVENESS_NOT_PASSED` → `CAPABILITY_UNAVAILABLE`。
 
 ## 7. 未验证 / 未接入项（如实）
 
@@ -125,3 +135,8 @@ CONFIGURATION（401/413/415/400 参数类/`SUBJECT_ALREADY_EXISTS`）、CAPABILI
 5. **`aliyun` 仅边界**：无任何阿里云人脸 API 调用代码。
 6. 官方/远端对 Spring Boot 3.5 / Java 21 无专项兼容声明（未证明有问题、也未证明已验证）。
 7. 远端服务 `model_loaded` 需 15–50s 预热；read 超时默认 30s，真实负载下可能仍需调大。
+8. **`liveness.passed` 契约无法对真实服务验证**：服务端 `quality.py` 的 `liveness_block()`
+   恒为 `{"supported": false, "reason": "buffalo_l has no liveness model"}`，无 `passed` 字段；
+   `supported=true` 分支今天不可达，只用本地 stub 验证（防御性契约冻结）。
+   活体真正落地时须由服务端返回 `liveness.passed=true/false`，届时重新评估 501/`CAPABILITY_UNAVAILABLE`
+   映射是否仍合适。

@@ -18,7 +18,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * <p>为让 1:1 映射测试专注在 {@code InsightFaceCareVerifier} 的映射逻辑上，
  * {@link #verify(int, String)} 会对缺失 {@code liveness} 的成功体补一个
- * {@code {"supported":true,...}}（模拟"支持活体且已过 require_liveness 门"的服务）；
+ * {@code {"supported":true,"passed":true,...}}（模拟"支持活体且本次样本通过"的服务）；
  * 需要逐字检验畸形/活体缺失响应的测试请用 {@link #verifyRaw(int, String)}（不做任何补全）。</p>
  */
 final class FaceServiceStub implements AutoCloseable {
@@ -143,7 +143,8 @@ final class FaceServiceStub implements AutoCloseable {
                 return body;
             }
             ((ObjectNode) root).set("liveness",
-                    MAPPER.createObjectNode().put("supported", true).put("reason", "stub-capable"));
+                    MAPPER.createObjectNode().put("supported", true).put("passed", true)
+                            .put("reason", "stub-capable"));
             return MAPPER.writeValueAsString(root);
         } catch (Exception notJson) {
             return body;
