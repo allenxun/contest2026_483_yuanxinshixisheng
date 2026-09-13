@@ -36,7 +36,12 @@ from mvp_worker.handlers.dshared.providers import (
     SkinDouble,
 )
 from mvp_worker.handlers.identity_enroll import handler as enroll_handler
-from mvp_worker.media.storage import FilesystemStorageDouble, StorageError
+from mvp_worker.media.storage import (
+    FilesystemStorageDouble,
+    StorageConfigError,
+    StorageError,
+    StorageTransientError,
+)
 from mvp_worker.runtime.claim import claim_batch
 from mvp_worker.runtime.complete import complete_success
 
@@ -679,3 +684,71 @@ def test_analyze_terminal_failed_different_rev_noop(
     assert status == "succeeded" and exc is None
     assert fetch_job(engine, jid)["status"] == "succeeded"
     assert fetch_assessment(engine, aid)["status"] == "failed"
+
+
+# ---------------------- BLOCKER 4 / IMPORTANT 6：源图读取配置错误 → 终态 ----------
+
+
+class _RaisingReadStorage:
+    """包装替身：``get`` 记录调用次数后抛指定异常（不发起真实对象读取）。"""
+
+    def __init__(self, inner: FilesystemStorageDouble, exc: BaseException) -> None:
+        self._inner = inner
+        self._exc = exc
+        self.get_calls = 0
+
+    def put(self, object_key: str, data: bytes, content_type: str | None = None) -> None:
+        self._inner.put(object_key, data, content_type=content_type)
+
+    def get(self, object_key: str) -> bytes:
+        self.get_calls += 1
+        raise self._exc
+
+    def delete(self, object_key: str) -> None:
+        self._inner.delete(object_key)
+
+    def exists(self, object_key: str) -> bool:
+        return self._inner.exists(object_key)
+
+
+def test_analyze_source_read_config_error_is_terminal(engine: Engine, tmp_path: Any) -> None:
+    """源图读取遇 StorageConfigError → 终态不可重试（不吞成 SOURCE_IMAGE_UNAVAILABLE）。"""
+    storage, aid, _images, _ = _seed_analysis_case(engine, tmp_path)
+    faulty = _RaisingReadStorage(storage, StorageConfigError("injected config error"))
+    jid = _enqueue_analyze(engine, aid, 2)
+    status, exc, _ = run_claimed(
+        engine, analyze_handler, jid, extras=_extras(faulty, FaceDouble())
+    )
+    assert status == "failed" and exc is not None
+    assert exc.retryable is False  # 关键：不可重试
+    assert exc.code == "SOURCE_IMAGE_CONFIG_ERROR"
+    assert fetch_job(engine, jid)["status"] == "failed"
+    a = fetch_assessment(engine, aid)
+    assert a["status"] == "failed" and a["failure_code"] == "SOURCE_IMAGE_CONFIG_ERROR"
+    assert faulty.get_calls >= 1  # 确实尝试了读取后才分类为配置错误
+
+
+def test_analyze_source_bucket_mismatch_terminal_no_read(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """T11 源图行 bucket≠配置桶 → 终态且**未发起任何对象读取**（IMPORTANT 6）。"""
+    storage, aid, _images, _ = _seed_analysis_case(engine, tmp_path)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "UPDATE media_objects SET bucket='other-bucket-do-not-use'"
+                " WHERE assessment_id=CAST(:a AS uuid) AND purpose='assessment_source'"
+            ),
+            {"a": aid},
+        )
+    # get 抛瞬时错误：若缺 bucket 校验，将被误判为可重试 SOURCE_IMAGE_UNAVAILABLE。
+    faulty = _RaisingReadStorage(storage, StorageTransientError("would be retryable"))
+    jid = _enqueue_analyze(engine, aid, 2)
+    status, exc, _ = run_claimed(
+        engine, analyze_handler, jid, extras=_extras(faulty, FaceDouble())
+    )
+    assert status == "failed" and exc is not None
+    assert exc.retryable is False
+    assert exc.code == "SOURCE_IMAGE_CONFIG_ERROR"
+    assert faulty.get_calls == 0  # 校验在读取之前，未发起任何对象读取
+    assert fetch_job(engine, jid)["status"] == "failed"

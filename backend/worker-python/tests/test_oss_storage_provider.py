@@ -30,7 +30,11 @@ from mvp_worker.config import WorkerConfig
 from mvp_worker.handlers import HandlerContext
 from mvp_worker.handlers.dshared.constants import DEFAULT_BUCKET
 from mvp_worker.handlers.dshared.dconfig import DConfig, ProviderConfigError
-from mvp_worker.handlers.dshared.dmedia import ArchiveError, archive_result_images
+from mvp_worker.handlers.dshared.dmedia import (
+    ArchiveError,
+    archive_result_images,
+    load_image_bytes,
+)
 from mvp_worker.handlers.dshared.providers import build_storage_port
 from mvp_worker.handlers.dshared.resolve import storage_for
 from mvp_worker.media.storage import (
@@ -606,3 +610,175 @@ def test_oss_wire_missing_key_maps_to_not_found(oss_stub: _StubOss) -> None:
     with pytest.raises(StorageNotFoundError):
         storage.get("dev/assessment_result/missing")
     assert storage.exists("dev/assessment_result/missing") is False
+
+
+# =========================================== 7) BLOCKER 4：永久错误 → 终态分类
+
+
+def test_oss_nosuchbucket_is_permanent_config_error() -> None:
+    """NoSuchBucket（HTTP 404）是永久配置错误，绝非"对象不存在"/可重试。"""
+    exc = oss2.exceptions.NoSuchBucket(404, {}, b"", {"Code": "NoSuchBucket"})
+    storage = _oss_storage(_RaisingBucket(exc))
+    with pytest.raises(StorageConfigError):
+        storage.put("dev/assessment_result/m1", b"x", content_type="image/png")
+    with pytest.raises(StorageConfigError):
+        storage.get("dev/assessment_result/m1")
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        "NoSuchBucket",
+        "InvalidBucketName",
+        "AccessDenied",
+        "InvalidAccessKeyId",
+        "SignatureDoesNotMatch",
+        "RequestTimeTooSkewed",
+        "SecondLevelDomainForbidden",
+    ],
+)
+def test_oss_permanent_code_overrides_4xx_status(code: str) -> None:
+    """永久性 code 白名单优先于 status：即使 400/403/404 也归终态。"""
+    status = 400 if code in ("InvalidBucketName",) else 403
+    exc = oss2.exceptions.ServerError(status, {}, b"", {"Code": code})
+    storage = _oss_storage(_RaisingBucket(exc))
+    with pytest.raises(StorageConfigError):
+        storage.put("dev/assessment_result/m1", b"x", content_type="image/png")
+
+
+@pytest.mark.parametrize("code", ["RequestTimeout", "ServiceUnavailable"])
+def test_oss_transient_code_whitelist_overrides_4xx_status(code: str) -> None:
+    """明确的瞬时 code 归可重试（即使 HTTP status 落在 4xx）。"""
+    exc = oss2.exceptions.ServerError(408, {}, b"", {"Code": code})
+    storage = _oss_storage(_RaisingBucket(exc))
+    with pytest.raises(StorageTransientError):
+        storage.put("dev/assessment_result/m1", b"x", content_type="image/png")
+
+
+def test_oss_unknown_statusless_error_falls_back_to_terminal() -> None:
+    """兜底方向=终态：无 status/code 的未知异常不伪装成可重试瞬时故障。"""
+    storage = _oss_storage(_RaisingBucket(ValueError("unexpected boom")))
+    with pytest.raises(StorageConfigError):
+        storage.put("dev/assessment_result/m1", b"x", content_type="image/png")
+
+
+def test_archive_oss_nosuchbucket_is_terminal(engine: Engine) -> None:
+    exc = oss2.exceptions.NoSuchBucket(404, {}, b"", {"Code": "NoSuchBucket"})
+    storage = _oss_storage(_RaisingBucket(exc))
+    aid = _seed_analyzing(engine)
+    with pytest.raises(ArchiveError) as ei:
+        archive_result_images(
+            engine, storage, environment="dev", assessment_id=aid, photo_version=1,
+            result_images=_images(), max_bytes=10_000_000,
+        )
+    assert ei.value.code == "RESULT_ARCHIVE_FAILED" and ei.value.terminal is True
+
+
+# ================================= 8) IMPORTANT 6：源图读取 bucket 一致性校验
+
+
+class _CountingStorage:
+    """包装替身并统计 get 次数，证明 bucket 不一致时**未发起任何对象读取**。"""
+
+    def __init__(self, inner: FilesystemStorageDouble) -> None:
+        self._inner = inner
+        self.get_calls = 0
+
+    def put(self, object_key: str, data: bytes, content_type: str | None = None) -> None:
+        self._inner.put(object_key, data, content_type=content_type)
+
+    def get(self, object_key: str) -> bytes:
+        self.get_calls += 1
+        return self._inner.get(object_key)
+
+    def delete(self, object_key: str) -> None:
+        self._inner.delete(object_key)
+
+    def exists(self, object_key: str) -> bool:
+        return self._inner.exists(object_key)
+
+
+def _insert_source_row(engine: Engine, *, bucket: str) -> str:
+    mid = str(uuid.uuid4())
+    key = build_object_key("dev", "assessment_source", mid)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO media_objects (id, bucket, object_key, purpose, state)"
+                " VALUES (CAST(:id AS uuid), :bucket, :key, 'assessment_source', 'available')"
+            ),
+            {"id": mid, "bucket": bucket, "key": key},
+        )
+    return mid
+
+
+def test_load_image_bytes_bucket_mismatch_terminal_and_no_read(
+    engine: Engine, tmp_path: Any
+) -> None:
+    storage = _CountingStorage(FilesystemStorageDouble(tmp_path / "s"))
+    mid = _insert_source_row(engine, bucket="other-bucket-do-not-use")
+    with pytest.raises(StorageConfigError) as ei:
+        load_image_bytes(engine, storage, {"front": mid})
+    assert storage.get_calls == 0  # 未发起任何对象读取
+    msg = str(ei.value)
+    assert "values omitted" in msg
+    assert "other-bucket-do-not-use" not in msg  # 不输出桶名
+
+
+def test_load_image_bytes_bucket_match_reads_ok(engine: Engine, tmp_path: Any) -> None:
+    storage = _CountingStorage(FilesystemStorageDouble(tmp_path / "s"))
+    mid = _insert_source_row(engine, bucket=DEFAULT_BUCKET)
+    storage.put(build_object_key("dev", "assessment_source", mid), PNG_BYTES)
+    out = load_image_bytes(engine, storage, {"front": mid})
+    assert isinstance(out, dict) and out["front"] == PNG_BYTES
+    assert storage.get_calls == 1
+
+
+def test_load_image_bytes_transient_returns_reason(engine: Engine, tmp_path: Any) -> None:
+    """瞬时读取失败仍是可重试的字符串语义（未被 BLOCKER 修复误伤）。"""
+
+    class _TransientStorage(_CountingStorage):
+        def get(self, object_key: str) -> bytes:
+            self.get_calls += 1
+            raise StorageTransientError("network blip")
+
+    storage = _TransientStorage(FilesystemStorageDouble(tmp_path / "s"))
+    mid = _insert_source_row(engine, bucket=DEFAULT_BUCKET)
+    out = load_image_bytes(engine, storage, {"front": mid})
+    assert isinstance(out, str) and "storage read failed" in out
+
+
+def test_archive_existing_row_bucket_mismatch_is_terminal(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """既有结果行桶≠配置桶 → 归档终态（不 put、不改行；不伪装成可重试）。"""
+    import hashlib
+    import json as _json
+
+    aid = _seed_analyzing(engine)
+    media_id = str(uuid.uuid4())
+    key = build_object_key("dev", "assessment_result", media_id)
+    digest = hashlib.sha256(PNG_BYTES).hexdigest()
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO media_objects (id, bucket, object_key, purpose, assessment_id,"
+                " photo_version, uploader_type, state, content_type, byte_size, content_hash,"
+                " storage_metadata)"
+                " VALUES (CAST(:id AS uuid), 'other-bucket-do-not-use', :key,"
+                " 'assessment_result', CAST(:a AS uuid), 1, 'worker', 'pending',"
+                " 'image/png', :bs, :h, CAST(:meta AS jsonb))"
+            ),
+            {
+                "id": media_id, "key": key, "a": aid, "bs": len(PNG_BYTES), "h": digest,
+                "meta": _json.dumps({"schema_version": 1, "provider_ref": "skin-result-1"}),
+            },
+        )
+    storage = FilesystemStorageDouble(tmp_path / "s")
+    with pytest.raises(ArchiveError) as ei:
+        archive_result_images(
+            engine, storage, environment="dev", assessment_id=aid, photo_version=1,
+            result_images=_images(), max_bytes=10_000_000,
+        )
+    assert ei.value.terminal is True
+    assert not any((tmp_path / "s").rglob("*"))  # 未写任何对象
