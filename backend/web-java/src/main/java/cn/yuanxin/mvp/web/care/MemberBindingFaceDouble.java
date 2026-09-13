@@ -34,6 +34,7 @@ import java.util.UUID;
 @Component
 @Conditional(NonProductionCondition.class)
 @ConditionalOnProperty(name = "app.providers.mode", havingValue = "doubles", matchIfMissing = true)
+@ConditionalOnProperty(name = "app.face.provider", havingValue = "doubles", matchIfMissing = true)
 @Primary
 public class MemberBindingFaceDouble implements CareFaceVerifier {
 

@@ -50,6 +50,7 @@ public class TestDoubleProvidersConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "app.face.provider", havingValue = "doubles", matchIfMissing = true)
     public FaceProvider faceProvider(
             @Value("${app.testdouble.face.classification:MATCHED}") String classification) {
         return new FaceProviderDouble(classification);
