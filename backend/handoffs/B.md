@@ -726,3 +726,38 @@ Oracle 判 **FAIL**：其 6 条判据中 **1/6/7/8 已通过**（`plan.steps` �
 **验证（绑定 `666bfbe`，orchestrator 亲自执行）**：契约四项校验器全绿（`openapi_spec_validator` VALID、`validate_responses --selftest` 10/0、`validate_samples` 50/0 all samples valid、`jcs` 26 checks）；Java `test-compile` rc=0、定向 **38/0/0**（含 Coverage 1）、**全量 446 run / 0 failures / 0 errors**；孤儿 4xx 独立复查**仅剩 2 处**（恰为既有的 M3-A01/A02 的 422）；真实 `/v3/api-docs` 200 / **418968 字节**、swagger-ui 200；上轮已闭合项零回归（自建脚本 **78 PASS / 0 FAIL**）；契约↔生成文档非 2xx 差异 34 个操作**全部属既有类型**、本轮修的 9 处残留 **0**；按 Oracle 明示未重跑端到端工装与 b14；业务代码 diff **0 文件**、`git diff --check` rc=0。
 **我的错误**：①验证盲区（见 15.1，BLOCKER 根因）；②自建孤儿复查临时脚本**连续两次崩溃**（映射表漏 `INTERNAL_SERVER_ERROR` 致 `KeyError`；改用 `http.HTTPStatus` 动态映射而 Spring 的 `PAYLOAD_TOO_LARGE` 在 Python 中名为 `REQUEST_ENTITY_TOO_LARGE` 致 `AttributeError`），第三次回到已验证可用的显式映射表才成功 ⇒ 不要为"更聪明"而替换已验证可用的取证脚本；③预期集合误用 foundation 操作并不存在的 `x-api-id` 标签，被自校验拦下、未造成损害；④**过滤式工装运行结构上无效**（见 §15 正文，`B_ACCEPT_FILTER` 使 b14 失去观测面、b3 失去前置 fixture），已改为完整运行取 41/41；⑤第三次犯"`cd` 后在 heredoc 里用相对路径"的错误。
 **子道对我任务书的两处纠正（均已采纳）**：M2-A01 实际在 `FoundationApiDocs.java:207`（我误标 IdentityDevice）；`PropertyDoc.enumOf` 定义在 `ApiDocsCatalog.java:320` 的嵌套 record（我误指 `ApiDocEntry.java`）。
+
+## 16. `local` profile 加载条件解耦轮（用户授权，基线 `e2148e1`）
+
+**授权**：修复"IDEA 仅启用 `local` profile 时报 `SessionProvider` 缺失"；把**环境 profile** 与 **`app.providers.mode` 服务实现选择**解耦；**全面核对** `TestDoubleProvidersConfig`、`IdentityProvidersConfig`、`DeviceProofDoublesConfig` 等所有相关加载条件，**不能只补 `SessionProvider`**；`local`+doubles 必须完整加载当前登录/身份/设备依赖；`prod` profile 或 `app.env=production` 时测试替身必须 fail-closed（**含矛盾配置**），保留相关防护；仅改必要 Java 加载条件与针对性测试，不实现真实算法/OSS、不改业务契约。
+
+### 16.1 根因（orchestrator 亲自取证，非推测）
+1. `backend/web-java/src/main/resources/application.yml:10-12` 设 `spring.profiles.default: dev`。**一旦显式启用 `local`，default 不生效** ⇒ 生效 profiles = `{local}`。
+2. 全仓 **10 处 profile 耦合**把"实现选择"错误地绑在 profile 名上：
+   - `config/TestDoubleProvidersConfig.java:30` —— 写作**全限定** `@org.springframework.context.annotation.Profile({"dev","test"})`，提供 `SessionProvider`/`SmsCodeProvider`/`DeviceCredentialProvider`/`FaceProvider`/`StoragePort`；
+   - `devices/proof/DeviceProofDoublesConfig.java:14`（`PairingProofVerifier`/`ConnectionProofVerifier`）；
+   - `identity/IdentityProvidersConfig.java:19`（`FaceIdentityResolver`，**只有** profile 门、无 mode 条件）；
+   - `docs/OpenApiDocsConfig.java:41` + 5 个 catalog（`CommonEnvelopeApiDocs:29`、`AssessmentApiDocs:34`、`CareApiDocs:38`、`FoundationApiDocs:30`、`IdentityDeviceApiDocs:32`）；
+   - `care/MemberBindingFaceDouble.java:30` 的 `@Conditional(CareDevTestCondition.class)`，而 `care/CareDevTestCondition.java:38` 第 3 条要求生效 profiles 含 `dev`/`test`。
+3. 8 个端口类型均被**非 config 的单例构造注入**（`SessionProvider` 5 处、`FaceProvider` 7 处、`StoragePort` 5 处、`PairingProofVerifier` 2、`ConnectionProofVerifier` 3、`FaceIdentityResolver` 3、`SmsCodeProvider` 3、`DeviceCredentialProvider` 4）⇒ `local` 下上下文**必然启动失败**，`SessionProvider` 只是第一个被报出的。
+4. `care/CareAdmissionService.java:85,99` 构造注入 `CareFaceVerifier`；`FailClosedCareFaceVerifier` 是无条件 `@Component`、`MemberBindingFaceDouble` 是 `@Primary` 替身 ⇒ `local` 下上下文能启动但护理人脸核验**恒 503 `CAPABILITY_UNAVAILABLE`**（功能退化而非崩溃）。故 C 的条件也须解耦，"完整加载"才成立。
+5. `application.yml:72` 的 base 默认本就是 **`app.providers.mode: ${APP_PROVIDERS_MODE:doubles}`（与 profile 无关）**，`prod` 段（:132-133）才设 `mode: real` ⇒ **纯 Java 加载条件即可完成解耦，无需改动任何公共默认配置**（这点关键：外层 master 的同名文件有用户未提交修改，本轮明令不得改/不得读/不得纳入提交）。
+
+### 16.2 我的取证缺陷（如实记录）
+首次盘点用 `grep '@Profile'` 得到 9 处，并据此**错误断定**"`TestDoubleProvidersConfig` 本来就没有 `@Profile`、不该因 `local` 失配"。实际它写作**全限定形式** `@org.springframework.context.annotation.Profile(...)`，该模式**匹配不到**。改用同时覆盖全限定写法的模式重做后才得到完整的 10 处清单并定位真正根因。这与本轮之前"`grep ErrorCode.X` 漏掉静态导入"是**同一类错误**（模式匹配未覆盖等价写法）⇒ 教训：盘点"某类注解/调用的全集"时，必须先确认模式覆盖全限定名、静态导入、别名等等价写法，否则会把"漏检"误当"不存在"。
+
+### 16.3 设计（最小、行为等价、不新增门）
+- 新增共享条件 `config/NonProductionCondition`：判据**恰为两条**——`app.env`（默认 `dev`，`trim` 后 `equalsIgnoreCase("production")`）为生产 ⇒ false；生效 profiles 含 `prod`/`production` ⇒ false；否则 true（**不要求** profile 是 dev/test，故 `local`、无 profile、自定义环境名都放行）。"生效 profiles" = 显式 active 非空时取之、否则取 `getDefaultProfiles()`，统一小写（与 `CareDevTestCondition.effectiveProfiles` 语义完全一致，故 `SPRING_PROFILES_ACTIVE=prod,dev` 这类混合配置不会因含 `dev` 而放行替身）。
+- 用它**等价替换**上述 10 处 profile 耦合，**不新增也不删除任何 mode 条件**：`TestDoubleProvidersConfig`/`DeviceProofDoublesConfig` 保留各自 `@ConditionalOnProperty(app.providers.mode=doubles, matchIfMissing=true)`；6 个 docs 类保留 `@ConditionalOnProperty(springdoc.api-docs.enabled=true)`；`IdentityProvidersConfig` **保持只有非生产条件**（给它新增 mode 门会改变既有语义——今天 dev profile + `mode=real` 时该替身同样装配，属既有行为，不在本轮授权内；已列为观察项上报）。
+- `care/CareDevTestCondition` 改为**委托**新条件的前两条、**保留第 3 条**，且其静态入口 `effectiveProfiles` 继续存在（`CareFaceVerifierProductionGuard:51` 在用）。**硬约束**：`CareDevTestConditionTest` 必须**原样通过、不得改一行**（作为"C 侧语义零变化"的可验证证明）。
+- **必须原样保留的守卫**：`ProductionFailClosedValidator`、`DeviceProofFailClosedValidator`、`CareFaceVerifierProductionGuard`（无条件 `@Component`、双判据）、`DocsProductionGuard`（无条件、双判据）、`TestDoubleProvidersConfig.requireNoProductionSignals`（:72-83，`storagePort()` 内的纵深防御）。
+
+### 16.4 我预先定位的既有测试机制变化（实施前即已预见并写明处置要求）
+`config/StorageFailModeProductionFailClosedTest` 的 `productionSignalRefusesAssemblyBeforeAnyStoragePortExists`（约 :116-140）现断言根因是 `requireNoProductionSignals` 抛出的 `IllegalStateException`、栈含 `production fail-closed`/`active-profile-prod=true`/`app.env=dev`——该机制依赖"混合 profile `prod,dev` 下 `@Profile` 因含 `dev` 而**匹配**、配置照常装配、再由守卫抛错"。解耦后**拒装提前到条件层**（替身根本不会被构造，安全属性**增强**），根因将变为缺 bean 类异常 ⇒ 该测试必须据实改写，但**严禁弱化**：仍须断言上下文启动失败、失败源于生产信号下替身未装配/无法创建 `StoragePort` 替身、注入开关 `APP_DOUBLE_STORAGE_FAIL_MODE` 在该情形下不可达。
+
+### 16.5 边界与验证局限
+不改 `application.yml`（若确实必须改，先报方案与精确 diff 给总协调）；**绝不读取/输出/覆盖** `application-local.properties`（含 PG/OSS 秘密）；不读取、不修改、不纳入提交**外层 master 工作树**任何文件；不进入其它工作树；不实现真实算法/OSS/人脸/推送提供方；不改业务契约与 HTTP 行为；只用 B 的隔离资源（`mvp-b-pg`@55435、端口 18083、mvn 限堆），用毕释放、不留长期服务、不停 PG、不清库卷。
+**验证局限（须如实披露）**：我方**无法读取用户私有的 `application-local.properties`**，故只能用 `SPRING_PROFILES_ACTIVE=local` + 显式 env 覆盖（数据源指向 55435 的 `mvp_b_dev`、`APP_STORAGE_DEV_DIR` 指向 `.coordination/B-work/`）来模拟"仅启用 `local` profile"。若用户私有配置另外覆盖了 `app.env`、`app.providers.mode` 或 `springdoc.*`，实际装配结果需由用户在其环境复验。
+
+**实施与验证**：单一实施道 fix-16；orchestrator 独立复核后提交 **`39608bf`**（Oracle 第十九轮 **PASS-with-notes**、许可整合）。总协调随后下达在飞增量两项（两个测试提供者补 mode 门；生产信号 + `doubles` 须早期明确拒绝而非被"缺 `SessionProvider`"掩盖），与 Oracle 两项 IMPORTANT 重合，合并实施为 **`6a72b0b6cf2efb80eb6f641124dd4b434328f0c6`**（12 文件 / +675 −128，业务代码 diff 0），并补齐 orchestrator 自行发现的既有缺口——`mode=disabled` 此前**无法启动完整应用**（B 自有 `PairingProofVerifier`/`ConnectionProofVerifier`/`FaceIdentityResolver` 无 disabled 占位）。验证：`test-compile` 0、定向 **61/0/0**、全量 **481/0/0**；真实进程四例——`local` UP + health 200 + 无 token 得 401 `AUTH_REQUIRED`、`prod`(real) 失败缺 `SessionProvider`（既有刻意 fail-closed）、`prod`+`doubles` 失败且根因为新守卫诊断（`SessionProvider` 缺失计数 0）、`local`+`disabled` **UP + 503 `DEPENDENCY_UNAVAILABLE`**。详见 `B-oracle.md` §4.19–4.20。
+**门禁状态**：Oracle 第二十轮聚焦复审判 **PASS-with-notes**，**明确许可把 `6a72b0b6cf2efb80eb6f641124dd4b434328f0c6` 交总协调整合**、不要求补跑验证、**未发现真正阻塞项**。剩余非阻塞项：Oracle 2 条 SUGGESTION（`DeviceProofFailClosedValidator.isDouble()` 不识别 lambda 形式的 disabled 占位；新守卫文案宜注明 `disabled` 仅用于非生产/降级环境）、上轮 5 项既有契约不一致待总协调裁定（`500`×34、M3-A01/A02 孤儿 `422`、M1-A02 缺 `404`、M2-A04 缺 `422`、`NOT_IMPLEMENTED`）、`IdentityProvidersConfig`/`CareDevTestCondition` 两项观察项。**未 push、未合并**（由总协调整合外层 master）。
