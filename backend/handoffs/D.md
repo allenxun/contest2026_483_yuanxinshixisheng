@@ -69,3 +69,11 @@
 - **关键映射结论**（详 runtime 发现/决策文档，监督者同步）：①shuiguang_cloud_v1 样本**不能完整包裹**进 assess（其要 F/C/L/R×O/P/D 0-100 整数分且越高越好；样本=六解剖区分区计数+全局 front float 分且越高越明显——方向/粒度/类型三重冲突，反转与舍入无权威口径）；②WeijingPlan **无设备参数**（actual_device_seconds 恒 0、preview_device 仅模拟 for_human_use:false、exposure_summary=成分×区域天数）→ 无法诚实通过冻结 plan_payload/target_count 校验；③权威设计（后端详细设计:421/502/669）明令参数口径归设备团队/协议契约、禁止发明 → 适配器**严格 fail-closed**（OUTPUT_MAPPING 注册表为空→恒 PLAN_MAPPING_NOT_APPROVED 终态；NL/非法结构永不 ready；真实失败零 mock 回退；K/代次/ready 冻结全保留）。
 - **待决（外部）**：N.1 服务修复+Key 渠道（AI 负责人）；N.2 请求映射口径、N.3 输出契约对齐、N.4 原始算法 JSON 捕获落点（总协调）——决策后仅需登记映射注册表/接通捕获路径，架构零返工。
 - **边界遵守**：远端全程只读+单次授权启动（未改/未重启他服务、未部署、未触 internal.dxg170:18085、Key 值不存在亦未输出、未读 .env/secrets/进程环境）；fixture 标明用户提供/合同草稿/非线上算法证据（SHA256 绑定，无绝对下载路径入仓）；response_models.reference.py 永不 import；公共三文件本轮零改动（ora-2 byte-identical 核验）。
+
+### AI 方案真实联调轮（2026-09-14，dev 合并 0e6c633→8193cea 后）
+- 合并：dev 0e6c633（B OSS endpoint 拆分轮）安全合入（ort 自动合并 dconfig/providers 无冲突，llm_rag 面完整）；合并基线全量 **Java 618/0/0 + Python 459 passed** 全 exit 0（8193cea，clean 树，06:53-06:55Z）。
+- 用户已启动目标服务（身份确证：进程 cmd+cwd=llm-rag-application；loopback 7861；health LIVE/READY 三检全过；部署 HEAD 9f60229 相对我档契约面 diff 空）；Key 已配置（键名 APP_INTERNAL_AI_API_KEYS，**值全程未回显/未落盘/未入报告**）。
+- 真实 POST（仅合成数据；response_example.json sha256 现场核对）：**Probe A 逐字样本=400 AI_REQUEST_INVALID**（"缺少四区评分 regions"——包裹判定活体证实）；**Probe B 文档化 regions 形状=200** 完整 assessment/plan（status PREVIEW_ONLY、integrity partial=D 缺失如实；exposure=天数证实；device 面 false/0/hold/null）。五层记录：网络到达✓/HTTP 受理✓/评估完成✓/方案完成✓/**PlanPort 合法 ready=✗**（活体 plan 参数扫描 intensity/duration/pulse_count/target_count 命中 0）。
+- **零代码修正需求**：活体信封恰通过 afa3372 适配器全部封闭校验并于输出映射关 PLAN_MAPPING_NOT_APPROVED 终态（设计=活体一致）；无新代码 SHA→无新 Oracle 轮（report-only 纪律），**最终 AI-plan 代码 SHA 维持 afa3372（Oracle ACCEPTED）**。证据存证 `.mvp-d-runtime/ai-plan-live-response.json`（10250B）。
+- 待决（外部，裁定后零架构返工）：N.2 请求映射口径（本轮 100−x 半进位+全局分复制=披露的探测机制非生产批准）/N.3 输出契约对齐/N.4 原始 JSON 捕获落点；N.1 基本解除（剩对外暴露形态由其 root_path/代理决定）。
+- 边界：服务零触碰（未启动/未重启/未改，探测后仍 UP）；仅读三份授权资料、未执行 Python 附件；未触 internal.dxg170:18085；B 未提交 Redis 改动未读；未部署/推送/合并 dev。

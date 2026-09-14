@@ -89,3 +89,6 @@ claim.py/expire.py/renew.py/__main__.py/health.py/conftest.py/system_echo **全�
 | 13 | 复审 | 同上 | `afa3372` | **PASS** | 三项 CLOSED：适配器去持久化（providers 零 SQL 面）+类型化异常→plan_generate 既有 fenced _terminal 路由+_mark_plan_failed_tx 0 行→StaleGeneration（旧代次终态整体回滚，翻转测试 gen-1 零触碰）；raw 全封闭合同（逐项 score_basis/严格计数/跨字段不变式/逐视图对账，fixture 原样过+14 负例网络前终态）；配置错双解析点→立即 fenced PLAN_PROVIDER_CONFIG（T06/T12 原子、单 attempt、不滞留；aliyun_llm 不变）。偏差 COMPLIANT；先前范围 byte-identical（diff 空 exit0）；blockingFindings=[]；四探针全阻断（含前次 Partial bypass）。**afa3372=AI-plan 增量最终接受 SHA**。真实调用阻塞披露核可（启动失败=其 BGE-M3 资产缺失，只读未修；无假成功主张，外部依赖缺口不 invalidate fail-closed 审查） |
 
 - D 包门禁累计终态：**M3=PASS@dc955c0（六轮）；M4+公共接口=PASS-with-notes CONFIRMED-FINAL@dc955c0；AI-plan 增量=PASS@afa3372**。链：ccee6e2→6b4f9ed→b2d4a79→c051577→4ac4835→c5b78d8→dc955c0→（dev 合并 6bd31cb，B/C 各自 oracle 轮覆盖+合并后全量 590/352 绿）→2338d3d→afa3372→本报告提交。
+
+### 真实联调轮备注（2026-09-14）
+- dev 0e6c633 合并后（8193cea）全量 Java 618/Python 459 绿；真实 POST 双探测完成（A=400 契约化拒绝活体证实包裹判定；B=200 完整 assessment/plan，PREVIEW_ONLY/partial）。活体 WeijingPlan 设备参数扫描命中 0 → fail-closed 维持；活体信封通过 afa3372 适配器全部封闭校验 → **零代码差异，最终 AI-plan 代码 SHA 维持 afa3372（第 13 轮 PASS/ACCEPTED），本轮无新代码提交（仅报告），按 report-only 纪律不另起 Oracle 轮**。
