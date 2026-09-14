@@ -60,13 +60,17 @@ def skin_port_for(ctx: HandlerContext) -> Any:
 
 
 def plan_port_for(ctx: HandlerContext) -> Any:
+    """计划 provider 解析：**不吞** :class:`ProviderConfigError`。
+
+    计划 provider 的配置错误（llm_rag 缺 BASE_URL/API_KEY、生产 double 拒绝、未知
+    provider）必须由 ``plan_generate`` 落**终态** ``PLAN_PROVIDER_CONFIG``（fenced，
+    T06 与 T12 原子 failed），而非此处的可重试 ``DEPENDENCY_UNAVAILABLE``（避免 retry
+    storm 与 T06 滞留）。face/skin/storage 解析路径**不变**。
+    """
     injected = ctx.extras.get("plan_port")
     if injected is not None:
         return injected
-    try:
-        return build_plan_port(dconfig_for(ctx), environment=ctx.config.environment)
-    except (ProviderConfigError, ProviderNotActivated, ProviderUnavailable) as exc:
-        raise _dependency_failed("plan", exc) from exc
+    return build_plan_port(dconfig_for(ctx), environment=ctx.config.environment)
 
 
 def storage_for(ctx: HandlerContext) -> Any:

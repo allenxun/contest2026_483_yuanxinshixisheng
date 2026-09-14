@@ -24,8 +24,10 @@ from ..logging_setup import mlog
 from ..runtime.complete import BusinessTx, StaleGeneration
 from ..runtime.rows import JobRow
 from . import HandlerContext, HandlerResult, JobFailed
+from .dshared import weijing_mapping
 from .dshared.dfence import fenced_business_tx
 from .dshared.jsonschema_support import load_payload_validator, validate_payload
+from .dshared.providers import ProviderConfigError
 from .dshared.resolve import dconfig_for, plan_port_for
 
 log = logging.getLogger("mvp_worker.handlers.plan_generate")
@@ -215,7 +217,18 @@ class PlanGenerateHandler:
                     business_tx=_wait_guard(plan_id, rev),
                 )
             assert report is not None  # _report_is_valid 已保证
-            port = plan_port_for(ctx)
+            try:
+                port = plan_port_for(ctx)
+            except ProviderConfigError:
+                # Fix 3：计划 provider 配置错误 → 立即终态 PLAN_PROVIDER_CONFIG（fenced
+                # _terminal 写 T06 failed，与 T12 failed 原子；不耗尽 attempt / 不滞留）。
+                self._terminal(
+                    ctx, job, plan_id, rev,
+                    code="PLAN_PROVIDER_CONFIG",
+                    message="plan provider configuration invalid",
+                    detail={"reason": "PLAN_PROVIDER_CONFIG"},
+                )
+                return None  # pragma: no cover - _terminal 抛出
             snapshot = _build_input_snapshot(
                 report, capability, live_baseline, dcfg, port
             )
@@ -233,7 +246,18 @@ class PlanGenerateHandler:
             if rules is None:
                 self._terminal_snapshot_invalid(ctx, job, plan_id, rev)
                 return None  # pragma: no cover
-            port = plan_port_for(ctx)
+            try:
+                port = plan_port_for(ctx)
+            except ProviderConfigError:
+                # Fix 3：计划 provider 配置错误 → 立即终态 PLAN_PROVIDER_CONFIG（fenced
+                # _terminal 写 T06 failed，与 T12 failed 原子；不耗尽 attempt / 不滞留）。
+                self._terminal(
+                    ctx, job, plan_id, rev,
+                    code="PLAN_PROVIDER_CONFIG",
+                    message="plan provider configuration invalid",
+                    detail={"reason": "PLAN_PROVIDER_CONFIG"},
+                )
+                return None  # pragma: no cover - _terminal 抛出
         else:  # pragma: no cover - CHECK 枚举已限定
             return None
 
@@ -260,6 +284,35 @@ class PlanGenerateHandler:
             candidate = port.generate(report_context, snapshot)
         except JobFailed:
             raise
+        except weijing_mapping.MappingNotApproved:
+            # Fix 1：适配器只抛类型化异常；此处经**既有 fenced _terminal** 落库
+            # （_mark_plan_failed_tx 带 plan_id + generation_revision 守卫）。
+            self._terminal(
+                ctx, job, plan_id, rev,
+                code="PLAN_MAPPING_NOT_APPROVED",
+                message="weijing plan mapping not approved",
+                detail={"reason": "PLAN_MAPPING_NOT_APPROVED"},
+            )
+            return None  # pragma: no cover - _terminal 抛出
+        except weijing_mapping.PlanProviderConfigRequired:
+            self._terminal(
+                ctx, job, plan_id, rev,
+                code="PLAN_PROVIDER_CONFIG",
+                message="weijing assess auth/config rejected",
+                detail={"reason": "PLAN_PROVIDER_CONFIG"},
+            )
+            return None  # pragma: no cover - _terminal 抛出
+        except (
+            weijing_mapping.RawDetectionContractViolation,
+            weijing_mapping.ResponseContractViolation,
+        ):
+            self._terminal(
+                ctx, job, plan_id, rev,
+                code="PROVIDER_CONTRACT_VIOLATION",
+                message="weijing contract violation",
+                detail={"reason": "PROVIDER_CONTRACT_VIOLATION"},
+            )
+            return None  # pragma: no cover - _terminal 抛出
         except Exception as exc:
             self._transient_or_terminal(
                 ctx, job, plan_id, rev,
@@ -635,12 +688,20 @@ def _set_generating(
 
 
 def _mark_plan_failed_tx(plan_id: str, rev: int, detail: dict[str, Any]) -> BusinessTx:
-    """终态业务写回调：在 ``complete_failure`` 同一事务内写 T06 failed（禁网络）。"""
+    """终态业务写回调：在 ``complete_failure`` 同一事务内写 T06 failed（禁网络）。
+
+    0 行（代次/状态已被并发推进）→ :class:`StaleGeneration`：整个完成事务回滚，
+    旧代次的终态写绝不落到新一代 T06（oracle Fix 1 的 no-op 契约）。
+    """
 
     def tx(conn: Connection) -> None:
-        conn.execute(
+        res = conn.execute(
             _MARK_FAILED, {"id": plan_id, "rev": rev, "detail": _json(detail)}
         )
+        if res.rowcount == 0:
+            raise StaleGeneration(
+                f"plan {plan_id} stale generation on terminal write (revision={rev})"
+            )
 
     return tx
 

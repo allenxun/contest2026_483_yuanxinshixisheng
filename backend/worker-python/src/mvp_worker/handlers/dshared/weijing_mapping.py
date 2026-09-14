@@ -1,8 +1,8 @@
 """shuiguang_cloud_v1 → weijing assess 请求/响应映射（隔离函数 + 批准钩子）。
 
 本模块是**纯映射/校验**（无 DB、无网络、无 JobFailed 依赖），所有决策可单测。
-适配器（``providers.LLMRagPlanAdapter``）在 PlanPort 边界内调用它，并负责 HTTP 与
-终态异常的组装。
+适配器（``providers.LLMRagPlanAdapter``）在 PlanPort 边界内调用它，**只抛类型化异常**，
+由 plan_generate 经既有 fenced terminal 机制落库。
 
 红线（coordinator）：
 - 绝不臆造参数/分数；``null``（不可评估）≠ 0；三视图计数**绝不相加**；
@@ -45,10 +45,26 @@ WEIJING_PLAN_STATUSES = (
     "URGENT",
     "SCHEDULE_INFEASIBLE",
 )
+VIEWS = ("left", "front", "right")
+REGION_ENUM = ("forehead", "nose", "left_cheek", "right_cheek", "perioral", "chin")
 _RAW_TOP_KEYS = frozenset(
     {"schema_version", "task_id", "status", "main_image_id", "views", "results"}
 )
-_RAW_RESULT_KEYS = ("pores", "spots", "surface_gloss")
+_RAW_RESULT_KEYS = frozenset({"pores", "spots", "surface_gloss"})
+# 每项检测的 score_basis 必须为 item-specific 字面量（防错项口径混入）。
+SCORE_BASIS_BY_ITEM = {
+    "pores": "v2_visible_pores",
+    "spots": "v2_visible_spots_component",
+    "surface_gloss": "v2_oiliness_tendency",
+}
+_DETECTION_KEYS = frozenset(
+    {"name", "score", "severity", "score_view", "score_basis",
+     "total_count", "regions", "unassigned_count"}
+)
+_REGION_KEYS = frozenset(
+    {"region", "name", "left", "front", "right",
+     "primary_view", "primary_count", "supplementary_views"}
+)
 
 # 区域/检测项映射（其余丢弃 → INFO 披露）。
 REGION_MAP: dict[str, str] = {
@@ -74,11 +90,15 @@ class MappingNotApproved(RuntimeError):
 
 
 class RawDetectionContractViolation(RuntimeError):
-    """算法原始检测 JSON 违反 shuiguang_cloud_v1 合同。"""
+    """算法原始检测 JSON 违反 shuiguang_cloud_v1 合同（含跨字段不变量）。"""
 
 
 class ResponseContractViolation(RuntimeError):
-    """weijing assess 2xx 响应违反封闭结构合同。"""
+    """weijing assess 响应违反封闭结构合同。"""
+
+
+class PlanProviderConfigRequired(RuntimeError):
+    """weijing assess 鉴权/配置拒绝（AI_UNAUTHORIZED）→ 终态 PLAN_PROVIDER_CONFIG。"""
 
 
 def _round_half_up(value: float) -> int:
@@ -137,47 +157,144 @@ def _approved_request_mapping(request_mapping: Any) -> dict[str, str]:
     return request_mapping
 
 
+# ---------------------------------------------------------------- raw validation
+
+
+def _is_count(value: Any) -> bool:
+    """严格非负整数或 None（bool/float 拒绝）。"""
+    return value is None or (
+        isinstance(value, int) and not isinstance(value, bool) and value >= 0
+    )
+
+
+def _is_score(value: Any) -> bool:
+    """float|int 0..100 或 None（bool 拒绝）。"""
+    return value is None or (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and 0.0 <= float(value) <= 100.0
+    )
+
+
+def _validate_count_map(value: Any, label: str) -> None:
+    if not isinstance(value, dict) or set(value) != set(VIEWS):
+        raise RawDetectionContractViolation(f"{label} keys invalid")
+    for view in VIEWS:
+        if not _is_count(value[view]):
+            raise RawDetectionContractViolation(f"{label}.{view} invalid")
+
+
 def validate_raw_detection(raw: Any) -> None:
-    """封闭校验算法原始检测 JSON（shuiguang_cloud_v1 合同草稿）。"""
+    """封闭校验算法原始检测 JSON（shuiguang_cloud_v1 合同草稿 + 跨字段不变量）。
+
+    形状参考：用户授权 fixture ``response_models.reference.py``（**绝不 import**）与
+    ``字段说明.md``。任何违反 → :class:`RawDetectionContractViolation`（调用方落终态
+    PROVIDER_CONTRACT_VIOLATION），绝不发请求/臆造。
+    """
     if not isinstance(raw, dict):
         raise RawDetectionContractViolation("raw detection is not an object")
-    extra = set(raw) - _RAW_TOP_KEYS
-    if extra:
-        raise RawDetectionContractViolation(f"raw detection has extra top-level keys: {sorted(extra)}")
     if set(raw) != _RAW_TOP_KEYS:
-        raise RawDetectionContractViolation("raw detection missing required top-level keys")
+        raise RawDetectionContractViolation(
+            f"raw detection top-level keys invalid: {sorted(set(raw) ^ _RAW_TOP_KEYS)}"
+        )
     if raw["schema_version"] != SCHEMA_VERSION:
         raise RawDetectionContractViolation("raw detection schema_version mismatch")
-    if raw["status"] != "success":
-        raise RawDetectionContractViolation("raw detection status is not success")
     if not isinstance(raw["task_id"], str) or not raw["task_id"]:
         raise RawDetectionContractViolation("raw detection task_id invalid")
+    if raw["status"] != "success":
+        raise RawDetectionContractViolation("raw detection status is not success")
+    if not isinstance(raw["main_image_id"], str) or not raw["main_image_id"]:
+        raise RawDetectionContractViolation("raw detection main_image_id invalid")
+
     views = raw["views"]
     if (
         not isinstance(views, dict)
-        or set(views) != {"left", "front", "right"}
-        or not all(isinstance(v, str) and v for v in views.values())
+        or set(views) != set(VIEWS)
+        or not all(isinstance(views[v], str) and views[v] for v in VIEWS)
     ):
         raise RawDetectionContractViolation("raw detection views invalid")
-    if not isinstance(raw["main_image_id"], str) or raw["main_image_id"] != views["front"]:
+    if raw["main_image_id"] != views["front"]:
         raise RawDetectionContractViolation("raw detection main_image_id != views.front")
+
     results = raw["results"]
-    if not isinstance(results, dict) or set(results) != set(_RAW_RESULT_KEYS):
+    if not isinstance(results, dict) or set(results) != _RAW_RESULT_KEYS:
         raise RawDetectionContractViolation("raw detection results keys invalid")
+
     for item_name in _RAW_RESULT_KEYS:
-        item = results[item_name]
-        if not isinstance(item, dict):
-            raise RawDetectionContractViolation(f"raw detection results.{item_name} not object")
-        score = item.get("score")
-        if score is not None and (
-            not isinstance(score, (int, float)) or isinstance(score, bool) or not (0.0 <= float(score) <= 100.0)
-        ):
-            raise RawDetectionContractViolation(f"raw detection results.{item_name}.score invalid")
-        severity = item.get("severity")
-        if severity is not None and severity not in SEVERITIES:
-            raise RawDetectionContractViolation(f"raw detection results.{item_name}.severity invalid")
-        if not isinstance(item.get("regions"), list):
-            raise RawDetectionContractViolation(f"raw detection results.{item_name}.regions invalid")
+        _validate_detection(item_name, results[item_name])
+
+
+def _validate_detection(item_name: str, item: Any) -> None:
+    label = f"results.{item_name}"
+    if not isinstance(item, dict) or set(item) != _DETECTION_KEYS:
+        raise RawDetectionContractViolation(f"{label} keys invalid")
+    if not isinstance(item["name"], str):
+        raise RawDetectionContractViolation(f"{label}.name invalid")
+    if not _is_score(item["score"]):
+        raise RawDetectionContractViolation(f"{label}.score invalid")
+    severity = item["severity"]
+    if severity is not None and severity not in SEVERITIES:
+        raise RawDetectionContractViolation(f"{label}.severity invalid")
+    # 跨字段：score None ⇔ severity None。
+    if (item["score"] is None) != (severity is None):
+        raise RawDetectionContractViolation(f"{label}: score/severity null mismatch")
+    if item["score_view"] != "front":
+        raise RawDetectionContractViolation(f"{label}.score_view must be 'front'")
+    if item["score_basis"] != SCORE_BASIS_BY_ITEM[item_name]:
+        raise RawDetectionContractViolation(f"{label}.score_basis invalid for item")
+
+    _validate_count_map(item["total_count"], f"{label}.total_count")
+    _validate_count_map(item["unassigned_count"], f"{label}.unassigned_count")
+
+    regions = item["regions"]
+    if not isinstance(regions, list) or not regions:
+        raise RawDetectionContractViolation(f"{label}.regions must be a non-empty list")
+    for i, region in enumerate(regions):
+        _validate_region(f"{label}.regions[{i}]", region)
+
+    # 跨字段：逐视图对账（sum(区域计数) + unassigned == total）。
+    for view in VIEWS:
+        total = item["total_count"][view]
+        if total is None:
+            continue
+        unassigned = item["unassigned_count"][view]
+        if unassigned is None:
+            raise RawDetectionContractViolation(
+                f"{label}: unassigned_count[{view}] null while total_count non-null"
+            )
+        region_sum = sum(r[view] for r in regions if r[view] is not None)
+        if region_sum + unassigned != total:  # type: ignore[operator]
+            raise RawDetectionContractViolation(
+                f"{label}: per-view reconciliation failed for {view}"
+            )
+
+
+def _validate_region(label: str, region: Any) -> None:
+    if not isinstance(region, dict) or set(region) != _REGION_KEYS:
+        raise RawDetectionContractViolation(f"{label} keys invalid")
+    if region["region"] not in REGION_ENUM:
+        raise RawDetectionContractViolation(f"{label}.region unknown")
+    if not isinstance(region["name"], str):
+        raise RawDetectionContractViolation(f"{label}.name invalid")
+    for view in VIEWS:
+        if not _is_count(region[view]):
+            raise RawDetectionContractViolation(f"{label}.{view} invalid")
+    primary_view = region["primary_view"]
+    primary_count = region["primary_count"]
+    if primary_view is not None and primary_view not in VIEWS:
+        raise RawDetectionContractViolation(f"{label}.primary_view invalid")
+    if not _is_count(primary_count):
+        raise RawDetectionContractViolation(f"{label}.primary_count invalid")
+    # 跨字段：primary_view None ⇔ primary_count None；primary_count == row[primary_view]。
+    if (primary_view is None) != (primary_count is None):
+        raise RawDetectionContractViolation(f"{label}: primary_view/primary_count null mismatch")
+    if primary_view is not None and primary_count != region[primary_view]:
+        raise RawDetectionContractViolation(f"{label}.primary_count != row[primary_view]")
+    supplementary = region["supplementary_views"]
+    if not isinstance(supplementary, list) or not all(
+        isinstance(v, str) and v in VIEWS for v in supplementary
+    ):
+        raise RawDetectionContractViolation(f"{label}.supplementary_views invalid")
 
 
 def build_request(
@@ -223,6 +340,9 @@ def build_request(
     if isinstance(device_id, str) and device_id.strip():
         body["device_id"] = device_id
     return body
+
+
+# ---------------------------------------------------------------- response validation
 
 
 def validate_envelope(payload: Any) -> None:
