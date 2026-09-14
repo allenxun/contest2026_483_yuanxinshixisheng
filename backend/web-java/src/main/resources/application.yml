@@ -90,10 +90,12 @@ app:
       # 配置 spring.data.redis.cluster.nodes 会被 StateStoreConfigGuard 拒绝启动；
       # standalone 与 sentinel 均可。
       key-prefix: ${APP_STATE_REDIS_KEY_PREFIX:mvp:b:}
-    # 安全门（默认 false）：app.sms.provider=aliyun 搭配内存状态后端会被拒绝启动，因为联调与
-    # 真实 provider 必须跨实例一致（否则一次性核销与限流退化为单进程语义、重启即失效）。
-    # 仅供使用**假 gateway** 的单元测试显式打开；任何真实部署都不得打开。
-    allow-in-memory-with-real-sms: ${APP_STATE_ALLOW_IN_MEMORY_WITH_REAL_SMS:false}
+    # 安全门（**刻意不提供任何公开运行时开关**）：app.sms.provider=aliyun 搭配内存状态后端会被
+    # StateStoreConfigGuard **无条件拒绝启动**，因为联调与真实 provider 必须跨实例一致
+    # （否则一次性核销与限流会退化为单进程语义、且重启即失效）。
+    # 单元测试改为**不加载该守卫**（直接构造 fake gateway + 内存 store），而不是让生产配置
+    # 为测试开一个一致性后门——这是 Oracle 第二十七轮的裁定，orchestrator 采纳并撤销了
+    # 自己先前引入的 app.state.allow-in-memory-with-real-sms 逃生门。
   storage:
     # 共享存储替身根目录（与 Python worker MVP_A_STORAGE_DEV_DIR 同名可共用）；
     # 布局约定 = <root>/<object_key> 原样（两侧 double 完全一致）

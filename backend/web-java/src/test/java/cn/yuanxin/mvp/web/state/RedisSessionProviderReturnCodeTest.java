@@ -117,11 +117,25 @@ class RedisSessionProviderReturnCodeTest {
     }
 
     @Test
-    @DisplayName("rotate 返回 null ⇒ empty，不返回 token")
-    void rotateNullReturnsEmpty() {
+    @DisplayName("rotate 返回 null ⇒ 503（脚本协议错误/后端异常，绝不降级成 401）")
+    void rotateNullReturns503() {
         nextExecuteCode.set(null);
         stubReads(RT_DIGEST);
-        assertThat(provider(activeJdbc(5L)).refreshAppSession("refresh-token")).isEmpty();
+        assertThatThrownBy(() -> provider(activeJdbc(5L)).refreshAppSession("refresh-token"))
+                .isInstanceOf(ApiException.class)
+                .satisfies(t -> assertThat(((ApiException) t).getCode())
+                        .isEqualTo(ErrorCode.DEPENDENCY_UNAVAILABLE));
+    }
+
+    @Test
+    @DisplayName("rotate 返回未知码 7 ⇒ 503（不得当成 refresh 无效）")
+    void rotateUnknownCodeReturns503() {
+        nextExecuteCode.set(7L);
+        stubReads(RT_DIGEST);
+        assertThatThrownBy(() -> provider(activeJdbc(5L)).refreshAppSession("refresh-token"))
+                .isInstanceOf(ApiException.class)
+                .satisfies(t -> assertThat(((ApiException) t).getCode())
+                        .isEqualTo(ErrorCode.DEPENDENCY_UNAVAILABLE));
     }
 
     @Test

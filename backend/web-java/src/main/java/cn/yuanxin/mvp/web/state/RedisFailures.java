@@ -8,6 +8,10 @@ import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Redis 状态后端故障的<b>唯一</b>翻译点（fail closed）。
  *
@@ -29,13 +33,30 @@ import org.springframework.data.redis.RedisSystemException;
  * 的选择。该取舍如实记录在 {@code backend/handoffs/B-redis-state-migration.md} §6。</p>
  *
  * <p><b>脱敏</b>：返回给客户端的消息是<b>固定文案 + 操作名</b>，绝不包含 Redis 主机、端口、口令、
- * 键名、token、手机号或验证码。服务端日志记 {@code operation} + 异常类名 + 异常消息
- * （Redis 异常消息不含口令：认证失败为 {@code WRONGPASS invalid username-password pair}，
- * 不回显秘密；键名本身已是摘要而非原文）。</p>
+ * 键名、token、手机号或验证码。服务端日志只记 {@code operation}、异常类名与一个
+ * <b>白名单提取</b>的服务端错误词（命中固定词才记，否则 {@code <unclassified>}）；
+ * <b>绝不</b>记录任何异常 {@code getMessage()}。原因：连接/超时类消息常含 {@code host:port}，
+ * 而 {@code RedisSystemException} 并不保证只包装纯服务端 {@code ERR}（未知 driver 异常可能携带
+ * 拓扑或底层详情），因此对全部三类异常一视同仁地脱敏。</p>
  */
 public final class RedisFailures {
 
     private static final Logger log = LoggerFactory.getLogger(RedisFailures.class);
+
+    /** 允许写入日志的固定服务端错误词（严格白名单；命中才记，否则 {@code <unclassified>}）。 */
+    private static final List<Pattern> SERVER_CODE_PATTERNS = List.of(
+            Pattern.compile("DB index is out of range"),
+            Pattern.compile("\\bREADONLY\\b"),
+            Pattern.compile("\\bOOM\\b"),
+            Pattern.compile("\\bWRONGPASS\\b"),
+            Pattern.compile("\\bCROSSSLOT\\b"),
+            Pattern.compile("\\bNOAUTH\\b"),
+            Pattern.compile("\\bNOPERM\\b"),
+            Pattern.compile("\\bWRONGTYPE\\b"),
+            Pattern.compile("\\bNOSCRIPT\\b"),
+            Pattern.compile("\\bBUSY\\b"));
+
+    private static final String UNCLASSIFIED_CODE = "<unclassified>";
 
     private RedisFailures() {
     }
@@ -64,21 +85,43 @@ public final class RedisFailures {
         if (!isStoreUnavailable(ex)) {
             return ex;
         }
-        // 日志脱敏：连接失败/超时类异常的 message 通常含 **host:port** 等拓扑信息，
-        // 因此这两类只记异常类名；只有 RedisSystemException（服务端返回的错误，如
-        // "ERR DB index is out of range"、READONLY、OOM、WRONGPASS——均不回显口令与拓扑）
-        // 才额外记 message，以保留可诊断性。
-        if (ex instanceof RedisSystemException) {
-            log.warn("state store unavailable operation={} cause={} serverError={}", operation,
-                    ex.getClass().getName(), ex.getMessage());
-        } else {
-            log.warn("state store unavailable operation={} cause={}"
-                    + " (message suppressed: it may contain Redis host/port)",
-                    operation, ex.getClass().getName());
-        }
+        // 脱敏（对全部三类异常一致）：日志只含 operation、异常类名与白名单错误词；
+        // 绝不记录 ex.getMessage()（连接/超时类常含 host:port；RedisSystemException 也可能
+        // 携带拓扑或底层详情）。需要可诊断性时只从 message/cause 中提取固定白名单词。
+        log.warn("state store unavailable operation={} cause={} serverCode={}",
+                operation, ex.getClass().getName(), whitelistedServerCode(ex));
         return new ApiException(ErrorCode.DEPENDENCY_UNAVAILABLE,
                 "session/verification state store is unavailable; the request was NOT processed"
                         + " and no credential was accepted or consumed (operation=" + operation + ")");
+    }
+
+    /**
+     * 从异常及其 cause 链的 message 中提取<b>固定白名单</b>服务端错误词；未命中返回
+     * {@code <unclassified>}。提取到的词本身不带拓扑/口令信息，可安全写日志。
+     * 注意：本方法只读取 message 用于匹配，<b>绝不</b>把它返回或写日志。
+     */
+    static String whitelistedServerCode(RuntimeException ex) {
+        StringBuilder haystack = new StringBuilder();
+        Throwable current = ex;
+        for (int depth = 0; current != null && depth < 8; depth++) {
+            String message = current.getMessage();
+            if (message != null && !message.isBlank()) {
+                haystack.append(message).append('\n');
+            }
+            Throwable next = current.getCause();
+            if (next == current) {
+                break;
+            }
+            current = next;
+        }
+        String text = haystack.toString();
+        for (Pattern pattern : SERVER_CODE_PATTERNS) {
+            Matcher matcher = pattern.matcher(text);
+            if (matcher.find()) {
+                return matcher.group();
+            }
+        }
+        return UNCLASSIFIED_CODE;
     }
 
     /**
