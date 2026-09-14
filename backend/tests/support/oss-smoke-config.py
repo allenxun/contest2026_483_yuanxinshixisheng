@@ -82,6 +82,21 @@ def _load(path: Path) -> dict:
     return loaded
 
 
+def _lookup(root: dict, dotted: str, parts: list[str]):
+    """与 Java 侧 ``OssLiveSmoke.value(map, dotted)`` **严格对称**：先扁平点号键，再嵌套下钻。
+
+    两侧必须同样宽容/同样严格，否则会出现"一侧拿到凭据、另一侧中止"的半成功危害。
+    只接受 Spring 规范 kebab-case 拼写；camelCase/snake_case/UPPER 一律视为缺失（响亮拒绝）。
+    """
+    flat = root.get(dotted)
+    if isinstance(flat, str) and flat.strip():
+        return flat.strip()
+    nested = _dig(root, parts)
+    if isinstance(nested, str) and nested.strip():
+        return nested.strip()
+    return None
+
+
 def _shell_quote(value: str) -> str:
     """单引号安全转义（POSIX shell）。值本身绝不会被打印。"""
     return "'" + value.replace("'", "'\\''") + "'"
@@ -106,20 +121,14 @@ def main(argv: list[str]) -> int:
     if not root:
         return 2
 
-    provider = _dig(root, ["app", "storage", "provider"])
+    # 与 Java 侧 OssLiveSmoke.value(map, dotted) **严格对称**：先扁平点号键，再嵌套下钻。
+    # 只接受 Spring 规范 kebab-case 拼写（access-key-id 等）；camelCase / snake_case / UPPER
+    # 一律视为缺失并**响亮拒绝**（只列键名）。刻意不加投机式 relaxed binding：半实现会造成
+    # "Python 侧拿到凭据而 Java 侧中止"的半成功危害，比两侧统一拒绝更糟。
+    provider = _lookup(root, "app.storage.provider", ["app", "storage", "provider"])
 
-    # 与 Java 侧 OssLiveSmoke.value(map, dotted) **严格对称**：只接受
-    #   (a) 嵌套 kebab-case（app: storage: oss: access-key-id:）
-    #   (b) 扁平点号 kebab-case（"app.storage.oss.access-key-id":）
-    # 故意**不**支持 camelCase / snake_case / UPPER：Spring 规范拼写是 kebab-case，任务书亦明确
-    # "兼容既有 app.storage.oss.access-key-id" 等键名。若私有 YAML 用了别的拼写，两侧都会
-    # **响亮拒绝并列出缺失键名**，绝不会出现"Python 侧拿到凭据而 Java 侧中止"的半成功状态。
     def lookup(yaml_key: str):
-        flat = f"app.storage.oss.{yaml_key}"
-        for source in (root.get(flat), _dig(root, ["app", "storage", "oss", yaml_key])):
-            if isinstance(source, str) and source.strip():
-                return source.strip()
-        return None
+        return _lookup(root, f"app.storage.oss.{yaml_key}", ["app", "storage", "oss", yaml_key])
 
     values = {key: lookup(key) for key in YAML_TO_ENV}
     missing = [key for key in REQUIRED_YAML_KEYS if not values.get(key)]
