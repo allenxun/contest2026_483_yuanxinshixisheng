@@ -233,61 +233,30 @@ class RedisLoginLiveAcceptanceIT {
     /**
      * 清理本测试前缀的 Redis 键与本测试新建的账号数据。
      *
-     * <p>Redis 侧：用 {@code SCAN}（绝不 {@code KEYS}）删除自己前缀，然后<b>复核</b>剩余键数为 0；
-     * 清理异常或残留一律让测试失败（{@code cleanup incomplete}），绝不静默吞掉。</p>
-     * <p>DB 侧：尽力而为，但必须报告删除行数（{@code >0} 与否）；异常以 suppressed 保留并在输出中
-     * 标记 {@code cleanup incomplete}。<b>绝不</b>打印键名、手机号或 token。</p>
+     * <p>所有步骤（Redis 删除 → SCAN 复核 → DB 两条 DELETE）都会执行完；此后
+     * <b>只要任一步骤抛异常，或 SCAN 复核到残留/无法复核，就必须抛
+     * {@code IllegalStateException("cleanup incomplete: …")}</b> —— L3 必须 FAIL，绝不只打印却 PASS；
+     * 其余异常以 {@link Throwable#addSuppressed} 保留。</p>
+     * <p>输出只含计数与异常类名（含 DB 删除行数，为 0 也如实输出），
+     * <b>绝不</b>打印键名、手机号或 token。</p>
      */
     private void cleanup(String phone) {
-        Throwable cleanupFailure = null;
-        try {
-            RedisTestSupport.cleanup(redis, KEY_PREFIX);
-        } catch (RuntimeException failure) {
-            cleanupFailure = failure;
-        }
-        int leftover;
-        try {
-            leftover = RedisTestSupport.scanKeys(redis, KEY_PREFIX).size();
-        } catch (RuntimeException scanFailure) {
-            if (cleanupFailure == null) {
-                cleanupFailure = scanFailure;
-            } else {
-                cleanupFailure.addSuppressed(scanFailure);
-            }
-            leftover = -1;
-        }
-        if (leftover > 0 || leftover < 0) {
-            IllegalStateException incomplete = new IllegalStateException(
-                    "cleanup incomplete: leftover keys under test prefix = "
-                            + (leftover < 0 ? "unverified" : leftover) + " (names not logged)");
-            if (cleanupFailure != null) {
-                incomplete.addSuppressed(cleanupFailure);
-            }
-            throw incomplete;
-        }
-
-        int destinationsDeleted = 0;
-        int accountsDeleted = 0;
-        try {
-            destinationsDeleted = jdbc.update("DELETE FROM notification_destinations WHERE account_id IN"
-                    + " (SELECT id FROM accounts WHERE login_provider = 'phone' AND login_subject = ?)",
-                    phone);
-            accountsDeleted = jdbc.update("DELETE FROM accounts WHERE login_provider = 'phone'"
-                    + " AND login_subject = ?", phone);
-        } catch (RuntimeException dbFailure) {
-            if (cleanupFailure == null) {
-                cleanupFailure = dbFailure;
-            } else {
-                cleanupFailure.addSuppressed(dbFailure);
-            }
-            System.out.println("[l3-cleanup] db-cleanup-error exception="
-                    + dbFailure.getClass().getSimpleName());
-        }
-        System.out.println("[l3-cleanup] redisLeftover=" + leftover
-                + " destinationsDeleted=" + destinationsDeleted
-                + " accountsDeleted=" + accountsDeleted
-                + (cleanupFailure == null ? ""
-                        : " cleanup-incomplete-suppressed=" + cleanupFailure.getClass().getSimpleName()));
+        // 编排抽到包级纯函数 L3Cleanup（可直接单测）；任一步骤失败即抛，L3 必 FAIL，绝不只打印却 PASS。
+        L3Cleanup.run(
+                () -> RedisTestSupport.cleanup(redis, KEY_PREFIX),
+                () -> RedisTestSupport.scanKeys(redis, KEY_PREFIX).size(),
+                () -> {
+                    int destinationsDeleted = jdbc.update(
+                            "DELETE FROM notification_destinations WHERE account_id IN"
+                                    + " (SELECT id FROM accounts WHERE login_provider = 'phone'"
+                                    + " AND login_subject = ?)",
+                            phone);
+                    int accountsDeleted = jdbc.update(
+                            "DELETE FROM accounts WHERE login_provider = 'phone' AND login_subject = ?",
+                            phone);
+                    return new int[]{destinationsDeleted, accountsDeleted};
+                },
+                System.out);
     }
 
     private static byte[] randomBytes() {

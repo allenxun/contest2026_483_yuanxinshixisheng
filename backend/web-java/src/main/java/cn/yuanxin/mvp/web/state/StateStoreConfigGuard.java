@@ -36,6 +36,10 @@ import java.util.Set;
  *       <b>且</b> {@code app.state.provider != redis} ⇒ 拒绝启动。这把"联调/真实 provider
  *       使用 Redis"从约定变成<b>可执行的门禁</b>：进程内会话状态在生产意味着重启丢会话、
  *       多实例互相不认，属实质缺陷。</li>
+ *   <li><b>真实短信 provider 必须搭配 Redis</b>：{@code app.sms.provider=aliyun} <b>且</b>
+ *       {@code app.state.provider != redis} ⇒ <b>无条件</b>拒绝启动。内存 challenge/限流计数
+ *       不跨实例、重启即失效，一次性核销与限流会退化回单进程语义。<b>本规则没有运行时逃生门</b>：
+ *       单元测试应不加载本守卫（直接构造 fake gateway + 内存 store），而不是放宽生产规则。</li>
  * </ol>
  *
  * <p><b>为什么规则 3 限定 {@code mode=real}</b>：生产 + {@code mode=doubles} 已由既有
@@ -59,18 +63,6 @@ public class StateStoreConfigGuard implements BeanFactoryPostProcessor, Environm
 
     /** Redis Cluster 节点属性：本轮**不支持**（多键 Lua 无共同 hash tag ⇒ 运行期必然 CROSSSLOT）。 */
     private static final String CLUSTER_NODES_KEY = "spring.data.redis.cluster.nodes";
-
-    /**
-     * 测试专用逃生门（默认 {@code false}）：允许"真实短信 provider + 内存状态后端"这一组合。
-     *
-     * <p><b>为什么需要它</b>：联调与真实 provider 必须用 Redis（跨实例一致），因此默认拒绝
-     * {@code app.sms.provider=aliyun} + {@code app.state.provider!=redis}；但单元测试需要用
-     * <b>假 gateway</b> 驱动 {@code AliyunSmsCodeProvider} 的编排逻辑（风控、随机码、错误映射），
-     * 这些测试不应被要求提供 Redis。逃生门让"默认安全、测试显式声明"两者兼得，
-     * 而不是把安全规则弱化成告警。</p>
-     */
-    public static final String ALLOW_IN_MEMORY_WITH_REAL_SMS_KEY =
-            "app.state.allow-in-memory-with-real-sms";
 
     private Environment environment;
 
@@ -150,28 +142,26 @@ public class StateStoreConfigGuard implements BeanFactoryPostProcessor, Environm
     }
 
     /**
-     * 真实短信 provider 搭配内存状态后端 ⇒ 拒绝（除非显式打开测试逃生门）。
+     * 真实短信 provider 搭配内存状态后端 ⇒ <b>无条件拒绝</b>（不存在任何公开逃生门/运行时开关）。
      * 内存状态意味着 challenge 与限流计数**不跨实例、重启即失效**，与"联调/真实 provider 使用 Redis"
-     * 直接冲突；且一次性核销与限流的原子性会退化回单进程语义。
+     * 直接冲突；且一次性核销与限流的原子性会退化回单进程语义。跨实例一致性是硬要求，
+     * <b>不接受</b>把它做成可被运行时配置绕过的规则。
+     *
+     * <p>单元测试应当<b>不加载本守卫</b>（直接构造 fake gateway + 内存 store 测编排逻辑），
+     * 而不是放宽生产规则。</p>
      */
     private void refuseRealSmsWithInMemoryState() {
         String smsProvider = environment.getProperty("app.sms.provider");
         if (smsProvider == null || !"aliyun".equals(smsProvider.trim().toLowerCase(java.util.Locale.ROOT))) {
             return;
         }
-        if (Boolean.parseBoolean(environment.getProperty(ALLOW_IN_MEMORY_WITH_REAL_SMS_KEY, "false"))) {
-            log.warn("app.sms.provider=aliyun with an in-memory state store: allowed ONLY because {}=true"
-                            + " (test escape hatch). Challenge and throttle state will NOT be shared across"
-                            + " instances and will NOT survive restarts; use {}=redis for any real deployment.",
-                    ALLOW_IN_MEMORY_WITH_REAL_SMS_KEY, AppStateProperties.PROVIDER_KEY);
-            return;
-        }
         String message = "state store fail-closed: app.sms.provider=aliyun requires "
                 + AppStateProperties.PROVIDER_KEY + "=redis, because in-process challenge/throttle state"
                 + " is not shared across instances and does not survive restarts (one-time consumption and"
                 + " rate limiting would degrade to per-process semantics); configure "
-                + AppStateProperties.PROVIDER_KEY + "=redis with spring.data.redis.*,"
-                + " or set " + ALLOW_IN_MEMORY_WITH_REAL_SMS_KEY + "=true for fake-gateway unit tests only"
+                + AppStateProperties.PROVIDER_KEY + "=redis with spring.data.redis.*."
+                + " There is no runtime opt-out: unit tests must not load this guard (construct a fake"
+                + " gateway plus an in-memory store directly) instead of loosening production rules"
                 + " (values are never logged)";
         log.error(message);
         throw new IllegalStateException(message);

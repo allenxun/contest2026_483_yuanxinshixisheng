@@ -215,8 +215,8 @@ public class RedisSessionProvider implements SessionProvider {
                 accountId.toString(), nullToEmpty(installationId), Long.toString(snapshotRevision),
                 Long.toString(now.toEpochMilli()), Long.toString(expiresAt.toEpochMilli()),
                 StateKeys.sha256Hex(newAccess), StateKeys.sha256Hex(newRefresh)));
-        if (rotateCode == null || rotateCode != 1L) {
-            // 0/2/null 一律 empty，且绝不返回 token（SUGGESTION 8 返回码校验）。
+        if (!rotateSucceeded(rotateCode)) {
+            // 0/2 = 业务失败（refresh 已被消费 / 会话已撤销）⇒ empty，且绝不返回 token。
             return Optional.empty();
         }
         return Optional.of(new IssuedAppSession(newAccess, newRefresh, accountId, installationId,
@@ -267,6 +267,23 @@ public class RedisSessionProvider implements SessionProvider {
     }
 
     // ---------- internals ----------
+
+    /**
+     * rotate CAS 返回码分派：{@code 1}=成功；{@code 0}/{@code 2}=业务失败（refresh 已被消费 /
+     * 会话已撤销）⇒ 返回 false；{@code null} 或<b>任何未知码</b>代表脚本协议错误或后端异常
+     * ⇒ 抛 fail-closed 的 503 {@code DEPENDENCY_UNAVAILABLE}，<b>绝不</b>降级成 401 语义的 empty。
+     */
+    private static boolean rotateSucceeded(Long code) {
+        if (code != null && code == 1L) {
+            return true;
+        }
+        if (code != null && (code == 0L || code == 2L)) {
+            return false;
+        }
+        throw new ApiException(ErrorCode.DEPENDENCY_UNAVAILABLE,
+                "session state store returned an unexpected rotate outcome (operation=rotate-refresh);"
+                        + " the request was NOT processed and no credential was issued");
+    }
 
     /**
      * 校验写脚本的返回码：只有返回 {@code 1} 才算确认成功；{@code null}/非 1 ⇒ 后端未确认，
