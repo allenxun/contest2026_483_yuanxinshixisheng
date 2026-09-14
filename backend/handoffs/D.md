@@ -82,3 +82,8 @@
 - 新授权 V3 资料（工作树内 SHA 核验副本：903531bf…/86412676… 与监督者值逐字一致；仅作数据读取）核验：高分=更好（与 AI 侧方向一致，Probe B 已活体证实）→ V3 数值零变换；26 区域评分与文档吻合；区域名全部"画面"前缀，文档明示"**画面左右不是受检者本人左右**"。
 - **L/R 参照系核查=AI 侧无法确认**（全仓定向扫描零记载；KB 内容在其库内非契约文件）→ 按授权指令停点报告，**单次有界 POST 未发射**（预算保留），未做任何变形调用。已就绪映射（仅探测非生产批准）：F={O:72,P:38}、C={O:100}（spots 无 chin，绝不 jaw 顶替）、pores 不发、D 省略、L/R=exact cheek 待 N.5 书面裁定（同名 vs 翻转；实质差异仅 P=46 归属侧）。
 - 零代码改动（无新代码 SHA，无新 Oracle 轮；afa3372 维持最终 AI-plan 代码 SHA=Oracle ACCEPTED）；服务零触碰仍 UP；Key 未使用。待决新增 **N.5**（协调文件 P 节：AI 负责人一句书面澄清即可解锁 POST）。
+
+### V3 部分区域有界探测轮（2026-09-14，授权安全替代方案已执行）
+- 单次 POST（仅探测、非生产批准）：regions 仅 F={O:72,P:38}、C={O:100}（SHA 核验 V3 样本逐字、零变换——V3 高分=更好与 AI 侧一致、零聚合）；**L/R 整体省略并显式记录原因（AI 契约未定义左右参照系）**；C.P 缺失（spots 无 chin，绝不 jaw 顶替）；全 D 缺失；pores/jaw/nasal/zygoma/inner/outer 未发送。Key 零回显；完整响应未回显（结构化摘要+本地存证 8682B）。
+- 结果：HTTP **200**——**接口接受缺失 L/R**（parsing_notes=["缺少L区数据","缺少R区数据"]，L/R=ABSENT，integrity=partial，PREVIEW_ONLY，exposure 仅 F 7 天，region_goals F=[P,O]/C=[]，spoken_text 以"没测清楚"诚实呈现缺失）。四设备参数仍缺失（param-scan []）→ fail-closed 维持，PlanPort 合法 ready 仍不可能。与 Probe B 七项差异详 discovery §11。
+- N.5 精确状态：部分接受性≠定向裁定，生产颊区映射仍需书面定义（保持 OPEN）；零代码 delta→report-only（无 Oracle 轮，afa3372 维持最终 AI-plan 代码 SHA=ACCEPTED）；服务零触碰仍 UP。
