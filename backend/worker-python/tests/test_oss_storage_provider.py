@@ -44,6 +44,8 @@ from mvp_worker.media.storage import (
     OSS_ACCESS_KEY_ID_ENV,
     OSS_ACCESS_KEY_SECRET_ENV,
     OSS_BUCKET_ENV,
+    OSS_PUBLIC_ENDPOINT_ENV,
+    OSS_SERVER_ENDPOINT_ENV,
     STORAGE_PROVIDER_ENV,
     AliyunOssStorage,
     FilesystemStorageDouble,
@@ -57,6 +59,10 @@ FAKE_AK = "LTAI-FAKE-DO-NOT-USE"
 FAKE_SK = "fake-secret-do-not-use"
 FAKE_BUCKET = "fake-bucket-do-not-use"
 FAKE_TOKEN = "fake-sts-token-do-not-use"
+FAKE_SERVER_ENDPOINT = "https://oss-fake-server.example.com"
+FAKE_PUBLIC_ENDPOINT = "https://oss-fake-public.example.com"
+#: 已彻底移除的旧单 endpoint 键（仅测试用：验证迁移失败与"从不被读取"）。
+LEGACY_ENDPOINT_ENV = "MVP_A_STORAGE_OSS_ENDPOINT"
 
 
 @pytest.fixture(autouse=True)
@@ -132,7 +138,8 @@ def _oss_storage(bucket_obj: Any, *, bucket_name: str = FAKE_BUCKET) -> AliyunOs
         bucket_name=bucket_name,
         access_key_id=FAKE_AK,
         access_key_secret=FAKE_SK,
-        endpoint="https://oss-cn-hangzhou.aliyuncs.com",
+        server_endpoint=FAKE_SERVER_ENDPOINT,
+        public_endpoint=FAKE_PUBLIC_ENDPOINT,
         region="cn-hangzhou",
     )
     storage._bucket = bucket_obj  # 注入假 bucket，避免任何真实网络访问
@@ -155,6 +162,8 @@ def _set_oss_env(monkeypatch: Any, *, bucket: str | None = FAKE_BUCKET) -> None:
         monkeypatch.setenv(OSS_BUCKET_ENV, bucket)
     monkeypatch.setenv(OSS_ACCESS_KEY_ID_ENV, FAKE_AK)
     monkeypatch.setenv(OSS_ACCESS_KEY_SECRET_ENV, FAKE_SK)
+    monkeypatch.setenv(OSS_SERVER_ENDPOINT_ENV, FAKE_SERVER_ENDPOINT)
+    monkeypatch.setenv(OSS_PUBLIC_ENDPOINT_ENV, FAKE_PUBLIC_ENDPOINT)
 
 
 def _seed_analyzing(engine: Engine) -> str:
@@ -262,10 +271,26 @@ def test_oss_transient_errors_map_to_retryable(exc: BaseException) -> None:
 def test_oss_constructor_missing_credentials_no_value_leak() -> None:
     with pytest.raises(StorageConfigError) as ei:
         AliyunOssStorage(
-            bucket_name="", access_key_id=FAKE_AK, access_key_secret=FAKE_SK
+            bucket_name="", access_key_id=FAKE_AK, access_key_secret=FAKE_SK,
+            server_endpoint=FAKE_SERVER_ENDPOINT, public_endpoint=FAKE_PUBLIC_ENDPOINT,
         )
     message = str(ei.value)
-    assert FAKE_AK not in message and FAKE_SK not in message
+    assert "bucket_name" in message
+    for secret_value in (
+        FAKE_AK, FAKE_SK, FAKE_BUCKET, FAKE_SERVER_ENDPOINT, FAKE_PUBLIC_ENDPOINT,
+    ):
+        assert secret_value not in message
+
+
+def test_oss_constructor_missing_endpoint_no_value_leak() -> None:
+    with pytest.raises(StorageConfigError) as ei:
+        AliyunOssStorage(
+            bucket_name=FAKE_BUCKET, access_key_id=FAKE_AK, access_key_secret=FAKE_SK,
+            server_endpoint="", public_endpoint=FAKE_PUBLIC_ENDPOINT,
+        )
+    message = str(ei.value)
+    assert "server_endpoint" in message
+    assert FAKE_PUBLIC_ENDPOINT not in message
 
 
 # ====================================================== 2) provider 选择与守卫
@@ -294,6 +319,8 @@ def test_storage_for_selects_aliyun_oss(monkeypatch: Any) -> None:
         (OSS_BUCKET_ENV, OSS_BUCKET_ENV),
         (OSS_ACCESS_KEY_ID_ENV, OSS_ACCESS_KEY_ID_ENV),
         (OSS_ACCESS_KEY_SECRET_ENV, OSS_ACCESS_KEY_SECRET_ENV),
+        (OSS_SERVER_ENDPOINT_ENV, OSS_SERVER_ENDPOINT_ENV),
+        (OSS_PUBLIC_ENDPOINT_ENV, OSS_PUBLIC_ENDPOINT_ENV),
     ],
 )
 def test_oss_missing_required_config_raises_config_error(
@@ -305,6 +332,8 @@ def test_oss_missing_required_config_raises_config_error(
         build_storage_port(DConfig.from_env(), environment="dev")
     assert expected in str(ei.value)  # 只报"缺哪个键"
     assert FAKE_AK not in str(ei.value) and FAKE_SK not in str(ei.value)
+    assert FAKE_SERVER_ENDPOINT not in str(ei.value)
+    assert FAKE_PUBLIC_ENDPOINT not in str(ei.value)
 
 
 def test_unknown_storage_provider_fails_fast(monkeypatch: Any) -> None:
@@ -354,6 +383,217 @@ def test_existing_face_double_guard_unchanged(monkeypatch: Any) -> None:
     monkeypatch.setenv("APP_ENV", "production")
     with pytest.raises(ProviderConfigError):
         build_face_port(DConfig.from_env(), environment="production")
+
+
+# =============== 2b) endpoint 拆分 / 旧键迁移 / server-public 路由 / 签名 ===============
+
+
+class _RecordingBucket:
+    """注入 ``oss2.Bucket`` 的间谍：记录构造 endpoint 与各操作调用。"""
+
+    def __init__(self, auth: Any, endpoint: str, bucket_name: str, **kwargs: Any) -> None:
+        self.auth = auth
+        self.endpoint = endpoint
+        self.bucket_name = bucket_name
+        self.kwargs = kwargs
+        self.calls: list[Any] = []
+
+    def put_object(self, key: str, data: bytes, headers: Any = None) -> Any:
+        self.calls.append("put_object")
+        return object()
+
+    def get_object(self, key: str) -> Any:
+        self.calls.append("get_object")
+        raise oss2.exceptions.NoSuchKey(404, {}, b"", {"Code": "NoSuchKey"})
+
+    def object_exists(self, key: str) -> bool:
+        self.calls.append("object_exists")
+        return False
+
+    def delete_object(self, key: str) -> Any:
+        self.calls.append("delete_object")
+        return object()
+
+    def sign_url(self, method: str, key: str, expires: int, **kwargs: Any) -> str:
+        self.calls.append(("sign_url", method, key, expires, kwargs))
+        return f"{self.endpoint}/{key}?signed=1"
+
+
+def _install_recording_buckets(monkeypatch: Any) -> list[_RecordingBucket]:
+    created: list[_RecordingBucket] = []
+
+    def _factory(auth: Any, endpoint: str, bucket_name: str, **kwargs: Any) -> _RecordingBucket:
+        bucket = _RecordingBucket(auth, endpoint, bucket_name, **kwargs)
+        created.append(bucket)
+        return bucket
+
+    monkeypatch.setattr(oss2, "Bucket", _factory)
+    return created
+
+
+def test_endpoints_split_uses_server_and_public_buckets(monkeypatch: Any) -> None:
+    created = _install_recording_buckets(monkeypatch)
+    storage = AliyunOssStorage(
+        bucket_name=FAKE_BUCKET,
+        access_key_id=FAKE_AK,
+        access_key_secret=FAKE_SK,
+        server_endpoint=FAKE_SERVER_ENDPOINT,
+        public_endpoint=FAKE_PUBLIC_ENDPOINT,
+        region="cn-hangzhou",
+    )
+    # 两个独立 bucket：先 server（对象操作）后 public（签名）。
+    assert [b.endpoint for b in created] == [FAKE_SERVER_ENDPOINT, FAKE_PUBLIC_ENDPOINT]
+    # 两个 bucket 都传 region：V4（STS 路径）需要它进入 Credential Scope；V1（长期 AK/SK）
+    # 虽不使用 region，仍统一传入以保持两个 bucket 构造一致。
+    assert all(b.kwargs.get("region") == "cn-hangzhou" for b in created)
+
+    server_bucket, public_bucket = created
+    storage.put("dev/assessment_result/m1", b"x", content_type="image/png")
+    storage.exists("dev/assessment_result/m1")
+    storage.delete("dev/assessment_result/m1")
+    assert "put_object" in server_bucket.calls
+    assert "object_exists" in server_bucket.calls
+    assert "delete_object" in server_bucket.calls
+    assert public_bucket.calls == []  # 对象操作绝不走 public bucket
+
+    url = storage.sign_public_url("dev/assessment_result/m1", 3600)
+    assert url.startswith(FAKE_PUBLIC_ENDPOINT)
+    assert server_bucket.calls.count("put_object") == 1  # 签名不触发对象操作
+    sign_calls = [c for c in public_bucket.calls if isinstance(c, tuple) and c[0] == "sign_url"]
+    assert len(sign_calls) == 1
+    assert sign_calls[0][1] == "GET"
+    assert sign_calls[0][3] == 3600
+    assert sign_calls[0][4].get("slash_safe") is True
+
+
+def test_sign_public_url_uses_public_host_and_slash_safe() -> None:
+    """签名地址针对 **public endpoint** 直接生成，且保留 `/`（slash_safe=True）。
+
+    签名版本**随凭据类型**：长期 AK/SK → 经典 **V1**（查询参数 `OSSAccessKeyId`/`Expires`/
+    `Signature`，**不含** `x-oss-signature-version`）；STS → **V4**
+    （见 :func:`test_sign_public_url_uses_v4_when_sts_credentials`）。
+    这是**刻意决定**而非遗漏：根已在 ``ede19b5`` 上用真实凭据验证过 V1 数据面，而 V4 把 region
+    纳入 Credential Scope，一旦 ``MVP_A_STORAGE_OSS_REGION`` 与桶实际区域不符即失败；且 Java 侧
+    同为 SDK 默认 V1，两侧对同一桶必须发出**同一种**签名版本。统一迁移 V4 须由根裁定并用真实
+    凭据重新验证（见 :func:`test_auth_selection_preserves_the_verified_data_plane`）。
+    """
+    storage = AliyunOssStorage(
+        bucket_name=FAKE_BUCKET,
+        access_key_id=FAKE_AK,
+        access_key_secret=FAKE_SK,
+        server_endpoint=FAKE_SERVER_ENDPOINT,
+        public_endpoint=FAKE_PUBLIC_ENDPOINT,
+        region="cn-hangzhou",
+    )
+    key = "dev/assessment_result/3f2b6c1e-9a4d-4f0e-8b7c-1d2e3f4a5b6c"
+    url = storage.sign_public_url(key, 3600)
+    parsed = urlparse(url)
+    assert parsed.scheme == "https"
+    assert parsed.hostname is not None
+    assert parsed.hostname.endswith("oss-fake-public.example.com")
+    assert "oss-fake-server" not in parsed.hostname  # host 不等于 server host
+    assert "/assessment_result/" in parsed.path  # slash_safe=True：分隔符未转义
+    # 长期 AK/SK → V1 查询参数如实存在；V4 专属参数必须**不存在**（防止把版本写错却测试通过）。
+    assert "OSSAccessKeyId=" in url
+    assert "Expires=" in url
+    assert "Signature=" in url
+    assert "x-oss-signature-version" not in url
+    # 与服务端 endpoint 签名的 host 不同（证明未用 server 签名再替换 host）。
+    server_url = storage._bucket.sign_url("GET", key, 3600, slash_safe=True)
+    assert urlparse(server_url).hostname != parsed.hostname
+    assert urlparse(server_url).hostname.endswith("oss-fake-server.example.com")
+
+
+@pytest.mark.parametrize("expires", [0, -1, 604801, True, 1.5, "60"])
+def test_sign_public_url_rejects_out_of_range_expiry(expires: Any) -> None:
+    storage = _oss_storage(_FakeBucket())
+    with pytest.raises(StorageConfigError) as ei:
+        storage.sign_public_url("dev/assessment_result/m1", expires)
+    assert "out of range" in str(ei.value)
+
+
+def test_sign_public_url_accepts_max_expiry() -> None:
+    """604800 秒（7 天）是允许的上限；该上限对 V1/V4 **统一适用**（与 Java `MAX_EXPIRY` 一致）。"""
+    storage = _oss_storage(_FakeBucket())
+    url = storage.sign_public_url("dev/assessment_result/m1", 604800)
+    # 确实产出了针对 public endpoint 的签名地址（长期 AK/SK ⇒ V1 查询参数）。
+    # 注意 oss2 用 virtual-host 风格：host = <bucket>.<endpoint-host>，故不能用 startswith 断言。
+    parsed = urlparse(url)
+    assert parsed.scheme == "https"
+    assert parsed.hostname == f"{FAKE_BUCKET}.{urlparse(FAKE_PUBLIC_ENDPOINT).hostname}"
+    assert "OSSAccessKeyId=" in url and "Signature=" in url
+
+
+def test_sign_public_url_uses_v4_when_sts_credentials() -> None:
+    """STS 临时凭据路径**仍是 V4**（``OSS4-HMAC-SHA256``）——这一支从未改变。
+
+    保留 V4 覆盖：签名版本随凭据类型（AK/SK → V1，STS → V4）。同时如实记录 STS 语义——
+    URL 实际有效期 = ``min(expires_seconds, token 剩余有效期)``，token 过期即失效。
+    """
+    storage = AliyunOssStorage(
+        bucket_name=FAKE_BUCKET,
+        access_key_id=FAKE_AK,
+        access_key_secret=FAKE_SK,
+        security_token=FAKE_TOKEN,
+        server_endpoint=FAKE_SERVER_ENDPOINT,
+        public_endpoint=FAKE_PUBLIC_ENDPOINT,
+        region="cn-hangzhou",
+    )
+    url = storage.sign_public_url("dev/assessment_result/m1", 3600)
+    # oss2 用 virtual-host 风格：host = <bucket>.<endpoint-host>（不能用 startswith 断言）。
+    parsed = urlparse(url)
+    assert parsed.hostname == f"{FAKE_BUCKET}.{urlparse(FAKE_PUBLIC_ENDPOINT).hostname}"
+    assert "x-oss-signature-version=OSS4-HMAC-SHA256" in url
+    # V4 的 Credential Scope 含 region（跨 region 不可复用）。
+    assert "cn-hangzhou" in url
+    # STS token 参与签名（以查询参数形式），但**绝不**出现在异常/日志中（另有净化用例覆盖）。
+    assert "security-token=" in url.lower() or "securitytoken=" in url.lower()
+
+
+def test_legacy_single_endpoint_only_fails_with_migration_hint(monkeypatch: Any) -> None:
+    monkeypatch.setenv(STORAGE_PROVIDER_ENV, "aliyun_oss")
+    monkeypatch.setenv(OSS_BUCKET_ENV, FAKE_BUCKET)
+    monkeypatch.setenv(OSS_ACCESS_KEY_ID_ENV, FAKE_AK)
+    monkeypatch.setenv(OSS_ACCESS_KEY_SECRET_ENV, FAKE_SK)
+    monkeypatch.delenv(OSS_SERVER_ENDPOINT_ENV, raising=False)
+    monkeypatch.delenv(OSS_PUBLIC_ENDPOINT_ENV, raising=False)
+    legacy_value = "https://legacy-single-endpoint.example.com"
+    monkeypatch.setenv(LEGACY_ENDPOINT_ENV, legacy_value)
+    with pytest.raises(ProviderConfigError) as ei:
+        build_storage_port(DConfig.from_env(), environment="dev")
+    message = str(ei.value)
+    # 点名两个新变量 + 迁移提示；绝不回显旧取值。
+    assert OSS_SERVER_ENDPOINT_ENV in message
+    assert OSS_PUBLIC_ENDPOINT_ENV in message
+    assert "split" in message and "migrate" in message
+    assert legacy_value not in message
+    assert FAKE_AK not in message and FAKE_SK not in message
+
+
+def test_legacy_endpoint_ignored_when_new_endpoints_present(monkeypatch: Any) -> None:
+    _set_oss_env(monkeypatch)
+    legacy_value = "https://legacy-single-endpoint.example.com"
+    monkeypatch.setenv(LEGACY_ENDPOINT_ENV, legacy_value)
+    created = _install_recording_buckets(monkeypatch)
+    storage = build_storage_port(DConfig.from_env(), environment="dev")
+    assert isinstance(storage, AliyunOssStorage)
+    used = [bucket.endpoint for bucket in created]
+    assert FAKE_SERVER_ENDPOINT in used and FAKE_PUBLIC_ENDPOINT in used
+    assert legacy_value not in used  # 旧键从未被读取/使用
+
+
+def test_legacy_endpoint_symbols_removed_from_storage_module() -> None:
+    import mvp_worker.media.storage as storage_module
+
+    assert not hasattr(storage_module, "OSS_ENDPOINT_ENV")
+    assert not hasattr(storage_module, "DEFAULT_OSS_ENDPOINT")
+
+
+def test_dconfig_has_split_endpoint_fields_only() -> None:
+    cfg = DConfig.from_env()
+    assert hasattr(cfg, "oss_server_endpoint")
+    assert hasattr(cfg, "oss_public_endpoint")
+    assert not hasattr(cfg, "oss_endpoint")
 
 
 # ====================================================== 3) objectKey 跨语言一致
@@ -576,7 +816,8 @@ def _wire_storage(endpoint: str) -> AliyunOssStorage:
         bucket_name=FAKE_BUCKET,
         access_key_id=FAKE_AK,
         access_key_secret=FAKE_SK,
-        endpoint=endpoint,
+        server_endpoint=endpoint,
+        public_endpoint=endpoint,
         region="cn-hangzhou",
     )
     # 本地 stub 用 path-style（真实 OSS endpoint 走 virtual-host，不受影响）。
@@ -885,3 +1126,54 @@ def test_oss_error_log_unparsed_purpose_never_falls_back_to_key() -> None:
     text = lines[0]
     assert malformed not in text
     assert '"purpose": "<unparsed>"' in text
+
+
+def test_auth_selection_preserves_the_verified_data_plane(monkeypatch: Any) -> None:
+    """回归守卫：签名版本**随凭据类型**，长期 AK/SK 必须仍用经典 V1 ``oss2.Auth``。
+
+    根已在 ``ede19b5`` 上用真实凭据验证过 V1 数据面（put/get/exists/delete 全部成功）。
+    V4 会把 region 纳入 Credential Scope（``<date>/<region>/oss/aliyun_v4_request``），
+    若 ``MVP_A_STORAGE_OSS_REGION`` 与桶实际区域不符，则 V1 可用而 V4 直接失败。
+    因此任何把数据面静默改成 V4（例如 ``ProviderAuthV4``）的改动都必须让本测试失败；
+    统一迁移到 V4 属需要真实凭据重新验证的独立决定，须由根裁定后显式实施。
+    """
+    captured: list[Any] = []
+    real_bucket = oss2.Bucket
+
+    def _spy(auth: Any, endpoint: str, bucket_name: str, **kwargs: Any) -> Any:
+        captured.append((auth, endpoint))
+        return real_bucket(auth, endpoint, bucket_name, **kwargs)
+
+    monkeypatch.setattr(oss2, "Bucket", _spy)
+
+    # 长期 AK/SK：两个 bucket（server + public）都必须用经典 V1 Auth，绝不是 ProviderAuthV4。
+    AliyunOssStorage(
+        bucket_name=FAKE_BUCKET,
+        access_key_id=FAKE_AK,
+        access_key_secret=FAKE_SK,
+        server_endpoint="https://oss-fake-server.example.com",
+        public_endpoint="https://oss-fake-public.example.com",
+        region="cn-fake-region",
+    )
+    assert len(captured) == 2, "server bucket 与 public bucket 各构建一次"
+    assert all(isinstance(auth, oss2.Auth) for auth, _ in captured)
+    assert not any(isinstance(auth, oss2.ProviderAuthV4) for auth, _ in captured)
+    # 两个 bucket 分别绑定 server 与 public endpoint（顺序即构造顺序）。
+    assert [ep for _, ep in captured] == [
+        "https://oss-fake-server.example.com",
+        "https://oss-fake-public.example.com",
+    ]
+
+    # STS：保持既有的 V4 StsAuth（这一支从未改变）。
+    captured.clear()
+    AliyunOssStorage(
+        bucket_name=FAKE_BUCKET,
+        access_key_id=FAKE_AK,
+        access_key_secret=FAKE_SK,
+        security_token="FAKE-STS-DO-NOT-USE",
+        server_endpoint="https://oss-fake-server.example.com",
+        public_endpoint="https://oss-fake-public.example.com",
+        region="cn-fake-region",
+    )
+    assert len(captured) == 2
+    assert all(isinstance(auth, oss2.StsAuth) for auth, _ in captured)

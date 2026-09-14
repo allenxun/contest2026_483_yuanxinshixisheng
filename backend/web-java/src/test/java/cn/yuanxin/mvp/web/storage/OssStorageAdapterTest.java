@@ -10,6 +10,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.env.StandardEnvironment;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class OssStorageAdapterTest {
 
     private static final String BUCKET = "fake-bucket-do-not-use";
-    private static final String ENDPOINT = "https://oss-cn-hangzhou.aliyuncs.com";
+    private static final String PUBLIC_ENDPOINT = "https://oss-fake-public.example.com";
     private static final byte[] IMAGE = "fake-image-bytes-0123456789".getBytes(StandardCharsets.UTF_8);
     private static final String KEY = "dev/assessment_source/00000000-0000-0000-0000-000000000001";
 
@@ -47,11 +48,11 @@ class OssStorageAdapterTest {
         stub = new OssHttpStub();
         stub.start();
         AliyunOssProperties props = new AliyunOssProperties("cn-hangzhou",
-                "http://127.0.0.1:" + stub.port(), BUCKET,
+                "http://127.0.0.1:" + stub.port(), PUBLIC_ENDPOINT, BUCKET,
                 "LTAI-FAKE-DO-NOT-USE", "FAKE-SECRET-DO-NOT-USE", null, 2000, 2000);
         AppProperties appProps = new AppProperties("dev", null,
                 new AppProperties.Storage(null, BUCKET), null, null, null, null);
-        oss = new OssProvidersConfig().ossClient(props, appProps);
+        oss = new OssProvidersConfig().ossClient(props, appProps, new StandardEnvironment());
         adapter = new OssStorageAdapter(oss, BUCKET);
     }
 
@@ -142,11 +143,11 @@ class OssStorageAdapterTest {
     @DisplayName("不可达 endpoint → ClientException → 依赖故障（可重试），不静默成功/不回退本地")
     void unreachableEndpointIsDependencyFailure() {
         AliyunOssProperties props = new AliyunOssProperties("cn-hangzhou",
-                "http://127.0.0.1:1", BUCKET,
+                "http://127.0.0.1:1", PUBLIC_ENDPOINT, BUCKET,
                 "LTAI-FAKE-DO-NOT-USE", "FAKE-SECRET-DO-NOT-USE", null, 1000, 1000);
         AppProperties appProps = new AppProperties("dev", null,
                 new AppProperties.Storage(null, BUCKET), null, null, null, null);
-        OSS unreachable = new OssProvidersConfig().ossClient(props, appProps);
+        OSS unreachable = new OssProvidersConfig().ossClient(props, appProps, new StandardEnvironment());
         try {
             OssStorageAdapter broken = new OssStorageAdapter(unreachable, BUCKET);
             assertThatThrownBy(() -> broken.put(KEY, new ByteArrayInputStream(IMAGE), IMAGE.length, "image/png"))

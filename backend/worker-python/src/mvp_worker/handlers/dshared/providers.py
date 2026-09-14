@@ -34,6 +34,8 @@ from ...media.storage import (
     OSS_ACCESS_KEY_ID_ENV,
     OSS_ACCESS_KEY_SECRET_ENV,
     OSS_BUCKET_ENV,
+    OSS_PUBLIC_ENDPOINT_ENV,
+    OSS_SERVER_ENDPOINT_ENV,
     STORAGE_PROVIDER_ALIYUN_OSS,
     STORAGE_PROVIDER_DOUBLE,
 )
@@ -713,7 +715,11 @@ def _forbid_storage_double_in_production(environment: str) -> None:
 
 
 def _require_oss_config(cfg: DConfig) -> None:
-    """``aliyun_oss`` 必填项校验：消息只列**缺失的键名**，绝不回显任何取值。"""
+    """``aliyun_oss`` 必填项校验：消息只列**缺失的键名**，绝不回显任何取值。
+
+    endpoint 拆为 server/public 两项且都必填；旧单 endpoint 键已移除，缺失时在消息中
+    给出迁移提示（点名两个新键），**不读取、不 fallback** 旧键。
+    """
     missing: list[str] = []
     if not cfg.oss_bucket.strip():
         missing.append(OSS_BUCKET_ENV)
@@ -721,11 +727,25 @@ def _require_oss_config(cfg: DConfig) -> None:
         missing.append(OSS_ACCESS_KEY_ID_ENV)
     if not cfg.oss_access_key_secret.strip():
         missing.append(OSS_ACCESS_KEY_SECRET_ENV)
+    missing_endpoints: list[str] = []
+    if not cfg.oss_server_endpoint.strip():
+        missing_endpoints.append(OSS_SERVER_ENDPOINT_ENV)
+    if not cfg.oss_public_endpoint.strip():
+        missing_endpoints.append(OSS_PUBLIC_ENDPOINT_ENV)
+    if not missing and not missing_endpoints:
+        return
+    parts: list[str] = []
     if missing:
-        raise ProviderConfigError(
-            "aliyun_oss storage provider requires non-empty config: "
-            + ", ".join(missing)
+        parts.append("requires non-empty config: " + ", ".join(missing))
+    if missing_endpoints:
+        parts.append("requires non-empty endpoint config: " + ", ".join(missing_endpoints))
+    message = "aliyun_oss storage provider " + "; ".join(parts)
+    if missing_endpoints:
+        message += (
+            " (endpoint config was split into server/public endpoints; migrate the"
+            " legacy single-endpoint setting to these two keys)"
         )
+    raise ProviderConfigError(message)
 
 
 def build_storage_port(
@@ -745,7 +765,8 @@ def build_storage_port(
         _require_oss_config(cfg)
         return AliyunOssStorage(
             region=cfg.oss_region,
-            endpoint=cfg.oss_endpoint,
+            server_endpoint=cfg.oss_server_endpoint.strip(),
+            public_endpoint=cfg.oss_public_endpoint.strip(),
             bucket_name=cfg.oss_bucket.strip(),
             access_key_id=cfg.oss_access_key_id.strip(),
             access_key_secret=cfg.oss_access_key_secret.strip(),
