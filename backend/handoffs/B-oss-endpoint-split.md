@@ -192,3 +192,96 @@ V4 的改动**必然失败**；实施道那两条断言 `x-oss-signature-version
 **virtual-host 风格**（host = `<bucket>.<endpoint-host>`），该断言必然为假 ⇒ 全量 pytest 一度
 2 failed。生产行为正确，错在断言；已改为对 `urlparse(url).hostname` 精确断言
 `f"{FAKE_BUCKET}.{urlparse(FAKE_PUBLIC_ENDPOINT).hostname}"`，复跑 405 passed。
+
+## 10. Oracle 第二十四轮裁定（对 `3c99a8e`）：PASS-with-notes
+九项逐条**全部通过**，其中对本文档 §9.1 的关键裁定：**恢复长期 AK/SK 为 V1 的决定"裁定正确"**，
+理由与 orchestrator 一致（本轮是 endpoint 拆分而非签名版本迁移、V1 数据面已有真实凭据证据、
+V4 引入 region 敏感的新变量、Java 同为 SDK 默认 V1、STS 明确保留 V4）；并明确
+**"将测试从'错误地要求全部 V4'改为'长期 AK/SK 验证 V1、STS 验证 V4'是修正，不是弱化"**。
+其余：无 fallback 通过（Java 旧键仅存在性检测、Python 只给迁移提示、翻译器告警但不传值不构成兼容路径）；
+两项必填通过（含"只配一项/都缺/空串空白"与 `double` 分支在 OSS 校验前返回故无需任何凭据）；
+对象操作只走 server、签名只走 public 且 main/src 内不存在任何 host/scheme/path 改写；
+两个 OSS bean 均 `destroyMethod="shutdown"`；脱敏与错误分类通过（`_map_oss_error` 未改、
+桶不一致仍终态、result archive 瞬时失败仍可重试）；范围与归属通过（contracts/acceptance/
+application.yml/pom/handler/runtime/face-service/deploy/迁移与 D 的 Plan/Face/Skin port 选择逻辑
+**均无 diff**）；签名器暂不接 HTTP/handler 的边界处置**判正确**（"预签 URL 是新的持有者授权面，
+不能未经架构裁定绕过现有 BusinessMediaAccessPolicy"，并要求在交付文档明确"尚无调用方"）。
+**整合许可**：可将 `3c99a8e` 作为本轮最终 SHA 交总协调整合；**不要求补跑验证**。
+**轮次边界**：下一轮无需复审双 endpoint 无 fallback、server/public 分工、V1/STS-V4 选择、
+私有桶对象操作、provider 装配与错误分类、smoke 既有行为；只有未来决定把预签名 URL 接入
+APP/云台时，才需重新审查授权、TTL、撤销、审计与泄漏风险。
+
+## 11. Oracle 两项新发现的处置（均已修，见 §11.3 的新 SHA）
+### 11.1 IMPORTANT：Java 签名器接受亚秒 TTL ⇒ 可能生成"立即过期"的 URL
+`OssPublicUrlSigner.presign(String,Duration)` 原只拒绝 null/零/负数，而 `:80` 用
+`new Date(System.currentTimeMillis() + ttl.toMillis())` 计算过期时刻 ⇒ `Duration.ofNanos(1).toMillis()==0`
+会产出**看似成功、实际立即过期**的 URL，且与 Python 侧整数秒 `1..604800` 不一致。
+**修法**：新增 `MIN_EXPIRY = Duration.ofSeconds(1)`，校验改为
+`expiry == null || expiry.compareTo(MIN_EXPIRY) < 0` ⇒ 拒绝（消息仍含 "positive" 以保留既有断言语义，
+并补 "at least 1 second(s)"）；上界 `MAX_EXPIRY=7天` 的明确失败不变。
+**测试**：`nonPositiveTtlIsRejectedNotSilentlyDefaulted` 扩展为覆盖
+null / 0 / -1s / **1ns / 500ms / 999ms** 六种非法输入，且断言**失败早于任何签名调用**
+（`verify(publicClient, never()).generatePresignedUrl(...)`）；新增 `ttlBoundariesAreExact`
+断言下界 1 秒与上界恰 7 天**可接受**、上界 +1 秒**拒绝**，并用 `times(2)` 证明只有两次合法调用真的签名。
+### 11.2 SUGGESTION：`DConfig` 默认 repr 会打印 AK/SK/token 与 endpoint
+`@dataclass(frozen=True)` 的默认 repr 覆盖全部 37 个字段，含 `oss_access_key_id/secret`、
+`oss_security_token`、`aliyun_access_key_id/secret` 与两个 endpoint、桶名。orchestrator 已 grep 核实
+**当前全仓没有任何 `repr(cfg)`/print/log 调用路径**（worker-python 的 src 与 tests 中 `repr(` 命中 0），
+故属**潜在**泄漏面而非现行泄漏。**修法**：改为 `@dataclass(frozen=True, repr=False)` + 自定义
+`__repr__`，按**字段名模式**（`access_key`/`secret`/`token`/`endpoint`/`bucket`）脱敏为 `'<redacted>'`，
+非敏感字段仍原样显示以便调试；模式匹配意味着**将来新增的同类字段自动被覆盖**，无需逐个登记。
+**测试**：新增 `test_dconfig_repr_redacts_credentials_and_endpoints`，用 5 个假值断言 repr 中
+一个都不出现、含 `<redacted>`、且 `storage_provider=` 等非敏感字段仍可见（防脱敏过度）。
+orchestrator 另做直接探针：8 个假秘密（含 D 的 `aliyun_access_key_id/secret`）在 repr 中**全部不出现**，
+repr 长度 1791、`oss_region` 等非敏感字段正常显示。
+### 11.3 修正后的验证与 SHA
+`test-compile` rc=0（并确证 LSP 报的 "Duplicate method presign/presignedHost/bothOssBeansDeclareShutdown"
+为**陈旧索引误报**：真实计数 `presign` 2 个＝两个重载、`bothOssBeansDeclareShutdown` 1 个）；
+Java 定向 `OssPublicUrlSignerTest` **6/0/0**；**Java 全量 618 run / 0 failures / 0 errors
+BUILD SUCCESS**（617 + 新增 `ttlBoundariesAreExact` 1）；**Python 全量 406 passed / 0 failed**
+（405 + 新增 repr 守卫 1）、`55432` 引用 0、ephemeral 库已清理；**驱动级跨语言 dry-run 仍
+`RESULT=PASS failures=0 cleanup=confirmed`**；改动恰 4 文件（Java 签名器 + 其测试、
+`dconfig.py` + 其测试），生产文件 2、契约/yml/pom/handler/runtime/face-service 零改动。
+
+## 12. Oracle 第二十五轮（窄范围重绑定，对 `cd76e99`）：**VERDICT PASS**
+因交付 SHA 在第二十四轮 PASS 之后发生变化（§11 的两项修正），按门禁纪律重新绑定。Oracle 严格只审
+这两处改动，结论：
+1. **Java 亚秒 TTL：已闭合。** `OssPublicUrlSigner.java:41-48,68-86` 把下界固定为 1 秒，拒绝 null、
+   非正值及**所有正亚秒 Duration**；与 Python 的整数秒 `1..604800` 边界一致。
+   `OssPublicUrlSignerTest.java:100-133` **具备判别力**：六种非法输入后先验证签名调用次数为 0；
+   单独边界测试仅执行 1 秒与 7 天两次合法调用；7 天 + 1 秒失败；**`times(2)` 能排除合法分支
+   未实际执行的空跑**。
+2. **`DConfig` repr 脱敏：已闭合。** `dconfig.py:353,500-518` 关闭 dataclass 默认 repr 并实现集中脱敏；
+   Oracle **独立核对了全部 37 个字段**，确认敏感项均被覆盖（两个 OSS endpoint、bucket、AK/SK、
+   security token；Aliyun endpoint、AK/SK），**未发现遗漏的 credential/password/private-key 类字段**，
+   也**未过度隐藏** provider、region、namespace、revision、阈值、限额等正常诊断字段；
+   并裁定**模式匹配适合当前用途**，同时提示"未来若引入 `password`/`credential`/`private_key`
+   等新命名，应同步扩充提示词或改用字段 metadata 标记"（已记入 §13 待办）。
+3. **新发现：无。**
+4. **可以整合**：可将 `cd76e9980f35818fa7498b1ae8ee7b453799b959` 作为 endpoint 拆分轮**最终交付 SHA**
+   交总协调；**不要求补跑验证**（618 项 Java、406 项 Python 及跨语言 dry-run 已覆盖本次两个局部改动）。
+   Oracle 另提醒"工作树中的 handoff 修改与 `backend/web-java/target/` 不属于该 SHA，整合前不得误提交
+   构建产物"——orchestrator 以证据回应：`git ls-files backend/web-java/target` = **0**、
+   `git check-ignore` 确认 `target/` 与 `__pycache__` 均被忽略、`git status --porcelain -uall` 中
+   `target/`/`__pycache__`/`*.pyc`/`*.log`/`*.jar` 命中 **0**，本轮两次提交分别为 20 文件与 4 文件、
+   工件 0。
+5. **轮次边界确认**：`cd76e99` 为本轮最终交付 SHA；无需再复审双 endpoint、V1/STS-V4、
+   server/public 分工、TTL 或 repr 脱敏；**将来真正向 HTTP/handler 暴露预签名 URL 时，
+   再独立审查授权、TTL、撤销与审计**。
+
+## 13. 遗留待办（均非阻塞；须由根或总协调裁定）
+1. **是否把两侧统一迁移到 V4 签名**（官方推荐）。当前：长期 AK/SK → V1（两侧一致，且数据面已有
+   `ede19b5` 的真实凭据证据）、STS → V4。迁移属独立变更，须用真实凭据重新验证数据面并确认
+   `region` 与桶实际区域一致。
+2. **是否把预签名 URL 接入 APP/云台**。当前签名器**无任何调用方**（刻意预备能力）。接入前须独立审查
+   授权模型（它是"持有即可用"的临时授权，会绕过 `BusinessMediaAccessPolicy` 的逐请求判定）、
+   TTL 策略、撤销与审计。Oracle 已明确这是接入时的独立审查项。
+3. **在新 SHA 上重跑真实 OSS 闭环**：`ede19b5` 的真实验证证据**不能**被引用为 `cd76e99` 的证据
+   （`B-oss-live-smoke.md` §10 已如此标注）。命令与四道门见 `B-oss-live-smoke.md` §2-§3；
+   注意配置须迁移为两个新键，否则**明确失败**并给出迁移提示。
+4. `DConfig` repr 的脱敏提示词若将来新增 `password`/`credential`/`private_key` 等命名需同步扩充
+   （或改用字段 metadata 标记）。
+5. Java smoke 的 `--phase sign-probe` 未实现（签名器已由装配级测试覆盖；接入纯 harness 需再穿透一个
+   客户端工厂），列为可选增强。
+6. Python `identity_enroll`（**D 的 handler**）遇 OSS 配置错误仍有限重试至 `max_attempts`，
+   应由 D 的所有者加定向映射，不应改公共 runtime。
