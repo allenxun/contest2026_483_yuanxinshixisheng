@@ -16,8 +16,15 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 
 /**
- * 阿里云 OSS {@link StoragePort} 真实适配器（<b>唯一</b>接触 {@code com.aliyun.oss.*} SDK 的实现）。
- * 私有桶、流式读写、无公开 URL（<b>不</b>调用 {@code generatePresignedUrl}）。
+ * 阿里云 OSS {@link StoragePort} 真实适配器：对象操作（put/get/getStream/exists/delete）全部经
+ * <b>由 {@code app.storage.oss.server-endpoint} 构建</b>的 {@link OSS} 客户端（服务端访问）。
+ * 私有桶、流式读写。
+ *
+ * <p><b>与签名地址的分工</b>：本类<b>不</b>生成公开 URL，也<b>不</b>调用
+ * {@code generatePresignedUrl}。客户端公网签名地址由独立类 {@link OssPublicUrlSigner} 使用
+ * <b>由 {@code app.storage.oss.public-endpoint} 构建</b>的另一个客户端生成；
+ * 签名必须在该公网客户端上完成，<b>绝不</b>对已签名 URL 做 host/scheme 替换。
+ * 本轮签名地址<b>未接入任何 HTTP 面</b>（无控制器/响应契约变更）。</p>
  *
  * <p><b>对象不存在语义</b>：{@code getStream}/{@code get} 在 OSS 返回 {@code NoSuchKey} 时返回
  * {@code null}（与端口一致）；其它异常一律抛出，<b>绝不</b>用 {@code null} 冒充"不存在"。</p>

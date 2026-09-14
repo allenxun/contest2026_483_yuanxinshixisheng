@@ -5,8 +5,12 @@
 
 **跨语言一致性**：对象 key 规范 ``environment/purpose/random-media-id`` 与 Java
 ``MediaService`` 相同；OSS 配置键名/默认值与 Java ``app.storage.oss.*`` 对齐（见
-``MVP_A_STORAGE_OSS_*``）。**私有桶**：读取走 ``get_object`` 流式字节，绝不使用
-``sign_url``/预签名 URL、不产生任何公开 URL。
+``MVP_A_STORAGE_OSS_*``）。**endpoint 拆为两项**：对象操作（put/get/delete/exists）
+一律走**服务端访问 endpoint**（``MVP_A_STORAGE_OSS_SERVER_ENDPOINT``）；签名地址由
+**公网 endpoint**（``MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT``）构建的**独立** bucket 生成
+（:meth:`AliyunOssStorage.sign_public_url`），**绝不**"签名后用服务端 host 做字符串
+替换"。**私有桶**：对象字节读取走 ``get_object`` 流式。签名地址本轮**未接入任何
+handler / 任务 payload / HTTP 面**（是否对外暴露属架构决定，另行裁定）。
 """
 from __future__ import annotations
 
@@ -32,15 +36,21 @@ STORAGE_PROVIDER_ALIYUN_OSS = "aliyun_oss"
 STORAGE_PROVIDERS = (STORAGE_PROVIDER_DOUBLE, STORAGE_PROVIDER_ALIYUN_OSS)
 
 # --- OSS 配置 env（与 Java app.storage.oss.* 一一对应；跨语言共享 MVP_A_STORAGE_ 前缀） ---
-# 默认值：region/endpoint 为公开文档示例（cn-hangzhou 经典地域），bucket 无默认（必填）。
+# endpoint 分两项且**均无默认**（aliyun_oss 必填）：
+#   * server endpoint：对象操作（put/get/delete/exists）使用；
+#   * public endpoint：客户端签名地址（sign_public_url）使用。
+# 旧单 endpoint 键已彻底移除：**不读取、不做 fallback**，只配旧键会在配置校验期明确失败。
 DEFAULT_OSS_REGION = "cn-hangzhou"
-DEFAULT_OSS_ENDPOINT = "https://oss-cn-hangzhou.aliyuncs.com"
 OSS_REGION_ENV = "MVP_A_STORAGE_OSS_REGION"
-OSS_ENDPOINT_ENV = "MVP_A_STORAGE_OSS_ENDPOINT"
+OSS_SERVER_ENDPOINT_ENV = "MVP_A_STORAGE_OSS_SERVER_ENDPOINT"
+OSS_PUBLIC_ENDPOINT_ENV = "MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT"
 OSS_BUCKET_ENV = "MVP_A_STORAGE_OSS_BUCKET"
 OSS_ACCESS_KEY_ID_ENV = "MVP_A_STORAGE_OSS_ACCESS_KEY_ID"
 OSS_ACCESS_KEY_SECRET_ENV = "MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET"
 OSS_SECURITY_TOKEN_ENV = "MVP_A_STORAGE_OSS_SECURITY_TOKEN"
+
+#: OSS 官方对 V4 预签名 URL 的有效期上限：604800 秒（7 天）。超限**明确失败**，不静默截断。
+MAX_SIGN_EXPIRES_SECONDS = 604800
 
 
 class StorageError(RuntimeError):
@@ -289,17 +299,34 @@ def _map_oss_error(
 
 
 class AliyunOssStorage:
-    """真实阿里云 OSS 存储适配器（**私有桶**；无公开 URL、无预签名 URL）。
+    """真实阿里云 OSS 存储适配器（**私有桶**；双 endpoint 分工）。
 
+    - **对象操作**（``put``/``get``/``delete``/``exists``）一律走 ``server_endpoint``
+      构建的 bucket。
+    - **签名地址**由 ``public_endpoint`` 构建的**独立** bucket 生成
+      （:meth:`sign_public_url`），复用同一 ``auth``；**绝不**用 server bucket 签名后
+      替换 host/scheme（正确性约束：按最终访问域名直接签名）。
+    - **签名版本随凭据类型**（保持既有行为，本轮刻意不改）：长期 AK/SK 用经典
+      ``oss2.Auth``（**V1**）；STS 用 ``oss2.StsAuth(..., auth_version=oss2.AUTH_VERSION_4)``
+      （**V4**，``OSS4-HMAC-SHA256``）。两个 bucket 均传 ``region``：V4 的 Credential Scope 含
+      ``<date>/<region>/oss/aliyun_v4_request``，region 参与签名、跨 region 不可复用、
+      V4 缺 region 会失败；V1 不使用 region，但仍传入以保持两个 bucket 构造一致。
+      **为何不统一改 V4**：根已在 ``ede19b5`` 上用真实凭据验证过 V1 数据面；V4 把 region
+      纳入签名，若 ``MVP_A_STORAGE_OSS_REGION`` 与桶实际区域不符则 V1 可用而 V4 失败。
+      统一迁移到 V4（官方推荐）属需要真实凭据重新验证的独立决定，须由根裁定。
+    - ``public_endpoint`` 目前按**标准 OSS 域名**处理（未实现自定义域名
+      ``is_cname=True``）；若后续需要 CNAME，另行加参数与测试。
     - ``put`` 写入真实 ``Content-Type``（调用方经 ``content_type`` 传入）与由 oss2
       依字节长度生成的 ``Content-Length``；可选写 ``x-oss-meta-purpose``（仅用途段，
       不含任何身份/敏感信息）。
     - ``get`` 用 ``get_object`` 流式读取并确保 ``close()``，返回 bytes。
     - ``exists`` 用 ``object_exists``（HEAD）；``delete`` 幂等。
-    - 未使用 STS 时用经典 ``oss2.Auth``；提供 SecurityToken 时用
-      ``oss2.StsAuth(..., auth_version=oss2.AUTH_VERSION_4)``（官方推荐 V4 签名）。
 
-    凭据只存在于实例内部，绝不写入日志/异常消息。
+    **安全提示**：预签名 URL 是"持有即可用"的临时授权，有效期内可被互联网上任何人
+    访问。因此本适配器**不把签名地址接入任何 handler 输出 / 任务 payload / HTTP 面**；
+    是否对 APP / 云台暴露属架构决定，由根裁定。
+
+    凭据与两个 endpoint 只存在于实例内部，绝不写入日志/异常消息。
     """
 
     provider_name = STORAGE_PROVIDER_ALIYUN_OSS
@@ -310,17 +337,34 @@ class AliyunOssStorage:
         bucket_name: str,
         access_key_id: str,
         access_key_secret: str,
-        endpoint: str = DEFAULT_OSS_ENDPOINT,
+        server_endpoint: str,
+        public_endpoint: str,
         region: str = DEFAULT_OSS_REGION,
         security_token: str | None = None,
     ) -> None:
-        if not bucket_name or not access_key_id or not access_key_secret:
-            # 只报告"缺哪个键"，绝不回显值。
+        missing = [
+            name
+            for name, value in (
+                ("bucket_name", bucket_name),
+                ("access_key_id", access_key_id),
+                ("access_key_secret", access_key_secret),
+                ("server_endpoint", server_endpoint),
+                ("public_endpoint", public_endpoint),
+            )
+            if not value
+        ]
+        if missing:
+            # 只报告"缺哪个字段"，绝不回显任何取值（endpoint 亦按敏感配置处理）。
             raise StorageConfigError(
-                "aliyun oss storage requires non-empty bucket/access key id/secret"
+                "aliyun oss storage missing required fields: " + ", ".join(missing)
             )
         import oss2  # 延迟 import：仅真实 OSS 部署需要
 
+        # 签名版本**保持既有行为**（本轮刻意不改）：非 STS 用经典 oss2.Auth（V1），
+        # STS 用 StsAuth(auth_version=V4)。理由：根已在 ede19b5 上用真实凭据验证过 V1 数据面
+        # （put/get/exists/delete 全部成功），而 V4 会把 region 纳入 Credential Scope——
+        # 一旦 MVP_A_STORAGE_OSS_REGION 与桶实际区域不符，V1 可用而 V4 会直接失败。
+        # 把已验证的数据面改成未验证状态，属于需要真实凭据重新验证的独立决定，不在本轮范围。
         if security_token:
             auth: Any = oss2.StsAuth(
                 access_key_id,
@@ -331,14 +375,48 @@ class AliyunOssStorage:
         else:
             auth = oss2.Auth(access_key_id, access_key_secret)
         self._bucket_name = bucket_name
-        self._endpoint = endpoint
+        self._server_endpoint = server_endpoint
+        self._public_endpoint = public_endpoint
         self._region = region
-        self._bucket = oss2.Bucket(auth, endpoint, bucket_name, region=region)
+        # 对象操作 bucket：server endpoint；region 必传（V4 Credential Scope）。
+        self._bucket = oss2.Bucket(auth, server_endpoint, bucket_name, region=region)
+        # 签名专用 bucket：public endpoint，复用同一 auth 且同样传 region；签名与 host
+        # 均来自 public endpoint，绝不对签名结果做 host/scheme/路径字符串替换。
+        self._public_bucket = oss2.Bucket(auth, public_endpoint, bucket_name, region=region)
 
     @property
     def bucket_name(self) -> str:
         """配置的 bucket 名（供 T11 ``media_objects.bucket`` 写入对齐）。"""
         return self._bucket_name
+
+    def sign_public_url(self, object_key: str, expires_seconds: int) -> str:
+        """用**公网 endpoint** 的独立 bucket 生成签名 GET 地址。
+
+        签名版本随凭据类型（长期 AK/SK → V1；STS → V4），与对象操作使用的 auth 完全一致。
+
+        - ``slash_safe=True``：object key 含 ``/``，默认会转义路径分隔符；开启后生成
+          可直接使用的 URL。注意它影响 canonical URI ⇒ **生成后不得再改路径编码**
+          （与"不得替换 host"同理）。
+        - 有效期校验：``1 <= expires_seconds <= MAX_SIGN_EXPIRES_SECONDS``（604800 秒 = 7 天）。
+          该上限取自 V4 的最大有效期，但**对两种签名版本统一适用**，以保证跨语言行为一致
+          （Java 侧 ``OssPublicUrlSigner.MAX_EXPIRY`` 同为 7 天）；越界**明确失败**
+          （``StorageConfigError``），**不静默截断也不静默回退默认值**。
+        - STS 临时凭据签名时，URL **实际有效期 = min(expires_seconds, token 剩余有效期)**，
+          token 过期后 URL 立即失效。
+        - **本轮不接入任何 handler / 任务 payload / HTTP 面**；仅供后续架构裁定后调用。
+        """
+        if (
+            isinstance(expires_seconds, bool)
+            or not isinstance(expires_seconds, int)
+            or not (1 <= expires_seconds <= MAX_SIGN_EXPIRES_SECONDS)
+        ):
+            raise StorageConfigError(
+                "sign_public_url expires_seconds out of range"
+                f" (1..{MAX_SIGN_EXPIRES_SECONDS})"
+            )
+        return self._public_bucket.sign_url(
+            "GET", object_key, expires_seconds, slash_safe=True
+        )
 
     def put(
         self, object_key: str, data: bytes, content_type: str | None = None

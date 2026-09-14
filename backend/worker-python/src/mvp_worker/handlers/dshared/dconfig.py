@@ -9,7 +9,8 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | ``MVP_D_PLAN_PROVIDER`` | ``double`` | double / aliyun_llm / llm_rag |
 | ``MVP_D_STORAGE_PROVIDER`` | ``double`` | double / aliyun_oss（生产 double → 拒绝） |
 | ``MVP_A_STORAGE_OSS_REGION`` | ``cn-hangzhou`` | OSS 区域（对齐 Java app.storage.oss.region） |
-| ``MVP_A_STORAGE_OSS_ENDPOINT`` | ``https://oss-cn-hangzhou.aliyuncs.com`` | OSS endpoint（须与 region 同域） |
+| ``MVP_A_STORAGE_OSS_SERVER_ENDPOINT`` | 未设（aliyun_oss 必填） | 服务端访问 endpoint，对象操作用（对齐 Java app.storage.oss.server-endpoint） |
+| ``MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT`` | 未设（aliyun_oss 必填） | 客户端公网 endpoint，签名地址用（对齐 Java app.storage.oss.public-endpoint） |
 | ``MVP_A_STORAGE_OSS_BUCKET`` | 未设（aliyun_oss 必填） | OSS 私有桶名（对齐 Java app.storage.oss.bucket） |
 | ``MVP_A_STORAGE_OSS_ACCESS_KEY_ID`` | 未设（aliyun_oss 必填） | OSS AK（只走 env，绝不入仓） |
 | ``MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET`` | 未设（aliyun_oss 必填） | OSS SK（只走 env，绝不入仓） |
@@ -50,18 +51,18 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Any, Optional
 
 from ...media.storage import (
-    DEFAULT_OSS_ENDPOINT,
     DEFAULT_OSS_REGION,
     OSS_ACCESS_KEY_ID_ENV,
     OSS_ACCESS_KEY_SECRET_ENV,
     OSS_BUCKET_ENV,
-    OSS_ENDPOINT_ENV,
+    OSS_PUBLIC_ENDPOINT_ENV,
     OSS_REGION_ENV,
     OSS_SECURITY_TOKEN_ENV,
+    OSS_SERVER_ENDPOINT_ENV,
     STORAGE_DOUBLE_FAIL_PUT_ENV,
     STORAGE_PROVIDER_ALIYUN_OSS,
     STORAGE_PROVIDER_DOUBLE,
@@ -355,7 +356,7 @@ def _env_optional_json(name: str, default: Optional[dict[str, Any]]) -> Optional
     return json.loads(raw)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class DConfig:
     face_provider: str = field(
         default_factory=lambda: _env("MVP_D_FACE_PROVIDER", DEFAULT_FACE_PROVIDER)
@@ -373,8 +374,13 @@ class DConfig:
     oss_region: str = field(
         default_factory=lambda: _env(OSS_REGION_ENV, DEFAULT_OSS_REGION)
     )
-    oss_endpoint: str = field(
-        default_factory=lambda: _env(OSS_ENDPOINT_ENV, DEFAULT_OSS_ENDPOINT)
+    # 两个 endpoint 均无默认：aliyun_oss 模式下缺失 → 构建期 ProviderConfigError。
+    # endpoint 亦按敏感配置处理，错误消息只含键名、绝不回显取值。
+    oss_server_endpoint: str = field(
+        default_factory=lambda: os.environ.get(OSS_SERVER_ENDPOINT_ENV, "")
+    )
+    oss_public_endpoint: str = field(
+        default_factory=lambda: os.environ.get(OSS_PUBLIC_ENDPOINT_ENV, "")
     )
     # bucket/AK/SK 无默认：aliyun_oss 模式下缺失 → 构建期 ProviderConfigError（只报键名）。
     oss_bucket: str = field(default_factory=lambda: os.environ.get(OSS_BUCKET_ENV, ""))
@@ -515,6 +521,26 @@ class DConfig:
     @classmethod
     def from_env(cls) -> "DConfig":
         return cls()
+
+    def __repr__(self) -> str:
+        """脱敏 repr：**绝不**输出 AK/SK/STS token 与 endpoint/bucket 取值。
+
+        dataclass 默认 repr 会把全部字段（含 ``oss_access_key_secret``、
+        ``aliyun_access_key_secret``、``oss_security_token`` 以及两个 endpoint 与桶名）原样打印；
+        一旦将来有人写 ``log.info("%s", cfg)`` 或把 cfg 带进异常消息就会泄漏凭据。
+        这里按**字段名模式**脱敏，因此将来新增的同类字段会自动被覆盖，无需逐个登记；
+        非敏感字段仍原样显示以便调试。当前全仓没有任何 ``repr(cfg)`` 调用路径
+        （orchestrator 已 grep 核实：worker-python 的 src 与 tests 中 ``repr(`` 命中 0），
+        故本方法属**预防性硬化**，不改变任何现有行为。
+        """
+        redact_hints = ("access_key", "secret", "token", "endpoint", "bucket")
+        parts = [
+            f"{f.name}='<redacted>'"
+            if any(hint in f.name for hint in redact_hints)
+            else f"{f.name}={getattr(self, f.name)!r}"
+            for f in fields(self)
+        ]
+        return f"{type(self).__name__}({', '.join(parts)})"
 
     def __post_init__(self) -> None:
         """非法注入取值在**加载期** fail fast（不接受静默回退）。"""
