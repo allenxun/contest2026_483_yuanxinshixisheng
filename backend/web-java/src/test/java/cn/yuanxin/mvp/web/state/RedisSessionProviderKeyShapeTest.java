@@ -68,9 +68,9 @@ class RedisSessionProviderKeyShapeTest {
     }
 
     @Test
-    @DisplayName("rotate：KEYS[] 全为完整具体键（旧/新 access、新旧 sid、新 refresh），无命名空间")
+    @DisplayName("rotate CAS：KEYS[] 全为完整具体键（旧 rt/旧 sid/旧 at/新 at/新 sid/新 rt），无命名空间")
     void rotatePassesConcreteKeys() {
-        when(values.getAndDelete(anyString())).thenReturn(SID);
+        when(values.get(anyString())).thenReturn(SID);
         stubIndex(RT_DIGEST);
         stubSession();
 
@@ -78,12 +78,14 @@ class RedisSessionProviderKeyShapeTest {
 
         List<String> sentKeys = executedKeys.get(0);
         assertAllConcrete(sentKeys);
-        assertThat(sentKeys).hasSize(5);
-        assertThat(sentKeys.get(0)).isEqualTo(keys.sessionById(SID));
-        assertThat(sentKeys.get(1)).as("旧 access 键必须由摘要具体构造")
+        assertThat(sentKeys).as("CAS KEYS: 旧 rt, 旧 sid, 旧 at, 新 at, 新 sid, 新 rt").hasSize(6);
+        assertThat(sentKeys.get(0)).as("KEYS[1] 旧 rt").isEqualTo(keys.sessionByRefreshTokenDigest(RT_DIGEST));
+        assertThat(sentKeys.get(1)).as("KEYS[2] 旧 sid").isEqualTo(keys.sessionById(SID));
+        assertThat(sentKeys.get(2)).as("KEYS[3] 旧 access（由摘要具体构造）")
                 .isEqualTo(keys.sessionByAccessTokenDigest(AT_DIGEST));
-        assertThat(sentKeys.get(2)).startsWith(PREFIX + "sess:at:").doesNotEndWith(":");
-        assertThat(sentKeys.get(4)).startsWith(PREFIX + "sess:rt:").doesNotEndWith(":");
+        assertThat(sentKeys.get(3)).startsWith(PREFIX + "sess:at:").doesNotEndWith(":");
+        assertThat(sentKeys.get(4)).startsWith(PREFIX + "sess:sid:").doesNotEndWith(":");
+        assertThat(sentKeys.get(5)).startsWith(PREFIX + "sess:rt:").doesNotEndWith(":");
         // 负向：命名空间形式绝不在 KEYS 里。
         assertThat(sentKeys).doesNotContain(keys.pattern("sess:at:"), keys.pattern("sess:rt:"));
     }
@@ -91,7 +93,7 @@ class RedisSessionProviderKeyShapeTest {
     @Test
     @DisplayName("drop（无 refresh）：KEYS[] 用 sidKey 作占位具体键，绝无命名空间/空串")
     void dropPassesConcreteKeysWithPlaceholderWhenNoRefresh() {
-        when(values.getAndDelete(anyString())).thenReturn(SID);
+        when(values.get(anyString())).thenReturn(SID);
         stubIndex("");
         stubSession();
 
@@ -109,7 +111,7 @@ class RedisSessionProviderKeyShapeTest {
     @Test
     @DisplayName("drop（有 refresh）：KEYS[] 含由摘要具体构造的 refresh 键")
     void dropPassesConcreteRefreshKeyWhenPresent() {
-        when(values.getAndDelete(anyString())).thenReturn(SID);
+        when(values.get(anyString())).thenReturn(SID);
         stubIndex(RT_DIGEST);
         stubSession();
 
