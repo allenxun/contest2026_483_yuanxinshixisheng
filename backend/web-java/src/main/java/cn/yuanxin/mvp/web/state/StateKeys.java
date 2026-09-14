@@ -136,6 +136,50 @@ public final class StateKeys {
         return prefix + SESSION_REFRESH + sha256Hex(requireToken(refreshToken, "refreshToken"));
     }
 
+    /**
+     * 已知 access token 的 sha256 摘要时构造会话键（供 Lua 以<b>具体键名</b>传入 {@code KEYS[]}，
+     * 避免在脚本里做命名空间拼接，从而满足 Redis 官方"脚本访问的所有键必须显式声明于 KEYS[]"）。
+     *
+     * <p><b>只接受已归一化的小写 64 位十六进制摘要</b>（{@code [0-9a-f]{64}}），<b>绝不</b>接受原文
+     * token：本方法<b>不做</b>自动 hash，否则调用方误传原文 token 会得到"双重摘要"的键而静默失效。
+     * 正确用法是 {@code sessionByAccessTokenDigest(sha256Hex(token))}。</p>
+     *
+     * <p><b>一致性保证</b>：对同一 token，{@code sessionByAccessTokenDigest(sha256Hex(token))}
+     * 与 {@link #sessionByAccessToken(String)} <b>逐字节相同</b>。</p>
+     *
+     * @throws IllegalArgumentException 长度非 64 或含非 {@code [0-9a-f]} 字符（含 null/空白）
+     */
+    public String sessionByAccessTokenDigest(String accessTokenDigest) {
+        return prefix + SESSION_ACCESS + requireDigest(accessTokenDigest, "accessTokenDigest");
+    }
+
+    /**
+     * 已知 refresh token 的 sha256 摘要时构造 refresh 键。语义与校验同
+     * {@link #sessionByAccessTokenDigest(String)}：只接受小写 64 位十六进制摘要，绝不自动 hash；
+     * 对同一 token 与 {@link #sessionByRefreshToken(String)} 逐字节相同。
+     */
+    public String sessionByRefreshTokenDigest(String refreshTokenDigest) {
+        return prefix + SESSION_REFRESH + requireDigest(refreshTokenDigest, "refreshTokenDigest");
+    }
+
+    /** 校验"已归一化的小写 sha256 十六进制摘要"，不做任何 hash/归一化。 */
+    private static String requireDigest(String value, String what) {
+        if (value == null || value.length() != 64) {
+            throw new IllegalArgumentException(what
+                    + " must be a normalised lowercase sha256 hex digest (64 chars);"
+                    + " use sha256Hex(token) - never the raw token");
+        }
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) {
+                throw new IllegalArgumentException(what
+                        + " must contain only [0-9a-f] (lowercase);"
+                        + " use sha256Hex(token) - never the raw token");
+            }
+        }
+        return value;
+    }
+
     /** sessionId → access token 摘要键（string）。轮换/撤销时定位旧 access token。 */
     public String sessionById(String sessionId) {
         return prefix + SESSION_BY_ID + safeIdentifier(sessionId, "sessionId");
