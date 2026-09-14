@@ -314,15 +314,27 @@ mvn -B test -Dmvp.test.redis.url=redis://127.0.0.1:6399/5     # 本地受限测�
 实测结果见 §12。**L2 必须比 L1 多执行测试**，否则说明 opt-in 未生效（本轮：642 → 665，+23）。
 测试一律用独立随机前缀并只清理自己前缀，**绝不 `FLUSHDB`/`FLUSHALL`**（本地容器已重命名禁用）。
 
-**本地测试容器的可复现创建命令**（用毕 `docker rm -f mvp-b-redis-test`；下列参数取自本轮实际运行的
-容器 `docker inspect` 与 `/proc/<pid>/cmdline`，**不是凭记忆书写**）：
+**本地测试容器的可复现创建命令**（用毕 `docker rm -f mvp-b-redis-test`）。下列参数取自本轮**实际运行**
+容器的 `docker inspect`（`.Config.Cmd` / `.HostConfig.PortBindings` / `.HostConfig.Memory` /
+`NanoCpus`），**不是凭记忆书写**：
 ```bash
 docker run -d --name mvp-b-redis-test \
   -p 127.0.0.1:6399:6379 --memory 128m --cpus 0.5 \
-  redis:7 
+  redis:7 redis-server --save '' --appendonly no --maxmemory 64mb \
+    --maxmemory-policy allkeys-lru --databases 16 \
+    --rename-command FLUSHALL '' --rename-command FLUSHDB '' --rename-command CONFIG ''
 ```
-要点：只绑 `127.0.0.1`（不对外）、内存与 CPU 受限、无持久化、重命名禁用 `FLUSHALL`/`FLUSHDB`/`CONFIG`。
-**它只是测试夹具，不是部署**；根的真实 Redis 由根自己在私有配置中提供。
+要点与两处**如实区分**：
+- 只绑 `127.0.0.1`（不对外）、`--memory 128m --cpus 0.5`、`--save '' --appendonly no`（无持久化）、
+  重命名禁用 `FLUSHALL`/`FLUSHDB`/`CONFIG`。**它只是测试夹具，不是部署**；根的真实 Redis 由根自己
+  在私有配置中提供。
+- `--databases 16` 正是根先前把 `spring.data.redis.database` 配成 `30` 时被服务端拒绝的原因
+  （`ERR DB index is out of range`；合法范围 `0..15`），已由根改为 **5**。
+- 夹具用 `--maxmemory-policy allkeys-lru`（内存被硬性限制在 64mb 的一次性夹具，逐出无害）；
+  这与 §18.4 登记的**生产要求**是两件事——生产承载认证与限流计数时**必须**用 `noeviction`
+  并配独立实例与容量告警，否则 eviction 会让 challenge 消失或限流偏松。**不得把夹具的策略
+  当成生产建议。**
+
 
 ### 11.3 L3：root-only 真实 Redis 登录验收入口
 类名 **`cn.yuanxin.mvp.web.state.RedisLoginLiveAcceptanceIT`**（`@SpringBootTest(RANDOM_PORT)`，
