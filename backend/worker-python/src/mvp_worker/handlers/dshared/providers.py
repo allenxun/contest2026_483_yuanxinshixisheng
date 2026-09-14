@@ -27,8 +27,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Optional, Protocol, runtime_checkable
 
-from sqlalchemy import Connection, text
-
 from . import weijing_mapping
 from .dconfig import (
     DEFAULT_PLAN_CAPABILITY_BASELINE,
@@ -36,7 +34,6 @@ from .dconfig import (
     ProviderConfigError,
     production_environment_signals,
 )
-from ...runtime.complete import BusinessTx
 from ...media.storage import (
     AliyunOssStorage,
     FilesystemStorageDouble,
@@ -600,51 +597,16 @@ _PLAN_PROBLEM_FLAGGED_CODES = frozenset(
     {"AI_SERVICE_UNAVAILABLE", "AI_UPSTREAM_TIMEOUT", "AI_INTERNAL_ERROR"}
 )
 
-# 适配器终态时把 T06 落 failed 的 business_tx：由 loop 的 complete_failure 在同一
-# 事务内执行（与 T12 failed 原子提交），避免 T06 滞留 generating。按 assessment_id
-# （care_plans 每 assessment 唯一）定位，守卫仅允许 waiting_inputs/generating。
-_MARK_PLAN_FAILED_BY_ASSESSMENT = text(
-    """
-UPDATE care_plans
-SET generation_status = 'failed', failure_detail = CAST(:detail AS jsonb),
-    updated_at = CURRENT_TIMESTAMP
-WHERE assessment_id = CAST(:assessment_id AS uuid)
-  AND generation_status IN ('waiting_inputs', 'generating')
-"""
-)
-
-
-def _plan_terminal_tx(assessment_id: str, code: str) -> BusinessTx:
-    def tx(conn: Connection) -> None:
-        conn.execute(
-            _MARK_PLAN_FAILED_BY_ASSESSMENT,
-            {
-                "assessment_id": assessment_id,
-                "detail": json.dumps({"code": code, "retryable": False}, ensure_ascii=False),
-            },
-        )
-
-    return tx
-
-
-def _plan_terminal(assessment_id: str, code: str, message: str) -> Exception:
-    """构造终态 JobFailed（bounded code + T06 失败 tx）。lazy import 避免循环依赖。"""
-    from .. import JobFailed  # noqa: PLC0415 - handlers.__init__ 半初始化期导入
-
-    return JobFailed(
-        code,
-        message[:500],
-        retryable=False,
-        business_tx=_plan_terminal_tx(assessment_id, code),
-    )
-
-
 class LLMRagPlanAdapter:
     """真实 AI 方案适配器：weijing assess（shuiguang_cloud_v1）。
 
     契约来源：``.mvp-d-runtime/ai-plan-discovery.md`` §2.1/§7（部署代码 + 用户授权
     合同草稿样本，均已核实）。仅按实证契约组装请求/分类响应；**无 mock 回退**。
-    终态失败经 ``JobFailed.business_tx`` 把 T06 落 failed（不滞留 generating）。
+
+    **persistence-free**（oracle Fix 1）：适配器只抛类型化异常，绝不写 DB、绝不携带
+    business_tx；终态落库由 plan_generate 经既有 fenced ``_terminal`` 机制执行（带
+    plan_id + generation_revision 守卫），故陈旧代次的终态回调 0 行 → StaleGeneration
+    → 整体回滚（不误写新一代 T06）。
     """
 
     provider_name = "llm_rag"
@@ -659,51 +621,27 @@ class LLMRagPlanAdapter:
     def generate(
         self, report_context: dict[str, Any], input_snapshot: dict[str, Any]
     ) -> PlanCandidate:
-        assessment_id = self._assessment_id(input_snapshot)
-        try:
-            body = weijing_mapping.build_request(
-                report_context,
-                input_snapshot,
-                request_mapping=self._cfg.llm_rag_request_mapping,
-            )
-        except weijing_mapping.MappingNotApproved as exc:
-            raise _plan_terminal(
-                assessment_id, "PLAN_MAPPING_NOT_APPROVED", str(exc)
-            ) from exc
-        except weijing_mapping.RawDetectionContractViolation as exc:
-            raise _plan_terminal(
-                assessment_id, "PROVIDER_CONTRACT_VIOLATION", str(exc)
-            ) from exc
+        # build_request 只抛类型化异常（MappingNotApproved / RawDetectionContractViolation）。
+        body = weijing_mapping.build_request(
+            report_context,
+            input_snapshot,
+            request_mapping=self._cfg.llm_rag_request_mapping,
+        )
 
         status, raw = self._post(body)
         if 200 <= status < 300:
-            payload = self._parse_json(raw, assessment_id)
-            try:
-                weijing_mapping.validate_envelope(payload)
-                assessment = payload["assessment"]
-                weijing_mapping.validate_assessment(assessment)
-                # 受理 ≠ 完成：结构合法后仍需批准输出映射才可能 ready（当前未批准）。
-                return weijing_mapping.plan_to_candidate(
-                    assessment, output_mapping=self._cfg.llm_rag_output_mapping
-                )
-            except weijing_mapping.ResponseContractViolation as exc:
-                raise _plan_terminal(
-                    assessment_id, "PROVIDER_CONTRACT_VIOLATION", str(exc)
-                ) from exc
-            except weijing_mapping.MappingNotApproved as exc:
-                raise _plan_terminal(
-                    assessment_id, "PLAN_MAPPING_NOT_APPROVED", str(exc)
-                ) from exc
-        self._raise_problem(status, raw, assessment_id)
+            payload = self._parse_json(raw)
+            weijing_mapping.validate_envelope(payload)
+            assessment = payload["assessment"]
+            weijing_mapping.validate_assessment(assessment)
+            # 受理 ≠ 完成：结构合法后仍需批准输出映射才可能 ready（当前未批准）。
+            return weijing_mapping.plan_to_candidate(
+                assessment, output_mapping=self._cfg.llm_rag_output_mapping
+            )
+        self._raise_problem(status, raw)
         raise AssertionError("unreachable")  # pragma: no cover
 
     # ------------------------------------------------------------ helpers
-    @staticmethod
-    def _assessment_id(input_snapshot: Any) -> str:
-        report = input_snapshot.get("report") if isinstance(input_snapshot, dict) else None
-        aid = report.get("assessment_id") if isinstance(report, dict) else None
-        return aid if isinstance(aid, str) else ""
-
     def _post(self, body: dict[str, Any]) -> tuple[int, bytes]:
         base = (self._cfg.llm_rag_base_url or "").rstrip("/")
         url = base + "/internal/v1/weijing/reports/assess"
@@ -733,18 +671,16 @@ class LLMRagPlanAdapter:
             raise ProviderUnavailable("weijing assess transport unavailable") from exc
 
     @staticmethod
-    def _parse_json(raw: bytes, assessment_id: str) -> Any:
+    def _parse_json(raw: bytes) -> Any:
         try:
             return json.loads(raw.decode("utf-8"))
         except Exception as exc:  # noqa: BLE001
-            raise _plan_terminal(
-                assessment_id,
-                "PROVIDER_CONTRACT_VIOLATION",
-                "weijing 2xx body is not valid JSON",
+            raise weijing_mapping.ResponseContractViolation(
+                "weijing 2xx body is not valid JSON"
             ) from exc
 
     @staticmethod
-    def _raise_problem(status: int, raw: bytes, assessment_id: str) -> None:
+    def _raise_problem(status: int, raw: bytes) -> None:
         problem: Optional[dict[str, Any]] = None
         try:
             parsed = json.loads(raw.decode("utf-8"))
@@ -760,19 +696,24 @@ class LLMRagPlanAdapter:
         code = problem.get("code")
         retryable = problem.get("retryable")
         if code in _PLAN_PROBLEM_TERMINAL_CODES:
-            bounded = "PLAN_PROVIDER_CONFIG" if code == "AI_UNAUTHORIZED" else "PROVIDER_CONTRACT_VIOLATION"
-            raise _plan_terminal(assessment_id, bounded, f"weijing assess rejected: {code}")
+            if code == "AI_UNAUTHORIZED":
+                raise weijing_mapping.PlanProviderConfigRequired(
+                    f"weijing assess auth/config rejected: {code}"
+                )
+            raise weijing_mapping.ResponseContractViolation(
+                f"weijing assess rejected: {code}"
+            )
         if code in _PLAN_PROBLEM_FLAGGED_CODES:
             if retryable is True:
                 raise ProviderUnavailable(f"weijing assess transient: {code}")
-            raise _plan_terminal(
-                assessment_id, "PROVIDER_CONTRACT_VIOLATION", f"weijing assess non-retryable: {code}"
+            raise weijing_mapping.ResponseContractViolation(
+                f"weijing assess non-retryable: {code}"
             )
         # 未知 code：保守按 retryable 标记；缺标记 → 终态。
         if retryable is True:
             raise ProviderUnavailable(f"weijing assess transient: {code}")
-        raise _plan_terminal(
-            assessment_id, "PROVIDER_CONTRACT_VIOLATION", f"weijing assess rejected: {code}"
+        raise weijing_mapping.ResponseContractViolation(
+            f"weijing assess rejected: {code}"
         )
 
 
