@@ -1177,3 +1177,26 @@ def test_auth_selection_preserves_the_verified_data_plane(monkeypatch: Any) -> N
     )
     assert len(captured) == 2
     assert all(isinstance(auth, oss2.StsAuth) for auth, _ in captured)
+
+
+def test_dconfig_repr_redacts_credentials_and_endpoints(monkeypatch: Any) -> None:
+    """回归守卫：``repr(DConfig)`` **绝不**输出 AK/SK/STS token 与 endpoint/bucket 取值。
+
+    dataclass 默认 repr 会原样打印全部 37 个字段（含 ``oss_access_key_secret`` 等）；一旦将来
+    有人写 ``log.info("%s", cfg)`` 或把 cfg 带进异常消息就会泄漏凭据。``DConfig`` 已改为
+    ``@dataclass(frozen=True, repr=False)`` + 自定义**按字段名模式**脱敏的 ``__repr__``，
+    故将来新增的同类字段会自动被覆盖。非敏感字段仍原样显示以便调试。
+    """
+    monkeypatch.setenv(OSS_ACCESS_KEY_ID_ENV, FAKE_AK)
+    monkeypatch.setenv(OSS_ACCESS_KEY_SECRET_ENV, FAKE_SK)
+    monkeypatch.setenv(OSS_BUCKET_ENV, FAKE_BUCKET)
+    monkeypatch.setenv(OSS_SERVER_ENDPOINT_ENV, FAKE_SERVER_ENDPOINT)
+    monkeypatch.setenv(OSS_PUBLIC_ENDPOINT_ENV, FAKE_PUBLIC_ENDPOINT)
+
+    text = repr(DConfig.from_env())
+    for sensitive in (FAKE_AK, FAKE_SK, FAKE_BUCKET, FAKE_SERVER_ENDPOINT, FAKE_PUBLIC_ENDPOINT):
+        assert sensitive not in text, f"repr leaked a sensitive value: {sensitive}"
+    assert "<redacted>" in text
+    # 非敏感字段仍可见（否则脱敏过度、失去调试价值）。
+    assert "storage_provider=" in text
+    assert "oss_region=" in text or "face_provider=" in text

@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -97,19 +98,38 @@ class OssPublicUrlSignerTest {
     }
 
     @Test
-    @DisplayName("TTL 为 null/零/负数 ⇒ 明确失败，绝不静默回退默认有效期（与 Python 侧一致）")
+    @DisplayName("TTL 为 null/零/负数/亚秒 ⇒ 明确失败，绝不静默回退默认值（与 Python 侧 1..604800 一致）")
     void nonPositiveTtlIsRejectedNotSilentlyDefaulted() {
         OSS publicClient = mock(OSS.class);
         OssPublicUrlSigner signer = new OssPublicUrlSigner(publicClient, BUCKET);
-        for (Duration bad : Arrays.asList(null, Duration.ZERO, Duration.ofSeconds(-1))) {
+        // 亚秒级 TTL 必须拒绝：Duration.ofNanos(1).toMillis() == 0 ⇒ 会生成**立即过期**的 URL。
+        for (Duration bad : Arrays.asList(null, Duration.ZERO, Duration.ofSeconds(-1),
+                Duration.ofNanos(1), Duration.ofMillis(500), Duration.ofMillis(999))) {
             assertThatThrownBy(() -> signer.presign(KEY, bad))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("positive");
         }
-        // 三种非法 TTL 都不得触发任何签名调用（失败必须早于签名）。
+        // 全部非法 TTL 都不得触发任何签名调用（失败必须早于签名）。
         verify(publicClient, never()).generatePresignedUrl(anyString(), anyString(), any(Date.class));
         // 单参入口是"调用方显式选择默认值"，不属于静默替换：它不应抛异常。
         signer.presign(KEY);
+    }
+
+    @Test
+    @DisplayName("TTL 边界：1 秒可接受（下界），恰 7 天可接受（上界），7 天 + 1 秒拒绝")
+    void ttlBoundariesAreExact() {
+        OSS publicClient = mock(OSS.class);
+        when(publicClient.generatePresignedUrl(anyString(), anyString(), any(Date.class)))
+                .thenReturn(null);
+        OssPublicUrlSigner signer = new OssPublicUrlSigner(publicClient, BUCKET);
+        // 下界与上界都不得抛异常。
+        signer.presign(KEY, OssPublicUrlSigner.MIN_EXPIRY);
+        signer.presign(KEY, OssPublicUrlSigner.MAX_EXPIRY);
+        // 上界 + 1 秒必须拒绝，且失败早于签名调用。
+        assertThatThrownBy(() -> signer.presign(KEY, OssPublicUrlSigner.MAX_EXPIRY.plusSeconds(1)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("604800");
+        verify(publicClient, times(2)).generatePresignedUrl(anyString(), anyString(), any(Date.class));
     }
 
     @Test
