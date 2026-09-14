@@ -97,14 +97,11 @@ public final class RedisSmsStateStore implements SmsStateStore {
                 String.valueOf(windows.minuteRetryAfterSeconds()),
                 String.valueOf(windows.hourRetryAfterSeconds()),
                 String.valueOf(windows.dayRetryAfterSeconds())));
-        if (result == null) {
-            throw new ApiException(ErrorCode.DEPENDENCY_UNAVAILABLE,
-                    "sms rate limit store returned no reservation result");
-        }
-        if (result == 0L) {
+        long retryAfter = retryAfterFromScriptResult(result);
+        if (retryAfter == 0L) {
             return SendReservation.granted(phone, windowKeys);
         }
-        return SendReservation.throttled(result);
+        return SendReservation.throttled(retryAfter);
     }
 
     @Override
@@ -119,22 +116,20 @@ public final class RedisSmsStateStore implements SmsStateStore {
         }
         @SuppressWarnings("unchecked")
         List<String> windowKeys = (List<String>) reservation.handle();
-        RedisFailures.call("sms-rate-limit-compensate", () -> {
-            template.execute(COMPENSATE_SCRIPT, windowKeys);
-            return null;
-        });
+        Long result = RedisFailures.call("sms-rate-limit-compensate", () -> template.execute(
+                COMPENSATE_SCRIPT, windowKeys));
+        requireCompensated(result);
     }
 
     @Override
-    public void createChallenge(String challengeId, String phone, String code, Instant now, int ttlSeconds) {
+    public boolean createChallenge(String challengeId, String phone, String code, Instant now, int ttlSeconds) {
         String key = keys.smsChallenge(challengeId);
         String digest = StateKeys.codeDigest(code, challengeId);
         String expiresAtMillis = String.valueOf(now.plusSeconds(ttlSeconds).toEpochMilli());
-        RedisFailures.call("sms-create-challenge", () -> {
-            template.execute(CREATE_SCRIPT, List.of(key),
-                    digest, phone, expiresAtMillis, String.valueOf(ttlSeconds));
-            return null;
-        });
+        Long result = RedisFailures.call("sms-create-challenge", () -> template.execute(
+                CREATE_SCRIPT, List.of(key),
+                digest, phone, expiresAtMillis, String.valueOf(ttlSeconds)));
+        return createdFromScriptResult(result);
     }
 
     @Override
@@ -146,10 +141,69 @@ public final class RedisSmsStateStore implements SmsStateStore {
         String result = RedisFailures.call("sms-consume-challenge", () -> template.execute(
                 CONSUME_SCRIPT, List.of(key),
                 digest, String.valueOf(now.toEpochMilli()), String.valueOf(maxAttempts)));
-        if (result == null || !result.startsWith(CONSUME_SUCCESS_PREFIX)) {
+        return consumedFromScriptResult(result);
+    }
+
+    // ---------- 脚本返回码校验（非预期返回一律 fail-closed，绝不表现为业务失败） ----------
+
+    /**
+     * 校验限流预留脚本的返回值：{@code 0}=已预留；{@code >0}=retry-after。null 或负数视为后端异常。
+     */
+    static long retryAfterFromScriptResult(Long result) {
+        if (result == null || result < 0L) {
+            throw scriptFailure("sms-rate-limit-reserve");
+        }
+        return result;
+    }
+
+    /** 校验补偿脚本返回值：契约是恒为 {@code 1}；null 或其它值视为后端异常。 */
+    static void requireCompensated(Long result) {
+        if (result == null || result != 1L) {
+            throw scriptFailure("sms-rate-limit-compensate");
+        }
+    }
+
+    /**
+     * 校验创建脚本返回值：{@code 1}=已创建；{@code 0}=challengeId 已存在（碰撞，调用方重生成）。
+     * null 或其它值视为后端异常（fail-closed），<b>绝不</b>当作成功。
+     */
+    static boolean createdFromScriptResult(Long result) {
+        if (result == null) {
+            throw scriptFailure("sms-create-challenge");
+        }
+        if (result == 1L) {
+            return true;
+        }
+        if (result == 0L) {
+            return false;
+        }
+        throw scriptFailure("sms-create-challenge");
+    }
+
+    /**
+     * 校验核销脚本返回值：{@code "!"}=业务失败（空 Optional）；{@code "+"+phone}=成功。
+     * null 或其它形状（既非 {@code !} 也非 {@code +} 前缀）视为后端异常 fail-closed，
+     * <b>绝不</b>伪装成"验证码错误/无此挑战"（401）。
+     */
+    static Optional<String> consumedFromScriptResult(String result) {
+        if (result == null) {
+            throw scriptFailure("sms-consume-challenge");
+        }
+        if (CONSUME_FAILURE.equals(result)) {
             return Optional.empty();
         }
-        return Optional.of(result.substring(CONSUME_SUCCESS_PREFIX.length()));
+        if (result.startsWith(CONSUME_SUCCESS_PREFIX)
+                && result.length() > CONSUME_SUCCESS_PREFIX.length()) {
+            return Optional.of(result.substring(CONSUME_SUCCESS_PREFIX.length()));
+        }
+        throw scriptFailure("sms-consume-challenge");
+    }
+
+    /** fail-closed 的后端异常（503 DEPENDENCY_UNAVAILABLE）；消息只含操作名，不含键/手机号/验证码。 */
+    private static ApiException scriptFailure(String operation) {
+        return new ApiException(ErrorCode.DEPENDENCY_UNAVAILABLE,
+                "sms state store script returned an unexpected result (operation=" + operation
+                        + "); the request was NOT processed");
     }
 
     /** 从 classpath 加载不可变脚本单例（Spring 的脚本执行器会自动 EVALSHA → EVAL 回退）。 */
