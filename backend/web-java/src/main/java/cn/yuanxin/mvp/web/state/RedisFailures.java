@@ -64,8 +64,18 @@ public final class RedisFailures {
         if (!isStoreUnavailable(ex)) {
             return ex;
         }
-        log.warn("state store unavailable operation={} cause={} detail={}", operation,
-                ex.getClass().getName(), ex.getMessage());
+        // 日志脱敏：连接失败/超时类异常的 message 通常含 **host:port** 等拓扑信息，
+        // 因此这两类只记异常类名；只有 RedisSystemException（服务端返回的错误，如
+        // "ERR DB index is out of range"、READONLY、OOM、WRONGPASS——均不回显口令与拓扑）
+        // 才额外记 message，以保留可诊断性。
+        if (ex instanceof RedisSystemException) {
+            log.warn("state store unavailable operation={} cause={} serverError={}", operation,
+                    ex.getClass().getName(), ex.getMessage());
+        } else {
+            log.warn("state store unavailable operation={} cause={}"
+                    + " (message suppressed: it may contain Redis host/port)",
+                    operation, ex.getClass().getName());
+        }
         return new ApiException(ErrorCode.DEPENDENCY_UNAVAILABLE,
                 "session/verification state store is unavailable; the request was NOT processed"
                         + " and no credential was accepted or consumed (operation=" + operation + ")");
