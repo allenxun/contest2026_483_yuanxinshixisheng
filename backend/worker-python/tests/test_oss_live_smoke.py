@@ -17,7 +17,8 @@ FAKE_BUCKET = "fake-bucket-do-not-use"
 FAKE_AK = "LTAI-FAKE-DO-NOT-USE"
 FAKE_SK = "fake-secret-do-not-use"
 FAKE_STS = "fake-sts-token-do-not-use"
-FAKE_ENDPOINT = "https://oss-cn-hangzhou.aliyuncs.com"
+FAKE_SERVER_ENDPOINT = "https://oss-fake-server.example.com"
+FAKE_PUBLIC_ENDPOINT = "https://oss-fake-public.example.com"
 FAKE_REGION = "cn-hangzhou"
 
 VECTOR_SEED = "b-oss-smoke-vector"
@@ -33,6 +34,8 @@ _ENV_CLEAR = (
     "MVP_D_STORAGE_PROVIDER",
     "MVP_A_STORAGE_OSS_REGION",
     "MVP_A_STORAGE_OSS_ENDPOINT",
+    "MVP_A_STORAGE_OSS_SERVER_ENDPOINT",
+    "MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT",
     "MVP_A_STORAGE_OSS_BUCKET",
     "MVP_A_STORAGE_OSS_ACCESS_KEY_ID",
     "MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET",
@@ -57,6 +60,8 @@ def _set_fake_live_env(monkeypatch: pytest.MonkeyPatch, *, opt_in: bool = True) 
     monkeypatch.setenv("MVP_A_STORAGE_OSS_BUCKET", FAKE_BUCKET)
     monkeypatch.setenv("MVP_A_STORAGE_OSS_ACCESS_KEY_ID", FAKE_AK)
     monkeypatch.setenv("MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET", FAKE_SK)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_SERVER_ENDPOINT", FAKE_SERVER_ENDPOINT)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT", FAKE_PUBLIC_ENDPOINT)
     if opt_in:
         monkeypatch.setenv("MVP_OSS_LIVE_SMOKE", "true")
 
@@ -155,10 +160,12 @@ def test_error_output_is_sanitized(monkeypatch: pytest.MonkeyPatch, tmp_path: An
     monkeypatch.setenv("MVP_A_STORAGE_OSS_ACCESS_KEY_ID", FAKE_AK)
     monkeypatch.setenv("MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET", FAKE_SK)
     monkeypatch.setenv("MVP_A_STORAGE_OSS_SECURITY_TOKEN", FAKE_STS)
-    monkeypatch.setenv("MVP_A_STORAGE_OSS_ENDPOINT", FAKE_ENDPOINT)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_SERVER_ENDPOINT", FAKE_SERVER_ENDPOINT)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT", FAKE_PUBLIC_ENDPOINT)
     monkeypatch.setenv("MVP_A_STORAGE_OSS_REGION", FAKE_REGION)
     nasty = (
-        f"object not found: {VALID_KEY!r} bucket={FAKE_BUCKET} endpoint={FAKE_ENDPOINT}"
+        f"object not found: {VALID_KEY!r} bucket={FAKE_BUCKET}"
+        f" server={FAKE_SERVER_ENDPOINT} public={FAKE_PUBLIC_ENDPOINT}"
         f" region={FAKE_REGION} ak={FAKE_AK} sk={FAKE_SK} sts={FAKE_STS}"
     )
     monkeypatch.setattr(smoke, "build_port", lambda **_: _RaisingPort(RuntimeError(nasty)))
@@ -166,7 +173,10 @@ def test_error_output_is_sanitized(monkeypatch: pytest.MonkeyPatch, tmp_path: An
     res = _run_double(tmp_path, "write")
     assert res.result == "fail" and res.exit_code != 0
     blob = "\n".join(res.lines)
-    for forbidden in (FAKE_BUCKET, VALID_KEY, FAKE_AK, FAKE_SK, FAKE_STS, FAKE_ENDPOINT, FAKE_REGION):
+    for forbidden in (
+        FAKE_BUCKET, VALID_KEY, FAKE_AK, FAKE_SK, FAKE_STS,
+        FAKE_SERVER_ENDPOINT, FAKE_PUBLIC_ENDPOINT, FAKE_REGION,
+    ):
         assert forbidden not in blob, f"leaked: {forbidden}"
     assert "[oss-smoke-error]" in blob
     assert f"keyDigest={KEY_DIGEST_EXAMPLE}" in res.lines[0]
@@ -191,6 +201,8 @@ def test_live_gate_missing_bucket(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("MVP_D_STORAGE_PROVIDER", "aliyun_oss")
     monkeypatch.setenv("MVP_A_STORAGE_OSS_ACCESS_KEY_ID", FAKE_AK)
     monkeypatch.setenv("MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET", FAKE_SK)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_SERVER_ENDPOINT", FAKE_SERVER_ENDPOINT)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT", FAKE_PUBLIC_ENDPOINT)
     monkeypatch.setenv("MVP_OSS_LIVE_SMOKE", "true")
     step, missing = smoke.check_live_gates()  # type: ignore[misc]
     assert step == "missing-config-key"
@@ -201,10 +213,36 @@ def test_live_gate_missing_secret(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("MVP_D_STORAGE_PROVIDER", "aliyun_oss")
     monkeypatch.setenv("MVP_A_STORAGE_OSS_BUCKET", FAKE_BUCKET)
     monkeypatch.setenv("MVP_A_STORAGE_OSS_ACCESS_KEY_ID", FAKE_AK)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_SERVER_ENDPOINT", FAKE_SERVER_ENDPOINT)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT", FAKE_PUBLIC_ENDPOINT)
     monkeypatch.setenv("MVP_OSS_LIVE_SMOKE", "true")
     step, missing = smoke.check_live_gates()  # type: ignore[misc]
     assert step == "missing-config-key"
     assert missing == ["MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET"]
+
+
+def test_live_gate_missing_server_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MVP_D_STORAGE_PROVIDER", "aliyun_oss")
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_BUCKET", FAKE_BUCKET)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_ACCESS_KEY_ID", FAKE_AK)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET", FAKE_SK)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT", FAKE_PUBLIC_ENDPOINT)
+    monkeypatch.setenv("MVP_OSS_LIVE_SMOKE", "true")
+    step, missing = smoke.check_live_gates()  # type: ignore[misc]
+    assert step == "missing-config-key"
+    assert missing == ["MVP_A_STORAGE_OSS_SERVER_ENDPOINT"]
+
+
+def test_live_gate_missing_public_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MVP_D_STORAGE_PROVIDER", "aliyun_oss")
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_BUCKET", FAKE_BUCKET)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_ACCESS_KEY_ID", FAKE_AK)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET", FAKE_SK)
+    monkeypatch.setenv("MVP_A_STORAGE_OSS_SERVER_ENDPOINT", FAKE_SERVER_ENDPOINT)
+    monkeypatch.setenv("MVP_OSS_LIVE_SMOKE", "true")
+    step, missing = smoke.check_live_gates()  # type: ignore[misc]
+    assert step == "missing-config-key"
+    assert missing == ["MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT"]
 
 
 def test_live_gate_requires_explicit_opt_in(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -244,6 +282,8 @@ def test_live_phase_aborts_missing_config_key_reports_names_only(monkeypatch: py
     assert res.result == "fail" and res.reason == "missing-config-key"
     blob = "\n".join(res.lines)
     assert "MVP_A_STORAGE_OSS_BUCKET" in blob  # 只报键名
+    assert "MVP_A_STORAGE_OSS_SERVER_ENDPOINT" in blob
+    assert "MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT" in blob
     assert FAKE_BUCKET not in blob
 
 

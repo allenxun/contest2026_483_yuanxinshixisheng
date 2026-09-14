@@ -4,6 +4,7 @@ import cn.yuanxin.mvp.web.config.AppProperties;
 import cn.yuanxin.mvp.web.media.StoragePort;
 import cn.yuanxin.mvp.web.testdouble.FileSystemStorageDouble;
 import com.aliyun.oss.OSS;
+import org.springframework.core.env.StandardEnvironment;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -41,14 +42,16 @@ public final class OssLiveSmokeRunner {
             return session(storage, () -> {
             });
         }
-        // 与 OssProvidersConfig:59-71 完全一致的参数：endpoint/region/credentials/超时。
+        // 与 OssProvidersConfig 一致：对象操作客户端使用 server-endpoint。
         AliyunOssProperties properties = new AliyunOssProperties(
-                config.region(), config.endpoint(), config.bucket(),
+                config.region(), config.serverEndpoint(), config.publicEndpoint(), config.bucket(),
                 config.accessKeyId(), config.accessKeySecret(), config.securityToken(), null, null);
         // 生产装配要求 app.storage.bucket 与 app.storage.oss.bucket 一致。
         AppProperties appProperties = new AppProperties(null, null,
                 new AppProperties.Storage(null, config.bucket()), null, null, null, null);
-        OSS oss = new OssProvidersConfig().ossClient(properties, appProperties);
+        // 该 CLI 直连构造无 Spring Environment；两个新键齐备，旧键迁移校验不触发。
+        OSS oss = new OssProvidersConfig().ossClient(properties, appProperties,
+                new StandardEnvironment());
         OssStorageAdapter adapter = new OssStorageAdapter(oss, properties.bucket());
         return session(adapter, oss::shutdown);
     }

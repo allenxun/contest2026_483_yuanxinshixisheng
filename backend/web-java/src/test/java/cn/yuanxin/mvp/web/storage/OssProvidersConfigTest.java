@@ -25,10 +25,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * 存储装配矩阵（{@link ApplicationContextRunner}，不启动 web/PG、不访问真实 OSS）。
  * 优先级：{@code app.providers.mode=disabled} &gt; {@code app.storage.provider=aliyun} &gt; 默认 doubles。
+ * 双 endpoint 语义：{@code server-endpoint} 必填且用于对象操作；{@code public-endpoint} 必填且
+ * 用于签名地址；旧 {@code app.storage.oss.endpoint} 不再支持。
  */
 class OssProvidersConfigTest {
 
     private static final String BUCKET = "fake-bucket-do-not-use";
+    private static final String SERVER_ENDPOINT = "https://oss-fake-server.example.com";
+    private static final String PUBLIC_ENDPOINT = "https://oss-fake-public.example.com";
 
     @Configuration
     @EnableConfigurationProperties({AppProperties.class, AliyunOssProperties.class})
@@ -58,7 +62,8 @@ class OssProvidersConfigTest {
                 "app.storage.oss.bucket=" + BUCKET,
                 "app.storage.oss.access-key-id=LTAI-FAKE-DO-NOT-USE",
                 "app.storage.oss.access-key-secret=FAKE-SECRET-DO-NOT-USE",
-                "app.storage.oss.endpoint=https://oss-cn-hangzhou.aliyuncs.com"};
+                "app.storage.oss.server-endpoint=" + SERVER_ENDPOINT,
+                "app.storage.oss.public-endpoint=" + PUBLIC_ENDPOINT};
     }
 
     @Test
@@ -77,12 +82,30 @@ class OssProvidersConfigTest {
     }
 
     @Test
-    @DisplayName("mode=doubles + provider=aliyun → OssStorageAdapter（非 doubles）")
+    @DisplayName("mode=doubles + provider=aliyun → OssStorageAdapter（非 doubles），且两个 OSS 客户端 + 签名器均装配")
     void aliyunAdapterAssembled() {
         runner("local").withPropertyValues("app.env=dev").withPropertyValues(fakeAliyun())
                 .run(ctx -> {
                     assertThat(ctx).hasNotFailed();
                     assertThat(ctx.getBean(StoragePort.class)).isInstanceOf(OssStorageAdapter.class);
+                    assertThat(ctx).hasBean("ossClient");
+                    assertThat(ctx).hasBean("ossPublicClient");
+                    assertThat(ctx.getBean(OssPublicUrlSigner.class)).isNotNull();
+                });
+    }
+
+    @Test
+    @DisplayName("装配级：签名器 bean 的签名 URL 指向 public-endpoint 而非 server-endpoint")
+    void signerBeanTargetsPublicEndpoint() {
+        runner("local").withPropertyValues("app.env=dev").withPropertyValues(fakeAliyun())
+                .run(ctx -> {
+                    assertThat(ctx).hasNotFailed();
+                    OssPublicUrlSigner signer = ctx.getBean(OssPublicUrlSigner.class);
+                    java.net.URL url = signer.presign(
+                            "dev/assessment_result/00000000-0000-4000-8000-000000000000");
+                    // virtual-host 形态：<bucket>.<public-host>；关键是落在 public 域而非 server 域。
+                    assertThat(url.getHost()).endsWith("oss-fake-public.example.com");
+                    assertThat(url.getHost()).doesNotContain("oss-fake-server.example.com");
                 });
     }
 
@@ -112,10 +135,85 @@ class OssProvidersConfigTest {
                 .run(ctx -> {
                     assertThat(ctx).hasFailed();
                     assertThat(ctx.getStartupFailure())
+                            .hasMessageContaining("app.storage.oss.server-endpoint")
+                            .hasMessageContaining("app.storage.oss.public-endpoint")
                             .hasMessageContaining("app.storage.oss.bucket")
                             .hasMessageContaining("app.storage.oss.access-key-id")
                             .hasMessageContaining("values are never logged")
                             .hasMessageNotContaining("FAKE-SECRET-DO-NOT-USE");
+                });
+    }
+
+    @Test
+    @DisplayName("缺 server-endpoint ⇒ 拒绝启动、消息点名该键、不含任何 endpoint 取值")
+    void missingServerEndpointRefusesStartup() {
+        runner("local").withPropertyValues("app.env=dev",
+                        "app.storage.provider=aliyun",
+                        "app.storage.bucket=" + BUCKET,
+                        "app.storage.oss.bucket=" + BUCKET,
+                        "app.storage.oss.access-key-id=LTAI-FAKE-DO-NOT-USE",
+                        "app.storage.oss.access-key-secret=FAKE-SECRET-DO-NOT-USE",
+                        "app.storage.oss.public-endpoint=" + PUBLIC_ENDPOINT)
+                .run(ctx -> {
+                    assertThat(ctx).hasFailed();
+                    assertThat(ctx.getStartupFailure())
+                            .hasMessageContaining("app.storage.oss.server-endpoint")
+                            .hasMessageNotContaining(PUBLIC_ENDPOINT)
+                            .hasMessageNotContaining("oss-fake-public.example.com")
+                            .hasMessageNotContaining("FAKE-SECRET-DO-NOT-USE");
+                });
+    }
+
+    @Test
+    @DisplayName("缺 public-endpoint ⇒ 拒绝启动、消息点名该键、不含任何 endpoint 取值")
+    void missingPublicEndpointRefusesStartup() {
+        runner("local").withPropertyValues("app.env=dev",
+                        "app.storage.provider=aliyun",
+                        "app.storage.bucket=" + BUCKET,
+                        "app.storage.oss.bucket=" + BUCKET,
+                        "app.storage.oss.access-key-id=LTAI-FAKE-DO-NOT-USE",
+                        "app.storage.oss.access-key-secret=FAKE-SECRET-DO-NOT-USE",
+                        "app.storage.oss.server-endpoint=" + SERVER_ENDPOINT)
+                .run(ctx -> {
+                    assertThat(ctx).hasFailed();
+                    assertThat(ctx.getStartupFailure())
+                            .hasMessageContaining("app.storage.oss.public-endpoint")
+                            .hasMessageNotContaining(SERVER_ENDPOINT)
+                            .hasMessageNotContaining("oss-fake-server.example.com")
+                            .hasMessageNotContaining("FAKE-SECRET-DO-NOT-USE");
+                });
+    }
+
+    @Test
+    @DisplayName("只配旧 app.storage.oss.endpoint ⇒ 拒绝启动 + 迁移提示（点名两个新键，不回显取值）")
+    void legacyEndpointOnlyRefusesStartupWithMigrationHint() {
+        runner("local").withPropertyValues("app.env=dev",
+                        "app.storage.provider=aliyun",
+                        "app.storage.bucket=" + BUCKET,
+                        "app.storage.oss.bucket=" + BUCKET,
+                        "app.storage.oss.access-key-id=LTAI-FAKE-DO-NOT-USE",
+                        "app.storage.oss.access-key-secret=FAKE-SECRET-DO-NOT-USE",
+                        "app.storage.oss.endpoint=https://legacy-endpoint.example.com")
+                .run(ctx -> {
+                    assertThat(ctx).hasFailed();
+                    assertThat(ctx.getStartupFailure())
+                            .hasRootCauseInstanceOf(IllegalStateException.class)
+                            .hasMessageContaining("legacy app.storage.oss.endpoint is no longer supported")
+                            .hasMessageContaining("app.storage.oss.server-endpoint")
+                            .hasMessageContaining("app.storage.oss.public-endpoint")
+                            .hasMessageNotContaining("legacy-endpoint.example.com")
+                            .hasMessageNotContaining("FAKE-SECRET-DO-NOT-USE");
+                });
+    }
+
+    @Test
+    @DisplayName("两个新键齐备时旧 endpoint 存在也被完全忽略（正常装配）")
+    void legacyEndpointIgnoredWhenNewKeysPresent() {
+        runner("local").withPropertyValues("app.env=dev", "app.storage.oss.endpoint=https://legacy-endpoint.example.com")
+                .withPropertyValues(fakeAliyun())
+                .run(ctx -> {
+                    assertThat(ctx).hasNotFailed();
+                    assertThat(ctx.getBean(StoragePort.class)).isInstanceOf(OssStorageAdapter.class);
                 });
     }
 
@@ -127,7 +225,9 @@ class OssProvidersConfigTest {
                         "app.storage.bucket=other-bucket",
                         "app.storage.oss.bucket=" + BUCKET,
                         "app.storage.oss.access-key-id=LTAI-FAKE-DO-NOT-USE",
-                        "app.storage.oss.access-key-secret=FAKE-SECRET-DO-NOT-USE")
+                        "app.storage.oss.access-key-secret=FAKE-SECRET-DO-NOT-USE",
+                        "app.storage.oss.server-endpoint=" + SERVER_ENDPOINT,
+                        "app.storage.oss.public-endpoint=" + PUBLIC_ENDPOINT)
                 .run(ctx -> {
                     // "启动被拒"断言不得弱化。
                     assertThat(ctx).hasFailed();

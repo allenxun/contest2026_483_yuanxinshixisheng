@@ -193,8 +193,8 @@ public final class OssLiveSmoke {
     // ---------------------------------------------------------------- §6 config
 
     /** 配置来源：与 {@code AliyunOssProperties} 组件一一对应（值绝不打印）。 */
-    public record LiveConfig(String provider, String region, String endpoint, String bucket,
-                             String accessKeyId, String accessKeySecret, String securityToken) {
+    public record LiveConfig(String provider, String region, String serverEndpoint, String publicEndpoint,
+                             String bucket, String accessKeyId, String accessKeySecret, String securityToken) {
     }
 
     /** 用 snakeyaml 读 UTF-8 YAML（严禁 ISO-8859-1）。同时兼容嵌套与点号扁平键。 */
@@ -210,7 +210,8 @@ public final class OssLiveSmoke {
             return new LiveConfig(
                     value(map, "app.storage.provider"),
                     value(map, "app.storage.oss.region"),
-                    value(map, "app.storage.oss.endpoint"),
+                    value(map, "app.storage.oss.server-endpoint"),
+                    value(map, "app.storage.oss.public-endpoint"),
                     value(map, "app.storage.oss.bucket"),
                     value(map, "app.storage.oss.access-key-id"),
                     value(map, "app.storage.oss.access-key-secret"),
@@ -250,6 +251,12 @@ public final class OssLiveSmoke {
             return new Gate(false, "not-opted-in", "provider-not-aliyun", List.of());
         }
         List<String> missing = new ArrayList<>();
+        if (isBlank(config.serverEndpoint())) {
+            missing.add("app.storage.oss.server-endpoint");
+        }
+        if (isBlank(config.publicEndpoint())) {
+            missing.add("app.storage.oss.public-endpoint");
+        }
         if (isBlank(config.bucket())) {
             missing.add("app.storage.oss.bucket");
         }
@@ -346,8 +353,10 @@ public final class OssLiveSmoke {
             }
             if (config != null) {
                 redactor.add(config.bucket());
-                redactor.add(config.endpoint());
-                redactor.add(hostOf(config.endpoint()));
+                redactor.add(config.serverEndpoint());
+                redactor.add(hostOf(config.serverEndpoint()));
+                redactor.add(config.publicEndpoint());
+                redactor.add(hostOf(config.publicEndpoint()));
                 redactor.add(config.accessKeyId());
                 redactor.add(config.accessKeySecret());
                 redactor.add(config.securityToken());
@@ -442,7 +451,7 @@ public final class OssLiveSmoke {
                 if (!"live".equals(mode)) {
                     return skipped("no-live-bucket");
                 }
-                int status = probe.probe(config.endpoint(), config.bucket(), key);
+                int status = probe.probe(config.publicEndpoint(), config.bucket(), key);
                 if (status == 200) {
                     return fail("public-url-status-200", "public-url-status-" + status, -1, "none");
                 }

@@ -28,7 +28,8 @@ class OssLiveSmokeTest {
     private static final String SEED = "b-oss-smoke-vector";
     private static final String VALID_KEY = "dev/assessment_result/00000000-0000-4000-8000-000000000000";
     private static final String BUCKET = "fake-bucket-do-not-use";
-    private static final String ENDPOINT = "https://oss-cn-hangzhou.aliyuncs.com";
+    private static final String SERVER_ENDPOINT = "https://oss-fake-server.example.com";
+    private static final String PUBLIC_ENDPOINT = "https://oss-fake-public.example.com";
     private static final String AK = "LTAI-FAKE-DO-NOT-USE";
     private static final String SK = "FAKE-SECRET-DO-NOT-USE";
     private static final String STS = "FAKE-STS-DO-NOT-USE";
@@ -91,11 +92,12 @@ class OssLiveSmokeTest {
     @DisplayName("净化：输出行不含 bucket/完整 key/endpoint/假 AK/SK/STS，且含 keyDigest（live/double 两模式）")
     void sanitizationRemovesSecrets() {
         OssLiveSmoke.LiveConfig config = new OssLiveSmoke.LiveConfig(
-                "aliyun", "cn-hangzhou", ENDPOINT, BUCKET, AK, SK, STS);
+                "aliyun", "cn-hangzhou", SERVER_ENDPOINT, PUBLIC_ENDPOINT, BUCKET, AK, SK, STS);
         OssLiveSmoke.Args args = new OssLiveSmoke.Args("live", "write", VALID_KEY, SEED, 256, null, null);
         OssLiveSmoke.Redactor redactor = OssLiveSmoke.Redactor.from(args, config);
 
-        String dirty = "bucket=" + BUCKET + " endpoint=" + ENDPOINT + " key=" + VALID_KEY
+        String dirty = "bucket=" + BUCKET + " server=" + SERVER_ENDPOINT + " public=" + PUBLIC_ENDPOINT
+                + " key=" + VALID_KEY
                 + " ak=" + AK + " sk=" + SK + " sts=" + STS + " raw=" + "LTAIABCDEFGHIJKLMNOP";
         String cleaned = redactor.sanitize(dirty);
         assertNoSecrets(cleaned);
@@ -115,28 +117,39 @@ class OssLiveSmokeTest {
     // ------------------------------------------------------------ 4. 三重门
 
     @Test
-    @DisplayName("三重门：逐项缺失即 abort（provider / 凭据 / opt-in）")
+    @DisplayName("三重门：逐项缺失即 abort（provider / endpoint / 凭据 / opt-in）")
     void gateRejectsEachMissingCondition() {
         assertThat(OssLiveSmoke.evaluateGate("live",
-                new OssLiveSmoke.LiveConfig("doubles", "cn-hangzhou", ENDPOINT, BUCKET, AK, SK, null), true))
+                new OssLiveSmoke.LiveConfig("doubles", "cn-hangzhou", SERVER_ENDPOINT, PUBLIC_ENDPOINT,
+                        BUCKET, AK, SK, null), true))
                 .satisfies(gate -> {
                     assertThat(gate.pass()).isFalse();
                     assertThat(gate.reason()).isEqualTo("not-opted-in");
                     assertThat(gate.step()).isEqualTo("provider-not-aliyun");
                 });
+        // 两个新 endpoint 缺失 ⇒ 只报键名。
+        OssLiveSmoke.Gate missingEndpoints = OssLiveSmoke.evaluateGate("live",
+                new OssLiveSmoke.LiveConfig("aliyun", "cn-hangzhou", null, null, BUCKET, AK, SK, null), true);
+        assertThat(missingEndpoints.pass()).isFalse();
+        assertThat(missingEndpoints.reason()).isEqualTo("missing-config-key");
+        assertThat(missingEndpoints.missingKeys()).containsExactly(
+                "app.storage.oss.server-endpoint", "app.storage.oss.public-endpoint");
         OssLiveSmoke.Gate missingCreds = OssLiveSmoke.evaluateGate("live",
-                new OssLiveSmoke.LiveConfig("aliyun", "cn-hangzhou", ENDPOINT, null, AK, null, null), true);
+                new OssLiveSmoke.LiveConfig("aliyun", "cn-hangzhou", SERVER_ENDPOINT, PUBLIC_ENDPOINT,
+                        null, AK, null, null), true);
         assertThat(missingCreds.pass()).isFalse();
         assertThat(missingCreds.reason()).isEqualTo("missing-config-key");
         assertThat(missingCreds.missingKeys()).containsExactly(
                 "app.storage.oss.bucket", "app.storage.oss.access-key-secret");
         OssLiveSmoke.Gate noOptIn = OssLiveSmoke.evaluateGate("live",
-                new OssLiveSmoke.LiveConfig("aliyun", "cn-hangzhou", ENDPOINT, BUCKET, AK, SK, null), false);
+                new OssLiveSmoke.LiveConfig("aliyun", "cn-hangzhou", SERVER_ENDPOINT, PUBLIC_ENDPOINT,
+                        BUCKET, AK, SK, null), false);
         assertThat(noOptIn.pass()).isFalse();
         assertThat(noOptIn.reason()).isEqualTo("not-opted-in");
         assertThat(noOptIn.step()).isEqualTo("missing-live-opt-in");
         assertThat(OssLiveSmoke.evaluateGate("live",
-                new OssLiveSmoke.LiveConfig("aliyun", "cn-hangzhou", ENDPOINT, BUCKET, AK, SK, null), true)
+                new OssLiveSmoke.LiveConfig("aliyun", "cn-hangzhou", SERVER_ENDPOINT, PUBLIC_ENDPOINT,
+                        BUCKET, AK, SK, null), true)
                 .pass()).isTrue();
     }
 
@@ -249,7 +262,8 @@ class OssLiveSmokeTest {
     void adapterErrorIsSanitized(@TempDir Path tempDir) throws Exception {
         Path config = writeFakeYaml(tempDir);
         RuntimeException leaky = new RuntimeException("bucket=" + BUCKET + " key=" + VALID_KEY
-                + " endpoint=" + ENDPOINT + " ak=" + AK + " sk=" + SK + " sts=" + STS
+                + " server=" + SERVER_ENDPOINT + " public=" + PUBLIC_ENDPOINT
+                + " ak=" + AK + " sk=" + SK + " sts=" + STS
                 + " LTAILEAKEDSECRET");
         OssLiveSmoke.StorageFactory factory = (mode, args, cfg) -> session(new ThrowingStorage(leaky));
 
@@ -301,13 +315,16 @@ class OssLiveSmokeTest {
                 + "    provider: aliyun\n"
                 + "    oss:\n"
                 + "      region: cn-hangzhou\n"
-                + "      endpoint: " + ENDPOINT + "\n"
+                + "      server-endpoint: " + SERVER_ENDPOINT + "\n"
+                + "      public-endpoint: " + PUBLIC_ENDPOINT + "\n"
                 + "      bucket: " + BUCKET + "\n"
                 + "      access-key-id: " + AK + "\n"
                 + "      access-key-secret: " + SK + "\n"
                 + "      security-token: " + STS + "\n", StandardCharsets.UTF_8);
         OssLiveSmoke.LiveConfig nestedConfig = OssLiveSmoke.loadYamlConfig(nested);
         assertThat(nestedConfig.provider()).isEqualTo("aliyun");
+        assertThat(nestedConfig.serverEndpoint()).isEqualTo(SERVER_ENDPOINT);
+        assertThat(nestedConfig.publicEndpoint()).isEqualTo(PUBLIC_ENDPOINT);
         assertThat(nestedConfig.bucket()).isEqualTo(BUCKET);
         assertThat(nestedConfig.accessKeyId()).isEqualTo(AK);
         assertThat(nestedConfig.securityToken()).isEqualTo(STS);
@@ -316,12 +333,15 @@ class OssLiveSmokeTest {
         Files.writeString(flat, ""
                 + "app.storage.provider: aliyun\n"
                 + "app.storage.oss.region: cn-hangzhou\n"
-                + "app.storage.oss.endpoint: " + ENDPOINT + "\n"
+                + "app.storage.oss.server-endpoint: " + SERVER_ENDPOINT + "\n"
+                + "app.storage.oss.public-endpoint: " + PUBLIC_ENDPOINT + "\n"
                 + "app.storage.oss.bucket: " + BUCKET + "\n"
                 + "app.storage.oss.access-key-id: " + AK + "\n"
                 + "app.storage.oss.access-key-secret: " + SK + "\n", StandardCharsets.UTF_8);
         OssLiveSmoke.LiveConfig flatConfig = OssLiveSmoke.loadYamlConfig(flat);
         assertThat(flatConfig.provider()).isEqualTo("aliyun");
+        assertThat(flatConfig.serverEndpoint()).isEqualTo(SERVER_ENDPOINT);
+        assertThat(flatConfig.publicEndpoint()).isEqualTo(PUBLIC_ENDPOINT);
         assertThat(flatConfig.bucket()).isEqualTo(BUCKET);
     }
 
@@ -330,7 +350,10 @@ class OssLiveSmokeTest {
     private static void assertNoSecrets(String text) {
         assertThat(text).doesNotContain(BUCKET)
                 .doesNotContain(VALID_KEY)
-                .doesNotContain(ENDPOINT)
+                .doesNotContain(SERVER_ENDPOINT)
+                .doesNotContain(PUBLIC_ENDPOINT)
+                .doesNotContain("oss-fake-server.example.com")
+                .doesNotContain("oss-fake-public.example.com")
                 .doesNotContain(AK)
                 .doesNotContain(SK)
                 .doesNotContain(STS)
@@ -357,7 +380,8 @@ class OssLiveSmokeTest {
                 + "    provider: aliyun\n"
                 + "    oss:\n"
                 + "      region: cn-hangzhou\n"
-                + "      endpoint: " + ENDPOINT + "\n"
+                + "      server-endpoint: " + SERVER_ENDPOINT + "\n"
+                + "      public-endpoint: " + PUBLIC_ENDPOINT + "\n"
                 + "      bucket: " + BUCKET + "\n"
                 + "      access-key-id: " + AK + "\n"
                 + "      access-key-secret: " + SK + "\n"

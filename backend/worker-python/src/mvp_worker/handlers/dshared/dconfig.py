@@ -9,7 +9,8 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | ``MVP_D_PLAN_PROVIDER`` | ``double`` | double / aliyun_llm |
 | ``MVP_D_STORAGE_PROVIDER`` | ``double`` | double / aliyun_oss（生产 double → 拒绝） |
 | ``MVP_A_STORAGE_OSS_REGION`` | ``cn-hangzhou`` | OSS 区域（对齐 Java app.storage.oss.region） |
-| ``MVP_A_STORAGE_OSS_ENDPOINT`` | ``https://oss-cn-hangzhou.aliyuncs.com`` | OSS endpoint（须与 region 同域） |
+| ``MVP_A_STORAGE_OSS_SERVER_ENDPOINT`` | 未设（aliyun_oss 必填） | 服务端访问 endpoint，对象操作用（对齐 Java app.storage.oss.server-endpoint） |
+| ``MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT`` | 未设（aliyun_oss 必填） | 客户端公网 endpoint，签名地址用（对齐 Java app.storage.oss.public-endpoint） |
 | ``MVP_A_STORAGE_OSS_BUCKET`` | 未设（aliyun_oss 必填） | OSS 私有桶名（对齐 Java app.storage.oss.bucket） |
 | ``MVP_A_STORAGE_OSS_ACCESS_KEY_ID`` | 未设（aliyun_oss 必填） | OSS AK（只走 env，绝不入仓） |
 | ``MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET`` | 未设（aliyun_oss 必填） | OSS SK（只走 env，绝不入仓） |
@@ -49,14 +50,14 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from ...media.storage import (
-    DEFAULT_OSS_ENDPOINT,
     DEFAULT_OSS_REGION,
     OSS_ACCESS_KEY_ID_ENV,
     OSS_ACCESS_KEY_SECRET_ENV,
     OSS_BUCKET_ENV,
-    OSS_ENDPOINT_ENV,
+    OSS_PUBLIC_ENDPOINT_ENV,
     OSS_REGION_ENV,
     OSS_SECURITY_TOKEN_ENV,
+    OSS_SERVER_ENDPOINT_ENV,
     STORAGE_DOUBLE_FAIL_PUT_ENV,
     STORAGE_PROVIDER_ALIYUN_OSS,
     STORAGE_PROVIDER_DOUBLE,
@@ -367,8 +368,13 @@ class DConfig:
     oss_region: str = field(
         default_factory=lambda: _env(OSS_REGION_ENV, DEFAULT_OSS_REGION)
     )
-    oss_endpoint: str = field(
-        default_factory=lambda: _env(OSS_ENDPOINT_ENV, DEFAULT_OSS_ENDPOINT)
+    # 两个 endpoint 均无默认：aliyun_oss 模式下缺失 → 构建期 ProviderConfigError。
+    # endpoint 亦按敏感配置处理，错误消息只含键名、绝不回显取值。
+    oss_server_endpoint: str = field(
+        default_factory=lambda: os.environ.get(OSS_SERVER_ENDPOINT_ENV, "")
+    )
+    oss_public_endpoint: str = field(
+        default_factory=lambda: os.environ.get(OSS_PUBLIC_ENDPOINT_ENV, "")
     )
     # bucket/AK/SK 无默认：aliyun_oss 模式下缺失 → 构建期 ProviderConfigError（只报键名）。
     oss_bucket: str = field(default_factory=lambda: os.environ.get(OSS_BUCKET_ENV, ""))

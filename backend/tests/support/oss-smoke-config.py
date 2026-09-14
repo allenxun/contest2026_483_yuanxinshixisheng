@@ -34,16 +34,36 @@ from pathlib import Path
 # ── 唯一映射表 ────────────────────────────────────────────────────────────────
 # YAML 键（Spring 风格，与 AliyunOssProperties 组件一一对应）→ Python 侧环境变量名。
 # 若实施道核实 dconfig.py 的实际变量名与此不同，**只改这张表**，不要改其它逻辑。
+#
+# 2026-09-14 起 endpoint 拆分为两项（**不兼容旧单 endpoint、不做 fallback**）：
+#   server-endpoint → 对象操作（put/get/exists/delete）使用的服务端访问 endpoint
+#   public-endpoint → 给 APP/云台的签名地址所针对的客户端公网 endpoint
+# 旧的 app.storage.oss.endpoint / MVP_A_STORAGE_OSS_ENDPOINT **一律忽略**（与 Java、Python
+# 两侧生产代码一致），只在 stderr 给出迁移提示（只报键名，绝不报值）。
 YAML_TO_ENV: dict[str, str] = {
-    "endpoint": "MVP_A_STORAGE_OSS_ENDPOINT",
+    "server-endpoint": "MVP_A_STORAGE_OSS_SERVER_ENDPOINT",
+    "public-endpoint": "MVP_A_STORAGE_OSS_PUBLIC_ENDPOINT",
     "region": "MVP_A_STORAGE_OSS_REGION",
     "bucket": "MVP_A_STORAGE_OSS_BUCKET",
     "access-key-id": "MVP_A_STORAGE_OSS_ACCESS_KEY_ID",
     "access-key-secret": "MVP_A_STORAGE_OSS_ACCESS_KEY_SECRET",
     "security-token": "MVP_A_STORAGE_OSS_SECURITY_TOKEN",
 }
-# 必填（缺失即拒绝运行；STS 可选）
-REQUIRED_YAML_KEYS: tuple[str, ...] = ("endpoint", "bucket", "access-key-id", "access-key-secret")
+# 必填（缺失即拒绝运行；STS 与 region 可选）
+REQUIRED_YAML_KEYS: tuple[str, ...] = (
+    "server-endpoint",
+    "public-endpoint",
+    "bucket",
+    "access-key-id",
+    "access-key-secret",
+)
+# 已废弃的旧键：只用于给出迁移提示，绝不参与解析（no fallback）。
+LEGACY_YAML_KEYS: tuple[str, ...] = ("endpoint",)
+LEGACY_MIGRATION_HINT = (
+    "legacy key app.storage.oss.endpoint is no longer supported and was IGNORED; "
+    "configure app.storage.oss.server-endpoint (object operations) and "
+    "app.storage.oss.public-endpoint (client-facing signed URLs)"
+)
 PROVIDER_ENV: str = "MVP_D_STORAGE_PROVIDER"
 PROVIDER_VALUE_PY: str = "aliyun_oss"
 
@@ -133,12 +153,25 @@ def main(argv: list[str]) -> int:
     values = {key: lookup(key) for key in YAML_TO_ENV}
     missing = [key for key in REQUIRED_YAML_KEYS if not values.get(key)]
 
+    # 遗留键检测：只用于给出迁移提示，**绝不参与解析**（no fallback，与 Java/Python 两侧一致）。
+    # stderr 输出，故不会被驱动的 `eval "$(...)"` 捕获；只报键名，绝不回显取值。
+    legacy_ignored = sorted(
+        key for key in LEGACY_YAML_KEYS
+        if _lookup(root, f"app.storage.oss.{key}", ["app", "storage", "oss", key])
+    )
+    if legacy_ignored:
+        print(
+            f"oss-smoke-config: ignoring legacy key(s) {legacy_ignored} — {LEGACY_MIGRATION_HINT}",
+            file=sys.stderr,
+        )
+
     if args.check:
         present = sorted(key for key, value in values.items() if value)
         print(f"provider={'aliyun' if provider == 'aliyun' else '<not-aliyun-or-absent>'}")
         print(f"present={present}")
         print(f"missing={sorted(missing)}")
         print(f"optional_absent={sorted(k for k in ('region', 'security-token') if not values.get(k))}")
+        print(f"legacy_ignored={legacy_ignored}")
         if provider != "aliyun":
             return 3
         return 4 if missing else 0
