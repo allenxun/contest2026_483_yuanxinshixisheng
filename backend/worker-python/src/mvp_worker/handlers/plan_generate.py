@@ -254,6 +254,7 @@ class PlanGenerateHandler:
         report_context = {
             "conclusion": report_payload.get("conclusion"),
             "metrics": report_payload.get("metrics"),
+            "raw_detection": report_payload.get("raw_detection"),
         }
         try:
             candidate = port.generate(report_context, snapshot)

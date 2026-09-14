@@ -6,7 +6,7 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 |---|---|---|
 | ``MVP_D_FACE_PROVIDER`` | ``double`` | double / aliyun_face |
 | ``MVP_D_SKIN_PROVIDER`` | ``double`` | double / aliyun_skin |
-| ``MVP_D_PLAN_PROVIDER`` | ``double`` | double / aliyun_llm |
+| ``MVP_D_PLAN_PROVIDER`` | ``double`` | double / aliyun_llm / llm_rag |
 | ``MVP_D_STORAGE_PROVIDER`` | ``double`` | double / aliyun_oss（生产 double → 拒绝） |
 | ``MVP_A_STORAGE_OSS_REGION`` | ``cn-hangzhou`` | OSS 区域（对齐 Java app.storage.oss.region） |
 | ``MVP_A_STORAGE_OSS_ENDPOINT`` | ``https://oss-cn-hangzhou.aliyuncs.com`` | OSS endpoint（须与 region 同域） |
@@ -22,6 +22,11 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | ``MVP_PLAN_CAPABILITY_STALE_SECONDS`` | ``86400`` | T04 观察新鲜窗口；0=忽略 |
 | ``MVP_PLAN_WAIT_CHECK_SECONDS`` | ``30`` | 能力待补齐的 defer 再检查间隔（合法等待态，不消耗 attempt） |
 | ``MVP_D_PLAN_PROMPT_VERSION`` | ``1`` | 方案提示模板版本 |
+| ``MVP_D_LLM_RAG_BASE_URL`` | 未设（llm_rag 必填） | weijing assess Base URL（只走 env，绝不入仓） |
+| ``MVP_D_LLM_RAG_API_KEY`` | 未设（llm_rag 必填） | X-API-Key（只走 env，绝不入仓、绝不日志） |
+| ``MVP_D_LLM_RAG_TIMEOUT_SECONDS`` | ``30`` | HTTP 超时（严格整数 >=1） |
+| ``MVP_D_LLM_RAG_REQUEST_MAPPING`` | 未设 | 批准钩子：请求映射 JSON（未设=未批准，fail-closed） |
+| ``MVP_D_LLM_RAG_OUTPUT_MAPPING`` | 未设 | 批准钩子：输出映射 JSON（未设=未批准，fail-closed） |
 | ``MVP_D_FACE_DOUBLE_QUALITY`` | ``accepted`` | 测试注入：face 质量（``accepted``/``needs_retake``；后者可配 required views） |
 | ``MVP_D_FACE_DOUBLE_REQUIRED_VIEWS`` | 空 | 测试注入：逗号分隔补拍视角（仅 ``front``/``left``/``right`` 子集；空=替身默认；全空段如 ``",,,"`` → 加载期 fail fast） |
 | ``MVP_D_FACE_DOUBLE_SAME_PERSON`` | ``true`` | 测试注入：同人判定（严格布尔 ``1/true/yes/on`` 或 ``0/false/no/off``；``false`` → NOT_SAME_PERSON） |
@@ -84,6 +89,7 @@ DEFAULT_RESULT_IMAGE_MAX_BYTES = 10 * 1024 * 1024
 DEFAULT_PLAN_CAPABILITY_STALE_SECONDS = 86400
 DEFAULT_PLAN_WAIT_CHECK_SECONDS = 30
 DEFAULT_PROMPT_TEMPLATE_VERSION = "1"
+DEFAULT_LLM_RAG_TIMEOUT_SECONDS = 30
 
 # --- 测试替身注入（默认值 = 当前行为 = 不注入；仅读 double 分支，生产 fail-closed） ---
 DEFAULT_FACE_DOUBLE_QUALITY = "accepted"
@@ -418,6 +424,25 @@ class DConfig:
         default_factory=lambda: _env(
             "MVP_D_PLAN_PROMPT_VERSION", DEFAULT_PROMPT_TEMPLATE_VERSION
         )
+    )
+    # --- llm_rag 真实 AI 方案 provider（weijing assess；缺配置 → 构建期 ProviderConfigError） ---
+    llm_rag_base_url: str = field(
+        default_factory=lambda: os.environ.get("MVP_D_LLM_RAG_BASE_URL", "")
+    )
+    llm_rag_api_key: str = field(
+        default_factory=lambda: os.environ.get("MVP_D_LLM_RAG_API_KEY", "")
+    )
+    llm_rag_timeout_seconds: int = field(
+        default_factory=lambda: _strict_env_int(
+            "MVP_D_LLM_RAG_TIMEOUT_SECONDS", DEFAULT_LLM_RAG_TIMEOUT_SECONDS, minimum=1
+        )
+    )
+    # 批准钩子：JSON 配置激活**已注册**映射；未设 = 未批准（fail-closed）。
+    llm_rag_request_mapping: Optional[dict[str, Any]] = field(
+        default_factory=lambda: _env_optional_json("MVP_D_LLM_RAG_REQUEST_MAPPING", None)
+    )
+    llm_rag_output_mapping: Optional[dict[str, Any]] = field(
+        default_factory=lambda: _env_optional_json("MVP_D_LLM_RAG_OUTPUT_MAPPING", None)
     )
     # --- 测试替身注入（默认=当前行为；仅 double 分支读取；生产由守卫 fail-closed） ---
     face_double_quality: str = field(
