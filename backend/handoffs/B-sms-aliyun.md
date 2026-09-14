@@ -132,3 +132,18 @@
 smoke 测试工具与其回归测试；三重 opt-in（`app.sms.provider=aliyun` + 非空
 `app.integration-test.sms.phone` + `app.sms.live-smoke=true`）与 `SmsMasking` 脱敏规则均未改动；
 未读取根的私有 `application-local.properties`、未使用任何真实凭据或手机号、未发送任何真实短信。
+
+## 9. 真实投递证据（根侧提供，B 未独立验证）
+
+**记录时间**：2026-09-14，在 `703c553`（第 8 节 UTF-8 修复）交付报告之后。
+
+**根提供的证据**：根在会话中报告**收到一条真实短信中的 6 位验证码**。按既有规则，**验证码本身不予记录**（不写入文档、日志、报告或提交）；同样不记录手机号。
+
+**该证据支持什么**：若这条短信来自 `703c553` 之后的真实 smoke 运行，则说明中文签名乱码的根因（第 8 节）已解决——阿里云已受理（`Code==OK`）并**真实下发**了短信，`isv.SMS_SIGNATURE_ILLEGAL` 不再出现。
+
+**该证据不支持什么（诚实边界）**：
+- **B 未独立验证投递**：发送与接收均发生在根侧，B 既未执行该次发送，也无法复核阿里云返回的 `Code`/`RequestId`/`BizId` 原文；具体执行版本（是否为 `703c553`）与平台返回内容**以根侧记录为准**。
+- **f02（真实登录）未被 B 执行**：`AliyunSmsCodeProvider` 的 challenge 状态是**进程内** `ConcurrentHashMap`（`:95`），14 表 schema 中**无任何短信 challenge 表**，其 javadoc `:65` 明写"应用重启即失效、多实例之间不共享"；且 `AuthController:106` 的 `verify(challengeId, code)` 需要 **challengeId**（非手机号）。B 侧核实**当前无任何 B 应用实例在运行**（18083/18084/18085/18080-18082 均空闲），故该验证码在 B 侧**不可核销**，端到端真实登录链路仍未由 B 验证。如需该证据，须由根在**仍持有该 challenge 的活实例**上调用 `POST /api/v1/auth/sessions`，并回报 HTTP 状态与响应（自行去除手机号等敏感值）。
+- 平台受理（`Code==OK`）**不等于已送达**；本项记录的是根侧实际收到短信这一事实，不引申为送达率或运营商层面的任何保证。
+
+**仍然适用的生产侧注意**：第 8 节所述 Spring Boot `.properties` 以 ISO-8859-1 解码的约束**未被本次真实投递证据改变**——若生产把中文 `sign-name` 放在 `.properties`，仍会乱码；请改用 YAML、unicode 转义序列或环境变量/系统属性注入。
