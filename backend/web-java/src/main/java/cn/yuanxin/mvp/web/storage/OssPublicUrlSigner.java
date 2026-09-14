@@ -41,6 +41,14 @@ public class OssPublicUrlSigner {
     /** 默认有效期（15 分钟）。 */
     public static final Duration DEFAULT_EXPIRY = Duration.ofMinutes(15);
 
+    /**
+     * 预签名 URL 最小有效期（1 秒）。**下界不是形式要求**：SDK 侧用
+     * {@code new Date(currentTimeMillis + ttl.toMillis())} 计算过期时刻，任何小于 1 秒的正
+     * {@link Duration} 都会因毫秒截断变成 0 ⇒ 生成**立即过期**的 URL（看似成功、实际不可用）。
+     * 取 1 秒亦与 Python 侧 {@code sign_public_url} 的整数秒 {@code 1..604800} 校验一致。
+     */
+    public static final Duration MIN_EXPIRY = Duration.ofSeconds(1);
+
     /** 预签名 URL 最大有效期（7 天 = 604800 秒）：超过即明确失败。 */
     public static final Duration MAX_EXPIRY = Duration.ofDays(7);
 
@@ -58,18 +66,19 @@ public class OssPublicUrlSigner {
     }
 
     /**
-     * 用给定有效期生成签名地址。TTL 为 null/零/负数 ⇒ <b>明确失败</b>
-     * （{@link IllegalArgumentException}），<b>绝不</b>静默回退到 {@link #DEFAULT_EXPIRY}：
-     * 有效期是安全相关参数，静默替换会让调用方误以为拿到了自己请求的授权时长
-     * （与 Python 侧 {@code AliyunOssStorage.sign_public_url} 的 1..604800 校验一致）。
-     * 需要默认值请显式调用 {@link #presign(String)}。超过 {@link #MAX_EXPIRY} 同样<b>明确失败</b>
-     * （不静默截断），避免误以为拿到比请求更长的授权。
+     * 用给定有效期生成签名地址。TTL 为 null 或落在 {@code [MIN_EXPIRY, MAX_EXPIRY]} 之外
+     * ⇒ <b>明确失败</b>（{@link IllegalArgumentException}），<b>绝不</b>静默回退到
+     * {@link #DEFAULT_EXPIRY}、也<b>绝不</b>静默截断：有效期是安全相关参数，静默替换会让调用方
+     * 误以为拿到了自己请求的授权时长。需要默认值请显式调用 {@link #presign(String)}。
+     *
+     * <p>下界 {@link #MIN_EXPIRY}（1 秒）尤其重要：{@code Duration.ofNanos(1).toMillis() == 0}，
+     * 若只拒绝 null/零/负数，亚秒级 TTL 会生成**立即过期**的 URL。</p>
      */
     public URL presign(String objectKey, Duration expiry) {
         Objects.requireNonNull(objectKey, "objectKey");
-        if (expiry == null || expiry.isZero() || expiry.isNegative()) {
-            throw new IllegalArgumentException("presign expiry must be a positive duration"
-                    + " (call presign(objectKey) for the explicit default of "
+        if (expiry == null || expiry.compareTo(MIN_EXPIRY) < 0) {
+            throw new IllegalArgumentException("presign expiry must be a positive duration of at least "
+                    + MIN_EXPIRY.toSeconds() + " second(s) (call presign(objectKey) for the explicit default of "
                     + DEFAULT_EXPIRY.toSeconds() + " seconds)");
         }
         Duration ttl = expiry;

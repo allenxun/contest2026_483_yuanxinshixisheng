@@ -46,7 +46,7 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Any, Optional
 
 from ...media.storage import (
@@ -350,7 +350,7 @@ def _env_optional_json(name: str, default: Optional[dict[str, Any]]) -> Optional
     return json.loads(raw)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class DConfig:
     face_provider: str = field(
         default_factory=lambda: _env("MVP_D_FACE_PROVIDER", DEFAULT_FACE_PROVIDER)
@@ -496,6 +496,26 @@ class DConfig:
     @classmethod
     def from_env(cls) -> "DConfig":
         return cls()
+
+    def __repr__(self) -> str:
+        """脱敏 repr：**绝不**输出 AK/SK/STS token 与 endpoint/bucket 取值。
+
+        dataclass 默认 repr 会把全部字段（含 ``oss_access_key_secret``、
+        ``aliyun_access_key_secret``、``oss_security_token`` 以及两个 endpoint 与桶名）原样打印；
+        一旦将来有人写 ``log.info("%s", cfg)`` 或把 cfg 带进异常消息就会泄漏凭据。
+        这里按**字段名模式**脱敏，因此将来新增的同类字段会自动被覆盖，无需逐个登记；
+        非敏感字段仍原样显示以便调试。当前全仓没有任何 ``repr(cfg)`` 调用路径
+        （orchestrator 已 grep 核实：worker-python 的 src 与 tests 中 ``repr(`` 命中 0），
+        故本方法属**预防性硬化**，不改变任何现有行为。
+        """
+        redact_hints = ("access_key", "secret", "token", "endpoint", "bucket")
+        parts = [
+            f"{f.name}='<redacted>'"
+            if any(hint in f.name for hint in redact_hints)
+            else f"{f.name}={getattr(self, f.name)!r}"
+            for f in fields(self)
+        ]
+        return f"{type(self).__name__}({', '.join(parts)})"
 
     def __post_init__(self) -> None:
         """非法注入取值在**加载期** fail fast（不接受静默回退）。"""
