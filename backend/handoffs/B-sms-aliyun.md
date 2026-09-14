@@ -107,3 +107,28 @@
 
 `backend/web-java/pom.xml` 新增 `com.aliyun:dysmsapi20170525:4.6.0`（传递 `tea-openapi`/
 `tea-util`/`tea`/`endpoint-util`/`openapiutil`）。OSS 本轮不引入。
+
+## 8. UTF-8 编码要求（2026-09-14 真实 smoke 失败根因与修复）
+
+**症状**：根用同一份阿里云短信配置执行真实 smoke，官方 SDK 返回 `isv.SMS_SIGNATURE_ILLEGAL`（签名不合法）。同一配置在其它代码中可用。
+
+**根因**：`AliyunSmsLiveSmokeIT.loadFileProperties()` 曾用 `Properties.load(InputStream)`。按 `java.util.Properties` 规范，该方法以 **ISO-8859-1** 解码输入流，因此 UTF-8 的中文 `app.sms.aliyun.sign-name`（以及中文模板参数名）会被解成乱码；`AliyunSmsSendGateway:72` 又把它**原样**交给 SDK 的 `.setSignName(...)`（网关与 `AliyunSmsProperties:43` 都不做任何字符集处理），阿里云据此判定签名非法。**这不是阿里云侧配置问题，也不是 SDK 问题。**
+
+**修复**：改为 `new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8)` + `Properties.load(Reader)`，并把读取抽为包级可见的纯函数缝 `AliyunSmsLiveSmokeIT.readPropertiesFile(String)`（便于回归测试，且不触碰静态缓存、不需要 opt-in）。unicode 转义序列与反斜杠行连接语义不变。回归守卫＝`AliyunSmsSmokeConfigEncodingTest`（3 项），含**判别力证明**：对同样的文件字节，旧 ISO-8859-1 读法得到的值与期望签名不相等 ⇒ 该断言不是恒真。
+
+**生产侧同样需要注意（配置源层，B 的生产代码无缺陷）**：Spring Boot 3.5.16 的
+`org.springframework.boot.env.OriginTrackedPropertiesLoader$CharacterReader` 经字节码核实为
+`new InputStreamReader(in, StandardCharsets.ISO_8859_1)` ⇒ **`.properties` 配置源里的中文同样会乱码**。
+因此真实运行时若把中文 `sign-name` 放进 `application-local.properties`，经 `@ConfigurationProperties`
+绑定后也会得到乱码并触发同样的 `isv.SMS_SIGNATURE_ILLEGAL`。三种安全方式（任选其一）：
+1. **放进 YAML**（`application.yml` / `application-local.yml`）——Spring 按 UTF-8 读取 YAML；
+2. 在 `.properties` 中使用 **unicode 转义序列**（反斜杠 u + 四位十六进制）写中文值；
+3. 用**环境变量或系统属性**注入（`APP_SMS_ALIYUN_SIGN_NAME` / `-Dapp.sms.aliyun.sign-name=...`），
+   两者均为 UTF-8 安全；smoke 的 `config()` 解析顺序本就是 系统属性 → 环境变量 → properties 文件。
+
+`application.yml`（UTF-8）中的 `app.sms.*` 键不受影响；本轮 `application.yml` 未改动。
+
+**边界**：本项修复**未改动任何生产代码**（`backend/web-java/src/main/**` diff 为 0 文件），仅改
+smoke 测试工具与其回归测试；三重 opt-in（`app.sms.provider=aliyun` + 非空
+`app.integration-test.sms.phone` + `app.sms.live-smoke=true`）与 `SmsMasking` 脱敏规则均未改动；
+未读取根的私有 `application-local.properties`、未使用任何真实凭据或手机号、未发送任何真实短信。

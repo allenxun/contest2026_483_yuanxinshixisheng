@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Properties;
@@ -32,6 +34,13 @@ import static org.assertj.core.api.Assertions.fail;
  * （{@code -Dapp.sms.smoke.config=/path/to/application-local.properties} 或环境变量
  * {@code APP_SMS_SMOKE_CONFIG}）—— 属性名与 Spring 完全一致。详见
  * {@code backend/handoffs/B-sms-aliyun.md}。</p>
+ *
+ * <p><b>编码（必读）</b>：该 properties 文件必须为 <b>UTF-8</b>，本类以显式 UTF-8
+ * {@link Reader} 读取（见 {@link #readPropertiesFile(String)}），使中文 {@code sign-name}
+ * 与中文模板参数名<b>逐字保持</b>。<b>不得</b>改回 {@code Properties.load(InputStream)}：
+ * 它按规范以 ISO-8859-1 解码，会把 UTF-8 中文变成乱码后发给阿里云，平台随即以
+ * {@code isv.SMS_SIGNATURE_ILLEGAL} 拒绝（这是 2026-09-14 真实 smoke 失败的根因）。
+ * 回归守卫见 {@code AliyunSmsSmokeConfigEncodingTest}。</p>
  *
  * <p><b>本类不发起任何自动发送</b>，也<b>不</b>被常规 {@code mvn test} 实际执行（无 opt-in 即跳过）。
  * SmsSendGateway 由适配器真实实现，发送是计费接口。</p>
@@ -132,19 +141,37 @@ class AliyunSmsLiveSmokeIT {
         if (fileProperties != null) {
             return fileProperties;
         }
-        Properties properties = new Properties();
         String path = System.getProperty(CONFIG_FILE_KEY);
         if (path == null || path.isBlank()) {
             path = System.getenv(CONFIG_FILE_KEY.toUpperCase(java.util.Locale.ROOT).replace('.', '_'));
         }
-        if (path != null && !path.isBlank()) {
-            try (InputStream in = new FileInputStream(path)) {
-                properties.load(in);
-            } catch (IOException unreadable) {
-                // 文件不可读时不回显路径内容；仅忽略，交由跳过条件处理。
-            }
+        fileProperties = readPropertiesFile(path);
+        return fileProperties;
+    }
+
+    /**
+     * 以<b>显式 UTF-8</b> 读取 properties 文件（纯函数缝，便于回归测试且不触碰静态缓存）。
+     *
+     * <p><b>为何不能用 {@code Properties.load(InputStream)}</b>：该方法按 {@code java.util.Properties}
+     * 规范以 <b>ISO-8859-1</b> 解码，UTF-8 的中文 {@code app.sms.aliyun.sign-name}（以及中文模板
+     * 参数名）会变成乱码后被原样交给阿里云 SDK（{@code AliyunSmsSendGateway} 不做任何字符集处理），
+     * 平台随即以 {@code isv.SMS_SIGNATURE_ILLEGAL} 拒绝——这是 2026-09-14 真实 smoke 失败的根因。
+     * 改用 {@code InputStreamReader(in, UTF_8)} + {@code Properties.load(Reader)} 后中文逐字保持，
+     * 且 Properties 规范的 unicode 转义序列（反斜杠 u + 四位十六进制）与反斜杠行连接语义不变。</p>
+     *
+     * <p>{@code path} 为 null/空白、或文件不存在/不可读时返回<b>空</b> {@code Properties}，
+     * 且<b>绝不回显路径或文件内容</b>；由三重 opt-in 跳过条件处理，绝不静默发送。</p>
+     */
+    static Properties readPropertiesFile(String path) {
+        Properties properties = new Properties();
+        if (path == null || path.isBlank()) {
+            return properties;
         }
-        fileProperties = properties;
+        try (Reader reader = new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8)) {
+            properties.load(reader);
+        } catch (IOException unreadable) {
+            // 文件不可读时不回显路径内容；仅忽略，交由跳过条件处理。
+        }
         return properties;
     }
 
