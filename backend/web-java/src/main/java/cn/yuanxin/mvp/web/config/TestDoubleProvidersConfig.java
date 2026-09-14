@@ -32,7 +32,20 @@ import org.springframework.web.context.annotation.RequestScope;
 @ConditionalOnProperty(name = "app.providers.mode", havingValue = "doubles", matchIfMissing = true)
 public class TestDoubleProvidersConfig {
 
+    /**
+     * 会话替身（<b>仅</b> {@code app.state.provider=memory} 时装配）。
+     *
+     * <p>与 {@code RedisSessionProvider}（{@code app.state.provider=redis}）<b>互斥</b>：
+     * 两者都实现 {@link SessionProvider}，若同时装配会产生两个候选 bean 而使注入失败。
+     * {@code matchIfMissing=true} 保证既有默认行为（未配置该键 = memory = 装配替身）<b>逐字不变</b>，
+     * 因此现有全部 IT/单测不受影响。</p>
+     *
+     * <p>注意 {@code AbstractWebIT.sessionIdOf()} 会把本 bean 强转为
+     * {@code InMemorySessionDouble} 以读取测试钩子 {@code sessionIdForAccessToken}，
+     * 故本替身与该钩子必须保留（doubles 仅供隔离测试）。</p>
+     */
     @Bean
+    @ConditionalOnProperty(name = "app.state.provider", havingValue = "memory", matchIfMissing = true)
     public SessionProvider sessionProvider(JdbcTemplate jdbc) {
         return new InMemorySessionDouble(jdbc);
     }
