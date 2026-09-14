@@ -790,8 +790,8 @@ Oracle 判定**安全性不受影响**，并给出可选修法：为两个 guard
 断言最终诊断是 `app.providers.mode=doubles is not allowed`。
 
 **交付限制（Oracle 确认继续作为限制、不需再发代码重绑定轮次）**：
-①**L3 仍未执行**——应由根在真实私有 Redis 配置下执行一次作为**部署验收证据**（Oracle 明确：
-这不是再次代码验证，也**不阻塞当前整合**）；②`InMemorySessionDouble` 的同构竞态不修，
+①~~**L3 仍未执行**~~ → **已解除**：根已于 `de424f1` 在真实私有 Redis 配置下执行 L3 并**通过**（`Tests run: 1, Failures: 0, Errors: 0, Skipped: 0`，`redisLeftover=0`、`accountsDeleted=1`），完整证据、SHA 绑定依据与如实边界见 **§19**。原判定为：应由根执行一次作为**部署验收证据**
+（Oracle 明确：这不是再次代码验证，也不阻塞当前整合）——该动作现已完成；§2）②③ 三项限制继续有效。
 须持续披露其并发语义不等价、不能用它证明 refresh/logout 竞争安全；③生产 Redis 的
 `management.health.redis.enabled` 必须显式开启，且独立实例 / `maxmemory` / `noeviction` / 容量告警
 应定为**生产要求**而非建议。
