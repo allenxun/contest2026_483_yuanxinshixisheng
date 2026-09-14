@@ -128,3 +128,19 @@ Python `0`/`1`；驱动只要求"失败必非 0"。
 - `backend/worker-python/tests/oss_live_smoke.py`（CLI 阶段运行器；不以 `test_` 开头 ⇒ pytest 不收集）
 - `backend/worker-python/tests/test_oss_live_smoke.py`（33 项回归）
 共享契约与 orchestrator 裁决见 `.coordination/B-work/oss-live-smoke/contract.md`（git 忽略目录）。
+
+## 10. 根的真实 OSS 闭环验证结果（根侧执行，绑定提交 `ede19b5`）
+**执行方＝根**（非 OpenCode；本环境从未联网真实 OSS）。**被验证提交＝`ede19b5c7a713626ae70a953afcac6deadef36fa`**。
+**结果＝PASS**，逐项如下（按根回报如实转录；**不含** bucket、endpoint、完整 objectKey、凭据与对象内容）：
+1. Java 生产适配器写入后，Python 生产适配器 `exists`/`get` **逐字节校验成功**；
+2. Python 生产适配器写入后，Java 生产适配器 `exists`/`get` **逐字节校验成功**；
+3. 两侧 **256 字节**对象摘要**一致**；
+4. **未签名公网探测返回 403**（即 `public-url-probe` 断言"状态 != 200"成立 ⇒ 对象未公开可读，
+   符合"私有桶、无公开 URL"的既定要求）；
+5. `finally` 精确删除本次生成的**两个随机合成对象**，Java 与 Python **双方确认均不存在**，
+   `cleanup=confirmed`。
+**这闭合了第 8 节的未验证项 1 与 2**（真实 OSS 闭环、真实签名被接受、桶权限、`public-url-probe`
+真实状态码）。仍未由任何一方验证的：真实 STS 临时凭据路径（根使用的是长期 AK/SK 还是 STS 未回报）、
+多实例并发下的清理、以及桶生命周期/版本控制策略与本工具的交互。
+**注**：本节证据绑定 `ede19b5`。其后若代码变更（例如 endpoint 拆分），真实闭环须由根在新 SHA 上重跑，
+本节不得被引用为新 SHA 的证据。
