@@ -105,7 +105,7 @@ management:
 |---|---|---|---|---|
 | `<p>sess:at:<sha256(accessToken)>` | hash | `kind`(app\|gimbal)、`sid`、`aid`(accountId 或 gimbalId)、`iid`(installationId，云台为空)、`rev`(authRevision 或 credentialVersion)、`iat`、`exp` | APP 2h / 云台 1h（沿用现有 TTL） | `authenticate` 的唯一查询路径 |
 | `<p>sess:rt:<sha256(refreshToken)>` | string | `sid` | 与该会话同 TTL | refresh 一次性轮换（Lua CAS） |
-| `<p>sess:sid:<sessionId>` | string | `sha256(accessToken)` | 同上 | 轮换/撤销时定位旧 access（等价现有 `tokenBySession`） |
+| `<p>sess:sid:<sessionId>` | hash | `at`=sha256(accessToken)、`rt`=sha256(refreshToken)（云台为空） | 同上 | 轮换/撤销时定位并连带清理旧 access 与 refresh（等价现有 `tokenBySession` + `refreshByToken`） |
 | `<p>sms:ch:<challengeId>` | hash | `cd`=sha256(code+challengeId)、`ph`=手机号（唯一 PII）、`exp`、`att` | `app.sms.risk.challenge-ttl-seconds`（沿用既有默认） | 一次性核销 + 尝试计数（单个 Lua 内完成） |
 | `<p>sms:rl:<sha256(phone)>:m:<yyyyMMddHHmm>` | string(int) | 计数 | 窗口剩余 + 余量 | 分钟窗口（UTC+8 自然边界） |
 | `<p>sms:rl:<sha256(phone)>:h:<yyyyMMddHH>` | string(int) | 计数 | 同上 | 小时窗口 |
@@ -125,6 +125,13 @@ management:
 | **logout / 撤销** | Lua `HGETALL` + `DEL`（原子读出 `RevokedSession` 所需字段再删） | 必须**恰好一次**返回 accountId/installationId/sessionId 给 T09 失效使用；并发登出只应有一个拿到值（另一个 empty → 401，与现状一致） |
 | **节流三窗口** | 单个 Lua 对三个窗口键做"检查 + 预留 + 首次设 TTL" | 现状把远端发送包在条带锁内（`:148`）；跨实例必须靠 Redis 原子预留才能不超发 |
 | **不存在才创建** | `opsForValue().setIfAbsent(k,v,Duration)` ≡ `SET k v EX ttl NX` | 防重复签发 |
+
+**为什么 `sess:sid:<sessionId>` 必须是 hash 而不是 string**：`revokeSession(accessToken)` 的入参
+只有 access token，但撤销必须**连带清理** refresh 凭据（否则登出后旧 refresh 仍可用，属实质安全缺陷）。
+现状用两张内存表（`tokenBySession` + `refreshByToken`，`InMemorySessionDouble:140-141`）解决；
+Redis 侧把两个摘要都存在 `sess:sid:<sessionId>` 这一个 hash 里，即可在**同一个 Lua** 内原子地
+读出并删除 `sess:at:*`、`sess:rt:*`、`sess:sid:*` 三个键。**注意存的仍是摘要而非原文 token**，
+因此撤销时要用摘要拼出待删键名——这正是 §3 键通则第 2 条的直接结果。
 
 **Lua 返回值纪律**：一律返回**整数**（0/1/状态码）或字符串，Java 侧用 `DefaultRedisScript<Long>`。
 实测 + 官方一致：Lua `return false` → Redis null bulk reply → Java **`null`**，用布尔接收会踩坑。
@@ -269,3 +276,15 @@ Actuator 的 `RedisHealthIndicator` 在 `management.health.redis.enabled` 默认
 - L2 的运行命令与实测数字；L3 的入口类名、三重 opt-in 标志、根运行命令与预期输出。
 - 全量回归真实数字（Java 基线 **618**）与账目。
 - Oracle 最终审查裁定与阻塞项处置。
+
+## 12. 实施进度与提交（orchestrator 维护）
+| 阶段 | 提交 | 内容 | 验证 |
+|---|---|---|---|
+| 设计 + 公开配置示例 + 基础装配 | `28ef3539feca9d36e557d7bd407af880e236d99c` | 本文档；`pom.xml` 加 `spring-boot-starter-data-redis`（BOM 管版本，默认 Lettuce；**刻意不加** `commons-pool2`：本项目 Redis 命令全为非阻塞含 EVAL，`shareNativeConnection=true` 即可）；`application.yml` 加 `app.state.*`、健康检查开关、prod profile 默认 `redis`；`web/state` 5 个基础类；`TestDoubleProvidersConfig.sessionProvider` 加 `app.state.provider=memory`（`matchIfMissing=true`）互斥门 | `mvn compile` rc=0、`test-compile` rc=0、**全量 618/0/0 BUILD SUCCESS**（与基线一致 ⇒ 零回归）；classpath 实测含 spring-data-redis 3.5.13 + lettuce-core 6.6.0.RELEASE |
+| 共享测试接缝 | 见下方提交 | `src/test/java/.../state/RedisTestSupport.java`：opt-in（`-Dmvp.test.redis.url` / `MVP_TEST_REDIS_URL`）、随机前缀、`SCAN`+`DEL` 只清自己前缀、`describe()` 不泄漏主机端口 | javac rc=0；行为探针实测：opt-in 门 false→true、`describe()` 不含 `6399`/`127.0.0.1`、前缀形状 `b-probe-<16hex>:`、键带前缀、TTL>0、清理后 **db5 DBSIZE=0** |
+| 会话实现 | 待提交 | `RedisSessionProvider` + `RedisSessionConfig` + `redis/session-*.lua` + 契约/opt-in IT + L3 root-only 登录验收入口 | 待中央验证 |
+| 短信状态实现 | 待提交 | `SmsStateStore` 端口 + 内存/Redis 两实现 + `SmsStateStoreConfig` + `redis/sms-*.lua` + `AliyunSmsCodeProvider` 改造 + 测试改写 | 待中央验证 |
+
+**两条实施道并行、写域互斥**（`web/state/**` vs `web/sms/**`；Lua 资源 `session-*.lua` vs `sms-*.lua`），
+且**都禁止运行 mvn**（避免 `target/` 与端口争用、避免污染权威数字）；类型检查用 orchestrator 预生成并
+实测过的 `javac` + `cp-test.txt` 配方，中央构建与全量回归由 orchestrator 统一执行。
