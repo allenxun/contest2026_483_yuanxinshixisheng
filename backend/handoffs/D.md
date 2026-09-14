@@ -58,3 +58,14 @@
 ## 协调记录
 
 `.mvp-d-runtime/coordination-request.md`（运行文件，git-ignored，Codex 监督者同步项目根 .coordination/D）：B 媒体归属约定 / C defer 提案 / E C-D 衔接最终约定 / F defer 授权落实 / G 认证阻塞 / G2 报告收尾 / G3 恢复尝试 / G4 R1 结论 / H N2 提案 / I N2 授权受理 / J 第三次裁定受理 / K 端口冲突通报（已由 L.2 根治）/ L 第四次授权受理。关键裁定内容均已内联本文件与 D-oracle.md，不依赖运行文件存续。
+
+## AI 方案真实接口接入轮（2026-09-14，dev 合并 6bd31cb 后增量）
+
+- **授权链**：用户/总协调四波指令——只读发现（远端只读、不猜接口）→ dev 快进合并放行 → 本地 fail-closed 适配+三份用户资料（SHA256 绑定）→ 授权启动尝试（仅启动目标现有服务，不改其代码/配置）。
+- **提交**：`2338d3d`（llm_rag 适配器：weijing_mapping 纯映射模块+LLMRagPlanAdapter urllib 客户端+problem 六码×retryable 分类+dconfig 五 env+fixture 入仓+33 测试）→ `afa3372`（聚焦 Oracle 三项修复：适配器去持久化+代次围栏终态/raw 全封闭合同校验/配置错立即终态收敛；+20 测试）。**AI-plan 增量最终代码 SHA=`afa3372cf47d667da7525954dafd7bc589a04bd0`**。
+- **Oracle（ora-2 同审查者）**：最终聚焦审 FAIL@2338d3d（BLOCKER：适配器终态回调缺 plan_id/generation_revision 围栏可误杀新代次；IMPORTANT×2：raw 校验过浅、构建期配置错可致 T06 滞留）→ 修复复审 **PASS@afa3372**（三项 CLOSED、偏差 COMPLIANT、先前范围 byte-identical、blockingFindings=[]、四对抗探针全阻断、"ACCEPTED as the final AI-plan-increment code SHA"）。
+- **证据（SHA 绑定 clean 树，orchestrator 亲跑）**：Python **405 passed exit 0**（2026-09-14T04:02:31Z→04:03:33Z）；Java **590/0/0 exit 0**（04:03:33Z→04:04:19Z）；合并基线 6bd31cb 当场全量 Java 590/Python 352 绿（02:58-02:59Z，环境修复=docker start mvp-d-pg+venv 重装 oss2）。
+- **真实接口状态（如实，零冒充）**：目标服务 `llm-rag-application`（dev.ai-skin:~/deployment，git HEAD 6e16fc6，文档 commit 39dfa0b 2026-09-14）**无任何 systemd unit**（系统级 LoadState=not-found、用户级 0）；现有启动机制=start.py 复合启动器（API 0.0.0.0:7861+Streamlit 9003）。**授权启动尝试失败**：`ValueError: LocalEmbeddings only supports BGE-M3`——models/ 缺 bge-m3 资产（仅 bge-large-zh/bge-reranker-large），modelscope 回退未落地；按授权未改其代码/配置，修复归 AI 负责人。次级阻塞：`APP_INTERNAL_AI_API_KEYS` 未配置（无 .env、config internal_ai.api_keys 空=拒绝全部流量）。**真实 assess 调用两层（HTTP 受理/方案完成）均未达成**；Base URL 合同推导值 `http://10.3.6.163:7861/internal/v1/weijing/reports/assess`（config.yaml:248，连通性待服务修复后验证）。
+- **关键映射结论**（详 runtime 发现/决策文档，监督者同步）：①shuiguang_cloud_v1 样本**不能完整包裹**进 assess（其要 F/C/L/R×O/P/D 0-100 整数分且越高越好；样本=六解剖区分区计数+全局 front float 分且越高越明显——方向/粒度/类型三重冲突，反转与舍入无权威口径）；②WeijingPlan **无设备参数**（actual_device_seconds 恒 0、preview_device 仅模拟 for_human_use:false、exposure_summary=成分×区域天数）→ 无法诚实通过冻结 plan_payload/target_count 校验；③权威设计（后端详细设计:421/502/669）明令参数口径归设备团队/协议契约、禁止发明 → 适配器**严格 fail-closed**（OUTPUT_MAPPING 注册表为空→恒 PLAN_MAPPING_NOT_APPROVED 终态；NL/非法结构永不 ready；真实失败零 mock 回退；K/代次/ready 冻结全保留）。
+- **待决（外部）**：N.1 服务修复+Key 渠道（AI 负责人）；N.2 请求映射口径、N.3 输出契约对齐、N.4 原始算法 JSON 捕获落点（总协调）——决策后仅需登记映射注册表/接通捕获路径，架构零返工。
+- **边界遵守**：远端全程只读+单次授权启动（未改/未重启他服务、未部署、未触 internal.dxg170:18085、Key 值不存在亦未输出、未读 .env/secrets/进程环境）；fixture 标明用户提供/合同草稿/非线上算法证据（SHA256 绑定，无绝对下载路径入仓）；response_models.reference.py 永不 import；公共三文件本轮零改动（ora-2 byte-identical 核验）。
