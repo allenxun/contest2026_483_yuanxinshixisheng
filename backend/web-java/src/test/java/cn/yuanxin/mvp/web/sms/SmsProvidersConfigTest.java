@@ -1,9 +1,5 @@
 package cn.yuanxin.mvp.web.sms;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import cn.yuanxin.mvp.web.auth.SmsCodeProvider;
 import cn.yuanxin.mvp.web.config.AppProperties;
 import cn.yuanxin.mvp.web.config.DisabledProvidersConfig;
@@ -17,15 +13,17 @@ import cn.yuanxin.mvp.web.state.StateStoreConfigGuard;
 import cn.yuanxin.mvp.web.testdouble.SmsCodeDouble;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.annotation.Configurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.runner.AbstractApplicationContextRunner;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.util.stream.Collectors;
+import java.lang.reflect.Field;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,19 +31,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * 短信装配矩阵（{@link ApplicationContextRunner}，不启动 web/PG）。优先级：
  * {@code app.providers.mode=disabled} &gt; {@code app.sms.provider=aliyun} &gt; 默认 doubles。
- * 维度：{@code app.state.provider}（memory 默认 / redis）；并纳入 {@link StateStoreConfigGuard}
- * 以锁定"真实短信 provider 必须配 Redis"的可执行门禁。使用明显假凭据，不联网、不发短信；
- * Redis 分支只注入 mock template（构造期不访问 Redis）。
+ * 维度：{@code app.state.provider}（memory 默认 / redis）。
+ *
+ * <p><b>为何不加载 {@link StateStoreConfigGuard}</b>（Oracle 第二十七轮裁定）：装配测试的职责是
+ * "给定 provider/mode/state 组合，装配出哪个 bean"；守卫的职责是"哪些组合根本不允许启动"。
+ * 把两者塞进同一个上下文，会迫使测试为了通过守卫而放宽生产规则（例如引入一个公开的运行时
+ * 逃生门属性），从而在生产配置里留下合法绕过跨实例一致性要求的后门。正确做法是：守卫
+ * <b>无条件拒绝</b>非法组合，其正向单元测试由 {@code web/state/**} 直接以 {@code MockEnvironment}
+ * 调 {@code postProcessBeanFactory} 覆盖；本类的装配测试<b>只装配被测装配类</b>，因此可以合法地
+ * 构造 "aliyun + 内存状态" 的 bean 组合。回归守卫见 {@link #runnerDoesNotLoadStateStoreGuard()}。</p>
+ *
+ * <p>使用明显假凭据，不联网、不发短信；Redis 分支只注入 mock template（构造期不访问 Redis），
+ * 并给显式假 {@code spring.data.redis.host}（仅用于满足装配键存在性，不建连）。</p>
  */
 class SmsProvidersConfigTest {
 
-    /**
-     * 测试专用逃生门：假 gateway 单元测试用"aliyun + 内存状态"驱动编排逻辑，
-     * 真实部署<b>禁止</b>使用（守卫会 WARN 且内存状态不跨实例、重启即失效）。
-     */
-    private static final String ESCAPE_HATCH = "app.state.allow-in-memory-with-real-sms=true";
-
-    /** 守卫只检查该键"是否显式配置"（不读取值）；mock template 不会真正建连。 */
+    /** 显式假 host（mock template，不真连接）；保留以覆盖"redis 配置齐全"的装配路径。 */
     private static final String REDIS_HOST = "spring.data.redis.host=127.0.0.1";
 
     @Configuration
@@ -71,23 +72,36 @@ class SmsProvidersConfigTest {
         }
     }
 
+    /** 只装配被测装配类；**刻意不包含** {@link StateStoreConfigGuard}（见类级 javadoc）。 */
     private static ApplicationContextRunner runner(String... profiles) {
         return new ApplicationContextRunner()
                 .withUserConfiguration(PropsConfig.class, JdbcConfig.class, RedisTemplateConfig.class,
-                        StateStoreConfigGuard.class, TestDoubleProvidersConfig.class,
-                        DisabledProvidersConfig.class, RedisStateConfig.class,
-                        SmsStateStoreConfig.class, SmsProvidersConfig.class)
+                        TestDoubleProvidersConfig.class, DisabledProvidersConfig.class,
+                        RedisStateConfig.class, SmsStateStoreConfig.class, SmsProvidersConfig.class)
                 .withInitializer(ctx -> ctx.getEnvironment().setActiveProfiles(profiles));
     }
 
+    /** 额外加载既有 {@link ProvidersModeProductionGuard}（用于生产信号 + mode=doubles 的拒绝根因）。 */
     private static ApplicationContextRunner runnerWithGuard(String... profiles) {
         return new ApplicationContextRunner()
                 .withUserConfiguration(PropsConfig.class, JdbcConfig.class, RedisTemplateConfig.class,
-                        StateStoreConfigGuard.class, TestDoubleProvidersConfig.class,
-                        DisabledProvidersConfig.class, RedisStateConfig.class,
-                        SmsStateStoreConfig.class, SmsProvidersConfig.class,
+                        TestDoubleProvidersConfig.class, DisabledProvidersConfig.class,
+                        RedisStateConfig.class, SmsStateStoreConfig.class, SmsProvidersConfig.class,
                         ProvidersModeProductionGuard.class)
                 .withInitializer(ctx -> ctx.getEnvironment().setActiveProfiles(profiles));
+    }
+
+    /** 反射读取 runner 实际注册的 configuration 类（用于回归守卫断言）。 */
+    @SuppressWarnings("unchecked")
+    private static List<Class<?>> configurationClasses(ApplicationContextRunner runner) throws Exception {
+        Field runnerField = AbstractApplicationContextRunner.class.getDeclaredField("runnerConfiguration");
+        runnerField.setAccessible(true);
+        Object runnerConfiguration = runnerField.get(runner);
+        Field configurationsField = runnerConfiguration.getClass().getDeclaredField("configurations");
+        configurationsField.setAccessible(true);
+        List<Configurations> configurations =
+                (List<Configurations>) configurationsField.get(runnerConfiguration);
+        return List.of(Configurations.getClasses(configurations));
     }
 
     private static final String[] FAKE_ALIYUN = {
@@ -96,6 +110,17 @@ class SmsProvidersConfigTest {
             "app.sms.aliyun.access-key-secret=FAKE-SECRET-DO-NOT-USE",
             "app.sms.aliyun.sign-name=FAKE-SIGN",
             "app.sms.aliyun.template-code=SMS_FAKE_TEMPLATE"};
+
+    @Test
+    @DisplayName("runner 不加载 StateStoreConfigGuard：装配测试与生产一致性守卫解耦")
+    void runnerDoesNotLoadStateStoreGuard() throws Exception {
+        assertThat(configurationClasses(runner("local")))
+                .as("装配矩阵不得加载生产一致性守卫")
+                .doesNotContain(StateStoreConfigGuard.class);
+        assertThat(configurationClasses(runnerWithGuard("local")))
+                .as("生产模式守卫存在时也不得混入状态守卫")
+                .doesNotContain(StateStoreConfigGuard.class);
+    }
 
     @Test
     @DisplayName("mode=doubles + provider 缺省 → doubles 短信（123456 可用）")
@@ -110,10 +135,9 @@ class SmsProvidersConfigTest {
     }
 
     @Test
-    @DisplayName("mode=doubles + provider=aliyun + 逃生门 → 真实适配器（测试用假 gateway；真实部署禁止）")
+    @DisplayName("mode=doubles + provider=aliyun → 真实适配器（非 doubles）")
     void aliyunAdapterAssembled() {
-        runner("local").withPropertyValues("app.env=dev", ESCAPE_HATCH)
-                .withPropertyValues(FAKE_ALIYUN)
+        runner("local").withPropertyValues("app.env=dev").withPropertyValues(FAKE_ALIYUN)
                 .run(ctx -> {
                     assertThat(ctx).hasNotFailed();
                     assertThat(ctx.getBean(SmsCodeProvider.class))
@@ -122,10 +146,9 @@ class SmsProvidersConfigTest {
     }
 
     @Test
-    @DisplayName("mode=doubles + provider=aliyun + 逃生门 + state 缺省 → 内存 store（默认，行为不变）")
+    @DisplayName("mode=doubles + provider=aliyun + state 缺省 → 内存 store（默认，行为不变）")
     void aliyunUsesInMemoryStateStoreByDefault() {
-        runner("local").withPropertyValues("app.env=dev", ESCAPE_HATCH)
-                .withPropertyValues(FAKE_ALIYUN)
+        runner("local").withPropertyValues("app.env=dev").withPropertyValues(FAKE_ALIYUN)
                 .run(ctx -> {
                     assertThat(ctx).hasNotFailed();
                     assertThat(ctx.getBean(SmsCodeProvider.class))
@@ -164,15 +187,15 @@ class SmsProvidersConfigTest {
                     ApiException failure = assertThrows(ApiException.class,
                             () -> provider.issue("+8610000000001", "login"));
                     assertThat(failure.getCode()).isEqualTo(ErrorCode.DEPENDENCY_UNAVAILABLE);
+                    assertThat(failure.getHttpStatus()).isEqualTo(503);
                 });
     }
 
     @Test
     @DisplayName("mode=disabled + provider=aliyun → disabled 占位 503（aliyun 不装配，优先级最高）")
     void disabledWinsOverAliyun() {
-        // 逃生门仅为让守卫不拦截这个"aliyun 配置存在但 mode=disabled"的用例；装配结果仍是 disabled。
         runner("local").withPropertyValues("app.env=dev",
-                        "app.providers.mode=disabled", ESCAPE_HATCH).withPropertyValues(FAKE_ALIYUN)
+                        "app.providers.mode=disabled").withPropertyValues(FAKE_ALIYUN)
                 .run(ctx -> {
                     assertThat(ctx).hasNotFailed();
                     SmsCodeProvider provider = ctx.getBean(SmsCodeProvider.class);
@@ -200,54 +223,10 @@ class SmsProvidersConfigTest {
     }
 
     @Test
-    @DisplayName("真实短信 provider + 内存状态 + 未开逃生门 ⇒ 守卫拒绝启动（fail-closed）")
-    void realSmsWithInMemoryStateIsRefusedByGuard() {
-        runner("local").withPropertyValues("app.env=dev").withPropertyValues(FAKE_ALIYUN)
-                .run(ctx -> {
-                    assertThat(ctx).hasFailed();
-                    assertThat(ctx.getStartupFailure())
-                            .isInstanceOf(IllegalStateException.class)
-                            .hasMessageContaining("app.state.provider=redis")
-                            .hasMessageContaining(StateStoreConfigGuard.ALLOW_IN_MEMORY_WITH_REAL_SMS_KEY)
-                            .hasMessageContaining("values are never logged")
-                            .hasMessageNotContaining("FAKE-SECRET");
-                });
-    }
-
-    @Test
-    @DisplayName("逃生门打开 ⇒ 守卫 WARN 且仍装配内存 store（默认安全、显式声明可用）")
-    void escapeHatchWarnsAndAssemblesInMemoryStore() {
-        Logger logger = (Logger) LoggerFactory.getLogger(StateStoreConfigGuard.class);
-        ListAppender<ILoggingEvent> appender = new ListAppender<>();
-        appender.start();
-        logger.addAppender(appender);
-        try {
-            runner("local").withPropertyValues("app.env=dev", ESCAPE_HATCH)
-                    .withPropertyValues(FAKE_ALIYUN)
-                    .run(ctx -> {
-                        assertThat(ctx).hasNotFailed();
-                        assertThat(ctx.getBean(SmsCodeProvider.class))
-                                .isInstanceOf(AliyunSmsCodeProvider.class);
-                        assertThat(ctx.getBean(SmsStateStore.class))
-                                .isInstanceOf(InMemorySmsStateStore.class);
-                    });
-            assertThat(appender.list.stream()
-                    .filter(event -> Level.WARN.equals(event.getLevel()))
-                    .map(ILoggingEvent::getFormattedMessage)
-                    .collect(Collectors.toList()))
-                    .as("逃生门放行必须留下 WARN")
-                    .anyMatch(message -> message.contains("test escape hatch"));
-        } finally {
-            logger.detachAppender(appender);
-        }
-    }
-
-    @Test
     @DisplayName("生产信号 + mode=doubles（provider 任意）→ 既有早期守卫仍拒绝，未被本轮绕过")
     void productionSignalStillRejected() {
-        // 逃生门仅为避免新守卫抢跑，从而保留 ProvidersModeProductionGuard 的原始失败根因。
         runnerWithGuard("prod")
-                .withPropertyValues("app.env=dev", "app.providers.mode=doubles", ESCAPE_HATCH)
+                .withPropertyValues("app.env=dev", "app.providers.mode=doubles")
                 .withPropertyValues(FAKE_ALIYUN)
                 .run(ctx -> assertThat(ctx).hasFailed()
                         .getFailure()
@@ -258,9 +237,7 @@ class SmsProvidersConfigTest {
     @Test
     @DisplayName("provider=aliyun 但缺必填键 → 拒绝启动且只列键名（不回显值）")
     void aliyunMissingKeysRefusesStartup() {
-        // 逃生门让新守卫不抢跑：本用例要断言的是"缺 aliyun 必填键"这一原始根因。
-        runner("local").withPropertyValues("app.env=dev", ESCAPE_HATCH)
-                .withPropertyValues("app.sms.provider=aliyun")
+        runner("local").withPropertyValues("app.env=dev", "app.sms.provider=aliyun")
                 .run(ctx -> {
                     assertThat(ctx).hasFailed();
                     assertThat(ctx.getStartupFailure())
