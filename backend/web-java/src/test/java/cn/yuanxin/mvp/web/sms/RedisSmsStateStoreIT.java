@@ -74,7 +74,9 @@ class RedisSmsStateStoreIT {
         try {
             if (template != null) {
                 RedisTestSupport.cleanup(template, prefix);
-                assertThat(template.keys(prefix + "*")).as("own keys fully cleaned").isEmpty();
+                // 用 SCAN 而非 KEYS：KEYS 会阻塞 Redis 单线程（生产/共享实例的真实运维风险）。
+                assertThat(RedisTestSupport.scanKeys(template, prefix))
+                        .as("own keys fully cleaned").isEmpty();
             }
         } finally {
             RedisTestSupport.close(holder);
@@ -280,5 +282,22 @@ class RedisSmsStateStoreIT {
                 .contains(StateKeys.codeDigest(code, challengeId));
         assertThat(entries.get("ph")).isEqualTo(PHONE);
         assertThat(template.getExpire(challengeKey)).isGreaterThan(0L);
+    }
+
+    // ---------- 8) challengeId 碰撞（脚本返回 0）绝不能被当作成功 ----------
+
+    @Test
+    @DisplayName("createChallenge 对同一 challengeId 第二次返回 false（脚本 0 = 已存在），且不覆盖原值")
+    void createChallengeReportsCollision() {
+        RedisSmsStateStore store = newStore();
+        String challengeId = "ch" + UUID.randomUUID().toString().replace("-", "");
+        String firstCode = "111111";
+        assertThat(store.createChallenge(challengeId, PHONE, firstCode, FIXED_NOW, 300))
+                .as("首次创建必须返回 true").isTrue();
+        assertThat(store.createChallenge(challengeId, PHONE, "222222", FIXED_NOW, 300))
+                .as("同一 challengeId 碰撞必须返回 false，绝不静默当作成功").isFalse();
+        // 原 challenge 未被覆盖：仍可用第一个码核销。
+        assertThat(store.consumeChallenge(challengeId, firstCode, FIXED_NOW.plusSeconds(1), 5))
+                .contains(PHONE);
     }
 }

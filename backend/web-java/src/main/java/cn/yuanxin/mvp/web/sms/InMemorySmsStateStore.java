@@ -102,9 +102,11 @@ public final class InMemorySmsStateStore implements SmsStateStore {
     }
 
     @Override
-    public void createChallenge(String challengeId, String phone, String code, Instant now, int ttlSeconds) {
+    public boolean createChallenge(String challengeId, String phone, String code, Instant now, int ttlSeconds) {
         // 容量名额已在 reserveSend 预留；发送成功即转为已存 challenge。
-        challenges.put(challengeId, new Challenge(phone, code, now.plusSeconds(ttlSeconds)));
+        // putIfAbsent 与 Redis 的 SET NX 等价：返回 false 表示 challengeId 碰撞，调用方须重生成。
+        return challenges.putIfAbsent(challengeId,
+                new Challenge(phone, code, now.plusSeconds(ttlSeconds))) == null;
     }
 
     @Override

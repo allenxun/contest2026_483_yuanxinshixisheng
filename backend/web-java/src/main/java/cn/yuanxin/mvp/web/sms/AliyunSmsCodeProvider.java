@@ -52,6 +52,12 @@ public class AliyunSmsCodeProvider implements SmsCodeProvider {
 
     private static final int CODE_BOUND = 1_000_000;
 
+    /**
+     * challengeId 碰撞时的有界重生成上限。challengeId 为 UUID + 随机长整数，正常碰撞率约为 0；
+     * 连续 3 次仍碰撞说明存储/脚本异常，此时 fail-closed，<b>绝不</b>签发一个并未真正写入的 challenge。
+     */
+    static final int CHALLENGE_ID_MAX_ATTEMPTS = 3;
+
     private final SmsSendGateway gateway;
     private final SmsRiskProperties risk;
     private final Clock clock;
@@ -107,8 +113,22 @@ public class AliyunSmsCodeProvider implements SmsCodeProvider {
             // 只统计已受理发送；失败/被节流拒绝的请求绝不计入。
             accepted = true;
             store.commitSend(reservation, now);
-            String challengeId = newChallengeId();
-            store.createChallenge(challengeId, phone, code, now, risk.challengeTtlSeconds());
+            // 有界重生成 challengeId：只有真正写入（createChallenge 返回 true）才签发；
+            // 连续碰撞达到上限则 fail-closed，绝不返回一个无法核销的 challengeId。
+            String challengeId = null;
+            for (int attempt = 0; attempt < CHALLENGE_ID_MAX_ATTEMPTS; attempt++) {
+                String candidate = newChallengeId();
+                if (store.createChallenge(candidate, phone, code, now, risk.challengeTtlSeconds())) {
+                    challengeId = candidate;
+                    break;
+                }
+            }
+            if (challengeId == null) {
+                throw dependencyUnavailable(
+                        "challenge id collision persisted after " + CHALLENGE_ID_MAX_ATTEMPTS
+                                + " attempts",
+                        "retry the request; no challenge was issued");
+            }
             return new ChallengeOutcome(challengeId, risk.retryAfterSeconds());
         } finally {
             store.releaseSend(reservation, accepted);

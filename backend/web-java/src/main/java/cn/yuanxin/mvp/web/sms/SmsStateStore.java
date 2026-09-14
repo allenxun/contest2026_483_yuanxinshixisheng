@@ -55,8 +55,11 @@ public interface SmsStateStore {
      * @param challengeId 服务端生成的 challengeId（同时作为验证码摘要的盐）
      * @param phone       手机号（唯一 PII，值中存储）
      * @param code        明文验证码（内存实现直接存、Redis 实现只存摘要；<b>绝不</b>入日志）
+     * @return {@code true}=本次真正创建；{@code false}=该 challengeId 已存在（碰撞）。
+     *         调用方<b>必须</b>在 {@code false} 时生成新 id 重试，绝不可把未写入的 challenge
+     *         当作签发成功（否则用户拿到一个永远无法核销的 challengeId）。
      */
-    void createChallenge(String challengeId, String phone, String code, Instant now, int ttlSeconds);
+    boolean createChallenge(String challengeId, String phone, String code, Instant now, int ttlSeconds);
 
     /**
      * 原子地核销：不存在 / 已过期 / 超尝试上限 / 摘要不匹配 ⇒ {@link Optional#empty()}；
