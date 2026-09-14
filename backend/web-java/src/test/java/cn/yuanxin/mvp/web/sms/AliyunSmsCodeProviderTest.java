@@ -6,7 +6,6 @@ import cn.yuanxin.mvp.web.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -29,14 +28,16 @@ class AliyunSmsCodeProviderTest {
 
     private MutableClock clock;
     private RecordingGateway gateway;
+    private InMemorySmsStateStore store;
     private AliyunSmsCodeProvider provider;
 
     @BeforeEach
     void setUp() {
         clock = new MutableClock(START, ZoneOffset.ofHours(8));
         gateway = new RecordingGateway();
+        store = new InMemorySmsStateStore(new SmsRiskProperties(null, null, null, null, null, null));
         provider = new AliyunSmsCodeProvider(gateway,
-                new SmsRiskProperties(null, null, null, null, null, null), clock);
+                new SmsRiskProperties(null, null, null, null, null, null), clock, store);
     }
 
     // ---------- 成功路径 ----------
@@ -198,9 +199,12 @@ class AliyunSmsCodeProviderTest {
         assertThat(outcome.challengeId()).isNotBlank();
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * 等价可观测面：迁移前这里反射 {@code provider.challenges}，现在断言 store 的 challenge 视图。
+     * 断言语义（"失败绝不创建 challenge"）不变。
+     */
     private Map<String, ?> challenges() {
-        return (Map<String, ?>) ReflectionTestUtils.getField(provider, "challenges");
+        return store.challengeView();
     }
 
     /** 记录调用并按 {@link #next} 返回。 */

@@ -7,6 +7,8 @@ import cn.yuanxin.mvp.web.config.ProvidersModeProductionGuard;
 import cn.yuanxin.mvp.web.config.TestDoubleProvidersConfig;
 import cn.yuanxin.mvp.web.error.ApiException;
 import cn.yuanxin.mvp.web.error.ErrorCode;
+import cn.yuanxin.mvp.web.state.AppStateProperties;
+import cn.yuanxin.mvp.web.state.RedisStateConfig;
 import cn.yuanxin.mvp.web.testdouble.SmsCodeDouble;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,13 +25,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * 短信装配矩阵（{@link ApplicationContextRunner}，不启动 web/PG）。优先级：
  * {@code app.providers.mode=disabled} &gt; {@code app.sms.provider=aliyun} &gt; 默认 doubles。
- * 使用明显假凭据，不联网、不发短信。
+ * 新增 {@code app.state.provider} 维度：memory（默认）→ 内存 store；redis → Redis store。
+ * 使用明显假凭据，不联网、不发短信；Redis 分支只注入 mock template（构造期不访问 Redis）。
  */
 class SmsProvidersConfigTest {
 
     @Configuration
     @EnableConfigurationProperties({AppProperties.class, AliyunSmsProperties.class,
-            SmsRiskProperties.class})
+            SmsRiskProperties.class, AppStateProperties.class})
     static class PropsConfig {
     }
 
@@ -40,19 +44,29 @@ class SmsProvidersConfigTest {
         }
     }
 
+    @Configuration
+    static class RedisTemplateConfig {
+        @Bean
+        StringRedisTemplate stringRedisTemplate() {
+            // 仅装配用：RedisSmsStateStore 构造期不访问 Redis，mock 足以验证选择与注入。
+            return org.mockito.Mockito.mock(StringRedisTemplate.class);
+        }
+    }
+
     private static ApplicationContextRunner runner(String... profiles) {
         return new ApplicationContextRunner()
-                .withUserConfiguration(PropsConfig.class, JdbcConfig.class,
+                .withUserConfiguration(PropsConfig.class, JdbcConfig.class, RedisTemplateConfig.class,
                         TestDoubleProvidersConfig.class, DisabledProvidersConfig.class,
-                        SmsProvidersConfig.class)
+                        RedisStateConfig.class, SmsStateStoreConfig.class, SmsProvidersConfig.class)
                 .withInitializer(ctx -> ctx.getEnvironment().setActiveProfiles(profiles));
     }
 
     private static ApplicationContextRunner runnerWithGuard(String... profiles) {
         return new ApplicationContextRunner()
-                .withUserConfiguration(PropsConfig.class, JdbcConfig.class,
+                .withUserConfiguration(PropsConfig.class, JdbcConfig.class, RedisTemplateConfig.class,
                         TestDoubleProvidersConfig.class, DisabledProvidersConfig.class,
-                        SmsProvidersConfig.class, ProvidersModeProductionGuard.class)
+                        RedisStateConfig.class, SmsStateStoreConfig.class, SmsProvidersConfig.class,
+                        ProvidersModeProductionGuard.class)
                 .withInitializer(ctx -> ctx.getEnvironment().setActiveProfiles(profiles));
     }
 
@@ -83,6 +97,51 @@ class SmsProvidersConfigTest {
                     assertThat(ctx).hasNotFailed();
                     assertThat(ctx.getBean(SmsCodeProvider.class))
                             .isInstanceOf(AliyunSmsCodeProvider.class);
+                });
+    }
+
+    @Test
+    @DisplayName("mode=doubles + provider=aliyun + app.state.provider 缺省 → 内存 store（默认，行为不变）")
+    void aliyunUsesInMemoryStateStoreByDefault() {
+        runner("local").withPropertyValues("app.env=dev").withPropertyValues(FAKE_ALIYUN)
+                .run(ctx -> {
+                    assertThat(ctx).hasNotFailed();
+                    assertThat(ctx.getBean(SmsCodeProvider.class))
+                            .isInstanceOf(AliyunSmsCodeProvider.class);
+                    assertThat(ctx.getBean(SmsStateStore.class))
+                            .isInstanceOf(InMemorySmsStateStore.class);
+                });
+    }
+
+    @Test
+    @DisplayName("mode=doubles + provider=aliyun + app.state.provider=redis → Redis store（跨实例实现）")
+    void aliyunUsesRedisStateStoreWhenConfigured() {
+        runner("local").withPropertyValues("app.env=dev",
+                        "app.state.provider=redis").withPropertyValues(FAKE_ALIYUN)
+                .run(ctx -> {
+                    assertThat(ctx).hasNotFailed();
+                    assertThat(ctx.getBean(SmsCodeProvider.class))
+                            .isInstanceOf(AliyunSmsCodeProvider.class);
+                    assertThat(ctx.getBean(SmsStateStore.class))
+                            .isInstanceOf(RedisSmsStateStore.class);
+                });
+    }
+
+    @Test
+    @DisplayName("mode=disabled + provider=aliyun + app.state.provider=redis → disabled 仍最高优先级，无 store")
+    void disabledWinsOverRedisStateStore() {
+        runner("local").withPropertyValues("app.env=dev",
+                        "app.providers.mode=disabled", "app.state.provider=redis")
+                .withPropertyValues(FAKE_ALIYUN)
+                .run(ctx -> {
+                    assertThat(ctx).hasNotFailed();
+                    SmsCodeProvider provider = ctx.getBean(SmsCodeProvider.class);
+                    assertThat(provider).isNotInstanceOf(AliyunSmsCodeProvider.class)
+                            .isNotInstanceOf(SmsCodeDouble.class);
+                    assertThat(ctx.getBeansOfType(SmsStateStore.class)).isEmpty();
+                    ApiException failure = assertThrows(ApiException.class,
+                            () -> provider.issue("+8610000000001", "login"));
+                    assertThat(failure.getCode()).isEqualTo(ErrorCode.DEPENDENCY_UNAVAILABLE);
                 });
     }
 
