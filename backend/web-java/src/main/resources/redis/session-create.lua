@@ -1,7 +1,7 @@
 -- 创建会话（APP 或 GIMBAL）：多键 + TTL 在同一原子步完成（绝不留下无 TTL 的键）。
 -- KEYS[1] = access 会话 hash 键      <prefix>sess:at:<sha256(access)>
 -- KEYS[2] = sessionId 反查 hash 键   <prefix>sess:sid:<sessionId>
--- KEYS[3] = refresh string 键        <prefix>sess:rt:<sha256(refresh)>（gimbal 时为命名空间，不写）
+-- KEYS[3] = refresh string 键        <prefix>sess:rt:<sha256(refresh)>（gimbal 时传 sidKey 占位具体键，不写）
 -- ARGV[1] = ttlSeconds
 -- ARGV[2] = kind            app | gimbal
 -- ARGV[3] = sessionId       原值（不摘要）

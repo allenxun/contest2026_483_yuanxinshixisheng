@@ -3,6 +3,8 @@ package cn.yuanxin.mvp.web.state;
 import cn.yuanxin.mvp.web.auth.AuthenticatedPrincipal;
 import cn.yuanxin.mvp.web.auth.PrincipalType;
 import cn.yuanxin.mvp.web.auth.SessionProvider;
+import cn.yuanxin.mvp.web.error.ApiException;
+import cn.yuanxin.mvp.web.error.ErrorCode;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -30,10 +32,12 @@ import java.util.UUID;
  *   <li>{@code sessionId} = {@code UUID.randomUUID()}，不摘要（T09/T13 需原值）；</li>
  *   <li>{@link #authenticate(String)} 只查 Redis 命中后返回<b>签发时快照</b>，<b>不</b>重读 DB；
  *       每请求 DB 复核仍由 {@code PrincipalRevalidator} 负责；</li>
- *   <li>refresh：先原子领取 refresh 凭据（{@code GETDEL}），再查 DB 与会话<b>签发时的
- *       auth_revision 快照</b>比对；不一致/账号非 active ⇒ 连带撤销该会话并返回 empty，
- *       <b>绝不</b>重新捕获当前 revision 复活旧代次；成功则沿用同一 revision 快照并令旧 access
- *       立即失效（Lua 原子轮换）；</li>
+ *   <li>refresh：先<b>只读</b>领取 refresh 凭据（{@code GET rtKey}，<b>不</b>破坏性删除），读索引/会话并
+ *       与<b>签发时的 auth_revision 快照</b>比对；不一致/账号非 active ⇒ 连带撤销该会话并返回 empty，
+ *       <b>绝不</b>重新捕获当前 revision 复活旧代次；成功路径由<b>单个 CAS 脚本</b>
+ *       （{@code session-rotate.lua}）完成"校验旧 rt/sid/at 仍存在 → 删旧 → 建新"，因此 refresh 与
+ *       logout 交错时<b>不会复活</b>已撤销会话（返回码 2 ⇒ empty）。<b>仅当脚本返回 1 才返回 token</b>；
+ *       0/2/null 一律 {@code Optional.empty()}；</li>
  *   <li>{@code revokeSession} 恰好一次（Lua {@code HGETALL}+{@code DEL}），并发登出只有一个赢家。</li>
  * </ul>
  *
@@ -60,6 +64,12 @@ import java.util.UUID;
  * ② 会话数据集中到带 hash tag 的单键 {@code sess:{<sessionId>}}；③ 撤销改为两步——先
  * {@code GETDEL sess:at:<digest>} → sid 保证恰好一次，再以完整 {@code KEYS[]}（全部带同一 hash tag）
  * 执行第二个脚本删除。详见 {@code session-revoke.lua} 头部注释。</p>
+ *
+ * <p><b>内存替身的既有限制（如实登记，本轮不修）</b>：{@code InMemorySessionDouble} 的
+ * refresh/revoke 交错存在<b>与本类修复前结构相同</b>的竞态（{@code refreshToSession.remove} →
+ * {@code revokeBySessionId} → {@code createAppSession}，跨操作无同步），理论上可复活已登出的会话。
+ * 它是<b>仅供隔离测试</b>的替身、且该竞态是既有的、非本轮引入；本轮<b>不</b>修它，因此"不可复活"
+ * 的判别断言只放在 Redis 侧 IT，<b>不</b>放进两后端共享的契约测试。</p>
  *
  * <p><b>脱敏</b>：不打印 token / sessionId / accountId / installationId / 键 / Redis 主机。</p>
  */
@@ -134,12 +144,14 @@ public class RedisSessionProvider implements SessionProvider {
         String accessKey = keys.sessionByAccessToken(access);
         String refreshKey = keys.sessionByRefreshToken(refresh);
         String sidKey = keys.sessionById(sessionId);
-        RedisFailures.call("create-app-session", () -> template.execute(CREATE_SCRIPT,
+        Long ack = RedisFailures.call("create-app-session", () -> template.execute(CREATE_SCRIPT,
                 List.of(accessKey, sidKey, refreshKey),
                 Long.toString(APP_SESSION_TTL.getSeconds()), KIND_APP, sessionId,
                 accountId.toString(), nullToEmpty(installationId), Long.toString(authRevision),
                 Long.toString(now.toEpochMilli()), Long.toString(expiresAt.toEpochMilli()),
                 StateKeys.sha256Hex(access), StateKeys.sha256Hex(refresh), "1"));
+        // 仅在脚本确认（返回 1）后才把 token 返回给调用方。
+        requireAck("create-app-session", ack);
         return new IssuedAppSession(access, refresh, accountId, installationId, expiresAt);
     }
 
@@ -149,9 +161,10 @@ public class RedisSessionProvider implements SessionProvider {
             return Optional.empty();
         }
         String refreshKey = keys.sessionByRefreshToken(refreshCredential);
-        // ① 原子领取：GETDEL 只有一个赢家；领取失败是业务判定（refresh 已用过）⇒ empty。
-        String sessionId = RedisFailures.call("claim-refresh",
-                () -> template.opsForValue().getAndDelete(refreshKey));
+        // ① 只读领取：GET 而非破坏性 GETDEL。refresh 凭据的"消费"由后续 CAS 脚本原子完成，
+        //    这样 refresh 与 logout 交错不会复活已撤销会话；领取为空是业务判定 ⇒ empty。
+        String sessionId = RedisFailures.call("read-refresh",
+                () -> template.opsForValue().get(refreshKey));
         if (sessionId == null || sessionId.isBlank()) {
             return Optional.empty();
         }
@@ -163,9 +176,10 @@ public class RedisSessionProvider implements SessionProvider {
             return Optional.empty();
         }
         String rtDigest = nullToEmpty(index.get("rt"));
-        String atKey = keys.sessionByAccessTokenDigest(atDigest);
+        // 具体键名（无命名空间拼接）：drop/rotate 的所有被访问键都显式声明于 KEYS[]。
+        String oldAtKey = keys.sessionByAccessTokenDigest(atDigest);
         Map<String, String> session = RedisFailures.call("read-session",
-                () -> template.<String, String>opsForHash().entries(atKey));
+                () -> template.<String, String>opsForHash().entries(oldAtKey));
         if (session.isEmpty() || session.get("aid") == null) {
             return Optional.empty();
         }
@@ -173,16 +187,15 @@ public class RedisSessionProvider implements SessionProvider {
         String installationId = emptyToNull(session.get("iid"));
         long snapshotRevision = parseLong(session.get("rev"), Long.MIN_VALUE);
 
-        // 具体键名（无命名空间拼接）：drop/rotate 的所有被访问键都显式声明于 KEYS[]。
-        String oldAccessKey = keys.sessionByAccessTokenDigest(atDigest);
         boolean hasRefresh = !rtDigest.isEmpty();
         // refresh 摘要为空时用 sidKey 作占位具体键 + hasRefresh=0，脚本跳过删除（绝不传命名空间/空串）。
         String oldRefreshKey = hasRefresh ? keys.sessionByRefreshTokenDigest(rtDigest) : sidKey;
 
         if (!stillSameGeneration(accountId, snapshotRevision)) {
             // 账号 disabled 或代次已变：连带撤销本会话，绝不复活旧代次。
-            RedisFailures.call("drop-invalid-session", () -> template.execute(DROP_SCRIPT,
-                    List.of(sidKey, oldAccessKey, oldRefreshKey), hasRefresh ? "1" : "0"));
+            Long dropAck = RedisFailures.call("drop-invalid-session", () -> template.execute(DROP_SCRIPT,
+                    List.of(sidKey, oldAtKey, oldRefreshKey), hasRefresh ? "1" : "0"));
+            requireAck("drop-invalid-session", dropAck);
             return Optional.empty();
         }
 
@@ -191,13 +204,21 @@ public class RedisSessionProvider implements SessionProvider {
         String newAccess = randomToken();
         String newRefresh = randomToken();
         String newSessionId = UUID.randomUUID().toString();
-        RedisFailures.call("rotate-refresh", () -> template.execute(ROTATE_SCRIPT,
-                List.of(sidKey, oldAccessKey, keys.sessionByAccessToken(newAccess),
-                        keys.sessionById(newSessionId), keys.sessionByRefreshToken(newRefresh)),
-                Long.toString(APP_SESSION_TTL.getSeconds()), KIND_APP, newSessionId,
+        String newAtKey = keys.sessionByAccessToken(newAccess);
+        String newSidKey = keys.sessionById(newSessionId);
+        String newRefreshKey = keys.sessionByRefreshToken(newRefresh);
+        // ② CAS：校验旧 rt/sid/at 仍存在 → 删旧 → 建新，单脚本原子完成。
+        //    返回码：1=成功；0=refresh 已被消费；2=会话已被撤销/不存在。
+        Long rotateCode = RedisFailures.call("rotate-refresh", () -> template.execute(ROTATE_SCRIPT,
+                List.of(refreshKey, sidKey, oldAtKey, newAtKey, newSidKey, newRefreshKey),
+                sessionId, Long.toString(APP_SESSION_TTL.getSeconds()), KIND_APP, newSessionId,
                 accountId.toString(), nullToEmpty(installationId), Long.toString(snapshotRevision),
                 Long.toString(now.toEpochMilli()), Long.toString(expiresAt.toEpochMilli()),
                 StateKeys.sha256Hex(newAccess), StateKeys.sha256Hex(newRefresh)));
+        if (rotateCode == null || rotateCode != 1L) {
+            // 0/2/null 一律 empty，且绝不返回 token（SUGGESTION 8 返回码校验）。
+            return Optional.empty();
+        }
         return Optional.of(new IssuedAppSession(newAccess, newRefresh, accountId, installationId,
                 expiresAt));
     }
@@ -234,17 +255,31 @@ public class RedisSessionProvider implements SessionProvider {
         String access = randomToken();
         String sessionId = UUID.randomUUID().toString();
         String sidKey = keys.sessionById(sessionId);
-        RedisFailures.call("create-gimbal-session", () -> template.execute(CREATE_SCRIPT,
+        Long ack = RedisFailures.call("create-gimbal-session", () -> template.execute(CREATE_SCRIPT,
                 // KEYS[3] 在 hasRt=0 时不使用；用 sidKey 作占位具体键（绝不传命名空间）。
                 List.of(keys.sessionByAccessToken(access), sidKey, sidKey),
                 Long.toString(GIMBAL_SESSION_TTL.getSeconds()), KIND_GIMBAL, sessionId,
                 gimbalId.toString(), "", Long.toString(credentialVersion),
                 Long.toString(now.toEpochMilli()), Long.toString(expiresAt.toEpochMilli()),
                 StateKeys.sha256Hex(access), "", "0"));
+        requireAck("create-gimbal-session", ack);
         return new IssuedGimbalSession(access, gimbalId, credentialVersion, expiresAt);
     }
 
     // ---------- internals ----------
+
+    /**
+     * 校验写脚本的返回码：只有返回 {@code 1} 才算确认成功；{@code null}/非 1 ⇒ 后端未确认，
+     * 抛 fail-closed 的 503 {@code DEPENDENCY_UNAVAILABLE}，<b>绝不</b>把未确认的 token 返回给调用方。
+     */
+    private static void requireAck(String operation, Long code) {
+        if (code != null && code == 1L) {
+            return;
+        }
+        throw new ApiException(ErrorCode.DEPENDENCY_UNAVAILABLE,
+                "session state store did not confirm write (operation=" + operation + ")"
+                        + "; the request was NOT processed and no credential was issued");
+    }
 
     /** 与 {@code InMemorySessionDouble} 同一 SQL/口径；jdbc 为 null 时跳过（纯装配/一致性测试）。 */
     private boolean stillSameGeneration(UUID accountId, long snapshotRevision) {

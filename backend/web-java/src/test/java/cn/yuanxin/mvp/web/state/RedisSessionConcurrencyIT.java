@@ -132,7 +132,7 @@ class RedisSessionConcurrencyIT {
         provider.createAppSession(ACCOUNT, "inst-ttl", 5L);
         provider.createGimbalSession(UUID.randomUUID(), 1L);
 
-        Set<String> keys = redis.template().keys(prefix + "*");
+        List<String> keys = RedisTestSupport.scanKeys(redis.template(), prefix);
         assertThat(keys).isNotEmpty();
         for (String key : keys) {
             Long ttl = redis.template().getExpire(key, TimeUnit.SECONDS);
@@ -146,10 +146,10 @@ class RedisSessionConcurrencyIT {
     void cleanupLeavesNoOwnKeys() {
         RedisSessionProvider provider = provider();
         provider.createAppSession(ACCOUNT, "inst-clean", 5L);
-        assertThat(redis.template().keys(prefix + "*")).isNotEmpty();
+        assertThat(RedisTestSupport.scanKeys(redis.template(), prefix)).isNotEmpty();
         long deleted = RedisTestSupport.cleanup(redis.template(), prefix);
         assertThat(deleted).isPositive();
-        assertThat(redis.template().keys(prefix + "*")).isEmpty();
+        assertThat(RedisTestSupport.scanKeys(redis.template(), prefix)).isEmpty();
     }
 
     @Test

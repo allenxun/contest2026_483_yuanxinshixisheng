@@ -1,6 +1,8 @@
 package cn.yuanxin.mvp.web.state;
 
 import cn.yuanxin.mvp.web.auth.SessionProvider;
+import cn.yuanxin.mvp.web.auth.SmsCodeProvider;
+import cn.yuanxin.mvp.web.testdouble.SmsCodeDouble;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,10 +50,11 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  *       {@link RedisSessionProvider} 被装配）。</li>
  * </ol>
  *
- * <p><b>短信</b>：默认走 doubles（固定码由 {@code app.testdouble.sms.fixed-code} 提供，默认
- * {@code 123456}），<b>默认不发真实短信</b>。仅当根另外显式打开既有阿里云短信 opt-in
- * （{@code app.sms.provider=aliyun} + 其 opt-in 标志）时才走真实短信；此时本入口无法自动获知验证码，
- * 需要根另行处理（本入口面向 doubles 自动化；真实短信场景不自动化）。</p>
+ * <p><b>短信：强制 doubles，本入口永不发送真实短信</b>。{@link DynamicPropertySource} <b>强制</b>
+ * {@code app.sms.provider=doubles} 并显式设定 {@code app.testdouble.sms.fixed-code}，<b>不依赖任何默认值</b>；
+ * 测试体内再运行期断言注入的 {@code SmsCodeProvider} 是 {@code SmsCodeDouble}，否则失败——
+ * 这使 L3 <b>结构上不可能</b>向随机/真实手机号发送短信。真实短信联调属人工流程，
+ * <b>不由本自动化入口覆盖</b>（若未来需要"真实短信 + 真实 Redis"的自动化，须另行设计并由根裁定）。</p>
  *
  * <p><b>隔离与清理</b>：用独立随机 {@code app.state.redis.key-prefix}（不覆盖/不清理根自有前缀的键），
  * 结束后只删自己前缀的键（绝不 FLUSHDB），并清理本测试新建的账号数据。</p>
@@ -72,6 +75,9 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class RedisLoginLiveAcceptanceIT {
 
     static final String LIVE_FLAG = "MVP_REDIS_LOGIN_LIVE";
+
+    /** 强制 doubles 时使用的固定验证码（测试显式设定，不依赖默认值）。 */
+    private static final String FIXED_CODE = "123456";
 
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -95,10 +101,16 @@ class RedisLoginLiveAcceptanceIT {
                         + " or -Dspring.data.redis.*=...");
     }
 
-    /** 测试用独立随机前缀（隔离 + 精确清理；不触碰根自有前缀）。 */
+    /**
+     * 隔离键前缀，并<b>强制</b>短信走 doubles（不依赖默认值）：本入口永不发送真实短信。
+     * 该覆盖在上下文创建前生效，故即使根的私有 YAML 配了 {@code app.sms.provider=aliyun}，
+     * L3 也<b>结构上不可能</b>触发真实短信网关。
+     */
     @DynamicPropertySource
-    static void isolateKeyPrefix(DynamicPropertyRegistry registry) {
+    static void isolateKeyPrefixAndForceSmsDoubles(DynamicPropertyRegistry registry) {
         registry.add("app.state.redis.key-prefix", () -> KEY_PREFIX);
+        registry.add("app.sms.provider", () -> "doubles");
+        registry.add("app.testdouble.sms.fixed-code", () -> FIXED_CODE);
     }
 
     @Autowired
@@ -116,7 +128,10 @@ class RedisLoginLiveAcceptanceIT {
     @Autowired
     private SessionProvider sessionProvider;
 
-    @Value("${app.testdouble.sms.fixed-code:123456}")
+    @Autowired
+    private SmsCodeProvider smsCodeProvider;
+
+    @Value("${app.testdouble.sms.fixed-code:" + FIXED_CODE + "}")
     private String fixedCode;
 
     @Test
@@ -125,6 +140,10 @@ class RedisLoginLiveAcceptanceIT {
         assumeTrue("redis".equals(environment.getProperty("app.state.provider")),
                 "L3 requires app.state.provider=redis from the root's private configuration");
         assertThat(sessionProvider).isInstanceOf(RedisSessionProvider.class);
+        // 运行期硬断言：绝不因将来有人改掉 @DynamicPropertySource 的强制项而静默给真实号段发短信。
+        assertThat(smsCodeProvider)
+                .as("L3 must never send real SMS: SmsCodeProvider must be the doubles implementation")
+                .isInstanceOf(SmsCodeDouble.class);
 
         String phone = "+86139" + String.format("%08d",
                 Math.abs(RANDOM.nextLong() % 100_000_000L));
@@ -185,9 +204,9 @@ class RedisLoginLiveAcceptanceIT {
 
     // ---------- helpers ----------
 
+    /** 用 {@code SCAN}（绝不用阻塞的 {@code KEYS}）统计本前缀的会话键数量。 */
     private int sessionKeys() {
-        Set<String> keys = redis.keys(KEY_PREFIX + "sess:*");
-        return keys == null ? 0 : keys.size();
+        return RedisTestSupport.scanKeys(redis, KEY_PREFIX).size();
     }
 
     private ResponseEntity<String> postJson(String path, Map<String, Object> body, String access)
@@ -211,24 +230,64 @@ class RedisLoginLiveAcceptanceIT {
         return JSON.readTree(response.getBody());
     }
 
-    /** 清理本测试前缀的 Redis 键与本测试新建的账号数据；只打印计数，绝不打印标识。 */
+    /**
+     * 清理本测试前缀的 Redis 键与本测试新建的账号数据。
+     *
+     * <p>Redis 侧：用 {@code SCAN}（绝不 {@code KEYS}）删除自己前缀，然后<b>复核</b>剩余键数为 0；
+     * 清理异常或残留一律让测试失败（{@code cleanup incomplete}），绝不静默吞掉。</p>
+     * <p>DB 侧：尽力而为，但必须报告删除行数（{@code >0} 与否）；异常以 suppressed 保留并在输出中
+     * 标记 {@code cleanup incomplete}。<b>绝不</b>打印键名、手机号或 token。</p>
+     */
     private void cleanup(String phone) {
+        Throwable cleanupFailure = null;
         try {
             RedisTestSupport.cleanup(redis, KEY_PREFIX);
-        } catch (RuntimeException ignored) {
-            // 清理失败不掩盖测试结论（键由 TTL 兜底）。
+        } catch (RuntimeException failure) {
+            cleanupFailure = failure;
         }
+        int leftover;
         try {
-            Map<String, Object> args = new LinkedHashMap<>();
-            args.put("phone", phone);
-            jdbc.update("DELETE FROM notification_destinations WHERE account_id IN"
+            leftover = RedisTestSupport.scanKeys(redis, KEY_PREFIX).size();
+        } catch (RuntimeException scanFailure) {
+            if (cleanupFailure == null) {
+                cleanupFailure = scanFailure;
+            } else {
+                cleanupFailure.addSuppressed(scanFailure);
+            }
+            leftover = -1;
+        }
+        if (leftover > 0 || leftover < 0) {
+            IllegalStateException incomplete = new IllegalStateException(
+                    "cleanup incomplete: leftover keys under test prefix = "
+                            + (leftover < 0 ? "unverified" : leftover) + " (names not logged)");
+            if (cleanupFailure != null) {
+                incomplete.addSuppressed(cleanupFailure);
+            }
+            throw incomplete;
+        }
+
+        int destinationsDeleted = 0;
+        int accountsDeleted = 0;
+        try {
+            destinationsDeleted = jdbc.update("DELETE FROM notification_destinations WHERE account_id IN"
                     + " (SELECT id FROM accounts WHERE login_provider = 'phone' AND login_subject = ?)",
                     phone);
-            jdbc.update("DELETE FROM accounts WHERE login_provider = 'phone' AND login_subject = ?",
-                    phone);
-        } catch (RuntimeException ignored) {
-            // 测试数据清理为尽力而为；不影响验收结论。
+            accountsDeleted = jdbc.update("DELETE FROM accounts WHERE login_provider = 'phone'"
+                    + " AND login_subject = ?", phone);
+        } catch (RuntimeException dbFailure) {
+            if (cleanupFailure == null) {
+                cleanupFailure = dbFailure;
+            } else {
+                cleanupFailure.addSuppressed(dbFailure);
+            }
+            System.out.println("[l3-cleanup] db-cleanup-error exception="
+                    + dbFailure.getClass().getSimpleName());
         }
+        System.out.println("[l3-cleanup] redisLeftover=" + leftover
+                + " destinationsDeleted=" + destinationsDeleted
+                + " accountsDeleted=" + accountsDeleted
+                + (cleanupFailure == null ? ""
+                        : " cleanup-incomplete-suppressed=" + cleanupFailure.getClass().getSimpleName()));
     }
 
     private static byte[] randomBytes() {
