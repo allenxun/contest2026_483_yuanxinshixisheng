@@ -55,8 +55,22 @@ public class StateStoreConfigGuard implements BeanFactoryPostProcessor, Environm
     private static final List<String> CONNECTION_KEYS = List.of(
             "spring.data.redis.url",
             "spring.data.redis.host",
-            "spring.data.redis.sentinel.master",
-            "spring.data.redis.cluster.nodes");
+            "spring.data.redis.sentinel.master");
+
+    /** Redis Cluster 节点属性：本轮**不支持**（多键 Lua 无共同 hash tag ⇒ 运行期必然 CROSSSLOT）。 */
+    private static final String CLUSTER_NODES_KEY = "spring.data.redis.cluster.nodes";
+
+    /**
+     * 测试专用逃生门（默认 {@code false}）：允许"真实短信 provider + 内存状态后端"这一组合。
+     *
+     * <p><b>为什么需要它</b>：联调与真实 provider 必须用 Redis（跨实例一致），因此默认拒绝
+     * {@code app.sms.provider=aliyun} + {@code app.state.provider!=redis}；但单元测试需要用
+     * <b>假 gateway</b> 驱动 {@code AliyunSmsCodeProvider} 的编排逻辑（风控、随机码、错误映射），
+     * 这些测试不应被要求提供 Redis。逃生门让"默认安全、测试显式声明"两者兼得，
+     * 而不是把安全规则弱化成告警。</p>
+     */
+    public static final String ALLOW_IN_MEMORY_WITH_REAL_SMS_KEY =
+            "app.state.allow-in-memory-with-real-sms";
 
     private Environment environment;
 
@@ -76,6 +90,7 @@ public class StateStoreConfigGuard implements BeanFactoryPostProcessor, Environm
         }
 
         if (AppStateProperties.PROVIDER_REDIS.equals(provider)) {
+            refuseClusterTopology();
             List<String> configured = CONNECTION_KEYS.stream()
                     .filter(key -> environment.containsProperty(key))
                     .toList();
@@ -83,13 +98,17 @@ public class StateStoreConfigGuard implements BeanFactoryPostProcessor, Environm
                 String message = "state store fail-closed: " + AppStateProperties.PROVIDER_KEY
                         + "=redis requires an explicit Redis connection property, but none of "
                         + CONNECTION_KEYS + " is set (values are never logged);"
-                        + " configure spring.data.redis.host (or .url / .sentinel.master / .cluster.nodes)"
+                        + " configure spring.data.redis.host (or .url / .sentinel.master)"
                         + " together with spring.data.redis.password and spring.data.redis.database";
                 log.error(message);
                 throw new IllegalStateException(message);
             }
             return;
         }
+
+        // provider == memory：真实短信 provider 不得搭配内存状态（任何环境都适用，故置于
+        // 非生产早退之前）。会话侧由下方 mode=real 规则与 TestDoubleProvidersConfig 互斥门覆盖。
+        refuseRealSmsWithInMemoryState();
 
         if (NonProductionCondition.isNonProduction(environment)) {
             return;
@@ -107,6 +126,53 @@ public class StateStoreConfigGuard implements BeanFactoryPostProcessor, Environm
                 + " in-process session/verification state does not survive restarts and is not"
                 + " shared across instances - configure " + AppStateProperties.PROVIDER_KEY
                 + "=redis with spring.data.redis.*";
+        log.error(message);
+        throw new IllegalStateException(message);
+    }
+
+    /**
+     * Redis Cluster 本轮**不支持**：8 个 Lua 脚本都访问多个键，而 cluster 要求同一脚本访问的键
+     * 落在同一 hash slot（需要 {@code {tag}} 形式的 hash tag），否则运行期返回 {@code CROSSSLOT}。
+     * 与其让它在运行期以难诊断的方式失败，不如在启动期明确拒绝。
+     * Sentinel 与 standalone 是单 master，多键脚本成立，故允许。
+     */
+    private void refuseClusterTopology() {
+        if (!environment.containsProperty(CLUSTER_NODES_KEY)) {
+            return;
+        }
+        String message = "state store fail-closed: " + CLUSTER_NODES_KEY + " is set, but Redis Cluster"
+                + " is NOT supported in this round - the session/SMS Lua scripts access multiple keys"
+                + " and cluster requires them to share one hash slot (hash tags), otherwise every call"
+                + " fails with CROSSSLOT at runtime; use a standalone or sentinel topology"
+                + " (values are never logged)";
+        log.error(message);
+        throw new IllegalStateException(message);
+    }
+
+    /**
+     * 真实短信 provider 搭配内存状态后端 ⇒ 拒绝（除非显式打开测试逃生门）。
+     * 内存状态意味着 challenge 与限流计数**不跨实例、重启即失效**，与"联调/真实 provider 使用 Redis"
+     * 直接冲突；且一次性核销与限流的原子性会退化回单进程语义。
+     */
+    private void refuseRealSmsWithInMemoryState() {
+        String smsProvider = environment.getProperty("app.sms.provider");
+        if (smsProvider == null || !"aliyun".equals(smsProvider.trim().toLowerCase(java.util.Locale.ROOT))) {
+            return;
+        }
+        if (Boolean.parseBoolean(environment.getProperty(ALLOW_IN_MEMORY_WITH_REAL_SMS_KEY, "false"))) {
+            log.warn("app.sms.provider=aliyun with an in-memory state store: allowed ONLY because {}=true"
+                            + " (test escape hatch). Challenge and throttle state will NOT be shared across"
+                            + " instances and will NOT survive restarts; use {}=redis for any real deployment.",
+                    ALLOW_IN_MEMORY_WITH_REAL_SMS_KEY, AppStateProperties.PROVIDER_KEY);
+            return;
+        }
+        String message = "state store fail-closed: app.sms.provider=aliyun requires "
+                + AppStateProperties.PROVIDER_KEY + "=redis, because in-process challenge/throttle state"
+                + " is not shared across instances and does not survive restarts (one-time consumption and"
+                + " rate limiting would degrade to per-process semantics); configure "
+                + AppStateProperties.PROVIDER_KEY + "=redis with spring.data.redis.*,"
+                + " or set " + ALLOW_IN_MEMORY_WITH_REAL_SMS_KEY + "=true for fake-gateway unit tests only"
+                + " (values are never logged)";
         log.error(message);
         throw new IllegalStateException(message);
     }

@@ -86,7 +86,14 @@ app:
       # 所有键的命名空间前缀。测试一律用独立随机前缀隔离，清理只删自己前缀（绝不 FLUSHDB）。
       # 连接参数一律用 Spring Boot 标准 spring.data.redis.*（host/port/password/database/
       # timeout/connect-timeout/url），本文件不写具体值以免与根的私有 YAML 冲突。
+      # 注意：Redis Cluster 本轮**不支持**（多键 Lua 无共同 hash tag ⇒ 运行期 CROSSSLOT），
+      # 配置 spring.data.redis.cluster.nodes 会被 StateStoreConfigGuard 拒绝启动；
+      # standalone 与 sentinel 均可。
       key-prefix: ${APP_STATE_REDIS_KEY_PREFIX:mvp:b:}
+    # 安全门（默认 false）：app.sms.provider=aliyun 搭配内存状态后端会被拒绝启动，因为联调与
+    # 真实 provider 必须跨实例一致（否则一次性核销与限流退化为单进程语义、重启即失效）。
+    # 仅供使用**假 gateway** 的单元测试显式打开；任何真实部署都不得打开。
+    allow-in-memory-with-real-sms: ${APP_STATE_ALLOW_IN_MEMORY_WITH_REAL_SMS:false}
   storage:
     # 共享存储替身根目录（与 Python worker MVP_A_STORAGE_DEV_DIR 同名可共用）；
     # 布局约定 = <root>/<object_key> 原样（两侧 double 完全一致）

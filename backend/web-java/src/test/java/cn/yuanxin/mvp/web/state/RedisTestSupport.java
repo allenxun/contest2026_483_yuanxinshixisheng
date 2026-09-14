@@ -2,6 +2,8 @@ package cn.yuanxin.mvp.web.state;
 
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.net.URI;
@@ -11,7 +13,6 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * opt-in 真实 Redis 测试的<b>共享</b>工具（orchestrator 所有；两条实施道只读使用，<b>不得修改</b>）。
@@ -125,15 +126,33 @@ public final class RedisTestSupport {
     }
 
     /**
+     * 用 {@code SCAN} 列出<b>自己前缀</b>的键（分页、非阻塞）。
+     *
+     * <p><b>绝不用 {@code KEYS}</b>：{@code KEYS} 会遍历整个键空间并<b>阻塞 Redis 单线程</b>，
+     * 在根的生产/共享实例上属真实运维风险。本方法用 {@code SCAN}（{@code COUNT} 提示 200）
+     * 分页遍历，只匹配自己的前缀。</p>
+     */
+    public static List<String> scanKeys(StringRedisTemplate template, String prefix) {
+        List<String> found = new ArrayList<>();
+        try (Cursor<String> cursor = template.scan(
+                ScanOptions.scanOptions().match(prefix + "*").count(200).build())) {
+            while (cursor.hasNext()) {
+                found.add(cursor.next());
+            }
+        }
+        return found;
+    }
+
+    /**
      * 只删除<b>自己前缀</b>的键（{@code SCAN} + {@code DEL}），返回删除数量。
-     * <b>绝不</b>调用 {@code FLUSHDB}/{@code FLUSHALL}。
+     * <b>绝不</b>调用 {@code FLUSHDB}/{@code FLUSHALL}，也<b>绝不</b>调用 {@code KEYS}
+     * （见 {@link #scanKeys(StringRedisTemplate, String)}）。
      */
     public static long cleanup(StringRedisTemplate template, String prefix) {
-        Set<String> keys = template.keys(prefix + "*");
-        if (keys == null || keys.isEmpty()) {
+        List<String> batch = scanKeys(template, prefix);
+        if (batch.isEmpty()) {
             return 0L;
         }
-        List<String> batch = new ArrayList<>(keys);
         Long deleted = template.delete(batch);
         return deleted == null ? 0L : deleted;
     }
