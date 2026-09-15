@@ -6,10 +6,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -19,11 +19,16 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 云台 AI 文本透传下游客户端（JDK {@link HttpClient}；<b>SSE 流式</b>；无状态、无重试回退）。
@@ -44,10 +49,23 @@ import java.util.concurrent.TimeoutException;
  *       {@code MALFORMED}/{@code UNAVAILABLE}。</li>
  * </ul>
  *
+ * <p><b>有界性（防挂死/OOM）</b>：</p>
+ * <ul>
+ *   <li>预流以 {@code read-timeout} 约束"响应头到达"；超时/中断会 {@code cancel(true)} 该 future，
+ *       并在迟到的响应上尽力关闭 body，避免交换滞留；</li>
+ *   <li>非 2xx problem body 的读取上限 {@value #MAX_PROBLEM_BODY_BYTES} 字节、期限
+ *       {@code min(read-timeout, }{@value #PROBLEM_BODY_TIMEOUT_MILLIS}{@code ms)}；超限/超时即放弃
+ *       解析（code 记为 null），openStream 总能及时返回 JSON problem；</li>
+ *   <li>流内行源：有界队列（容量 {@value TimeoutLineSource#QUEUE_CAPACITY}，{@code put} 反压）、
+ *       单行硬上限 {@value TimeoutLineSource#MAX_LINE_BYTES} 字节（超出 → {@code MALFORMED}）、
+ *       取消/超时先关<b>原始</b> InputStream（不取 BufferedReader 锁）再中断并 {@code join} 有界；
+ *       终态答案长度上限见 {@link GimbalAiSseParser#MAX_ACCUMULATED_CHARS}。</li>
+ * </ul>
+ *
  * <p><b>绝不</b>回退到一次性 {@code /internal/v1/ai/responses}；<b>绝不</b>合成答案。</p>
  *
- * <p><b>日志</b>：只记下游 requestId / HTTP 状态 / 下游错误码 / 失败分类；绝不记 API Key、
- * 用户文本、SSE 原文。</p>
+ * <p><b>日志</b>：只记下游 requestId / HTTP 状态 / 经 {@link GimbalAiCodes} 归一的安全码 / 失败分类；
+ * 绝不记 API Key、用户文本、SSE 原文。</p>
  */
 public class HttpGimbalAiClient implements GimbalAiClient {
 
@@ -57,6 +75,11 @@ public class HttpGimbalAiClient implements GimbalAiClient {
     static final String USE_CASE = "APP_AGENT_CONVERSATION";
     static final String PROTOCOL_VERSION = "1.0";
     static final String RESPONSES_STREAM_PATH = "/internal/v1/ai/responses:stream";
+
+    /** 非 2xx problem body 的读取上限（字节）。 */
+    static final int MAX_PROBLEM_BODY_BYTES = 8 * 1024;
+    /** 非 2xx problem body 的读取期限上限（毫秒），与 read-timeout 取较小值。 */
+    static final long PROBLEM_BODY_TIMEOUT_MILLIS = 2000;
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -104,7 +127,7 @@ public class HttpGimbalAiClient implements GimbalAiClient {
         HttpResponse<InputStream> response = sendForHeaders(request, requestId);
         int status = response.statusCode();
         if (status < 200 || status >= 300) {
-            String safeCode = safeProblemCode(readProblemBody(response.body()));
+            String safeCode = GimbalAiCodes.sanitize(readProblemCode(response.body()));
             log.warn("gimbal AI downstream non-2xx requestId={} status={} code={}",
                     requestId, status, safeCode == null ? "<none>" : safeCode);
             closeQuietly(response.body());
@@ -127,16 +150,22 @@ public class HttpGimbalAiClient implements GimbalAiClient {
         };
     }
 
-    /** 预流：以 read-timeout 约束"响应头到达"；预流超时 → TIMEOUT，连接失败 → UNAVAILABLE。 */
+    /**
+     * 预流：以 read-timeout 约束"响应头到达"。超时/中断时 {@code cancel(true)} 并尽力关闭迟到
+     * 响应体（避免交换滞留）；预流超时 → TIMEOUT，连接失败 → UNAVAILABLE。
+     */
     private HttpResponse<InputStream> sendForHeaders(HttpRequest request, String requestId) {
+        CompletableFuture<HttpResponse<InputStream>> future =
+                httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream());
         try {
-            return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
-                    .get(readTimeoutMillis, TimeUnit.MILLISECONDS);
+            return future.get(readTimeoutMillis, TimeUnit.MILLISECONDS);
         } catch (TimeoutException timeout) {
+            cancelAndDrain(future);
             log.warn("gimbal AI downstream pre-stream timeout requestId={}", requestId);
             throw new GimbalAiException(GimbalAiFailureKind.TIMEOUT,
                     "gimbal AI downstream timed out before streaming");
         } catch (InterruptedException interrupted) {
+            cancelAndDrain(future);
             Thread.currentThread().interrupt();
             throw new GimbalAiException(GimbalAiFailureKind.UNAVAILABLE,
                     "gimbal AI downstream call was interrupted");
@@ -153,14 +182,49 @@ public class HttpGimbalAiClient implements GimbalAiClient {
         }
     }
 
-    private String readProblemBody(InputStream body) {
+    /** 取消预流 future，并在其"迟到完成"时尽力关闭响应体。 */
+    private static void cancelAndDrain(CompletableFuture<?> future) {
+        future.cancel(true);
+        future.whenComplete((value, error) -> {
+            if (value instanceof HttpResponse<?> response
+                    && response.body() instanceof InputStream body) {
+                closeQuietly(body);
+            }
+        });
+    }
+
+    /**
+     * 有界读取非 2xx body 并返回其中的 {@code code} 文本（未归一）。
+     *
+     * <p>上限 {@value #MAX_PROBLEM_BODY_BYTES} 字节、期限 {@code min(read-timeout,
+     * }{@value #PROBLEM_BODY_TIMEOUT_MILLIS}{@code ms)}；超限只解析已读到的前缀，超时/异常返回
+     * {@code null}。无论结果如何都关闭 body，保证 openStream 及时返回。</p>
+     */
+    private String readProblemCode(InputStream body) {
         if (body == null) {
             return null;
         }
+        long deadlineMillis = Math.min(readTimeoutMillis, PROBLEM_BODY_TIMEOUT_MILLIS);
+        ExecutorService executor = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "gimbal-ai-problem-body");
+            thread.setDaemon(true);
+            return thread;
+        });
         try {
-            return new String(body.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException unreadable) {
+            Future<String> future = executor.submit(
+                    () -> new String(body.readNBytes(MAX_PROBLEM_BODY_BYTES), StandardCharsets.UTF_8));
+            String json = future.get(deadlineMillis, TimeUnit.MILLISECONDS);
+            try {
+                JsonNode node = objectMapper.readTree(json).path("code");
+                return node.isTextual() ? node.asText() : null;
+            } catch (Exception unparseable) {
+                return null;
+            }
+        } catch (Exception bounded) {
             return null;
+        } finally {
+            closeQuietly(body); // 解除工作线程的阻塞读
+            executor.shutdownNow();
         }
     }
 
@@ -191,19 +255,6 @@ public class HttpGimbalAiClient implements GimbalAiClient {
         }
     }
 
-    /** problem+json 的 code（仅用于日志；解析失败返回 null，绝不影响失败分类）。 */
-    private String safeProblemCode(String body) {
-        if (body == null || body.isBlank()) {
-            return null;
-        }
-        try {
-            JsonNode node = objectMapper.readTree(body).path("code");
-            return node.isTextual() ? node.asText() : null;
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
     private static String newTraceparent() {
         return "00-" + randomHex(16) + "-" + randomHex(8) + "-01";
     }
@@ -220,21 +271,38 @@ public class HttpGimbalAiClient implements GimbalAiClient {
     }
 
     /**
-     * 带单次读取超时的 SSE 行源：工作线程阻塞读行入队；消费侧按 read-timeout 轮询。
-     * 超时即关闭底层 InputStream（取消下游交换）并抛 {@code TIMEOUT}；传输失败抛
-     * {@code UNAVAILABLE}。{@link #close()} 解除阻塞并取消连接（客户端断开时调用）。
+     * 带单次读取超时的 SSE 行源（有界、可取消）。
+     *
+     * <p>工作线程从<b>原始</b> {@code InputStream} 逐字节读取（经 {@link BufferedInputStream}
+     * 吞吐优化），单行硬上限 {@value #MAX_LINE_BYTES} 字节（超出 → {@code MALFORMED}），
+     * 以容量 {@value #QUEUE_CAPACITY} 的有界队列 + 可中断 {@code put} 形成反压。</p>
+     *
+     * <p><b>取消/超时</b>：先关闭<b>原始</b>流（其 {@code close()} 不取 {@code BufferedReader}
+     * 的锁，可直接解除工作线程的 socket 阻塞读），再 {@code interrupt()} 并 {@code join}
+     * （上限 {@value #CLOSE_JOIN_MILLIS} ms），绝不以 {@code BufferedReader.close()} 作为解阻塞手段。</p>
      */
     private static final class TimeoutLineSource implements GimbalAiLineSource {
 
         private static final Object EOF = new Object();
+        /** 有界队列容量（反压）。 */
+        static final int QUEUE_CAPACITY = 1024;
+        /** 单行原始字节硬上限。 */
+        static final int MAX_LINE_BYTES = 64 * 1024;
+        /** close() 等待工作线程退出的上限。 */
+        static final long CLOSE_JOIN_MILLIS = 500;
 
-        private final BufferedReader reader;
+        private final InputStream raw;
+        private final BufferedInputStream buffered;
+        private final java.io.PushbackInputStream input;
         private final long timeoutMillis;
-        private final BlockingQueue<Object> queue = new LinkedBlockingQueue<>();
+        private final BlockingQueue<Object> queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
+        private final AtomicBoolean closed = new AtomicBoolean();
         private final Thread worker;
 
-        TimeoutLineSource(InputStream body, long timeoutMillis) {
-            this.reader = new BufferedReader(new InputStreamReader(body, StandardCharsets.UTF_8));
+        TimeoutLineSource(InputStream raw, long timeoutMillis) {
+            this.raw = raw;
+            this.buffered = new BufferedInputStream(raw, 8192);
+            this.input = new java.io.PushbackInputStream(buffered, 1);
             this.timeoutMillis = timeoutMillis;
             this.worker = new Thread(this::pump, "gimbal-ai-sse-reader");
             this.worker.setDaemon(true);
@@ -244,12 +312,58 @@ public class HttpGimbalAiClient implements GimbalAiClient {
         private void pump() {
             try {
                 String line;
-                while ((line = reader.readLine()) != null) {
-                    queue.add(line);
+                while ((line = readBoundedLine()) != null) {
+                    if (closed.get()) {
+                        return;
+                    }
+                    enqueue(line);
                 }
-                queue.add(EOF);
+                if (!closed.get()) {
+                    enqueue(EOF);
+                }
+            } catch (LineTooLongException tooLong) {
+                if (!closed.get()) {
+                    enqueue(new GimbalAiException(GimbalAiFailureKind.MALFORMED,
+                            "gimbal AI downstream SSE line exceeded the maximum length"));
+                }
             } catch (IOException io) {
-                queue.add(io);
+                if (!closed.get()) {
+                    enqueue(io);
+                }
+            }
+        }
+
+        /** 逐字节读到行终止符（\n / \r\n / \r）或 EOF；超 {@value #MAX_LINE_BYTES} 抛异常。 */
+        private String readBoundedLine() throws IOException {
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int b;
+            while ((b = input.read()) != -1) {
+                if (b == '\n') {
+                    return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+                }
+                if (b == '\r') {
+                    int next = input.read();
+                    if (next != -1 && next != '\n') {
+                        input.unread(next);
+                    }
+                    return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+                }
+                if (buffer.size() >= MAX_LINE_BYTES) {
+                    throw new LineTooLongException();
+                }
+                buffer.write(b);
+            }
+            if (buffer.size() == 0) {
+                return null;
+            }
+            return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+        }
+
+        private void enqueue(Object item) {
+            try {
+                queue.put(item); // 满时阻塞形成反压
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
             }
         }
 
@@ -272,6 +386,9 @@ public class HttpGimbalAiClient implements GimbalAiClient {
             if (item == EOF) {
                 return null;
             }
+            if (item instanceof GimbalAiException failure) {
+                throw failure;
+            }
             if (item instanceof IOException) {
                 throw new GimbalAiException(GimbalAiFailureKind.UNAVAILABLE,
                         "gimbal AI downstream stream transport failure");
@@ -281,12 +398,24 @@ public class HttpGimbalAiClient implements GimbalAiClient {
 
         @Override
         public void close() {
-            try {
-                reader.close();
-            } catch (IOException ignored) {
-                // best effort
+            if (!closed.compareAndSet(false, true)) {
+                return;
             }
+            // 先关原始流：其 close() 不取 BufferedReader 锁，直接解除工作线程的阻塞读。
+            closeQuietly(raw);
             worker.interrupt();
+            try {
+                worker.join(CLOSE_JOIN_MILLIS);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    /** 单行超出硬上限的内部信号（不对外）。 */
+    private static final class LineTooLongException extends IOException {
+        LineTooLongException() {
+            super("line too long");
         }
     }
 }

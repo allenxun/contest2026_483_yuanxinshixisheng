@@ -24,6 +24,11 @@ import java.util.Set;
  *
  * <p>终止策略：遇到终态事件后，仍继续读到流结束以检出"终态后事件/重复终态"；此类违规
  * 一律 malformed。终态事件在流结束（EOF）后才可被消费，从而保证恰一个终态。</p>
+ *
+ * <p><b>有界</b>（与行源的 64 KiB 单行上限叠加）：单事件累积 data 上限
+ * {@value #MAX_EVENT_DATA_CHARS} 字符、事件数上限 {@value #MAX_EVENTS}、累计 delta 与
+ * {@code response.completed.answer.text} 上限 {@value #MAX_ACCUMULATED_CHARS} 字符——
+ * 任一越界即 {@code MALFORMED}，绝不无界累积。</p>
  */
 final class GimbalAiSseParser implements AutoCloseable {
 
@@ -35,7 +40,9 @@ final class GimbalAiSseParser implements AutoCloseable {
 
     /** 单次流事件的硬上限（防无界事件流）。 */
     static final int MAX_EVENTS = 10_000;
-    /** 累计 delta 字符数硬上限（completed.answer.text 为权威答案，此处仅防无界累积）。 */
+    /** 单事件累积 data 字符上限（多行 data 也受限）。 */
+    static final int MAX_EVENT_DATA_CHARS = 256 * 1024;
+    /** 累计 delta 与 completed.answer.text 字符上限。 */
     static final int MAX_ACCUMULATED_CHARS = 200_000;
 
     private final GimbalAiLineSource source;
@@ -102,6 +109,9 @@ final class GimbalAiSseParser implements AutoCloseable {
                     }
                     data.append(value);
                     hasData = true;
+                    if (data.length() > MAX_EVENT_DATA_CHARS) {
+                        throw malformed("stream event data exceeded the maximum length");
+                    }
                 }
                 default -> {
                     // id/retry/未知字段：忽略；绝不断点续传。
@@ -129,13 +139,13 @@ final class GimbalAiSseParser implements AutoCloseable {
             throw malformed("stream data without an event name");
         }
         if (!EVENTS.contains(name)) {
-            throw malformed("unknown stream event: " + name);
+            throw malformed("unknown stream event");
         }
         if (terminalSeen) {
-            throw malformed("stream event after the terminal event: " + name);
+            throw malformed("stream event after the terminal event");
         }
         if (payload == null) {
-            throw malformed("stream event missing data: " + name);
+            throw malformed("stream event missing data");
         }
         JsonNode root;
         try {
@@ -164,15 +174,19 @@ final class GimbalAiSseParser implements AutoCloseable {
                 if (!text.isTextual() || text.asText().isBlank()) {
                     throw malformed("response.completed event missing a non-blank answer.text");
                 }
+                if (text.asText().length() > MAX_ACCUMULATED_CHARS) {
+                    throw malformed("response.completed answer.text exceeded the maximum length");
+                }
                 terminalSeen = true;
                 pendingTerminal = GimbalAiEvent.completed(text.asText());
             }
             case "response.failed" -> {
-                String code = root.path("code").isTextual() ? root.path("code").asText() : null;
+                String code = root.path("code").isTextual()
+                        ? GimbalAiCodes.sanitize(root.path("code").asText()) : null;
                 terminalSeen = true;
                 pendingTerminal = GimbalAiEvent.failed(code);
             }
-            default -> throw malformed("unknown stream event: " + name);
+            default -> throw malformed("unknown stream event");
         }
     }
 
