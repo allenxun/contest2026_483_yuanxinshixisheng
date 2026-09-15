@@ -17,7 +17,7 @@
         <mxCell id="nginx" value="«component»&lt;br&gt;Nginx&lt;br&gt;HTTPS 入口 / 请求转发&lt;br&gt;托管静态页面" vertex="1" parent="backend_boundary" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
           <mxGeometry as="geometry" x="40" y="120" width="350" height="190" />
         </mxCell>
-        <mxCell id="web" value="«component»&lt;br&gt;Java Web 后端&lt;br&gt;27 个 HTTP API&lt;br&gt;鉴权 / 绑定 / 核验 / 记录" vertex="1" parent="backend_boundary" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+        <mxCell id="web" value="«component»&lt;br&gt;Java Web 后端&lt;br&gt;36 个 HTTP 操作&lt;br&gt;鉴权 / 绑定 / 核验 / 记录" vertex="1" parent="backend_boundary" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
           <mxGeometry as="geometry" x="560" y="120" width="350" height="190" />
         </mxCell>
         <mxCell id="pg" value="«database»&lt;br&gt;PostgreSQL（PG）&lt;br&gt;业务状态 / 当前任务 / N/K&lt;br&gt;图片对象引用与归属，不存图片文件" vertex="1" parent="backend_boundary" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
@@ -41,7 +41,7 @@
         <mxCell id="llm" value="«external service»&lt;br&gt;大模型服务&lt;br&gt;生成方案与目标次数 N" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
           <mxGeometry as="geometry" x="1510" y="710" width="340" height="170" />
         </mxCell>
-        <mxCell id="push" value="«external service»&lt;br&gt;通知推送通道（待选）&lt;br&gt;向绑定账号 APP 投递" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+        <mxCell id="push" value="«external service»&lt;br&gt;阿里移动推送（未接入）&lt;br&gt;向绑定账号 APP 投递" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
           <mxGeometry as="geometry" x="1510" y="1060" width="340" height="160" />
         </mxCell>
         <mxCell id="app_http" source="app" target="nginx" value="HTTPS · API / APP 拍照上传" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=1;exitY=.5;entryX=0;entryY=.5;">

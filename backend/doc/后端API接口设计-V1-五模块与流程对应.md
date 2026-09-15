@@ -6,7 +6,7 @@
 
 需求依据为同目录 `后端流程图-V4-APP与云台控制.drawio`（00—07 页）、`后端用例图-V8-APP与云台控制.drawio` 和 `角色边界与流程修订说明.md`。下文 `04 / permit` 表示原流程图第 04 页、节点 ID `permit`，可在 draw.io XML 中定位；所有引用已校验。
 
-**本文仅列供 APP、云台调用的 27 个对外 HTTP API，不包含后端代码中的函数、模块调用或任务入口。** 方法、路径及请求/响应业务要素是设计草案，不代表现有代码已经实现；具体 JSON 字段、鉴权协议、人脸阈值和保留策略尚未冻结；N 与 K 的单位已确定为次数。流程中由后端自动完成的步骤只说明客户端如何查询结果，不另编 API。
+**本文列出当前运行时 OpenAPI 的 36 个对外 HTTP 操作：29 个 APP／云台业务操作（M1—M5）与 7 个基础/联调协议（B0）。** 不包含后端代码中的函数、内部 llm-rag 路由或 Worker 任务入口。网站导入时会把本文清单与 Java `ApiDocsCatalog` 自动逐项比较；`ApiDocsCoverageIT` 再核对实际生成的 `/v3/api-docs`，新增、删除或改名未同步会导致构建失败。当前联调基线与状态见 `接口联调与集成状态-2026-09-15.md`。 方法、路径及请求/响应业务要素是设计草案，不代表现有代码已经实现；具体 JSON 字段、鉴权协议、人脸阈值和保留策略尚未冻结；N 与 K 的单位已确定为次数。流程中由后端自动完成的步骤只说明客户端如何查询结果，不另编 API。
 
 | 新编号 | 模块 | 旧编号 | 状态归属 |
 | --- | --- | --- | --- |
@@ -67,10 +67,11 @@ M4 统一负责方案、执行、记录与进度。当前只考虑一个方案�
 | 模块 | 对外 HTTP API 数量 | 编号范围 |
 | --- | --- | --- |
 | M1 成员身份与访问授权 | 3 | M1-A01—M1-A03 |
-| M2 云台与微晶管理 | 8 | M2-A01—M2-A08 |
-| M3 测肤任务与报告 | 6 | M3-A01—M3-A06 |
+| M2 云台与微晶管理 | 9 | M2-A01—M2-A09 |
+| M3 测肤任务与报告 | 7 | M3-A01—M3-A07 |
 | M4 护理管理 | 9 | M4-A01—M4-A09 |
 | M5 消息通知 | 1 | M5-A01 |
+| B0 基础与联调协议（不计入五业务模块） | 7 | B0-A01—B0-A07 |
 
 当前尚无统一通知能力，M5-A01 用于登记本 APP 安装实例的通知投递目标。离线提醒由服务端主动递送，不需要 APP 调用一个“发送离线通知”接口。
 
@@ -118,6 +119,7 @@ M4 统一负责方案、执行、记录与进度。当前只考虑一个方案�
 | M2-A06 | `PUT /api/v1/me/gimbal-bindings/{gimbalId}` | 已登录且正在协助该云台联网的 APP。 | 01/binding_request；01/binding_save；00/network |
 | M2-A07 | `GET /api/v1/gimbals/{gimbalId}/binding-status` | 已登录且持有本次合法配对上下文的 APP。 | 01/binding_status_request；01/binding_status_result |
 | M2-A08 | `DELETE /api/v1/me/gimbal-bindings/{gimbalId}` | 当前绑定所属账号的已登录 APP。 | 01/unbind_request；01/unbind_save |
+| M2-A09 | `POST /api/v1/gimbal-ai/messages` | 已认证云台；APP 不开放。 | 08/chat_request；08/chat_stream |
 
 #### M2-A01 · 云台认证或恢复连接后重新认证
 
@@ -183,6 +185,15 @@ M4 统一负责方案、执行、记录与进度。当前只考虑一个方案�
 - **输出要素**：解除绑定成功，云台可被新账号绑定；不返回其他账号信息。
 - **关键规则**：只允许原绑定账号解绑；不得删除其他账号的新绑定。同一账号对已解除且未被他人重新绑定的关系重复请求视为完成；新绑定已建立时旧账号重试不得解除新关系。解绑后不再按原关系通知 A，排队通知及重试须复核当前绑定。解绑不撤销任何成员查看授权，不删除报告/方案/记录，不改变云台当前任务、不发送停止指令；设备绑定不替代成员授权。原账号无法登录的例外处理暂不扩展本版自助流程。
 
+#### M2-A09 · 云台 AI 文本问答（SSE）
+
+- **接口**：`POST /api/v1/gimbal-ai/messages`。
+- **调用方**：仅已认证云台（GIMBAL Bearer）；APP 主体返回 `CALLER_NOT_ALLOWED`。
+- **输入要素**：严格 JSON，仅 `text` 一个字段，去空白后 1—2000 字符。
+- **输出要素**：`text/event-stream`；`response.accepted`、多个 `response.delta`，以及恰一个 `response.completed` 或 `response.failed` 终态。
+- **关键规则**：Java 真实流式转发 llm-rag `/internal/v1/ai/responses:stream`，对下游事件解析、校验并白名单重编码；客户端断开时关闭下游连接。无本地会话、无 `continuation_state`、无 `Last-Event-ID`、无重放，重试会创建新问题。状态为**已实现/待完整 E2E**：真实下游流已联调，仍缺目标 dev 部署和真实云台 Bearer 端到端验收。
+- **流程对应**：08/chat_request；08/chat_stream。
+
 ### M3 测肤任务与报告
 
 | API 编号 | HTTP 接口 | 调用方 | 对应流程节点 |
@@ -193,6 +204,7 @@ M4 统一负责方案、执行、记录与进度。当前只考虑一个方案�
 | M3-A04 | `GET /api/v1/members/{memberId}/skin-reports` | 已获对应成员查看权的 APP；不向云台开放。 | 03/fullreportq |
 | M3-A05 | `GET /api/v1/skin-reports/{reportId}?view={view}` | 已授权 APP 取 full；本次任务所属云台仅取 brief。 | 02/feedback；03/fullreportr；03/briefreportr |
 | M3-A06 | `GET /api/v1/gimbals/{gimbalId}/current-assessment` | 该云台自身，须通过云台认证；不要求绑定 APP 账号。 | 02/current_task_request；02/current_task_restore |
+| M3-A07 | `GET /api/v1/skin-assessment-tasks/{taskId}/report-narration-stream` | 该任务所属且仍以该任务为当前任务的已认证云台。 | 08/narration_request；08/narration_stream |
 
 #### M3-A01 · 提交三视角测肤任务
 
@@ -241,6 +253,15 @@ M4 统一负责方案、执行、记录与进度。当前只考虑一个方案�
 - **输入要素**：云台身份认证上下文，路径云台必须与认证主体一致。
 - **输出要素**：该云台唯一当前任务引用及处理/方案就绪状态，或尚无当前任务；后续用 M3-A03/A05 获取本次结果，用 M4-A03/A04 核验领取方案及已同步 N/K。
 - **关键规则**：后端持久保存云台当前任务及其方案关联，重启可恢复；不提供历史任务列表，也不按人脸搜索旧任务。新测肤被后端受理即原子替换当前关联；未受理失败不替换，同次重试不重新指向旧任务。已替换的任务即使补拍/分析失败也不回退。旧报告/方案/进度仍保留供授权 APP 使用。恢复任务不自动开始/恢复护理，不代表原执行已停止，须对账并核验。
+
+#### M3-A07 · 测肤报告文案播报流（MOCK SSE）
+
+- **接口**：`GET /api/v1/skin-assessment-tasks/{taskId}/report-narration-stream`。
+- **调用方**：仅已认证云台（GIMBAL Bearer）；必须仍是该云台当前任务且报告已 `report_ready`。
+- **输入要素**：路径 `taskId`；不接受 `Last-Event-ID`。
+- **输出要素**：`text/event-stream`，固定 `start → text_delta → text_delta → done`，`seq=1..4`；事件含 `requestId/taskId/reportId/seq`，增量事件另含 `delta`。
+- **关键规则**：当前仅非生产环境可用。鉴权、当前任务/报告状态检查和逐事件 flush 为真实实现；正文固定为四区域分数联调文案，来源是 mock JSON，不调用测肤算法、RAG 或 AI。无持久化、重放、断点续传和取消 API。设备停止播报时关闭连接并清空端侧 TTS 队列，不取消已受理分析；重连时由设备本地播放水位避免重复朗读。
+- **流程对应**：08/narration_request；08/narration_stream。
 
 ### M4 护理管理
 
@@ -342,6 +363,83 @@ M4 统一负责方案、执行、记录与进度。当前只考虑一个方案�
 - **输出要素**：已登记的本人投递目标。
 - **关键规则**：未登录不登记，不能替他人登记目标；云台绑定由 M2-A06 建立。云台离线或上报异常时，仅向实际绑定账号的有效通知目标投递；没有绑定账号则不发 APP 通知。发送及重试前重新核对绑定、目标和异常状态，抑制重复提醒。退出登录或切换账号后旧账号目标应失效，具体注销/令牌生命周期协议待对接。本接口只登记目标，不发送消息；具体推送通道后续选定。
 
+### B0 基础与联调协议
+
+B0 不改变 M1—M5 的领域归属，用于记录实际 OpenAPI 中已对外暴露、但不属于 27 个原始业务用例编号的基础协议和跨语言验收入口。
+
+| API 编号 | HTTP 接口 | 调用方 | 对应流程节点 |
+| --- | --- | --- | --- |
+| B0-A01 | `POST /api/v1/auth/sms-challenges` | 未登录 APP。 | 08/sms |
+| B0-A02 | `POST /api/v1/auth/sessions` | 未登录 APP。 | 08/session |
+| B0-A03 | `POST /api/v1/auth/session-refreshes` | 持有 refresh token 的 APP。 | 08/refresh |
+| B0-A04 | `DELETE /api/v1/auth/sessions/current` | 已登录 APP。 | 08/logout |
+| B0-A05 | `GET /api/v1/media/{mediaId}/content` | 已认证 APP 或云台，按资源范围。 | 08/media |
+| B0-A06 | `POST /api/v1/system/echo-jobs` | 已认证 APP 或云台；联调验收。 | 08/echo_submit |
+| B0-A07 | `GET /api/v1/system/echo-jobs/{jobId}` | 创建该任务的已认证主体。 | 08/echo_query |
+
+#### B0-A01 · 发起手机号登录挑战
+
+- **接口**：`POST /api/v1/auth/sms-challenges`。
+- **调用方**：未登录 APP。
+- **输入要素**：手机号和安装实例标识。
+- **输出要素**：挑战 ID、过期时间和安全的发送状态。
+- **关键规则**：阿里云短信真实 provider 已接入；真实模式随机验证码且不进入响应或日志。固定 `123456` 只供 doubles。验证码状态与限流在 Redis。
+- **流程对应**：08/sms。
+
+#### B0-A02 · 验证码换取 APP 会话
+
+- **接口**：`POST /api/v1/auth/sessions`。
+- **调用方**：未登录 APP。
+- **输入要素**：挑战 ID、验证码、安装绑定材料。
+- **输出要素**：access/refresh 会话与本地账号引用。
+- **关键规则**：验证码一次性核销；真实/联调会话状态在 Redis。安装绑定材料仍有 dev 替代边界。
+- **流程对应**：08/session。
+
+#### B0-A03 · 刷新 APP 会话
+
+- **接口**：`POST /api/v1/auth/session-refreshes`。
+- **调用方**：持有 refresh token 的 APP。
+- **输入要素**：refresh token。
+- **输出要素**：原子轮换后的新 access/refresh 会话。
+- **关键规则**：Redis CAS 轮换；旧 token 不得复活，不允许并发双花。
+- **流程对应**：08/refresh。
+
+#### B0-A04 · 撤销当前 APP 会话
+
+- **接口**：`DELETE /api/v1/auth/sessions/current`。
+- **调用方**：已登录 APP。
+- **输入要素**：当前 Bearer 会话。
+- **输出要素**：204。
+- **关键规则**：撤销 Redis 会话，并按 session_ref 使当前安装的通知目标失效；不得误伤后来登录建立的新目标。
+- **流程对应**：08/logout。
+
+#### B0-A05 · 受控读取媒体对象
+
+- **接口**：`GET /api/v1/media/{mediaId}/content`。
+- **调用方**：已认证 APP 或云台。
+- **输入要素**：媒体 ID 与当前主体范围。
+- **输出要素**：从私有 OSS 流式读取的二进制内容。
+- **关键规则**：读取时重新检查 APP 成员授权或云台当前任务；不返回 bucket、objectKey、永久 OSS URL 或签名凭据。
+- **流程对应**：08/media。
+
+#### B0-A06 · 入队 system.echo 跨语言验收任务
+
+- **接口**：`POST /api/v1/system/echo-jobs`。
+- **调用方**：已认证 APP 或云台。
+- **输入要素**：`message`、`numbersAsStrings`、可选 `jobId` 与可选 `Idempotency-Key`。
+- **输出要素**：任务 ID 和 `queued` 状态。
+- **关键规则**：只用于 Java→PG→Python Worker→PG 的最小桥接验收；不代表业务算法入口。
+- **流程对应**：08/echo_submit。
+
+#### B0-A07 · 查询 system.echo 任务投影
+
+- **接口**：`GET /api/v1/system/echo-jobs/{jobId}`。
+- **调用方**：创建该任务的已认证主体。
+- **输入要素**：任务 ID。
+- **输出要素**：状态、尝试次数、租约代次、完成时间和安全失败摘要。
+- **关键规则**：只读且仅创建者可见；不存在、非 echo 或非本人统一为 `RESOURCE_NOT_VISIBLE`。
+- **流程对应**：08/echo_query。
+
 ## 4. 按原流程逐页对应
 
 只给客户端实际调用的 HTTP API 编号。拍照、追踪和微晶控制标为“端侧”；测肤分析、方案生成和离线判定等只标为“后端自动处理”，不列代码接口或任务入口。
@@ -377,7 +475,7 @@ M4 统一负责方案、执行、记录与进度。当前只考虑一个方案�
 5. 同一成员、原执行仍可恢复且尚未完成：使用返回的原方案与进度，由客户端确认当前使用者及微晶条件后继续；已结束执行不能重开。
 6. 其他成员：不继续原方案；原执行停止及对账后，云台为新成员先发起新测肤，不能找回其历史方案；APP 可选有权方案再 `M4-A03`。本版不要求选择方案版本，也不新增云台手动选姓名步骤。
 
-### 5.3 提交测肤并查询报告与方案
+### 5.3 提交测肤、播报报告并查询方案
 
 1. 云台调用 `M3-A01` 提交三视角照片，取得任务引用。
 2. `M3-A03` 查询任务结果；需要补拍时，沿用该任务调用 `M3-A02` 提交新照片版本。

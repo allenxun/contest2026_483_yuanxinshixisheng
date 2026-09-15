@@ -69,3 +69,11 @@
 5. 模块流程对照中报告列表角色不清：明确 M3-A04 仅 APP，云台 M3-A03/A05 仅当前结果。
 
 仍需开发落地（不要求用户逐项决策）：照片传输格式/直传协议、图片下载鉴权及已发凭证失效、通知目标与登录退出的关联。详见接口文档 6.5。此次只校验设计与数据结构，不宣称业务接口或设备行为已经实现。
+
+
+## 2026-09-15 增量核对
+
+- 当前 Java `ApiDocsCatalog` 与网页 API 清单均为 **36** 个操作：M1—M5 共 29 个，B0 基础/联调协议 7 个。
+- 新增稳定编号：`M2-A09 POST /api/v1/gimbal-ai/messages`、`M3-A07 GET /api/v1/skin-assessment-tasks/{taskId}/report-narration-stream`、`B0-A01—B0-A07`。
+- 用例图新增 08 页；模块图新增 02 页；流程图新增 08 页。新增页保留明确节点 ID，API 文档中的 `08/node_id` 引用已经机器校验。
+- `site/scripts/import-docs.py` 提取 Java catalog 的方法/路径并与 Markdown 全量比较；catalog 再由 `ApiDocsCoverageIT` 对实际 `/v3/api-docs` 做覆盖率门禁。
