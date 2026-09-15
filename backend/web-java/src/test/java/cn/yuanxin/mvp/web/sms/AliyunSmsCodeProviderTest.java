@@ -6,7 +6,6 @@ import cn.yuanxin.mvp.web.error.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -14,6 +13,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,14 +29,16 @@ class AliyunSmsCodeProviderTest {
 
     private MutableClock clock;
     private RecordingGateway gateway;
+    private InMemorySmsStateStore store;
     private AliyunSmsCodeProvider provider;
 
     @BeforeEach
     void setUp() {
         clock = new MutableClock(START, ZoneOffset.ofHours(8));
         gateway = new RecordingGateway();
+        store = new InMemorySmsStateStore(new SmsRiskProperties(null, null, null, null, null, null));
         provider = new AliyunSmsCodeProvider(gateway,
-                new SmsRiskProperties(null, null, null, null, null, null), clock);
+                new SmsRiskProperties(null, null, null, null, null, null), clock, store);
     }
 
     // ---------- 成功路径 ----------
@@ -63,6 +65,40 @@ class AliyunSmsCodeProviderTest {
         assertThat(first).isNotEqualTo(second);
         assertThat(first).isNotEqualTo("123456");
         assertThat(second).isNotEqualTo("123456");
+    }
+
+    // ---------- challengeId 碰撞：有界重生成，绝不签发未写入的 challenge ----------
+
+    @Test
+    @DisplayName("challengeId 碰撞时按上限重生成，最终签发真正写入的 challenge")
+    void challengeIdCollisionIsRegenerated() {
+        CollidingStore colliding = new CollidingStore(2);
+        AliyunSmsCodeProvider collidingProvider = new AliyunSmsCodeProvider(gateway,
+                new SmsRiskProperties(null, null, null, null, null, null), clock, colliding);
+
+        SmsCodeProvider.ChallengeOutcome outcome = collidingProvider.issue(FAKE_PHONE, "login");
+
+        assertThat(outcome.challengeId()).isNotBlank();
+        assertThat(colliding.createCalls()).as("前 2 次碰撞 + 第 3 次成功").isEqualTo(3);
+        assertThat(collidingProvider.verify(outcome.challengeId(), gateway.lastCode()))
+                .contains(FAKE_PHONE);
+    }
+
+    @Test
+    @DisplayName("challengeId 持续碰撞达上限 ⇒ fail-closed 503，绝不签发未写入的 challenge")
+    void persistentChallengeIdCollisionFailsClosed() {
+        CollidingStore colliding = new CollidingStore(Integer.MAX_VALUE);
+        AliyunSmsCodeProvider collidingProvider = new AliyunSmsCodeProvider(gateway,
+                new SmsRiskProperties(null, null, null, null, null, null), clock, colliding);
+
+        ApiException failure = assertThrows(ApiException.class,
+                () -> collidingProvider.issue(FAKE_PHONE, "login"));
+
+        assertThat(failure.getCode()).isEqualTo(ErrorCode.DEPENDENCY_UNAVAILABLE);
+        assertThat(failure.getHttpStatus()).isEqualTo(503);
+        assertThat(colliding.createCalls())
+                .isEqualTo(AliyunSmsCodeProvider.CHALLENGE_ID_MAX_ATTEMPTS);
+        assertThat(colliding.challengeView()).isEmpty();
     }
 
     // ---------- 失败分类与"不回退、不签发" ----------
@@ -198,9 +234,12 @@ class AliyunSmsCodeProviderTest {
         assertThat(outcome.challengeId()).isNotBlank();
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * 等价可观测面：迁移前这里反射 {@code provider.challenges}，现在断言 store 的 challenge 视图。
+     * 断言语义（"失败绝不创建 challenge"）不变。
+     */
     private Map<String, ?> challenges() {
-        return (Map<String, ?>) ReflectionTestUtils.getField(provider, "challenges");
+        return store.challengeView();
     }
 
     /** 记录调用并按 {@link #next} 返回。 */
@@ -220,6 +259,60 @@ class AliyunSmsCodeProviderTest {
 
         String lastCode() {
             return calls.isEmpty() ? null : calls.get(calls.size() - 1)[1];
+        }
+    }
+
+    /**
+     * 包装内存 store，强制 {@code createChallenge} 前 N 次返回 {@code false}（模拟 challengeId 碰撞），
+     * 用于验证 provider 的有界重生成与"绝不签发未写入 challenge"的 fail-closed。
+     */
+    private static final class CollidingStore implements SmsStateStore {
+        private final InMemorySmsStateStore delegate = new InMemorySmsStateStore(
+                new SmsRiskProperties(null, null, null, null, null, null));
+        private final int collisionsBeforeSuccess;
+        private int createCalls;
+
+        private CollidingStore(int collisionsBeforeSuccess) {
+            this.collisionsBeforeSuccess = collisionsBeforeSuccess;
+        }
+
+        @Override
+        public SendReservation reserveSend(String phone, Instant now) {
+            return delegate.reserveSend(phone, now);
+        }
+
+        @Override
+        public void commitSend(SendReservation reservation, Instant now) {
+            delegate.commitSend(reservation, now);
+        }
+
+        @Override
+        public void releaseSend(SendReservation reservation, boolean accepted) {
+            delegate.releaseSend(reservation, accepted);
+        }
+
+        @Override
+        public boolean createChallenge(String challengeId, String phone, String code,
+                                       Instant now, int ttlSeconds) {
+            createCalls++;
+            if (createCalls <= collisionsBeforeSuccess) {
+                return false;
+            }
+            return delegate.createChallenge(challengeId, phone, code, now, ttlSeconds);
+        }
+
+        @Override
+        public Optional<String> consumeChallenge(String challengeId, String code,
+                                                 Instant now, int maxAttempts) {
+            return delegate.consumeChallenge(challengeId, code, now, maxAttempts);
+        }
+
+        int createCalls() {
+            return createCalls;
+        }
+
+        Map<String, ?> challengeView() {
+            return delegate.challengeView();
         }
     }
 }

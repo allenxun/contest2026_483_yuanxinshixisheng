@@ -45,6 +45,12 @@ management:
       exposure:
         include: health,info
   health:
+    redis:
+      # 默认关闭：未配置 Redis 的环境（CI、doubles 隔离测试、其他包联调）不应因
+      # RedisHealthIndicator 让 /actuator/health 变 DOWN。app.state.provider=redis 的部署
+      # 应显式置 true，让健康端点覆盖 Redis（这是一处如实披露的取舍，见
+      # backend/handoffs/B-redis-state-migration.md §7.3）。
+      enabled: ${APP_REDIS_HEALTH_ENABLED:false}
     group:
       liveness:
         include: livenessState
@@ -70,6 +76,26 @@ app:
   providers:
     # doubles=隔离测试替身(仅 dev/test)；disabled=能力显式关闭→503；real=真实实现
     mode: ${APP_PROVIDERS_MODE:doubles}
+  state:
+    # 会话（access/refresh）与阿里云短信状态（challenge/核销/尝试计数/限流）的存储后端。
+    # memory=进程内实现，仅供隔离测试与 doubles；redis=跨实例一致、重启不丢，联调与真实
+    # provider 必须用它。生产信号 + app.providers.mode=real 下选 memory 会被
+    # StateStoreConfigGuard 明确拒绝启动（fail closed），不存在内存兜底路径。
+    provider: ${APP_STATE_PROVIDER:memory}
+    redis:
+      # 所有键的命名空间前缀。测试一律用独立随机前缀隔离，清理只删自己前缀（绝不 FLUSHDB）。
+      # 连接参数一律用 Spring Boot 标准 spring.data.redis.*（host/port/password/database/
+      # timeout/connect-timeout/url），本文件不写具体值以免与根的私有 YAML 冲突。
+      # 注意：Redis Cluster 本轮**不支持**（多键 Lua 无共同 hash tag ⇒ 运行期 CROSSSLOT），
+      # 配置 spring.data.redis.cluster.nodes 会被 StateStoreConfigGuard 拒绝启动；
+      # standalone 与 sentinel 均可。
+      key-prefix: ${APP_STATE_REDIS_KEY_PREFIX:mvp:b:}
+    # 安全门（**刻意不提供任何公开运行时开关**）：app.sms.provider=aliyun 搭配内存状态后端会被
+    # StateStoreConfigGuard **无条件拒绝启动**，因为联调与真实 provider 必须跨实例一致
+    # （否则一次性核销与限流会退化为单进程语义、且重启即失效）。
+    # 单元测试改为**不加载该守卫**（直接构造 fake gateway + 内存 store），而不是让生产配置
+    # 为测试开一个一致性后门——这是 Oracle 第二十七轮的裁定，orchestrator 采纳并撤销了
+    # 自己先前引入的 app.state.allow-in-memory-with-real-sms 逃生门。
   storage:
     # 共享存储替身根目录（与 Python worker MVP_A_STORAGE_DEV_DIR 同名可共用）；
     # 布局约定 = <root>/<object_key> 原样（两侧 double 完全一致）
@@ -131,6 +157,8 @@ app:
   env: production          # 触发 ProductionFailClosedValidator
   providers:
     mode: real             # 必须提供真实实现 bean，否则启动失败
+  state:
+    provider: redis        # 生产必须跨实例一致；memory 会被 StateStoreConfigGuard 拒绝
 springdoc:
   api-docs:
     enabled: false         # 生产显式关闭（DocsProductionGuard 兜底 fail-closed）

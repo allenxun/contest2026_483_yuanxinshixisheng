@@ -45,7 +45,10 @@ public class SmsProvidersConfig {
 
     @Bean
     public SmsCodeProvider aliyunSmsCodeProvider(SmsSendGateway smsSendGateway,
-                                                 SmsRiskProperties riskProperties) {
-        return new AliyunSmsCodeProvider(smsSendGateway, riskProperties, Clock.systemUTC());
+                                                 SmsRiskProperties riskProperties,
+                                                 SmsStateStore smsStateStore) {
+        // 状态后端由 app.state.provider 决定（SmsStateStoreConfig）：memory=进程内，redis=跨实例一致。
+        return new AliyunSmsCodeProvider(smsSendGateway, riskProperties, Clock.systemUTC(),
+                smsStateStore);
     }
 }

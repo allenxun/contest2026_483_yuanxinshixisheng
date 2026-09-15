@@ -44,6 +44,16 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
+    <!-- 会话与阿里云短信状态后端（app.state.provider=redis 时使用）：跨实例一致、重启不丢。
+         版本由 Spring Boot BOM 管理，默认客户端 Lettuce；只注入 StringRedisTemplate
+         （RedisTemplate<Object,Object> 默认 JDK 序列化，会让 Lua 脚本收到二进制 key）。
+         刻意不引入 commons-pool2：本项目的 Redis 命令全为非阻塞（含 EVAL），
+         Lettuce 默认 shareNativeConnection=true 即可；需要连接池时再加该依赖并配
+         spring.data.redis.lettuce.pool.*。 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-core</artifactId>
