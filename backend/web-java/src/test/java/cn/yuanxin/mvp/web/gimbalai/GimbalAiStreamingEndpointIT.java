@@ -34,6 +34,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -194,19 +195,67 @@ class GimbalAiStreamingEndpointIT {
     }
 
     @Test
-    @DisplayName("流内读取超时 → HTTP 200 + 恰一个 failed 终态（DEPENDENCY_TIMEOUT）")
+    @DisplayName("流内读取超时 / 下游永不终态 → HTTP 200 + 恰一个 failed(DEPENDENCY_TIMEOUT)，限期内到达、下游断开、线程收敛")
     void downstreamReadTimeoutYieldsFailedTerminal() throws Exception {
-        STUB.scriptThenHold(List.of(AiResponseStub.accepted(), AiResponseStub.delta("A")), 3000);
+        long baseline = gimbalAiReaderCount();
+        STUB.holdOpenSilently(List.of(AiResponseStub.accepted(), AiResponseStub.delta("A")), 100);
 
+        long start = System.nanoTime();
         HttpResponse<InputStream> response = postStreaming(gimbalToken(), "{\"text\":\"hi\"}");
         assertThat(response.statusCode()).isEqualTo(200);
         BufferedReader reader = new BufferedReader(
                 new InputStreamReader(response.body(), StandardCharsets.UTF_8));
 
         List<String[]> events = readEvents(reader, e -> "response.failed".equals(e[0]));
+        long elapsed = (System.nanoTime() - start) / 1_000_000L;
+
         assertThat(events).extracting(e -> e[0]).doesNotContain("response.completed");
         assertThat(events.stream().filter(e -> "response.failed".equals(e[0])).count()).isEqualTo(1);
         assertThat(JSON.readTree(events.get(events.size() - 1)[1]).path("code").asText())
                 .isEqualTo("DEPENDENCY_TIMEOUT");
+        assertThat(elapsed).as("failed must arrive near read-timeout (1s)").isBetween(700L, 4000L);
+        assertThat(STUB.awaitClientDisconnected(4000))
+                .as("downstream exchange must be closed after in-stream timeout").isTrue();
+        awaitReaderThreadsAtMost(baseline, 3000);
+    }
+
+    @Test
+    @DisplayName("B1(c2) 外部客户端断开 → 下游交换被取消（stub 观测断开），reader 线程收敛")
+    void externalClientDisconnectCancelsDownstream() throws Exception {
+        long baseline = gimbalAiReaderCount();
+        STUB.holdOpenSilently(List.of(AiResponseStub.accepted(), AiResponseStub.delta("A")), 100);
+
+        HttpResponse<InputStream> response = postStreaming(gimbalToken(), "{\"text\":\"hi\"}");
+        assertThat(response.statusCode()).isEqualTo(200);
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(response.body(), StandardCharsets.UTF_8));
+        List<String[]> events = readEvents(reader, e -> "response.delta".equals(e[0]));
+        assertThat(events).extracting(e -> e[0]).contains("response.delta");
+
+        response.body().close(); // 外部客户端断开
+
+        assertThat(STUB.awaitClientDisconnected(5000))
+                .as("client disconnect must eventually cancel the downstream exchange").isTrue();
+        awaitReaderThreadsAtMost(baseline, 3000);
+    }
+
+    private static long gimbalAiReaderCount() {
+        return Thread.getAllStackTraces().keySet().stream()
+                .filter(Thread::isAlive)
+                .filter(thread -> "gimbal-ai-sse-reader".equals(thread.getName()))
+                .count();
+    }
+
+    private static void awaitReaderThreadsAtMost(long baseline, long timeoutMillis) {
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+        while (System.nanoTime() < deadline && gimbalAiReaderCount() > baseline) {
+            try {
+                Thread.sleep(25);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        assertThat(gimbalAiReaderCount()).isLessThanOrEqualTo(baseline);
     }
 }

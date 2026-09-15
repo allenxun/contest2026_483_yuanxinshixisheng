@@ -186,4 +186,45 @@ class GimbalAiSseParserTest {
         parser.close();
         assertThat(source.closed).isTrue();
     }
+
+    @Test
+    @DisplayName("B1(b) 单事件 data 超上限 → MALFORMED（有界，不无界累积）")
+    void oversizedEventDataRejected() {
+        GimbalAiSseParser parser = parser("data: " + "x".repeat(GimbalAiSseParser.MAX_EVENT_DATA_CHARS + 1) + "\n\n");
+        assertThatThrownBy(() -> parser.next())
+                .isInstanceOf(GimbalAiException.class)
+                .satisfies(thrown -> assertThat(((GimbalAiException) thrown).kind())
+                        .isEqualTo(GimbalAiFailureKind.MALFORMED));
+    }
+
+    @Test
+    @DisplayName("B1(b) completed.answer.text 超上限 → MALFORMED")
+    void oversizedCompletedAnswerRejected() {
+        String text = "y".repeat(GimbalAiSseParser.MAX_ACCUMULATED_CHARS + 1);
+        GimbalAiSseParser parser = parser("event: response.completed\ndata: {\"answer\":{\"text\":\"" + text + "\"}}\n\n");
+        assertThatThrownBy(() -> parser.next())
+                .isInstanceOf(GimbalAiException.class)
+                .satisfies(thrown -> assertThat(((GimbalAiException) thrown).kind())
+                        .isEqualTo(GimbalAiFailureKind.MALFORMED));
+    }
+
+    @Test
+    @DisplayName("I1 response.failed.code 归一：合法码保留，非法（小写/超长/空格）→ null")
+    void failedCodeSanitized() {
+        List<GimbalAiEvent> valid = drain(parser(
+                "event: response.failed\ndata: {\"code\":\"AI_UPSTREAM_TIMEOUT\"}\n\n"));
+        assertThat(valid.get(0).failedCode()).isEqualTo("AI_UPSTREAM_TIMEOUT");
+
+        for (String malicious : List.of(
+                "lower_case",
+                "has space and user text",
+                "A".repeat(65),
+                "BAD-CODE")) {
+            GimbalAiSseParser parser = parser(
+                    "event: response.failed\ndata: {\"code\":\"" + malicious + "\"}\n\n");
+            List<GimbalAiEvent> events = drain(parser);
+            assertThat(events).hasSize(1);
+            assertThat(events.get(0).failedCode()).as("code=%s", malicious).isNull();
+        }
+    }
 }
