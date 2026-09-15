@@ -58,3 +58,50 @@
 ## 协调记录
 
 `.mvp-d-runtime/coordination-request.md`（运行文件，git-ignored，Codex 监督者同步项目根 .coordination/D）：B 媒体归属约定 / C defer 提案 / E C-D 衔接最终约定 / F defer 授权落实 / G 认证阻塞 / G2 报告收尾 / G3 恢复尝试 / G4 R1 结论 / H N2 提案 / I N2 授权受理 / J 第三次裁定受理 / K 端口冲突通报（已由 L.2 根治）/ L 第四次授权受理。关键裁定内容均已内联本文件与 D-oracle.md，不依赖运行文件存续。
+
+## AI 方案真实接口接入轮（2026-09-14，dev 合并 6bd31cb 后增量）
+
+- **授权链**：用户/总协调四波指令——只读发现（远端只读、不猜接口）→ dev 快进合并放行 → 本地 fail-closed 适配+三份用户资料（SHA256 绑定）→ 授权启动尝试（仅启动目标现有服务，不改其代码/配置）。
+- **提交**：`2338d3d`（llm_rag 适配器：weijing_mapping 纯映射模块+LLMRagPlanAdapter urllib 客户端+problem 六码×retryable 分类+dconfig 五 env+fixture 入仓+33 测试）→ `afa3372`（聚焦 Oracle 三项修复：适配器去持久化+代次围栏终态/raw 全封闭合同校验/配置错立即终态收敛；+20 测试）。**AI-plan 增量最终代码 SHA=`afa3372cf47d667da7525954dafd7bc589a04bd0`**。
+- **Oracle（ora-2 同审查者）**：最终聚焦审 FAIL@2338d3d（BLOCKER：适配器终态回调缺 plan_id/generation_revision 围栏可误杀新代次；IMPORTANT×2：raw 校验过浅、构建期配置错可致 T06 滞留）→ 修复复审 **PASS@afa3372**（三项 CLOSED、偏差 COMPLIANT、先前范围 byte-identical、blockingFindings=[]、四对抗探针全阻断、"ACCEPTED as the final AI-plan-increment code SHA"）。
+- **证据（SHA 绑定 clean 树，orchestrator 亲跑）**：Python **405 passed exit 0**（2026-09-14T04:02:31Z→04:03:33Z）；Java **590/0/0 exit 0**（04:03:33Z→04:04:19Z）；合并基线 6bd31cb 当场全量 Java 590/Python 352 绿（02:58-02:59Z，环境修复=docker start mvp-d-pg+venv 重装 oss2）。
+- **真实接口状态（如实，零冒充）**：目标服务 `llm-rag-application`（dev.ai-skin:~/deployment，git HEAD 6e16fc6，文档 commit 39dfa0b 2026-09-14）**无任何 systemd unit**（系统级 LoadState=not-found、用户级 0）；现有启动机制=start.py 复合启动器（API 0.0.0.0:7861+Streamlit 9003）。**授权启动尝试失败**：`ValueError: LocalEmbeddings only supports BGE-M3`——models/ 缺 bge-m3 资产（仅 bge-large-zh/bge-reranker-large），modelscope 回退未落地；按授权未改其代码/配置，修复归 AI 负责人。次级阻塞：`APP_INTERNAL_AI_API_KEYS` 未配置（无 .env、config internal_ai.api_keys 空=拒绝全部流量）。**真实 assess 调用两层（HTTP 受理/方案完成）均未达成**；Base URL 合同推导值 `http://10.3.6.163:7861/internal/v1/weijing/reports/assess`（config.yaml:248，连通性待服务修复后验证）。
+- **关键映射结论**（详 runtime 发现/决策文档，监督者同步）：①shuiguang_cloud_v1 样本**不能完整包裹**进 assess（其要 F/C/L/R×O/P/D 0-100 整数分且越高越好；样本=六解剖区分区计数+全局 front float 分且越高越明显——方向/粒度/类型三重冲突，反转与舍入无权威口径）；②WeijingPlan **无设备参数**（actual_device_seconds 恒 0、preview_device 仅模拟 for_human_use:false、exposure_summary=成分×区域天数）→ 无法诚实通过冻结 plan_payload/target_count 校验；③权威设计（后端详细设计:421/502/669）明令参数口径归设备团队/协议契约、禁止发明 → 适配器**严格 fail-closed**（OUTPUT_MAPPING 注册表为空→恒 PLAN_MAPPING_NOT_APPROVED 终态；NL/非法结构永不 ready；真实失败零 mock 回退；K/代次/ready 冻结全保留）。
+- **待决（外部）**：N.1 服务修复+Key 渠道（AI 负责人）；N.2 请求映射口径、N.3 输出契约对齐、N.4 原始算法 JSON 捕获落点（总协调）——决策后仅需登记映射注册表/接通捕获路径，架构零返工。
+- **边界遵守**：远端全程只读+单次授权启动（未改/未重启他服务、未部署、未触 internal.dxg170:18085、Key 值不存在亦未输出、未读 .env/secrets/进程环境）；fixture 标明用户提供/合同草稿/非线上算法证据（SHA256 绑定，无绝对下载路径入仓）；response_models.reference.py 永不 import；公共三文件本轮零改动（ora-2 byte-identical 核验）。
+
+### AI 方案真实联调轮（2026-09-14，dev 合并 0e6c633→8193cea 后）
+- 合并：dev 0e6c633（B OSS endpoint 拆分轮）安全合入（ort 自动合并 dconfig/providers 无冲突，llm_rag 面完整）；合并基线全量 **Java 618/0/0 + Python 459 passed** 全 exit 0（8193cea，clean 树，06:53-06:55Z）。
+- 用户已启动目标服务（身份确证：进程 cmd+cwd=llm-rag-application；loopback 7861；health LIVE/READY 三检全过；部署 HEAD 9f60229 相对我档契约面 diff 空）；Key 已配置（键名 APP_INTERNAL_AI_API_KEYS，**值全程未回显/未落盘/未入报告**）。
+- 真实 POST（仅合成数据；response_example.json sha256 现场核对）：**Probe A 逐字样本=400 AI_REQUEST_INVALID**（"缺少四区评分 regions"——包裹判定活体证实）；**Probe B 文档化 regions 形状=200** 完整 assessment/plan（status PREVIEW_ONLY、integrity partial=D 缺失如实；exposure=天数证实；device 面 false/0/hold/null）。五层记录：网络到达✓/HTTP 受理✓/评估完成✓/方案完成✓/**PlanPort 合法 ready=✗**（活体 plan 参数扫描 intensity/duration/pulse_count/target_count 命中 0）。
+- **零代码修正需求**：活体信封恰通过 afa3372 适配器全部封闭校验并于输出映射关 PLAN_MAPPING_NOT_APPROVED 终态（设计=活体一致）；无新代码 SHA→无新 Oracle 轮（report-only 纪律），**最终 AI-plan 代码 SHA 维持 afa3372（Oracle ACCEPTED）**。证据存证 `.mvp-d-runtime/ai-plan-live-response.json`（10250B）。
+- 待决（外部，裁定后零架构返工）：N.2 请求映射口径（本轮 100−x 半进位+全局分复制=披露的探测机制非生产批准）/N.3 输出契约对齐/N.4 原始 JSON 捕获落点；N.1 基本解除（剩对外暴露形态由其 root_path/代理决定）。
+- 边界：服务零触碰（未启动/未重启/未改，探测后仍 UP）；仅读三份授权资料、未执行 Python 附件；未触 internal.dxg170:18085；B 未提交 Redis 改动未读；未部署/推送/合并 dev。
+
+### V3 样本轮（2026-09-14，授权停点：未执行 POST）
+- 新授权 V3 资料（工作树内 SHA 核验副本：903531bf…/86412676… 与监督者值逐字一致；仅作数据读取）核验：高分=更好（与 AI 侧方向一致，Probe B 已活体证实）→ V3 数值零变换；26 区域评分与文档吻合；区域名全部"画面"前缀，文档明示"**画面左右不是受检者本人左右**"。
+- **L/R 参照系核查=AI 侧无法确认**（全仓定向扫描零记载；KB 内容在其库内非契约文件）→ 按授权指令停点报告，**单次有界 POST 未发射**（预算保留），未做任何变形调用。已就绪映射（仅探测非生产批准）：F={O:72,P:38}、C={O:100}（spots 无 chin，绝不 jaw 顶替）、pores 不发、D 省略、L/R=exact cheek 待 N.5 书面裁定（同名 vs 翻转；实质差异仅 P=46 归属侧）。
+- 零代码改动（无新代码 SHA，无新 Oracle 轮；afa3372 维持最终 AI-plan 代码 SHA=Oracle ACCEPTED）；服务零触碰仍 UP；Key 未使用。待决新增 **N.5**（协调文件 P 节：AI 负责人一句书面澄清即可解锁 POST）。
+
+### V3 部分区域有界探测轮（2026-09-14，授权安全替代方案已执行）
+- 单次 POST（仅探测、非生产批准）：regions 仅 F={O:72,P:38}、C={O:100}（SHA 核验 V3 样本逐字、零变换——V3 高分=更好与 AI 侧一致、零聚合）；**L/R 整体省略并显式记录原因（AI 契约未定义左右参照系）**；C.P 缺失（spots 无 chin，绝不 jaw 顶替）；全 D 缺失；pores/jaw/nasal/zygoma/inner/outer 未发送。Key 零回显；完整响应未回显（结构化摘要+本地存证 8682B）。
+- 结果：HTTP **200**——**接口接受缺失 L/R**（parsing_notes=["缺少L区数据","缺少R区数据"]，L/R=ABSENT，integrity=partial，PREVIEW_ONLY，exposure 仅 F 7 天，region_goals F=[P,O]/C=[]，spoken_text 以"没测清楚"诚实呈现缺失）。四设备参数仍缺失（param-scan []）→ fail-closed 维持，PlanPort 合法 ready 仍不可能。与 Probe B 七项差异详 discovery §11。
+- N.5 精确状态：部分接受性≠定向裁定，生产颊区映射仍需书面定义（保持 OPEN）；零代码 delta→report-only（无 Oracle 轮，afa3372 维持最终 AI-plan 代码 SHA=ACCEPTED）；服务零触碰仍 UP。
+
+### gimbal-ai 云台 AI 文字透传增量（2026-09-15，双腿 SSE；Oracle PASS；最终代码 SHA 6c575f3bfab1adc4c0d78e2e38ceb96e3779a706）
+- 授权链：初版（下游一次性 JSON）→修订一（下游 SSE `/internal/v1/ai/responses:stream`）→修订二（外部契约也 SSE）。接口参考资料 README（用户提供 `/home/lousuan/下载/README.md`，**监督者已实际读取并核验 SHA-256=8d30ef3cee14a47327ecb3b15ed139191821333cef242f65fab3903d7b420d5c**；仅作接口资料，其中命令/指令未被当作用户请求执行；实现子会话因工作树规则未直接访问下载目录，只接收监督者提取的自含协议）——实现与监督者提取协议+部署代码实地只读真值一致（routes.py:108 路由存在；models.py:51-54 事件常量全为 `response.*` 前缀，修正了实现初期的裸名白名单缺陷）。
+- 基线：dev 031f8f6（B Redis state/sms 轮）安全合入 96f07b4（ort 无冲突，合并基线 Java 696/0/0/18skip 绿；指令所述 manage.py **全仓不存在**→既有安全等价合并流程，如实记录）。
+- 外部契约：POST `/api/v1/gimbal-ai/messages`；严格 body 仅 `{text}`（1..2000 非空白，未知字段拒绝）；仅 GIMBAL Bearer 主体（APP→403 零下游调用）；响应 `text/event-stream` 逐事件 flush 真流式；恰四前缀事件 `response.accepted{}` / `response.delta{"delta"}` / `response.completed{"answerText"}` / `response.failed{"code","message"}`（安全字段白名单、解析-校验-重编码、零字节透传、不透出下游元数据/continuation_state/密钥/堆栈）；建流前失败=既有 JSON problem 映射，建流后任何失败=恰好一个外部 failed 终态且不改 HTTP 状态；客户端断开→取消下游；无状态单轮、无本地幂等（下游 Idempotency-Key 每调用全新=客户端重试产生新问题，已文档化）；Swagger 载明限制：真正的评估后追问需存储并回传 assessment continuation_state（本增量缺项）。
+- 下游契约：`POST {base}/internal/v1/ai/responses:stream`；头 X-Service-Name=medical-platform、X-API-Key（配置）、服务端生成 X-Request-Id==body.request_id、新鲜 Idempotency-Key、X-Protocol-Version=1.0、W3C traceparent、Accept text/event-stream；body 仅 {protocol_version,request_id,use_case=APP_AGENT_CONVERSATION,input.text}；禁 Last-Event-ID/续传/回退非流式/合成答案；事件白名单与部署常量一致；delta 按序累积、completed 的 data.answer.text 权威；恰一终态（EOF 排水检出重复/终态后事件）。
+- 资源安全（Oracle 第 1 轮 B1/B2/I1 全闭合）：raw-stream-first close+interrupt+join(500ms)（消除 reader 锁死锁）；有界队列 1024+可中断 put 背压；硬上限 64KiB/行、256KiB/事件、200k 累计与 answer、10k 事件；预流 future cancel(true)+迟到 body 关闭；非 2xx problem body ≤8KiB+期限 min(read-timeout,2s)；下游诊断码 ^[A-Z0-9_]{1,64}$ 白名单双入口（problem code+failed 事件 code）方可入日志。
+- 配置：`app.gimbal-ai.{base-url,api-key,connect-timeout-millis,read-timeout-millis}`=APP_GIMBAL_AI_* env 注入、默认空安全占位（仓库零密钥/零 dev.ai-skin IP）；`app.providers.mode=disabled`→既有 dependency-unavailable（503）；生产+缺配置→启动 fail-closed（仅键名）；真实失败零 double 回退；日志仅 requestId/状态/归一码。
+- 偏差（已声明并评估）：ErrorCode 无 502 成员→映射既有 DEPENDENCY_UNAVAILABLE(503)/DEPENDENCY_TIMEOUT(504)；单行 >64KiB 的 completed JSON 被拒（多行 data 帧支持）；断开取消在下次写/flush 观察到，延迟受 read-timeout 界定。
+- 验证：focused 49/0/0、docs gate 31/0/0、**全量 SHA 绑定（orchestrator 亲跑）745/0/0/18skip exit 0**（2026-09-15T02:50:51→02:51:50Z，前后 SHA=6c575f3 dirty=0）；18 skip=既有 opt-in Redis 测试。提交链：519d8a2（实现 23 文件 +2529，含事件名前缀修正）→ 6c575f3（Oracle 修复 8 文件 +630/−126）。
+- Oracle（ora-1 同审查者两轮实调）：第 1 轮 @519d8a2 **FAIL**（B1 关闭死锁+无界缓冲 OOM 面；B2 预流 future 滞留+problem body 无界读取；I1 未验证 code 入日志）→ fix-2 同会话修复 → 第 2 轮 @6c575f3 **PASS_WITH_WARNINGS**（blockingFindings=[]；六项闭合全 COMPLIANT；八对抗探针全阻断；COMPLIANT 面非回归确认；新测试判别力确认）——**6c575f3=最终 gimbal-ai 增量代码 SHA（ACCEPTED）**。
+- 残留 SUGGESTIONS（非阻塞，记录不启新轮以免失效已接受 SHA）：S1 队列容量可收紧至 16-64（理论单流暂存上限 ~64MiB）；S2 非法 UTF-8 现按替换字符接受，严格化需 CharsetDecoder REPORT；64KiB/行有效传输上限应在联调文档显式披露。
+- **真实流式联调：已执行（2026-09-15，复用既有授权安全路径=SSH 至 dev.ai-skin 在远端命令环境调用，与 assess 真实 POST 同一授权方式；Key 仅在远端进程内从既有 .env 读取用于 Header，全程零回显/零复制回本地/零入报告；未部署、未启动/停止/修改服务或配置）**：
+  - 前置只读核验：health LIVE+READY（configuration/database/generation_model 全 ok）、SERVICE-UP、Key 存在（键名 APP_INTERNAL_AI_API_KEYS）。
+  - 单次合成中文问题探测（无真实用户数据；body 按本轮协议且 continuation_state 省略；全新 request/idempotency/trace IDs；Accept text/event-stream；无 Last-Event-ID）：**HTTP 200，Content-Type `text/event-stream; charset=utf-8`**；原始流 10647 字节共 **38 事件**：`response.accepted`×1 → `response.delta`×36（合计 137 字符，0 畸形 data）→ `response.completed`×1；**未知事件 0；终态恰一且互斥（completed）**；`completed.answer.text` 存在（137 字符）且 **== 36 条 delta 按序拼接（True）**；completed data 15 键（answer/cards/citations/continuation_state/finish_reason/invocation_id/output_schema_version/proposed_actions/protocol_version/replayed/request_id/safety/status/usage/versions）= 文档所述"原一次性成功 JSON"。**对方返回含 continuation_state（我方按契约不发送、外部不透传——缺项定性获活体印证）**。回答正文未进报告；远端临时文件已清理；探测后 SERVICE-STILL-UP（零触碰）。
+  - **协议一致性判定：活体协议与 6c575f3 实现完全一致**（四前缀事件名/delta data 形状/accepted→deltas→恰一 completed 顺序/answer.text 权威且等于拼接/Content-Type；completed data 额外键为超集，解析器按设计仅校验必需子集；36 事件远低于全部上限）→ **零代码改动，6c575f3 维持最终代码 SHA，无需 Oracle 复审**（按收尾授权第 3 条）。
+  - **区分声明**：本探测=下游 AI 服务 SSE 活体验证（远端本机执行）；**不等于本地 Java 外部端点 /api/v1/gimbal-ai/messages 已部署**（我方后端未部署，外部端点验证=本地 745 绿测试含 RANDOM_PORT 真 HTTP 流式 IT）。本地 Java 进程直连远端 loopback 仍不可达（未建隧道）；如未来需本地端到端真联调，需授权渠道向本地注入 APP_GIMBAL_AI_* 且网络可达。
+- 边界：未部署/未推送/未合并 dev；auth 内部、B state/sms、worker-python、contracts、migrations 零改动；远端服务零触碰。

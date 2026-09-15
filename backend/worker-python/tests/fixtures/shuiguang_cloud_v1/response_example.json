@@ -1,0 +1,232 @@
+{
+  "schema_version": "shuiguang_cloud_v1",
+  "task_id": "demo_001",
+  "status": "success",
+  "main_image_id": "image_02",
+  "views": {
+    "left": "image_03",
+    "front": "image_02",
+    "right": "image_01"
+  },
+  "results": {
+    "pores": {
+      "name": "毛孔",
+      "score": 52.5,
+      "severity": "中度",
+      "score_view": "front",
+      "score_basis": "v2_visible_pores",
+      "total_count": {
+        "left": 538,
+        "front": 1525,
+        "right": 553
+      },
+      "regions": [
+        {
+          "region": "forehead",
+          "name": "额部",
+          "left": null,
+          "front": 802,
+          "right": null,
+          "primary_view": "front",
+          "primary_count": 802,
+          "supplementary_views": []
+        },
+        {
+          "region": "nose",
+          "name": "鼻部",
+          "left": 7,
+          "front": 210,
+          "right": 2,
+          "primary_view": "front",
+          "primary_count": 210,
+          "supplementary_views": []
+        },
+        {
+          "region": "left_cheek",
+          "name": "左面颊",
+          "left": null,
+          "front": 263,
+          "right": 551,
+          "primary_view": "right",
+          "primary_count": 551,
+          "supplementary_views": []
+        },
+        {
+          "region": "right_cheek",
+          "name": "右面颊",
+          "left": 531,
+          "front": 250,
+          "right": null,
+          "primary_view": "left",
+          "primary_count": 531,
+          "supplementary_views": []
+        },
+        {
+          "region": "chin",
+          "name": "下巴",
+          "left": null,
+          "front": 0,
+          "right": 0,
+          "primary_view": "front",
+          "primary_count": 0,
+          "supplementary_views": []
+        }
+      ],
+      "unassigned_count": {
+        "left": 0,
+        "front": 0,
+        "right": 0
+      }
+    },
+    "spots": {
+      "name": "可见色斑",
+      "score": 59.9,
+      "severity": "中度",
+      "score_view": "front",
+      "score_basis": "v2_visible_spots_component",
+      "total_count": {
+        "left": 68,
+        "front": 59,
+        "right": 63
+      },
+      "regions": [
+        {
+          "region": "forehead",
+          "name": "额部",
+          "left": null,
+          "front": 34,
+          "right": null,
+          "primary_view": "front",
+          "primary_count": 34,
+          "supplementary_views": []
+        },
+        {
+          "region": "nose",
+          "name": "鼻部",
+          "left": 0,
+          "front": 4,
+          "right": 0,
+          "primary_view": "front",
+          "primary_count": 4,
+          "supplementary_views": []
+        },
+        {
+          "region": "left_cheek",
+          "name": "左面颊",
+          "left": null,
+          "front": 14,
+          "right": 63,
+          "primary_view": "right",
+          "primary_count": 63,
+          "supplementary_views": []
+        },
+        {
+          "region": "right_cheek",
+          "name": "右面颊",
+          "left": 68,
+          "front": 7,
+          "right": null,
+          "primary_view": "left",
+          "primary_count": 68,
+          "supplementary_views": []
+        },
+        {
+          "region": "chin",
+          "name": "下巴",
+          "left": null,
+          "front": 0,
+          "right": 0,
+          "primary_view": "front",
+          "primary_count": 0,
+          "supplementary_views": []
+        }
+      ],
+      "unassigned_count": {
+        "left": 0,
+        "front": 0,
+        "right": 0
+      }
+    },
+    "surface_gloss": {
+      "name": "表面油光",
+      "score": 17.6,
+      "severity": "未见明显",
+      "score_view": "front",
+      "score_basis": "v2_oiliness_tendency",
+      "total_count": {
+        "left": 0,
+        "front": 27,
+        "right": 1
+      },
+      "regions": [
+        {
+          "region": "forehead",
+          "name": "额部",
+          "left": null,
+          "front": 1,
+          "right": null,
+          "primary_view": "front",
+          "primary_count": 1,
+          "supplementary_views": []
+        },
+        {
+          "region": "nose",
+          "name": "鼻部",
+          "left": 0,
+          "front": 18,
+          "right": 0,
+          "primary_view": "front",
+          "primary_count": 18,
+          "supplementary_views": []
+        },
+        {
+          "region": "left_cheek",
+          "name": "左面颊",
+          "left": null,
+          "front": 1,
+          "right": 1,
+          "primary_view": "right",
+          "primary_count": 1,
+          "supplementary_views": []
+        },
+        {
+          "region": "right_cheek",
+          "name": "右面颊",
+          "left": 0,
+          "front": 3,
+          "right": null,
+          "primary_view": "left",
+          "primary_count": 0,
+          "supplementary_views": [
+            "front"
+          ]
+        },
+        {
+          "region": "perioral",
+          "name": "口周",
+          "left": null,
+          "front": 4,
+          "right": null,
+          "primary_view": "front",
+          "primary_count": 4,
+          "supplementary_views": []
+        },
+        {
+          "region": "chin",
+          "name": "下巴",
+          "left": 0,
+          "front": null,
+          "right": 0,
+          "primary_view": "right",
+          "primary_count": 0,
+          "supplementary_views": []
+        }
+      ],
+      "unassigned_count": {
+        "left": 0,
+        "front": 0,
+        "right": 0
+      }
+    }
+  }
+}

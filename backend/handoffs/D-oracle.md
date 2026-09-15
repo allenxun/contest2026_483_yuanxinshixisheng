@@ -80,3 +80,15 @@ claim.py/expire.py/renew.py/__main__.py/health.py/conftest.py/system_echo **全�
 6. 跨包端口冲突（A test_health 原 18081 vs E 活体）经 L.2 授权端口 0 机制根治（K 节通报在案）。
 7. 94 业务场景归 E 独立验收；媒体业务读取待 B 统一 MediaAccessPolicy（当前 A deny-all，E2E 媒体 GET 404 为预期）。
 8. 生产接入限制：三提供方均替身证明链路；阿里云适配器仅边界（全方法 ProviderNotActivated，无伪造效果）；指标/能力基线为文档化占位待设备团队批准；worker 生产存储仍 FilesystemStorageDouble（A 已披露，真实 OSS 归总协调/A）。
+
+## AI 方案增量轮（2026-09-14，第 12-13 次实调；审查者 ora-2 同会话）
+
+| # | 轮 | 范围 | reviewedCommit | 结论 | 发现→闭合 |
+|---|---|---|---|---|---|
+| 12 | 最终聚焦审 | llm_rag 适配器增量 | `2338d3d` | FAIL | BLOCKER：适配器终态回调 _MARK_PLAN_FAILED_BY_ASSESSMENT 仅按 assessment_id+status，无 plan/revision 围栏→并发代次翻转可误杀新代次；IMPORTANT①raw 校验过浅（spots×v2_oiliness_tendency 竟通过）；IMPORTANT②构建期配置错→可重试→T06 可滞留。其余 COMPLIANT（fail-closed 核心/分类矩阵/恰 9 文件非回归/红线语义/卫生；探针：未批准到 ready 阻断✓ NL 阻断✓ key 泄漏阻断✓，嵌套畸形 raw=Partial bypass）→ 闭合于 `afa3372` |
+| 13 | 复审 | 同上 | `afa3372` | **PASS** | 三项 CLOSED：适配器去持久化（providers 零 SQL 面）+类型化异常→plan_generate 既有 fenced _terminal 路由+_mark_plan_failed_tx 0 行→StaleGeneration（旧代次终态整体回滚，翻转测试 gen-1 零触碰）；raw 全封闭合同（逐项 score_basis/严格计数/跨字段不变式/逐视图对账，fixture 原样过+14 负例网络前终态）；配置错双解析点→立即 fenced PLAN_PROVIDER_CONFIG（T06/T12 原子、单 attempt、不滞留；aliyun_llm 不变）。偏差 COMPLIANT；先前范围 byte-identical（diff 空 exit0）；blockingFindings=[]；四探针全阻断（含前次 Partial bypass）。**afa3372=AI-plan 增量最终接受 SHA**。真实调用阻塞披露核可（启动失败=其 BGE-M3 资产缺失，只读未修；无假成功主张，外部依赖缺口不 invalidate fail-closed 审查） |
+
+- D 包门禁累计终态：**M3=PASS@dc955c0（六轮）；M4+公共接口=PASS-with-notes CONFIRMED-FINAL@dc955c0；AI-plan 增量=PASS@afa3372**。链：ccee6e2→6b4f9ed→b2d4a79→c051577→4ac4835→c5b78d8→dc955c0→（dev 合并 6bd31cb，B/C 各自 oracle 轮覆盖+合并后全量 590/352 绿）→2338d3d→afa3372→本报告提交。
+
+### 真实联调轮备注（2026-09-14）
+- dev 0e6c633 合并后（8193cea）全量 Java 618/Python 459 绿；真实 POST 双探测完成（A=400 契约化拒绝活体证实包裹判定；B=200 完整 assessment/plan，PREVIEW_ONLY/partial）。活体 WeijingPlan 设备参数扫描命中 0 → fail-closed 维持；活体信封通过 afa3372 适配器全部封闭校验 → **零代码差异，最终 AI-plan 代码 SHA 维持 afa3372（第 13 轮 PASS/ACCEPTED），本轮无新代码提交（仅报告），按 report-only 纪律不另起 Oracle 轮**。

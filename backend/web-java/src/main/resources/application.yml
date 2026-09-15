@@ -119,6 +119,15 @@ app:
       fixed-code: ${APP_DOUBLE_SMS_CODE:123456}
     face:
       classification: ${APP_DOUBLE_FACE:MATCHED}
+  gimbal-ai:
+    # 云台 AI 文本透传（POST /api/v1/gimbal-ai/messages，SSE 响应 → AI 服务
+    # /internal/v1/ai/responses:stream）。安全占位：默认空 = 未配置 → 非生产运行时 503
+    # DEPENDENCY_UNAVAILABLE；生产信号下启动 fail-closed。真实 base-url 与 api-key 一律由
+    # 部署环境经 env 注入，绝不写入仓库。
+    base-url: ${APP_GIMBAL_AI_BASE_URL:}
+    api-key: ${APP_GIMBAL_AI_API_KEY:}
+    connect-timeout-millis: ${APP_GIMBAL_AI_CONNECT_TIMEOUT_MILLIS:3000}
+    read-timeout-millis: ${APP_GIMBAL_AI_READ_TIMEOUT_MILLIS:10000}
 
 logging:
   pattern:
