@@ -790,8 +790,52 @@ Oracle 判定**安全性不受影响**，并给出可选修法：为两个 guard
 断言最终诊断是 `app.providers.mode=doubles is not allowed`。
 
 **交付限制（Oracle 确认继续作为限制、不需再发代码重绑定轮次）**：
-①**L3 仍未执行**——应由根在真实私有 Redis 配置下执行一次作为**部署验收证据**（Oracle 明确：
-这不是再次代码验证，也**不阻塞当前整合**）；②`InMemorySessionDouble` 的同构竞态不修，
+①~~**L3 仍未执行**~~ → **已解除**：根已于 `de424f1` 在真实私有 Redis 配置下执行 L3 并**通过**（`Tests run: 1, Failures: 0, Errors: 0, Skipped: 0`，`redisLeftover=0`、`accountsDeleted=1`），完整证据、SHA 绑定依据与如实边界见 **§19**。原判定为：应由根执行一次作为**部署验收证据**
+（Oracle 明确：这不是再次代码验证，也不阻塞当前整合）——该动作现已完成；§2）②③ 三项限制继续有效。
 须持续披露其并发语义不等价、不能用它证明 refresh/logout 竞争安全；③生产 Redis 的
 `management.health.redis.enabled` 必须显式开启，且独立实例 / `maxmemory` / `noeviction` / 容量告警
 应定为**生产要求**而非建议。
+
+## 19. 根侧真实 L3 验收证据（root-executed；本文档此前标注的"L3 未执行"限制至此解除）
+**执行方**：根（root），使用其**私有** `application-local.yml`——该文件的**路径与内容均不记录于本文档**，
+其中 `app.state.provider: redis`、Redis `database: 5`（标准 `spring.data.redis.*` 绑定）。
+**本节不含任何地址、主机、端口、账号、口令、密钥、token、手机号或验证码。**
+
+### 19.1 实测结果（根提供的原文数字）
+- 入口：`cn.yuanxin.mvp.web.state.RedisLoginLiveAcceptanceIT`
+- **`Tests run: 1, Failures: 0, Errors: 0, Skipped: 0`，`BUILD SUCCESS`**
+- 清理输出：**`redisLeftover=0`、`destinationsDeleted=0`、`accountsDeleted=1`**
+- 执行时代码 HEAD：**`de424f1de3eef81d9fa2799cf32129887d439cbb`**
+
+### 19.2 该证据绑定到当前交付 SHA 的依据（orchestrator 已用 git 实测，非推断）
+根在 `de424f1` 上执行，而本文档当前 HEAD 为其后的 report-only 提交 `031f8f6`（更正我自己造成的
+容器复现命令与行尾空白两处缺陷）。三者**代码逐字节相同**，实测：
+- `git diff 28543fa de424f1 -- <全部代码目录>` = **0 文件**；
+- `git diff de424f1 031f8f6 -- <全部代码目录>` = **0 文件**；
+- `git diff 28543fa HEAD -- <全部代码目录>` = **0 文件**；
+- `git rev-parse <sha>:backend/web-java` 三个 SHA 的**子树 tree hash 完全相同**。
+⇒ 该 L3 证据同时绑定 **Oracle 第二十八轮 PASS-with-notes 所审的代码 SHA `28543fa`** 与当前 HEAD `031f8f6`；
+`de424f1`→`031f8f6` 之间只有本文档一个文件变化，**不需要重跑 L3**。
+
+### 19.3 该证据证明了什么（`Skipped: 0` 是关键）
+`Skipped: 0` 表明**三重 opt-in 全部满足、测试真实执行**（任一缺失都会整类跳过），因此下列断言均为实测：
+- 运行期确认 `app.state.provider=redis` 且 `SessionProvider` bean 是 `RedisSessionProvider`
+  （防呆生效：**不是**"以为在用 Redis、实际走内存"的假验收）；
+- 完整 HTTP 链路走通：f01 发码 → f02 建会话 → 用 access token 访问已认证端点 →
+  refresh 后**旧 access 立即 401** → `DELETE /api/v1/auth/sessions/current` 得 **204** → 随后 **401**；
+- 按独立随机前缀 `SCAN`（**非 `KEYS`**）断言登录后有会话键、登出后为 0；
+- `redisLeftover=0` ⇒ 清理后复核通过（`L3Cleanup` 的"任一步骤失败即必 FAIL"判定未触发）；
+- `accountsDeleted=1` ⇒ 测试确实创建了一个真实账号行并把它清理干净；
+  `destinationsDeleted=0` ⇒ 登录链路本就不创建通知目标，符合预期；
+- **未发送任何真实短信**：L3 经 `@DynamicPropertySource` 强制 `app.sms.provider=doubles`
+  并在 f01 前硬断言注入的是 `SmsCodeDouble`（Oracle r28 已确认"不存在发送真实短信的路径"），
+  因此根的真实阿里云短信配置**不会**被该入口触发。
+
+### 19.4 该证据**不**证明什么（如实边界，不得夸大）
+- 不证明**多实例/跨进程**行为：L3 是单 JVM 内的 `@SpringBootTest(RANDOM_PORT)`。跨实例一致性由 L2 的
+  `RedisSessionConcurrencyIT`/`RedisSmsStateStoreIT`（两个独立 provider 实例共享同一 Redis）覆盖。
+- 不证明**真实阿里云短信 + 真实 Redis** 的组合：按设计 L3 强制 doubles，真实短信联调属人工流程。
+- 不证明 **Redis Cluster** 可用（本轮明确不支持，配 `cluster.nodes` 启动期即拒）。
+- 不证明生产运维前提已落实：`management.health.redis.enabled` 需显式开启、独立实例 / `maxmemory` /
+  **`noeviction`** / 容量告警需按 §18.4 配置。
+- 不改变 `InMemorySessionDouble` 的既有竞态披露（仅测试用、本轮不修、不得用它证明竞争安全）。
