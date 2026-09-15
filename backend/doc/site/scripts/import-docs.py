@@ -21,31 +21,42 @@ def parse(path):
    g=c.find('mxGeometry')
    if c.get('vertex')=='1':
     x,y=abspos(c);parent=c.get('parent','1');ptext=plain(cs[parent].get('value','')) if parent in cs else ''
-    nodes.append({'id':c.get('id'),'text':plain(c.get('value','')),'x':x,'y':y,'w':float(g.get('width',0)),'h':float(g.get('height',0)),'style':st,'parent':parent,'lane':ptext if parent.startswith('lane') else '', 'apis':list(dict.fromkeys(re.findall(r'M[1-5]-A\d{2}',c.get('value',''))))})
+    nodes.append({'id':c.get('id'),'text':plain(c.get('value','')),'x':x,'y':y,'w':float(g.get('width',0)),'h':float(g.get('height',0)),'style':st,'parent':parent,'lane':ptext if parent.startswith('lane') else '', 'apis':list(dict.fromkeys(re.findall(r'(?:M[1-5]|B0)-A\d{2}',c.get('value',''))))})
    if c.get('edge')=='1':
     edges.append({'id':c.get('id'),'source':c.get('source'),'target':c.get('target'),'text':plain(c.get('value','')),'style':st,'points':[{'x':float(p.get('x',0)),'y':float(p.get('y',0))} for p in c.findall('mxGeometry/Array/mxPoint')]})
   pages.append({'id':page.get('name')[:2],'name':page.get('name'),'width':float(model.get('pageWidth')),'height':float(model.get('pageHeight')),'nodes':nodes,'edges':edges})
  return pages
 md=(source/'后端API接口设计-V1-五模块与流程对应.md').read_text();refs={}
 for line in md.splitlines():
- if re.match(r'^\| M[1-5]-A\d{2}',line):
+ if re.match(r'^\| (?:M[1-5]|B0)-A\d{2}',line):
   parts=[p.strip() for p in line.split('|')[1:-1]];refs[parts[0]]=parts[-1]
 apis=[]
-for m in re.finditer(r'^#### (M[1-5]-A\d{2}) · ([^\n]+)\n(.*?)(?=^### |^#### |^## |\Z)',md,re.M|re.S):
+for m in re.finditer(r'^#### ((?:M[1-5]|B0)-A\d{2}) · ([^\n]+)\n(.*?)(?=^### |^#### |^## |\Z)',md,re.M|re.S):
  i,title,body=m.groups();fields=dict(re.findall(r'^- \*\*(.+?)\*\*：(.+)$',body,re.M));route=re.search(r'`(GET|POST|PUT|DELETE|PATCH) (.*?)`',fields['接口']);assert route,i
- apis.append({'id':i,'module':i[:2],'title':title,'method':route.group(1),'path':route.group(2),'caller':fields.get('调用方',''),'input':fields.get('输入要素',''),'output':fields.get('输出要素',''),'rules':fields.get('关键规则',''),'flowNote':fields.get('流程对应',''),'refs':refs[i]})
-assert len(apis)==27
+ apis.append({'id':i,'module':i.split('-')[0],'title':title,'method':route.group(1),'path':route.group(2),'caller':fields.get('调用方',''),'input':fields.get('输入要素',''),'output':fields.get('输出要素',''),'rules':fields.get('关键规则',''),'flowNote':fields.get('流程对应',''),'refs':refs[i]})
+assert len(apis)==36, len(apis)
+# Java ApiDocsCatalog is forced by ApiDocsCoverageIT to match the actual generated /v3/api-docs.
+# Comparing the website list with every catalog operation therefore forms a build-time OpenAPI parity gate.
+catalog_dir=source.parent/'web-java/src/main/java/cn/yuanxin/mvp/web/docs/catalog'
+catalog_ops=set()
+for catalog in catalog_dir.glob('*.java'):
+ text=catalog.read_text()
+ catalog_ops.update(re.findall(r'"(GET|POST|PUT|DELETE|PATCH) (/api/v1/[^"? ]+)',text))
+web_ops={(a['method'],a['path'].split('?',1)[0]) for a in apis}
+assert catalog_ops==web_ops, {'missingFromWeb':sorted(catalog_ops-web_ops),'missingFromCatalog':sorted(web_ops-catalog_ops)}
+data_parity={'generatedOperationCount':len(catalog_ops),'webOperationCount':len(web_ops),'matched':catalog_ops==web_ops}
 sections=[]
 for match in re.finditer(r'^## ([^\n]+)\n(.*?)(?=^## |\Z)',md,re.M|re.S):
  title,body=match.groups()
  if title.startswith('3.'):continue
  sections.append({'title':title,'markdown':body.strip()})
-data={k:parse(source/v) for k,v in files.items()};data['apis']=apis;data['sections']=sections
+data={k:parse(source/v) for k,v in files.items()};data['apis']=apis;data['sections']=sections;data['apiParity']=data_parity
 mods=[];ns=data['modules'][0]['nodes'];byid={n['id']:n for n in ns}
 for i in range(1,6):
  id=f'M{i}';name=byid[id]['text'].split('\n')[0][3:];mods.append({'id':id,'name':name,'parts':[byid[f'{id}-part{k}']['text'] for k in range(3)],'apis':[a['id'] for a in apis if a['module']==id]})
 data['moduleCards']=mods
-extra_files={'detailedDesign':'后端详细设计-V1-MVP.md','faceResearch':'人脸服务调研与推荐方案-V1-MVP.md','checklist':'测试场景清单-V1-五模块与双控制.md','decisions':'测试需求决策记录.md','dataArchitecture':'数据架构设计-V1-五模块-MVP.md','technicalArchitecture':'技术架构设计-V1-MVP.md','runtimeNotes':'运行组件说明.md'}
+data['foundationApis']=[a['id'] for a in apis if a['module']=='B0']
+extra_files={'detailedDesign':'后端详细设计-V1-MVP.md','faceResearch':'人脸服务调研与推荐方案-V1-MVP.md','checklist':'测试场景清单-V1-五模块与双控制.md','decisions':'测试需求决策记录.md','dataArchitecture':'数据架构设计-V1-五模块-MVP.md','technicalArchitecture':'技术架构设计-V1-MVP.md','runtimeNotes':'运行组件说明.md','integrationStatus':'接口联调与集成状态-2026-09-15.md'}
 for key,name in extra_files.items(): data[key]=(source/name).read_text()
 data['tableCount']=len(re.findall(r'^### T\d+ `',data['dataArchitecture'],re.M))
 assert data['tableCount']==14
@@ -68,4 +79,4 @@ manifest={name:hashlib.sha256((source/name).read_bytes()).hexdigest() for name i
 apiids={a['id'] for a in apis}
 for kind in ['usecases','flows']:
  found={a for p in data[kind] for n in p['nodes'] for a in n['apis']};assert found==apiids,(kind,apiids-found)
-print(f'Imported {len(mods)} modules, {len(data["usecases"])} use-case pages, {len(data["flows"])} flows, and {len(apis)} APIs. Every source vertex and edge retained.')
+print(f'Imported {len(mods)} modules, {len(data["usecases"])} use-case pages, {len(data["flows"])} flows, and {len(apis)} APIs; OpenAPI/catalog parity matched. Every source vertex and edge retained.')

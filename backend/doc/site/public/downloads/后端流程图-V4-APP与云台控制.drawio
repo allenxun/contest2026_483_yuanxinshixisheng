@@ -1,4 +1,3 @@
-<?xml version='1.0' encoding='utf-8'?>
 <mxfile host="Electron" compressed="false" agent="Codex" pages="7">
   <diagram id="00-overview" name="00 · 总流程：APP 与云台两条护理路径">
     <mxGraphModel grid="1" gridSize="10" page="1" pageWidth="2000" pageHeight="3860" pageScale="1" connect="1" arrows="1">
@@ -1248,6 +1247,98 @@
         </mxCell>
         <mxCell id="app_lifecycle_note" value="锁屏、切到其他 APP、APP 被关闭：期望停止，但能否及时停止由客户端评估，本版暂不展开。" vertex="1" parent="1" style="text;html=1;whiteSpace=wrap;align=left;fontFamily=Microsoft YaHei;fontSize=19;fontStyle=1;strokeColor=none;fillColor=none;">
           <mxGeometry as="geometry" x="65" y="6010" width="1870" height="95" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="integration-flows" name="08 · 流式联调与基础协议">
+    <mxGraphModel dx="1700" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="测肤播报、文本追问、方案生成与基础协议" style="text=1;html=1;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="30" width="1560" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sms" value="B0-A01&#10;短信挑战" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="70" y="120" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="session" value="B0-A02&#10;APP 会话" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="330" y="120" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="refresh" value="B0-A03&#10;刷新" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="590" y="120" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="logout" value="B0-A04&#10;退出" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="850" y="120" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="media" value="B0-A05&#10;媒体读取" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="120" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="echo_submit" value="B0-A06&#10;echo 入队" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="70" y="280" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="echo_query" value="B0-A07&#10;echo 查询" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="350" y="280" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="upload" value="M3-A01&#10;三视角上传" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="70" y="500" width="220" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="worker" value="Worker&#10;测肤 provider double" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="350" y="500" width="260" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="report_ready" value="报告写 PG&#10;report_ready" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="680" y="500" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="narration_request" value="M3-A07&#10;播报请求" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="990" y="500" width="220" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="narration_stream" value="start → delta×2 → done&#10;设备逐句 TTS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="1270" y="500" width="260" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="stop" value="停止：关闭 SSE&#10;清空端侧 TTS 队列&#10;不取消分析" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="690" width="330" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="plan" value="报告 JSON → Worker&#10;AI 方案 API → 方案 PG" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="70" y="720" width="430" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="chat_request" value="M2-A09&#10;云台文本" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="570" y="720" width="220" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="chat_stream" value="Java → llm-rag SSE&#10;→ 云台" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="850" y="720" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="e0" value="验证码" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="sms" target="session">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="轮换" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="session" target="refresh">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="撤销" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="refresh" target="logout">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="Worker 完成" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="echo_submit" target="echo_query">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="PG 任务" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="upload" target="worker">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="发布" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="worker" target="report_ready">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="就绪后" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="report_ready" target="narration_request">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="SSE" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="narration_request" target="narration_stream">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="用户停止" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="narration_stream" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="异步" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="report_ready" target="plan">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="流式转发" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="chat_request" target="chat_stream">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

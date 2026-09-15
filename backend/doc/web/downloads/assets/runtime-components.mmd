@@ -1,16 +1,17 @@
 flowchart LR
     APP[APP] -->|HTTPS| NG[Nginx]
     G[云台] -->|HTTPS| NG
-    NG -->|HTTP 内网转发| WEB[Java Web 后端进程]
+    NG -->|HTTP 内网转发| WEB[Java Web 后端进程 · 36 个操作]
     WEB -->|短事务 / 单表查询| PG[(PostgreSQL · 14 表)]
+    WEB -->|会话 / refresh / 短信状态| REDIS[(Redis · 已真实接入)]
     WEB -->|原图与核验图上传 / 受控读取| OSS[(私有 OSS)]
     WORKER[Python Worker 进程] -->|领取任务 / 版本校验写回| PG
     WORKER -->|读取原图 / 保存结果图| OSS
-    WEB -->|当前人脸核验| FACE[人脸算法服务 · 待选]
+    WEB -->|当前人脸核验| FACE[face-insightface-server · 待完整 E2E]
     WORKER -->|身份归档 / 照片质量| FACE
-    WORKER -->|测肤分析| SKIN[测肤算法服务 · 待选]
-    WORKER -->|生成候选方案| LLM[大模型服务 · 待选]
-    WORKER -->|异常消息投递| PUSH[推送通道 · 待选]
+    WORKER -->|测肤分析| SKIN[测肤 provider · Mock]
+    WORKER -->|生成候选方案| LLM[llm-rag · 待完整 E2E]
+    WORKER -->|异常消息投递| PUSH[阿里移动推送 · 未接入]
     PUSH -->|通道推送| APP
     APP -->|本地控制| DEVICE[微晶]
     G -->|本地控制与追踪| DEVICE

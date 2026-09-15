@@ -1,4 +1,3 @@
-<?xml version='1.0' encoding='utf-8'?>
 <mxfile host="app.diagrams.net" version="24.7.17" type="device">
   <diagram id="p1" name="01 · 五模块职责分解">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="2180" pageHeight="1420" dx="2180" dy="1420">
@@ -44,7 +43,7 @@
         <mxCell id="M2-part2" value="&lt;b&gt;云台在线监测&lt;/b&gt;&lt;br&gt;&lt;br&gt;心跳、休眠、离线提醒" vertex="1" parent="M2" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;">
           <mxGeometry as="geometry" x="15" y="355" width="300" height="115" />
         </mxCell>
-        <mxCell id="M2-api" value="对外 HTTP API：8 个&lt;br&gt;M2-A01—M2-A08" vertex="1" parent="M2" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=15;">
+        <mxCell id="M2-api" value="对外 HTTP API：9 个&lt;br&gt;M2-A01—M2-A09" vertex="1" parent="M2" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=15;">
           <mxGeometry as="geometry" x="15" y="500" width="300" height="110" />
         </mxCell>
         <mxCell id="M3" value="&lt;b&gt;M3 测肤任务与报告&lt;/b&gt;&lt;br&gt;原 M3" vertex="1" parent="system" style="swimlane;startSize=75;horizontal=1;html=1;whiteSpace=wrap;fontFamily=Microsoft YaHei;fontSize=18;fillColor=#eaf2ff;swimlaneFillColor=#ffffff;strokeColor=#688abb;strokeWidth=2;">
@@ -59,7 +58,7 @@
         <mxCell id="M3-part2" value="结果获取与恢复&lt;br&gt;APP 按授权查询历史&lt;br&gt;云台只取本次，重启可恢复" vertex="1" parent="M3" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#eaf2ff;strokeColor=#688abb;strokeWidth=1.5;spacing=14;align=left;">
           <mxGeometry as="geometry" x="15" y="355" width="300" height="115" />
         </mxCell>
-        <mxCell id="M3-api" value="对外 HTTP API：6 个&lt;br&gt;M3-A01—M3-A06" vertex="1" parent="M3" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=15;">
+        <mxCell id="M3-api" value="对外 HTTP API：7 个&lt;br&gt;M3-A01—M3-A07" vertex="1" parent="M3" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=15;">
           <mxGeometry as="geometry" x="15" y="500" width="300" height="110" />
         </mxCell>
         <mxCell id="M4" value="&lt;b&gt;M4 护理管理&lt;/b&gt;&lt;br&gt;原 M4＋M5＋M6" vertex="1" parent="system" style="swimlane;startSize=75;horizontal=1;html=1;whiteSpace=wrap;fontFamily=Microsoft YaHei;fontSize=18;fillColor=#eaf6ee;swimlaneFillColor=#ffffff;strokeColor=#72a17f;strokeWidth=2;">
@@ -92,7 +91,7 @@
         <mxCell id="M5-api" value="&lt;b&gt;对外 HTTP API：1 个&lt;/b&gt;&lt;br&gt;M5-A01&lt;br&gt;详见配套接口文档" vertex="1" parent="M5" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;fontSize=15;">
           <mxGeometry as="geometry" x="15" y="500" width="320" height="110" />
         </mxCell>
-        <mxCell id="uses-title" value="&lt;b&gt;各模块对外 HTTP 入口&lt;/b&gt; · 共 27 个；方法、路径、请求与响应详见配套文档" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=20;spacing=0;">
+        <mxCell id="uses-title" value="&lt;b&gt;各模块对外 HTTP 入口&lt;/b&gt; · M1—M5 共 29 个，另有 B0 7 个；方法、路径、请求与响应详见配套文档" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=20;spacing=0;">
           <mxGeometry as="geometry" x="55" y="965" width="2060" height="40" />
         </mxCell>
         <mxCell id="u0" value="&lt;b&gt;M1 · 3 个&lt;/b&gt;" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;align=left;">
@@ -195,6 +194,41 @@
         </mxCell>
         <mxCell id="source" value="依据：原流程图 V4、用例图 V8、角色边界说明。完整 HTTP 方法、路径、调用方、输入/输出及流程节点映射见配套 Markdown。" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Microsoft YaHei;fontSize=16;fillColor=#f5f7f9;strokeColor=#98a3af;strokeWidth=1.5;spacing=14;text;fillColor=none;strokeColor=none;align=left;fontSize=14;spacing=0;">
           <mxGeometry as="geometry" x="55" y="1440" width="2060" height="40" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="integration-modules" name="02 · 流式接口与集成状态">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="M2 / M3 流式增量与运行依赖" style="text=1;html=1;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="30" width="1440" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="mod-m2" value="M2 云台与微晶管理&#10;M2-A09 云台 AI SSE&#10;已实现／待完整 E2E" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="100" y="170" width="430" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="mod-m3" value="M3 测肤任务与报告&#10;M3-A07 报告播报 SSE&#10;正文为 Mock" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="600" y="170" width="430" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="mod-worker" value="Python Worker&#10;测肤 double → 报告 PG&#10;报告 JSON → AI 方案 → 方案 PG" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="170" width="400" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="mod-real" value="真实依赖&#10;PostgreSQL · Redis&#10;阿里短信 · OSS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="100" y="560" width="430" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="mod-pending" value="待完整 E2E／未接入&#10;InsightFace · llm-rag 方案&#10;阿里移动推送未接入 · TTS 端侧" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="660" y="540" width="700" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="e0" value="报告与方案任务" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="mod-m3" target="mod-worker">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="llm-rag" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="mod-m2" target="mod-pending">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="PG / OSS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="mod-real" target="mod-worker">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
