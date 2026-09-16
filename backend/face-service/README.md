@@ -208,7 +208,7 @@ Three-state decision (conservative; first match wins):
 
 1. **Precondition errors always win** over any decision: unknown namespace →
    `NAMESPACE_NOT_FOUND`; no face → `NO_FACE` (a blank image is **not** a
-   `no_match`); >1 face → `MULTI_FACES_AMBIGUOUS`; undecodable → 
+   `no_match`); >1 face → `MULTI_FACES_AMBIGUOUS`; undecodable →
    `IMAGE_DECODE_FAILED`.
 2. **Quality gate (fail-closed):** if `quality.min_acceptable` is false the
    decision can be **at most** `uncertain` (`reasons` contains
