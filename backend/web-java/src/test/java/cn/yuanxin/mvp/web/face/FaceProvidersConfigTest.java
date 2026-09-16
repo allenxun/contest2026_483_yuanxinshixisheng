@@ -81,16 +81,17 @@ class FaceProvidersConfigTest {
     }
 
     @Test
-    @DisplayName("provider=insightface → 三个 doubles 均不在；Unavailable 解析器恒 empty；provider/verifier 为真实实现")
+    @DisplayName("provider=insightface → 三个 doubles 均不在；身份解析为新类且保守；provider/verifier 为真实实现")
     void insightfaceReplacesDoubles() {
         runner("local").withPropertyValues("app.env=dev").withPropertyValues(insightface())
                 .run(ctx -> {
                     assertThat(ctx).hasNotFailed();
                     assertInstanceOf(InsightFaceProvider.class, ctx.getBean(FaceProvider.class));
                     FaceIdentityResolver resolver = ctx.getBean(FaceIdentityResolver.class);
-                    assertInstanceOf(UnavailableFaceIdentityResolver.class, resolver);
+                    assertInstanceOf(InsightFaceIdentityResolver.class, resolver);
                     assertThat(resolver.identityNamespace()).isEqualTo("openvela-mvp");
-                    assertThat(resolver.resolve(new byte[]{1}, FaceClassification.MATCHED)).isEmpty();
+                    // 非 MATCHED 分类必须保守返回 empty，且不产生任何远端调用（避免装配测试联网）。
+                    assertThat(resolver.resolve(new byte[]{1}, FaceClassification.UNCERTAIN)).isEmpty();
                     assertInstanceOf(InsightFaceCareVerifier.class, ctx.getBean(CareFaceVerifier.class));
 
                     assertThat(ctx.getBeansOfType(FaceProviderDouble.class)).isEmpty();
@@ -128,7 +129,7 @@ class FaceProvidersConfigTest {
 
                     assertInstanceOf(FailClosedCareFaceVerifier.class, ctx.getBean(CareFaceVerifier.class));
                     FaceIdentityResolver resolver = ctx.getBean(FaceIdentityResolver.class);
-                    assertThat(resolver).isNotInstanceOf(UnavailableFaceIdentityResolver.class)
+                    assertThat(resolver).isNotInstanceOf(InsightFaceIdentityResolver.class)
                             .isNotInstanceOf(DevTestFaceIdentityResolver.class);
                     ApiException resolverFailure = assertThrows(ApiException.class,
                             () -> resolver.resolve(new byte[]{1}, FaceClassification.MATCHED));

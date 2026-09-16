@@ -15,7 +15,11 @@ import java.util.UUID;
  * {@code POST /v1/verify}（image + namespace + subject_id）。<b>绝不用全库 top1</b>、
  * <b>绝不默认 MATCHED</b>。</p>
  *
- * <p><b>活体（BLOCKER 1，红线）</b>：{@code FaceServiceClient.verify} <b>恒定</b>发送
+ * <p><b>类型级分离（用户硬性要求）</b>：本类只消费 {@link FaceIdentityPort#verifyWithLiveness}
+ * 返回的 {@link LivenessVerifiedMatch}，<b>绝不</b>接受 {@link PhotoComparisonMatch}。两种语义在
+ * 类型层面分离，混用会<b>编译失败</b>；这是刻意设计，不是冗余。</p>
+ *
+ * <p><b>活体（BLOCKER 1，红线）</b>：{@code verifyWithLiveness} <b>恒定</b>发送
  * {@code require_liveness=true}（不可配置、无关闭开关）。真实服务未实现活体 ⇒ 返回 501
  * {@code LIVENESS_UNSUPPORTED} ⇒ 本类映射 {@link Outcome#CAPABILITY_UNAVAILABLE}
  * （上层 503）。<b>后果声明：在活体能力真正落地并被服务端接入之前，insightface 模式下的
@@ -38,14 +42,12 @@ import java.util.UUID;
  */
 public class InsightFaceCareVerifier implements CareFaceVerifier {
 
-    private final FaceServiceClient client;
+    private final FaceIdentityPort port;
     private final JdbcTemplate jdbc;
-    private final Double threshold;
 
-    public InsightFaceCareVerifier(FaceServiceClient client, JdbcTemplate jdbc, Double threshold) {
-        this.client = client;
+    public InsightFaceCareVerifier(FaceIdentityPort port, JdbcTemplate jdbc) {
+        this.port = port;
         this.jdbc = jdbc;
-        this.threshold = threshold;
     }
 
     @Override
@@ -55,8 +57,8 @@ public class InsightFaceCareVerifier implements CareFaceVerifier {
             return Outcome.CAPABILITY_UNAVAILABLE;
         }
         try {
-            FaceServiceClient.VerifyResult result = client.verify(candidate,
-                    member.identityNamespace(), member.faceSubjectRef(), threshold);
+            LivenessVerifiedMatch result = port.verifyWithLiveness(purpose,
+                    member.faceSubjectRef(), candidate);
             return result.matched() ? Outcome.MATCHED : Outcome.MISMATCH;
         } catch (FaceServiceException failure) {
             String code = failure.error().safeCode();

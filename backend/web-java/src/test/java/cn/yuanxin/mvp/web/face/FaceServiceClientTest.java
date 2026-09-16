@@ -38,18 +38,19 @@ class FaceServiceClientTest {
     }
 
     @Test
-    @DisplayName("health 解析公开端点（liveness.supported=false）")
+    @DisplayName("health 解析公开端点（liveness.supported=false、library_revision）")
     void healthParsed() {
-        FaceServiceClient.Health health = client.health();
-        assertThat(health.ok()).isTrue();
+        FaceHealthView health = client.health();
+        assertThat(health.status()).isEqualTo("ok");
         assertThat(health.modelLoaded()).isTrue();
         assertThat(health.livenessSupported()).isFalse();
+        assertThat(health.libraryRevision()).isEqualTo(3);
     }
 
     @Test
     @DisplayName("extract 成功返回 face_count；内部 token 随请求发送")
     void extractSuccessAndTokenHeader() {
-        FaceServiceClient.ExtractResult result = client.extract(SYNTHETIC_IMAGE);
+        FaceExtractView result = client.extract("grant", SYNTHETIC_IMAGE);
         assertThat(result.faceCount()).isEqualTo(1);
         assertThat(stub.last("POST", "/v1/extract").internalToken()).isEqualTo(FAKE_TOKEN);
     }
@@ -58,7 +59,7 @@ class FaceServiceClientTest {
     @DisplayName("NO_FACE(400) → 抛异常并携带服务码（不静默成功）")
     void noFaceThrows() {
         stub.extract(400, FaceServiceStub.errorBody("NO_FACE", false, "r-noface"));
-        assertThatThrownBy(() -> client.extract(SYNTHETIC_IMAGE))
+        assertThatThrownBy(() -> client.extract("grant", SYNTHETIC_IMAGE))
                 .isInstanceOf(FaceServiceException.class)
                 .satisfies(thrown -> {
                     FaceServiceException e = (FaceServiceException) thrown;
@@ -71,7 +72,7 @@ class FaceServiceClientTest {
     @DisplayName("SUBJECT_NOT_FOUND(404) → CAPABILITY")
     void subjectNotFoundIsCapability() {
         stub.verify(404, FaceServiceStub.errorBody("SUBJECT_NOT_FOUND", false, "r-sub"));
-        assertThatThrownBy(() -> client.verify(SYNTHETIC_IMAGE, "openvela-mvp", "sub-1", null))
+        assertThatThrownBy(() -> client.verifyWithLiveness("admission", "sub-1", SYNTHETIC_IMAGE))
                 .isInstanceOf(FaceServiceException.class)
                 .satisfies(thrown -> assertThat(((FaceServiceException) thrown).kind())
                         .isEqualTo(FaceServiceFailureKind.CAPABILITY));
@@ -81,7 +82,17 @@ class FaceServiceClientTest {
     @DisplayName("MODEL_UNAVAILABLE(503) → DEPENDENCY")
     void serviceUnavailableIsDependency() {
         stub.extract(503, FaceServiceStub.errorBody("MODEL_UNAVAILABLE", true, "r-model"));
-        assertThatThrownBy(() -> client.extract(SYNTHETIC_IMAGE))
+        assertThatThrownBy(() -> client.extract("grant", SYNTHETIC_IMAGE))
+                .isInstanceOf(FaceServiceException.class)
+                .satisfies(thrown -> assertThat(((FaceServiceException) thrown).kind())
+                        .isEqualTo(FaceServiceFailureKind.DEPENDENCY));
+    }
+
+    @Test
+    @DisplayName("STORE_UNAVAILABLE(503) → DEPENDENCY（新增存储不可达码）")
+    void storeUnavailableIsDependency() {
+        stub.quality(503, FaceServiceStub.errorBody("STORE_UNAVAILABLE", true, "r-store"));
+        assertThatThrownBy(() -> client.quality("grant", SYNTHETIC_IMAGE))
                 .isInstanceOf(FaceServiceException.class)
                 .satisfies(thrown -> assertThat(((FaceServiceException) thrown).kind())
                         .isEqualTo(FaceServiceFailureKind.DEPENDENCY));
@@ -91,7 +102,7 @@ class FaceServiceClientTest {
     @DisplayName("UNAUTHORIZED(401) → CONFIGURATION")
     void unauthorizedIsConfiguration() {
         stub.extract(401, FaceServiceStub.errorBody("UNAUTHORIZED", false, "r-auth"));
-        assertThatThrownBy(() -> client.extract(SYNTHETIC_IMAGE))
+        assertThatThrownBy(() -> client.extract("grant", SYNTHETIC_IMAGE))
                 .isInstanceOf(FaceServiceException.class)
                 .satisfies(thrown -> assertThat(((FaceServiceException) thrown).kind())
                         .isEqualTo(FaceServiceFailureKind.CONFIGURATION));
@@ -103,7 +114,7 @@ class FaceServiceClientTest {
         stub.delay(1600);
         FaceServiceClient slow = new FaceServiceClient(properties(stub.baseUrl(), 1000, 1000),
                 new ObjectMapper());
-        assertThatThrownBy(() -> slow.extract(SYNTHETIC_IMAGE))
+        assertThatThrownBy(() -> slow.extract("grant", SYNTHETIC_IMAGE))
                 .isInstanceOf(FaceServiceException.class)
                 .satisfies(thrown -> assertThat(((FaceServiceException) thrown).kind())
                         .isEqualTo(FaceServiceFailureKind.DEPENDENCY));
