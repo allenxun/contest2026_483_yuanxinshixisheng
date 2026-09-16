@@ -12,6 +12,14 @@ a *new*, self-contained project: it does **not** touch the existing shared
 > Detection scores and embedding similarities are **never** used as liveness
 > proxies. Quality is reported as raw, honestly-computed signals; it is not a
 > liveness or authenticity verdict.
+>
+> **This is photo comparison only and has NO anti-replay / anti-spoofing
+> capability.** A face similarity (1:1 or 1:N) proves only that two images look
+> alike; it does **not** prove that a live person was present. A printed photo,
+> a screen replay or a re-photographed ID can reach a high similarity. Never
+> treat a `matched` decision as proof of "on-site liveness", and never use it as
+> the sole factor for a security decision. An explicit `require_liveness=true`
+> request is refused with `501 LIVENESS_UNSUPPORTED` rather than faked.
 
 ## Why it exists (vs. the legacy servers)
 
@@ -20,6 +28,7 @@ a *new*, self-contained project: it does **not** touch the existing shared
 | Extract embeddings | **searches** the DB and auto-`INSERT`s (write side effect) | `POST /v1/extract` is **pure extraction, zero writes** |
 | Membership check | whole-library top-1 (`/recognize`) | `POST /v1/verify` is **strict 1:1 for a named subject** |
 | Missing target | returns some global top-1 | `SUBJECT_NOT_FOUND` — never degrades to top-1 |
+| 1:N lookup | whole-library top-1 `/recognize` | namespace-scoped, read-only `search` with a conservative 3-state decision |
 | Registration | no receipt, shared library | namespaced, receipt, `library_revision` |
 | Library state | not observable per request | monotonic `library_revision` in every response |
 | Quality / liveness | none | honest quality signals; **liveness explicitly unsupported** |
@@ -72,6 +81,13 @@ Image input is accepted either as a `multipart/form-data` file field named
 `data:image/...;base64,` URL is also accepted). Anything else →
 `UNSUPPORTED_MEDIA_TYPE`. All responses are JSON with a `request_id`.
 
+The interactive documentation surfaces are **disabled**: `/docs`, `/redoc` and
+`/openapi.json` all return **404**. The service is an internal protocol consumed
+by the **Python Worker's `FacePort` adapter** (see
+`backend/handoffs/B-face-service-worker-contract.md`, the frozen contract), which
+never consumes OpenAPI; the schema must not be exposed without the internal
+token.
+
 ### `POST /v1/extract` — read-only, zero writes
 
 Returns `face_count`, `faces[]` (`bbox`, `det_score`, `embedding`, `dim`,
@@ -96,10 +112,73 @@ Missing namespace → `NAMESPACE_NOT_FOUND`; missing subject → `SUBJECT_NOT_FO
 ### `POST /v1/namespaces/{ns}/subjects` — the only write path
 
 Inputs: `subject_id` (caller-chosen), image, optional `on_exists`
-(`conflict`|`overwrite`). Returns a receipt (`subject_id`, `namespace`,
-`created`, `created_at`, `updated_at`, `embedding_dim`, `model_version`,
-`quality`, `library_revision`, `request_id`) — **no embedding**. `201` on
-create, `200` on overwrite, `409 SUBJECT_ALREADY_EXISTS` on conflict.
+(`conflict`|`overwrite`), and the optional reconciliation keys
+`correlation_id` / `provider_request_id`. Returns a receipt (`subject_id`,
+`namespace`, `created`, `created_at`, `updated_at`, `embedding_dim`,
+`model_version`, `quality`, `library_revision`, `replayed`, `registered_at`,
+`request_id`) — **no embedding**, and the reconciliation keys are not echoed
+back. `201` on create, `200` on overwrite **or idempotent replay**,
+`409 SUBJECT_ALREADY_EXISTS` on conflict.
+
+**Idempotent registration (contract §6.1).** The Worker registers *outside* its
+lease and can lose the response; it then reconciles with the **same**
+`correlation_id` rather than minting another one. Therefore:
+
+| situation | result |
+|---|---|
+| `subject_id` absent | `201`, keys persisted, revision bumped |
+| exists **and** `correlation_id` matches | `200` with `replayed: true` — stored subject returned **as-is**: no overwrite, **no revision bump** |
+| exists but `correlation_id` differs (or is absent while one is stored) | `409 SUBJECT_ALREADY_EXISTS` — the stored reference image is **never** silently replaced |
+| `on_exists=overwrite` | `200`, embedding replaced, revision bumped, new keys recorded (controlled back-office only; the Worker must not use it) |
+
+Callers that send no `correlation_id` keep the exact previous behaviour
+(`201` / `409`).
+
+### `GET /v1/namespaces/{ns}/registrations/{correlation_id}` — read-only
+
+Reconciliation lookup used after a lost register response. Optional query params
+`provider_request_id` and `entity_id` **tighten** the match: a disagreement is
+reported as `not_found` rather than returning a subject that does not belong to
+the caller's own attempt.
+
+```json
+{"status": "registered", "subject_id": "…", "correlation_id": "…",
+ "provider_request_id": "…", "registered_at": "…", "library_revision": 7,
+ "request_id": "…"}
+```
+
+* `status` is only ever `registered` or `not_found` (an unknown correlation id is
+  a normal `200` answer, because the Worker branches on `status`, not on the HTTP
+  code). **`unknown` is never produced by the service** — it is a client-side
+  transport state, and fabricating it would mask real failures.
+* Zero writes: creates no namespace and never bumps `library_revision`. An
+  unknown **namespace** is still `404 NAMESPACE_NOT_FOUND`.
+* Minimum disclosure: no embedding, no quality block, no bbox, no reference-image
+  ref, no other correlation's registration, no library listing.
+
+### `POST /v1/compare` — image↔image 1:1, read-only, zero writes
+
+Compares two **probe** images (`image_a` / `image_b`, or `image_a_base64` /
+`image_b_base64` in JSON). Backs `FacePort.same_person` (three-view "same
+person" confirmation). Unlike `/v1/verify` it reads **no** subject, so it cannot
+disclose library contents.
+
+Returns `matched`, `similarity`, `threshold`, `face_count_a`, `face_count_b`,
+`quality_a`, `quality_b`, `liveness`, `reasons`, `model_version`,
+`library_revision`, `request_id`.
+
+* `threshold` **is** accepted here (default `FACE_SVC_VERIFY_THRESHOLD`) because
+  nothing is looked up in a namespace, so a caller cannot lower a server-fixed
+  library policy. Search still accepts no threshold.
+* 0 faces on either side → `NO_FACE`; >1 face on either side →
+  `MULTI_FACES_AMBIGUOUS` (the largest face is **never** picked: with two probes
+  it would be ambiguous which face was compared to which).
+* **Fail-closed on quality:** if either probe is below the quality floor,
+  `matched` is `false` and `reasons` contains `quality_below_minimum` — even at
+  similarity 1.0.
+* `require_liveness` is **not** a parameter here; it is ignored, and the response
+  reports `liveness.supported: false`. Photo comparison has **no anti-replay
+  capability** and must never be used where liveness is required.
 
 ### `GET /v1/namespaces/{ns}/subjects/{id}` — read-only
 
@@ -115,7 +194,125 @@ Deleting a non-existent subject → `404 SUBJECT_NOT_FOUND` (explicitly
 
 `status`, `model_loaded`, `model_version`, `library_revision`,
 `uptime_seconds`, `liveness`. Never reloads the model. Public (no token) so a
-local monitor can poll it.
+local monitor can poll it. When the model is not loaded it stays **`200` +
+`status:"degraded"`** (it reports, it does not refuse) — this behaviour is
+deliberately unchanged.
+
+### `GET /live` — public probe, no auth
+
+Returns **`200 {"status":"alive"}`** whenever the process can answer. It does
+**not** touch the model or SQLite, so it proves process liveness only.
+
+### `GET /ready` — public probe, no auth
+
+Readiness = **model loaded AND SQLite reachable**. Success returns `200`:
+`{"status":"ready","model_loaded":true,"model_version":"…","library_revision":N}`.
+Failure returns **`503`** with the standard error envelope:
+
+* model not loaded → `MODEL_NOT_LOADED` (also chosen when both are down, since
+  the model is the more fundamental prerequisite);
+* SQLite unreachable → `STORE_UNAVAILABLE` (retryable).
+
+Unlike `/v1/health`, `/ready` must fail when the service cannot serve identity
+decisions; "not ready" is a refusal, not a status string. The bodies of both
+probes contain no namespace, subject count, path, host, port or token
+information. Deploy gates on `/ready`.
+
+### `POST /v1/namespaces/{ns}/search` — internal 1:N, read-only
+
+**Internal protocol endpoint for the trusted backend only** (token-protected).
+It is a *namespace-scoped* search, **not** a public whole-library search, and is
+not part of the public business API.
+
+Request (same image encoding as extract/verify):
+
+```json
+{ "image": "<binary | base64 | data-url>", "media_type": "image/jpeg", "top_k": 5 }
+```
+
+* `top_k` optional integer, **2..10**, default `FACE_SVC_SEARCH_TOP_K` (5);
+  out-of-range / non-integer → `400 INVALID_REQUEST`. The lower bound is **2**,
+  not 1: this endpoint returns no candidate list and uses `top_k` solely to bound
+  the candidate window for the margin rule, and a single candidate has no
+  runner-up — `top_k=1` would make the ambiguity/margin check structurally
+  vacuous (a near-tied library could then report `matched`).
+* **The matching thresholds are server-fixed.** `threshold` /
+  `match_threshold` / `margin` sent by a client are **ignored** — only
+  `policy_version` is disclosed, never the numeric thresholds.
+* Zero writes: it never registers a subject and never advances
+  `library_revision`.
+
+Response (`200` for every decision — `reliable_new`/`uncertain` are business
+judgements, not errors):
+
+```json
+{
+  "decision": "matched",
+  "subject_id": "…",
+  "similarity": 0.7321,
+  "ambiguous": false,
+  "quality": { "…": "…" },
+  "subject_count": 12,
+  "top_k": 5,
+  "reasons": [],
+  "policy_version": "search-v2",
+  "model_version": "…",
+  "library_revision": 7,
+  "request_id": "…"
+}
+```
+
+* `subject_id` and `similarity` appear **only** for `matched`; for
+  `reliable_new` and `uncertain` those keys are **absent** (not `null`).
+* `decision` is exactly one of **`matched` / `uncertain` / `reliable_new`** —
+  the vocabulary the Worker's `FacePort` consumes. Any other value would be
+  treated by the Worker as a dependency failure, so no fourth value may appear.
+* Hard exclusions: no candidate list, no embedding, no registered subject's
+  bbox/det_score, no numeric matching thresholds.
+* `library_revision` and `subject_count` come from the **same read snapshot** as
+  the candidate comparison.
+
+Three-state decision (conservative; first match wins):
+
+1. **Precondition errors always win** over any decision: unknown namespace →
+   `NAMESPACE_NOT_FOUND`; no face → `NO_FACE` (a blank image is **not** a
+   `reliable_new`); >1 face → `MULTI_FACES_AMBIGUOUS`; undecodable →
+   `IMAGE_DECODE_FAILED`.
+2. **Quality gate (fail-closed):** if `quality.min_acceptable` is false the
+   decision can be **at most** `uncertain` (`reasons` contains
+   `quality_below_minimum`); a blurred probe can never be `matched`.
+3. `matched`: top similarity ≥ `search_match_threshold` **and** the gap to the
+   best *different* candidate ≥ `search_margin` (a single-candidate library
+   satisfies the margin).
+4. `uncertain`: top ≥ threshold but the margin is not met → `ambiguous: true`;
+   **or** the top lies within `search_uncertain_band` below the threshold.
+5. `reliable_new`: the library is **non-empty**, the probe is a single face of
+   acceptable quality, and the top similarity is below
+   `threshold - uncertain_band`.
+6. **Empty library → `uncertain`** with `subject_count: 0` and
+   `reasons: ["empty_library"]` — deliberately **not** `reliable_new`. An empty
+   namespace far more likely means "never populated" (or "cleared by mistake")
+   than "this person is new", and answering `reliable_new` would mass-enrol
+   everybody.
+
+> **What `reliable_new` does and does not mean.** It states: *in this namespace,
+> under the policy named by `policy_version`, a single acceptable-quality probe
+> found no candidate reaching the threshold.* It is **not** proof of a new human
+> being — a 1:N search cannot prove absence from the world, only absence from
+> this library. `后端详细设计-V1-MVP.md:657` says a miss "只成为新人候选"
+> (only becomes a new-person *candidate*), and `:663` forbids enabling real
+> automatic enrolment before the PoC gate. Consumers must keep their own
+> reconciliation (the Worker checks PostgreSQL for an existing member before
+> enrolling) and must not treat `reliable_new` as an authorisation to enrol.
+
+> **The thresholds are NOT calibrated.** `search_match_threshold = 0.60`,
+> `search_uncertain_band = 0.10` and `search_margin = 0.05` are **conservative
+> placeholder defaults**, not measured results. 0.60 is intentionally stricter
+> than the 1:1 default 0.40 because false accepts grow with library size.
+> Similarity values are **not** percentage confidence. **Until the thresholds
+> are calibrated on authorised samples, no automatic enrolment/registration of
+> a "new person" may be enabled** — an `uncertain`/`reliable_new` result is a
+> candidate for review, never an automatic archive.
 
 ### `GET /v1/namespaces/{ns}/info` — read-only
 
@@ -145,6 +342,7 @@ Unified envelope:
 | `LIVENESS_UNSUPPORTED` | 501 | false | `require_liveness=true` was requested |
 | `MODEL_UNAVAILABLE` | 503 | true | Model stack missing / failed to load |
 | `MODEL_NOT_LOADED` | 503 | true | Inference attempted before load |
+| `STORE_UNAVAILABLE` | 503 | true | `/ready`: subject store (SQLite) unreachable |
 | `UNAUTHORIZED` | 401 | false | Missing/invalid internal token |
 | `CONCURRENCY_LIMIT` | 429 | true | All inference slots busy |
 | `INFERENCE_TIMEOUT` | 504 | true | Inference exceeded `FACE_SVC_INFERENCE_TIMEOUT_SECONDS` |
@@ -177,6 +375,39 @@ for ArcFace-style 1:1; **it is not calibrated against this project's data** and
 must be recalibrated (FAR/FRR) on real enrolment/query pairs before production.
 It is configurable per request via the `threshold` field of `/v1/verify`.
 
+The 1:N policy keys (`FACE_SVC_SEARCH_MATCH_THRESHOLD`,
+`FACE_SVC_SEARCH_UNCERTAIN_BAND`, `FACE_SVC_SEARCH_MARGIN`) are likewise
+**conservative placeholders and are not calibrated**. They are **server-side
+only** and cannot be overridden per request (`/v1/compare` is the single
+exception: it accepts `threshold` because it compares two probes and reads no
+namespace). Because no calibration exists, the service must not be used to
+automatically enrol a person: `uncertain` and `reliable_new` are review
+candidates, and auto-enrolment stays disabled until the thresholds are
+calibrated on authorised samples.
+
+**Two different classes of number — do not confuse them.** The **matching**
+thresholds (`search_match_threshold`, `search_uncertain_band`, `search_margin`)
+are server-side policy and are **never disclosed** in any response; callers only
+receive `policy_version`. The **quality** thresholds in the `quality.thresholds`
+block (`det_score` = 0.50, `blur` = 30.0, `bbox_area_ratio` = 0.02) are a
+different thing: they gate `min_acceptable`, are already returned by the
+pre-existing public `/v1/quality` endpoint, and their presence in a search
+response is not a new disclosure.
+
+## Known limitations
+
+* **Unbounded in-memory candidate scan (search).** `POST
+  /v1/namespaces/{ns}/search` computes cosine similarity in Python (no vector
+  library / index is allowed by the design), and returns no candidate list, so
+  it **loads every embedding in the namespace into memory** to obtain the global
+  top-k. Memory and latency therefore grow without bound as a namespace grows;
+  there is **no pagination and no index**. This is acceptable only because MVP
+  library sizes are small. A large-scale deployment needs a bounded/ANN
+  retrieval design before this can be relied on.
+* **`top_k` does not limit work, only the margin window.** Because the scan is
+  exhaustive, a larger `top_k` does not reduce cost; it only widens the
+  candidate window that participates in the margin/ambiguity rule.
+
 ## Configuration
 
 All variables are prefixed `FACE_SVC_`. See `.env.example`.
@@ -190,7 +421,11 @@ All variables are prefixed `FACE_SVC_`. See `.env.example`.
 | `MODEL_ROOT` | `~/.insightface/models` | read-only reuse |
 | `MODEL_NAME` | `buffalo_l` | |
 | `MODEL_VERSION` | `buffalo_l@insightface-0.7.3` | reported in responses |
-| `VERIFY_THRESHOLD` | `0.40` | cosine similarity |
+| `VERIFY_THRESHOLD` | `0.40` | cosine similarity (1:1) |
+| `SEARCH_MATCH_THRESHOLD` | `0.60` | 1:N match threshold (uncalibrated; stricter than 1:1) |
+| `SEARCH_UNCERTAIN_BAND` | `0.10` | below-threshold band reported as `uncertain` |
+| `SEARCH_MARGIN` | `0.05` | required gap to the runner-up for `matched` |
+| `SEARCH_TOP_K` | `5` | candidates participating in the margin rule (2..10; lower bound 2 keeps the margin check meaningful) |
 | `MAX_BODY_BYTES` | `10485760` | 10 MB |
 | `INFERENCE_TIMEOUT_SECONDS` | `30` | |
 | `MAX_CONCURRENCY` | `2` | |
@@ -258,10 +493,11 @@ unit (linger must already be enabled: `loginctl show-user $USER -p Linger` →
 
 ## Explicit non-claims
 
-* No liveness / anti-spoofing.
+* No liveness / anti-spoofing. **Photo comparison only: no anti-replay
+  capability.** Similarity proves resemblance, never a live person present.
 * No pose or occlusion estimation in this build.
 * Actual embedding quality and CUDA-provider availability are **not** verified
   here; they depend on the real `buffalo_l` weights and host GPU.
-* The 1:1 threshold is not yet calibrated.
+* The 1:1 threshold and the 1:N search thresholds are not yet calibrated.
 * Embeddings are sensitive biometric data; retention/encryption/access-control
   policy is out of scope of this service and must be handled by the caller.

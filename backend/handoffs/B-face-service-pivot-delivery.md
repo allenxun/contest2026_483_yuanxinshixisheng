@@ -1,0 +1,694 @@
+# B 交付报告 — 方案反转轮：Worker 对接 InsightFace 的 face-service 能力与冻结合同
+
+**日期**：2026-09-16　**工作树**：`.worktrees/mvp-b`　**分支**：`feature/mvp-identity-devices`
+**基线**：`e57bc315`（本轮开工时的 dev tip，开工实测工作树 clean）
+**状态**：代码已提交、Oracle 复审进行中；**未 push、未合并 dev、未部署**。
+
+---
+
+## 1. 最终 SHA（结论栏）
+
+| 项 | 值 |
+|---|---|
+| **合同 SHA**（纯文档，D 的唯一对接依据；r29 整改中同步修订 6 处，见 §10） | **`96d7e03c45481be51cd28c35ac1d2cc9fce6b497`**（内容修订落在 `a8c5b53`） |
+| **最终代码 SHA** | **`bec9eb97c2bbcefa3d6e2344f671b96a76c1371a`** |
+| **Oracle reviewed SHA** | `bec9eb97c2bbcefa3d6e2344f671b96a76c1371a`（同一 SHA） |
+| **Oracle 裁定** | r29 对 `9a1dd77` 判 **FAIL**（2 BLOCKER + 3 IMPORTANT + 1 SUGGESTION）；<br>r30 对 `a8c5b53` 判 **FAIL**（2 IMPORTANT + 1 SUGGESTION；r29 六项中 **4 项已判通过**）；<br>**r31 对 `bec9eb9` 判 `PASS-with-notes`**：四项**全部闭合**、两项特别核验通过（无变异残留；两处"无牙变异"定性**正确**、不属安全覆盖缺口）、**「可以将 `bec9eb9` 作为本轮最终交付 SHA 交总协调整合」**、**不要求补跑验证**、**轮次边界确认**（详见 §12）<br>三轮共 9 项代码级发现我逐条核实**全部成立**，其中 **3 项是我自己的设计判断错误**；r31 的 3 项 SUGGESTION 中 **1 项（文件计数）经四种方法复核证明不成立**，另 2 项已处置 |
+| 历轮代码 SHA（均**非**最终交付） | `9a1dd77`（r29 FAIL）→ `a8c5b53`（r30 FAIL） |
+| 是否涉及公共文件 | **否**（详见 §6） |
+
+提交链（全部为普通提交，**无** reset/rebase/amend/改写历史）：
+
+```
+e57bc315 (dev 基线)
+├─ 1d6ac78  face-service 1:N search + /live + /ready + top_k 下界 + 错误码双向锁 + 文档面关闭   [保留]
+├─ 0dfdf29  face-service 行尾空白修正                                                        [保留]
+├─ d80c50d  Java 直连 InsightFace + 真实 resolver                                            [已废弃]
+├─ 0d9ee60  Java→Worker 身份结果合同 + 5 个冻结类型                                           [已废弃]
+├─ 081f834  Revert "0d9ee60"                                                                 [移除废弃合同]
+├─ c4cb73a  Revert "d80c50d"                                                                 [移除 Java 直连]
+├─ 96d7e03  docs: 冻结 Worker FacePort ↔ face-service 合同（纯文档）                            [合同 SHA]
+├─ 9a1dd77  feat: face-service 对齐合同（11 文件 +1592 −46）                          [Oracle r29 判 FAIL]
+├─ a8c5b53  fix: 闭合 r29 的 2 BLOCKER + 3 IMPORTANT + 1 SUGGESTION（9 文件）        [Oracle r30 判 FAIL]
+└─ bec9eb9  fix: 闭合 r30 的 2 IMPORTANT + 1 SUGGESTION（6 文件 +519 −42）              [最终代码 SHA]
+```
+
+---
+
+## 2. 方案反转的可审计处置
+
+用户授权：**改回 Python Worker 对接 InsightFace**；Java 不直连、不写人脸库；保留 face-service 通用能力。
+
+### 2.1 未提交改动的留档与撤回
+先在 `.coordination/B-work/pivot-audit-2026-09-16/` 生成审计件，**再**撤回：
+
+| 审计件 | 内容 |
+|---|---|
+| `uncommitted-tracked.diff`（15799 B） | 2 个已跟踪文件的完整 diff |
+| `untracked-files.tar`（71680 B，6 文件） | 6 个未跟踪 Java 文件的完整内容（逐个 `cmp` 校验后才删） |
+| `provenance.txt` | **逐项来源确认**（用户明确要求） |
+| `all-uncommitted-paths.txt`、`uncommitted-inventory.txt`、`deprecated-commits.txt`、`java-after-revert.log` | 清单与证据 |
+
+- `git apply --check --reverse` **rc=0** ⇒ patch 与工作树逐字节吻合，可完整恢复。
+- 撤回前实测：本轮开工时 `tree entries = 0`，且未提交路径**域外命中 0** ⇒ **不含任何"进入本轮前已有的他人未提交内容"**，撤回未覆盖他人工作。
+
+### 2.2 已提交改动的移除（普通 revert）
+`081f834` 撤 `0d9ee60`、`c4cb73a` 撤 `d80c50d`。**revert 后逐条证明**：
+
+| 断言 | 实测 |
+|---|---|
+| `git diff e57bc315..HEAD` 对 `backend/web-java` | **0 文件** |
+| 同上对 `backend/handoffs` | **0 文件**（`B-face-java.md` 回到 142 行且 blob 与基线相同） |
+| `B-identity-result-contract.md` 是否存在 | **NO**（废弃合同已移除，未交给 D） |
+| `UnavailableFaceIdentityResolver` 是否恢复 | **YES** |
+| `MemberAccessGrantService` 的 `FaceServiceException` catch | **0**（已移除） |
+| `web/face` 文件数 | **12 = 本轮前 12** |
+| Java 全量 `mvn -B test` | **747 run / 0 failures / 0 errors / 18 skipped，BUILD SUCCESS rc=0，109 份 xml**（= 本轮前基线） |
+| 本轮新增 Java 测试类残留 | **0**（`IdentityEnrollment*`/`FaceServiceClientSearch*`/`InsightFaceIdentityResolver*` 报告数 0） |
+| 全树相对 `e57bc315` 的差异 | **只剩 `backend/face-service`**（当时 16 文件 +1200 −16） |
+
+### 2.3 一处范围判定（如实记录，未擅自扩大）
+用户点名的废弃提交是 `d80c50d` 与 `0d9ee60` 两个，已完整 revert。树中**仍保留**更早已交付、
+经 Oracle 通过并已并入 dev 的 Java 人脸边界（`app.face.provider=insightface` 的
+`FaceServiceClient` health/extract/verify、`InsightFaceProvider.classify` 恒 `UNCERTAIN`、
+`UnavailableFaceIdentityResolver` 恒 `empty`、`InsightFaceCareVerifier` 恒 `CAPABILITY_UNAVAILABLE`）。
+它**不含**用户列出的任何移除目标（无真实 resolver、无 register/search/delete、不写
+`face_subject_ref`、非本轮废弃合同），移除它等于回退已被 dev 接受的基线 ⇒
+**未擅自扩大 revert 范围**，作为待裁定项列入 §8。
+
+---
+
+## 3. 合同摘要（`96d7e03`，334 行，`backend/handoffs/B-face-service-worker-contract.md`）
+
+**消费方**：D 的 Python Worker（`handlers/dshared/providers.py` 的 `FacePort`）。
+**生产方**：B 的 `backend/face-service`（独立实例、独立 SQLite，与共享 8002/8003 物理隔离）。
+**B 未修改任何 `backend/worker-python/**` 文件**——合同中的 D 侧引用全部为只读取证。
+
+### 3.1 取证发现的三处实质能力缺口（不只是改名）
+| FacePort 方法 | Worker 期望（取证位置） | face-service 原状 | 缺口 |
+|---|---|---|---|
+| `search_1n` | `classification ∈ matched\|uncertain\|ambiguous\|reliable_new`（`providers.py:77-80`） | `decision ∈ matched\|no_match\|uncertain` | **`no_match` 不在词表内**；`assessment_analyze.py:415-420` 对未知取值一律判 `DEPENDENCY_UNAVAILABLE` ⇒ 每次正常搜索都会被当成依赖故障 |
+| `same_person(images)` | `SamePersonResult(ok)`，**图↔图**互比（`providers.py:119`） | `/v1/verify` 只比"图 vs **已登记** subject" | 缺 image↔image 比较端点 |
+| `register_person(..., correlation_id, provider_request_id)` / `query_registration(...)` | 幂等登记 + 按 correlation_id 对账（`providers.py:121-136`、`identity_enroll.py:173-200`） | 全仓 `correlation`/`provider_request` **0 命中** | 缺幂等语义、缺持久化、缺对账端点 |
+| `quality(images: dict)` | `QualityResult(status, required_views)`，三视角（`providers.py:66-69,118`） | `/v1/quality` 单图 | 无缺口：适配层按视角逐次调用后聚合（合同 §3 裁定） |
+
+### 3.2 两处刻意的保守裁定
+1. **空库不再返回"新人"**：`subject_count == 0` → `uncertain` + `reasons=["empty_library"]`。
+   理由：库为空更可能是**未初始化或被误清**，此时把每个人都判成"可靠新人"会**批量建档**。
+2. **`reliable_new` 的语义边界**：只表示"在本 namespace 内以 `policy_version` 所述策略搜索、
+   单脸、质量合格、最高相似度明确低于阈值"，**不**表示算法能证明是新人类。依据
+   `后端详细设计-V1-MVP.md:657`「未命中只成为新人候选」与 `:663`「未通过 PoC 不得开启真实自动
+   登记」⇒ **D 在 PoC 门禁通过前不得据此开启自动建档**，且 `assessment_analyze.py:377-389`
+   现有的"先对账 PG、已有成员则不重复建档"必须保留。
+
+### 3.3 设计裁定：服务端只提供单图原语，多视角聚合由 Worker 适配层完成
+理由：①"哪些视角必需"是业务策略（D 的 `REQUIRED_VIEWS_ALL`，`dshared/constants.py:18`），
+不属算法服务；②单图原语可独立测试/失败/重试；③避免服务端持有业务视图命名。
+
+### 3.4 不产出 `ambiguous` 的理由
+Worker 在 `assessment_analyze.py:369` 把 `uncertain` 与 `ambiguous` **同等**处理（都走补拍
+`IDENTITY_UNCERTAIN`）⇒ 服务端用 `decision="uncertain"` + `ambiguous=true` +
+`reasons=["ambiguous_top_candidates"]` 表达即可，**无信息损失**，且严格落在授权的三值词表内。
+
+---
+
+## 4. Worker `FacePort` 五项精确映射（合同 §8，D 据此实现 `InsightFaceAdapter`）
+
+| # | FacePort 方法 | 调用 | 映射规则 |
+|---|---|---|---|
+| 1 | `quality(images: dict[str,bytes]) -> QualityResult` | 对**每个视角**各调一次 `POST /v1/quality` | 全部 `min_acceptable=true` → `QualityResult("accepted", ())`；否则 `QualityResult("needs_retake", <不合格视角元组>)`。**任一视角调用失败 → 抛 `ProviderUnavailable`**，绝不把失败当合格 |
+| 2 | `same_person(images: dict[str,bytes]) -> SamePersonResult` | `POST /v1/compare`（按 D 选定策略两两比或对着主视角比） | 全部 `matched=true` → `SamePersonResult(True)`；任一 `false` → `False`；调用失败 → `ProviderUnavailable` |
+| 3 | `search_1n(namespace, images) -> SearchResult` | `POST /v1/namespaces/{ns}/search`（建议用 `front`） | `decision` **直接**用作 `classification`（三值均在 Worker 词表内）；`matched` 时 `face_subject_ref = subject_id`，其余为 `None`。传输失败 → `ProviderUnavailable`；**4xx 参数/鉴权类 → `ProviderConfigError`（不可重试）**；**5xx/超时 → `ProviderUnavailable`（可重试）** |
+| 4 | `register_person(ns, entity_id, images, correlation_id, provider_request_id) -> RegisterResult` | `POST /v1/namespaces/{ns}/subjects`，`subject_id=entity_id`，带两个对账键，**不传 `on_exists`**（用服务端默认 `conflict`）、**不传 `require_liveness`** | 201 创建 / 200 幂等重放 → `success`；409 `SUBJECT_ALREADY_EXISTS` → `failed`；客户端超时 → `timeout`；5xx 或 `MODEL_*`/`STORE_UNAVAILABLE` → `unknown`；其它 4xx → `failed` |
+| 5 | `query_registration(correlation_id, provider_request_id, *, namespace, entity_id) -> RegistrationQueryResult` | `GET /v1/namespaces/{ns}/registrations/{correlation_id}?provider_request_id=…&entity_id=…` | `status="registered"` → `registered`；`"not_found"` → `not_found`；传输失败/无法解析 → `unknown`（**服务端绝不产出 `unknown`**） |
+
+**硬性纪律**：真实服务故障**绝不**回退替身成功；`ProviderNotActivated` 用于"未授权/未过 PoC"，
+绝不伪造结果；不得把 `reliable_new` 当作"算法已证明是新人"；不得上传真实用户照片联调；
+适配层日志不得出现 token、图片字节、embedding、namespace/subject_id/correlation_id 取值。
+
+---
+
+## 5. 服务端摘要（路由 / 图片限制 / 阈值 / 状态码 / 错误码 / revision / 幂等）
+
+### 5.1 路由总表（13 个端点）
+| 端点 | 鉴权 | 写库 | 本轮变化 |
+|---|---|---|---|
+| `GET /v1/health` | 否 | 否 | **一行未改** |
+| `GET /live` | 否 | 否 | 不变（本轮早前已有） |
+| `GET /ready` | 否 | 否 | 不变（检查模型 **与** SQLite） |
+| `POST /v1/extract` | 是 | **零写** | 不变 |
+| `POST /v1/quality` | 是 | **零写** | 不变（单图原语） |
+| `POST /v1/compare` | 是 | **零写** | **新增**（图↔图 1:1） |
+| `POST /v1/verify` | 是 | **零写** | 不变（严格 1:1，只查指定 subject） |
+| `POST /v1/namespaces/{ns}/search` | 是 | **零写** | **词表变更**（`search-v2`） |
+| `POST /v1/namespaces/{ns}/subjects` | 是 | **是** | **幂等语义 + 对账键** |
+| `GET /v1/namespaces/{ns}/subjects/{id}` | 是 | 否 | 不变 |
+| `GET /v1/namespaces/{ns}/registrations/{correlation_id}` | 是 | 否 | **新增**（只读对账） |
+| `DELETE /v1/namespaces/{ns}/subjects/{id}` | 是 | **是** | 不变 |
+| `GET /v1/namespaces/{ns}/info` | 是 | 否 | 不变 |
+
+文档面 **`/docs`、`/redoc`、`/openapi.json` 全部 404**（`app.py:68-70`）。
+
+### 5.2 图片与请求限制
+- 输入形态：`multipart/form-data` 文件字段，或 JSON base64（支持 `data:image/...;base64,` 前缀）；
+  其它 Content-Type → **415 `UNSUPPORTED_MEDIA_TYPE`**。`/v1/compare` 用 `image_a`/`image_b`
+  （JSON 为 `image_a_base64`/`image_b_base64`），复用同一套解码规则与错误映射。
+- 大小：`FACE_SVC_MAX_BODY_BYTES`（默认 10485760）→ 超限 **413 `IMAGE_TOO_LARGE`**；
+  `content-length` 与实际 body 长度**双重**检查。空 body → 400 `INVALID_REQUEST`。
+- 解码失败 → **400 `IMAGE_DECODE_FAILED`**；0 张脸 → **400 `NO_FACE`**；
+  多张脸 → **400 `MULTI_FACES_AMBIGUOUS`**（**绝不**自动取最大脸：`compare` 两张探针下无法判定谁比谁）。
+- 标识符（namespace/subject_id/correlation_id/provider_request_id/entity_id）统一受
+  `^[A-Za-z0-9._:-]{1,128}$` 约束，违规 → 400 `INVALID_REQUEST`。
+- **绝不接受文件路径或 URL**（只接受字节/base64/data-url）。
+
+### 5.3 匹配分数与阈值（全部服务端固定策略）
+| env 键 | 默认 | 校验 | 用途 |
+|---|---|---|---|
+| `FACE_SVC_SEARCH_MATCH_THRESHOLD` | **0.60** | `0 < x <= 1` | 1:N 命中阈值 |
+| `FACE_SVC_SEARCH_UNCERTAIN_BAND` | **0.10** | `0 <= x < match_threshold` | 阈值下方的不确定带 |
+| `FACE_SVC_SEARCH_MARGIN` | **0.05** | `0 <= x <= 1` | top1 与 top2 的最小间隔（歧义保护） |
+| `FACE_SVC_SEARCH_TOP_K` | **5** | 整数 **2..10** | 候选窗口 |
+| `FACE_SVC_VERIFY_THRESHOLD` | **0.40** | `0 < x <= 1` | 1:1（`/v1/verify` 与 `/v1/compare` 默认） |
+
+- **search 绝不接受客户端阈值**（`人脸服务调研与推荐方案-V1-MVP.md:131,134`）；
+  `/v1/compare` **接受** `threshold`，因为它不查任何 namespace，调用方无法借此降低服务端固定的
+  库策略。**该裁定已被 Oracle r29 推翻、我已移除客户端 threshold**，详见 §10.4。
+- `top_k` 下界为 **2**：`top_k=1` 会使 margin 歧义保护**结构性失效**（无次优可比）。
+- 非法值一律 `ConfigError` **fail fast** 且**不回显被拒值**。
+- **全部阈值为未经标定的保守占位**；1:N 的 0.60 **严于** 1:1 的 0.40（误接受风险随库规模上升）。
+  相似度**不是**百分比可信度。**标定前不得开启自动建档。**
+- 响应**永不**外发数值阈值，只给 `policy_version`。
+
+### 5.4 状态码
+- **成功恒 200**（search 的三种 decision 都是业务判定，不是错误）；
+  登记 **201** 创建 / **200** 覆盖或幂等重放；对账查询命中或未命中**均为 200**
+  （Worker 按 `status` 分支，不按 HTTP 码）。
+- 4xx：400（`NO_FACE`/`MULTI_FACES_AMBIGUOUS`/`IMAGE_DECODE_FAILED`/`INVALID_REQUEST`/
+  `top_k` 越界）、401（`UNAUTHORIZED`）、404（`SUBJECT_NOT_FOUND`/`NAMESPACE_NOT_FOUND`）、
+  409（`SUBJECT_ALREADY_EXISTS`）、413、415、422（`QUALITY_INSUFFICIENT`）、429（`CONCURRENCY_LIMIT`，retryable）。
+- 5xx：500（`INTERNAL_ERROR`）、501（`LIVENESS_UNSUPPORTED`）、503（`MODEL_UNAVAILABLE`/
+  `MODEL_NOT_LOADED`/`STORE_UNAVAILABLE`，均 retryable）、504（`INFERENCE_TIMEOUT`，retryable）。
+- 统一信封 `{"error":{code,message,retryable,request_id[,details]}}`；
+  **`details` 绝不含** token、图片字节、embedding、namespace/subject_id/correlation_id 取值。
+
+### 5.5 错误码表（18 个，双向锁定）
+`NO_FACE`(400)、`MULTI_FACES_AMBIGUOUS`(400)、`IMAGE_DECODE_FAILED`(400)、`INVALID_REQUEST`(400)、
+`UNAUTHORIZED`(401)、`SUBJECT_NOT_FOUND`(404)、`NAMESPACE_NOT_FOUND`(404)、
+`SUBJECT_ALREADY_EXISTS`(409)、`IMAGE_TOO_LARGE`(413)、`UNSUPPORTED_MEDIA_TYPE`(415)、
+`QUALITY_INSUFFICIENT`(422)、`LIVENESS_UNSUPPORTED`(501)、`INTERNAL_ERROR`(500)、
+`MODEL_UNAVAILABLE`(503,retryable)、`MODEL_NOT_LOADED`(503,retryable)、
+`STORE_UNAVAILABLE`(503,retryable)、`CONCURRENCY_LIMIT`(429,retryable)、
+`INFERENCE_TIMEOUT`(504,retryable)。
+本轮**未新增**错误码；`test_errors.py` 的双向锁（枚举 ↔ 锁定表必须双射）保持。
+
+### 5.6 `request_id` / `library_revision` / `model_version`
+- `request_id`：入站 `X-Request-Id` 合法则回显，否则服务端生成 uuid4 hex；**响应头与错误体均带**。
+- `library_revision`：**所有**响应都带（一致快照）；**只**由真实创建/覆盖/删除递增
+  （`_bump_revision` 调用点恰 2 处）。幂等重放、所有只读端点、schema 升级**绝不**递增。
+- `model_version`：所有业务响应都带；`policy_version` 仅 search 带（本轮 `search-v1` → **`search-v2`**，
+  因 decision 词表变更，使"哪个策略产生了这个判定"可审计）。
+
+### 5.7 幂等登记语义（合同 §6.1）
+| 情形 | 服务端 | Worker 映射 |
+|---|---|---|
+| `subject_id` 不存在 | **201** 创建，持久化 `correlation_id`/`provider_request_id`/`registered_at` | `success` |
+| 已存在**且** `correlation_id` 相同 | **200** 幂等重放：返回既有登记（`replayed=true`），**不覆盖特征、不 bump revision** | `success` |
+| 已存在**但** `correlation_id` 不同（或库中有值而请求缺失） | **409 `SUBJECT_ALREADY_EXISTS`** | `failed`（**绝不**静默覆盖） |
+| `on_exists=overwrite` | **200** 覆盖并 bump revision、记录新对账键 | —— （受控后台专用，Worker 不得使用） |
+| 超时/网络中断 | 客户端侧现象 | `timeout` → **必须**随后对账 |
+| 5xx / `MODEL_*` / `STORE_UNAVAILABLE` | 错误信封 | `unknown` → 随后对账 |
+| 其它 4xx | 错误信封 | `failed`（不可重试） |
+
+**关键**：`correlation_id` 相同即视为**同一次逻辑登记** ⇒ "远端成功 + Worker 崩溃/超时"后重试
+既不会产生第二个 subject，也不会被误报为冲突。这正是 `identity_enroll.py:173` 注释
+「超时/未知 → 同 EntityId 对账，绝不生成另一 ID 盲重试」所需的服务端保证。
+登记响应体键集（实测）：`subject_id`/`namespace`/`created`/`created_at`/`updated_at`/
+`embedding_dim`/`model_version`/`quality`/`library_revision`/**`replayed`**/**`registered_at`**/
+`request_id`；**两个对账键本身不回显**（其持久化由对账端点证明）。
+
+### 5.8 鉴权与脱敏
+- 除 `/v1/health`、`/live`、`/ready` 外全部需 `X-Internal-Token`（`auth.py:23-46`，
+  常量时间比较，失败 **401 `UNAUTHORIZED`**，token 值从不回显）。
+- 非 loopback 绑定且关闭鉴权/无 token → **启动期拒绝**（`config.py:197-222`）。
+- `access_log=False`（`main.py:25`）+ 自有脱敏中间件按**路由模板**记录（`app.py:90-106,130-137`）
+  ⇒ 展开路径中的 namespace/subject_id/**correlation_id** 均不入日志。
+- 布尔配置只接受 `1/true/yes/on` 与 `0/false/no/off`，未知值 `ConfigError` 且**不回显被拒值**。
+
+### 5.9 MVP 活体边界
+`liveness.supported` **恒 false**（`quality.py:31-39`，`buffalo_l` 无活体模型）。
+`/v1/verify` 在 `require_liveness=true` 时 → **501 `LIVENESS_UNSUPPORTED`**；
+`/v1/compare` 与 `/v1/search` **不接受**该字段（`compare` 传入即忽略且恒报 `supported=false`）。
+**绝不允许**伪造 `liveness.passed=true`，也**绝不**用检测分数或相似度冒充活体
+（门禁实测：全 src 中 `passed: true`/`passed = True` 命中 **0**）。
+⇒ Worker 适配层**不得**发送 `require_liveness`；其人脸结论属
+**"照片比对，无防翻拍能力"**（`人脸服务调研:31,179`：身份相似度不证明现场性）。
+
+---
+
+## 6. 公共文件结论
+
+| 项 | 结论 |
+|---|---|
+| 新增/修改公共迁移 | **无**。`backend/web-java/src/main/resources/db/migration/` 仍恰为 **V1 + V2**（门禁实测 2 个 `.sql`） |
+| 修改公共 OpenAPI 契约 | **无**。`backend/contracts/**` 与基线 diff **0 文件** |
+| 新增 Java `ErrorCode` | **无**（本轮不改任何 Java 文件） |
+| 新增 `/api/**` 端点 | **无** ⇒ Java 文档覆盖率门禁 `ApiDocsCoverageIT` 不受影响 |
+| 修改 Worker（D 域） | **无**。`backend/worker-python/**` 与基线 diff **0 文件** |
+| 修改 A/C/D 任何文件 | **无**。`web-java`/`worker-python`/`contracts`/`acceptance`/`tests`/`doc`/`deploy` 与基线 `e57bc315` **各 diff 0 文件** |
+| 本轮提交的实际写域 | **只** `backend/face-service`（9 文件）+ `backend/handoffs`（2 文件） |
+| face-service 的 SQLite schema 变更 | 属**服务自有库**（`store.py` 自建表），与业务 PG 的 14 张表无关 ⇒ **不需要**任何公共迁移 |
+
+---
+
+## 7. 验证证据（全部 orchestrator 亲跑，非子任务自报）
+
+### 7.1 测试
+| 范围 | 结果 |
+|---|---|
+| face-service 全量 pytest（离线、FakeModel、临时库） | **222 passed / rc=0**（基线 144 → `9a1dd77` 188 → `a8c5b53` 210 → `bec9eb9` **222**；`def test_` **116 → 160 → 178 → 186**） |
+| 不变量 + 安全套件（extract/verify/subjects/health/config_security/access_log/errors/docs_disabled/auth/ready） | **94 passed** |
+| `test_search.py`（词表变更后的既有套件） | **19 passed**；`def test_` **19→19（零删除）**、`assert` **116→122（净增 6）**；删除的 5 行**全部**是词表改名，未放宽任何断言 |
+| 新增 `test_compare.py` / `test_registration.py` / `test_store_upgrade.py` / `test_search_v2_rulings.py` | 15 / 15 / 7 / 7 |
+| Java 全量（revert 后） | **747 run / 0 / 0 / 18 skipped，BUILD SUCCESS rc=0，109 份 xml**（= 本轮前基线；本轮代码 SHA 上 Java diff 为 0，故未重建） |
+| `compileall`（src + tests） | **rc=0** |
+
+### 7.2 中央门禁：**62 项 ALL-PASS / 0 FAIL**（`9a1dd77` 41 项 → r29 整改 +11 → r30 整改 +9）
+含：七个禁域与基线 diff 各 0 文件、迁移仍 V1+V2、无废弃 Java 合同文件复活、
+`reliable_new` 存在、`no_match` 归零、`search-v2` 存在、`search-v1` 归零、
+`/v1/compare` 与 `registrations/{correlation_id}` 路由已注册、`subjects` 含 `correlation_id` 列、
+`PRAGMA table_info` 与 `ALTER TABLE subjects ADD COLUMN` 均在、
+**decision 词表枚举恰为三个契约值且赋值点 ≥6、契约外值 0**、
+extract 零写入判别力测试仍在、verify 不回落全库、活体门恰 2 处调用点、
+**全 src 无伪造 `passed=true`**、文档面仍 404×3、`_bump_revision` 恰 2 处、
+错误码双向锁在、`top_k` 下界 2（config 与 api 各 1）、
+**`subjects` 相关 SQL 无缺 namespace 谓词者**、`access_log=False`、生产 fail-closed 守卫在、
+`git diff --check` rc=0、文本文件行尾空白 0、无工件/venv 入 git、
+新增行中 LTAI 形态 AK / `+86` 手机号 / 私钥块 / token-secret 赋值 / 64 位十六进制串命中**均 0**、
+测试删除检测无 REDUCED。
+
+门禁本身经过**判别力自测**：把 `reliable_new` 改成 `brand_new_person` 的变异被
+decision 枚举门禁**检出**（`outside-contract=1`）；把 `search_candidates` 的 namespace 谓词去掉
+被 SQL 门禁**检出**（1 处）；植入已删源文件的幻影 surefire 报告被 phantom 检测**报出**。
+
+### 7.3 三项变异判别力（证明新测试"有牙"）
+| 变异 | 结果 |
+|---|---|
+| A：空库改判 `reliable_new`（违背 §3.2 裁定） | **4 failed / 184 passed** |
+| B：移除质量封顶（`if decision in ("matched","reliable_new")` → `== "matched"`） | **5 failed / 183 passed** |
+| C：移除幂等重放短路（同 correlation_id 不再直接返回既有主体） | **6 failed / 182 passed** |
+
+三处变异已按原文**精确逆向还原**，并以变异前记录的 sha256 **逐字节核验**：
+`api.py 0c7f94622ed9166ba8bbbc20`、`store.py c4d4105157a581851f279139` 均 match，
+全量恢复 **188 passed**、残留 `MUTANT` 标记 **0**。
+
+**r29 整改轮的六项变异**（`a8c5b53`，每项**先还原并 `cmp` 校验、备份保留不先删**——修正上一轮的
+还原顺序缺陷）：空库改回 `uncertain`（重现死锁）→ **6 failed**；去掉 `search_candidates` 的显式
+读事务 → **1 failed**；索引改回非 UNIQUE → **1 failed**；去掉登记前 correlation 冲突检查 →
+**1 failed**；compare 恢复接受客户端 threshold → **2 failed**；去掉模型边界非有限守卫 →
+**1 failed**。还原后三文件 sha256 与备份逐字节一致（`api.py e1192398…`、`store.py e49e6057…`、
+`model.py b67424df…`）、残留标记 **0**、全量恢复 **210 passed**。
+
+> **如实记录我自己的还原脚本缺陷**：备份文件名（`api.orig`）与还原路径（`api.py.orig`）
+> 不一致 ⇒ 三次还原全部失败，且脚本末尾先 `rm -rf` 删掉备份，三个变异一度**累积留在工作树**
+> （当时全量 6 failed / 182 passed）。若未察觉即提交，将交付一个"把空库判成可靠新人 +
+> 幂等登记失效"的服务——正是合同明令禁止的两件事。已逆向还原并逐字节核验；
+> 教训写入 `.coordination/B-work/face-round/evidence-pivot/RESTORE-DEFECT.md`：
+> 变异实验必须①备份名与被变异文件名严格一致并在还原前 `cmp` 校验；②**先还原、后清理** scratch；
+> ③每轮变异后立即用 sha256 与基线比对，不要等全部跑完再统一还原。
+
+### 7.4 运行时行为实测（离线、FakeModel、临时库、用毕删除）
+- **幂等登记**：首次 `201 created=true replayed=false rev=1`；同 correlation_id 重放
+  `200 replayed=true`、**rev 未变**、`updated_at` 未变（特征未被覆盖）、
+  且用**原图**搜索仍 `matched`（证明库里存的还是原特征）；不同 correlation_id → `409`；
+  不传 correlation_id 的旧调用 → `201`/重复 `409`（逐字兼容）；`overwrite` → `200` 且 rev 递增。
+- **对账查询**：命中 → `status=registered` + 7 键；`entity_id` 或 `provider_request_id` 不符 →
+  `not_found`；未知 correlation → `not_found`（200）；幽灵 namespace → `404 NAMESPACE_NOT_FOUND`
+  且**未创建**该 namespace；**零写入**（rev 不变）；最小披露（无 embedding/quality/bbox/
+  det_score/candidates/subjects/namespace）。
+- **`/v1/compare`**：同图 `matched=true similarity=1.0`；异图 `matched=false similarity=0.0`；
+  `threshold=0.999` 生效；非法阈值 `400`；缺 `image_b` `400`；空白图 `400 NO_FACE`；
+  `require_liveness=true` **被忽略**且恒报 `supported=false`；**零写入**（rev 4→4）。
+- **search 词表**：命中 → `matched` + `subject_id` + `policy=search-v2`；非空库无关图 →
+  **`reliable_new`** + `no_candidates_above_threshold` 且**无** `subject_id`/`similarity`；
+  **空库 → `uncertain` + `empty_library`**；未知 ns → `404`；`top_k=1` → `400`（下界 2）。
+- **响应键集逐键核验**：四个端点的禁键命中均为 `[]`；register 重放**不回显** correlation_id；
+  四者原始 JSON 中**均无 64 维向量形态**（长度 223–1862）。
+- **原地升级**：真实构造旧 schema 库（无三列）+ 一条既有行 → `initialize()` → 三列补齐、
+  索引创建、**既有行与其 embedding 字节级保留**、`library_revision` 仍为 7（升级不是库变更）、
+  连跑三次幂等（无重复列）、升级后旧端点与新端点均可用；`EXPLAIN QUERY PLAN` 证明对账查询
+  命中 `idx_subjects_namespace_correlation`。
+
+### 7.5 资源与边界
+端口 18083/18084/8010 空闲；无遗留 JVM；`mvp-b-pg` Up（`mvp_b_dev`/`postgres`/`swagger_preview`
+三库完好，**未清库或卷**）；测试日志无真实网络引用（对已部署主机地址、其服务端口与 SSH 别名三项模式的命中均为 **0**）；
+`insightface`/`onnxruntime`/`cv2` **未导入**（全程 FakeModel + 合成 PIL 图，无真实人脸、无网络）；
+未部署、未 ssh、未触碰远端与共享 8002/8003；未读取或输出任何真实凭据；
+`application-local.*` 在工作树 **0 文件**。
+
+---
+
+## 8. 剩余 blocker 与待裁定项
+
+### 8.1 真实阻塞
+1. **已部署实例须重新部署**：本轮改了服务端 schema（`subjects` 补三列 + 索引）。
+   `initialize()` 会**原地升级**（不删库），但升级只在服务重启后发生。
+   `deploy/deploy.sh` 已含 `ExecMainPID` 变更断言并以 `/ready` 为门禁（防"静默跑旧代码"）。
+   **由根执行**；B 不部署、不 ssh、不触碰远端。
+2. **D 需实现适配层**：按合同 §8 实现 `InsightFaceAdapter` 并接入 `build_face_port` 新取值
+   （建议 `insightface`）。B 不改 Worker。D phase 1 已 608 passed，等的就是这份冻结合同。
+
+### 8.2 须由总协调/根裁定
+3. **既有 Java 人脸边界是否也要移除**（§2.3）：它属更早已交付、经 Oracle 通过并已并入 dev 的
+   基线，不含用户列出的任何移除目标 ⇒ 未擅自扩大 revert 范围。
+4. **A 域两处不一致**（沿用上轮取证，未改）：`JobEnqueuer.identityNamespaceOwnerFor`(`:127-129`)
+   是 **per-subject 死代码**（全仓调用方 0），`contracts/decisions-notes.md:33` 亦写 per-subject，
+   而 Python 实现与 `后端详细设计:736` 都是 **namespace 级** ⇒ 若将来误用会破坏
+   `uq_job_identity_enroll` 的 namespace 级串行化。
+5. **E 域影响**：E 的验收有 6 处依赖 `identity.enroll`（其中 `cd_chain.py:639,688` 的 **CD-06
+   断言该 job succeeded**）⇒ 若 D 退役 `identity.enroll`，E 的 CD-06 会失败。属 E 域，B 未改。
+6. ~~**`/v1/compare` 接受客户端 `threshold` 而 search 不接受**这一不对称是否可接受~~
+   ⇒ **Oracle r29 判为 IMPORTANT，我已推翻自己的裁定并移除客户端 threshold**（见 §10.4）。
+   **仍需总协调裁定**：`/v1/verify`（r28 之前已审已批准的既有代码，`api.py:426-431`）**仍**接受
+   客户端 `threshold`（0..1 任意值），是否同样收紧。本轮**未擅自扩大范围**去改它。
+
+### 8.3 持续披露的边界（非本轮新增）
+7. **阈值全部未经标定** ⇒ 标定前不得开启真实自动建档（`后端详细设计:663` 的 PoC 门禁）。
+8. **无活体能力** ⇒ MVP 人脸结论属"照片比对，无防翻拍能力"；护理准入在活体落地前恒
+   fail-closed（503）。生产启用真实 1:1 还需总协调授权修改 `CareFaceVerifierProductionGuard`。
+9. **`reliable_new` 不等于"算法证明是新人"**；消费方必须保留自己的对账与门禁。
+
+---
+
+## 9. 本轮 orchestrator 自身缺陷记录（如实）
+
+1. **变异还原脚本命名不一致**（§7.3）⇒ 三个变异一度累积留在工作树；已逆向还原并 sha256 逐字节核验。
+2. **中央门禁三处自身缺陷**：`liveness` 那条用多文件 `grep -c` 得到 `file:0` 而非总数；
+   `access_log` 匹配串写死 `access_log=False` 而真实写法是 `"access_log": False,`；
+   namespace 隔离那条 awk 跨行累加逻辑不可靠 ⇒ 改为 python 按 SQL 字面量切分，
+   并**再修一次**：Python 隐式字符串拼接（`"SELECT … " "WHERE namespace = ?"`) 会让只捕获第一段
+   的检查器误报缺谓词 ⇒ 先合并相邻字面量再提取。修后自测：`store_good` → 0、
+   刻意去掉 namespace 谓词的 `store_bad` → **1（检出）**。
+3. **5 条门禁的"恰好 1 次"假设错误**（`reliable_new`=3、`search-v2`=3、路由=2、
+   `PRAGMA`=2、`ALTER TABLE`=2）⇒ 恒失败的门禁比没有门禁更糟，已改为 `>=1` 语义，
+   并把最该有效的 **decision 词表枚举**从只匹配 1/6 个赋值点修正为覆盖全部三种赋值形式
+   （旧正则漏掉 5 处 `decision, ambiguous = "x", False` 元组赋值）。
+4. **活体探针两次崩溃均因我未先读签名**：先假设 `create_app(Settings)`（实为 keyword-only），
+   再用 `Settings.from_env()`（会触发生产守卫；conftest 的权威方式是直接构造 `Settings(...)`）。
+5. **测试里两处凭猜测写错**：`settings.model_copy(...)`（`Settings` 是普通 dataclass，
+   既有范式是 `dataclasses.replace`）；`client.app.state.settings`（真实属性是 `app.state.face`，
+   既有范式是请求 `settings` fixture 后用 `FaceStore(settings.db_path)`）。
+   另有一处**测试用例设计缺陷**：断言"未知 correlation → 200 not_found"时未先创建 namespace，
+   实际命中 404 `NAMESPACE_NOT_FOUND` 分支 ⇒ 修正用例（不是改实现），并注明两个分支各自的覆盖者。
+6. **一次工具调用被拒**（正当）：脚本中 `cd backend/face-service && … && cd ..` 后仍用
+   `backend/face-service/...` 相对路径，使解析越出 mvp-b 工作树 ⇒ 改为全程用 `workdir` 参数
+   或从工作树根出发的相对路径，并在脚本开头加 cwd 断言。
+7. **一次 grep 自匹配假象**：`pgrep -cf`/`ps | grep '[p]ytest'` 的模式串会匹配到我自己的
+   bash 命令行，一度让我以为有 pytest 在跑 ⇒ 改为按 `comm` 字段精确普查 + 读 `/proc/<pid>/cmdline`。
+
+---
+
+## 10. Oracle 第二十九轮（对 `9a1dd77` 判 FAIL）与本轮整改（`a8c5b53`）
+
+Oracle r29 判 **FAIL：2 BLOCKER + 3 IMPORTANT + 1 SUGGESTION**，明确「`9a1dd77` 当前不可作为
+最终交付 SHA 整合」。我按纪律**逐条读码核实**（不盲信也不盲驳），**六项全部成立、无异议**，
+其中**两项是我自己的设计判断错误**。r29 同时判**通过**的项：词表对齐（第 1 项）、
+`reliable_new` 命名（第 3 项，Oracle 明确"应保留，不应要求 D 新增映射"）、对账端点（第 5 项）、
+SQLite 原地升级（第 6 项）、既有性质未削弱（第 8 项）、写域纪律（第 10 项）、
+**变异已完整还原**（第 11 项，Oracle 独立核出与我记录一致的 sha256）。
+
+### 10.1 BLOCKER 1 — 首次入库死锁（**我的设计错误，裁定已推翻**）
+我此前裁定"空库 → `uncertain` + `empty_library`"，理由是"库为空更可能是未初始化/被误清，
+判新人会批量建档"。**该裁定是错的**：每个 namespace 都必然从空库开始，而 Worker 只在
+`reliable_new` 时才入队 `identity.enroll`（`assessment_analyze.py:377-388`）、对 `uncertain`
+只会要求补拍（`:369-375`），而**补拍不可能让空库变非空** ⇒ 首个成员永远无法经业务流程建档。
+把"禁止自动建档"的业务门禁放进只读算法端点是**放错了层**——其权威位置是
+`后端详细设计-V1-MVP.md:663` 的 PoC 门与 Worker 自己的 PostgreSQL 对账（`:381-389`）。
+
+修法：①search 对**不存在**的 namespace 不再 404，改为**只读空快照**（search 从不创建任何东西，
+故仍严格只读）；②空库/缺 namespace 时**质量合格 → `reliable_new`**、**质量不合格 → 仍
+`uncertain`**（fail-closed 的一半保留）；③`reasons` **恒定**携带 `empty_library`，顺序固定为
+`["empty_library", "quality_below_minimum"]`（库状态是判定前提故在首位）⇒ 旧裁定想保护的
+**可审计性以此方式保留**。
+
+我**未采用** Oracle 给的另一个选项（"提供独立可审计 bootstrap 流程"），理由：新增 bootstrap
+端点会扩大协议面且需 D 侧配合，而改判定即可解锁。已请 Oracle 在 r30 裁定该选择。
+**刻意保留的不对称**：对账端点对不存在的 namespace **仍**返回 404——它针对的是**已发起过**的登记，
+其 namespace 必然已存在，404 是正确的"查错地方"信号，不造成任何死锁（已写入合同 §6.2）。
+
+**连带影响**：我此前写的判别力测试 `test_empty_namespace_is_uncertain_not_reliable_new`
+**锁定的正是这个错误规则**（Oracle 第 9 项亦指出）。已更名为
+`test_empty_namespace_yields_reliable_new_so_first_enrollment_is_reachable`，docstring 完整记录
+"旧规则为何是错的、新规则如何保留可审计性、门禁归属哪一层"，并新增
+`test_missing_namespace_is_searched_as_an_empty_snapshot`（200 且**未创建** namespace、revision 不变）
+与 `test_empty_library_with_poor_quality_stays_uncertain`（同一空库在默认门槛下 `reliable_new`、
+在不可达门槛下 `uncertain` ⇒ 差异只由质量造成）。
+
+### 10.2 BLOCKER 2 — search 快照不是单一一致读
+`search_candidates` 的 revision / count / rows 曾是**三次独立读**（`sqlite3` 在 autocommit 下每个
+SELECT 各取一个快照）⇒ 并发 delete 落在 COUNT 与行读之间会产生 `subject_count > 0` 而候选为 0，
+调用方随后索引 `ranked[0]` 直接 **500**；且审计用的 `library_revision` 可能描述与候选集不同的库状态。
+修法：三次读放进**同一显式读事务**（`BEGIN` → 三读 → `commit`，异常 `rollback`）。
+并发测试两层：store 级（60 行 + 并发删除 + 3 读线程，断言 `subject_count == len(candidates)` 恒成立）、
+端到端（边清空边搜索 ≥120 次采样，断言**只出现 200** 且 decision 恒在三值内）。
+
+### 10.3 IMPORTANT 3 — correlation 全局唯一性不足
+索引曾是普通（非 UNIQUE）索引，且 `find_registration` 用 `fetchone()` ⇒ 同一 `correlation_id`
+可绑定两个不同 subject，对账结果**不确定**，直接违反合同"一个 correlation id = 一次逻辑登记"的承诺。
+修法：①索引改为 **UNIQUE 部分索引**（`WHERE correlation_id IS NOT NULL` ⇒ 旧行与不传对账键的
+调用方零影响）；②`register` 写入前**显式检查**该 correlation 是否已绑定**其它** subject，
+命中即 **409**（`details` 只含 `namespace`，**不回显**另一个 subject_id）——避免唯一索引抛裸
+`IntegrityError` 被渲染成 500；③`initialize()` 在建唯一索引前**扫描既有重复**，命中则以
+`STORE_UNAVAILABLE` **明确拒绝启动**、只报重复**组数**（绝不回显 id）；新装库跳过扫描。
+
+### 10.4 IMPORTANT 4 — compare 允许客户端降低阈值（**我的设计错误，裁定已推翻**）
+我此前允许 `/v1/compare` 覆盖 `threshold`，理由是"无库参与的一次性比对，不存在调低阈值绕过库策略
+的风险"。**该理由不成立**：threshold 直接决定 `same_person` 结论，允许降到 `0.0` 就等于允许调用方
+把任意两张无关图判为同人，"不查库"与此无关；且 `FacePort.same_person(images)`（`providers.py:119`）
+**本来就没有 threshold 参数**，无任何消费方需要它。
+修法：compare 阈值改为**服务端固定**（`FACE_SVC_VERIFY_THRESHOLD`），客户端值被**忽略**
+（不是"校验后接受"）⇒ 与 search 口径一致，我此前那个被 Oracle 否掉的不对称随之消除。
+我选了 Oracle 给的第一个选项（删除）而非第二个（仅允许更严格），理由是 **YAGNI**：无消费方需要它。
+**如实披露的既有不对称**：`/v1/verify`（r28 之前已审已批准的既有代码，`api.py:426-431`）**仍**接受
+客户端 `threshold`（0..1 任意值）；本轮**未擅自扩大范围**去改它，已交总协调裁定。
+
+### 10.5 IMPORTANT 5 — 非有限 embedding/similarity 可变成身份分类
+全仓 `isfinite` 命中曾为 **0**；`np.linalg.norm(NaN 向量)` 得 NaN，而 `NaN <= 0.0` 为 **False**
+⇒ 零范数检查放行；NaN 与任何阈值比较均为 False ⇒ search 落到最后的 `else` 分支，
+**把模型数值故障报成 `reliable_new`**。三层修法：
+1. `model.py`：`normalize_embedding` 与 `cosine_similarity` 均要求 `np.isfinite`；
+   非有限 → `MODEL_UNAVAILABLE`(503 retryable)，结果非有限 → `INTERNAL_ERROR`；
+   既有"零范数 → 相似度 0.0"行为保留。
+2. `api.py`：新增 `_require_finite_embeddings()`，在**模型边界**（`_run_model` 返回前）统一校验。
+   **这一层不是重复而是必需的**，且它堵住了一条 **Oracle 未点名的逃逸路径**——我在实施中实测确认：
+   `normalize_embedding` 只在真实模型（`InsightFaceModel:179`）被调用，而**空库分支根本不调用
+   `cosine_similarity`**，故"空库 + NaN 探针"当时实测返回 **200 `decision=reliable_new`**。
+   放在模型边界可一次覆盖 extract/quality/verify/compare/search 五条路径，新端点也不会漏。
+
+### 10.6 SUGGESTION 6 — 合同 details 措辞过强
+合同 §7 原写"`details` 绝不包含 namespace 取值、subject_id 取值"，而 `error_body`
+（`errors.py:148-149`）确实外发 details，且既有 **7 处** 404 会回显**调用方本次请求自己传入**的标识。
+按 Oracle 给的第一个选项**只改文档不改行为**：回显调用方自己传入的标识不构成泄漏
+（调用方本来就知道这些值），但绝不包含 token、图片字节、embedding、候选列表、库内容或
+**其它**主体的标识。
+
+### 10.7 合同同步修订（`a8c5b53`，6 处，保持代码/合同零漂移）
+§4.2 前置错误行（namespace 不存在不再 404）、§4.2 `reliable_new` 触发条件（增空库分支）、
+§4.2 裁定 1 整段重写并附**修订记录**（明写"该裁定是错的，已推翻"及推翻理由）、
+§5.1 threshold 段重写并附**修订记录**（含 `/v1/verify` 既有不对称的如实披露）、
+§6.1 增"唯一性由数据库强制"段（UNIQUE 部分索引 + 409 前置检查 + 迁移重复拒绝启动）、
+§6.2 说明对账端点为何**仍**对缺失 namespace 返回 404、§7 details 措辞修正。
+合同 334 → **373 行**，2 条"修订记录（Oracle 第二十九轮）"。
+
+### 10.8 本轮 orchestrator 自身缺陷（如实记录，共 7 项）
+1. 在 Python 注释块里误用 `//`（Java 注释符）⇒ `SyntaxError`（LSP 报出，`compileall` 权威确认）。
+2. `api.py` 用 `np.` 却未导入 `numpy`；`model.py` 用 `math.isfinite` 却未导入 `math`
+   （两处均 LSP 先报、我核实为真实错误后修）。
+3. 新测试里 `_register(...)` 重复传 `namespace` 参数（`Parameter already assigned`）。
+4. **测试夹具维度缺陷导致我一度误判实现有错**：NaN 用例用 8 维 embedding 而库中是 64 维，
+   `cosine_similarity` 的维度不匹配分支先抛 `INTERNAL_ERROR`(500)，我据此以为守卫失效；
+   改用 `conftest.EMBEDDING_DIM` 后实测为 **503 `MODEL_UNAVAILABLE`** ⇒ 实现本就正确，错在我。
+   （同类教训：本会话我已多次把"自己的检查/夹具缺陷"误读成"实现缺陷"，必须取真实堆栈再下结论。）
+5. 一处断言把 `reasons` 顺序写反（实现是 `empty_library` 在首位，更合理）⇒ **改测试不改实现**。
+6. **中央门禁第三次踩同一 awk 范围陷阱**：`/def cosine_similarity/,/^def |^class /` 的起始行本身就
+   匹配结束模式 ⇒ 范围立即闭合只检查 1 行，把**正确**的实现报成 FAIL。改为 python 按缩进切函数体，
+   并用 good/bad 对照自测（good→1、去掉守卫的 bad→0）。
+7. 5 条门禁的"恰好 1 次"假设错误（docstring 与代码各计一次）⇒ 改 `>=1` 语义；
+   decision 词表枚举正则只匹配 **1/6** 个赋值点（漏掉 `decision, ambiguous = "x", False` 元组形式）
+   ⇒ 改为覆盖三种赋值形式，并用"把 `reliable_new` 改成 `brand_new_person`"的变异自测其有牙。
+   另：报告里为描述"无网络引用"而复述了内网地址 ⇒ 改为不含具体地址的表述（更严格的卫生）。
+
+---
+
+## 11. Oracle 第三十轮（对 `a8c5b53` 判 FAIL）与本轮整改（`bec9eb9`）
+
+Oracle r30 判 **FAIL**，但范围已大幅收窄：r29 的六项中 **4 项判通过**——空库/缺 namespace 裁定
+（并明确「该选择**优于**新增 bootstrap 接口，并与 Worker 既有词表吻合」）、search 一致读事务、
+compare threshold、合同 details 措辞；`reliable_new` 命名亦判可接受。剩余 2 IMPORTANT + 1 SUGGESTION。
+我**逐条用真实 SQLite / 运行时实验核实**（不只读码），三项**全部成立**。
+
+### 11.1 IMPORTANT 1 — 同名非唯一索引不会被 `CREATE UNIQUE INDEX IF NOT EXISTS` 升级
+实验确证（读 `PRAGMA index_list` 的 unique 标志）：
+- `9a1dd77` 形态建的是**非唯一**索引（unique=**0**）；
+- 逐字执行 `a8c5b53` 的 `CREATE UNIQUE INDEX IF NOT EXISTS …` 后 unique **仍为 0**
+  ⇒ SQLite 的 `IF NOT EXISTS` **只按名字判断，不升级**；
+- 后果实测：**同一 `correlation_id` 成功绑定两个 subject** ⇒ 对账 `fetchone()` 结果不确定，
+  正是合同承诺要杜绝的；
+- 我当时的迁移里 `DROP INDEX`/`index_list` 命中**各 0**，且 `_LEGACY_SUBJECTS_DDL` 不含任何
+  `CREATE INDEX` ⇒ **Oracle 指出的测试盲区成立**（只覆盖 V1，未覆盖直接前代形态）。
+
+修法（`store.py`）：新增 `_correlation_index_state()` 用 `PRAGMA index_list(subjects)` 读回
+unique 标志（`None` 无索引 / `True` 已唯一 / `False` 同名非唯一）；新增 `_CORRELATION_UNIQUE_DDL`
+（**不带** `IF NOT EXISTS`，否则升级是空操作）；在**一个** `BEGIN IMMEDIATE` 事务内：
+**先扫重复** → 有重复则 `rollback` 并以 `STORE_UNAVAILABLE` 拒启（只报**组数**、绝不回显 id）
+→ `DROP INDEX IF EXISTS` → `CREATE UNIQUE INDEX` → `commit`。
+
+**顺序依据实验而非推断**（四组）：①无重复时事务内 DROP+CREATE 使 unique `0→1`，随后重复插入被
+`IntegrityError` 拒绝；②**库里已有重复**时 `CREATE UNIQUE INDEX` 抛错且**索引已消失**
+（若不在事务内就会留下无索引的表）；③先扫重复可检出组数；④**事务内失败 → ROLLBACK 完整恢复
+索引与全部行**。故 Oracle 的修法方向正确，但我把"确认无重复"固定在 **DROP 之前**，
+比"DROP 后再确认"更安全（即使将来有人把 DROP 移出事务也不会留下无索引的表）。
+
+**我在实施中引入了一条 Oracle 未指出的新缺口，已修（如实记录）**：最初把判据写成"仅当索引存在且
+非唯一时才扫重复"，于是"**三列已存在 + 有重复 + 完全没有索引**"这条路径会跳过扫描、直接
+`CREATE UNIQUE INDEX IF NOT EXISTS` ⇒ 抛**裸 `sqlite3.IntegrityError`**，正是我上一轮特意要避免的
+"难以诊断的启动失败"。**是旧测试报警才发现的**
+（`test_migration_refuses_a_legacy_db_with_duplicate_correlations` 失败）。判据已改为
+"**只要不是已 UNIQUE 就先扫重复**"。
+
+**五种库形态实测**（每例连跑两次 `initialize()` 验证幂等）：
+
+| # | 库形态 | 结果 |
+|---|---|---|
+| 1 | V1（无三列、无索引、1 行） | 启动，unique `None→1`，行数保留 |
+| 2 | **直接前代**（三列 + 同名非唯一索引） | 启动，unique **`0→1`**，行数保留、`revision` 仍为 5 |
+| 3 | 已是唯一索引 | 启动，unique=1（幂等 no-op） |
+| 4 | 三列 + **无索引** + 重复 | **拒启** `STORE_UNAVAILABLE`，索引仍不存在，2 行完好，**不泄漏 id** |
+| 5 | 前代索引 + 重复 | **拒启**，索引仍为非唯一(0)，2 行完好，**不泄漏 id** |
+
+### 11.2 IMPORTANT 2 — 模型边界允许空向量与有限零范数向量
+`_require_finite_embeddings` 原写 `if values.size and not isfinite(...)` ⇒ **空向量被短路跳过**。
+运行时实测：空向量与零范数向量在**空库路径**都得到 **200 `decision=reliable_new`**
+（该分支不调用 `cosine_similarity`，故 r29 加的守卫覆盖不到）。Oracle 的论证完全成立。
+修法：三段独立检查——`values.size == 0` → 空向量；`not np.isfinite(...).all()` → 非有限；
+`norm <= 0.0 or not math.isfinite(norm)` → 零范数；三者均 `MODEL_UNAVAILABLE`(503 retryable)。
+实测四种退化形态（empty / zero-norm / NaN / Inf）在空库路径**全部 503 且响应中无 `decision`**，
+正常向量仍 ACCEPTED（正向对照）。
+
+### 11.3 SUGGESTION 3 — `test_compare.py` 文件头与实现矛盾
+文件头仍写"a client `threshold` is honoured here (unlike search)"，而 r29 已把 compare 改为服务端
+固定阈值 ⇒ 改为"threshold 是**服务端固定**、客户端值被**忽略**（不是校验后接受）"并写明理由。
+**这是我改实现时漏改文件头的真实疏漏。**
+
+### 11.4 测试与门禁
+- `test_store_upgrade.py` 7 → **12**：新增覆盖 Oracle 点名的"直接前代形态"——前提守卫（夹具真的
+  是非唯一索引）、升级为 UNIQUE 且**既有行/embedding/revision 逐字保留**、**DB 层**拒绝重复
+  correlation（不只靠应用层 409）、幂等重跑不产生第二个索引、含重复则拒启且**索引与两行数据完好**
+  （证明事务 rollback 未损坏库）+ 消息不泄漏任何 id。
+- `test_r29_fixes.py` 15 → **26**：四种退化 embedding 在空库路径 fail-closed 的参数化测试、
+  compare/extract 同样拒绝、正向对照。
+- 中央门禁 52 → **62 项 ALL-PASS / 0 FAIL**（新增 9 条 r30 门禁，自测**对修复前代码全部会 FAIL**：
+  pre-fix 计数逐条 0/0/0/0/0/1/1）。"DROP 必须先于扫描"用 python 比较函数体内两个位置的下标判定，
+  不用脆弱的 awk 范围模式。
+
+### 11.5 变异判别力（**如实记录，不夸大有牙**）
+- **有牙**：跳过索引升级（改回依赖 `IF NOT EXISTS`）→ **3 failed**；移除零范数守卫 → **2 failed**；
+  连同 r29 轮六项（6/1/1/1/2/1 failed）。
+- **两处"无牙"经查明不是覆盖缺口**：
+  1. 移除**空向量**守卫 → 222 passed。根因：`np.linalg.norm(空数组) = 0.0`，
+     **零范数检查本就捕获空向量**。实测移除后端点仍返回 **503 `MODEL_UNAVAILABLE`**、
+     `decision=None`，可观测行为只差错误消息文案。保留该检查是为消息准确、且不依赖 numpy 的
+     "norm(空)=0" 实现细节；测试断言的是**安全性质**（code 与"无 decision"），故对两种实现都通过
+     ——这正是期望的测试设计（锁性质而非锁文案）。
+  2. 把 DROP 移到扫描之前 → 222 passed。根因：DROP 与扫描**都在同一 `BEGIN IMMEDIATE` 事务内**，
+     拒启时 rollback 恢复索引 ⇒ Oracle 描述的"失败后留下无索引的表"在事务内并不存在，
+     该变异没有真正制造出危险。把扫描放在 DROP 之前仍是**更保守**的正确顺序。
+- 四次变异均**先还原并 `cmp` 校验、备份保留不先删**（r29 的教训），还原后
+  `store.py bc7d1235…`、`api.py 0a1aa81e…` 逐字节一致、残留标记 0、全量恢复 **222 passed**。
+
+### 11.6 本轮 orchestrator 自身缺陷（如实记录，共 6 项）
+1. **引入了一个新的迁移缺口**（"列已存在 + 有重复 + 无索引"会抛裸 `IntegrityError`），
+   是旧测试报警才发现的；判据已从"索引是否非唯一"改为"只要不是已 UNIQUE 就先扫重复"。
+2. 引用了尚未定义的 `_correlation_index_state` 与 `_CORRELATION_UNIQUE_DDL`（LSP 报出后补定义）。
+3. `api.py` 用 `math.isfinite` 却未导入 `math` —— 本轮**第二次**犯同类错误（r29 是 `numpy` 与
+   `model.py` 的 `math`）。
+4. **我的索引探针第 4 步曾给出错误结论**：它在未 commit 的连接里插入重复行，`close()` 时被回滚，
+   于是"DROP+重建后仍接受重复"其实是空库上插入单行的正常结果——那一步没有证明任何事。
+   重做（显式 `isolation_level=None` + 逐例 commit）后才得到 §11.1 的四条可靠结论。
+5. 新写的测试引用 `FaceServiceError`/`ErrorCode` 却未导入。
+6. 一条门禁模式过宽：`values.size and` 命中了我自己写的 docstring 说明文字（`api.py:319`），
+   把**正确**的实现报成 FAIL；收窄为只匹配代码形态 `^\s*if values\.size and `，并补一条正向
+   "三形态守卫齐备"门禁，再用 pre-fix 代码自测其有牙（命中 1 vs 当前 0）。
+   这是本会话同类"模式过宽/锚点不匹配"缺陷的又一次；awk 范围陷阱已第 3 次踩到后改用 python。
+
+7. **未核实即照抄审查者结论，把正确的数字改错**（r31 轮）：Oracle 的 SUGGESTION 称
+   "用户描述为 6 文件，实际 `9a1dd77..bec9eb9` 为 7 文件（含两份 handoff）"，我据此把报告里的
+   "6 文件"改成了"7 文件"。随后用**四种独立方法**复核证明 **Oracle 这条不成立、我原先的数字是对的**：
+   `git diff --name-only a8c5b53..bec9eb9 | wc -l` = **6**；`git show --stat` 末行 =
+   **"6 files changed, 519 insertions(+), 42 deletions(-)"**；`git diff-tree -r` = **6**；
+   该提交只触及 **1 份** handoff（`B-face-service-pivot-delivery.md`），
+   `B-face-service-worker-contract.md` **未被触及**（diff 命中 0）。已改回 6。
+   **教训**：对审查者的结论同样必须先取证再采纳——"不盲信也不盲驳"适用于双向；
+   本轮我在 r29/r30 都做到了逐条读码核实，却在一条看起来最无害的"文件计数"上直接照抄，
+   正是最容易放松警惕的地方。另注：Oracle 的表述可能源于把 `9a1dd77..bec9eb9`
+   （跨两个提交）与 `a8c5b53..bec9eb9`（本轮单个提交）的范围混淆。
+
+### 11.7 Oracle r30 的两项"生产启用前提"（已如实登记，未擅自声称可生产启用）
+- **空库 → `reliable_new` 的生产启用前提**：D adapter 尚未接入 ⇒ 当前无调用方自动建档；
+  D 接入与真实自动登记必须受 `后端详细设计-V1-MVP.md:663` 的 PoC 门禁；
+  **PG 对账只防重复、不防"库被误清后的批量新人候选"**；根需监控 subject count / revision，
+  并在库异常清空时停用自动登记。Oracle 明确：「没有这些外部控制，不应宣称空库自动登记可生产启用」
+  ⇒ 本报告**不宣称**其可生产启用。
+- **`/v1/verify` 仍允许客户端 threshold**：Oracle 裁定本轮不要求处理（既有已审范围），
+  但指出其安全性质与 compare 相同、不应长期允许客户端任意降低 1:1 身份阈值 ⇒ 已作为待裁定项
+  交总协调（删除覆盖，或仅允许 `requested >= server_default`），本轮**未擅自扩大范围**修改。
+
+---
+
+## 12. Oracle 第三十一轮（对 `bec9eb9` 判 **PASS-with-notes**）
+
+会话 `ora-1` = `ses_f70bc47c3ffeLASOzFOAJZPUO8`（与 r29/r30 同一子会话，保有全部上下文）。
+Oracle 明确「**未运行 pytest、联网或修改文件**」，其结论基于 diff 与 sha256 复核。
+
+### 12.1 四项闭合判定（全部**已闭合**）
+| # | 项 | Oracle 给出的证据位置 |
+|---|---|---|
+| 1 | 同名非唯一索引升级 | `store.py:94-108`（读 unique 标志）、`:145-180`（迁移）、`:153-178`（扫描）、`:158-185`（单个 `BEGIN IMMEDIATE` + 异常 rollback）；并逐一确认**五种库形态均正确处理**，裁定「拒绝启动而非静默选择一条记录，是正确的数据完整性取舍」 |
+| 2 | 迁移正负测试 | `test_store_upgrade.py:251-440` 真实创建"三列已存在 + 同名非唯一索引 + 既有 embedding/revision/correlation 数据"，验证 unique `0→1`、数据不变、DB 层拒绝重复、幂等不产生第二索引、拒启后索引与两行完好、消息不泄漏标识符 ⇒「补齐了上一轮的直接前代盲区」 |
+| 3 | 空/零 embedding 边界 | `model.py:58-82`、`api.py:304-327`；空/全零/NaN/Inf 均 503 且无 decision，正向对照保留 |
+| 4 | compare 测试说明 | `test_compare.py:11-15` 已与实现一致 |
+
+### 12.2 两项特别核验
+- **提交态无变异残留：确认。** Oracle 独立核出的三个 sha256 与我记录的**逐字一致**
+  （`api.py 0a1aa81e…9ca3`、`store.py bc7d1235…91aa`、`model.py b67424df…c0bd`），
+  且 `git grep -E 'MUTANT|if False:|and False' bec9eb9 -- backend/face-service` 无命中。
+- **两处"无牙变异"定性正确，不属安全覆盖缺口。** Oracle 明确：
+  ①「显式检查的价值是准确错误语义和不依赖 NumPy 细节，**不需要测试强制区分两种安全等价实现**」；
+  ②「DROP 与扫描都位于同一事务，DROP 后发现重复再 rollback 同样会恢复原索引……
+  **但测试无需把该顺序当成安全不变量**」。
+
+### 12.3 三项 SUGGESTION 的处置
+| # | 内容 | 我的处置 |
+|---|---|---|
+| 1 | 模型边界把所有零范数统一称为模型故障，未来若引入允许空 embedding 的非人脸模型需重新定义（Oracle 自己注明「当前无需修改」） | **只登记不改**：保持 `FaceDetection.embedding` 必须非空非零的接口约束 |
+| 2 | 称"实际 7 文件（含两份 handoff）" | **经四种独立方法复核证明不成立，未采纳**：`git diff --name-only` = 6、`git show --stat` 末行 = "6 files changed"、`git diff-tree -r` = 6、该提交只触及 **1 份** handoff（合同文档 diff 命中 0）。我一度照抄该结论把报告改成 7，**已改回 6 并把这次错误记入 §11.6 第 7 项** |
+| 3 | 中央门禁"DROP 必须先于扫描"判据**方向错误**，该顺序在事务内不是安全必要条件 | **采纳并已修**：删除依赖顺序的判据，改为不依赖顺序的真实不变量「扫描与 DROP 同处一个显式事务内」；自测有牙（正确实现→1、把 DROP 移出事务→0、删掉 `BEGIN`→0）。行为性保证仍由测试承担（拒启后索引/数据完好、成功后 unique=1）。该门禁在 `.coordination/`（git 忽略），**不进仓库**，故不影响交付 SHA |
+
+### 12.4 整合许可与轮次边界（Oracle 原文要点）
+- 「**可以将 `bec9eb97c2bbcefa3d6e2344f671b96a76c1371a` 作为本轮最终交付 SHA 交总协调整合**」。
+- 「**不要求补跑验证**。222 项 face-service 测试、迁移五形态实验及变异证据足以覆盖本轮；
+  无需 Java、41 项或 E 全套。」
+- 「**确认 `bec9eb9…` 为本轮 face-service 交付 SHA**」，并列出无需再审的七项：
+  search 词表及空库裁定、search 读事务、correlation 唯一约束与迁移、compare 固定阈值、
+  embedding finite/empty/zero 边界、details 合同措辞、变异还原。
+- 对两项裁定的明确结论：**空库 bootstrap 方案「当前选择可接受」**（服务端只返回"相对当前
+  namespace 没有候选"、自身不建档、D adapter 未接入故当前无自动建档调用链、真实自动登记须先满足
+  DD 9.3 PoC 门禁）；**但「库误清风险不能由 PG 对账解决，根必须配置 subject count/revision
+  异常告警，并在异常清空时停用 D adapter 或自动登记」**。`/v1/verify` 客户端 threshold
+  「不要求本轮修改，维持上一轮边界」，但「在该裁定前，**不应把可降低阈值的 verify 用于更高权限的
+  生产准入**」。
+
+### 12.5 我的决定：不为 SUGGESTION 改动代码 SHA
+Oracle 已明确 SUGGESTION 1「当前无需修改」、SUGGESTION 3 属我的外部（git 忽略）门禁而非仓库代码、
+SUGGESTION 2 经复核不成立；且它宣告了轮次边界与「不要求补跑验证」。任何代码改动都会使刚获得的
+绑定失效并制造它明示不必要的审查循环 ⇒ **最终代码 SHA 保持 `bec9eb9` 不变**，
+本轮以 **report-only 提交**收尾（自证代码目录 diff 0 文件）。

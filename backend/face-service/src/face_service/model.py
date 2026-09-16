@@ -11,6 +11,7 @@ Tests inject :class:`FakeModel`; production wires :class:`InsightFaceModel` via
 
 from __future__ import annotations
 
+import math
 import threading
 from dataclasses import dataclass
 from typing import Callable, Protocol, Sequence, runtime_checkable
@@ -55,18 +56,39 @@ class FaceModel(Protocol):
 
 
 def normalize_embedding(vector: np.ndarray) -> tuple[float, ...]:
-    """L2-normalise an embedding so cosine similarity is a plain dot product."""
+    """L2-normalise an embedding so cosine similarity is a plain dot product.
+
+    Non-finite components are refused rather than normalised: a NaN/Inf embedding
+    is a model or numerical fault, and propagating it would silently poison every
+    downstream comparison (NaN compares False against everything, so a search
+    would classify it as "clearly below threshold" and hand back ``reliable_new``
+    — turning a fault into an identity decision).
+    """
     arr = np.asarray(vector, dtype=np.float64).reshape(-1)
+    if not bool(np.isfinite(arr).all()):
+        raise FaceServiceError(
+            ErrorCode.MODEL_UNAVAILABLE, "model produced a non-finite embedding"
+        )
     norm = float(np.linalg.norm(arr))
-    if norm <= 0.0:
+    if norm <= 0.0 or not math.isfinite(norm):
         raise FaceServiceError(
             ErrorCode.MODEL_UNAVAILABLE, "model produced a zero-norm embedding"
         )
-    return tuple((arr / norm).tolist())
+    out = arr / norm
+    if not bool(np.isfinite(out).all()):  # pragma: no cover - defensive
+        raise FaceServiceError(
+            ErrorCode.MODEL_UNAVAILABLE, "embedding normalisation overflowed"
+        )
+    return tuple(out.tolist())
 
 
 def cosine_similarity(a: Sequence[float], b: Sequence[float]) -> float:
-    """Cosine similarity for two already (or not) normalised vectors."""
+    """Cosine similarity for two already (or not) normalised vectors.
+
+    Fail-closed on non-finite input or result: such a value must never become an
+    identity classification (``matched`` / ``reliable_new``), so it raises
+    instead of returning a number the caller would compare against a threshold.
+    """
     va = np.asarray(a, dtype=np.float64).reshape(-1)
     vb = np.asarray(b, dtype=np.float64).reshape(-1)
     if va.shape != vb.shape:
@@ -74,11 +96,20 @@ def cosine_similarity(a: Sequence[float], b: Sequence[float]) -> float:
             ErrorCode.INTERNAL_ERROR,
             "embedding dimension mismatch",
         )
+    if not (bool(np.isfinite(va).all()) and bool(np.isfinite(vb).all())):
+        raise FaceServiceError(
+            ErrorCode.MODEL_UNAVAILABLE, "non-finite embedding in comparison"
+        )
     na = float(np.linalg.norm(va))
     nb = float(np.linalg.norm(vb))
     if na <= 0.0 or nb <= 0.0:
         return 0.0
-    return float(np.dot(va, vb) / (na * nb))
+    similarity = float(np.dot(va, vb) / (na * nb))
+    if not math.isfinite(similarity):  # pragma: no cover - defensive
+        raise FaceServiceError(
+            ErrorCode.INTERNAL_ERROR, "cosine similarity is not finite"
+        )
+    return similarity
 
 
 class InsightFaceModel:

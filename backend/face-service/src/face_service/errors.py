@@ -43,6 +43,11 @@ class ErrorCode(str, Enum):
     INFERENCE_TIMEOUT = "INFERENCE_TIMEOUT"
     INTERNAL_ERROR = "INTERNAL_ERROR"
 
+    # Storage reachability (readiness probe only).  Kept distinct from the
+    # model-* codes so operators can tell "model not ready" from "SQLite not
+    # reachable" at a glance.
+    STORE_UNAVAILABLE = "STORE_UNAVAILABLE"
+
 
 @dataclass(frozen=True)
 class ErrorSpec:
@@ -119,6 +124,12 @@ ERROR_SPECS: dict[ErrorCode, ErrorSpec] = {
     ),
     ErrorCode.INTERNAL_ERROR: ErrorSpec(
         ErrorCode.INTERNAL_ERROR, 500, True, "Unexpected internal error."
+    ),
+    ErrorCode.STORE_UNAVAILABLE: ErrorSpec(
+        ErrorCode.STORE_UNAVAILABLE,
+        503,
+        True,
+        "The subject store (SQLite) is not reachable; the service is not ready.",
     ),
 }
 

@@ -87,3 +87,21 @@ def test_no_image_bytes_or_token_in_access_log(client, extract, caplog):
     assert "embedding" not in text
     # Raw image bytes must never be logged.
     assert image[:16].hex() not in text
+
+
+def test_search_access_log_uses_template_and_hides_values(client, register, caplog):
+    image = make_image(seed=75)
+    assert register(client, SECRET_NS, SECRET_SUBJ, image).status_code == 201
+    with caplog.at_level(logging.INFO, logger=ACCESS_LOGGER):
+        resp = client.post(
+            f"/v1/namespaces/{SECRET_NS}/search",
+            files={"image": ("f.png", image, "image/png")},
+        )
+    assert resp.status_code == 200
+    text = _access_text(caplog)
+    # Route template only -- no expanded path, no identity values, no bytes.
+    assert "/v1/namespaces/{namespace}/search" in text
+    assert SECRET_NS not in text
+    assert SECRET_SUBJ not in text
+    assert "embedding" not in text
+    assert image[:16].hex() not in text

@@ -171,3 +171,19 @@ def verify():
         )
 
     return _verify
+
+
+@pytest.fixture
+def search():
+    def _search(client: TestClient, namespace: str, image: bytes,
+                top_k: int | str | None = None, **extra):
+        data = {key: value for key, value in extra.items()}
+        if top_k is not None:
+            data["top_k"] = str(top_k)
+        return client.post(
+            f"/v1/namespaces/{namespace}/search",
+            files={"image": ("face.png", image, "image/png")},
+            data=data,
+        )
+
+    return _search
