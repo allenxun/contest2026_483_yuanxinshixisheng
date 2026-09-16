@@ -41,7 +41,7 @@ class InsightFaceCareVerifierTest {
         InsightFaceProperties props = new InsightFaceProperties(stub.baseUrl(), "openvela-mvp",
                 "FAKE-INTERNAL-TOKEN-DO-NOT-USE", null, 1500, 1500, 0.4);
         verifier = new InsightFaceCareVerifier(new FaceServiceClient(props, new ObjectMapper()),
-                jdbc, props.verifyThreshold());
+                jdbc);
     }
 
     @AfterEach

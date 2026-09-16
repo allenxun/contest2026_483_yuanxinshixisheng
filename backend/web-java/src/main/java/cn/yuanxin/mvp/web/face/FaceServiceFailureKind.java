@@ -33,7 +33,9 @@ public enum FaceServiceFailureKind {
             "MODEL_NOT_LOADED",
             "CONCURRENCY_LIMIT",
             "INFERENCE_TIMEOUT",
-            "INTERNAL_ERROR");
+            "INTERNAL_ERROR",
+            // 存储（SQLite）不可达：/ready 专用，属依赖故障而非模型/能力问题。
+            "STORE_UNAVAILABLE");
 
     public static FaceServiceFailureKind classify(int httpStatus, String code) {
         String normalized = code == null ? "" : code.trim();
