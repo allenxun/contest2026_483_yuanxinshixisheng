@@ -26,8 +26,10 @@ import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, NoReturn, Optional, Protocol, runtime_checkable
+from urllib.parse import quote, urlencode
 
-from . import weijing_mapping
+from . import dliveness, weijing_mapping
+from .constants import REQUIRED_VIEWS_ALL
 from .dconfig import (
     DEFAULT_PLAN_CAPABILITY_BASELINE,
     DConfig,
@@ -38,7 +40,13 @@ from .dconfig import (
     production_environment_signals,
 )
 from .dtokenfile import read_token_file
-from .dtransport import FaceServiceTransport, SealedHttpTransport
+from .dtransport import (
+    FaceServiceHttpError,
+    FaceServiceTimeout,
+    FaceServiceTransport,
+    FaceServiceTransportError,
+    StdlibHttpTransport,
+)
 from ...media.storage import (
     AliyunOssStorage,
     FilesystemStorageDouble,
@@ -59,16 +67,7 @@ class ProviderUnavailable(RuntimeError):
 
 
 class ProviderNotActivated(ProviderUnavailable):
-    """适配器尚未真实激活（无授权凭据/未过 PoC）→ 可重试，不伪造结果。"""
-
-
-class FaceServiceNotBound(ProviderUnavailable):
-    """insightface 适配器在 phase 2 HTTP 绑定前对任何操作的可重试拒绝。
-
-    继承 :class:`ProviderUnavailable`，故既有 handler 的 ``except ProviderUnavailable``
-    路径会把它映射为可重试 ``DEPENDENCY_UNAVAILABLE``（job 退避重排，attempt 上限内），
-    **绝不**静默成功、**绝不**回退 ``double`` 替身。消息不含任何 secret。
-    """
+    """适配器尚未真实激活（无授权凭据/未过 PoC/自动登记门未开）→ 可重试，不伪造结果。"""
 
 
 # ``ProviderConfigError`` 定义在 ``dconfig``（避免循环依赖），此处重导出以保证既有
@@ -580,49 +579,275 @@ class AliyunFaceAdapter(_AliyunAdapterBase):
 
 
 class InsightFaceAdapter:
-    """face-service（insightface）HTTP 边界 —— phase 1 只做**未绑定拒绝**。
+    """face-service（insightface）HTTP 边界 —— phase 2 真实绑定冻结合同。
 
-    最终架构裁定：Worker 仍是身份协调者（``assessment_analyze`` 的
-    quality/same_person/search_1n + member/identity 决策、``identity_enroll`` 的
-    register/query/face_subject_ref/member 绑定全部保留）。
+    权威来源：``backend/handoffs/B-face-service-worker-contract.md``（合同，最终代码
+    SHA ``bec9eb97``）。最终架构裁定：Worker 仍是身份协调者——``assessment_analyze``
+    的 quality/same_person/search_1n + member/identity 决策与 ``identity_enroll`` 的
+    register/query/``face_subject_ref``/member 绑定全部保留，本类只做协议映射。
 
-    phase 2 才会把本类五个操作绑定到 face-service HTTP 路由；**在总协调提供显式的已提交
-    B face-service SHA + Oracle 审查 SHA、且 1:N 搜索路由合同书面冻结前**，本类任何操作
-    都抛 :class:`FaceServiceNotBound`（可重试 ``DEPENDENCY_UNAVAILABLE``）：
+    **能力边界（必须明示）**：本类的人脸结论是**照片比对，无防翻拍能力**；服务端
+    ``liveness.supported`` **恒 false**，相似度**不是**活体证明（合同 §7）。本类**永不**
+    发送 ``require_liveness``（见 :mod:`dliveness`），**永不**产出“liveness passed”，
+    也**永不**因服务诚实报告 ``supported=false`` 而判失败。
 
-    - **绝不**静默成功、**绝不**猜测路由名/请求响应字段/状态码/错误码语义；
-    - **绝不**回退 ``FaceDouble``；生产 + insightface + 服务失败 → 可重试 fail-closed；
-    - 构造时经 :class:`SealedHttpTransport` 读一次 token（0600 权限/内容已在工厂校验），
-      phase 1 不触碰 transport、不发任何网络请求。
+    **硬性纪律**：真实服务故障**绝不**回退 ``FaceDouble`` 成功；``ProviderNotActivated``
+    用于“未授权/未过 PoC/自动登记门未开”，绝不伪造结果；出站请求**绝不**携带客户端
+    阈值或 ``on_exists``；异常/日志**绝不**含 token、图片字节、embedding 或
+    namespace/subject_id/correlation_id 取值。
 
-    活体策略见 ``dliveness``：适配器永不请求 ``require_liveness=true``，服务诚实报告
-    ``liveness.supported=false`` 不构成失败，也永不产出“liveness passed”结论。
+    phase 2 绑定决策（逐条对应合同 §8）：
+
+    - ``quality``：逐视角（``REQUIRED_VIEWS_ALL`` 规范序）各调一次 ``POST /v1/quality``；
+      全部 ``quality.min_acceptable=true`` → ``accepted``，否则 ``needs_retake``（不合格
+      视角元组，规范序）；**任一视角失败（传输/4xx/5xx/结构非法 2xx）→ ProviderUnavailable**
+      （鉴权失败除外 → 配置型终态），绝不把失败当合格（合同 §3/§8）。
+    - ``same_person``：**front 锚定的两两比较**（front-vs-left、front-vs-right 两次
+      ``POST /v1/compare``）。选择该策略而非 left-vs-right 的理由：把共同参考帧
+      （front）作为比较锚点，使“三视角同人”退化为两个共享锚点的独立比较，避免在缺少
+      共同锚点时比较两帧侧脸；也是合同 §3 建议的“对着主视角比”。两次都 must-run，
+      任一调用失败 → ``ProviderUnavailable``；全部 ``matched=true`` → ``True``，任一
+      ``false`` → ``False``（合同 §8）。
+    - ``search_1n``：``POST /v1/namespaces/{ns}/search``（用 front 主参考视角，合同 §3），
+      ``decision`` ∈ {matched,uncertain,reliable_new} **直接**作为 ``classification``
+      （服务端用 ``uncertain``+``ambiguous=true`` 表达歧义，不产出 ``ambiguous``，
+      合同 §4.2）；``matched`` → ``face_subject_ref=subject_id``；4xx 参数/鉴权类 →
+      ``ProviderConfigError``，5xx/429/504/``MODEL_*``/``STORE_UNAVAILABLE``/超时/传输 →
+      ``ProviderUnavailable``（合同 §8）。
+    - ``register_person``：**自动登记门**（``MVP_D_FACE_SERVICE_AUTO_ENROLL``，默认
+      false；合同 §4.2 裁定 2）关闭时**零网络**抛 ``ProviderNotActivated``。开启时
+      ``POST /v1/namespaces/{ns}/subjects``（``subject_id=entity_id``，带
+      ``correlation_id``/``provider_request_id``；不传 ``on_exists``/``require_liveness``）；
+      201/200 → ``success``、409 → ``failed``、客户端超时 → ``timeout``、
+      5xx/``MODEL_*``/``STORE_UNAVAILABLE`` → ``unknown``、其它 4xx → ``failed``
+      （合同 §6.1/§8）。
+    - ``query_registration``：``GET /v1/namespaces/{ns}/registrations/{correlation_id}``
+      （带 ``provider_request_id``/``entity_id`` 加强校验）；``status=registered`` →
+      ``registered``、``not_found`` → ``not_found``、传输失败/无法解析/5xx → ``unknown``
+      （``unknown`` 是**客户端**状态，服务端绝不产出，合同 §6.2/§8）。**404
+      ``NAMESPACE_NOT_FOUND`` → ``not_found``**：合同 §6.2 明确对账查询针对的是**已经
+      发起过**的登记，其 namespace 必然已存在，故 404 是“你查错了地方”的**确定性否定**
+      ——该 namespace 内确无此登记，语义等价于 ``not_found``（两者在
+      ``identity_enroll._reconcile`` 都走 ``ENROLLMENT_RECONCILE_PENDING`` 可重试）。
     """
 
     provider_name = "insightface"
-    #: phase 2 将改为 face-service 实际报告的 ``model_version``（当前不猜测取值）。
-    model_version = "insightface-face-service-pending"
+    #: 服务在 ``model_version`` 中报告真实值；此处稳定占位（不在调用前猜测取值）。
+    model_version = "insightface-face-service"
+
+    #: 冻结合同 §4.2 的三值判定词表。
+    _SEARCH_DECISIONS = frozenset({"matched", "uncertain", "reliable_new"})
+    #: 合同 §4.3 冻结的响应键（除 matched 专有的 subject_id/similarity 外全部必在）。
+    _SEARCH_FROZEN_KEYS = (
+        "decision",
+        "ambiguous",
+        "quality",
+        "reasons",
+        "subject_count",
+        "top_k",
+        "policy_version",
+        "model_version",
+        "library_revision",
+        "request_id",
+    )
+    #: 合同 §8：search 的 4xx **参数类** → 配置型终态（不可重试）；鉴权另行处理。
+    _SEARCH_CONFIG_CODES = frozenset(
+        {"INVALID_REQUEST", "IMAGE_DECODE_FAILED", "UNSUPPORTED_MEDIA_TYPE", "IMAGE_TOO_LARGE"}
+    )
+    #: 合同 §6.1：登记时这些码 → ``unknown``（随后对账）。
+    _REGISTER_UNKNOWN_CODES = frozenset(
+        {"MODEL_UNAVAILABLE", "MODEL_NOT_LOADED", "STORE_UNAVAILABLE"}
+    )
 
     def __init__(self, cfg: DConfig, transport: FaceServiceTransport) -> None:
         self._cfg = cfg
         self._transport = transport
         self._namespace = cfg.face_service_namespace.strip()
 
-    def _not_bound(self, operation: str) -> NoReturn:
-        raise FaceServiceNotBound(
-            f"insightface face operation {operation!r} is not bound until phase 2"
-            " (face-service namespace 1:N search contract pending); no double fallback"
-        )
+    # ------------------------------------------------------------ helpers
+    @staticmethod
+    def _b64(data: bytes) -> str:
+        return base64.b64encode(bytes(data)).decode("ascii")
 
+    def _image_payload(self, data: bytes) -> dict[str, Any]:
+        """单图请求体：``image_base64`` + 空活体参数（**永不**请求活体）。"""
+        payload: dict[str, Any] = {"image_base64": self._b64(data)}
+        payload.update(dliveness.adapter_liveness_request_params())
+        return payload
+
+    @staticmethod
+    def _missing_view(op: str, view: str) -> NoReturn:
+        raise ProviderUnavailable(f"insightface {op}: required view {view!r} missing")
+
+    @staticmethod
+    def _invalid_2xx(op: str, detail: str) -> NoReturn:
+        raise ProviderUnavailable(f"insightface {op}: invalid 2xx response ({detail})")
+
+    @staticmethod
+    def _raise_unavailable(op: str, exc: BaseException) -> NoReturn:
+        extra = ""
+        if isinstance(exc, FaceServiceHttpError):
+            extra = f", status={exc.status}, code={exc.code or 'unclassified'}"
+        raise ProviderUnavailable(
+            f"insightface {op} unavailable ({type(exc).__name__}{extra})"
+        ) from exc
+
+    @staticmethod
+    def _raise_auth_config(op: str, exc: BaseException) -> NoReturn:
+        # 只点名配置键，绝不回显 token/取值。
+        raise ProviderConfigError(
+            f"insightface {op}: authentication/config rejected; check "
+            f"{FACE_SERVICE_TOKEN_FILE_ENV} (token file must match the service)"
+        ) from exc
+
+    @staticmethod
+    def _raise_shape_config(op: str, exc: FaceServiceHttpError) -> NoReturn:
+        raise ProviderConfigError(
+            f"insightface {op}: request shape rejected "
+            f"(status={exc.status}, code={exc.code or 'unclassified'})"
+        ) from exc
+
+    def _handle_http_error_strict_unavailable(
+        self, op: str, exc: FaceServiceHttpError
+    ) -> NoReturn:
+        """quality/same_person：鉴权 → 配置型终态；其余（含 4xx）→ 可重试不可用。"""
+        if exc.is_auth:
+            self._raise_auth_config(op, exc)
+        self._raise_unavailable(op, exc)
+
+    # ------------------------------------------------------------ quality
     def quality(self, images: dict[str, bytes]) -> QualityResult:
-        self._not_bound("quality")
+        # 先做入参完整性校验（零网络 fail-closed），再逐视角调用。
+        for view in REQUIRED_VIEWS_ALL:
+            if images.get(view) is None:
+                self._missing_view("quality", view)
+        failing: list[str] = []
+        for view in REQUIRED_VIEWS_ALL:
+            if not self._quality_view_acceptable(view, images[view]):
+                failing.append(view)
+        if failing:
+            return QualityResult("needs_retake", tuple(failing))
+        return QualityResult("accepted", ())
 
+    def _quality_view_acceptable(self, view: str, data: bytes) -> bool:
+        try:
+            result = self._transport.request(
+                "POST", "/v1/quality", json_body=self._image_payload(data)
+            )
+        except FaceServiceHttpError as exc:
+            self._handle_http_error_strict_unavailable("quality", exc)
+        except FaceServiceTransportError as exc:
+            self._raise_unavailable("quality", exc)
+        body = result.json
+        faces = body.get("faces") if isinstance(body, Mapping) else None
+        if not isinstance(faces, list) or not faces:
+            self._invalid_2xx("quality", "no faces in response")
+        index = body.get("largest_face_index")
+        if not isinstance(index, int) or isinstance(index, bool) or not (0 <= index < len(faces)):
+            index = 0
+        face = faces[index]
+        quality_block = face.get("quality") if isinstance(face, Mapping) else None
+        min_acceptable = (
+            quality_block.get("min_acceptable")
+            if isinstance(quality_block, Mapping)
+            else None
+        )
+        if not isinstance(min_acceptable, bool):
+            self._invalid_2xx("quality", "min_acceptable missing/invalid")
+        return bool(min_acceptable)
+
+    # ------------------------------------------------------------ same_person
     def same_person(self, images: dict[str, bytes]) -> SamePersonResult:
-        self._not_bound("same_person")
+        # 先做入参完整性校验（零网络 fail-closed），再调用两次比较。
+        for view in REQUIRED_VIEWS_ALL:
+            if images.get(view) is None:
+                self._missing_view("same_person", view)
+        front = images["front"]
+        # 两次比较都执行：任一调用失败必须抛出（优先于 matched 结果），故不短路。
+        matched = [
+            self._compare("same_person", front, images[other], other)
+            for other in ("left", "right")
+        ]
+        return SamePersonResult(all(matched))
 
+    def _compare(self, op: str, image_a: Optional[bytes], image_b: Optional[bytes], view: str) -> bool:
+        if image_b is None:
+            self._missing_view(op, view)
+        payload: dict[str, Any] = {
+            "image_a_base64": self._b64(image_a),  # type: ignore[arg-type]
+            "image_b_base64": self._b64(image_b),
+        }
+        payload.update(dliveness.adapter_liveness_request_params())
+        try:
+            result = self._transport.request("POST", "/v1/compare", json_body=payload)
+        except FaceServiceHttpError as exc:
+            self._handle_http_error_strict_unavailable(op, exc)
+        except FaceServiceTransportError as exc:
+            self._raise_unavailable(op, exc)
+        body = result.json
+        matched = body.get("matched") if isinstance(body, Mapping) else None
+        if not isinstance(matched, bool):
+            self._invalid_2xx(op, "matched missing/invalid")
+        return bool(matched)
+
+    # ------------------------------------------------------------ search_1n
     def search_1n(self, namespace: str, images: dict[str, bytes]) -> SearchResult:
-        self._not_bound("search_1n")
+        front = images.get("front")
+        if front is None:
+            self._missing_view("search_1n", "front")
+        path = f"/v1/namespaces/{quote(namespace, safe='')}/search"
+        try:
+            result = self._transport.request(
+                "POST", path, json_body=self._image_payload(front)
+            )
+        except FaceServiceHttpError as exc:
+            if exc.is_auth:
+                self._raise_auth_config("search_1n", exc)
+            if exc.code in self._SEARCH_CONFIG_CODES:
+                self._raise_shape_config("search_1n", exc)
+            self._raise_unavailable("search_1n", exc)
+        except FaceServiceTransportError as exc:
+            self._raise_unavailable("search_1n", exc)
+        body = result.json
+        decision = self._validate_search_body(body)
+        if decision == "matched":
+            return SearchResult("matched", body["subject_id"])
+        return SearchResult(decision)
 
+    def _validate_search_body(self, body: Any) -> str:
+        if not isinstance(body, Mapping):
+            self._invalid_2xx("search_1n", "body is not an object")
+        for key in self._SEARCH_FROZEN_KEYS:
+            if key not in body:
+                self._invalid_2xx("search_1n", f"missing frozen key {key!r}")
+        decision = body.get("decision")
+        if decision not in self._SEARCH_DECISIONS:
+            self._invalid_2xx("search_1n", "decision outside frozen vocabulary")
+        if not isinstance(body.get("ambiguous"), bool):
+            self._invalid_2xx("search_1n", "ambiguous is not a bool")
+        if not isinstance(body.get("reasons"), list):
+            self._invalid_2xx("search_1n", "reasons is not a list")
+        for int_key in ("subject_count", "top_k", "library_revision"):
+            value = body.get(int_key)
+            if not isinstance(value, int) or isinstance(value, bool):
+                self._invalid_2xx("search_1n", f"{int_key} is not an int")
+        for str_key in ("policy_version", "model_version", "request_id"):
+            if not isinstance(body.get(str_key), str):
+                self._invalid_2xx("search_1n", f"{str_key} is not a string")
+        if not isinstance(body.get("quality"), Mapping):
+            self._invalid_2xx("search_1n", "quality is not an object")
+        if decision == "matched":
+            subject_id = body.get("subject_id")
+            if not isinstance(subject_id, str) or not subject_id:
+                self._invalid_2xx("search_1n", "matched without subject_id")
+            similarity = body.get("similarity")
+            if isinstance(similarity, bool) or not isinstance(similarity, (int, float)):
+                self._invalid_2xx("search_1n", "matched without similarity")
+        elif "subject_id" in body:
+            self._invalid_2xx("search_1n", "non-matched decision carries subject_id")
+        return str(decision)
+
+    # ------------------------------------------------------------ register_person
     def register_person(
         self,
         namespace: str,
@@ -631,8 +856,48 @@ class InsightFaceAdapter:
         correlation_id: str,
         provider_request_id: str,
     ) -> RegisterResult:
-        self._not_bound("register_person")
+        # 自动登记门：PoC/标定/活体未验证前**绝不真实自动建档**（合同 §4.2 裁定 2；
+        # ``后端详细设计-V1-MVP.md:663``）。关闭时在**任何 HTTP 之前**拒绝，零网络。
+        if not self._cfg.face_service_auto_enroll:
+            raise ProviderNotActivated(
+                "insightface auto-enroll gate closed: PoC / threshold calibration / "
+                "liveness gate not verified (contract §4.2 ruling 2; 后端详细设计:663)"
+            )
+        front = images.get("front")
+        if front is None:
+            self._missing_view("register_person", "front")
+        payload = self._image_payload(front)
+        payload["subject_id"] = entity_id
+        payload["correlation_id"] = correlation_id
+        payload["provider_request_id"] = provider_request_id
+        path = f"/v1/namespaces/{quote(namespace, safe='')}/subjects"
+        try:
+            result = self._transport.request("POST", path, json_body=payload)
+        except FaceServiceHttpError as exc:
+            if exc.is_auth:
+                self._raise_auth_config("register_person", exc)
+            if exc.status == 409 or exc.code == "SUBJECT_ALREADY_EXISTS":
+                return RegisterResult("failed")
+            if (
+                exc.retryable
+                or exc.status >= 500
+                or exc.code in self._REGISTER_UNKNOWN_CODES
+            ):
+                return RegisterResult("unknown")
+            return RegisterResult("failed")
+        except FaceServiceTimeout:
+            # 客户端超时：服务端可能已成功 → 交给既有对账（同 entity_id，不盲重试）。
+            return RegisterResult("timeout")
+        except FaceServiceTransportError:
+            return RegisterResult("unknown")
+        body = result.json
+        subject_id = body.get("subject_id") if isinstance(body, Mapping) else None
+        if isinstance(subject_id, str) and subject_id and subject_id != entity_id:
+            # 服务端确认了另一个 subject → 不可当作成功，交对账。
+            return RegisterResult("unknown")
+        return RegisterResult("success")
 
+    # ------------------------------------------------------------ query_registration
     def query_registration(
         self,
         correlation_id: str,
@@ -641,7 +906,47 @@ class InsightFaceAdapter:
         namespace: Optional[str] = None,
         entity_id: Optional[str] = None,
     ) -> RegistrationQueryResult:
-        self._not_bound("query_registration")
+        if not isinstance(namespace, str) or not namespace.strip():
+            raise ProviderConfigError(
+                "insightface query_registration requires a namespace "
+                "(reconciliation path is namespace-scoped)"
+            )
+        path = (
+            f"/v1/namespaces/{quote(namespace, safe='')}"
+            f"/registrations/{quote(correlation_id, safe='')}"
+        )
+        query: dict[str, str] = {}
+        if provider_request_id:
+            query["provider_request_id"] = provider_request_id
+        if entity_id:
+            query["entity_id"] = entity_id
+        if query:
+            path = f"{path}?{urlencode(query)}"
+        try:
+            result = self._transport.request("GET", path)
+        except FaceServiceHttpError as exc:
+            if exc.is_auth:
+                self._raise_auth_config("query_registration", exc)
+            if exc.status == 404 or exc.code == "NAMESPACE_NOT_FOUND":
+                # 合同 §6.2：对账针对已发起的登记，namespace 必然已存在 ⇒ 404 是确定性
+                # 否定（该 namespace 内确无此登记）→ not_found；与 unknown 在
+                # identity_enroll._reconcile 中同样走 ENROLLMENT_RECONCILE_PENDING。
+                return RegistrationQueryResult("not_found")
+            return RegistrationQueryResult("unknown")
+        except FaceServiceTransportError:
+            return RegistrationQueryResult("unknown")
+        body = result.json
+        if not isinstance(body, Mapping):
+            return RegistrationQueryResult("unknown")
+        status = body.get("status")
+        if status == "registered":
+            subject_id = body.get("subject_id")
+            if not isinstance(subject_id, str) or not subject_id:
+                return RegistrationQueryResult("unknown")
+            return RegistrationQueryResult("registered")
+        if status == "not_found":
+            return RegistrationQueryResult("not_found")
+        return RegistrationQueryResult("unknown")
 
 
 class AliyunSkinAdapter(_AliyunAdapterBase):
@@ -817,7 +1122,8 @@ def _forbid_face_double_in_production(environment: str) -> None:
     对齐 ``_forbid_storage_double_in_production``：除字面 ``production/prod`` 外，还须
     拦截 ``production_environment_signals()`` 命中的混合/矛盾 profile，确保替身只在
     dev/test 出现。选择 ``insightface`` 时不适用（它是真实 provider）；insightface 服务
-    失败只走可重试 ``FaceServiceNotBound``，**绝不**回退本替身。
+    失败按冻结合同映射为 ``ProviderUnavailable``（可重试）/``ProviderConfigError``
+    （配置型终态），**绝不**回退本替身。
     """
     normalized = environment.strip().lower()
     if normalized in ("production", "prod"):
@@ -898,10 +1204,10 @@ def _insightface_from_config(cfg: DConfig) -> InsightFaceAdapter:
       → 只报键名；
     - token 文件在**传输构造时读取一次**（``read_token_file``；0600 普通文件、空/纯空白
       拒绝；消息只含路径，绝不含取值），**不做进程级缓存**；
-    - phase 1 用 :class:`SealedHttpTransport`（一调用即 fail-closed），而适配器任何操作
-      在绑定前直接抛 :class:`FaceServiceNotBound`；两条路径都不发网络、都不回退替身。
-    - insightface 是真实 provider，生产允许；服务失败在运行期可重试 fail-closed，
-      绝不 double fallback（face 替身的生产拒绝另见
+    - 真实 stdlib 传输（:class:`StdlibHttpTransport`，connect/read 分别超时）；
+    - insightface 是真实 provider，生产允许；服务失败在运行期按冻结合同映射
+      （``ProviderUnavailable`` 可重试 / ``ProviderConfigError`` 配置型终态），
+      **绝不** double fallback（face 替身的生产拒绝另见
       :func:`_forbid_face_double_in_production`）。
     """
     missing = _insightface_required_keys(cfg)
@@ -910,7 +1216,7 @@ def _insightface_from_config(cfg: DConfig) -> InsightFaceAdapter:
             "insightface face provider requires non-empty config: " + ", ".join(missing)
         )
     token = read_token_file(cfg.face_service_token_file)
-    transport = SealedHttpTransport(
+    transport = StdlibHttpTransport(
         base_url=cfg.face_service_base_url.strip(),
         token=token,
         connect_timeout_ms=cfg.face_service_connect_timeout_ms,
