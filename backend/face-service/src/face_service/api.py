@@ -33,6 +33,7 @@ import binascii
 import contextvars
 import json
 import logging
+import math
 import re
 import time
 from dataclasses import dataclass
@@ -302,7 +303,7 @@ def _ensure_liveness_supported(params: dict[str, Any]) -> None:
 
 
 def _require_finite_embeddings(detections: list[FaceDetection]) -> None:
-    """Refuse a non-finite embedding **before** any decision can be formed.
+    """Refuse a numerically unusable embedding **before** any decision is formed.
 
     Guarding here (rather than only inside ``cosine_similarity``) is deliberate:
     the empty-library branch of search never computes a similarity at all, so a
@@ -311,15 +312,33 @@ def _require_finite_embeddings(detections: list[FaceDetection]) -> None:
     at the model boundary covers every consumer (extract, quality, verify,
     compare, search) and cannot be forgotten by a new endpoint.
 
-    ``normalize_embedding`` already refuses non-finite values for the production
-    model, but ``FakeModel`` returns ``detect_fn`` output verbatim and a stored
-    row could be corrupted, so this is real defence in depth, not a duplicate.
+    Three shapes are refused, all of which are faults rather than answers:
+    * **non-finite** (NaN/Inf) — every threshold comparison against NaN is False,
+      so it used to fall through to ``reliable_new``;
+    * **empty** — a zero-length vector carries no identity information, and the
+      previous ``values.size and ...`` guard skipped it entirely;
+    * **zero-norm** — cosine similarity is undefined for it (``cosine_similarity``
+      returns 0.0 for compatibility, which on an empty library would again read
+      as "no candidate matched").
+
+    ``normalize_embedding`` already refuses non-finite and zero-norm values for
+    the production model, but ``FakeModel`` returns ``detect_fn`` output verbatim
+    and a stored row could be corrupted, so this is real defence in depth.
     """
     for detection in detections:
         values = np.asarray(detection.embedding, dtype=np.float64).reshape(-1)
-        if values.size and not bool(np.isfinite(values).all()):
+        if values.size == 0:
+            raise FaceServiceError(
+                ErrorCode.MODEL_UNAVAILABLE, "model produced an empty embedding"
+            )
+        if not bool(np.isfinite(values).all()):
             raise FaceServiceError(
                 ErrorCode.MODEL_UNAVAILABLE, "model produced a non-finite embedding"
+            )
+        norm = float(np.linalg.norm(values))
+        if not math.isfinite(norm) or norm <= 0.0:
+            raise FaceServiceError(
+                ErrorCode.MODEL_UNAVAILABLE, "model produced a zero-norm embedding"
             )
 
 

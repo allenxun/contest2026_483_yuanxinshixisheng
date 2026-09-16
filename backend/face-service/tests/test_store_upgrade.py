@@ -19,6 +19,7 @@ import sqlite3
 import pytest
 from conftest import make_image, synthetic_embedding
 
+from face_service.errors import ErrorCode, FaceServiceError
 from face_service.store import FaceStore, _ADDED_SUBJECT_COLUMNS, _CORRELATION_INDEX
 
 #: The subjects DDL as first released — no reconciliation columns.
@@ -245,3 +246,195 @@ def test_correlation_index_is_usable_for_the_lookup(settings):
     finally:
         conn.close()
     assert "idx_subjects_namespace_correlation" in plan, plan
+
+
+# ==========================================================================
+# Oracle r30 IMPORTANT — upgrading the DIRECT PREDECESSOR schema
+# ==========================================================================
+# The previous release created a *non-unique* index with the same name:
+#     CREATE INDEX IF NOT EXISTS idx_subjects_namespace_correlation ...
+# ``CREATE UNIQUE INDEX IF NOT EXISTS`` matches on the NAME only, so it silently
+# skips and the database keeps a non-unique index while the code and the contract
+# claim uniqueness.  These tests build exactly that predecessor shape.
+
+_PREDECESSOR_SUBJECTS_DDL = """
+CREATE TABLE subjects (
+    namespace       TEXT NOT NULL,
+    subject_id      TEXT NOT NULL,
+    embedding       BLOB NOT NULL,
+    embedding_dim   INTEGER NOT NULL,
+    model_version   TEXT NOT NULL,
+    quality_json    TEXT NOT NULL,
+    det_score       REAL,
+    bbox_json       TEXT,
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL,
+    correlation_id       TEXT,
+    provider_request_id  TEXT,
+    registered_at        TEXT,
+    PRIMARY KEY (namespace, subject_id),
+    FOREIGN KEY (namespace) REFERENCES namespaces(namespace)
+);
+"""
+
+
+def _unique_flag(path) -> int | None:
+    """``PRAGMA index_list`` unique flag for the correlation index (None if absent)."""
+    conn = sqlite3.connect(path)
+    try:
+        for row in conn.execute("PRAGMA index_list(subjects)"):
+            if str(row[1]) == "idx_subjects_namespace_correlation":
+                return int(row[2])
+        return None
+    finally:
+        conn.close()
+
+
+def _make_predecessor_db(path, *, duplicate: bool = False) -> bytes:
+    """Build a database in the *immediately preceding* released shape.
+
+    Three reconciliation columns already exist, plus a **non-unique** index of the
+    same name.  Optionally insert two rows sharing one correlation id (only
+    possible while the index is non-unique).
+    """
+    import array
+    import json as _json
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(path, isolation_level=None)
+    try:
+        conn.execute(
+            "CREATE TABLE namespaces (namespace TEXT PRIMARY KEY, created_at TEXT NOT NULL)"
+        )
+        conn.execute("CREATE TABLE library_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+        conn.execute("INSERT INTO library_meta(key, value) VALUES ('revision', '5')")
+        conn.execute(_PREDECESSOR_SUBJECTS_DDL)
+        # The predecessor's NON-unique index — the whole point of these tests.
+        conn.execute(
+            "CREATE INDEX idx_subjects_namespace_correlation "
+            "ON subjects(namespace, correlation_id)"
+        )
+        conn.execute(
+            "INSERT INTO namespaces(namespace, created_at) "
+            "VALUES ('ns-pred', '2026-01-01T00:00:00Z')"
+        )
+        embedding = synthetic_embedding(make_image(seed=560))
+        blob = array.array("f", embedding).tobytes()
+        ids = ("pred-1", "pred-2") if duplicate else ("pred-1",)
+        for i, sid in enumerate(ids):
+            conn.execute(
+                "INSERT INTO subjects(namespace, subject_id, embedding, embedding_dim,"
+                " model_version, quality_json, det_score, bbox_json, created_at, updated_at,"
+                " correlation_id) VALUES ('ns-pred', ?, ?, 64, 'legacy-model@1', ?, 0.9, NULL,"
+                " '2026-01-02T00:00:00Z', '2026-01-02T00:00:00Z', ?)",
+                (sid, blob, _json.dumps({"min_acceptable": True}),
+                 "corr-DUP" if duplicate else f"corr-{i}"),
+            )
+        return blob
+    finally:
+        conn.close()
+
+
+def test_predecessor_db_starts_with_a_non_unique_index(tmp_path, settings):
+    """Guard the premise: the fixture really is the non-unique predecessor shape."""
+    path = tmp_path / "pred.sqlite3"
+    _make_predecessor_db(path)
+    assert _unique_flag(path) == 0, "premise broken: index should start NON-unique"
+    assert "correlation_id" in _columns(path), "premise broken: columns should already exist"
+
+
+def test_predecessor_index_is_upgraded_to_unique_preserving_data(tmp_path):
+    path = tmp_path / "pred-up.sqlite3"
+    blob = _make_predecessor_db(path)
+    assert _unique_flag(path) == 0
+
+    FaceStore(path).initialize()
+
+    assert _unique_flag(path) == 1, "the same-named index was not upgraded to UNIQUE"
+    conn = sqlite3.connect(path)
+    try:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM subjects WHERE namespace='ns-pred' AND subject_id='pred-1'"
+        ).fetchone()
+        revision = conn.execute(
+            "SELECT value FROM library_meta WHERE key='revision'"
+        ).fetchone()[0]
+    finally:
+        conn.close()
+    # The upgrade must never rewrite or drop existing data.
+    assert bytes(row["embedding"]) == blob
+    assert row["model_version"] == "legacy-model@1"
+    assert row["correlation_id"] == "corr-0"
+    assert int(revision) == 5, "a schema upgrade is not a library change"
+
+
+def test_upgraded_predecessor_db_rejects_a_duplicate_correlation(tmp_path):
+    """The DB-level guarantee, not just the application-level 409."""
+    path = tmp_path / "pred-dupwrite.sqlite3"
+    _make_predecessor_db(path)
+    FaceStore(path).initialize()
+    conn = sqlite3.connect(path, isolation_level=None)
+    try:
+        with pytest.raises(sqlite3.IntegrityError):
+            conn.execute(
+                "INSERT INTO subjects(namespace, subject_id, embedding, embedding_dim,"
+                " model_version, quality_json, det_score, bbox_json, created_at, updated_at,"
+                " correlation_id) VALUES ('ns-pred', 'pred-9', x'00', 64, 'm@1', '{}', 0.9,"
+                " NULL, 't', 't', 'corr-0')"
+            )
+    finally:
+        conn.close()
+
+
+def test_predecessor_upgrade_is_idempotent(tmp_path):
+    path = tmp_path / "pred-idem.sqlite3"
+    _make_predecessor_db(path)
+    store = FaceStore(path)
+    for _ in range(3):
+        store.initialize()
+    assert _unique_flag(path) == 1
+    conn = sqlite3.connect(path)
+    try:
+        rows = conn.execute("SELECT COUNT(*) FROM subjects").fetchone()[0]
+        indexes = [
+            str(r[0])
+            for r in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='index' "
+                "AND tbl_name='subjects' AND name='idx_subjects_namespace_correlation'"
+            )
+        ]
+    finally:
+        conn.close()
+    assert rows == 1
+    assert len(indexes) == 1, "re-running must not create a second index"
+
+
+def test_predecessor_with_duplicates_refuses_and_leaves_the_database_intact(tmp_path):
+    """A duplicate pair must stop startup — and must NOT destroy the index or rows.
+
+    ``CREATE UNIQUE INDEX`` over existing duplicates raises *after* the old index
+    is dropped, so the scan has to happen first and the whole thing has to run in
+    one transaction; otherwise a failed startup would leave the table unindexed.
+    """
+    path = tmp_path / "pred-dup.sqlite3"
+    _make_predecessor_db(path, duplicate=True)
+    assert _unique_flag(path) == 0
+
+    with pytest.raises(FaceServiceError) as exc:
+        FaceStore(path).initialize()
+    assert exc.value.code is ErrorCode.STORE_UNAVAILABLE
+    message = str(exc.value.message)
+    assert "1 (namespace, correlation_id) pair(s) are duplicated" in message
+    # Never disclose the ids themselves.
+    for secret in ("corr-DUP", "pred-1", "pred-2", "ns-pred"):
+        assert secret not in message, secret
+
+    # The rollback must have restored the previous index and every row.
+    assert _unique_flag(path) == 0, "refusing to start must not leave the table unindexed"
+    conn = sqlite3.connect(path)
+    try:
+        rows = conn.execute("SELECT COUNT(*) FROM subjects").fetchone()[0]
+    finally:
+        conn.close()
+    assert rows == 2
