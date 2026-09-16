@@ -38,6 +38,7 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
+import numpy as np
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
@@ -300,6 +301,28 @@ def _ensure_liveness_supported(params: dict[str, Any]) -> None:
         raise FaceServiceError(ErrorCode.LIVENESS_UNSUPPORTED)
 
 
+def _require_finite_embeddings(detections: list[FaceDetection]) -> None:
+    """Refuse a non-finite embedding **before** any decision can be formed.
+
+    Guarding here (rather than only inside ``cosine_similarity``) is deliberate:
+    the empty-library branch of search never computes a similarity at all, so a
+    NaN probe would otherwise sail through and be reported as ``reliable_new`` —
+    a numerical model fault turned into an identity classification.  Checking once
+    at the model boundary covers every consumer (extract, quality, verify,
+    compare, search) and cannot be forgotten by a new endpoint.
+
+    ``normalize_embedding`` already refuses non-finite values for the production
+    model, but ``FakeModel`` returns ``detect_fn`` output verbatim and a stored
+    row could be corrupted, so this is real defence in depth, not a duplicate.
+    """
+    for detection in detections:
+        values = np.asarray(detection.embedding, dtype=np.float64).reshape(-1)
+        if values.size and not bool(np.isfinite(values).all()):
+            raise FaceServiceError(
+                ErrorCode.MODEL_UNAVAILABLE, "model produced a non-finite embedding"
+            )
+
+
 async def _run_model(state: AppState, image_bytes: bytes) -> list[FaceDetection]:
     settings = state.settings
     semaphore = state.semaphore
@@ -314,7 +337,7 @@ async def _run_model(state: AppState, image_bytes: bytes) -> list[FaceDetection]
                 timeout=settings.inference_timeout_seconds,
             )
         try:
-            return await asyncio.wait_for(
+            detections = await asyncio.wait_for(
                 loop.run_in_executor(None, state.model.detect_and_embed, image_bytes),
                 timeout=settings.inference_timeout_seconds,
             )
@@ -325,6 +348,8 @@ async def _run_model(state: AppState, image_bytes: bytes) -> list[FaceDetection]
         except Exception as exc:  # pragma: no cover - real model failure path
             logger.error("inference failure request_id=%s", _request_id())
             raise FaceServiceError(ErrorCode.INTERNAL_ERROR) from exc
+        _require_finite_embeddings(detections)
+        return detections
     finally:
         semaphore.release()
 
@@ -576,19 +601,18 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
         no anti-replay capability, and accepting the field would imply otherwise.
         Liveness is reported as ``supported=false`` and is never faked.
 
-        ``threshold`` *is* accepted here (unlike search) because nothing is looked
-        up in a namespace, so a caller cannot lower a server-fixed library policy.
+        ``threshold`` is **server-fixed** (``FACE_SVC_VERIFY_THRESHOLD``) and a
+        client-supplied value is ignored — not merely validated.  A caller who
+        could lower it would directly control the ``same_person`` verdict (0.0
+        would declare any two images the same person); "this endpoint reads no
+        library" does not make that safe, and ``FacePort.same_person(images)``
+        takes no threshold, so no consumer needs one.  This also keeps compare
+        consistent with search, which never accepted a client threshold.
         """
         image_a_bytes, image_b_bytes, params = await _read_two_image_payload(
             request, settings
         )
         threshold = settings.verify_threshold
-        if params.get("threshold") not in (None, ""):
-            threshold = _as_float(params.get("threshold"), "threshold")
-            if not (0.0 <= threshold <= 1.0):
-                raise FaceServiceError(
-                    ErrorCode.INVALID_REQUEST, "'threshold' must be within 0..1"
-                )
 
         image_a, detections_a = await _decode_and_detect(state, image_a_bytes)
         image_b, detections_b = await _decode_and_detect(state, image_b_bytes)
@@ -821,10 +845,17 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
         image_bytes, params = await _read_image_payload(request, settings)
         top_k = _as_top_k(params.get("top_k"), settings.search_top_k)
 
-        if not state.store.namespace_exists(namespace):
-            raise FaceServiceError(
-                ErrorCode.NAMESPACE_NOT_FOUND, details={"namespace": namespace}
-            )
+        # A namespace that does not exist yet is treated as an **empty read-only
+        # snapshot**, not as a 404.  Search never creates anything, so this stays
+        # read-only; but refusing here would deadlock first enrollment: the Worker
+        # only enqueues ``identity.enroll`` for ``reliable_new``
+        # (``assessment_analyze.py:377-388``) and answers ``uncertain`` with a
+        # re-capture (``:369-375``), and a re-capture cannot make an empty library
+        # non-empty.  Every namespace starts empty, so 404/uncertain here would
+        # mean no first member could ever be created through the business flow.
+        # The gate against *automatic* enrollment belongs to the business layer
+        # (``后端详细设计-V1-MVP.md:663`` PoC gate + the Worker's own PostgreSQL
+        # reconciliation), not to this read-only algorithm endpoint.
 
         image, detections = await _decode_and_detect(state, image_bytes)
         if not detections:
@@ -850,15 +881,27 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
 
         best: float | None = None
         reasons: list[str] = []
-        if snapshot.subject_count == 0:
-            # An empty library is **not** evidence of a reliable new person: it is
-            # far more likely to mean the library was never populated (or was
-            # cleared by mistake), and answering "new person" would mass-enroll
-            # everybody.  Fail towards re-capture instead.  See the contract
-            # (B-face-service-worker-contract.md §4.2).
-            decision = "uncertain"
-            ambiguous = False
-            reasons.append("empty_library")
+        if snapshot.subject_count == 0 or not snapshot.candidates:
+            # An empty (or not-yet-created) library holds no candidate, so nothing
+            # can match.  This is reported as ``reliable_new`` **only when the probe
+            # quality is acceptable**, because the Worker enqueues first enrollment
+            # solely on ``reliable_new``; answering ``uncertain`` here would make
+            # the first member of every namespace unreachable (a re-capture cannot
+            # fill an empty library).  ``reasons`` always carries ``empty_library``
+            # so consumers and audits can tell "no candidate reached the threshold
+            # in a populated library" apart from "the library was empty".
+            #
+            # This does **not** license automatic enrollment: the PoC gate
+            # (``后端详细设计-V1-MVP.md:663``) and the Worker's own PostgreSQL
+            # reconciliation (``assessment_analyze.py:381-389``) remain the
+            # authoritative controls, and they live in the business layer.
+            if quality["min_acceptable"]:
+                decision, ambiguous = "reliable_new", False
+            else:
+                # Fail-closed: a poor-quality probe may never open enrollment.
+                decision, ambiguous = "uncertain", False
+                reasons.append("quality_below_minimum")
+            reasons.insert(0, "empty_library")
         else:
             best = ranked[0][0]
             second = ranked[1][0] if len(ranked) > 1 else None

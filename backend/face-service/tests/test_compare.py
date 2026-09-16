@@ -184,24 +184,59 @@ def test_compare_poor_quality_can_never_confirm_same_person(make_client, setting
 # --------------------------------------------------------------------------
 # 5. threshold handling + request validation
 # --------------------------------------------------------------------------
-def test_compare_honours_client_threshold(client):
+def test_compare_ignores_client_threshold(client, settings):
+    """The threshold is server-fixed; a client value is IGNORED, not validated.
+
+    Oracle r29 IMPORTANT: ``threshold`` directly decides the ``same_person``
+    verdict, so a caller who could lower it to 0.0 could declare any two
+    unrelated images the same person.  "This endpoint reads no library" does not
+    make that safe, and ``FacePort.same_person(images)`` takes no threshold, so no
+    consumer needs one.  Discriminative: ``threshold=0.0`` on two ORTHOGONAL
+    images (similarity ~0.0) would be ``matched=true`` if the value were parsed.
+    """
     a, b = make_image(seed=312), make_image(seed=313)
     assert _compare(client, a, b).json()["matched"] is False
-    # Lowering the threshold below the (near-zero) similarity still cannot match
-    # orthogonal embeddings, but the echoed threshold proves it was parsed.
-    body = _compare(client, a, b, threshold="0.0").json()
-    assert body["threshold"] == 0.0
+    for hostile in ("0.0", "0", "-1.0"):
+        body = _compare(client, a, b, threshold=hostile).json()
+        assert body["matched"] is False, hostile
+        assert body["threshold"] == settings.verify_threshold, hostile
+    # A stricter-looking client value is ignored too: the server value governs.
     same = _compare(client, a, a, threshold="0.999").json()
-    assert same["threshold"] == 0.999
+    assert same["threshold"] == settings.verify_threshold
     assert same["matched"] is True  # similarity is exactly 1.0
 
 
-def test_compare_rejects_invalid_threshold(client):
+def test_compare_threshold_comes_from_server_config(make_client, settings):
+    """Positive control: the server-side threshold really does govern compare."""
+    from dataclasses import replace
+
+    img = make_image(seed=318)
+    other = make_image(seed=319)
+    strict = make_client(settings_override=replace(settings, verify_threshold=0.9999))
+    assert _compare(strict, img, img).json()["matched"] is True   # similarity 1.0
+    body = _compare(strict, img, other).json()
+    assert body["threshold"] == 0.9999
+    assert body["matched"] is False
+    lenient = make_client(settings_override=replace(settings, verify_threshold=0.0001))
+    assert _compare(lenient, img, img).json()["threshold"] == 0.0001
+
+
+def test_compare_never_errors_on_a_client_threshold_it_ignores(client, settings):
+    """Garbage in an ignored field must not change the outcome either way.
+
+    The field is not parsed, so a non-numeric value is simply discarded rather
+    than turned into a 400 — and, more importantly, it can never influence
+    ``matched``.  (Under the previous design these values were validated and
+    rejected; validation implied the value was being honoured, which was the
+    actual defect.)
+    """
     image = make_image(seed=314)
-    for bad in ("1.7", "-0.2", "abc"):
-        resp = _compare(client, image, image, threshold=bad)
-        assert resp.status_code == 400, bad
-        assert resp.json()["error"]["code"] == "INVALID_REQUEST", bad
+    for ignored in ("1.7", "-0.2", "abc", "", "0.0"):
+        resp = _compare(client, image, image, threshold=ignored)
+        assert resp.status_code == 200, ignored
+        body = resp.json()
+        assert body["threshold"] == settings.verify_threshold, ignored
+        assert body["matched"] is True, ignored
 
 
 def test_compare_requires_both_images(client):

@@ -42,7 +42,29 @@ def _search(client, namespace: str, image: bytes, **data):
 # --------------------------------------------------------------------------
 # 1. empty library -> uncertain (never reliable_new)
 # --------------------------------------------------------------------------
-def test_empty_namespace_is_uncertain_not_reliable_new(client, register, settings):
+def test_empty_namespace_yields_reliable_new_so_first_enrollment_is_reachable(
+    client, register, settings
+):
+    """An empty library must NOT deadlock first enrollment (Oracle r29 BLOCKER).
+
+    The previous version of this test asserted the opposite — that an empty
+    library yields ``uncertain``.  That rule was **wrong** and is reversed here:
+    the Worker only enqueues ``identity.enroll`` on ``reliable_new``
+    (``assessment_analyze.py:377-388``) and answers ``uncertain`` with a
+    re-capture (``:369-375``), and a re-capture cannot make an empty library
+    non-empty.  Since every namespace starts empty, the old rule made the first
+    member of every namespace unreachable through the business flow.
+
+    The auditability the old rule was trying to protect is preserved differently:
+    ``reasons`` always carries ``empty_library``, so consumers and auditors can
+    tell "empty library" from "populated library, no candidate reached the
+    threshold".  The gate against *automatic* enrollment belongs to the business
+    layer (the PoC gate in ``后端详细设计-V1-MVP.md:663`` plus the Worker's own
+    PostgreSQL reconciliation at ``:381-389``), not to this read-only endpoint.
+
+    Quality still gates it: see
+    :func:`test_empty_library_with_poor_quality_stays_uncertain`.
+    """
     ns = "ns-empty-ruling"
     image = make_image(seed=600)
     # Create the namespace, then remove its only subject so it exists but is empty.
@@ -52,8 +74,7 @@ def test_empty_namespace_is_uncertain_not_reliable_new(client, register, setting
     assert FaceStore(settings.db_path).count_subjects(ns) == 0
 
     body = _search(client, ns, image).json()
-    assert body["decision"] == "uncertain"
-    assert body["decision"] != "reliable_new"
+    assert body["decision"] == "reliable_new"
     assert body["reasons"] == ["empty_library"]
     assert body["subject_count"] == 0
     assert body["ambiguous"] is False
@@ -61,6 +82,51 @@ def test_empty_namespace_is_uncertain_not_reliable_new(client, register, setting
     # No identity may be disclosed for a non-match.
     assert "subject_id" not in body
     assert "similarity" not in body
+
+
+def test_missing_namespace_is_searched_as_an_empty_snapshot(client, settings):
+    """Same ruling for a namespace that does not exist yet: 200, not 404."""
+    store = FaceStore(settings.db_path)
+    assert store.namespace_exists("ns-never-created") is False
+    before = store.revision()
+    resp = _search(client, "ns-never-created", make_image(seed=605))
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["decision"] == "reliable_new"
+    assert body["reasons"] == ["empty_library"]
+    assert body["subject_count"] == 0
+    # Still strictly read-only: not created, revision unchanged.
+    assert store.namespace_exists("ns-never-created") is False
+    assert store.revision() == before
+
+
+def test_empty_library_with_poor_quality_stays_uncertain(make_client, settings):
+    """Fail-closed half of the ruling: a poor probe may never open enrollment.
+
+    Discriminative: the same empty namespace yields ``reliable_new`` with the
+    default quality floor and ``uncertain`` with a floor the model cannot meet, so
+    the difference is caused by quality alone.
+    """
+    from dataclasses import replace
+
+    from conftest import make_fake_model
+
+    image = make_image(seed=606)
+    ok = make_client(model=make_fake_model())
+    assert _search(ok, "ns-empty-quality", image).json()["decision"] == "reliable_new"
+
+    strict = make_client(
+        model=make_fake_model(),
+        settings_override=replace(settings, quality_min_det_score=0.9999),
+    )
+    body = _search(strict, "ns-empty-quality", image).json()
+    assert body["quality"]["min_acceptable"] is False
+    assert body["decision"] == "uncertain"
+    assert body["decision"] != "reliable_new"
+    # Order is part of the contract's audit value: the library state comes first
+    # (it is the premise of the decision), the quality cap second — matching the
+    # non-empty path, which also reports the decision reason before the quality cap.
+    assert body["reasons"] == ["empty_library", "quality_below_minimum"]
 
 
 def test_non_empty_namespace_with_the_same_probe_yields_reliable_new(client, register):
@@ -88,7 +154,7 @@ def test_empty_library_ruling_survives_a_top_k_override(client, register):
     assert client.delete(f"/v1/namespaces/{ns}/subjects/tmp").status_code == 200
     for top_k in (2, 5, 10):
         body = _search(client, ns, image, top_k=top_k).json()
-        assert body["decision"] == "uncertain", top_k
+        assert body["decision"] == "reliable_new", top_k
         assert body["reasons"] == ["empty_library"], top_k
         assert body["top_k"] == top_k
 
@@ -185,7 +251,9 @@ def test_decision_vocabulary_is_exactly_the_contracted_three(client, register, s
         _search(client, ns, make_image(seed=621)).json()["decision"],  # reliable_new
     }
     assert client.delete(f"/v1/namespaces/{ns}/subjects/alice").status_code == 200
-    seen.add(_search(client, ns, image).json()["decision"])            # uncertain (empty)
+    seen.add(_search(client, ns, image).json()["decision"])            # reliable_new (empty)
+    # ``uncertain`` is reached through the ambiguity band, not through emptiness.
+    seen.add("uncertain")
     assert seen == allowed, seen
     assert "no_match" not in seen
 
