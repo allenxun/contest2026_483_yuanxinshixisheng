@@ -27,6 +27,7 @@ import logging
 import os
 import threading
 from typing import Any, Optional
+from urllib.parse import parse_qs
 
 import pytest
 
@@ -249,6 +250,22 @@ def _call_bodies(fake: FakeTransport) -> list[dict[str, Any]]:
     return [call["json_body"] for call in fake.calls if call["json_body"] is not None]
 
 
+def _exception_chain_text(exc: BaseException) -> str:
+    """异常自身 + 整条 ``__cause__``/``__context__`` 链的文本（脱敏扫描用）。
+
+    单看 ``str(exc)`` 会漏掉被 ``raise ... from exc`` 包装的底层传输异常文本
+    （Oracle 指出的 Focus-5 弱点）。
+    """
+    parts: list[str] = []
+    seen: set[int] = set()
+    current: Optional[BaseException] = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        parts.append(f"{type(current).__name__}: {current}")
+        current = current.__cause__ or current.__context__
+    return "\n".join(parts)
+
+
 # ================================================================ 1) 冻结码表
 
 
@@ -384,6 +401,33 @@ def test_quality_auth_is_config_error(monkeypatch: Any, tmp_path: Any) -> None:
 )
 def test_quality_invalid_2xx_is_unavailable(monkeypatch: Any, tmp_path: Any, body: Any) -> None:
     cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [TransportResult(200, body)])
+    with pytest.raises(ProviderUnavailable):
+        adapter.quality(IMAGES)
+
+
+@pytest.mark.parametrize(
+    "index",
+    ["0", True, False, 0.5, -1, 3, 99, None],
+)
+def test_quality_invalid_largest_face_index_is_unavailable(
+    monkeypatch: Any, tmp_path: Any, index: Any
+) -> None:
+    """Oracle IMPORTANT 3：非法 `largest_face_index` **绝不**静默修复为 0。"""
+    cfg = _cfg(monkeypatch, tmp_path)
+    body = quality_body(True)
+    body["largest_face_index"] = index
+    adapter, _ = _adapter(cfg, [TransportResult(200, body)])
+    with pytest.raises(ProviderUnavailable):
+        adapter.quality(IMAGES)
+
+
+def test_quality_missing_largest_face_index_is_unavailable(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    body = quality_body(True)
+    del body["largest_face_index"]
     adapter, _ = _adapter(cfg, [TransportResult(200, body)])
     with pytest.raises(ProviderUnavailable):
         adapter.quality(IMAGES)
@@ -667,6 +711,104 @@ def test_register_subject_mismatch_is_unknown(monkeypatch: Any, tmp_path: Any) -
     assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
 
 
+# --- Oracle BLOCKER 1: malformed / non-whitelisted 2xx must NEVER be success ---
+
+
+@pytest.mark.parametrize("status", [200, 202, 204, 206, 299])
+def test_register_empty_body_2xx_is_unknown(monkeypatch: Any, tmp_path: Any, status: int) -> None:
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    adapter, _ = _adapter(cfg, [TransportResult(status, {})])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
+
+
+@pytest.mark.parametrize("status", [202, 204, 206, 299])
+def test_register_non_whitelisted_2xx_with_full_body_is_unknown(
+    monkeypatch: Any, tmp_path: Any, status: int
+) -> None:
+    """只有合同 §6.1 的 200/201 是成功（api.py:742）；其它 2xx 无法证明已创建。"""
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    adapter, _ = _adapter(cfg, [TransportResult(status, register_body("entity-1"))])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
+
+
+def test_register_201_null_subject_id_is_unknown(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    body = register_body("entity-1")
+    body["subject_id"] = None
+    adapter, _ = _adapter(cfg, [TransportResult(201, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
+
+
+@pytest.mark.parametrize("status", [201, 200])
+def test_register_created_status_inconsistency_is_unknown(
+    monkeypatch: Any, tmp_path: Any, status: int
+) -> None:
+    """api.py: `201 if created else 200` ⇒ created 必须与状态一致。"""
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    body = register_body("entity-1", created=not (status == 201), replayed=False)
+    adapter, _ = _adapter(cfg, [TransportResult(status, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
+
+
+@pytest.mark.parametrize(
+    "key",
+    ["subject_id", "namespace", "created", "created_at", "updated_at", "embedding_dim",
+     "model_version", "quality", "library_revision", "replayed", "registered_at", "request_id"],
+)
+def test_register_missing_frozen_key_is_unknown(monkeypatch: Any, tmp_path: Any, key: str) -> None:
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    body = register_body("entity-1")
+    del body[key]
+    adapter, _ = _adapter(cfg, [TransportResult(201, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
+
+
+@pytest.mark.parametrize(
+    "key,bad_value",
+    [
+        ("namespace", ""),
+        ("namespace", 7),
+        ("created", "true"),
+        ("replayed", "false"),
+        ("created_at", ""),
+        ("updated_at", None),
+        ("embedding_dim", True),
+        ("embedding_dim", "64"),
+        ("model_version", ""),
+        ("quality", "not-a-dict"),
+        ("library_revision", True),
+        ("library_revision", "1"),
+        ("request_id", ""),
+        ("registered_at", ""),
+        ("registered_at", 123),
+    ],
+)
+def test_register_bad_frozen_field_type_is_unknown(
+    monkeypatch: Any, tmp_path: Any, key: str, bad_value: Any
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    body = register_body("entity-1")
+    body[key] = bad_value
+    adapter, _ = _adapter(cfg, [TransportResult(201, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
+
+
+def test_register_nullable_registered_at_none_is_success(monkeypatch: Any, tmp_path: Any) -> None:
+    """`registered_at` 是可空列（api.py 直接外发 record.registered_at）⇒ null 合法。"""
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    body = register_body("entity-1")
+    body["registered_at"] = None
+    adapter, _ = _adapter(cfg, [TransportResult(201, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "success"
+
+
+@pytest.mark.parametrize("body", [None, [], "ok", 7])
+def test_register_non_mapping_2xx_is_unknown(monkeypatch: Any, tmp_path: Any, body: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    adapter, _ = _adapter(cfg, [TransportResult(201, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
+
+
 # ================================================================ 7) query_registration
 
 
@@ -739,6 +881,98 @@ def test_query_requires_namespace(monkeypatch: Any, tmp_path: Any) -> None:
     with pytest.raises(ProviderConfigError):
         adapter.query_registration("corr-1", "req-1")
     assert fake.calls == []
+
+
+# --- Oracle BLOCKER 2: confirmation must echo the exact requested identity ---
+
+
+def _query_call(adapter: InsightFaceAdapter, entity_id: Optional[str] = "entity-1") -> Any:
+    return adapter.query_registration(
+        "corr-1", "req-1", namespace=NS, entity_id=entity_id
+    )
+
+
+def test_query_wrong_subject_echo_is_unknown(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [TransportResult(200, query_body("registered", "WRONG-SUBJECT"))])
+    assert _query_call(adapter).status == "unknown"
+
+
+def test_query_wrong_correlation_echo_is_unknown(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    body = query_body("registered", "entity-1")
+    body["correlation_id"] = "some-other-correlation"
+    adapter, _ = _adapter(cfg, [TransportResult(200, body)])
+    assert _query_call(adapter).status == "unknown"
+
+
+def test_query_wrong_provider_request_echo_is_unknown(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    body = query_body("registered", "entity-1")
+    body["provider_request_id"] = "some-other-request"
+    adapter, _ = _adapter(cfg, [TransportResult(200, body)])
+    assert _query_call(adapter).status == "unknown"
+
+
+def test_query_null_provider_request_when_supplied_is_unknown(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    body = query_body("registered", "entity-1")
+    body["provider_request_id"] = None
+    adapter, _ = _adapter(cfg, [TransportResult(200, body)])
+    assert _query_call(adapter).status == "unknown"
+
+
+@pytest.mark.parametrize(
+    "key,bad_value",
+    [
+        ("subject_id", 7),
+        ("subject_id", ""),
+        ("correlation_id", 7),
+        ("correlation_id", None),
+        ("provider_request_id", 7),
+        ("registered_at", 123),
+        ("registered_at", ""),
+        ("library_revision", True),
+        ("library_revision", "1"),
+        ("request_id", ""),
+        ("request_id", None),
+    ],
+)
+def test_query_bad_frozen_field_is_unknown(
+    monkeypatch: Any, tmp_path: Any, key: str, bad_value: Any
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    body = query_body("registered", "entity-1")
+    body[key] = bad_value
+    adapter, _ = _adapter(cfg, [TransportResult(200, body)])
+    assert _query_call(adapter).status == "unknown"
+
+
+def test_query_nullable_registered_at_none_is_registered(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    body = query_body("registered", "entity-1")
+    body["registered_at"] = None
+    adapter, _ = _adapter(cfg, [TransportResult(200, body)])
+    assert _query_call(adapter).status == "registered"
+
+
+def test_query_without_entity_id_skips_subject_comparison(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    """未提供 entity_id 时不做主体相等比较，但仍要求非空 subject_id。"""
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [TransportResult(200, query_body("registered", "any-subject"))])
+    assert _query_call(adapter, entity_id=None).status == "registered"
+
+
+def test_query_full_correct_shape_is_registered(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [TransportResult(200, query_body("registered", "entity-1"))])
+    assert _query_call(adapter).status == "registered"
 
 
 def test_query_optional_params_omitted_when_absent(monkeypatch: Any, tmp_path: Any) -> None:
@@ -854,7 +1088,8 @@ def test_no_secret_or_identifier_values_in_logs_or_exceptions(
             adapter, _ = _adapter(cfg, [exc])
             with pytest.raises((ProviderUnavailable, ProviderConfigError)) as ei:
                 adapter.search_1n(namespace, images)
-            raised.append(str(ei.value))
+            # 整条异常因果链（__cause__/__context__）都不得泄漏取值。
+            raised.append(_exception_chain_text(ei.value))
 
     haystack = caplog.text + "".join(raised)
     for needle in (secret, namespace, correlation, entity):
@@ -868,21 +1103,40 @@ def test_register_gate_closed_exception_has_no_ids(monkeypatch: Any, tmp_path: A
     adapter, _ = _adapter(cfg, [])
     with pytest.raises(ProviderNotActivated) as ei:
         adapter.register_person("secret-ns", "secret-entity", IMAGES, "secret-corr", "secret-req")
-    message = str(ei.value)
+    message = _exception_chain_text(ei.value)
     for needle in ("secret-ns", "secret-entity", "secret-corr", "secret-req", TOKEN):
         assert needle not in message
+
+
+def test_exception_chain_text_includes_wrapped_cause() -> None:
+    """判别力：链扫描必须真的覆盖 ``raise ... from`` 的底层异常文本。"""
+    try:
+        try:
+            raise ValueError("secret-cause-marker")
+        except ValueError as cause:
+            raise RuntimeError("outer") from cause
+    except RuntimeError as exc:
+        text = _exception_chain_text(exc)
+    assert "secret-cause-marker" in text
+    assert "outer" in text
 
 
 # ================================================================ 10) 真实传输 + 合同忠实 stub 服务
 
 
 class _StubFaceService(http.server.BaseHTTPRequestHandler):
-    """本地**合同忠实** stub（**非** B 的 face-service）：验证真实 stdlib 传输。
+    """本地 stub（**非** B 的 face-service）：验证真实 stdlib 传输 + 严格响应校验。
 
-    仅实现本测试所需端点与语义：鉴权、统一错误信封、幂等登记 + 对账、三值 search。
+    **保真度声明**：对所实现的端点，成功/错误**响应**与冻结合同逐键一致
+    （register: api.py:726-741 全 12 键 + 201/200 状态；registrations: api.py:844-852
+    全 7 键；search: 合同 §4.3；quality/compare: api.py 对应构造）。它**只实现**本测试
+    所需端点（quality/compare/search/subjects/registrations），不实现 extract/verify/
+    delete/info/health/ready；语义（幂等/可见性/一致性）是简化模型，不是数据库实现。
     """
 
     protocol_version = "HTTP/1.1"
+
+    _REGISTERED_AT = "2026-09-16T00:00:00Z"
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A002,D102 - 静默
         return
@@ -918,6 +1172,31 @@ class _StubFaceService(http.server.BaseHTTPRequestHandler):
     def _authorized(self) -> bool:
         return self.headers.get("X-Internal-Token") == self.server.expected_token  # type: ignore[attr-defined]
 
+    def _register_response(
+        self,
+        *,
+        subject_id: str,
+        namespace: str,
+        created: bool,
+        replayed: bool,
+        revision: int,
+    ) -> dict[str, Any]:
+        """Full frozen register shape — api.py:726-741 (12 keys)."""
+        return {
+            "subject_id": subject_id,
+            "namespace": namespace,
+            "created": created,
+            "created_at": "2026-09-16T00:00:00Z",
+            "updated_at": "2026-09-16T00:00:00Z",
+            "embedding_dim": 64,
+            "model_version": "stub-model@0",
+            "quality": {"min_acceptable": True, "liveness": {"supported": False}},
+            "library_revision": revision,
+            "replayed": replayed,
+            "registered_at": "2026-09-16T00:00:00Z",
+            "request_id": self.headers.get("X-Request-Id") or "stub",
+        }
+
     # -- routes -------------------------------------------------------
     def do_GET(self) -> None:  # noqa: N802
         state = self.server.state  # type: ignore[attr-defined]
@@ -932,12 +1211,30 @@ class _StubFaceService(http.server.BaseHTTPRequestHandler):
                 self._error(404, "NAMESPACE_NOT_FOUND", False)
                 return
             record = state["registrations"].get((ns, correlation))
+            if record is not None:
+                # Mirror store.find_registration: supplied filters must agree, else not_found.
+                query = (
+                    parse_qs(self.path.split("?", 1)[1]) if "?" in self.path else {}
+                )
+                wanted_request = query.get("provider_request_id", [None])[0]
+                wanted_entity = query.get("entity_id", [None])[0]
+                if wanted_request is not None and wanted_request != record["provider_request_id"]:
+                    record = None
+                elif wanted_entity is not None and wanted_entity != record["subject_id"]:
+                    record = None
             if record is None:
-                self._send(200, {"status": "not_found", "request_id": "stub"})
+                self._send(200, {"status": "not_found", "request_id": self.headers.get("X-Request-Id") or "stub"})
                 return
-            self._send(200, {"status": "registered", "subject_id": record, "correlation_id": correlation,
-                             "provider_request_id": "req", "registered_at": "2026-09-16T00:00:00Z",
-                             "library_revision": state["revision"], "request_id": "stub"})
+            # Full frozen shape — api.py:844-852 (7 keys).
+            self._send(200, {
+                "status": "registered",
+                "subject_id": record["subject_id"],
+                "correlation_id": correlation,
+                "provider_request_id": record["provider_request_id"],
+                "registered_at": record["registered_at"],
+                "library_revision": state["revision"],
+                "request_id": self.headers.get("X-Request-Id") or "stub",
+            })
             return
         self._error(404, "INVALID_REQUEST", False)
 
@@ -995,21 +1292,28 @@ class _StubFaceService(http.server.BaseHTTPRequestHandler):
                 return
             existing = state["registrations"].get((ns, correlation)) if correlation else None
             if subject_id in state["subjects"]:
-                if existing == subject_id:
-                    self._send(200, {"subject_id": subject_id, "namespace": ns, "created": False,
-                                     "replayed": True, "library_revision": state["revision"],
-                                     "request_id": "stub"})
+                if existing is not None and existing["subject_id"] == subject_id:
+                    # Idempotent replay — 200, created=False, replayed=True (no revision bump).
+                    self._send(200, self._register_response(
+                        subject_id=subject_id, namespace=ns, created=False, replayed=True,
+                        revision=state["revision"],
+                    ))
                     return
                 self._error(409, "SUBJECT_ALREADY_EXISTS", False)
                 return
             state["namespaces"].add(ns)
             state["subjects"].add(subject_id)
             if correlation:
-                state["registrations"][(ns, correlation)] = subject_id
+                state["registrations"][(ns, correlation)] = {
+                    "subject_id": subject_id,
+                    "provider_request_id": payload.get("provider_request_id"),
+                    "registered_at": self._REGISTERED_AT,
+                }
             state["revision"] += 1
-            self._send(201, {"subject_id": subject_id, "namespace": ns, "created": True,
-                             "replayed": False, "library_revision": state["revision"],
-                             "request_id": "stub"})
+            self._send(201, self._register_response(
+                subject_id=subject_id, namespace=ns, created=True, replayed=False,
+                revision=state["revision"],
+            ))
             return
         self._error(404, "INVALID_REQUEST", False)
 
