@@ -67,9 +67,17 @@ _ADDED_SUBJECT_COLUMNS: tuple[tuple[str, str], ...] = (
 
 #: Created *after* the columns exist (so an in-place upgrade of a legacy DB does
 #: not fail on a missing column).
+#:
+#: **UNIQUE and partial**: one ``correlation_id`` may bind at most one subject per
+#: namespace.  Without uniqueness the same correlation id could be attached to two
+#: different subjects, and the reconciliation lookup (``fetchone``) would then
+#: return an arbitrary one — breaking the contract's core promise that a
+#: correlation id identifies exactly one logical enrollment.  ``WHERE
+#: correlation_id IS NOT NULL`` keeps legacy rows (and callers that send no
+#: correlation id) unconstrained.
 _CORRELATION_INDEX = (
-    "CREATE INDEX IF NOT EXISTS idx_subjects_namespace_correlation "
-    "ON subjects(namespace, correlation_id)"
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_subjects_namespace_correlation "
+    "ON subjects(namespace, correlation_id) WHERE correlation_id IS NOT NULL"
 )
 
 def _migrate_subjects(conn: sqlite3.Connection) -> None:
@@ -83,7 +91,11 @@ def _migrate_subjects(conn: sqlite3.Connection) -> None:
     no-op.
 
     The correlation index is created **after** the columns exist, so upgrading a
-    legacy database cannot fail on a missing column.
+    legacy database cannot fail on a missing column.  It is a **UNIQUE partial**
+    index, so a legacy database that somehow holds the same ``correlation_id``
+    twice in one namespace is reported as an explicit store error (with counts
+    only — never the ids themselves) instead of surfacing as an opaque SQLite
+    ``IntegrityError`` at startup.
 
     ``name``/``decl`` come from the module-level ``_ADDED_SUBJECT_COLUMNS``
     constant (never from a request), so interpolating them into DDL is safe;
@@ -93,6 +105,26 @@ def _migrate_subjects(conn: sqlite3.Connection) -> None:
     for name, decl in _ADDED_SUBJECT_COLUMNS:
         if name not in existing:
             conn.execute(f"ALTER TABLE subjects ADD COLUMN {name} {decl}")
+    if "correlation_id" not in existing:
+        # The column did not exist before this call, so every row is NULL and the
+        # partial unique index cannot conflict.  Skip the duplicate scan.
+        conn.execute(_CORRELATION_INDEX)
+        return
+    duplicates = conn.execute(
+        "SELECT COUNT(*) AS n FROM ("
+        "  SELECT namespace, correlation_id FROM subjects"
+        "   WHERE correlation_id IS NOT NULL"
+        "   GROUP BY namespace, correlation_id HAVING COUNT(*) > 1"
+        ")"
+    ).fetchone()
+    duplicate_groups = int(duplicates["n"]) if duplicates else 0
+    if duplicate_groups > 0:
+        raise FaceServiceError(
+            ErrorCode.STORE_UNAVAILABLE,
+            "cannot create the unique correlation index: "
+            f"{duplicate_groups} (namespace, correlation_id) pair(s) are duplicated; "
+            "resolve them before starting (see the deployment runbook)",
+        )
     conn.execute(_CORRELATION_INDEX)
 
 
@@ -294,22 +326,39 @@ class FaceStore:
         subject in the namespace (the API needs the global top-2 for the margin
         rule, so it passes ``None``).  Rows are ordered by ``subject_id`` so
         equal-similarity ties are reproducible at the caller.
+
+        All three reads (revision, count, rows) run inside **one explicit read
+        transaction**.  ``sqlite3`` in autocommit mode gives each ``SELECT`` its
+        own snapshot, so a concurrent ``delete`` between the count and the row
+        read could yield ``subject_count > 0`` with zero candidate rows — the
+        caller would then index ``ranked[0]`` and fail with a 500 — and the
+        audited ``library_revision`` could describe a different library state
+        than the candidates the decision was made from.
         """
         self.initialize()
         with self._connect() as conn:
-            revision = _read_revision(conn)
-            count_row = conn.execute(
-                "SELECT COUNT(*) AS n FROM subjects WHERE namespace = ?", (namespace,)
-            ).fetchone()
-            subject_count = int(count_row["n"]) if count_row else 0
-            sql = (
-                "SELECT subject_id, embedding, embedding_dim FROM subjects "
-                "WHERE namespace = ? ORDER BY subject_id ASC"
-            )
-            if limit is not None:
-                rows = conn.execute(sql + " LIMIT ?", (namespace, int(limit))).fetchall()
-            else:
-                rows = conn.execute(sql, (namespace,)).fetchall()
+            conn.execute("BEGIN")
+            try:
+                revision = _read_revision(conn)
+                count_row = conn.execute(
+                    "SELECT COUNT(*) AS n FROM subjects WHERE namespace = ?",
+                    (namespace,),
+                ).fetchone()
+                subject_count = int(count_row["n"]) if count_row else 0
+                sql = (
+                    "SELECT subject_id, embedding, embedding_dim FROM subjects "
+                    "WHERE namespace = ? ORDER BY subject_id ASC"
+                )
+                if limit is not None:
+                    rows = conn.execute(
+                        sql + " LIMIT ?", (namespace, int(limit))
+                    ).fetchall()
+                else:
+                    rows = conn.execute(sql, (namespace,)).fetchall()
+                conn.commit()
+            except Exception:
+                conn.rollback()
+                raise
         candidates = tuple(
             (str(row["subject_id"]), _decode_embedding(row["embedding"], int(row["embedding_dim"])))
             for row in rows
@@ -390,6 +439,25 @@ class FaceStore:
                         ErrorCode.SUBJECT_ALREADY_EXISTS,
                         details={"namespace": namespace, "subject_id": subject_id},
                     )
+
+                if correlation_id is not None:
+                    # A correlation id identifies exactly ONE logical enrollment,
+                    # so it may not be reused for a *different* subject.  Checked
+                    # explicitly (inside the same write transaction) so the caller
+                    # gets an authoritative 409 rather than an opaque SQLite
+                    # IntegrityError from the unique partial index surfacing as 500.
+                    bound = conn.execute(
+                        "SELECT subject_id FROM subjects "
+                        "WHERE namespace = ? AND correlation_id = ?",
+                        (namespace, correlation_id),
+                    ).fetchone()
+                    if bound is not None and str(bound["subject_id"]) != subject_id:
+                        conn.rollback()
+                        raise FaceServiceError(
+                            ErrorCode.SUBJECT_ALREADY_EXISTS,
+                            "correlation_id is already bound to a different subject",
+                            details={"namespace": namespace},
+                        )
 
                 created = existing is None
                 created_at = existing["created_at"] if existing is not None else now

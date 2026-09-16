@@ -101,15 +101,26 @@ D 据此实现 `InsightFaceAdapter`（`build_face_port` 的新取值）。
 
 | decision | 触发条件（按顺序判定，前置错误优先） | 响应附加 |
 |---|---|---|
-| —— | namespace 不存在 → 404 `NAMESPACE_NOT_FOUND`；0 张脸 → `NO_FACE`；多张脸 → `MULTI_FACES_AMBIGUOUS`；解码失败 → `IMAGE_DECODE_FAILED`；模型/推理故障 → 既有 `MODEL_*`/`INFERENCE_TIMEOUT` | 错误信封 |
+| —— | 0 张脸 → `NO_FACE`；多张脸 → `MULTI_FACES_AMBIGUOUS`；解码失败 → `IMAGE_DECODE_FAILED`；模型/推理故障 → 既有 `MODEL_*`/`INFERENCE_TIMEOUT`。**namespace 不存在不再是 404**，而是按"只读空快照"处理（见下方裁定 1） | 错误信封 |
 | `matched` | `best >= search_match_threshold` **且** 与次优不同 subject 之差 `>= search_margin` **且** 质量 `min_acceptable=true` | `subject_id` + `similarity` |
 | `uncertain` | ①`best >= search_match_threshold` 但 margin 不足（`ambiguous=true`）；②`best` 落在 `[match_threshold - uncertain_band, match_threshold)`；③质量不足（`min_acceptable=false`，即使相似度达标也**至多** uncertain）；④**namespace 存在但库为空**（`subject_count == 0`，`reasons` 含 `empty_library`） | 无 `subject_id`、无 `similarity` |
-| `reliable_new` | 库**非空**、单脸、质量合格、且 `best < search_match_threshold - search_uncertain_band` | 无 `subject_id`、无 `similarity` |
+| `reliable_new` | 单脸、质量合格，且**二者之一**：①库**非空**且 `best < search_match_threshold - search_uncertain_band`；②库**为空或 namespace 尚不存在**（`reasons` 含 `empty_library`） | 无 `subject_id`、无 `similarity` |
 
-**两处刻意的保守裁定（必须写进 D 的实现说明）**：
-1. **空库不再返回"新人"**：`subject_count == 0` 时返回 `uncertain`（`reasons=["empty_library"]`）。
-   理由：库为空更可能是**未初始化/被误清**，此时把每个人都判成"可靠新人"会批量建档。
-   这比"事实性 no_match"更保守，方向正确。
+**两处裁定（必须写进 D 的实现说明）**：
+1. **空库/缺 namespace → 质量合格时返回 `reliable_new`（`reasons` 含 `empty_library`）；质量不合格仍返回 `uncertain`**。
+
+   > **修订记录（Oracle 第二十九轮 BLOCKER）**：本节最初裁定为"空库恒返回 `uncertain`"，
+   > 理由是"库为空更可能是未初始化/被误清，判新人会批量建档"。该裁定**是错的，已推翻**：
+   > 每个 namespace 都必然从空库开始，而 Worker 只在 `reliable_new` 时才入队
+   > `identity.enroll`（`assessment_analyze.py:377-388`）、对 `uncertain` 只会要求补拍
+   > （`:369-375`），而**补拍不可能让空库变非空** ⇒ 首个成员永远无法经业务流程建档
+   > （首次入库死锁）。把"禁止自动建档"的业务门禁放进只读算法端点，是**放错了层**：
+   > 该门禁的权威位置是 `后端详细设计-V1-MVP.md:663` 的 PoC 门与 Worker 自己的
+   > PostgreSQL 对账（`:381-389`）。
+   > 同时 search 对**不存在**的 namespace 也不再返回 404，而是按只读空快照处理
+   > （search 从不创建任何东西，故仍是只读；404 同样会造成上述死锁）。
+   > `reasons` 恒定携带 `empty_library`，使消费方与审计仍能区分"库非空但无候选达阈值"
+   > 与"库本来就是空的"。
 2. **`reliable_new` 的语义边界**：它表示"**在本 namespace 内以 `policy_version` 所述策略搜索、
    单脸、质量合格、最高相似度明确低于阈值**"，**不**表示算法能证明这是新人类。
    依据 `后端详细设计-V1-MVP.md:657`「歧义不归档，**未命中只成为新人候选**」与
@@ -165,8 +176,18 @@ bbox/det_score/参考照引用、**数值阈值本身**（只给 `policy_version
 ### 5.1 请求
 与既有端点同一套解码路径，但接受**两张**图：
 `image_a` / `image_b`（各自 binary | base64 | data-url），可选 `media_type_a` / `media_type_b`，
-可选 `threshold`（**仅本端点**允许覆盖，缺省 `FACE_SVC_VERIFY_THRESHOLD`；因为它是无库参与的一次性比对，
-不存在"客户端调低阈值绕过库策略"的风险。**search 仍绝不接受阈值**）。
+**不接受 `threshold`**：阈值一律取服务端 `FACE_SVC_VERIFY_THRESHOLD`，客户端传入的值被**忽略**
+（不是"校验后接受"）。
+
+> **修订记录（Oracle 第二十九轮 IMPORTANT）**：本节最初允许本端点覆盖 `threshold`，理由是
+> "无库参与的一次性比对，不存在调低阈值绕过库策略的风险"。该理由**不成立，已推翻**：
+> threshold 直接决定 `same_person` 结论，允许降到 `0.0` 就等于允许调用方把任意两张无关图
+> 判为同人；"不查库"与此无关。且 `FacePort.same_person(images)`（`providers.py:119`）
+> **本来就没有 threshold 参数**，无任何消费方需要它。改为服务端固定后，compare 与 search
+> 的口径也一致了（两者都绝不接受客户端阈值）。
+> **如实披露的既有不对称**：`/v1/verify`（上一轮已审已批准的代码，`api.py:426-431`）
+> **仍**接受客户端 `threshold`（0..1 任意值）。本轮**未擅自扩大范围**去改它，
+> 是否需要同样收紧由总协调裁定。
 
 ### 5.2 响应（冻结）
 ```jsonc
@@ -226,6 +247,17 @@ bbox/det_score/参考照引用、**数值阈值本身**（只给 `policy_version
 不会产生第二个 subject，也不会被误报为冲突。这正是 `identity_enroll.py:173` 注释
 「超时/未知 → 同 EntityId 对账，绝不生成另一 ID 盲重试」所需的服务端保证。
 
+**唯一性由数据库强制**（修订自 Oracle 第二十九轮 IMPORTANT）：索引
+`idx_subjects_namespace_correlation` 是 **`UNIQUE` 部分索引**
+（`ON subjects(namespace, correlation_id) WHERE correlation_id IS NOT NULL`），故一个
+`correlation_id` 在同一 namespace 内**至多绑定一个 subject**；否则对账查询的 `fetchone()`
+会在两行之间任意取一行，使"同一逻辑登记"的承诺失效。`register` 在写入前显式检查该
+correlation 是否已绑定**其它** subject，命中即 **409**（消息 `correlation_id is already
+bound to a different subject`，`details` 只含 `namespace`，**不回显**另一个 subject_id），
+以免唯一索引抛出裸 `IntegrityError` 而被渲染成 500。旧库若已存在重复对，
+`initialize()` 会以 `STORE_UNAVAILABLE` **明确拒绝启动**并只报重复**组数**（绝不回显 id 本身），
+而不是让 `CREATE UNIQUE INDEX` 抛出难以诊断的 SQLite 错误。
+
 ### 6.2 `GET /v1/namespaces/{ns}/registrations/{correlation_id}`（**新增**，只读对账）
 - 可选查询参数 `provider_request_id`、`entity_id`（= `subject_id`）用于**加强校验**。
 - 响应：
@@ -240,7 +272,10 @@ bbox/det_score/参考照引用、**数值阈值本身**（只给 `policy_version
 - **`status` 只有 `registered` / `not_found` 两值**；`unknown` **不由服务端产出**——
   它是 Worker 在**传输层失败**（超时/5xx/无法解析）时自行映射的值
   （`RegistrationQueryResult` 的 `unknown` 属客户端状态，服务端伪造它反而会掩盖故障）。
-- **零写入**、不 bump revision。namespace 不存在 → 404 `NAMESPACE_NOT_FOUND`。
+- **零写入**、不 bump revision。namespace 不存在 → **404 `NAMESPACE_NOT_FOUND`**。
+  （与 search 不同：search 需要允许"库尚不存在"时也能给出可据以首次建档的判定，
+  而对账查询针对的是**已经发起过**的登记，其 namespace 必然已存在，故 404 是正确的
+  "你查错了地方"信号，不会造成任何死锁。）
 - **最小披露**：绝不返回 embedding、参考照引用、其它 correlation 的登记、或库内主体清单。
 
 ### 6.3 服务端存储变更（**B 自有 SQLite，不涉及公共迁移**）
@@ -273,7 +308,11 @@ bbox/det_score/参考照引用、**数值阈值本身**（只给 `policy_version
   `MODEL_NOT_LOADED`(503,retryable)、`STORE_UNAVAILABLE`(503,retryable)、
   `CONCURRENCY_LIMIT`(429,retryable)、`INFERENCE_TIMEOUT`(504,retryable)。
   统一信封 `{"error":{code,message,retryable,request_id[,details]}}`。
-  **`details` 绝不包含** token、图片字节、embedding、namespace 取值、subject_id 取值。
+  **`details` 绝不包含** token、图片字节、embedding、候选列表、库内容或**其它**主体的标识。
+  它**可以**回显**调用方本次请求自己传入**的标识（如 404 时的 `namespace`/`subject_id`）——
+  调用方本来就知道这些值，回显不构成泄漏；`error_body`(`errors.py:148-149`) 确实外发 `details`。
+  （修订自 Oracle 第二十九轮 SUGGESTION：原措辞"绝不包含 namespace 取值、subject_id 取值"过强，
+  与既有 7 处 404 响应的实际行为不符。）
 - **`request_id`**：入站 `X-Request-Id` 合法则回显，否则服务端生成 uuid4 hex；响应头与错误体均带。
 - **`library_revision`**：所有响应都带（一致快照），**只**由创建/覆盖/删除递增。
 - **日志脱敏**：`access_log=False`（`main.py:25`）+ 自有脱敏中间件按**路由模板**记录

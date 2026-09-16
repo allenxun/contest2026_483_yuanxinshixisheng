@@ -104,16 +104,33 @@ def test_search_namespace_isolation(client, register, search):
     assert own_a["subject_id"] == "shared-id"
 
 
-def test_search_unknown_namespace_not_found_and_not_created(client, search, settings):
-    before = FaceStore(settings.db_path).revision()
+def test_search_unknown_namespace_is_an_empty_snapshot_and_not_created(client, search, settings):
+    """A not-yet-existing namespace is searched as an EMPTY read-only snapshot.
+
+    Oracle r29 BLOCKER: returning 404 here deadlocks first enrollment.  The Worker
+    only enqueues ``identity.enroll`` for ``reliable_new``
+    (``assessment_analyze.py:377-388``) and answers ``uncertain`` with a re-capture
+    (``:369-375``); a re-capture cannot make an empty library non-empty, and every
+    namespace starts empty, so no first member could ever be created through the
+    business flow.  Search still writes nothing — the namespace must not be created.
+    """
+    store = FaceStore(settings.db_path)
+    before = store.revision()
+    assert store.namespace_exists("ghost-search-ns") is False
     resp = search(client, "ghost-search-ns", make_image(seed=202))
-    assert resp.status_code == 404
-    assert resp.json()["error"]["code"] == "NAMESPACE_NOT_FOUND"
-    # The read must not have created the namespace.
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["subject_count"] == 0
+    assert body["reasons"] == ["empty_library"]
+    assert body["decision"] in ("reliable_new", "uncertain")  # quality decides
+    assert "subject_id" not in body
+    assert "similarity" not in body
+    # The read must not have created the namespace, and must not advance revision.
+    assert store.namespace_exists("ghost-search-ns") is False
+    assert store.revision() == before
     info = client.get("/v1/namespaces/ghost-search-ns/info")
     assert info.status_code == 404
     assert info.json()["error"]["code"] == "NAMESPACE_NOT_FOUND"
-    assert FaceStore(settings.db_path).revision() == before
 
 
 # --------------------------------------------------------------------------
@@ -427,12 +444,15 @@ def test_search_after_delete_no_longer_matches(client, register, search, setting
     rev_after_delete = FaceStore(settings.db_path).revision()
     assert rev_after_delete == rev_before_delete + 1
 
-    # Deleting the only subject leaves the namespace EMPTY.  An empty library is
-    # deliberately NOT reported as reliable_new: it more likely means the library
-    # was never populated (or was cleared), and answering "new person" would
-    # mass-enroll everybody.  Contract §4.2 => uncertain + empty_library.
+    # Deleting the only subject leaves the namespace EMPTY.  An acceptable-quality
+    # probe against an empty library is reported as reliable_new + empty_library so
+    # that first enrollment is reachable (Oracle r29 BLOCKER: answering uncertain
+    # here deadlocks it, because a re-capture cannot fill an empty library).  The
+    # guarantee this test exists for is unchanged: the previous match is gone and
+    # no identity is disclosed.
     body = search(client, "ns-del", image).json()
-    assert body["decision"] == "uncertain"
+    assert body["decision"] == "reliable_new"
+    assert body["decision"] != "matched"
     assert body["ambiguous"] is False
     assert body["subject_count"] == 0
     assert body["library_revision"] == rev_after_delete
