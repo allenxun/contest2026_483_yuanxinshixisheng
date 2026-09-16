@@ -80,6 +80,33 @@ _CORRELATION_INDEX = (
     "ON subjects(namespace, correlation_id) WHERE correlation_id IS NOT NULL"
 )
 
+#: Same statement without ``IF NOT EXISTS``, used when upgrading a same-named
+#: non-unique index (``IF NOT EXISTS`` matches on the name only, so it would
+#: silently skip the upgrade).
+_CORRELATION_UNIQUE_DDL = (
+    "CREATE UNIQUE INDEX idx_subjects_namespace_correlation "
+    "ON subjects(namespace, correlation_id) WHERE correlation_id IS NOT NULL"
+)
+
+_CORRELATION_INDEX_NAME = "idx_subjects_namespace_correlation"
+
+
+def _correlation_index_state(conn: sqlite3.Connection) -> bool | None:
+    """Return the uniqueness state of the correlation index.
+
+    ``None``  — no index with that name exists.
+    ``True``  — it exists and is UNIQUE (nothing to do).
+    ``False`` — it exists but is **not** UNIQUE, i.e. the database was created by
+    the release that used a plain ``CREATE INDEX``; it must be dropped and
+    recreated, because ``CREATE UNIQUE INDEX IF NOT EXISTS`` would skip it.
+
+    ``PRAGMA index_list`` columns are ``(seq, name, unique, origin, partial)``.
+    """
+    for row in conn.execute("PRAGMA index_list(subjects)"):
+        if str(row["name"]) == _CORRELATION_INDEX_NAME:
+            return bool(int(row["unique"]))
+    return None
+
 def _migrate_subjects(conn: sqlite3.Connection) -> None:
     """In-place, idempotent upgrade of the ``subjects`` table.
 
@@ -92,10 +119,24 @@ def _migrate_subjects(conn: sqlite3.Connection) -> None:
 
     The correlation index is created **after** the columns exist, so upgrading a
     legacy database cannot fail on a missing column.  It is a **UNIQUE partial**
-    index, so a legacy database that somehow holds the same ``correlation_id``
-    twice in one namespace is reported as an explicit store error (with counts
-    only — never the ids themselves) instead of surfacing as an opaque SQLite
-    ``IntegrityError`` at startup.
+    index, and getting there from an older release needs care:
+
+    * ``CREATE UNIQUE INDEX IF NOT EXISTS`` does **not** upgrade a same-named
+      non-unique index — SQLite's ``IF NOT EXISTS`` matches on the name only, so
+      a database created by the immediately preceding release (which used a plain
+      ``CREATE INDEX``) would silently keep a non-unique index while the code and
+      the contract claim uniqueness.  The unique flag is therefore read back with
+      ``PRAGMA index_list`` and the index is dropped and recreated when needed.
+    * The duplicate scan runs **before** any ``DROP INDEX``, inside one
+      ``BEGIN IMMEDIATE`` transaction.  Order matters: ``CREATE UNIQUE INDEX``
+      over existing duplicates raises ``IntegrityError`` *after* the old index is
+      already gone, which would leave the table with no index at all.  Verified
+      experimentally — inside a transaction the rollback restores the previous
+      index and all rows, so a refusal cannot damage the database.
+    * Refusing to start is deliberate.  Silently keeping one of two rows that
+      share a correlation id would hide a data-integrity problem and make the
+      reconciliation lookup non-deterministic.  Only the **count** of duplicate
+      groups is reported, never the ids themselves.
 
     ``name``/``decl`` come from the module-level ``_ADDED_SUBJECT_COLUMNS``
     constant (never from a request), so interpolating them into DDL is safe;
@@ -105,27 +146,43 @@ def _migrate_subjects(conn: sqlite3.Connection) -> None:
     for name, decl in _ADDED_SUBJECT_COLUMNS:
         if name not in existing:
             conn.execute(f"ALTER TABLE subjects ADD COLUMN {name} {decl}")
-    if "correlation_id" not in existing:
-        # The column did not exist before this call, so every row is NULL and the
-        # partial unique index cannot conflict.  Skip the duplicate scan.
-        conn.execute(_CORRELATION_INDEX)
-        return
-    duplicates = conn.execute(
-        "SELECT COUNT(*) AS n FROM ("
-        "  SELECT namespace, correlation_id FROM subjects"
-        "   WHERE correlation_id IS NOT NULL"
-        "   GROUP BY namespace, correlation_id HAVING COUNT(*) > 1"
-        ")"
-    ).fetchone()
-    duplicate_groups = int(duplicates["n"]) if duplicates else 0
-    if duplicate_groups > 0:
-        raise FaceServiceError(
-            ErrorCode.STORE_UNAVAILABLE,
-            "cannot create the unique correlation index: "
-            f"{duplicate_groups} (namespace, correlation_id) pair(s) are duplicated; "
-            "resolve them before starting (see the deployment runbook)",
-        )
-    conn.execute(_CORRELATION_INDEX)
+
+    if _correlation_index_state(conn) is True:
+        return  # already UNIQUE and partial: nothing to do (idempotent re-run)
+
+    # The index is either absent or present-but-NON-unique (the shape left by the
+    # immediately preceding release).  Both need a UNIQUE index to be created, and
+    # both can hit existing duplicates, so the scan runs for **both** cases:
+    # creating a unique index over duplicates raises a bare IntegrityError, which
+    # is exactly the undiagnosable startup failure this guard exists to prevent.
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        duplicates = conn.execute(
+            "SELECT COUNT(*) AS n FROM ("
+            "  SELECT namespace, correlation_id FROM subjects"
+            "   WHERE correlation_id IS NOT NULL"
+            "   GROUP BY namespace, correlation_id HAVING COUNT(*) > 1"
+            ")"
+        ).fetchone()
+        duplicate_groups = int(duplicates["n"]) if duplicates else 0
+        if duplicate_groups > 0:
+            conn.rollback()
+            raise FaceServiceError(
+                ErrorCode.STORE_UNAVAILABLE,
+                "cannot upgrade the correlation index to UNIQUE: "
+                f"{duplicate_groups} (namespace, correlation_id) pair(s) are duplicated; "
+                "resolve them before starting (see the deployment runbook)",
+            )
+        # DROP first so a same-named non-unique index cannot make the CREATE a
+        # no-op; harmless when no index exists.
+        conn.execute(f"DROP INDEX IF EXISTS {_CORRELATION_INDEX_NAME}")
+        conn.execute(_CORRELATION_UNIQUE_DDL)
+        conn.commit()
+    except FaceServiceError:
+        raise
+    except Exception:
+        conn.rollback()
+        raise
 
 
 _REVISION_KEY = "revision"

@@ -395,3 +395,84 @@ def test_verify_fails_closed_on_a_nan_embedding(make_client, settings):
     assert resp.status_code == 503
     assert resp.json()["error"]["code"] == "MODEL_UNAVAILABLE"
     assert "matched" not in resp.json()
+
+
+# ==========================================================================
+# Oracle r30 IMPORTANT — the model boundary must also refuse empty / zero-norm
+# embeddings, not just non-finite ones.  The empty-library branch of search never
+# calls cosine_similarity, so without this guard a degenerate vector becomes a
+# ``reliable_new`` identity decision.
+# ==========================================================================
+@pytest.mark.parametrize(
+    "label, embedding",
+    [
+        ("empty", ()),
+        ("zero-norm", (0.0,) * EMBEDDING_DIM),
+        ("nan", (float("nan"),) * EMBEDDING_DIM),
+        ("inf", (float("inf"),) * EMBEDDING_DIM),
+    ],
+)
+def test_search_refuses_degenerate_embeddings_on_the_empty_library_path(
+    make_client, label, embedding
+):
+    """Discriminative: the library is EMPTY, so no similarity is ever computed.
+
+    Before the guard, all four shapes returned ``200 reliable_new`` — a model or
+    numerical fault reported as "this is a new person".
+    """
+    def detect(image_bytes: bytes) -> list[FaceDetection]:
+        return [
+            FaceDetection(bbox=(0.0, 0.0, 64.0, 64.0), det_score=0.99, embedding=embedding)
+        ]
+
+    c = make_client(model=FakeModel(detect_fn=detect))
+    resp = c.post(
+        "/v1/namespaces/ns-degenerate/search",
+        files={"image": ("f.png", make_image(seed=760), "image/png")},
+    )
+    assert resp.status_code == 503, f"{label}: {resp.text[:200]}"
+    body = resp.json()
+    assert body["error"]["code"] == "MODEL_UNAVAILABLE", label
+    assert body["error"]["retryable"] is True, label
+    # No identity classification may be produced from a degenerate vector.
+    assert "decision" not in body, label
+
+
+@pytest.mark.parametrize(
+    "label, embedding",
+    [("empty", ()), ("zero-norm", (0.0,) * EMBEDDING_DIM)],
+)
+def test_compare_and_extract_also_refuse_degenerate_embeddings(
+    make_client, label, embedding
+):
+    """The guard sits at the model boundary, so every endpoint is covered."""
+    def detect(image_bytes: bytes) -> list[FaceDetection]:
+        return [
+            FaceDetection(bbox=(0.0, 0.0, 64.0, 64.0), det_score=0.99, embedding=embedding)
+        ]
+
+    c = make_client(model=FakeModel(detect_fn=detect))
+    probe = make_image(seed=761)
+    extract = c.post("/v1/extract", files={"image": ("f.png", probe, "image/png")})
+    assert extract.status_code == 503, label
+    assert extract.json()["error"]["code"] == "MODEL_UNAVAILABLE", label
+
+    compare = c.post(
+        "/v1/compare",
+        files={"image_a": ("a.png", probe, "image/png"),
+               "image_b": ("b.png", probe, "image/png")},
+    )
+    assert compare.status_code == 503, label
+    assert compare.json()["error"]["code"] == "MODEL_UNAVAILABLE", label
+    assert "matched" not in compare.json(), label
+
+
+def test_a_valid_embedding_still_passes_the_boundary_guard(make_client):
+    """Positive control: the guard must not reject normal model output."""
+    c = make_client()  # conftest's FakeModel yields proper one-hot unit vectors
+    resp = c.post(
+        "/v1/namespaces/ns-valid/search",
+        files={"image": ("f.png", make_image(seed=762), "image/png")},
+    )
+    assert resp.status_code == 200, resp.text[:200]
+    assert resp.json()["decision"] == "reliable_new"

@@ -10,8 +10,11 @@ Worker relies on and the ones that must never silently regress:
 * poor quality can never confirm "same person";
 * liveness is reported ``supported=false`` and ``require_liveness`` is *ignored*
   rather than answered with a fabricated ``passed``;
-* a client ``threshold`` is honoured here (unlike search) because nothing is
-  looked up in a namespace.
+* the threshold is **server-fixed**: a client-supplied ``threshold`` is ignored,
+  never honoured.  It decides the ``same_person`` verdict, so a caller who could
+  lower it to 0.0 could declare any two unrelated images the same person — and
+  ``FacePort.same_person(images)`` takes no threshold, so no consumer needs one.
+  (This keeps compare consistent with search, which never accepted one either.)
 """
 
 from __future__ import annotations
