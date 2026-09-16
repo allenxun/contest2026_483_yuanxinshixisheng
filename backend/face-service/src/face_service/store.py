@@ -44,6 +44,9 @@ CREATE TABLE IF NOT EXISTS subjects (
     bbox_json       TEXT,
     created_at      TEXT NOT NULL,
     updated_at      TEXT NOT NULL,
+    correlation_id       TEXT,
+    provider_request_id  TEXT,
+    registered_at        TEXT,
     PRIMARY KEY (namespace, subject_id),
     FOREIGN KEY (namespace) REFERENCES namespaces(namespace)
 );
@@ -53,6 +56,45 @@ CREATE TABLE IF NOT EXISTS library_meta (
 );
 INSERT OR IGNORE INTO library_meta(key, value) VALUES ('revision', '0');
 """
+
+#: Columns added after the first released schema.  They are nullable so existing
+#: rows stay valid; ``initialize`` adds any that are missing (in-place upgrade).
+_ADDED_SUBJECT_COLUMNS: tuple[tuple[str, str], ...] = (
+    ("correlation_id", "TEXT"),
+    ("provider_request_id", "TEXT"),
+    ("registered_at", "TEXT"),
+)
+
+#: Created *after* the columns exist (so an in-place upgrade of a legacy DB does
+#: not fail on a missing column).
+_CORRELATION_INDEX = (
+    "CREATE INDEX IF NOT EXISTS idx_subjects_namespace_correlation "
+    "ON subjects(namespace, correlation_id)"
+)
+
+def _migrate_subjects(conn: sqlite3.Connection) -> None:
+    """In-place, idempotent upgrade of the ``subjects`` table.
+
+    The reconciliation columns were added after the first released schema.  They
+    are **nullable**, so pre-existing rows stay valid.  A deployed database
+    already holds real subjects, so it must be upgradeable *without* dropping it:
+    ``initialize`` therefore detects missing columns with ``PRAGMA table_info``
+    and issues ``ALTER TABLE ... ADD COLUMN``.  Running this repeatedly is a
+    no-op.
+
+    The correlation index is created **after** the columns exist, so upgrading a
+    legacy database cannot fail on a missing column.
+
+    ``name``/``decl`` come from the module-level ``_ADDED_SUBJECT_COLUMNS``
+    constant (never from a request), so interpolating them into DDL is safe;
+    values are still bound as parameters everywhere else.
+    """
+    existing = {str(row["name"]) for row in conn.execute("PRAGMA table_info(subjects)")}
+    for name, decl in _ADDED_SUBJECT_COLUMNS:
+        if name not in existing:
+            conn.execute(f"ALTER TABLE subjects ADD COLUMN {name} {decl}")
+    conn.execute(_CORRELATION_INDEX)
+
 
 _REVISION_KEY = "revision"
 
@@ -73,6 +115,10 @@ class SubjectRecord:
     bbox: list[float] | None
     created_at: str
     updated_at: str
+    # Reconciliation keys (added by the in-place schema upgrade; nullable).
+    correlation_id: str | None = None
+    provider_request_id: str | None = None
+    registered_at: str | None = None
 
     def to_meta(self) -> dict[str, Any]:
         """Public projection: deliberately excludes the embedding."""
@@ -93,6 +139,21 @@ class SubjectRecord:
 class RegisterResult:
     created: bool
     record: SubjectRecord
+    library_revision: int
+    #: True when an existing subject was returned because the incoming
+    #: ``correlation_id`` matched the stored one (idempotent replay: no
+    #: overwrite, no revision bump).
+    replayed: bool = False
+
+
+@dataclass(frozen=True)
+class RegistrationRecord:
+    """Read-only projection for the registration reconciliation lookup."""
+
+    subject_id: str
+    correlation_id: str | None
+    provider_request_id: str | None
+    registered_at: str | None
     library_revision: int
 
 
@@ -124,6 +185,7 @@ class FaceStore:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             with self._connect() as conn:
                 conn.executescript(_SCHEMA)
+                _migrate_subjects(conn)
                 conn.commit()
             self._initialised = True
 
@@ -171,6 +233,52 @@ class FaceStore:
                 (namespace, subject_id),
             ).fetchone()
         return _row_to_record(row) if row is not None else None
+
+    def find_registration(
+        self,
+        *,
+        namespace: str,
+        correlation_id: str,
+        provider_request_id: str | None = None,
+        entity_id: str | None = None,
+    ) -> RegistrationRecord | None:
+        """Read-only reconciliation lookup by ``correlation_id``.
+
+        Namespace-scoped, zero writes: never creates a namespace and never bumps
+        ``library_revision``.  When the caller supplies ``provider_request_id`` or
+        ``entity_id`` they must agree with the stored row; a disagreement is
+        reported as "not found" rather than returning a subject that does not
+        correspond to the caller's own enrollment attempt.
+
+        Returns ``None`` when there is no such registration — the API maps that to
+        ``status="not_found"``.  ``unknown`` is deliberately **never** produced
+        here: it is a client-side transport state, and a service that fabricated
+        it would mask real failures.
+        """
+        self.initialize()
+        sql = (
+            "SELECT subject_id, correlation_id, provider_request_id, registered_at "
+            "FROM subjects WHERE namespace = ? AND correlation_id = ?"
+        )
+        args: list[Any] = [namespace, correlation_id]
+        if provider_request_id is not None:
+            sql += " AND provider_request_id = ?"
+            args.append(provider_request_id)
+        if entity_id is not None:
+            sql += " AND subject_id = ?"
+            args.append(entity_id)
+        with self._connect() as conn:
+            row = conn.execute(sql, tuple(args)).fetchone()
+            revision = _read_revision(conn)
+        if row is None:
+            return None
+        return RegistrationRecord(
+            subject_id=str(row["subject_id"]),
+            correlation_id=row["correlation_id"],
+            provider_request_id=row["provider_request_id"],
+            registered_at=row["registered_at"],
+            library_revision=revision,
+        )
 
     def search_candidates(
         self, namespace: str, limit: int | None = None
@@ -222,8 +330,20 @@ class FaceStore:
         det_score: float | None,
         bbox: list[float] | None,
         on_exists: str = "conflict",
+        correlation_id: str | None = None,
+        provider_request_id: str | None = None,
     ) -> RegisterResult:
-        """Create or replace a subject.  Scoped to ``namespace``."""
+        """Create or replace a subject.  Scoped to ``namespace``.
+
+        ``correlation_id`` makes registration **idempotent across retries**.  The
+        Worker calls this outside its lease and may lose the response (timeout,
+        crash); it then reconciles with the *same* correlation id instead of
+        minting another one.  Replaying the same correlation id therefore returns
+        the stored subject without overwriting its embedding and without bumping
+        ``library_revision``.  A *different* correlation id on an existing subject
+        is a genuinely distinct enrollment attempt and stays a conflict — the
+        stored reference image is never silently replaced.
+        """
         self.initialize()
         now = _utcnow()
         emb_blob = _encode_embedding(embedding)
@@ -238,9 +358,31 @@ class FaceStore:
                     (namespace, now),
                 )
                 existing = conn.execute(
-                    "SELECT created_at FROM subjects WHERE namespace = ? AND subject_id = ?",
+                    "SELECT created_at, correlation_id FROM subjects "
+                    "WHERE namespace = ? AND subject_id = ?",
                     (namespace, subject_id),
                 ).fetchone()
+
+                if (
+                    existing is not None
+                    and correlation_id is not None
+                    and _row_value(existing, "correlation_id") == correlation_id
+                ):
+                    # Idempotent replay of the same logical enrollment: return
+                    # what is already stored.  No write, no overwrite, no revision
+                    # bump — otherwise a retry would look like a library change.
+                    stored = conn.execute(
+                        "SELECT * FROM subjects WHERE namespace = ? AND subject_id = ?",
+                        (namespace, subject_id),
+                    ).fetchone()
+                    revision = _read_revision(conn)
+                    conn.rollback()
+                    return RegisterResult(
+                        created=False,
+                        record=_row_to_record(stored),
+                        library_revision=revision,
+                        replayed=True,
+                    )
 
                 if existing is not None and on_exists == "conflict":
                     conn.rollback()
@@ -257,8 +399,9 @@ class FaceStore:
                         """
                         INSERT INTO subjects(namespace, subject_id, embedding,
                             embedding_dim, model_version, quality_json, det_score,
-                            bbox_json, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            bbox_json, created_at, updated_at,
+                            correlation_id, provider_request_id, registered_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
                             namespace,
@@ -271,6 +414,9 @@ class FaceStore:
                             bbox_json,
                             created_at,
                             now,
+                            correlation_id,
+                            provider_request_id,
+                            now,
                         ),
                     )
                 else:
@@ -279,7 +425,9 @@ class FaceStore:
                         UPDATE subjects
                            SET embedding = ?, embedding_dim = ?, model_version = ?,
                                quality_json = ?, det_score = ?, bbox_json = ?,
-                               updated_at = ?
+                               updated_at = ?,
+                               correlation_id = ?, provider_request_id = ?,
+                               registered_at = ?
                          WHERE namespace = ? AND subject_id = ?
                         """,
                         (
@@ -289,6 +437,9 @@ class FaceStore:
                             quality_json,
                             det_score,
                             bbox_json,
+                            now,
+                            correlation_id,
+                            provider_request_id,
                             now,
                             namespace,
                             subject_id,
@@ -314,6 +465,9 @@ class FaceStore:
             bbox=bbox,
             created_at=created_at,
             updated_at=now,
+            correlation_id=correlation_id,
+            provider_request_id=provider_request_id,
+            registered_at=now,
         )
         return RegisterResult(created=created, record=record, library_revision=revision)
 
@@ -371,6 +525,16 @@ def _read_revision(conn: sqlite3.Connection) -> int:
     return int(row["value"]) if row else 0
 
 
+def _row_value(row: sqlite3.Row, key: str) -> Any:
+    """Read an optional column.
+
+    Defensive on purpose: a row shape produced before the in-place upgrade (or a
+    hand-built row in a test) may not carry the reconciliation columns.  A
+    missing column reads as ``None`` rather than raising ``IndexError``.
+    """
+    return row[key] if key in row.keys() else None
+
+
 def _row_to_record(row: sqlite3.Row) -> SubjectRecord:
     quality_raw = row["quality_json"]
     bbox_raw = row["bbox_json"]
@@ -385,7 +549,16 @@ def _row_to_record(row: sqlite3.Row) -> SubjectRecord:
         bbox=json.loads(bbox_raw) if bbox_raw else None,
         created_at=row["created_at"],
         updated_at=row["updated_at"],
+        correlation_id=_row_value(row, "correlation_id"),
+        provider_request_id=_row_value(row, "provider_request_id"),
+        registered_at=_row_value(row, "registered_at"),
     )
 
 
-__all__ = ["FaceStore", "SubjectRecord", "RegisterResult", "SearchSnapshot"]
+__all__ = [
+    "FaceStore",
+    "SubjectRecord",
+    "RegisterResult",
+    "RegistrationRecord",
+    "SearchSnapshot",
+]

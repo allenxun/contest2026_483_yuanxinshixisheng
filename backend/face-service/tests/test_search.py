@@ -85,11 +85,15 @@ def test_search_namespace_isolation(client, register, search):
     assert register(client, "ns-iso-a", "shared-id", alice_img).status_code == 201
     assert register(client, "ns-iso-b", "shared-id", bob_img).status_code == 201
 
-    # ns-a contains only Alice's embedding: Bob's image must NOT hit.
+    # ns-a contains only Alice's embedding: Bob's image must NOT hit.  The
+    # namespace is non-empty, so a clearly-below-threshold probe is reported as
+    # "reliable_new" (contract search-v2 vocabulary) — the isolation guarantee is
+    # the absence of subject_id/similarity, asserted below and unchanged.
     other = search(client, "ns-iso-a", bob_img)
     assert other.status_code == 200
-    assert other.json()["decision"] == "no_match"
+    assert other.json()["decision"] == "reliable_new"
     assert "subject_id" not in other.json()
+    assert "similarity" not in other.json()
 
     # Each namespace resolves its own subject.
     own_b = search(client, "ns-iso-b", bob_img).json()
@@ -127,7 +131,7 @@ def test_search_same_person_matched(client, register, search):
     assert body["similarity"] > 0.99
     assert body["subject_count"] == 1
     assert body["top_k"] == 5
-    assert body["policy_version"] == "search-v1"
+    assert body["policy_version"] == "search-v2"
     assert body["model_version"] == "fake-model@0"
     assert body["reasons"] == []
     assert body["library_revision"] >= 1
@@ -135,14 +139,14 @@ def test_search_same_person_matched(client, register, search):
 
 
 # --------------------------------------------------------------------------
-# 3. different sample: no_match, and the subject key must be ABSENT
+# 3. different sample: reliable_new, and the subject key must be ABSENT
 # --------------------------------------------------------------------------
-def test_search_different_sample_no_match_without_subject_key(client, register, search):
+def test_search_different_sample_reliable_new_without_subject_key(client, register, search):
     assert register(client, NS, "alice", make_image(seed=204)).status_code == 201
     resp = search(client, NS, make_image(seed=205))
     assert resp.status_code == 200
     body = resp.json()
-    assert body["decision"] == "no_match"
+    assert body["decision"] == "reliable_new"
     assert body["ambiguous"] is False
     assert "subject_id" not in body
     assert "similarity" not in body
@@ -307,7 +311,7 @@ def test_search_client_threshold_fields_are_ignored(make_client):
     """No client-supplied threshold may influence the server-fixed decision.
 
     If any of these were parsed, ``threshold=0.99`` would turn the 0.70 match
-    into ``no_match``; the decision must stay ``uncertain`` (ambiguous).
+    into ``reliable_new``; the decision must stay ``uncertain`` (ambiguous).
     """
     client, probe_img = _ambiguous_setup(make_client)
     body = client.post(
@@ -319,13 +323,15 @@ def test_search_client_threshold_fields_are_ignored(make_client):
     assert body["ambiguous"] is True
 
 
-def test_search_below_match_threshold_is_no_match(client, register, search):
-    # Orthogonal synthetic embeddings give similarity ~0.0 -> no_match, not a
-    # "close" uncertain.
+def test_search_below_match_threshold_is_reliable_new(client, register, search):
+    # Orthogonal synthetic embeddings give similarity ~0.0 -> reliable_new (clearly
+    # below the band in a NON-EMPTY namespace), not a "close" uncertain.
     assert register(client, NS, "alice", make_image(seed=207)).status_code == 201
     body = search(client, NS, make_image(seed=208)).json()
-    assert body["decision"] == "no_match"
+    assert body["decision"] == "reliable_new"
     assert "no_candidates_above_threshold" in body["reasons"]
+    assert body["subject_count"] == 1
+    assert "subject_id" not in body
 
 
 # --------------------------------------------------------------------------
@@ -355,7 +361,7 @@ def test_search_low_quality_caps_matched_to_uncertain(make_client, register):
 # --------------------------------------------------------------------------
 # 7. precondition errors win over any decision
 # --------------------------------------------------------------------------
-def test_search_blank_image_is_no_face_not_no_match(client, register, search):
+def test_search_blank_image_is_no_face_not_reliable_new(client, register, search):
     assert register(client, NS, "alice", make_image(seed=230)).status_code == 201
     resp = search(client, NS, make_blank_image())
     assert resp.status_code == 400
@@ -421,11 +427,18 @@ def test_search_after_delete_no_longer_matches(client, register, search, setting
     rev_after_delete = FaceStore(settings.db_path).revision()
     assert rev_after_delete == rev_before_delete + 1
 
+    # Deleting the only subject leaves the namespace EMPTY.  An empty library is
+    # deliberately NOT reported as reliable_new: it more likely means the library
+    # was never populated (or was cleared), and answering "new person" would
+    # mass-enroll everybody.  Contract §4.2 => uncertain + empty_library.
     body = search(client, "ns-del", image).json()
-    assert body["decision"] == "no_match"
+    assert body["decision"] == "uncertain"
+    assert body["ambiguous"] is False
     assert body["subject_count"] == 0
     assert body["library_revision"] == rev_after_delete
     assert body["reasons"] == ["empty_library"]
+    assert "subject_id" not in body
+    assert "similarity" not in body
 
 
 # --------------------------------------------------------------------------

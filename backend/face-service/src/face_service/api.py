@@ -11,10 +11,18 @@ Read/write separation is a hard rule:
   written; no subject is ever looked up or inserted).
 * ``/v1/verify`` reads exactly one subject and never falls back to a
   whole-library search.
+* ``/v1/compare`` compares two **probe** images.  It reads no subject at all, so
+  it cannot disclose library contents, and it never writes.
 * ``/v1/namespaces/{ns}/search`` is a separate, read-only, namespace-scoped
   1:N search.  It never writes and never returns a candidate list.
+* ``/v1/namespaces/{ns}/registrations/{correlation_id}`` is a read-only
+  reconciliation lookup used after a lost register response.
 * ``/v1/namespaces/{ns}/subjects`` (POST/DELETE) are the only write paths.
 * ``/live`` and ``/ready`` are public probes; ``/v1/health`` is unchanged.
+
+Decision vocabulary for search is ``matched`` / ``uncertain`` / ``reliable_new``
+(``policy_version`` ``search-v2``) — the exact set the Worker ``FacePort``
+contract consumes; see ``backend/handoffs/B-face-service-worker-contract.md``.
 """
 
 from __future__ import annotations
@@ -47,7 +55,12 @@ _ID_RE = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 #: Version tag for the server-fixed 1:N decision policy.  Bump when the
 #: decision rules or their interpretation change (clients record this to know
 #: which policy produced a decision).
-SEARCH_POLICY_VERSION = "search-v1"
+#:
+#: ``search-v2`` (2026-09-16): the decision vocabulary was aligned with the
+#: Worker ``FacePort`` contract (``matched`` / ``uncertain`` / ``reliable_new``),
+#: replacing the previous ``no_match``, and an **empty library now yields
+#: ``uncertain``** instead of a miss.  Consumers record this tag for audit.
+SEARCH_POLICY_VERSION = "search-v2"
 
 
 @dataclass
@@ -120,6 +133,89 @@ async def _read_image_payload(request: Request, settings: Settings) -> tuple[byt
             ) from exc
         params = {k: v for k, v in payload.items() if k != "image_base64"}
         return image, params
+
+    raise FaceServiceError(ErrorCode.UNSUPPORTED_MEDIA_TYPE)
+
+
+async def _read_two_image_payload(
+    request: Request, settings: Settings
+) -> tuple[bytes, bytes, dict[str, Any]]:
+    """Read a two-image payload (``POST /v1/compare``).
+
+    Mirrors :func:`_read_image_payload` on every rule that matters — the same
+    ``max_body_bytes`` limit, the same ``IMAGE_TOO_LARGE`` / ``INVALID_REQUEST`` /
+    ``IMAGE_DECODE_FAILED`` / ``UNSUPPORTED_MEDIA_TYPE`` mapping, and the same
+    ``data:...,`` prefix handling — but takes two image fields
+    (``image_a``/``image_b`` for multipart, ``image_a_base64``/``image_b_base64``
+    for JSON) instead of one.
+
+    ``_read_image_payload`` is deliberately left untouched so the existing
+    single-image endpoints keep byte-identical behaviour.
+    """
+    content_length = request.headers.get("content-length")
+    if content_length and content_length.isdigit() and int(content_length) > settings.max_body_bytes:
+        raise FaceServiceError(
+            ErrorCode.IMAGE_TOO_LARGE, details={"max_bytes": settings.max_body_bytes}
+        )
+    body = await request.body()
+    if len(body) > settings.max_body_bytes:
+        raise FaceServiceError(
+            ErrorCode.IMAGE_TOO_LARGE, details={"max_bytes": settings.max_body_bytes}
+        )
+    if not body:
+        raise FaceServiceError(ErrorCode.INVALID_REQUEST, "empty request body")
+
+    content_type = (request.headers.get("content-type") or "").split(";")[0].strip().lower()
+
+    if content_type == "multipart/form-data":
+        form = await request.form()
+        images: list[bytes] = []
+        for field in ("image_a", "image_b"):
+            upload = form.get(field)
+            if upload is None:
+                raise FaceServiceError(
+                    ErrorCode.INVALID_REQUEST, f"missing '{field}' form field"
+                )
+            if isinstance(upload, str):
+                raise FaceServiceError(
+                    ErrorCode.INVALID_REQUEST, f"'{field}' must be a file upload"
+                )
+            images.append(await upload.read())
+        params: dict[str, Any] = {
+            key: value
+            for key, value in form.items()
+            if key not in ("image_a", "image_b") and isinstance(value, str)
+        }
+        return images[0], images[1], params
+
+    if content_type == "application/json":
+        try:
+            payload = json.loads(body.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise FaceServiceError(ErrorCode.INVALID_REQUEST, "invalid JSON body") from exc
+        if not isinstance(payload, dict):
+            raise FaceServiceError(ErrorCode.INVALID_REQUEST, "JSON body must be an object")
+        decoded: list[bytes] = []
+        for field in ("image_a_base64", "image_b_base64"):
+            encoded = payload.get(field)
+            if not isinstance(encoded, str) or not encoded:
+                raise FaceServiceError(
+                    ErrorCode.INVALID_REQUEST, f"missing '{field}' string"
+                )
+            if encoded.strip().startswith("data:") and "," in encoded:
+                encoded = encoded.split(",", 1)[1]
+            try:
+                decoded.append(base64.b64decode(encoded, validate=True))
+            except (binascii.Error, ValueError) as exc:
+                raise FaceServiceError(
+                    ErrorCode.IMAGE_DECODE_FAILED, f"{field} is not valid base64"
+                ) from exc
+        params = {
+            key: value
+            for key, value in payload.items()
+            if key not in ("image_a_base64", "image_b_base64")
+        }
+        return decoded[0], decoded[1], params
 
     raise FaceServiceError(ErrorCode.UNSUPPORTED_MEDIA_TYPE)
 
@@ -467,6 +563,78 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
             "request_id": _request_id(),
         }
 
+    # ---- compare two probe images (read-only, zero writes) --------------
+    @protected.post("/v1/compare")
+    async def compare(request: Request) -> dict[str, Any]:
+        """Image-to-image 1:1 comparison.  Read-only; never touches the library.
+
+        Supports ``FacePort.same_person`` (three-view "same person" confirmation).
+        Unlike ``/v1/verify`` this compares two **probe** images, so it reads no
+        subject and cannot disclose library contents.
+
+        Deliberately does **not** accept ``require_liveness``: photo comparison has
+        no anti-replay capability, and accepting the field would imply otherwise.
+        Liveness is reported as ``supported=false`` and is never faked.
+
+        ``threshold`` *is* accepted here (unlike search) because nothing is looked
+        up in a namespace, so a caller cannot lower a server-fixed library policy.
+        """
+        image_a_bytes, image_b_bytes, params = await _read_two_image_payload(
+            request, settings
+        )
+        threshold = settings.verify_threshold
+        if params.get("threshold") not in (None, ""):
+            threshold = _as_float(params.get("threshold"), "threshold")
+            if not (0.0 <= threshold <= 1.0):
+                raise FaceServiceError(
+                    ErrorCode.INVALID_REQUEST, "'threshold' must be within 0..1"
+                )
+
+        image_a, detections_a = await _decode_and_detect(state, image_a_bytes)
+        image_b, detections_b = await _decode_and_detect(state, image_b_bytes)
+        if not detections_a or not detections_b:
+            raise FaceServiceError(ErrorCode.NO_FACE)
+        if len(detections_a) > 1 or len(detections_b) > 1:
+            # Never pick "the largest face" here: with two probes it would be
+            # ambiguous which face was compared against which.
+            raise FaceServiceError(
+                ErrorCode.MULTI_FACES_AMBIGUOUS,
+                details={
+                    "face_count_a": len(detections_a),
+                    "face_count_b": len(detections_b),
+                },
+            )
+
+        _, faces_a, _ = _analyze(state, image_a, detections_a)
+        _, faces_b, _ = _analyze(state, image_b, detections_b)
+        quality_a = faces_a[0]["quality"]
+        quality_b = faces_b[0]["quality"]
+
+        similarity = cosine_similarity(
+            detections_a[0].embedding, detections_b[0].embedding
+        )
+        reasons: list[str] = []
+        matched = similarity >= threshold
+        if not (quality_a["min_acceptable"] and quality_b["min_acceptable"]):
+            # Fail-closed: a poor-quality probe may never confirm "same person".
+            reasons.append("quality_below_minimum")
+            matched = False
+
+        return {
+            "matched": matched,
+            "similarity": similarity,
+            "threshold": threshold,
+            "face_count_a": len(detections_a),
+            "face_count_b": len(detections_b),
+            "quality_a": quality_a,
+            "quality_b": quality_b,
+            "liveness": liveness_block(),
+            "reasons": reasons,
+            "model_version": state.model.version,
+            "library_revision": _rev(),
+            "request_id": _request_id(),
+        }
+
     # ---- register subject (write path) ---------------------------------
     @protected.post("/v1/namespaces/{namespace}/subjects")
     async def register(namespace: str, request: Request) -> JSONResponse:
@@ -479,6 +647,13 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
             raise FaceServiceError(
                 ErrorCode.INVALID_REQUEST, "'on_exists' must be 'conflict' or 'overwrite'"
             )
+        # Reconciliation keys (contract §6.1).  Both optional so pre-existing
+        # callers keep their exact behaviour; when ``correlation_id`` is present it
+        # makes registration idempotent across retries.
+        correlation_id = _optional_id(params.get("correlation_id"), "correlation_id")
+        provider_request_id = _optional_id(
+            params.get("provider_request_id"), "provider_request_id"
+        )
 
         image, detections = await _decode_and_detect(state, image_bytes)
         if not detections:
@@ -501,6 +676,8 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
             det_score=float(detections[0].det_score),
             bbox=[float(v) for v in detections[0].bbox],
             on_exists=on_exists,
+            correlation_id=correlation_id,
+            provider_request_id=provider_request_id,
         )
         record = result.record
         body = {
@@ -513,6 +690,10 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
             "model_version": record.model_version,
             "quality": record.quality,
             "library_revision": result.library_revision,
+            # True only for an idempotent replay of the same correlation_id: the
+            # stored subject is returned as-is (no overwrite, no revision bump).
+            "replayed": result.replayed,
+            "registered_at": record.registered_at,
             "request_id": _request_id(),
         }
         return JSONResponse(status_code=201 if result.created else 200, content=body)
@@ -577,6 +758,56 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
         }
 
     # ---- 1:N search (read-only, namespace-scoped) ----------------------
+    # ---- registration reconciliation (read-only, zero writes) -----------
+    @protected.get("/v1/namespaces/{namespace}/registrations/{correlation_id}")
+    async def get_registration(
+        namespace: str, correlation_id: str, request: Request
+    ) -> dict[str, Any]:
+        """Look up a prior enrollment by ``correlation_id`` (contract §6.2).
+
+        Read-only: creates no namespace, writes nothing and never bumps
+        ``library_revision``.  Optional ``provider_request_id`` / ``entity_id``
+        query params tighten the match; a disagreement is reported as
+        ``not_found`` rather than returning a subject that does not correspond to
+        the caller's own attempt.
+
+        ``status`` is only ever ``registered`` or ``not_found``.  ``unknown`` is a
+        **client-side** transport state and is deliberately never produced here —
+        a service that fabricated it would mask real failures.
+
+        Minimum disclosure: no embedding, no reference-image ref, no other
+        correlation's registration, no library listing.
+        """
+        namespace = _require_id(namespace, "namespace")
+        correlation_id = _require_id(correlation_id, "correlation_id")
+        provider_request_id = _optional_id(
+            request.query_params.get("provider_request_id"), "provider_request_id"
+        )
+        entity_id = _optional_id(request.query_params.get("entity_id"), "entity_id")
+
+        if not state.store.namespace_exists(namespace):
+            raise FaceServiceError(
+                ErrorCode.NAMESPACE_NOT_FOUND, details={"namespace": namespace}
+            )
+
+        record = state.store.find_registration(
+            namespace=namespace,
+            correlation_id=correlation_id,
+            provider_request_id=provider_request_id,
+            entity_id=entity_id,
+        )
+        if record is None:
+            return {"status": "not_found", "request_id": _request_id()}
+        return {
+            "status": "registered",
+            "subject_id": record.subject_id,
+            "correlation_id": record.correlation_id,
+            "provider_request_id": record.provider_request_id,
+            "registered_at": record.registered_at,
+            "library_revision": record.library_revision,
+            "request_id": _request_id(),
+        }
+
     @protected.post("/v1/namespaces/{namespace}/search")
     async def search(namespace: str, request: Request) -> dict[str, Any]:
         """Internal 1:N search.  Read-only; never creates a subject.
@@ -620,9 +851,12 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
         best: float | None = None
         reasons: list[str] = []
         if snapshot.subject_count == 0:
-            # An empty library is an evidence-backed miss, but not proof of a
-            # reliable new person (see README).
-            decision = "no_match"
+            # An empty library is **not** evidence of a reliable new person: it is
+            # far more likely to mean the library was never populated (or was
+            # cleared by mistake), and answering "new person" would mass-enroll
+            # everybody.  Fail towards re-capture instead.  See the contract
+            # (B-face-service-worker-contract.md §4.2).
+            decision = "uncertain"
             ambiguous = False
             reasons.append("empty_library")
         else:
@@ -638,12 +872,18 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
                 decision, ambiguous = "uncertain", False
                 reasons.append("similarity_in_uncertain_band")
             else:
-                decision, ambiguous = "no_match", False
+                # Clearly below the band, in a non-empty namespace, single face and
+                # (subject to the quality gate below) acceptable quality.  This is
+                # "no candidate in *this* namespace reached the threshold" — it is
+                # **not** proof of a new human being, and the business layer must
+                # still honour the PoC gate before auto-enrolling anyone.
+                decision, ambiguous = "reliable_new", False
                 reasons.append("no_candidates_above_threshold")
             if not quality["min_acceptable"]:
-                # Fail-closed: a poor-quality probe may never yield "matched".
+                # Fail-closed: a poor-quality probe may never yield "matched", and
+                # may never be promoted to "reliable_new" either.
                 reasons.append("quality_below_minimum")
-                if decision == "matched":
+                if decision in ("matched", "reliable_new"):
                     decision, ambiguous = "uncertain", False
 
         body: dict[str, Any] = {

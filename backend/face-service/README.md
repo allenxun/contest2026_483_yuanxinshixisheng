@@ -82,9 +82,11 @@ Image input is accepted either as a `multipart/form-data` file field named
 `UNSUPPORTED_MEDIA_TYPE`. All responses are JSON with a `request_id`.
 
 The interactive documentation surfaces are **disabled**: `/docs`, `/redoc` and
-`/openapi.json` all return **404**. The service is an internal protocol used by
-the Java adapter, which never consumes OpenAPI, and the schema must not be
-exposed without the internal token.
+`/openapi.json` all return **404**. The service is an internal protocol consumed
+by the **Python Worker's `FacePort` adapter** (see
+`backend/handoffs/B-face-service-worker-contract.md`, the frozen contract), which
+never consumes OpenAPI; the schema must not be exposed without the internal
+token.
 
 ### `POST /v1/extract` — read-only, zero writes
 
@@ -110,10 +112,73 @@ Missing namespace → `NAMESPACE_NOT_FOUND`; missing subject → `SUBJECT_NOT_FO
 ### `POST /v1/namespaces/{ns}/subjects` — the only write path
 
 Inputs: `subject_id` (caller-chosen), image, optional `on_exists`
-(`conflict`|`overwrite`). Returns a receipt (`subject_id`, `namespace`,
-`created`, `created_at`, `updated_at`, `embedding_dim`, `model_version`,
-`quality`, `library_revision`, `request_id`) — **no embedding**. `201` on
-create, `200` on overwrite, `409 SUBJECT_ALREADY_EXISTS` on conflict.
+(`conflict`|`overwrite`), and the optional reconciliation keys
+`correlation_id` / `provider_request_id`. Returns a receipt (`subject_id`,
+`namespace`, `created`, `created_at`, `updated_at`, `embedding_dim`,
+`model_version`, `quality`, `library_revision`, `replayed`, `registered_at`,
+`request_id`) — **no embedding**, and the reconciliation keys are not echoed
+back. `201` on create, `200` on overwrite **or idempotent replay**,
+`409 SUBJECT_ALREADY_EXISTS` on conflict.
+
+**Idempotent registration (contract §6.1).** The Worker registers *outside* its
+lease and can lose the response; it then reconciles with the **same**
+`correlation_id` rather than minting another one. Therefore:
+
+| situation | result |
+|---|---|
+| `subject_id` absent | `201`, keys persisted, revision bumped |
+| exists **and** `correlation_id` matches | `200` with `replayed: true` — stored subject returned **as-is**: no overwrite, **no revision bump** |
+| exists but `correlation_id` differs (or is absent while one is stored) | `409 SUBJECT_ALREADY_EXISTS` — the stored reference image is **never** silently replaced |
+| `on_exists=overwrite` | `200`, embedding replaced, revision bumped, new keys recorded (controlled back-office only; the Worker must not use it) |
+
+Callers that send no `correlation_id` keep the exact previous behaviour
+(`201` / `409`).
+
+### `GET /v1/namespaces/{ns}/registrations/{correlation_id}` — read-only
+
+Reconciliation lookup used after a lost register response. Optional query params
+`provider_request_id` and `entity_id` **tighten** the match: a disagreement is
+reported as `not_found` rather than returning a subject that does not belong to
+the caller's own attempt.
+
+```json
+{"status": "registered", "subject_id": "…", "correlation_id": "…",
+ "provider_request_id": "…", "registered_at": "…", "library_revision": 7,
+ "request_id": "…"}
+```
+
+* `status` is only ever `registered` or `not_found` (an unknown correlation id is
+  a normal `200` answer, because the Worker branches on `status`, not on the HTTP
+  code). **`unknown` is never produced by the service** — it is a client-side
+  transport state, and fabricating it would mask real failures.
+* Zero writes: creates no namespace and never bumps `library_revision`. An
+  unknown **namespace** is still `404 NAMESPACE_NOT_FOUND`.
+* Minimum disclosure: no embedding, no quality block, no bbox, no reference-image
+  ref, no other correlation's registration, no library listing.
+
+### `POST /v1/compare` — image↔image 1:1, read-only, zero writes
+
+Compares two **probe** images (`image_a` / `image_b`, or `image_a_base64` /
+`image_b_base64` in JSON). Backs `FacePort.same_person` (three-view "same
+person" confirmation). Unlike `/v1/verify` it reads **no** subject, so it cannot
+disclose library contents.
+
+Returns `matched`, `similarity`, `threshold`, `face_count_a`, `face_count_b`,
+`quality_a`, `quality_b`, `liveness`, `reasons`, `model_version`,
+`library_revision`, `request_id`.
+
+* `threshold` **is** accepted here (default `FACE_SVC_VERIFY_THRESHOLD`) because
+  nothing is looked up in a namespace, so a caller cannot lower a server-fixed
+  library policy. Search still accepts no threshold.
+* 0 faces on either side → `NO_FACE`; >1 face on either side →
+  `MULTI_FACES_AMBIGUOUS` (the largest face is **never** picked: with two probes
+  it would be ambiguous which face was compared to which).
+* **Fail-closed on quality:** if either probe is below the quality floor,
+  `matched` is `false` and `reasons` contains `quality_below_minimum` — even at
+  similarity 1.0.
+* `require_liveness` is **not** a parameter here; it is ignored, and the response
+  reports `liveness.supported: false`. Photo comparison has **no anti-replay
+  capability** and must never be used where liveness is required.
 
 ### `GET /v1/namespaces/{ns}/subjects/{id}` — read-only
 
@@ -177,7 +242,7 @@ Request (same image encoding as extract/verify):
 * Zero writes: it never registers a subject and never advances
   `library_revision`.
 
-Response (`200` for every decision — `no_match`/`uncertain` are business
+Response (`200` for every decision — `reliable_new`/`uncertain` are business
 judgements, not errors):
 
 ```json
@@ -190,15 +255,18 @@ judgements, not errors):
   "subject_count": 12,
   "top_k": 5,
   "reasons": [],
-  "policy_version": "search-v1",
+  "policy_version": "search-v2",
   "model_version": "…",
   "library_revision": 7,
   "request_id": "…"
 }
 ```
 
-* `subject_id` and `similarity` appear **only** for `matched`; for `no_match`
-  and `uncertain` those keys are **absent** (not `null`).
+* `subject_id` and `similarity` appear **only** for `matched`; for
+  `reliable_new` and `uncertain` those keys are **absent** (not `null`).
+* `decision` is exactly one of **`matched` / `uncertain` / `reliable_new`** —
+  the vocabulary the Worker's `FacePort` consumes. Any other value would be
+  treated by the Worker as a dependency failure, so no fourth value may appear.
 * Hard exclusions: no candidate list, no embedding, no registered subject's
   bbox/det_score, no numeric matching thresholds.
 * `library_revision` and `subject_count` come from the **same read snapshot** as
@@ -208,7 +276,7 @@ Three-state decision (conservative; first match wins):
 
 1. **Precondition errors always win** over any decision: unknown namespace →
    `NAMESPACE_NOT_FOUND`; no face → `NO_FACE` (a blank image is **not** a
-   `no_match`); >1 face → `MULTI_FACES_AMBIGUOUS`; undecodable →
+   `reliable_new`); >1 face → `MULTI_FACES_AMBIGUOUS`; undecodable →
    `IMAGE_DECODE_FAILED`.
 2. **Quality gate (fail-closed):** if `quality.min_acceptable` is false the
    decision can be **at most** `uncertain` (`reasons` contains
@@ -218,9 +286,24 @@ Three-state decision (conservative; first match wins):
    satisfies the margin).
 4. `uncertain`: top ≥ threshold but the margin is not met → `ambiguous: true`;
    **or** the top lies within `search_uncertain_band` below the threshold.
-5. `no_match`: top is below `threshold - uncertain_band`.
-6. Empty library → `no_match` with `subject_count: 0`. That is an
-   evidence-backed miss, but **not** proof of a reliable new person.
+5. `reliable_new`: the library is **non-empty**, the probe is a single face of
+   acceptable quality, and the top similarity is below
+   `threshold - uncertain_band`.
+6. **Empty library → `uncertain`** with `subject_count: 0` and
+   `reasons: ["empty_library"]` — deliberately **not** `reliable_new`. An empty
+   namespace far more likely means "never populated" (or "cleared by mistake")
+   than "this person is new", and answering `reliable_new` would mass-enrol
+   everybody.
+
+> **What `reliable_new` does and does not mean.** It states: *in this namespace,
+> under the policy named by `policy_version`, a single acceptable-quality probe
+> found no candidate reaching the threshold.* It is **not** proof of a new human
+> being — a 1:N search cannot prove absence from the world, only absence from
+> this library. `后端详细设计-V1-MVP.md:657` says a miss "只成为新人候选"
+> (only becomes a new-person *candidate*), and `:663` forbids enabling real
+> automatic enrolment before the PoC gate. Consumers must keep their own
+> reconciliation (the Worker checks PostgreSQL for an existing member before
+> enrolling) and must not treat `reliable_new` as an authorisation to enrol.
 
 > **The thresholds are NOT calibrated.** `search_match_threshold = 0.60`,
 > `search_uncertain_band = 0.10` and `search_margin = 0.05` are **conservative
@@ -228,7 +311,7 @@ Three-state decision (conservative; first match wins):
 > than the 1:1 default 0.40 because false accepts grow with library size.
 > Similarity values are **not** percentage confidence. **Until the thresholds
 > are calibrated on authorised samples, no automatic enrolment/registration of
-> a "new person" may be enabled** — an `uncertain`/`no_match` result is a
+> a "new person" may be enabled** — an `uncertain`/`reliable_new` result is a
 > candidate for review, never an automatic archive.
 
 ### `GET /v1/namespaces/{ns}/info` — read-only
@@ -295,10 +378,12 @@ It is configurable per request via the `threshold` field of `/v1/verify`.
 The 1:N policy keys (`FACE_SVC_SEARCH_MATCH_THRESHOLD`,
 `FACE_SVC_SEARCH_UNCERTAIN_BAND`, `FACE_SVC_SEARCH_MARGIN`) are likewise
 **conservative placeholders and are not calibrated**. They are **server-side
-only** and cannot be overridden per request. Because no calibration exists, the
-service must not be used to automatically enrol a person: `uncertain` and
-`no_match` are review candidates, and auto-enrolment stays disabled until the
-thresholds are calibrated on authorised samples.
+only** and cannot be overridden per request (`/v1/compare` is the single
+exception: it accepts `threshold` because it compares two probes and reads no
+namespace). Because no calibration exists, the service must not be used to
+automatically enrol a person: `uncertain` and `reliable_new` are review
+candidates, and auto-enrolment stays disabled until the thresholds are
+calibrated on authorised samples.
 
 **Two different classes of number — do not confuse them.** The **matching**
 thresholds (`search_match_threshold`, `search_uncertain_band`, `search_margin`)
