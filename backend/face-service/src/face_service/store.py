@@ -96,6 +96,19 @@ class RegisterResult:
     library_revision: int
 
 
+@dataclass(frozen=True)
+class SearchSnapshot:
+    """One consistent read snapshot for 1:N search.
+
+    ``revision``, ``subject_count`` and ``candidates`` are read in a single
+    read transaction so a decision can be attributed to one library state.
+    """
+
+    revision: int
+    subject_count: int
+    candidates: tuple[tuple[str, tuple[float, ...]], ...]
+
+
 class FaceStore:
     def __init__(self, path: Path, *, timeout: float = 10.0) -> None:
         self.path = Path(path)
@@ -158,6 +171,44 @@ class FaceStore:
                 (namespace, subject_id),
             ).fetchone()
         return _row_to_record(row) if row is not None else None
+
+    def search_candidates(
+        self, namespace: str, limit: int | None = None
+    ) -> SearchSnapshot:
+        """Read-only candidate snapshot for 1:N search.
+
+        **Namespace is in the WHERE clause**: this is the only cross-subject read
+        path and it must never span namespaces.  ``library_revision`` is read in
+        the same transaction and is **never** bumped here (only register/delete
+        advance it).
+
+        ``limit`` bounds how many rows are materialised; ``None`` returns every
+        subject in the namespace (the API needs the global top-2 for the margin
+        rule, so it passes ``None``).  Rows are ordered by ``subject_id`` so
+        equal-similarity ties are reproducible at the caller.
+        """
+        self.initialize()
+        with self._connect() as conn:
+            revision = _read_revision(conn)
+            count_row = conn.execute(
+                "SELECT COUNT(*) AS n FROM subjects WHERE namespace = ?", (namespace,)
+            ).fetchone()
+            subject_count = int(count_row["n"]) if count_row else 0
+            sql = (
+                "SELECT subject_id, embedding, embedding_dim FROM subjects "
+                "WHERE namespace = ? ORDER BY subject_id ASC"
+            )
+            if limit is not None:
+                rows = conn.execute(sql + " LIMIT ?", (namespace, int(limit))).fetchall()
+            else:
+                rows = conn.execute(sql, (namespace,)).fetchall()
+        candidates = tuple(
+            (str(row["subject_id"]), _decode_embedding(row["embedding"], int(row["embedding_dim"])))
+            for row in rows
+        )
+        return SearchSnapshot(
+            revision=revision, subject_count=subject_count, candidates=candidates
+        )
 
     # -- writes -----------------------------------------------------------
     def register(
@@ -337,4 +388,4 @@ def _row_to_record(row: sqlite3.Row) -> SubjectRecord:
     )
 
 
-__all__ = ["FaceStore", "SubjectRecord", "RegisterResult"]
+__all__ = ["FaceStore", "SubjectRecord", "RegisterResult", "SearchSnapshot"]

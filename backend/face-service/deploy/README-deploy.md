@@ -73,10 +73,17 @@ cd /home/bool/deployment/InsightFace-for-openvela
 6. `systemctl --user daemon-reload && systemctl --user enable && systemctl --user restart`
    （**必须 `restart`**：`enable --now` 对已运行的 unit 不会重启，重新部署会静默保留旧代码；
    脚本另断言 `ExecMainPID` 确实变化，否则明确失败）。
-7. Polls `/v1/health` for up to 60 s and prints a **sanitized** summary
+7. Polls **`/ready`** for up to 60 s (readiness = model loaded **and** SQLite
+   reachable; a 503 fails the deploy), then fetches **`/v1/health`** once,
+   informationally, and prints a **sanitized** summary
    (`status`, `model_loaded`, `model_version`, `library_revision`,
    `liveness.supported`) — never the token.
 8. On any failure prints rollback commands.
+
+> Probe division of labour: `/live` = process alive only (no model, no DB, no
+> auth); `/ready` = model loaded + store reachable, **non-2xx when not ready**;
+> `/v1/health` = pre-existing detailed status, stays `200 + degraded` when the
+> model is not loaded. Deploy gates on `/ready`.
 
 ## 5. Post-deploy verification checklist
 
@@ -86,7 +93,9 @@ H='X-Internal-Token: <read from the 0600 file at use time>'
 
 # 5.1 process + startup
 systemctl --user status InsightFace-for-openvela
-curl -sS $B/v1/health
+curl -sS $B/live                    # -> {"status":"alive"}
+curl -sS -o /dev/null -w '%{http_code}\n' $B/ready   # -> 200 when ready, else 503
+curl -sS $B/v1/health               # detailed status (may be "degraded")
 
 # 5.2 extract is zero-write: note library_revision before/after, and that the
 #     namespace echoed back was NOT created
@@ -107,9 +116,16 @@ curl -sS -X DELETE $B/v1/namespaces/deploy-smoke/subjects/probe-a -H "$H"
 # 5.4 no token -> 401
 curl -sS -o /dev/null -w '%{http_code}\n' -X POST $B/v1/extract -F image=@/tmp/fixture_a.png
 
+# 5.4b internal 1:N search (read-only, namespace-scoped; no client threshold)
+curl -sS -X POST $B/v1/namespaces/deploy-smoke/search -H "$H" \
+     -F image=@/tmp/fixture_a.png -F top_k=5
+     # after 5.3 deleted the only subject, this namespace exists but is empty
+     # -> decision "no_match", subject_count 0.  A matched decision returns
+     # subject_id + similarity; no_match/uncertain omit both keys.
+
 # 5.5 restart survival
 systemctl --user restart InsightFace-for-openvela
-sleep 3 && curl -sS $B/v1/health
+sleep 3 && curl -sS $B/ready && curl -sS $B/v1/health
 
 # 5.6 reboot autostart: linger=yes + WantedBy=default.target start the unit
 #     after reboot without login. Verify after the next maintenance window:

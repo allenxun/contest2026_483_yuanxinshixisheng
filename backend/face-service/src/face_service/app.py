@@ -61,6 +61,13 @@ def create_app(
             "Project-dedicated, isolated face service. Extract/quality are "
             "read-only; verify is 1:1; liveness is NOT supported."
         ),
+        # Internal-protocol service: the interactive docs surfaces are not used
+        # by the Java adapter and must not expose the schema without a token.
+        # FastAPI registers /docs, /redoc and /openapi.json by default; disabling
+        # all three makes them 404.
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
     )
     app.state.face = state
 
