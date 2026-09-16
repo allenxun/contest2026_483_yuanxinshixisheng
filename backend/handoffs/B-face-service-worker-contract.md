@@ -176,6 +176,7 @@ bbox/det_score/参考照引用、**数值阈值本身**（只给 `policy_version
   "threshold": 0.40,
   "face_count_a": 1, "face_count_b": 1,
   "quality_a": { … }, "quality_b": { … },
+  "liveness": { "supported": false, "reason": "buffalo_l has no liveness model" },
   "reasons": [],                 // 例如 quality_below_minimum
   "model_version": "…", "library_revision": 7, "request_id": "…"
 }
@@ -209,6 +210,11 @@ bbox/det_score/参考照引用、**数值阈值本身**（只给 `policy_version
 | 情形 | 服务端响应 | Worker 映射 |
 |---|---|---|
 | `subject_id` 不存在 | **201** 创建，持久化 `correlation_id`/`provider_request_id`/`registered_at` | `RegisterResult("success")` |
+
+> 登记响应体（201/200 同形）实测键集：`subject_id`、`namespace`、`created`、`created_at`、
+> `updated_at`、`embedding_dim`、`model_version`、`quality`、`library_revision`、**`replayed`**、
+> **`registered_at`**、`request_id`。**两个对账键本身不回显**（幂等重放时调用方已持有它们），
+> 其持久化由 `GET …/registrations/{correlation_id}` 证明。
 | `subject_id` 已存在**且** `correlation_id` 与请求相同 | **200** 幂等重放：返回既有登记（`subject_id`/`library_revision`/`registered_at`/`replayed=true`），**不覆盖特征、不 bump revision** | `RegisterResult("success")` |
 | `subject_id` 已存在**但** `correlation_id` 不同（或缺失而库中有值） | **409 `SUBJECT_ALREADY_EXISTS`** | `RegisterResult("failed")`（**绝不**静默覆盖） |
 | `on_exists=overwrite` 显式要求覆盖 | **200** 覆盖并 bump revision（既有行为，仅供受控后台；Worker **不得**使用） | —— |

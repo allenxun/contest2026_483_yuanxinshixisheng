@@ -1,3 +1,28 @@
+> ## ⚠ 本文档描述的是**已被方案反转取代**的 Java 侧人脸边界（历史留档，勿据此实现）
+>
+> **2026-09-16 用户最终决策（覆盖此前"Java 直连"指令）**：改回 **Python Worker 对接 InsightFace**；
+> Java 不再是人脸库的调用/写入方。本轮曾实施的 Java 直连、真实 resolver、`register`/`search`/`delete`、
+> Java 写 `face_subject_ref` 与"Java→Worker 身份结果合同"已用**普通 revert 提交**完整移除
+> （`081f834` 撤 `0d9ee60`、`c4cb73a` 撤 `d80c50d`；**未** reset/rebase/改写历史），
+> revert 后 `git diff e57bc315..HEAD` 对 `backend/web-java` 与 `backend/handoffs` 均为 **0 文件**，
+> Java 全量回到 **747 run / 0 / 0 / 18 skipped、109 份 xml**（= 本轮前基线）。
+>
+> **当前权威文档**：`backend/handoffs/B-face-service-worker-contract.md`
+> （冻结的 Worker `FacePort` ↔ `backend/face-service` 合同，提交 `96d7e03`）——D 实现
+> `InsightFaceAdapter` 只应依据该合同，**不得**依据本文档。
+>
+> **本文档以下内容仍然有效**（属更早已交付、经 Oracle 通过并已并入 dev 的 Java 边界，本轮未移除）：
+> §1 配置键、§2 三条红线、§3 `classify`/`verifyOneToOne` 映射、§4 装配矩阵、§6 生产信号处置、
+> §6.5 verify 严格契约与活体证据、§7 未验证/未接入项。其中"护理准入在活体落地前恒 503"
+> 与"`liveness.supported=false` 绝不伪造 `passed`"在反转后**依然是硬约束**。
+>
+> **一处待总协调裁定的范围问题**：上述既有 Java 边界（`app.face.provider=insightface` 的
+> `FaceServiceClient` health/extract/verify、`InsightFaceProvider.classify` 恒 `UNCERTAIN`、
+> `UnavailableFaceIdentityResolver` 恒 `empty`、`InsightFaceCareVerifier` 恒 `CAPABILITY_UNAVAILABLE`）
+> **不含**用户列出的任何移除目标（无真实 resolver、无 register/search/delete、不写 `face_subject_ref`、
+> 非本轮废弃合同），且移除它等于回退已被 dev 接受的基线，故 orchestrator **未擅自扩大 revert 范围**。
+> 若总协调要求一并移除，请另行明确授权。
+
 # B — Java 应用侧人脸 provider 选择与 InsightFace adapter（`app.face.provider`）
 
 > 范围：供应商无关的人脸 provider 选择 + InsightFace adapter。**本文档不含任何真实 token/凭据**；
