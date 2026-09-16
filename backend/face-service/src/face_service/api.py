@@ -11,7 +11,10 @@ Read/write separation is a hard rule:
   written; no subject is ever looked up or inserted).
 * ``/v1/verify`` reads exactly one subject and never falls back to a
   whole-library search.
+* ``/v1/namespaces/{ns}/search`` is a separate, read-only, namespace-scoped
+  1:N search.  It never writes and never returns a candidate list.
 * ``/v1/namespaces/{ns}/subjects`` (POST/DELETE) are the only write paths.
+* ``/live`` and ``/ready`` are public probes; ``/v1/health`` is unchanged.
 """
 
 from __future__ import annotations
@@ -40,6 +43,11 @@ from .store import FaceStore
 logger = logging.getLogger("face_service.api")
 
 _ID_RE = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
+
+#: Version tag for the server-fixed 1:N decision policy.  Bump when the
+#: decision rules or their interpretation change (clients record this to know
+#: which policy produced a decision).
+SEARCH_POLICY_VERSION = "search-v1"
 
 
 @dataclass
@@ -148,6 +156,46 @@ def _as_float(value: Any, field_name: str) -> float:
         raise FaceServiceError(
             ErrorCode.INVALID_REQUEST, f"'{field_name}' must be a number"
         ) from exc
+
+
+def _as_top_k(value: Any, default: int) -> int:
+    """Parse the optional ``top_k`` integer within the fixed 2..10 domain.
+
+    ``top_k`` only bounds the candidate window used by the margin/ambiguity
+    rule (this endpoint never returns a candidate list and there is no vector
+    index).  The lower bound is therefore **2**: with a single candidate there
+    is no runner-up and the margin check would be structurally vacuous, so a
+    near-tied library could report ``matched`` -- a caller-triggerable
+    weakening of ambiguity protection.
+
+    Non-integers (including booleans and fractional floats) and out-of-range
+    values are rejected with the existing ``INVALID_REQUEST`` code -- no new
+    synonym code is invented.
+    """
+    if value is None or value == "":
+        return default
+    if isinstance(value, bool):
+        raise FaceServiceError(ErrorCode.INVALID_REQUEST, "'top_k' must be an integer")
+    if isinstance(value, int):
+        parsed = value
+    elif isinstance(value, float):
+        if not value.is_integer():
+            raise FaceServiceError(ErrorCode.INVALID_REQUEST, "'top_k' must be an integer")
+        parsed = int(value)
+    elif isinstance(value, str):
+        try:
+            parsed = int(value.strip())
+        except ValueError as exc:
+            raise FaceServiceError(
+                ErrorCode.INVALID_REQUEST, "'top_k' must be an integer"
+            ) from exc
+    else:
+        raise FaceServiceError(ErrorCode.INVALID_REQUEST, "'top_k' must be an integer")
+    if not (2 <= parsed <= 10):
+        raise FaceServiceError(
+            ErrorCode.INVALID_REQUEST, "'top_k' must be within 2..10"
+        )
+    return parsed
 
 
 def _ensure_liveness_supported(params: dict[str, Any]) -> None:
@@ -268,6 +316,41 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
             "library_revision": _rev(),
             "uptime_seconds": round(time.monotonic() - state.started_at, 3),
             "liveness": liveness_block(),
+        }
+
+    # ---- /live and /ready (public probes; /v1/health is left untouched) --
+    @public.get("/live")
+    async def live() -> dict[str, Any]:
+        """Process liveness only: no model, no SQLite, no auth.
+
+        If this returns, the process is alive.  It deliberately proves nothing
+        about readiness.
+        """
+        return {"status": "alive"}
+
+    @public.get("/ready")
+    async def ready() -> dict[str, Any]:
+        """Readiness: model loaded AND the subject store reachable.
+
+        Unlike ``/v1/health`` this must FAIL (non-2xx) when the service cannot
+        serve identity decisions: "not ready" is a refusal, not a status string.
+        """
+        if not state.model.is_loaded:
+            # Model is the more fundamental prerequisite; when both are down we
+            # report this one.  The log may mention the store separately.
+            logger.warning("readiness failed code=MODEL_NOT_LOADED request_id=%s", _request_id())
+            raise FaceServiceError(ErrorCode.MODEL_NOT_LOADED)
+        try:
+            revision = state.store.revision()
+        except Exception:  # exercised by the injected-store readiness test
+            # Never log the path or the underlying message (may contain a path).
+            logger.error("readiness failed code=STORE_UNAVAILABLE request_id=%s", _request_id())
+            raise FaceServiceError(ErrorCode.STORE_UNAVAILABLE) from None
+        return {
+            "status": "ready",
+            "model_loaded": True,
+            "model_version": state.model.version,
+            "library_revision": revision,
         }
 
     # ---- extract (read-only, zero writes) ------------------------------
@@ -492,6 +575,93 @@ def build_router(state: AppState) -> tuple[APIRouter, APIRouter]:
             "model_version": state.model.version,
             "request_id": _request_id(),
         }
+
+    # ---- 1:N search (read-only, namespace-scoped) ----------------------
+    @protected.post("/v1/namespaces/{namespace}/search")
+    async def search(namespace: str, request: Request) -> dict[str, Any]:
+        """Internal 1:N search.  Read-only; never creates a subject.
+
+        The result is a conservative three-state decision.  Matching thresholds
+        are **server-fixed** (``policy_version``); no client threshold is parsed.
+        The response never exposes the candidate list, embeddings, a non-matched
+        ``subject_id`` or any similarity for a non-matched decision.
+        """
+        namespace = _require_id(namespace, "namespace")
+        image_bytes, params = await _read_image_payload(request, settings)
+        top_k = _as_top_k(params.get("top_k"), settings.search_top_k)
+
+        if not state.store.namespace_exists(namespace):
+            raise FaceServiceError(
+                ErrorCode.NAMESPACE_NOT_FOUND, details={"namespace": namespace}
+            )
+
+        image, detections = await _decode_and_detect(state, image_bytes)
+        if not detections:
+            raise FaceServiceError(ErrorCode.NO_FACE)
+        if len(detections) > 1:
+            raise FaceServiceError(
+                ErrorCode.MULTI_FACES_AMBIGUOUS, details={"face_count": len(detections)}
+            )
+        _, faces, _ = _analyze(state, image, detections)
+        quality = faces[0]["quality"]
+        query_embedding = detections[0].embedding
+
+        snapshot = state.store.search_candidates(namespace)
+        # Similarity-descending, subject_id-ascending tie-break so equal scores
+        # are deterministic and reproducible.
+        ranked = sorted(
+            (
+                (cosine_similarity(query_embedding, embedding), subject_id)
+                for subject_id, embedding in snapshot.candidates
+            ),
+            key=lambda item: (-item[0], item[1]),
+        )[:top_k]
+
+        best: float | None = None
+        reasons: list[str] = []
+        if snapshot.subject_count == 0:
+            # An empty library is an evidence-backed miss, but not proof of a
+            # reliable new person (see README).
+            decision = "no_match"
+            ambiguous = False
+            reasons.append("empty_library")
+        else:
+            best = ranked[0][0]
+            second = ranked[1][0] if len(ranked) > 1 else None
+            margin_ok = second is None or (best - second) >= settings.search_margin
+            if best >= settings.search_match_threshold and margin_ok:
+                decision, ambiguous = "matched", False
+            elif best >= settings.search_match_threshold:
+                decision, ambiguous = "uncertain", True
+                reasons.append("ambiguous_top_candidates")
+            elif best >= settings.search_match_threshold - settings.search_uncertain_band:
+                decision, ambiguous = "uncertain", False
+                reasons.append("similarity_in_uncertain_band")
+            else:
+                decision, ambiguous = "no_match", False
+                reasons.append("no_candidates_above_threshold")
+            if not quality["min_acceptable"]:
+                # Fail-closed: a poor-quality probe may never yield "matched".
+                reasons.append("quality_below_minimum")
+                if decision == "matched":
+                    decision, ambiguous = "uncertain", False
+
+        body: dict[str, Any] = {
+            "decision": decision,
+            "ambiguous": ambiguous,
+            "quality": quality,
+            "subject_count": snapshot.subject_count,
+            "top_k": top_k,
+            "reasons": reasons,
+            "policy_version": SEARCH_POLICY_VERSION,
+            "model_version": state.model.version,
+            "library_revision": snapshot.revision,
+            "request_id": _request_id(),
+        }
+        if decision == "matched" and best is not None:
+            body["subject_id"] = ranked[0][1]
+            body["similarity"] = best
+        return body
 
     return public, protected
 

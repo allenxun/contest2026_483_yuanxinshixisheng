@@ -141,16 +141,20 @@ if [ "$PREV_ACTIVE" = "active" ] && [ -n "$PREV_PID" ] && [ "$PREV_PID" != "0" ]
 fi
 log "service enabled and restarted (previous pid=${PREV_PID:-none} -> current pid=${NEW_PID:-unknown})"
 
-# --- 7. health check -----------------------------------------------------
+# --- 7. readiness check --------------------------------------------------
+# "Deployed" means READY, not merely alive: /ready proves the model is loaded
+# and SQLite is reachable (503 otherwise).  /v1/health is still fetched once,
+# informationally, so the existing sanitized summary keeps its detail.
 HOST="$(env_val FACE_SVC_HOST)"; HOST="${HOST:-10.3.6.163}"
 PORT="$(env_val FACE_SVC_PORT)"; PORT="${PORT:-8010}"
+READY_URL="http://${HOST}:${PORT}/ready"
 HEALTH_URL="http://${HOST}:${PORT}/v1/health"
 
-fetch_health() {
+fetch_url() {
   if command -v curl >/dev/null 2>&1; then
-    curl -fsS --max-time 5 "$HEALTH_URL"
+    curl -fsS --max-time 5 "$1"
   else
-    python3 - "$HEALTH_URL" <<'PY'
+    python3 - "$1" <<'PY'
 import sys, urllib.request
 with urllib.request.urlopen(sys.argv[1], timeout=5) as r:
     sys.stdout.write(r.read().decode("utf-8"))
@@ -159,18 +163,25 @@ PY
 }
 
 deadline=$(( $(date +%s) + HEALTH_TIMEOUT ))
-health=""
+readiness=""
 while [ "$(date +%s)" -lt "$deadline" ]; do
-  if health="$(fetch_health 2>/dev/null)"; then
+  if readiness="$(fetch_url "$READY_URL" 2>/dev/null)"; then
     break
   fi
   sleep 2
 done
 
-if [ -z "$health" ]; then
-  fail "health check did not succeed within ${HEALTH_TIMEOUT}s at $HEALTH_URL"
+if [ -z "$readiness" ]; then
+  fail "readiness check did not succeed within ${HEALTH_TIMEOUT}s at $READY_URL"
   journalctl --user -n 30 -u "$UNIT_NAME" 2>/dev/null || true
   exit 1
+fi
+
+# Informational, best-effort: the readiness body has no liveness block, so the
+# sanitized summary below prefers the pre-existing /v1/health detail.
+health="$(fetch_url "$HEALTH_URL" 2>/dev/null || true)"
+if [ -z "$health" ]; then
+  health="$readiness"
 fi
 
 # Sanitized output: no token, no image/embedding data.

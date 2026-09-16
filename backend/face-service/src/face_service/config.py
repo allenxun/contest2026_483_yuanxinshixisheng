@@ -105,6 +105,20 @@ class Settings:
     # MUST be recalibrated before production use (see README).
     verify_threshold: float = 0.40
 
+    # 1:N search policy (server-fixed; clients may NOT override these).  The
+    # 0.60 default is deliberately STRICTER than the 1:1 0.40 because false
+    # accepts grow with library size.  None of these values is a calibrated
+    # result: they are conservative placeholders and must be re-calibrated on
+    # authorised samples before enabling any auto-enrolment (see README).
+    search_match_threshold: float = 0.60
+    search_uncertain_band: float = 0.10
+    search_margin: float = 0.05
+    # Lower bound is 2, not 1: ``top_k`` only bounds the candidate window that
+    # participates in the margin/ambiguity rule, and with a single candidate
+    # there is no runner-up -> the margin check would be structurally vacuous
+    # (``top_k=1`` would let a near-tied library report ``matched``).
+    search_top_k: int = 5
+
     # Request limits / resource guards.
     max_body_bytes: int = 10 * 1024 * 1024
     inference_timeout_seconds: float = 30.0
@@ -148,6 +162,10 @@ class Settings:
             model_name=_env("MODEL_NAME") or "buffalo_l",
             model_version=_env("MODEL_VERSION") or "buffalo_l@insightface-0.7.3",
             verify_threshold=_env_float("VERIFY_THRESHOLD", 0.40),
+            search_match_threshold=_env_float("SEARCH_MATCH_THRESHOLD", 0.60),
+            search_uncertain_band=_env_float("SEARCH_UNCERTAIN_BAND", 0.10),
+            search_margin=_env_float("SEARCH_MARGIN", 0.05),
+            search_top_k=_env_int("SEARCH_TOP_K", 5),
             max_body_bytes=_env_int("MAX_BODY_BYTES", 10 * 1024 * 1024),
             inference_timeout_seconds=_env_float("INFERENCE_TIMEOUT_SECONDS", 30.0),
             max_concurrency=_env_int("MAX_CONCURRENCY", 2),
@@ -179,6 +197,17 @@ class Settings:
             problems.append(f"{ENV_PREFIX}MAX_CONCURRENCY must be >= 1")
         if not (0.0 <= self.verify_threshold <= 1.0):
             problems.append(f"{ENV_PREFIX}VERIFY_THRESHOLD must be within 0..1")
+        if not (0.0 < self.search_match_threshold <= 1.0):
+            problems.append(f"{ENV_PREFIX}SEARCH_MATCH_THRESHOLD must be within 0..1 (exclusive 0)")
+        if not (0.0 <= self.search_uncertain_band < self.search_match_threshold):
+            problems.append(
+                f"{ENV_PREFIX}SEARCH_UNCERTAIN_BAND must be >= 0 and "
+                f"< {ENV_PREFIX}SEARCH_MATCH_THRESHOLD"
+            )
+        if not (0.0 <= self.search_margin <= 1.0):
+            problems.append(f"{ENV_PREFIX}SEARCH_MARGIN must be within 0..1")
+        if not (2 <= self.search_top_k <= 10):
+            problems.append(f"{ENV_PREFIX}SEARCH_TOP_K must be within 2..10")
         if self.register_on_exists not in {"conflict", "overwrite"}:
             problems.append(
                 f"{ENV_PREFIX}REGISTER_ON_EXISTS must be 'conflict' or 'overwrite'"

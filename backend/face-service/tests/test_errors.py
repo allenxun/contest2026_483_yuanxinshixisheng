@@ -12,6 +12,7 @@ REQUIRED = {
     "IMAGE_DECODE_FAILED": (400, False),
     "IMAGE_TOO_LARGE": (413, False),
     "UNSUPPORTED_MEDIA_TYPE": (415, False),
+    "INVALID_REQUEST": (400, False),
     "SUBJECT_NOT_FOUND": (404, False),
     "NAMESPACE_NOT_FOUND": (404, False),
     "SUBJECT_ALREADY_EXISTS": (409, False),
@@ -20,7 +21,11 @@ REQUIRED = {
     "MODEL_NOT_LOADED": (503, True),
     "LIVENESS_UNSUPPORTED": (501, False),
     "UNAUTHORIZED": (401, False),
+    "CONCURRENCY_LIMIT": (429, True),
+    "INFERENCE_TIMEOUT": (504, True),
     "INTERNAL_ERROR": (500, True),
+    # New: /ready's storage-reachability failure (added, no assertion removed).
+    "STORE_UNAVAILABLE": (503, True),
 }
 
 
@@ -31,6 +36,20 @@ def test_error_code_table_is_complete_and_stable():
         assert spec.http_status == status, name
         assert spec.retryable is retryable, name
         assert spec.description
+
+
+def test_error_code_enum_and_locked_table_are_bijective():
+    """The locked table must cover the enum EXACTLY (both directions).
+
+    A future code added to ``ErrorCode`` (or to ``REQUIRED``) without
+    registering it on the other side must fail loudly here instead of silently
+    passing the one-way loop above.
+    """
+    enum_names = {code.value for code in ErrorCode}
+    assert set(REQUIRED) == enum_names
+    assert set(ERROR_SPECS) == {ErrorCode(name) for name in REQUIRED}
+    # No duplicate/aliased wire values either.
+    assert len(enum_names) == len(list(ErrorCode))
 
 
 def test_error_envelope_shape(client, extract):
