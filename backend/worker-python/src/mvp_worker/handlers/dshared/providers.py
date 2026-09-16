@@ -742,9 +742,15 @@ class InsightFaceAdapter:
         faces = body.get("faces") if isinstance(body, Mapping) else None
         if not isinstance(faces, list) or not faces:
             self._invalid_2xx("quality", "no faces in response")
+        # 服务端 `largest_face_index` 恒为 `_largest_index(detections)`（api.py:531-556）：
+        # 非空 faces 下必为范围内的 int。**绝不**静默修复非法值（Oracle BLOCKER 3）。
         index = body.get("largest_face_index")
-        if not isinstance(index, int) or isinstance(index, bool) or not (0 <= index < len(faces)):
-            index = 0
+        if (
+            not isinstance(index, int)
+            or isinstance(index, bool)
+            or not (0 <= index < len(faces))
+        ):
+            self._invalid_2xx("quality", "largest_face_index missing/invalid/out-of-range")
         face = faces[index]
         quality_block = face.get("quality") if isinstance(face, Mapping) else None
         min_acceptable = (
@@ -890,12 +896,75 @@ class InsightFaceAdapter:
             return RegisterResult("timeout")
         except FaceServiceTransportError:
             return RegisterResult("unknown")
-        body = result.json
-        subject_id = body.get("subject_id") if isinstance(body, Mapping) else None
-        if isinstance(subject_id, str) and subject_id and subject_id != entity_id:
-            # 服务端确认了另一个 subject → 不可当作成功，交对账。
+        # 2xx：合同 §6.1 的成功状态**只有** 200/201（api.py:742
+        # ``status_code=201 if result.created else 200``）。其它 2xx（202/204/…）无法
+        # 证明“同一次逻辑登记已创建” → unknown（交对账），绝不 success。
+        if result.status not in (200, 201):
+            return RegisterResult("unknown")
+        if not self._register_confirmed(
+            result.json, status=result.status, entity_id=entity_id
+        ):
             return RegisterResult("unknown")
         return RegisterResult("success")
+
+    @staticmethod
+    def _register_confirmed(body: Any, *, status: int, entity_id: str) -> bool:
+        """校验登记响应是否为冻结合同 §6.1 形状（api.py:726-741 逐键取证）。
+
+        - 状态已在调用点限定为 200/201；``created`` 必须与状态一致
+          （api.py: 201 ⇔ created=True，200 ⇔ created=False）；
+        - ``subject_id`` 必须是非空字符串且**精确等于**本次 ``entity_id``（防止把
+          另一个主体当成本次登记成功）；
+        - 除 ``registered_at``（可空列，api.py 直接外发 ``record.registered_at``）外，
+          其余键都是服务端**恒有类型**的值，逐键要求；
+        - body 非 Mapping / 缺键 / 类型或取值不符 → 一律 unknown（force reconcile）。
+        """
+        if not isinstance(body, Mapping):
+            return False
+        required = (
+            "subject_id",
+            "namespace",
+            "created",
+            "created_at",
+            "updated_at",
+            "embedding_dim",
+            "model_version",
+            "quality",
+            "library_revision",
+            "replayed",
+            "registered_at",
+            "request_id",
+        )
+        for key in required:
+            if key not in body:
+                return False
+        subject_id = body.get("subject_id")
+        if not isinstance(subject_id, str) or not subject_id or subject_id != entity_id:
+            return False
+        namespace = body.get("namespace")
+        if not isinstance(namespace, str) or not namespace:
+            return False
+        created = body.get("created")
+        if not isinstance(created, bool) or created != (status == 201):
+            return False
+        if not isinstance(body.get("replayed"), bool):
+            return False
+        for str_key in ("created_at", "updated_at", "model_version", "request_id"):
+            value = body.get(str_key)
+            if not isinstance(value, str) or not value:
+                return False
+        for int_key in ("embedding_dim", "library_revision"):
+            value = body.get(int_key)
+            if not isinstance(value, int) or isinstance(value, bool):
+                return False
+        if not isinstance(body.get("quality"), Mapping):
+            return False
+        registered_at = body.get("registered_at")
+        if registered_at is not None and (
+            not isinstance(registered_at, str) or not registered_at
+        ):
+            return False
+        return True
 
     # ------------------------------------------------------------ query_registration
     def query_registration(
@@ -940,13 +1009,77 @@ class InsightFaceAdapter:
             return RegistrationQueryResult("unknown")
         status = body.get("status")
         if status == "registered":
-            subject_id = body.get("subject_id")
-            if not isinstance(subject_id, str) or not subject_id:
+            if not self._registration_confirmed(
+                body,
+                correlation_id=correlation_id,
+                provider_request_id=provider_request_id,
+                entity_id=entity_id,
+            ):
                 return RegistrationQueryResult("unknown")
             return RegistrationQueryResult("registered")
         if status == "not_found":
+            # 合同 §6.2 的 not_found 形状仅 ``{status, request_id}``；只需 status 字符串。
             return RegistrationQueryResult("not_found")
         return RegistrationQueryResult("unknown")
+
+    @staticmethod
+    def _registration_confirmed(
+        body: Mapping[str, Any],
+        *,
+        correlation_id: str,
+        provider_request_id: str,
+        entity_id: Optional[str],
+    ) -> bool:
+        """校验 ``registered`` 响应是否为冻结合同 §6.2 形状（api.py:844-852 逐键取证）。
+
+        **必须精确回显本次登记的标识**，否则不得当作确认：
+
+        - ``subject_id`` 非空字符串，且当 ``entity_id`` 提供时必须**精确相等**
+          （frozen handler 恒提供 ``entity_id``；不等即可能是另一个主体的登记）；
+        - ``correlation_id`` 非空字符串且**精确等于**请求的 ``correlation_id``；
+        - ``provider_request_id``：请求提供时必须是字符串且**精确相等**；服务端可发
+          null（nullable 列），但 null 不等于请求值 ⇒ 不符即 unknown；
+        - ``registered_at`` 可空（nullable 列）；``library_revision`` 为 int；
+          ``request_id`` 非空字符串；缺任一冻结键 → unknown。
+        """
+        required = (
+            "status",
+            "subject_id",
+            "correlation_id",
+            "provider_request_id",
+            "registered_at",
+            "library_revision",
+            "request_id",
+        )
+        for key in required:
+            if key not in body:
+                return False
+        subject_id = body.get("subject_id")
+        if not isinstance(subject_id, str) or not subject_id:
+            return False
+        if entity_id is not None and subject_id != entity_id:
+            return False
+        echoed_correlation = body.get("correlation_id")
+        if not isinstance(echoed_correlation, str) or echoed_correlation != correlation_id:
+            return False
+        echoed_request = body.get("provider_request_id")
+        if provider_request_id:
+            if not isinstance(echoed_request, str) or echoed_request != provider_request_id:
+                return False
+        elif echoed_request is not None and not isinstance(echoed_request, str):
+            return False
+        registered_at = body.get("registered_at")
+        if registered_at is not None and (
+            not isinstance(registered_at, str) or not registered_at
+        ):
+            return False
+        revision = body.get("library_revision")
+        if not isinstance(revision, int) or isinstance(revision, bool):
+            return False
+        request_id = body.get("request_id")
+        if not isinstance(request_id, str) or not request_id:
+            return False
+        return True
 
 
 class AliyunSkinAdapter(_AliyunAdapterBase):
