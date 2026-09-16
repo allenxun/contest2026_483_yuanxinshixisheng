@@ -802,6 +802,62 @@ def test_register_nullable_registered_at_none_is_success(monkeypatch: Any, tmp_p
     assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "success"
 
 
+# --- Oracle round-3 IMPORTANT: namespace equality + status/created/replayed triple ---
+
+
+@pytest.mark.parametrize("status", [201, 200])
+def test_register_wrong_namespace_echo_is_unknown(
+    monkeypatch: Any, tmp_path: Any, status: int
+) -> None:
+    """回显 namespace 必须精确等于本次请求的 namespace。"""
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    body = register_body("entity-1", created=(status == 201), replayed=(status == 200))
+    body["namespace"] = "SOME-OTHER-NAMESPACE"
+    adapter, _ = _adapter(cfg, [TransportResult(status, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
+
+
+def test_register_201_replayed_true_is_unknown(monkeypatch: Any, tmp_path: Any) -> None:
+    """201  created=True ∧ replayed=False（store.py:514-577 新建；replayed 默认 False）。"""
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    body = register_body("entity-1", created=True, replayed=True)
+    adapter, _ = _adapter(cfg, [TransportResult(201, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
+
+
+def test_register_200_replayed_false_is_unknown(monkeypatch: Any, tmp_path: Any) -> None:
+    """Worker 路径唯一可达的 200 是幂等重放（store.py:462-491）⇒ replayed 必须 True。"""
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    body = register_body("entity-1", created=False, replayed=False)
+    adapter, _ = _adapter(cfg, [TransportResult(200, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
+
+
+def test_register_200_created_true_is_unknown(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    body = register_body("entity-1", created=True, replayed=True)
+    adapter, _ = _adapter(cfg, [TransportResult(200, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "unknown"
+
+
+def test_register_201_created_true_replayed_false_requested_namespace_is_success(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    body = register_body("entity-1", created=True, replayed=False)
+    adapter, _ = _adapter(cfg, [TransportResult(201, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "success"
+
+
+def test_register_200_created_false_replayed_true_requested_namespace_is_success(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
+    body = register_body("entity-1", created=False, replayed=True)
+    adapter, _ = _adapter(cfg, [TransportResult(200, body)])
+    assert adapter.register_person(NS, "entity-1", IMAGES, "corr-1", "req-1").status == "success"
+
+
 @pytest.mark.parametrize("body", [None, [], "ok", 7])
 def test_register_non_mapping_2xx_is_unknown(monkeypatch: Any, tmp_path: Any, body: Any) -> None:
     cfg = _cfg(monkeypatch, tmp_path, auto_enroll=True)
@@ -973,6 +1029,34 @@ def test_query_full_correct_shape_is_registered(monkeypatch: Any, tmp_path: Any)
     cfg = _cfg(monkeypatch, tmp_path)
     adapter, _ = _adapter(cfg, [TransportResult(200, query_body("registered", "entity-1"))])
     assert _query_call(adapter).status == "registered"
+
+
+# --- Oracle round-3 BLOCKER: query route is 200-only (api.py:805-852) ---
+
+
+@pytest.mark.parametrize("status", [201, 202, 204, 206, 299])
+def test_query_registered_body_at_non_200_2xx_is_unknown(
+    monkeypatch: Any, tmp_path: Any, status: int
+) -> None:
+    """即使 body 是完整合法的 registered 形状，非 200 的 2xx 也不得当作权威确认。"""
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [TransportResult(status, query_body("registered", "entity-1"))])
+    assert _query_call(adapter).status == "unknown"
+
+
+@pytest.mark.parametrize("status", [201, 202, 204, 299])
+def test_query_not_found_body_at_non_200_2xx_is_unknown(
+    monkeypatch: Any, tmp_path: Any, status: int
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [TransportResult(status, query_body("not_found"))])
+    assert _query_call(adapter).status == "unknown"
+
+
+def test_query_not_found_at_200_is_not_found(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [TransportResult(200, query_body("not_found"))])
+    assert _query_call(adapter).status == "not_found"
 
 
 def test_query_optional_params_omitted_when_absent(monkeypatch: Any, tmp_path: Any) -> None:

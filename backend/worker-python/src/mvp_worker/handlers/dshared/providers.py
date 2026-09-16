@@ -902,19 +902,29 @@ class InsightFaceAdapter:
         if result.status not in (200, 201):
             return RegisterResult("unknown")
         if not self._register_confirmed(
-            result.json, status=result.status, entity_id=entity_id
+            result.json, status=result.status, entity_id=entity_id, namespace=namespace
         ):
             return RegisterResult("unknown")
         return RegisterResult("success")
 
     @staticmethod
-    def _register_confirmed(body: Any, *, status: int, entity_id: str) -> bool:
-        """校验登记响应是否为冻结合同 §6.1 形状（api.py:726-741 逐键取证）。
+    def _register_confirmed(
+        body: Any, *, status: int, entity_id: str, namespace: str
+    ) -> bool:
+        """校验登记响应是否为冻结合同 §6.1 形状（api.py:726-742 逐键取证）。
 
-        - 状态已在调用点限定为 200/201；``created`` 必须与状态一致
-          （api.py: 201 ⇔ created=True，200 ⇔ created=False）；
-        - ``subject_id`` 必须是非空字符串且**精确等于**本次 ``entity_id``（防止把
-          另一个主体当成本次登记成功）；
+        - 状态已在调用点限定为 200/201；``created``/``replayed`` 必须与状态构成
+          **服务端可达的**三元组（ground truth）：
+          * ``201`` ⇔ ``created=True ∧ replayed=False``（store.py:514-577 新建，
+            ``replayed`` 默认 False；api.py:742 201 iff created）、
+          * ``200`` ⇔ ``created=False ∧ replayed=True``（store.py:462-491 幂等重放；
+            Worker 路径**从不**发送 ``on_exists``，故唯一可达的 200 就是重放——
+            overwrite 的 ``created=False,replayed=False`` 只在显式 ``on_exists=overwrite``
+            时出现，Worker 永不使用）。
+          这是**方向安全**的收紧：不符 → ``unknown`` → 既有对账（``query_registration``），
+          绝不放行未确认的 success。
+        - ``subject_id`` 非空字符串且**精确等于** ``entity_id``；``namespace`` 非空字符串且
+          **精确等于**本次请求的 namespace（防止把另一个 namespace 的记录当成本次成功）；
         - 除 ``registered_at``（可空列，api.py 直接外发 ``record.registered_at``）外，
           其余键都是服务端**恒有类型**的值，逐键要求；
         - body 非 Mapping / 缺键 / 类型或取值不符 → 一律 unknown（force reconcile）。
@@ -941,14 +951,23 @@ class InsightFaceAdapter:
         subject_id = body.get("subject_id")
         if not isinstance(subject_id, str) or not subject_id or subject_id != entity_id:
             return False
-        namespace = body.get("namespace")
-        if not isinstance(namespace, str) or not namespace:
+        echoed_namespace = body.get("namespace")
+        if (
+            not isinstance(echoed_namespace, str)
+            or not echoed_namespace
+            or echoed_namespace != namespace
+        ):
             return False
         created = body.get("created")
-        if not isinstance(created, bool) or created != (status == 201):
+        replayed = body.get("replayed")
+        if not isinstance(created, bool) or not isinstance(replayed, bool):
             return False
-        if not isinstance(body.get("replayed"), bool):
-            return False
+        if status == 201:
+            if not (created is True and replayed is False):
+                return False
+        else:  # status == 200 (调用点已限定)
+            if not (created is False and replayed is True):
+                return False
         for str_key in ("created_at", "updated_at", "model_version", "request_id"):
             value = body.get(str_key)
             if not isinstance(value, str) or not value:
@@ -1003,6 +1022,11 @@ class InsightFaceAdapter:
                 return RegistrationQueryResult("not_found")
             return RegistrationQueryResult("unknown")
         except FaceServiceTransportError:
+            return RegistrationQueryResult("unknown")
+        # B 的对账路由**只以 HTTP 200 返回**（api.py:805-852：命中/未命中都是 200）。
+        # 其它 2xx（201/202/204/206/299…）不是本合同的可达成功形态 → unknown，
+        # 绝不把它当作权威确认（否则 registered 会经 identity_enroll.py:183-220 建成员）。
+        if result.status != 200:
             return RegistrationQueryResult("unknown")
         body = result.json
         if not isinstance(body, Mapping):
