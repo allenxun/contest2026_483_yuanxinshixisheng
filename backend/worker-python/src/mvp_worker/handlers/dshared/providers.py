@@ -25,15 +25,20 @@ import urllib.request
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Optional, Protocol, runtime_checkable
+from typing import Any, Mapping, NoReturn, Optional, Protocol, runtime_checkable
 
 from . import weijing_mapping
 from .dconfig import (
     DEFAULT_PLAN_CAPABILITY_BASELINE,
     DConfig,
+    FACE_SERVICE_BASE_URL_ENV,
+    FACE_SERVICE_NAMESPACE_ENV,
+    FACE_SERVICE_TOKEN_FILE_ENV,
     ProviderConfigError,
     production_environment_signals,
 )
+from .dtokenfile import read_token_file
+from .dtransport import FaceServiceTransport, SealedHttpTransport
 from ...media.storage import (
     AliyunOssStorage,
     FilesystemStorageDouble,
@@ -55,6 +60,15 @@ class ProviderUnavailable(RuntimeError):
 
 class ProviderNotActivated(ProviderUnavailable):
     """适配器尚未真实激活（无授权凭据/未过 PoC）→ 可重试，不伪造结果。"""
+
+
+class FaceServiceNotBound(ProviderUnavailable):
+    """insightface 适配器在 phase 2 HTTP 绑定前对任何操作的可重试拒绝。
+
+    继承 :class:`ProviderUnavailable`，故既有 handler 的 ``except ProviderUnavailable``
+    路径会把它映射为可重试 ``DEPENDENCY_UNAVAILABLE``（job 退避重排，attempt 上限内），
+    **绝不**静默成功、**绝不**回退 ``double`` 替身。消息不含任何 secret。
+    """
 
 
 # ``ProviderConfigError`` 定义在 ``dconfig``（避免循环依赖），此处重导出以保证既有
@@ -562,6 +576,74 @@ class AliyunFaceAdapter(_AliyunAdapterBase):
         raise ProviderNotActivated("aliyun registration query not implemented")
 
 
+# ---------------------------------------------------------------- insightface boundary
+
+
+class InsightFaceAdapter:
+    """face-service（insightface）HTTP 边界 —— phase 1 只做**未绑定拒绝**。
+
+    最终架构裁定：Worker 仍是身份协调者（``assessment_analyze`` 的
+    quality/same_person/search_1n + member/identity 决策、``identity_enroll`` 的
+    register/query/face_subject_ref/member 绑定全部保留）。
+
+    phase 2 才会把本类五个操作绑定到 face-service HTTP 路由；**在总协调提供显式的已提交
+    B face-service SHA + Oracle 审查 SHA、且 1:N 搜索路由合同书面冻结前**，本类任何操作
+    都抛 :class:`FaceServiceNotBound`（可重试 ``DEPENDENCY_UNAVAILABLE``）：
+
+    - **绝不**静默成功、**绝不**猜测路由名/请求响应字段/状态码/错误码语义；
+    - **绝不**回退 ``FaceDouble``；生产 + insightface + 服务失败 → 可重试 fail-closed；
+    - 构造时经 :class:`SealedHttpTransport` 读一次 token（0600 权限/内容已在工厂校验），
+      phase 1 不触碰 transport、不发任何网络请求。
+
+    活体策略见 ``dliveness``：适配器永不请求 ``require_liveness=true``，服务诚实报告
+    ``liveness.supported=false`` 不构成失败，也永不产出“liveness passed”结论。
+    """
+
+    provider_name = "insightface"
+    #: phase 2 将改为 face-service 实际报告的 ``model_version``（当前不猜测取值）。
+    model_version = "insightface-face-service-pending"
+
+    def __init__(self, cfg: DConfig, transport: FaceServiceTransport) -> None:
+        self._cfg = cfg
+        self._transport = transport
+        self._namespace = cfg.face_service_namespace.strip()
+
+    def _not_bound(self, operation: str) -> NoReturn:
+        raise FaceServiceNotBound(
+            f"insightface face operation {operation!r} is not bound until phase 2"
+            " (face-service namespace 1:N search contract pending); no double fallback"
+        )
+
+    def quality(self, images: dict[str, bytes]) -> QualityResult:
+        self._not_bound("quality")
+
+    def same_person(self, images: dict[str, bytes]) -> SamePersonResult:
+        self._not_bound("same_person")
+
+    def search_1n(self, namespace: str, images: dict[str, bytes]) -> SearchResult:
+        self._not_bound("search_1n")
+
+    def register_person(
+        self,
+        namespace: str,
+        entity_id: str,
+        images: dict[str, bytes],
+        correlation_id: str,
+        provider_request_id: str,
+    ) -> RegisterResult:
+        self._not_bound("register_person")
+
+    def query_registration(
+        self,
+        correlation_id: str,
+        provider_request_id: str,
+        *,
+        namespace: Optional[str] = None,
+        entity_id: Optional[str] = None,
+    ) -> RegistrationQueryResult:
+        self._not_bound("query_registration")
+
+
 class AliyunSkinAdapter(_AliyunAdapterBase):
     """阿里云测肤边界（真实接口待算法团队确认；未激活不产生结果）。"""
 
@@ -729,6 +811,27 @@ def _forbid_double_in_production(environment: str, provider: str) -> None:
         )
 
 
+def _forbid_face_double_in_production(environment: str) -> None:
+    """face 替身生产 fail-closed（explicit production **或**任一生产信号）。
+
+    对齐 ``_forbid_storage_double_in_production``：除字面 ``production/prod`` 外，还须
+    拦截 ``production_environment_signals()`` 命中的混合/矛盾 profile，确保替身只在
+    dev/test 出现。选择 ``insightface`` 时不适用（它是真实 provider）；insightface 服务
+    失败只走可重试 ``FaceServiceNotBound``，**绝不**回退本替身。
+    """
+    normalized = environment.strip().lower()
+    if normalized in ("production", "prod"):
+        raise ProviderConfigError(
+            "double face provider is forbidden in production (fail-closed)"
+        )
+    signals = production_environment_signals()
+    if signals:
+        raise ProviderConfigError(
+            "double face provider is forbidden in production (fail-closed;"
+            f" signals: {signals})"
+        )
+
+
 def _face_double_from_config(cfg: DConfig) -> FaceDouble:
     """按 env 装配 face 替身注入缝（默认值 = 当前行为；仅 double 分支读取）。
 
@@ -776,13 +879,55 @@ def _plan_double_from_config(cfg: DConfig) -> PlanDouble:
     return PlanDouble(invalid=mode)  # PlanDouble 既有非法形状
 
 
+def _insightface_required_keys(cfg: DConfig) -> list[str]:
+    """insightface 必填项：缺失时错误消息只列**键名**，绝不回显取值。"""
+    missing: list[str] = []
+    if not cfg.face_service_base_url.strip():
+        missing.append(FACE_SERVICE_BASE_URL_ENV)
+    if not cfg.face_service_namespace.strip():
+        missing.append(FACE_SERVICE_NAMESPACE_ENV)
+    if not cfg.face_service_token_file.strip():
+        missing.append(FACE_SERVICE_TOKEN_FILE_ENV)
+    return missing
+
+
+def _insightface_from_config(cfg: DConfig) -> InsightFaceAdapter:
+    """构造 insightface 适配器：缺配置/非法 token 文件 → 构建期 ProviderConfigError。
+
+    - 必填项（``MVP_D_FACE_SERVICE_BASE_URL`` / ``_NAMESPACE`` / ``_TOKEN_FILE``）缺失
+      → 只报键名；
+    - token 文件在**传输构造时读取一次**（``read_token_file``；0600 普通文件、空/纯空白
+      拒绝；消息只含路径，绝不含取值），**不做进程级缓存**；
+    - phase 1 用 :class:`SealedHttpTransport`（一调用即 fail-closed），而适配器任何操作
+      在绑定前直接抛 :class:`FaceServiceNotBound`；两条路径都不发网络、都不回退替身。
+    - insightface 是真实 provider，生产允许；服务失败在运行期可重试 fail-closed，
+      绝不 double fallback（face 替身的生产拒绝另见
+      :func:`_forbid_face_double_in_production`）。
+    """
+    missing = _insightface_required_keys(cfg)
+    if missing:
+        raise ProviderConfigError(
+            "insightface face provider requires non-empty config: " + ", ".join(missing)
+        )
+    token = read_token_file(cfg.face_service_token_file)
+    transport = SealedHttpTransport(
+        base_url=cfg.face_service_base_url.strip(),
+        token=token,
+        connect_timeout_ms=cfg.face_service_connect_timeout_ms,
+        read_timeout_ms=cfg.face_service_read_timeout_ms,
+    )
+    return InsightFaceAdapter(cfg, transport)
+
+
 def build_face_port(cfg: DConfig, *, environment: str) -> FacePort:
     provider = cfg.face_provider
     if provider == "double":
-        _forbid_double_in_production(environment, provider)
+        _forbid_face_double_in_production(environment)
         return _face_double_from_config(cfg)
     if provider == "aliyun_face":
         return AliyunFaceAdapter(cfg)
+    if provider == "insightface":
+        return _insightface_from_config(cfg)
     raise ProviderConfigError(f"unknown face provider: {provider}")
 
 

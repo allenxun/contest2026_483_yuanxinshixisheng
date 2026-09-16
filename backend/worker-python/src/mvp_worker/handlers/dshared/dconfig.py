@@ -4,7 +4,7 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 
 | env | 默认 | 说明 |
 |---|---|---|
-| ``MVP_D_FACE_PROVIDER`` | ``double`` | double / aliyun_face |
+| ``MVP_D_FACE_PROVIDER`` | ``double`` | double / aliyun_face / insightface |
 | ``MVP_D_SKIN_PROVIDER`` | ``double`` | double / aliyun_skin |
 | ``MVP_D_PLAN_PROVIDER`` | ``double`` | double / aliyun_llm / llm_rag |
 | ``MVP_D_STORAGE_PROVIDER`` | ``double`` | double / aliyun_oss（生产 double → 拒绝） |
@@ -43,6 +43,15 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | ``MVP_D_ALIYUN_ACTIVATED`` | ``false`` | 阿里云适配器真实激活开关（需凭据 + PoC） |
 | ``MVP_D_ALIYUN_ENDPOINT`` / ``_ACCESS_KEY_ID`` / ``_ACCESS_KEY_SECRET`` | 未设 | 阿里云凭据（只走 env，绝不入仓） |
 | ``MVP_D_ALIYUN_FACE_DB_NAME`` / ``MVP_D_ALIYUN_LLM_MODEL`` | 未设 | 人脸库 DbName / 大模型名 |
+| ``MVP_D_FACE_SERVICE_BASE_URL`` | 未设（insightface 必填） | face-service Base URL（只走 env，绝不入仓） |
+| ``MVP_D_FACE_SERVICE_NAMESPACE`` | 未设（insightface 必填） | face-service 命名空间（insightface 必填；等价 identity_namespace 语义，独立键） |
+| ``MVP_D_FACE_SERVICE_TOKEN_FILE`` | 未设（insightface 必填） | 内部 token 文件路径（**仅从权限 0600 的普通文件读取**；绝不入仓、绝不日志/回显） |
+| ``MVP_D_FACE_SERVICE_CONNECT_TIMEOUT_MS`` | ``2000`` | face-service 连接超时（严格整数 >=1） |
+| ``MVP_D_FACE_SERVICE_READ_TIMEOUT_MS`` | ``30000`` | face-service 读超时（严格整数 >=1） |
+| ``MVP_D_FACE_SERVICE_QUALITY_MIN_DET_SCORE`` | ``0.0`` | Worker 侧质量判定：最小检出分（浮点 0..1） |
+| ``MVP_D_FACE_SERVICE_QUALITY_MIN_BBOX_RATIO`` | ``0.0`` | Worker 侧质量判定：最小人脸框占比（浮点 0..1） |
+| ``MVP_D_FACE_SERVICE_VERIFY_THRESHOLD`` | ``0.40`` | 1:1 比对阈值（浮点 0..1；占位，随 face-service 校准） |
+| ``MVP_D_FACE_SERVICE_SEARCH_THRESHOLD`` | ``0.0`` | 1:N 检索阈值（浮点 0..1；phase 2 前**存在但未使用**） |
 
 **基线是 MVP 受控占位**：真实设备协议/指标口径待设备团队批准；代码只信任这里
 列出的白名单，绝不发布未批准指标/区域/参数。
@@ -91,6 +100,30 @@ DEFAULT_PLAN_CAPABILITY_STALE_SECONDS = 86400
 DEFAULT_PLAN_WAIT_CHECK_SECONDS = 30
 DEFAULT_PROMPT_TEMPLATE_VERSION = "1"
 DEFAULT_LLM_RAG_TIMEOUT_SECONDS = 30
+
+# --- insightface / face-service HTTP 绑定（phase 1：配置骨架，phase 2 才真正发请求） ---
+#: 允许的 face provider（含本阶段新增 ``insightface``；未知值仍在工厂 fail fast）。
+FACE_PROVIDERS = ("double", "aliyun_face", "insightface")
+DEFAULT_FACE_SERVICE_CONNECT_TIMEOUT_MS = 2000
+DEFAULT_FACE_SERVICE_READ_TIMEOUT_MS = 30000
+#: Worker 侧解读 face-service 质量信号用的保守阈值（占位；phase 2 按实测校准）。
+DEFAULT_FACE_SERVICE_QUALITY_MIN_DET_SCORE = 0.0
+DEFAULT_FACE_SERVICE_QUALITY_MIN_BBOX_RATIO = 0.0
+#: 1:1 比对阈值：**保守占位**（未经本项目数据校准；不构成对 face-service 默认值的绑定）。
+DEFAULT_FACE_SERVICE_VERIFY_THRESHOLD = 0.40
+#: 1:N 检索阈值：**phase 2 前存在但未被读取**（搜索路由合同未冻结，禁止猜测用法）。
+DEFAULT_FACE_SERVICE_SEARCH_THRESHOLD = 0.0
+
+#: face-service 绑定 env 键（集中登记；错误消息只报键名/路径，绝不回显取值）。
+FACE_SERVICE_BASE_URL_ENV = "MVP_D_FACE_SERVICE_BASE_URL"
+FACE_SERVICE_NAMESPACE_ENV = "MVP_D_FACE_SERVICE_NAMESPACE"
+FACE_SERVICE_TOKEN_FILE_ENV = "MVP_D_FACE_SERVICE_TOKEN_FILE"
+FACE_SERVICE_CONNECT_TIMEOUT_MS_ENV = "MVP_D_FACE_SERVICE_CONNECT_TIMEOUT_MS"
+FACE_SERVICE_READ_TIMEOUT_MS_ENV = "MVP_D_FACE_SERVICE_READ_TIMEOUT_MS"
+FACE_SERVICE_QUALITY_MIN_DET_SCORE_ENV = "MVP_D_FACE_SERVICE_QUALITY_MIN_DET_SCORE"
+FACE_SERVICE_QUALITY_MIN_BBOX_RATIO_ENV = "MVP_D_FACE_SERVICE_QUALITY_MIN_BBOX_RATIO"
+FACE_SERVICE_VERIFY_THRESHOLD_ENV = "MVP_D_FACE_SERVICE_VERIFY_THRESHOLD"
+FACE_SERVICE_SEARCH_THRESHOLD_ENV = "MVP_D_FACE_SERVICE_SEARCH_THRESHOLD"
 
 # --- 测试替身注入（默认值 = 当前行为 = 不注入；仅读 double 分支，生产 fail-closed） ---
 DEFAULT_FACE_DOUBLE_QUALITY = "accepted"
@@ -213,6 +246,51 @@ def _strict_env_int(name: str, default: int, *, minimum: int) -> int:
             f"invalid {name}={raw!r}; expected integer >= {minimum}"
         )
     return value
+
+
+def _strict_env_float(
+    name: str,
+    default: float,
+    *,
+    minimum: Optional[float] = None,
+    maximum: Optional[float] = None,
+) -> float:
+    """face-service 阈值/超时专用严格浮点解析：非数字/越界 → 加载期 fail fast。
+
+    与 :func:`_strict_env_int` 同构：统一 :class:`ProviderConfigError`，消息含变量名与
+    取值域；**不读取、不回显任何 secret**。缺省/空 → ``default``。
+    """
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        raise ProviderConfigError(
+            f"invalid {name}={raw!r}; expected a number"
+            f"{_range_hint(minimum, maximum)}"
+        ) from None
+    if minimum is not None and value < minimum:
+        raise ProviderConfigError(
+            f"invalid {name}={raw!r}; expected a number"
+            f"{_range_hint(minimum, maximum)}"
+        )
+    if maximum is not None and value > maximum:
+        raise ProviderConfigError(
+            f"invalid {name}={raw!r}; expected a number"
+            f"{_range_hint(minimum, maximum)}"
+        )
+    return value
+
+
+def _range_hint(minimum: Optional[float], maximum: Optional[float]) -> str:
+    if minimum is not None and maximum is not None:
+        return f" within {minimum}..{maximum}"
+    if minimum is not None:
+        return f" >= {minimum}"
+    if maximum is not None:
+        return f" <= {maximum}"
+    return ""
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -516,6 +594,65 @@ class DConfig:
     )
     aliyun_llm_model: str = field(
         default_factory=lambda: os.environ.get("MVP_D_ALIYUN_LLM_MODEL", "")
+    )
+    # --- insightface / face-service HTTP 绑定（phase 1 配置骨架；密钥只从 0600 文件读） ---
+    # Base URL / namespace / token 文件均无默认：insightface 模式下缺失 → 构建期
+    # ProviderConfigError（消息只含键名/路径，绝不回显取值）。其余阈值有保守默认。
+    face_service_base_url: str = field(
+        default_factory=lambda: os.environ.get(FACE_SERVICE_BASE_URL_ENV, "")
+    )
+    face_service_namespace: str = field(
+        default_factory=lambda: os.environ.get(FACE_SERVICE_NAMESPACE_ENV, "")
+    )
+    face_service_token_file: str = field(
+        default_factory=lambda: os.environ.get(FACE_SERVICE_TOKEN_FILE_ENV, "")
+    )
+    face_service_connect_timeout_ms: int = field(
+        default_factory=lambda: _strict_env_int(
+            FACE_SERVICE_CONNECT_TIMEOUT_MS_ENV,
+            DEFAULT_FACE_SERVICE_CONNECT_TIMEOUT_MS,
+            minimum=1,
+        )
+    )
+    face_service_read_timeout_ms: int = field(
+        default_factory=lambda: _strict_env_int(
+            FACE_SERVICE_READ_TIMEOUT_MS_ENV,
+            DEFAULT_FACE_SERVICE_READ_TIMEOUT_MS,
+            minimum=1,
+        )
+    )
+    face_service_quality_min_det_score: float = field(
+        default_factory=lambda: _strict_env_float(
+            FACE_SERVICE_QUALITY_MIN_DET_SCORE_ENV,
+            DEFAULT_FACE_SERVICE_QUALITY_MIN_DET_SCORE,
+            minimum=0.0,
+            maximum=1.0,
+        )
+    )
+    face_service_quality_min_bbox_ratio: float = field(
+        default_factory=lambda: _strict_env_float(
+            FACE_SERVICE_QUALITY_MIN_BBOX_RATIO_ENV,
+            DEFAULT_FACE_SERVICE_QUALITY_MIN_BBOX_RATIO,
+            minimum=0.0,
+            maximum=1.0,
+        )
+    )
+    face_service_verify_threshold: float = field(
+        default_factory=lambda: _strict_env_float(
+            FACE_SERVICE_VERIFY_THRESHOLD_ENV,
+            DEFAULT_FACE_SERVICE_VERIFY_THRESHOLD,
+            minimum=0.0,
+            maximum=1.0,
+        )
+    )
+    # search 阈值 phase 2 前存在但**不被任何调用点读取**（1:N 路由合同未冻结）。
+    face_service_search_threshold: float = field(
+        default_factory=lambda: _strict_env_float(
+            FACE_SERVICE_SEARCH_THRESHOLD_ENV,
+            DEFAULT_FACE_SERVICE_SEARCH_THRESHOLD,
+            minimum=0.0,
+            maximum=1.0,
+        )
     )
 
     @classmethod
