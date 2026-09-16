@@ -11,10 +11,10 @@
 | 项 | 值 |
 |---|---|
 | **合同 SHA**（纯文档，D 的唯一对接依据；r29 整改中同步修订 6 处，见 §10） | **`96d7e03c45481be51cd28c35ac1d2cc9fce6b497`**（内容修订落在 `a8c5b53`） |
-| **最终代码 SHA** | **`a8c5b53b29da02afa43f767accd07a972dada98a`** |
-| **Oracle reviewed SHA** | `a8c5b53b29da02afa43f767accd07a972dada98a`（同一 SHA） |
-| **Oracle 裁定** | r29 对 `9a1dd77` 判 **FAIL**（2 BLOCKER + 3 IMPORTANT + 1 SUGGESTION，六项我逐条核实**全部成立**）；<br>r30 对 `a8c5b53` 的窄范围复审 _进行中（会话 `ora-1` = `ses_f70bc47c3ffeLASOzFOAJZPUO8`）_ |
-| 首版代码 SHA（已被 r29 判 FAIL，**非**最终交付） | `9a1dd77346e9db1d1ddd1e98f9335acfa5b8dea2` |
+| **最终代码 SHA** | **`bec9eb97c2bbcefa3d6e2344f671b96a76c1371a`** |
+| **Oracle reviewed SHA** | `bec9eb97c2bbcefa3d6e2344f671b96a76c1371a`（同一 SHA） |
+| **Oracle 裁定** | r29 对 `9a1dd77` 判 **FAIL**（2 BLOCKER + 3 IMPORTANT + 1 SUGGESTION）；<br>r30 对 `a8c5b53` 判 **FAIL**（2 IMPORTANT + 1 SUGGESTION；r29 六项中 **4 项已判通过**）；<br>**r31 对 `bec9eb9` 判 `PASS-with-notes`**：四项**全部闭合**、两项特别核验通过（无变异残留；两处"无牙变异"定性**正确**、不属安全覆盖缺口）、**「可以将 `bec9eb9` 作为本轮最终交付 SHA 交总协调整合」**、**不要求补跑验证**、**轮次边界确认**（详见 §12）<br>三轮共 9 项代码级发现我逐条核实**全部成立**，其中 **3 项是我自己的设计判断错误**；r31 的 3 项 SUGGESTION 中 **1 项（文件计数）经四种方法复核证明不成立**，另 2 项已处置 |
+| 历轮代码 SHA（均**非**最终交付） | `9a1dd77`（r29 FAIL）→ `a8c5b53`（r30 FAIL） |
 | 是否涉及公共文件 | **否**（详见 §6） |
 
 提交链（全部为普通提交，**无** reset/rebase/amend/改写历史）：
@@ -29,7 +29,8 @@ e57bc315 (dev 基线)
 ├─ c4cb73a  Revert "d80c50d"                                                                 [移除 Java 直连]
 ├─ 96d7e03  docs: 冻结 Worker FacePort ↔ face-service 合同（纯文档）                            [合同 SHA]
 ├─ 9a1dd77  feat: face-service 对齐合同（11 文件 +1592 −46）                          [Oracle r29 判 FAIL]
-└─ a8c5b53  fix: 闭合 r29 的 2 BLOCKER + 3 IMPORTANT + 1 SUGGESTION（9 文件 +1175 −81）  [最终代码 SHA]
+├─ a8c5b53  fix: 闭合 r29 的 2 BLOCKER + 3 IMPORTANT + 1 SUGGESTION（9 文件）        [Oracle r30 判 FAIL]
+└─ bec9eb9  fix: 闭合 r30 的 2 IMPORTANT + 1 SUGGESTION（6 文件 +519 −42）              [最终代码 SHA]
 ```
 
 ---
@@ -264,14 +265,14 @@ Worker 在 `assessment_analyze.py:369` 把 `uncertain` 与 `ambiguous` **同等*
 ### 7.1 测试
 | 范围 | 结果 |
 |---|---|
-| face-service 全量 pytest（离线、FakeModel、临时库） | **210 passed / rc=0**（基线 144 → `9a1dd77` 188 → `a8c5b53` **210**；`def test_` **116 → 160 → 178**） |
+| face-service 全量 pytest（离线、FakeModel、临时库） | **222 passed / rc=0**（基线 144 → `9a1dd77` 188 → `a8c5b53` 210 → `bec9eb9` **222**；`def test_` **116 → 160 → 178 → 186**） |
 | 不变量 + 安全套件（extract/verify/subjects/health/config_security/access_log/errors/docs_disabled/auth/ready） | **94 passed** |
 | `test_search.py`（词表变更后的既有套件） | **19 passed**；`def test_` **19→19（零删除）**、`assert` **116→122（净增 6）**；删除的 5 行**全部**是词表改名，未放宽任何断言 |
 | 新增 `test_compare.py` / `test_registration.py` / `test_store_upgrade.py` / `test_search_v2_rulings.py` | 15 / 15 / 7 / 7 |
 | Java 全量（revert 后） | **747 run / 0 / 0 / 18 skipped，BUILD SUCCESS rc=0，109 份 xml**（= 本轮前基线；本轮代码 SHA 上 Java diff 为 0，故未重建） |
 | `compileall`（src + tests） | **rc=0** |
 
-### 7.2 中央门禁：**52 项 ALL-PASS / 0 FAIL**（`9a1dd77` 时为 41 项；r29 整改新增 11 条）
+### 7.2 中央门禁：**62 项 ALL-PASS / 0 FAIL**（`9a1dd77` 41 项 → r29 整改 +11 → r30 整改 +9）
 含：七个禁域与基线 diff 各 0 文件、迁移仍 V1+V2、无废弃 Java 合同文件复活、
 `reliable_new` 存在、`no_match` 归零、`search-v2` 存在、`search-v1` 归零、
 `/v1/compare` 与 `registrations/{correlation_id}` 路由已注册、`subjects` 含 `correlation_id` 列、
@@ -515,3 +516,179 @@ SELECT 各取一个快照）⇒ 并发 delete 落在 COUNT 与行读之间会产
    decision 词表枚举正则只匹配 **1/6** 个赋值点（漏掉 `decision, ambiguous = "x", False` 元组形式）
    ⇒ 改为覆盖三种赋值形式，并用"把 `reliable_new` 改成 `brand_new_person`"的变异自测其有牙。
    另：报告里为描述"无网络引用"而复述了内网地址 ⇒ 改为不含具体地址的表述（更严格的卫生）。
+
+---
+
+## 11. Oracle 第三十轮（对 `a8c5b53` 判 FAIL）与本轮整改（`bec9eb9`）
+
+Oracle r30 判 **FAIL**，但范围已大幅收窄：r29 的六项中 **4 项判通过**——空库/缺 namespace 裁定
+（并明确「该选择**优于**新增 bootstrap 接口，并与 Worker 既有词表吻合」）、search 一致读事务、
+compare threshold、合同 details 措辞；`reliable_new` 命名亦判可接受。剩余 2 IMPORTANT + 1 SUGGESTION。
+我**逐条用真实 SQLite / 运行时实验核实**（不只读码），三项**全部成立**。
+
+### 11.1 IMPORTANT 1 — 同名非唯一索引不会被 `CREATE UNIQUE INDEX IF NOT EXISTS` 升级
+实验确证（读 `PRAGMA index_list` 的 unique 标志）：
+- `9a1dd77` 形态建的是**非唯一**索引（unique=**0**）；
+- 逐字执行 `a8c5b53` 的 `CREATE UNIQUE INDEX IF NOT EXISTS …` 后 unique **仍为 0**
+  ⇒ SQLite 的 `IF NOT EXISTS` **只按名字判断，不升级**；
+- 后果实测：**同一 `correlation_id` 成功绑定两个 subject** ⇒ 对账 `fetchone()` 结果不确定，
+  正是合同承诺要杜绝的；
+- 我当时的迁移里 `DROP INDEX`/`index_list` 命中**各 0**，且 `_LEGACY_SUBJECTS_DDL` 不含任何
+  `CREATE INDEX` ⇒ **Oracle 指出的测试盲区成立**（只覆盖 V1，未覆盖直接前代形态）。
+
+修法（`store.py`）：新增 `_correlation_index_state()` 用 `PRAGMA index_list(subjects)` 读回
+unique 标志（`None` 无索引 / `True` 已唯一 / `False` 同名非唯一）；新增 `_CORRELATION_UNIQUE_DDL`
+（**不带** `IF NOT EXISTS`，否则升级是空操作）；在**一个** `BEGIN IMMEDIATE` 事务内：
+**先扫重复** → 有重复则 `rollback` 并以 `STORE_UNAVAILABLE` 拒启（只报**组数**、绝不回显 id）
+→ `DROP INDEX IF EXISTS` → `CREATE UNIQUE INDEX` → `commit`。
+
+**顺序依据实验而非推断**（四组）：①无重复时事务内 DROP+CREATE 使 unique `0→1`，随后重复插入被
+`IntegrityError` 拒绝；②**库里已有重复**时 `CREATE UNIQUE INDEX` 抛错且**索引已消失**
+（若不在事务内就会留下无索引的表）；③先扫重复可检出组数；④**事务内失败 → ROLLBACK 完整恢复
+索引与全部行**。故 Oracle 的修法方向正确，但我把"确认无重复"固定在 **DROP 之前**，
+比"DROP 后再确认"更安全（即使将来有人把 DROP 移出事务也不会留下无索引的表）。
+
+**我在实施中引入了一条 Oracle 未指出的新缺口，已修（如实记录）**：最初把判据写成"仅当索引存在且
+非唯一时才扫重复"，于是"**三列已存在 + 有重复 + 完全没有索引**"这条路径会跳过扫描、直接
+`CREATE UNIQUE INDEX IF NOT EXISTS` ⇒ 抛**裸 `sqlite3.IntegrityError`**，正是我上一轮特意要避免的
+"难以诊断的启动失败"。**是旧测试报警才发现的**
+（`test_migration_refuses_a_legacy_db_with_duplicate_correlations` 失败）。判据已改为
+"**只要不是已 UNIQUE 就先扫重复**"。
+
+**五种库形态实测**（每例连跑两次 `initialize()` 验证幂等）：
+
+| # | 库形态 | 结果 |
+|---|---|---|
+| 1 | V1（无三列、无索引、1 行） | 启动，unique `None→1`，行数保留 |
+| 2 | **直接前代**（三列 + 同名非唯一索引） | 启动，unique **`0→1`**，行数保留、`revision` 仍为 5 |
+| 3 | 已是唯一索引 | 启动，unique=1（幂等 no-op） |
+| 4 | 三列 + **无索引** + 重复 | **拒启** `STORE_UNAVAILABLE`，索引仍不存在，2 行完好，**不泄漏 id** |
+| 5 | 前代索引 + 重复 | **拒启**，索引仍为非唯一(0)，2 行完好，**不泄漏 id** |
+
+### 11.2 IMPORTANT 2 — 模型边界允许空向量与有限零范数向量
+`_require_finite_embeddings` 原写 `if values.size and not isfinite(...)` ⇒ **空向量被短路跳过**。
+运行时实测：空向量与零范数向量在**空库路径**都得到 **200 `decision=reliable_new`**
+（该分支不调用 `cosine_similarity`，故 r29 加的守卫覆盖不到）。Oracle 的论证完全成立。
+修法：三段独立检查——`values.size == 0` → 空向量；`not np.isfinite(...).all()` → 非有限；
+`norm <= 0.0 or not math.isfinite(norm)` → 零范数；三者均 `MODEL_UNAVAILABLE`(503 retryable)。
+实测四种退化形态（empty / zero-norm / NaN / Inf）在空库路径**全部 503 且响应中无 `decision`**，
+正常向量仍 ACCEPTED（正向对照）。
+
+### 11.3 SUGGESTION 3 — `test_compare.py` 文件头与实现矛盾
+文件头仍写"a client `threshold` is honoured here (unlike search)"，而 r29 已把 compare 改为服务端
+固定阈值 ⇒ 改为"threshold 是**服务端固定**、客户端值被**忽略**（不是校验后接受）"并写明理由。
+**这是我改实现时漏改文件头的真实疏漏。**
+
+### 11.4 测试与门禁
+- `test_store_upgrade.py` 7 → **12**：新增覆盖 Oracle 点名的"直接前代形态"——前提守卫（夹具真的
+  是非唯一索引）、升级为 UNIQUE 且**既有行/embedding/revision 逐字保留**、**DB 层**拒绝重复
+  correlation（不只靠应用层 409）、幂等重跑不产生第二个索引、含重复则拒启且**索引与两行数据完好**
+  （证明事务 rollback 未损坏库）+ 消息不泄漏任何 id。
+- `test_r29_fixes.py` 15 → **26**：四种退化 embedding 在空库路径 fail-closed 的参数化测试、
+  compare/extract 同样拒绝、正向对照。
+- 中央门禁 52 → **62 项 ALL-PASS / 0 FAIL**（新增 9 条 r30 门禁，自测**对修复前代码全部会 FAIL**：
+  pre-fix 计数逐条 0/0/0/0/0/1/1）。"DROP 必须先于扫描"用 python 比较函数体内两个位置的下标判定，
+  不用脆弱的 awk 范围模式。
+
+### 11.5 变异判别力（**如实记录，不夸大有牙**）
+- **有牙**：跳过索引升级（改回依赖 `IF NOT EXISTS`）→ **3 failed**；移除零范数守卫 → **2 failed**；
+  连同 r29 轮六项（6/1/1/1/2/1 failed）。
+- **两处"无牙"经查明不是覆盖缺口**：
+  1. 移除**空向量**守卫 → 222 passed。根因：`np.linalg.norm(空数组) = 0.0`，
+     **零范数检查本就捕获空向量**。实测移除后端点仍返回 **503 `MODEL_UNAVAILABLE`**、
+     `decision=None`，可观测行为只差错误消息文案。保留该检查是为消息准确、且不依赖 numpy 的
+     "norm(空)=0" 实现细节；测试断言的是**安全性质**（code 与"无 decision"），故对两种实现都通过
+     ——这正是期望的测试设计（锁性质而非锁文案）。
+  2. 把 DROP 移到扫描之前 → 222 passed。根因：DROP 与扫描**都在同一 `BEGIN IMMEDIATE` 事务内**，
+     拒启时 rollback 恢复索引 ⇒ Oracle 描述的"失败后留下无索引的表"在事务内并不存在，
+     该变异没有真正制造出危险。把扫描放在 DROP 之前仍是**更保守**的正确顺序。
+- 四次变异均**先还原并 `cmp` 校验、备份保留不先删**（r29 的教训），还原后
+  `store.py bc7d1235…`、`api.py 0a1aa81e…` 逐字节一致、残留标记 0、全量恢复 **222 passed**。
+
+### 11.6 本轮 orchestrator 自身缺陷（如实记录，共 6 项）
+1. **引入了一个新的迁移缺口**（"列已存在 + 有重复 + 无索引"会抛裸 `IntegrityError`），
+   是旧测试报警才发现的；判据已从"索引是否非唯一"改为"只要不是已 UNIQUE 就先扫重复"。
+2. 引用了尚未定义的 `_correlation_index_state` 与 `_CORRELATION_UNIQUE_DDL`（LSP 报出后补定义）。
+3. `api.py` 用 `math.isfinite` 却未导入 `math` —— 本轮**第二次**犯同类错误（r29 是 `numpy` 与
+   `model.py` 的 `math`）。
+4. **我的索引探针第 4 步曾给出错误结论**：它在未 commit 的连接里插入重复行，`close()` 时被回滚，
+   于是"DROP+重建后仍接受重复"其实是空库上插入单行的正常结果——那一步没有证明任何事。
+   重做（显式 `isolation_level=None` + 逐例 commit）后才得到 §11.1 的四条可靠结论。
+5. 新写的测试引用 `FaceServiceError`/`ErrorCode` 却未导入。
+6. 一条门禁模式过宽：`values.size and` 命中了我自己写的 docstring 说明文字（`api.py:319`），
+   把**正确**的实现报成 FAIL；收窄为只匹配代码形态 `^\s*if values\.size and `，并补一条正向
+   "三形态守卫齐备"门禁，再用 pre-fix 代码自测其有牙（命中 1 vs 当前 0）。
+   这是本会话同类"模式过宽/锚点不匹配"缺陷的又一次；awk 范围陷阱已第 3 次踩到后改用 python。
+
+7. **未核实即照抄审查者结论，把正确的数字改错**（r31 轮）：Oracle 的 SUGGESTION 称
+   "用户描述为 6 文件，实际 `9a1dd77..bec9eb9` 为 7 文件（含两份 handoff）"，我据此把报告里的
+   "6 文件"改成了"7 文件"。随后用**四种独立方法**复核证明 **Oracle 这条不成立、我原先的数字是对的**：
+   `git diff --name-only a8c5b53..bec9eb9 | wc -l` = **6**；`git show --stat` 末行 =
+   **"6 files changed, 519 insertions(+), 42 deletions(-)"**；`git diff-tree -r` = **6**；
+   该提交只触及 **1 份** handoff（`B-face-service-pivot-delivery.md`），
+   `B-face-service-worker-contract.md` **未被触及**（diff 命中 0）。已改回 6。
+   **教训**：对审查者的结论同样必须先取证再采纳——"不盲信也不盲驳"适用于双向；
+   本轮我在 r29/r30 都做到了逐条读码核实，却在一条看起来最无害的"文件计数"上直接照抄，
+   正是最容易放松警惕的地方。另注：Oracle 的表述可能源于把 `9a1dd77..bec9eb9`
+   （跨两个提交）与 `a8c5b53..bec9eb9`（本轮单个提交）的范围混淆。
+
+### 11.7 Oracle r30 的两项"生产启用前提"（已如实登记，未擅自声称可生产启用）
+- **空库 → `reliable_new` 的生产启用前提**：D adapter 尚未接入 ⇒ 当前无调用方自动建档；
+  D 接入与真实自动登记必须受 `后端详细设计-V1-MVP.md:663` 的 PoC 门禁；
+  **PG 对账只防重复、不防"库被误清后的批量新人候选"**；根需监控 subject count / revision，
+  并在库异常清空时停用自动登记。Oracle 明确：「没有这些外部控制，不应宣称空库自动登记可生产启用」
+  ⇒ 本报告**不宣称**其可生产启用。
+- **`/v1/verify` 仍允许客户端 threshold**：Oracle 裁定本轮不要求处理（既有已审范围），
+  但指出其安全性质与 compare 相同、不应长期允许客户端任意降低 1:1 身份阈值 ⇒ 已作为待裁定项
+  交总协调（删除覆盖，或仅允许 `requested >= server_default`），本轮**未擅自扩大范围**修改。
+
+---
+
+## 12. Oracle 第三十一轮（对 `bec9eb9` 判 **PASS-with-notes**）
+
+会话 `ora-1` = `ses_f70bc47c3ffeLASOzFOAJZPUO8`（与 r29/r30 同一子会话，保有全部上下文）。
+Oracle 明确「**未运行 pytest、联网或修改文件**」，其结论基于 diff 与 sha256 复核。
+
+### 12.1 四项闭合判定（全部**已闭合**）
+| # | 项 | Oracle 给出的证据位置 |
+|---|---|---|
+| 1 | 同名非唯一索引升级 | `store.py:94-108`（读 unique 标志）、`:145-180`（迁移）、`:153-178`（扫描）、`:158-185`（单个 `BEGIN IMMEDIATE` + 异常 rollback）；并逐一确认**五种库形态均正确处理**，裁定「拒绝启动而非静默选择一条记录，是正确的数据完整性取舍」 |
+| 2 | 迁移正负测试 | `test_store_upgrade.py:251-440` 真实创建"三列已存在 + 同名非唯一索引 + 既有 embedding/revision/correlation 数据"，验证 unique `0→1`、数据不变、DB 层拒绝重复、幂等不产生第二索引、拒启后索引与两行完好、消息不泄漏标识符 ⇒「补齐了上一轮的直接前代盲区」 |
+| 3 | 空/零 embedding 边界 | `model.py:58-82`、`api.py:304-327`；空/全零/NaN/Inf 均 503 且无 decision，正向对照保留 |
+| 4 | compare 测试说明 | `test_compare.py:11-15` 已与实现一致 |
+
+### 12.2 两项特别核验
+- **提交态无变异残留：确认。** Oracle 独立核出的三个 sha256 与我记录的**逐字一致**
+  （`api.py 0a1aa81e…9ca3`、`store.py bc7d1235…91aa`、`model.py b67424df…c0bd`），
+  且 `git grep -E 'MUTANT|if False:|and False' bec9eb9 -- backend/face-service` 无命中。
+- **两处"无牙变异"定性正确，不属安全覆盖缺口。** Oracle 明确：
+  ①「显式检查的价值是准确错误语义和不依赖 NumPy 细节，**不需要测试强制区分两种安全等价实现**」；
+  ②「DROP 与扫描都位于同一事务，DROP 后发现重复再 rollback 同样会恢复原索引……
+  **但测试无需把该顺序当成安全不变量**」。
+
+### 12.3 三项 SUGGESTION 的处置
+| # | 内容 | 我的处置 |
+|---|---|---|
+| 1 | 模型边界把所有零范数统一称为模型故障，未来若引入允许空 embedding 的非人脸模型需重新定义（Oracle 自己注明「当前无需修改」） | **只登记不改**：保持 `FaceDetection.embedding` 必须非空非零的接口约束 |
+| 2 | 称"实际 7 文件（含两份 handoff）" | **经四种独立方法复核证明不成立，未采纳**：`git diff --name-only` = 6、`git show --stat` 末行 = "6 files changed"、`git diff-tree -r` = 6、该提交只触及 **1 份** handoff（合同文档 diff 命中 0）。我一度照抄该结论把报告改成 7，**已改回 6 并把这次错误记入 §11.6 第 7 项** |
+| 3 | 中央门禁"DROP 必须先于扫描"判据**方向错误**，该顺序在事务内不是安全必要条件 | **采纳并已修**：删除依赖顺序的判据，改为不依赖顺序的真实不变量「扫描与 DROP 同处一个显式事务内」；自测有牙（正确实现→1、把 DROP 移出事务→0、删掉 `BEGIN`→0）。行为性保证仍由测试承担（拒启后索引/数据完好、成功后 unique=1）。该门禁在 `.coordination/`（git 忽略），**不进仓库**，故不影响交付 SHA |
+
+### 12.4 整合许可与轮次边界（Oracle 原文要点）
+- 「**可以将 `bec9eb97c2bbcefa3d6e2344f671b96a76c1371a` 作为本轮最终交付 SHA 交总协调整合**」。
+- 「**不要求补跑验证**。222 项 face-service 测试、迁移五形态实验及变异证据足以覆盖本轮；
+  无需 Java、41 项或 E 全套。」
+- 「**确认 `bec9eb9…` 为本轮 face-service 交付 SHA**」，并列出无需再审的七项：
+  search 词表及空库裁定、search 读事务、correlation 唯一约束与迁移、compare 固定阈值、
+  embedding finite/empty/zero 边界、details 合同措辞、变异还原。
+- 对两项裁定的明确结论：**空库 bootstrap 方案「当前选择可接受」**（服务端只返回"相对当前
+  namespace 没有候选"、自身不建档、D adapter 未接入故当前无自动建档调用链、真实自动登记须先满足
+  DD 9.3 PoC 门禁）；**但「库误清风险不能由 PG 对账解决，根必须配置 subject count/revision
+  异常告警，并在异常清空时停用 D adapter 或自动登记」**。`/v1/verify` 客户端 threshold
+  「不要求本轮修改，维持上一轮边界」，但「在该裁定前，**不应把可降低阈值的 verify 用于更高权限的
+  生产准入**」。
+
+### 12.5 我的决定：不为 SUGGESTION 改动代码 SHA
+Oracle 已明确 SUGGESTION 1「当前无需修改」、SUGGESTION 3 属我的外部（git 忽略）门禁而非仓库代码、
+SUGGESTION 2 经复核不成立；且它宣告了轮次边界与「不要求补跑验证」。任何代码改动都会使刚获得的
+绑定失效并制造它明示不必要的审查循环 ⇒ **最终代码 SHA 保持 `bec9eb9` 不变**，
+本轮以 **report-only 提交**收尾（自证代码目录 diff 0 文件）。
