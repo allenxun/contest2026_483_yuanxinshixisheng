@@ -15,17 +15,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-/** 脱敏硬约束测试：token 绝不进日志/异常/toString；图像字节/namespace/subjectRef 不进日志。 */
+/** 脱敏硬约束测试：token 绝不进日志/异常/toString；图像字节不进日志。 */
 class FaceSecurityTest {
 
     private static final String FAKE_TOKEN = "FAKE-INTERNAL-TOKEN-DO-NOT-USE";
-    private static final String NAMESPACE = "openvela-mvp";
-    private static final String SECRET_SUBJECT = "SECRET-SUBJECT-REF-DO-NOT-LEAK";
     private static final byte[] SYNTHETIC_IMAGE = "fake-image-content-0123".getBytes(StandardCharsets.UTF_8);
 
     private FaceServiceStub stub;
@@ -84,7 +81,7 @@ class FaceSecurityTest {
                     FAKE_TOKEN, null, 1500, 1500, null);
             FaceServiceClient client = new FaceServiceClient(props, new ObjectMapper());
 
-            Throwable failure = catchThrowable(() -> client.extract("grant", SYNTHETIC_IMAGE));
+            Throwable failure = catchThrowable(() -> client.extract(SYNTHETIC_IMAGE));
             assertThat(failure).isInstanceOf(FaceServiceException.class);
             assertThat(failure.getMessage()).doesNotContain(FAKE_TOKEN)
                     .doesNotContain(new String(SYNTHETIC_IMAGE, StandardCharsets.UTF_8));
@@ -95,51 +92,6 @@ class FaceSecurityTest {
             }
             // 真值确实随请求头发送（证明脱敏不是靠"没带 token"）。
             assertThat(stub.last("POST", "/v1/extract").internalToken()).isEqualTo(FAKE_TOKEN);
-        } finally {
-            logger.detachAppender(appender);
-        }
-    }
-
-    @Test
-    @DisplayName("新方法失败：日志与异常消息不含 token、图像字节、namespace、subjectRef 取值")
-    void newOperationsDoNotLeakSecrets() {
-        Logger logger = (Logger) LoggerFactory.getLogger(FaceServiceClient.class);
-        ListAppender<ILoggingEvent> appender = new ListAppender<>();
-        appender.start();
-        logger.addAppender(appender);
-        try {
-            InsightFaceProperties props = new InsightFaceProperties(stub.baseUrl(), NAMESPACE,
-                    FAKE_TOKEN, null, 1500, 1500, 0.4);
-            FaceServiceClient client = new FaceServiceClient(props, new ObjectMapper());
-
-            stub.search(401, FaceServiceStub.errorBody("UNAUTHORIZED", false, "r-search"));
-            Throwable searchFailure = catchThrowable(() -> client.search("grant", SYNTHETIC_IMAGE));
-            assertThat(searchFailure).isInstanceOf(FaceServiceException.class);
-
-            stub.verify(401, FaceServiceStub.errorBody("UNAUTHORIZED", false, "r-photo"));
-            Throwable photoFailure = catchThrowable(() ->
-                    client.verifyPhotoOnly("grant", SECRET_SUBJECT, SYNTHETIC_IMAGE));
-            assertThat(photoFailure).isInstanceOf(FaceServiceException.class);
-
-            stub.register(401, FaceServiceStub.errorBody("UNAUTHORIZED", false, "r-reg"));
-            Throwable registerFailure = catchThrowable(() ->
-                    client.register("enroll", SECRET_SUBJECT, SYNTHETIC_IMAGE));
-            assertThat(registerFailure).isInstanceOf(FaceServiceException.class);
-
-            String imageText = new String(SYNTHETIC_IMAGE, StandardCharsets.UTF_8);
-            for (Throwable failure : List.of(searchFailure, photoFailure, registerFailure)) {
-                assertThat(failure.getMessage()).doesNotContain(FAKE_TOKEN)
-                        .doesNotContain(imageText)
-                        .doesNotContain(SECRET_SUBJECT)
-                        .doesNotContain(NAMESPACE);
-            }
-            for (ILoggingEvent event : appender.list) {
-                assertThat(event.getFormattedMessage())
-                        .doesNotContain(FAKE_TOKEN)
-                        .doesNotContain(imageText)
-                        .doesNotContain(SECRET_SUBJECT)
-                        .doesNotContain(NAMESPACE);
-            }
         } finally {
             logger.detachAppender(appender);
         }

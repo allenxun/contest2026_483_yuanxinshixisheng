@@ -6,7 +6,6 @@ import cn.yuanxin.mvp.web.auth.PrincipalContext;
 import cn.yuanxin.mvp.web.auth.PrincipalType;
 import cn.yuanxin.mvp.web.error.ApiException;
 import cn.yuanxin.mvp.web.error.ErrorCode;
-import cn.yuanxin.mvp.web.face.FaceServiceException;
 import cn.yuanxin.mvp.web.idempotency.BeginOutcome;
 import cn.yuanxin.mvp.web.idempotency.CanonicalObjectBuilder;
 import cn.yuanxin.mvp.web.idempotency.IdempotencyHandle;
@@ -182,17 +181,7 @@ public class MemberAccessGrantService {
                     FACE_NOT_VERIFIED_MESSAGE);
         }
 
-        Optional<ResolvedFaceIdentity> identity;
-        try {
-            identity = faceIdentityResolver.resolve(stored, classification);
-        } catch (FaceServiceException dependencyFailure) {
-            // resolve 内部会做第二次 1:N 搜索（FaceIdentityPort 契约：依赖故障由调用方映射）。
-            // 与第一次搜索（上方 classify 的 DEPENDENCY_FAILED 分支）逐字一致的处置：
-            // 503 DEPENDENCY_UNAVAILABLE、可重试；绝不降级为 403（那会把"服务不可用"谎报成
-            // "人脸未通过"），也绝不放行到 500。异常消息/日志不含 namespace/subjectRef/图片/token。
-            throw new ApiException(ErrorCode.DEPENDENCY_UNAVAILABLE,
-                    "face verification dependency unavailable");
-        }
+        Optional<ResolvedFaceIdentity> identity = faceIdentityResolver.resolve(stored, classification);
         if (identity.isEmpty()) {
             reject(handle, ErrorCode.FACE_NOT_VERIFIED, 403, FACE_NOT_VERIFIED_MESSAGE);
         }

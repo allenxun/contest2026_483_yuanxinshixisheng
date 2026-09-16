@@ -24,12 +24,12 @@ import java.util.List;
  * 校验配置</b>（避免启动期网络依赖与副作用）。</p>
  *
  * <p><b>装配</b>：{@link InsightFaceProvider}（FaceProvider，真实；可生产）、
- * {@link InsightFaceIdentityResolver}（修订红线②：经 namespace 限定的只读 1:N 搜索解析身份；
- * 未命中/不确定仍恒 empty）、{@link InsightFaceCareVerifier}（{@code @Primary}；
- * <b>非生产条件</b>——生产信号下不装配，由无条件 {@code FailClosedCareFaceVerifier} 接管，
- * 避免与 {@code CareFaceVerifierProductionGuard} 冲突；守卫未改）。</p>
+ * {@link UnavailableFaceIdentityResolver}（红线 2：身份解析未接入，恒 empty）、
+ * {@link InsightFaceCareVerifier}（{@code @Primary}；<b>非生产条件</b>——生产信号下不装配，
+ * 由无条件 {@code FailClosedCareFaceVerifier} 接管，避免与
+ * {@code CareFaceVerifierProductionGuard} 冲突；守卫未改）。</p>
  *
- * <p><b>活体后果声明（BLOCKER 1，红线）</b>：{@code FaceServiceClient.verifyWithLiveness} 恒定发送
+ * <p><b>活体后果声明（BLOCKER 1，红线）</b>：{@code FaceServiceClient.verify} 恒定发送
  * {@code require_liveness=true}（无开关）。当前已部署服务未实现活体 ⇒ 恒返 501
  * {@code LIVENESS_UNSUPPORTED} ⇒ {@link InsightFaceCareVerifier} 恒返
  * {@code CAPABILITY_UNAVAILABLE}。<b>在活体能力真正落地前，insightface 模式下护理 1:1 准入
@@ -64,9 +64,8 @@ public class FaceProvidersConfig {
     }
 
     @Bean
-    public FaceIdentityResolver insightFaceIdentityResolver(FaceServiceClient faceServiceClient,
-                                                            InsightFaceProperties properties) {
-        return new InsightFaceIdentityResolver(faceServiceClient, properties);
+    public FaceIdentityResolver unavailableFaceIdentityResolver(InsightFaceProperties properties) {
+        return new UnavailableFaceIdentityResolver(properties.namespace());
     }
 
     /** 非生产条件：生产信号下不装配，避免与 {@code CareFaceVerifierProductionGuard} 冲突。 */
@@ -74,7 +73,8 @@ public class FaceProvidersConfig {
     @Conditional(NonProductionCondition.class)
     @Primary
     public CareFaceVerifier insightFaceCareVerifier(FaceServiceClient faceServiceClient,
-                                                    JdbcTemplate jdbc) {
-        return new InsightFaceCareVerifier(faceServiceClient, jdbc);
+                                                    JdbcTemplate jdbc,
+                                                    InsightFaceProperties properties) {
+        return new InsightFaceCareVerifier(faceServiceClient, jdbc, properties.verifyThreshold());
     }
 }
