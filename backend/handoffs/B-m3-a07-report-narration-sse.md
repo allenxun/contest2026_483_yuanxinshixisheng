@@ -175,7 +175,7 @@ report_ready 门禁缺口，2 文件 +65 −3) → **`550d628`**(r2 五项整改
 | # | 发现 | 根因归属 | 修法落实 |
 |---|---|---|---|
 | BLOCKER 1 | `response.accepted` 未约束"首个且唯一"；且 `pump` 的 `int seq = 1` 下 **`start` 分支不自增** ⇒ 两个 accepted 会写出两个 seq=1 的 start、delta 先于 accepted 会产出无 start 的流、**未写任何帧就失败时 error 拿到 seq=2** | 实现缺陷（比我规格更严重，我核实后补全了三种后果） | `ReportNarrationSseParser:84,174-178,194`；`ReportNarrationService:166,172,176,180,185,192,202,209`（7 个写帧点统一"写前 `seq++`"） |
-| BLOCKER 2 | 缺 `score`/`severity` 键被**静默当成显式 null** 送给 AI | **我的规格缺陷**：§4.2 只写"number 或 JSON null"、未写"键必须存在"，实施道按宽松方向解释 | `ReportNarrationScoreExtractor:143-153,181-204,207-225,228-243`（`has(key)` → `missing`；`isNull()` → 透传；类型/越界/空白 → `invalid`） |
+| BLOCKER 2 | 缺 `score`/`severity` 键被**静默当成显式 null** 送给 AI | **我的规格缺陷**：规格 §4.2 只写"number 或 JSON null"、未写"键必须存在"，实施道按宽松方向解释 | `ReportNarrationScoreExtractor:143-153,181-204,207-225,228-243`（`has(key)` → `missing`；`isNull()` → 透传；类型/越界/空白 → `invalid`） |
 | IMPORTANT 3 | 一致性检测只比**字符长度**，同长度不同内容不会告警 | 实现弱于我的裁定 | `ReportNarrationSseParser:82,202-206,210-225,244-245`（200k 上界内累计文本、逐字比较、包级 `spokenTextMismatch()` 可测、日志只记长度、仍发 `done`） |
 | IMPORTANT 4 | `toString()` 输出裸 `baseUrl`（含内部主机） | **我的规格自相矛盾**：§5 说 baseUrl 可原样、§6.5 说日志绝不含 base-url 主机 | `ReportNarrationProperties:63-68`（`<configured>`/`<absent>`）；`normalizedBaseUrl():56-60` 仍返真实值 |
 | SUGGESTION 5 | `pumpFailedEventMapping` 用 `delta→failed`（无 accepted）**固化了错误状态机** | 测试缺陷 | 改为 `accepted→delta→failed`；`pumpDefensiveError` 增加 `seq==1` 断言 |
