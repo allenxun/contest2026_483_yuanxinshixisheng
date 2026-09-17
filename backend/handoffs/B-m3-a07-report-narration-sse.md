@@ -254,3 +254,101 @@ service 14→15 / 52→55；StreamIT 12→14 / 68→76；client 12→12、provid
 3. **A 所有者决定是否停止被误启动的 `mvp-a-pg`**（B 不擅自停止；其 ephemeral 测试库已自行清理、
    无残留，现仅 `mvp_a_dev`+`postgres`）。
 4. 既有人脸 `/v1/verify` 客户端 threshold 仍由总协调另行裁定，**与本轮无关**。
+
+## 12. 总协调现场门禁（2026-09-17）：**阻塞，未现场通过**——如实记录，不回退 mock
+
+总协调要求：在 B 自己隔离 PG/运行环境构造标为 synthetic 的 `report_ready` 云台任务，T05
+`report_payload` 顶层给**完整 V3** 三项评分，用**云台设备 Bearer** 调 Java M3-A07，让 Java
+**真正调用** dev.ai-skin 的 llm-rag-api `assess:stream`，并验证 200 `text/event-stream`、
+首 `text_delta` 早于 `done`、增量拼接与下游一致、以及取消/错误至少一条关键路径。
+
+### 12.1 阻塞结论（凭据不可得，属硬阻塞）
+**该门禁无法在 OpenCode 侧执行**，因为"真正调用 llm-rag-api"所需的 base-url 与 api-key
+**在我的环境中不存在**。逐项取证（只查名字与存在性，**绝不读取或输出任何取值**）：
+
+| 前置 | 取证方式 | 结果 |
+|---|---|---|
+| 环境变量注入 | 检查 17 个候选名（`APP_REPORT_NARRATION_BASE_URL`/`_API_KEY`/`_CONNECT_TIMEOUT_MILLIS`/`_READ_TIMEOUT_MILLIS`、`LLM_RAG_*`、`WEIJING_*`、`AI_*`、`MVP_B_NARRATION_*`、`MVP_A_LLM_RAG_*`、`APP_GIMBAL_AI_*`、`FACE_SVC_BASE_URL`） | **全部未设置** |
+| 名字含 llm/rag/weijing/narration 的变量 | `env \| grep -icE` | **0** |
+| 名字含 API_KEY/APIKEY/SECRET/TOKEN 的变量 | `env \| grep -icE` | **0** |
+| 受限配置文件 | `application-local.yml`/`.properties`/`.yaml`、`backend/deploy/.env`、`backend/deploy/.env.local`、`backend/deploy/dev/.env`、`backend/tests/.env`、`.env`、`.env.local` | **全部 absent**（磁盘与 git 均 0） |
+| `backend/**` 下任何 `*local*.yml/yaml/properties` | `find` | **0 个** |
+| 0600/0400 token 类文件 | `find backend ~/.config` | 仅 JetBrains/TabNine/go telemetry/openwork 等**无关工具**，无 narration/AI 相关 |
+| 代码要求 | `application.yml:135-136`（`${APP_REPORT_NARRATION_BASE_URL:}`、`${APP_REPORT_NARRATION_API_KEY:}`，默认空）；`ReportNarrationProperties:47,50`（缺键即报 `app.report-narration.base-url`/`.api-key` 缺失并 fail-closed） | **两项均为必需**，无默认值、无 fallback |
+| 网络 | TCP 探测 `10.3.6.163:8000` | 连接被拒绝；**且我并无权威 base-url/端口**，探测结果不构成可用性证据 |
+
+⇒ **不声称现场通过、不回退 mock、不伪造联调结果。** 按任务书要求，`score=null` 的真实可接受性、
+regions 左右/区域码口径、AI 实际事件顺序与终态字段**仍属未验证**，须由 root 执行（§7 已给命令）。
+现有普通 Worker 报告因缺三组而 **422 fail-closed 是预期行为**（§6），本轮未改变该结论。
+
+### 12.2 权威 V3 结构（总协调 2026-09-17 补充，逐字取自任务书）
+顶层恰有 `pores`、`spots`、`surface_gloss`；每组 `score`/`severity`/`name`/`regions`，
+`regions[]` 每项 `region`/`name`/`score`/`severity`；**样例三组共 26 个区域项**；
+`score` 范围 **0–100、越高越好且可为 null**；**左右为画面左右**。AI body 恰为
+`{"pores":{...},"spots":{...},"surface_gloss":{...}}`，不把报告其余字段送入 AI。
+**不能将样例当真实算法结果，只能用明确 mock fixture 联调**；若 AI 实测要求 `F`/`L`/`R`
+或本人左右定义而非原始 V3 regions，**停止转换并报告差异，不得自作映射**；
+`score=null` 的接受/拒绝**必须以正式 AI 合同和真实响应为准，不一致则回报，不猜值**。
+
+### 12.3 我**未**改动代码的裁定与理由（含 root 可直接采用的精确扩展方案）
+现有 `ReportNarrationLiveSmokeIT.syntheticScores()`（`:154-166`）只有 **3 个区域项**
+（`pores`→`F`/额头、`spots`→`L`/左脸、`surface_gloss`→`R`/右脸）且 **score 全部非 null**
+（组级 `60`/`mild`、region 级 `50`/`mild`，定义体内 `null` 出现 0 次）⇒ 见 §7.1 的三项局限。
+
+**裁定：本轮不改代码。** 理由（证据性，非省事）：
+1. 真实 AI 腿被凭据**硬阻塞**（§12.1），扩展 fixture 后我**无法自己验证其价值** ⇒
+   属"做了无法验证的改动"，与本项目"只报告真正执行过的检查"的纪律冲突；
+2. 扩展 fixture 属**测试代码改动**，会使 `550d628` 不再是最终代码 SHA 并触发 Oracle 复审；
+   总协调已明示"**代码不变则 Oracle 对 `550d628` 的结论可沿用**"⇒ 不改代码即可保留已获批的绑定；
+3. smoke 的**断言结构已足够**（`:133-148`：`start` 为首帧、`done` 为末帧、≥1 个 `text_delta`、
+   `done`/`error` **恰一终态**、`noneMatch(error)`、首 delta 下标 `>0` 且 `<size-1`、
+   `seq` 严格 `1..N`），缺的**只是 fixture 形状**，由 root 在真实联调时按权威 V3 一并决定更稳妥。
+
+**root 若要覆盖 §7.1 的三项局限，最小改动如下（仅测试夹具，生产代码零改动）：**
+- 把 `syntheticScores()` 的三个 `syntheticGroup(...)` 改为按 §12.2 的**完整 26 区域项**构造
+  （每组多个 `Region`，`region` 码与 `name` **逐字取自用户 V3 样例**，不得自创或映射）；
+- 在**至少一个** region 上把 `score` 置为 **`null`**（`Region` 的 compact constructor 只校验
+  `region`/`name` 非空白，**不校验 score**，故 null 合法；`ReportNarrationScoreExtractor`
+  对其行为是**原样透传 JSON null**、绝不 coerce 成 0）；
+- 明确标注 fixture 为 synthetic（现有 javadoc `:153` 已如此），并**不得**把它当真实算法结果；
+- 运行 §7 的三重 opt-in 命令；若真实 AI 对 `score=null` 返回 4xx 或要求 `F`/`L`/`R` 口径，
+  **按任务书停止并回报差异，不得自行映射或放宽**。
+- 注意：若采纳该扩展，`550d628` 将不再是最终代码 SHA，须对**新的最终代码 SHA** 重新送 Oracle
+  （总协调门禁原文如此）。
+
+### 12.4 已在 B 隔离环境内**真实验证**的部分（与未验证部分严格区分）
+下列均**已执行并通过**，构成"Java 侧真实代码路径"的证据，但**不含**真实 AI 服务：
+- **鉴权/可见性/DB 腿**：`ReportNarrationStreamIT`（14 项）以真实 Spring 上下文 + 真实 PG 行
+  （`:176-180` 直接种入 `skin_assessments` 的 `report_ready` 行与 `report_payload`）+ 云台 Bearer
+  驱动 M3-A07，覆盖 200 `text/event-stream`、`start→text_delta×N→done`、seq 严格连续、
+  客户端取消、错误路径、缺三项 → **422 fail-closed**、未配置 → 503、生产信号 → 启动 fail-closed。
+- **真实 HTTP 客户端 + 真实 SSE 解析器 + 真实 pump**：对**本地协议精确 stub**（非远端服务）验证
+  事件顺序、单终态纪律、accepted 首个且唯一、有界读取与取消关闭下游。
+- **全量**：`mvn -B test` **825 run / 0 failures / 0 errors / 18 skipped，BUILD SUCCESS rc=0**
+  （正确 env、只打 B 的 55435）；`ReportNarrationLiveSmokeIT` 在全量内 **Tests run: 0**（三重 opt-in
+  容器级中止），日志中 `dev.ai-skin`/`assess:stream` 命中 **0** ⇒ **本轮从未发起任何真实 AI 调用**。
+
+**因此本节标题即结论：现场门禁「Java 真正调用 dev.ai-skin llm-rag-api」= 阻塞未执行；
+「云台侧 200/首 delta 早于 done/增量拼接一致/取消与错误路径」= 已由本地 stub + 真实 PG/Bearer
+在 B 隔离环境验证，但其证据不代表真实 AI 服务行为。** 二者不得混同。
+
+## 13. `mvp-a-pg` 误启处置（已按总协调条件执行 stop，未删除任何数据）
+总协调要求：只读核实原为 Exited 且当前无其他会话使用，**只有确定本次误启且无依赖时才停止这一容器**，
+不删除卷/数据或其他资源；不确定就报告。
+
+**三项条件均已用只读证据确证，故执行 `docker stop mvp-a-pg`（仅 stop）：**
+
+| 条件 | 取证 | 结果 |
+|---|---|---|
+| 原为 Exited | `docker inspect`：`FinishedAt=2026-09-15T08:11:09Z`、`ExitCode=0`、`RestartCount=0`，而 `StartedAt=2026-09-17T03:35:07Z` | **原确为 Exited(0)**，约 1 小时前被启动，与实施道自报的 `docker start mvp-a-pg` 时间吻合 ⇒ **确系本次误启** |
+| 无其他会话使用 | 停止前复核：55432 的 **established 连接 0**（仅容器自身 LISTEN）；`pg_stat_activity` 非本地客户端 **0**、`application_name` 仅 `psql`（即我自己的取证查询）；`mvp-a`/`mvp-c`/`mvp-d`/`integration`/`mvp-e`/`mock-report-stream` 六个兄弟工作树近 10 分钟**零文件改动**；无任何 java/python 进程引用其路径 | **无依赖** |
+| 只停不删 | 停止后：volume ID **与停止前逐字相同**、容器仍存在（未 `rm`）、`mvp_a_dev`+`postgres` 两库完好、ephemeral 残留 **0**、数据目录未触碰 | **数据与卷完整** |
+
+停止后状态：`mvp-a-pg` = `Exited`，55432 监听消失；`mvp-d-pg`/`mvp-b-pg` 仍 Up（**未触碰**），
+`mvp-c-pg` 保持其原有 Exited 状态（**未触碰**）。B 自有资源未受影响：`mvp-b-pg` 三库完好
+（`mvp_b_dev`/`postgres`/`swagger_preview`）、ephemeral 残留 0、18080-18085/3000/6379/8010 全空闲、
+无工作树 java 进程、工作树 clean。
+
+> 若 A 包后续需要该容器，`docker start mvp-a-pg` 即可恢复；**数据与卷从未被删除或修改**。
+> 我此前两次全量误打该容器一事已在 §9 如实更正，Oracle r3 §1.8 亦裁定该处置正确。
+
