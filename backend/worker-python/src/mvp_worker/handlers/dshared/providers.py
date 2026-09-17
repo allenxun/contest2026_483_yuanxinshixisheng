@@ -600,8 +600,12 @@ class InsightFaceAdapter:
 
     - ``quality``：逐视角（``REQUIRED_VIEWS_ALL`` 规范序）各调一次 ``POST /v1/quality``；
       全部 ``quality.min_acceptable=true`` → ``accepted``，否则 ``needs_retake``（不合格
-      视角元组，规范序）；**任一视角失败（传输/4xx/5xx/结构非法 2xx）→ ProviderUnavailable**
-      （鉴权失败除外 → 配置型终态），绝不把失败当合格（合同 §3/§8）。
+      视角元组，规范序）。**确定性图像内容 400**（``NO_FACE`` /
+      ``MULTI_FACES_AMBIGUOUS`` / ``IMAGE_DECODE_FAILED``）按“该视角不合格”处理 → 补拍
+      （总协调裁定 2026-09-17；见 ``_QUALITY_CONTENT_FAILURE_CODES``）。其余失败仍抛错：
+      传输/超时/5xx/其它 4xx/结构非法 2xx → ``ProviderUnavailable``，鉴权 →
+      ``ProviderConfigError``；**瞬时优先**——任一视角抛出失败即中止整个 op（不在其它
+      视角状态未知时得出 needs_retake）。绝不把失败当合格（合同 §3/§8 + 裁定）。
     - ``same_person``：**front 锚定的两两比较**（front-vs-left、front-vs-right 两次
       ``POST /v1/compare``）。选择该策略而非 left-vs-right 的理由：把共同参考帧
       （front）作为比较锚点，使“三视角同人”退化为两个共享锚点的独立比较，避免在缺少
@@ -657,6 +661,21 @@ class InsightFaceAdapter:
     #: 合同 §6.1：登记时这些码 → ``unknown``（随后对账）。
     _REGISTER_UNKNOWN_CODES = frozenset(
         {"MODEL_UNAVAILABLE", "MODEL_NOT_LOADED", "STORE_UNAVAILABLE"}
+    )
+    #: **总协调裁定 2026-09-17**：quality 阶段的**确定性图像内容** 400 码。
+    #:
+    #: 相同字节恒得相同 400（非瞬时），故该视角按“不合格”处理（等价
+    #: ``min_acceptable=false``），最终由 handler 落**补拍**而非重试后 FAILED：
+    #: ``assessment_analyze.py:268-274``（``_bounded_views`` 规范化 → 非 accepted →
+    #: ``_retake_result(QUALITY_REJECTED)``）。
+    #:
+    #: 现场证据：``.mvp-d-runtime/live-8010/evidence.md``（真实 buffalo_l 对无脸照片
+    #: 返回 400 ``NO_FACE``）。这是对合同 §8 字面「任一视角调用失败 → ProviderUnavailable」
+    #: 的**经授权细化**（合同文件不由 D 修改；修订稿见交付报告）。
+    #:
+    #: 仅限 quality 阶段：``same_person`` / ``search_1n`` 的映射保持不变（不扩大范围）。
+    _QUALITY_CONTENT_FAILURE_CODES = frozenset(
+        {"NO_FACE", "MULTI_FACES_AMBIGUOUS", "IMAGE_DECODE_FAILED"}
     )
 
     def __init__(self, cfg: DConfig, transport: FaceServiceTransport) -> None:
@@ -735,7 +754,19 @@ class InsightFaceAdapter:
                 "POST", "/v1/quality", json_body=self._image_payload(data)
             )
         except FaceServiceHttpError as exc:
-            self._handle_http_error_strict_unavailable("quality", exc)
+            if exc.is_auth:
+                # 鉴权失败优先：配置型终态（即使同时是内容码也不可能，401 不含内容码）。
+                self._raise_auth_config("quality", exc)
+            if exc.code in self._QUALITY_CONTENT_FAILURE_CODES:
+                # 确定性图像内容问题（同字节恒同 400）→ 该视角视为不合格，交补拍；
+                # **绝不**当成合格，也**不**在此抛错。
+                # 注意瞬时优先：本函数返回 False 后 quality() 会继续检查后续视角，
+                # 若任一视角抛出任何其它失败，异常会向上传播并中止整个 quality()
+                # （不会在“有视角状态未知”时得出 needs_retake；瞬时故障解除后重试收敛）。
+                return False
+            # 其它 4xx（INVALID_REQUEST/UNSUPPORTED_MEDIA_TYPE/IMAGE_TOO_LARGE…）与 5xx
+            # 仍按既有语义抛可重试不可用。
+            self._raise_unavailable("quality", exc)
         except FaceServiceTransportError as exc:
             self._raise_unavailable("quality", exc)
         body = result.json

@@ -367,8 +367,6 @@ def test_quality_missing_view_is_unavailable(monkeypatch: Any, tmp_path: Any, vi
         FaceServiceConnectionError("c"),
         FaceServiceProtocolError("p"),
         http_error(500, "INTERNAL_ERROR", True),
-        http_error(400, "NO_FACE", False),
-        http_error(400, "MULTI_FACES_AMBIGUOUS", False),
         http_error(503, "MODEL_UNAVAILABLE", True),
         http_error(504, "INFERENCE_TIMEOUT", True),
     ],
@@ -378,6 +376,153 @@ def test_quality_failure_is_unavailable_not_pass(monkeypatch: Any, tmp_path: Any
     adapter, _ = _adapter(cfg, [exc])
     with pytest.raises(ProviderUnavailable):
         adapter.quality(IMAGES)
+
+
+# --- Coordinator ruling 2026-09-17: deterministic image-content 400s -> retake ---
+
+_QUALITY_CONTENT_CODES = ("NO_FACE", "MULTI_FACES_AMBIGUOUS", "IMAGE_DECODE_FAILED")
+
+
+@pytest.mark.parametrize("code", _QUALITY_CONTENT_CODES)
+def test_quality_content_code_on_front_is_needs_retake(
+    monkeypatch: Any, tmp_path: Any, code: str
+) -> None:
+    """确定性图像内容码 → 该视角不合格（补拍），绝不 accepted、绝不 raise。"""
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(
+        cfg,
+        [http_error(400, code, False),
+         TransportResult(200, quality_body(True)),
+         TransportResult(200, quality_body(True))],
+    )
+    result = adapter.quality(IMAGES)
+    assert result.status == "needs_retake"
+    assert result.required_views == ("front",)
+    assert result.status != "accepted"
+
+
+@pytest.mark.parametrize("code", _QUALITY_CONTENT_CODES)
+def test_quality_content_code_on_middle_view_is_needs_retake(
+    monkeypatch: Any, tmp_path: Any, code: str
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(
+        cfg,
+        [TransportResult(200, quality_body(True)),
+         http_error(400, code, False),
+         TransportResult(200, quality_body(True))],
+    )
+    result = adapter.quality(IMAGES)
+    assert result.status == "needs_retake"
+    assert result.required_views == ("left",)
+
+
+def test_quality_all_views_content_code_is_needs_retake_all_canonical(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [http_error(400, "NO_FACE", False)] * 3)
+    result = adapter.quality(IMAGES)
+    assert result.status == "needs_retake"
+    assert result.required_views == ("front", "left", "right")
+    assert result.status != "accepted"
+
+
+def test_quality_mixed_content_codes_union_in_canonical_order(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(
+        cfg,
+        [http_error(400, "NO_FACE", False),
+         TransportResult(200, quality_body(True)),
+         http_error(400, "IMAGE_DECODE_FAILED", False)],
+    )
+    result = adapter.quality(IMAGES)
+    assert result.status == "needs_retake"
+    assert result.required_views == ("front", "right")
+
+
+def test_quality_content_code_never_accepted_under_all_codes(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    for code in _QUALITY_CONTENT_CODES:
+        cfg = _cfg(monkeypatch, tmp_path)
+        adapter, _ = _adapter(cfg, [http_error(400, code, False)] * 3)
+        assert adapter.quality(IMAGES).status == "needs_retake"
+
+
+# Transient dominance: any raising failure on any view aborts the whole op.
+
+
+def test_quality_content_code_plus_5xx_raises(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(
+        cfg,
+        [http_error(400, "NO_FACE", False),
+         http_error(503, "MODEL_UNAVAILABLE", True)],
+    )
+    with pytest.raises(ProviderUnavailable):
+        adapter.quality(IMAGES)
+
+
+def test_quality_content_code_plus_transport_error_raises(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(
+        cfg,
+        [http_error(400, "IMAGE_DECODE_FAILED", False), FaceServiceTimeout("t")],
+    )
+    with pytest.raises(ProviderUnavailable):
+        adapter.quality(IMAGES)
+
+
+def test_quality_content_code_plus_auth_is_config_error(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(
+        cfg,
+        [http_error(400, "NO_FACE", False), http_error(401, "UNAUTHORIZED", False)],
+    )
+    with pytest.raises(ProviderConfigError):
+        adapter.quality(IMAGES)
+
+
+def test_quality_transient_first_still_raises(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [http_error(500, "INTERNAL_ERROR", True)])
+    with pytest.raises(ProviderUnavailable):
+        adapter.quality(IMAGES)
+
+
+@pytest.mark.parametrize("code", ["INVALID_REQUEST", "IMAGE_TOO_LARGE", "UNSUPPORTED_MEDIA_TYPE"])
+def test_quality_other_4xx_is_unavailable_unchanged(
+    monkeypatch: Any, tmp_path: Any, code: str
+) -> None:
+    status = dict((c, s) for c, s, _ in CONTRACT_SECTION_7)[code]
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [http_error(status, code, False)])
+    with pytest.raises(ProviderUnavailable):
+        adapter.quality(IMAGES)
+
+
+# Scope guard: same_person / search_1n mapping for NO_FACE stays ProviderUnavailable.
+
+
+def test_same_person_no_face_still_unavailable(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [http_error(400, "NO_FACE", False)])
+    with pytest.raises(ProviderUnavailable):
+        adapter.same_person(IMAGES)
+
+
+def test_search_no_face_still_unavailable(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _cfg(monkeypatch, tmp_path)
+    adapter, _ = _adapter(cfg, [http_error(400, "NO_FACE", False)])
+    with pytest.raises(ProviderUnavailable):
+        adapter.search_1n(NS, IMAGES)
 
 
 def test_quality_auth_is_config_error(monkeypatch: Any, tmp_path: Any) -> None:
