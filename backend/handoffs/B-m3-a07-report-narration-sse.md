@@ -1,7 +1,11 @@
 # B：M3-A07 报告播报 SSE 真实接入（交付说明）
 
-日期：2026-09-17（第二轮整改） ｜ 分支：`feature/mvp-identity-devices` ｜ 基线 `f3c29f0` + 提交 `f68248f` + orchestrator 门禁修复 `ac574a1`
-写域：`backend/web-java/**`（+ 本文件）。**未 commit**（由 orchestrator 统一提交）。
+日期：2026-09-17 ｜ 分支：`feature/mvp-identity-devices` ｜ 基线 `f3c29f0`
+**最终代码 SHA：`550d62834c60d6b89cce0f39cdd116c8222581ee`**（= Oracle r3 reviewed SHA，
+判 **PASS-with-notes**、许可交总协调整合）；其后的提交均为 report-only 文档更正，
+`git diff 550d628..HEAD` 对全部代码目录为 **0 文件**（详见 §10）。
+写域：`backend/web-java/**`（+ 本文件）。**已提交**：`f68248f`(实现) → `ac574a1`(门禁修复) →
+`550d628`(r2 五项整改) → 文档更正若干；工作树 clean。**未合并 dev、未推送、未部署。**
 
 > **第二轮整改（Oracle 判 FAIL）**：Oracle 第二轮对 `f68248f`+`ac574a1` 判 FAIL（2 BLOCKER + 2 IMPORTANT +
 > 1 SUGGESTION）。经 orchestrator 逐条读码核实**五项全部成立**，其中两项的**根因在 orchestrator 冻结的
@@ -103,8 +107,34 @@ mvn -B test -Dtest=ReportNarrationLiveSmokeIT -Dmvp.b.narration.live=true
 
 真实调用使用明确标注为合成的 V3 形状三项评分（不触库、不写 DB、不用真实成员数据），只打印事件计数、
 seq 列表、帧字节长度、delta/spoken_text 字符长度与耗时；绝不打印 api-key、base-url 主机或任何内容。
-**OpenCode 侧未执行真实联调，故不得声称端到端已成功。** `score=null` 的真实可接受性与 regions 左右/区域码
-口径仍属**未验证**项（无凭据）。
+**OpenCode 侧未执行真实联调，故不得声称端到端已成功。**
+
+### 7.1 本 smoke fixture 的**覆盖局限**（必须明示，避免被误读成已验证 V3 全量）
+`ReportNarrationLiveSmokeIT.syntheticScores()`（`:154-166`）的实际形状经核实为：
+
+| 组 | `name` | region 码 | region `name` | 组级 `score`/`severity` | region 级 `score`/`severity` |
+|---|---|---|---|---|---|
+| `pores` | 毛孔 | **`F`** | 额头 | `60` / `mild` | `50` / `mild` |
+| `spots` | 斑点 | **`L`** | 左脸 | `60` / `mild` | `50` / `mild` |
+| `surface_gloss` | 光泽 | **`R`** | 右脸 | `60` / `mild` | `50` / `mild` |
+
+即：**每组恰 1 个 region、三组合计 3 个 region 项**（`List.of(new Region(...))`），
+且**所有 score 均非 null**（定义体内 `null` 出现 0 次）、region 码用 **`F`/`L`/`R`**。
+
+因此它**只能**验证"三组四键形状被真实 AI 接受、SSE 事件顺序与终态、首 delta 在 done 之前"，
+**不能**验证以下三项——它们仍属**未验证**，需 root 用更完整的合成数据另行覆盖：
+1. **用户 V3 样例的全部 26 个区域项**（本 fixture 只有 3 项，既未覆盖多 region/组，
+   也未覆盖 V3 的解剖名词汇）；
+2. **原始左右语义**（V3 明确"左右为**画面**左右"；本 fixture 用 `F`/`L`/`R` 码 + `左脸`/`右脸`
+   中文标注，**既未验证画面左右、也未验证受检者本人左右**，故无法判定真实 AI 期望哪一种口径。
+   按任务书：若真实 AI 要求 F/L/R 或本人左右定义而非原始 V3 regions，**停止转换并报告差异，
+   不得自作映射**）；
+3. **`score=null` 的真实可接受性**（本 fixture 无任何 null score，故完全未触及该分支；
+   Java 侧行为是**原样透传 JSON null**、绝不 coerce 成 0，这是裁定而非已验证事实）。
+
+> 上述局限**不影响**离线测试的覆盖面：null 透传、缺键 422、region 零转换等均由
+> `ReportNarrationScoreExtractorTest`/`HttpReportNarrationClientTest`/`ReportNarrationStreamIT`
+> 以本地 stub 确定性覆盖（全量 825 run）。此处仅说明**真实 AI 侧**尚未被证明的部分。
 
 ## 8. 第二轮整改（Oracle FAIL 五项）
 
