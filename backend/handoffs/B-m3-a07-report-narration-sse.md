@@ -263,8 +263,13 @@ service 14→15 / 52→55；StreamIT 12→14 / 68→76；client 12→12、provid
 首 `text_delta` 早于 `done`、增量拼接与下游一致、以及取消/错误至少一条关键路径。
 
 ### 12.1 阻塞结论（凭据不可得，属硬阻塞）
-**该门禁无法在 OpenCode 侧执行**，因为"真正调用 llm-rag-api"所需的 base-url 与 api-key
-**在我的环境中不存在**。逐项取证（只查名字与存在性，**绝不读取或输出任何取值**）：
+**该门禁无法在 OpenCode 侧执行**。**唯一阻塞原因是本地没有受限 api-key**：
+服务侧并无可达性问题——总协调已从 B 主机只读核验权威 base URL `http://10.3.6.163:7861`、
+`GET /openapi.json` 返回 **200 `application/json`**，部署服务与正式 `assess:stream` 合同此前亦已核实
+（**该核验由总协调完成，B 未独立复核**；按项目规则 #319，我**不自行对真实外部服务发起任何请求**，
+连 TCP 探测或 `GET /openapi.json` 也不做，以免与本文「本轮从未发起任何真实 AI 调用」的声明冲突）。
+因此缺的只是 `APP_REPORT_NARRATION_API_KEY`，而**我绝不从远端复制、读取或索取该密钥**。
+逐项取证（只查名字与存在性，**绝不读取或输出任何取值**）：
 
 | 前置 | 取证方式 | 结果 |
 |---|---|---|
@@ -275,10 +280,15 @@ service 14→15 / 52→55；StreamIT 12→14 / 68→76；client 12→12、provid
 | `backend/**` 下任何 `*local*.yml/yaml/properties` | `find` | **0 个** |
 | 0600/0400 token 类文件 | `find backend ~/.config` | 仅 JetBrains/TabNine/go telemetry/openwork 等**无关工具**，无 narration/AI 相关 |
 | 代码要求 | `application.yml:135-136`（`${APP_REPORT_NARRATION_BASE_URL:}`、`${APP_REPORT_NARRATION_API_KEY:}`，默认空）；`ReportNarrationProperties:47,50`（缺键即报 `app.report-narration.base-url`/`.api-key` 缺失并 fail-closed） | **两项均为必需**，无默认值、无 fallback |
-| 网络 | TCP 探测 `10.3.6.163:8000` | 连接被拒绝；**且我并无权威 base-url/端口**，探测结果不构成可用性证据 |
+| 服务可达性 | **总协调只读核验（B 未独立复核）** | 权威 base URL 为 **`http://10.3.6.163:7861`**；`GET /openapi.json` 返回 **200 `application/json`**；部署服务与正式 `assess:stream` 合同此前亦已核实 ⇒ **服务端可达、合同已确认，网络不是阻塞点** |
+| 我的探测（已作废） | TCP 探测 `10.3.6.163:8000` | 连接被拒绝。**该探测用错了端口**：我当时不掌握权威端口便自行猜测 8000，并据此在本文写下「并无权威 base-url/端口」——**该表述不准确，已由总协调纠正**（权威值为 7861）。此项保留仅为如实记录我犯过的错，**不得再被引用为服务不可达的证据** |
+| **认证凭据** | 同上 17 个候选名 + 受限配置文件 + token 文件逐项取证 | **本地不存在受限 `APP_REPORT_NARRATION_API_KEY`** ⇒ 无法构造带认证的 Java→真实 AI 调用。**这是现场门禁唯一且充分的阻塞原因** |
 
-⇒ **不声称现场通过、不回退 mock、不伪造联调结果。** 按任务书要求，`score=null` 的真实可接受性、
-regions 左右/区域码口径、AI 实际事件顺序与终态字段**仍属未验证**，须由 root 执行（§7 已给命令）。
+⇒ **现场门禁仍阻塞**，但阻塞性质已澄清为**纯凭据缺失**（非网络、非合同、非代码）：
+只要 root 在受限环境中提供 `APP_REPORT_NARRATION_API_KEY`（base-url 用 `http://10.3.6.163:7861`），
+即可按 §7 的三重 opt-in 命令执行，**无需任何代码改动**。
+**不声称现场通过、不回退 mock、不伪造联调结果。** 按任务书要求，`score=null` 的真实可接受性、
+regions 左右/区域码口径、AI 实际事件顺序与终态字段**仍属未验证**，须由 root 执行。
 现有普通 Worker 报告因缺三组而 **422 fail-closed 是预期行为**（§6），本轮未改变该结论。
 
 ### 12.2 权威 V3 结构（总协调 2026-09-17 补充，逐字取自任务书）
