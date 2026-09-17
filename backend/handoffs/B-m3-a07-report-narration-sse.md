@@ -5,8 +5,8 @@
 
 > **第二轮整改（Oracle 判 FAIL）**：Oracle 第二轮对 `f68248f`+`ac574a1` 判 FAIL（2 BLOCKER + 2 IMPORTANT +
 > 1 SUGGESTION）。经 orchestrator 逐条读码核实**五项全部成立**，其中两项的**根因在 orchestrator 冻结的
-> 规格自身**：① `score`/`severity` 缺键被视为 null（规格 §4.2 只写"number 或 JSON null"、未写"键必须存在"）；
-> ② `toString()` 输出 base-url（规格 §5 说 baseUrl 可原样、§6.5 又说日志绝不含 base-url 主机，自相矛盾）。
+> 规格自身**：① `score`/`severity` 缺键被视为 null（**冻结规格** `.coordination/B-work/llm-narration-sse/spec.md` §4.2 只写"number 或 JSON null"、未写"键必须存在"）；
+> ② `toString()` 输出 base-url（规格 §5 说 baseUrl 可原样、§6.5 又说日志绝不含 base-url 主机，自相矛盾）。<br>本文后续凡写「规格 §N」均指该 `spec.md`；凡写「§N」不带"规格"二字者指本文档章节。
 > 已按 orchestrator 冻结的修法整改，见 §8。另三项（accepted 顺序与 seq 编号、完整文本一致性、测试固化错误状态机）
 > 为真实实现缺陷。**无任何静默偏离。**
 
@@ -124,7 +124,7 @@ seq 列表、帧字节长度、delta/spoken_text 字符长度与耗时；绝不�
 全量 `825 run / 0 failures / 0 errors / 18 skipped`，117 份 surefire xml（基线 814 → +11）；
 `ReportNarrationLiveSmokeIT` 全量内 `Tests run: 0`（默认绝不联网）。
 
-## 8. 更正：测试所用 PG 容器（orchestrator 自身边界违规，如实记录）
+## 9. 更正：测试所用 PG 容器（orchestrator 自身边界违规，如实记录）
 
 `ac574a1` 的提交信息写有「环境一律 `MVP_A_PG_CONTAINER=mvp-b-pg` + `MVP_A_PG_HOST_PORT=55435`
 （**不触碰 A 的容器**）」——**该陈述是假的**，特此更正（提交历史不改写，故在此记录）。
@@ -155,7 +155,7 @@ seq 列表、帧字节长度、delta/spoken_text 字符长度与耗时；绝不�
 - 教训：B 的 Java 测试基建与 Python 侧（`migrate.sh`/`createdb.sh` 读 `MVP_A_PG_CONTAINER`）
   **覆盖方式不同**，不可类推；此后 B 侧任何 Java 测试运行都必须显式设置 `MVP_A_PG_JDBC`。
 
-## 9. Oracle 审查链与最终交付 SHA
+## 10. Oracle 审查链与最终交付 SHA
 
 | 轮次 | 被审 SHA | 裁定 | 发现 |
 |---|---|---|---|
@@ -171,7 +171,7 @@ seq 列表、帧字节长度、delta/spoken_text 字符长度与耗时；绝不�
 `f3c29f0`(基线=dev) → `f68248f`(实现，29 文件 +4107 −320) → `ac574a1`(我自查发现的
 report_ready 门禁缺口，2 文件 +65 −3) → **`550d628`**(r2 五项整改 + 假陈述更正，10 文件 +513 −204)。
 
-### 9.1 r2 五项发现的核实与根因（我逐条读码核实，五项全部成立）
+### 10.1 r2 五项发现的核实与根因（我逐条读码核实，五项全部成立）
 | # | 发现 | 根因归属 | 修法落实 |
 |---|---|---|---|
 | BLOCKER 1 | `response.accepted` 未约束"首个且唯一"；且 `pump` 的 `int seq = 1` 下 **`start` 分支不自增** ⇒ 两个 accepted 会写出两个 seq=1 的 start、delta 先于 accepted 会产出无 start 的流、**未写任何帧就失败时 error 拿到 seq=2** | 实现缺陷（比我规格更严重，我核实后补全了三种后果） | `ReportNarrationSseParser:84,174-178,194`；`ReportNarrationService:166,172,176,180,185,192,202,209`（7 个写帧点统一"写前 `seq++`"） |
@@ -180,7 +180,7 @@ report_ready 门禁缺口，2 文件 +65 −3) → **`550d628`**(r2 五项整改
 | IMPORTANT 4 | `toString()` 输出裸 `baseUrl`（含内部主机） | **我的规格自相矛盾**：§5 说 baseUrl 可原样、§6.5 说日志绝不含 base-url 主机 | `ReportNarrationProperties:63-68`（`<configured>`/`<absent>`）；`normalizedBaseUrl():56-60` 仍返真实值 |
 | SUGGESTION 5 | `pumpFailedEventMapping` 用 `delta→failed`（无 accepted）**固化了错误状态机** | 测试缺陷 | 改为 `accepted→delta→failed`；`pumpDefensiveError` 增加 `seq==1` 断言 |
 
-### 9.2 r3 八项裁定（全部"已闭合"）与 Oracle 的独立结论
+### 10.2 r3 八项裁定（全部"已闭合"）与 Oracle 的独立结论
 1. accepted 顺序纪律闭合，且**未过度收紧**（heartbeat 注释行仍在顺序检查**之前**被忽略
    `:121-123`；`id`/`retry`/未知 SSE 字段仍按标准忽略 `:130-144`）。
 2. seq 编号闭合：7 个写帧点均"写入前恰好自增一次"，无遗漏、无双重自增；未写帧即失败 → seq=1，
@@ -196,7 +196,7 @@ report_ready 门禁缺口，2 文件 +65 −3) → **`550d628`**(r2 五项整改
    **825/0/0/18** 作为权威证据，是正确处理」「已启动的 A 容器**不应由 B 继续擅自停止**；
    由总协调/A 所有者决定恢复状态」。
 
-### 9.3 权威测试数字（orchestrator 亲跑，正确 env）
+### 10.3 权威测试数字（orchestrator 亲跑，正确 env）
 `mvn -B test-compile` rc=0；Oracle 指定最小 7 类定向 **79 run / 0 / 0 / 0**，`ApiDocsCoverageIT`
 **1/0/0**；**全量 `mvn -B test`：825 run / 0 failures / 0 errors / 18 skipped，BUILD SUCCESS rc=0**
 （747 基线 → `f68248f` 811(+64) → `ac574a1` 814(+3) → `550d628` **825**(+11)，每轮增量与新增测试
@@ -205,7 +205,7 @@ report_ready 门禁缺口，2 文件 +65 −3) → **`550d628`**(r2 五项整改
 `@Test` 与 `assert` 计数全程**只增不减**（parser 13→17 / assert 31→48；extractor 11→15 / 34→46；
 service 14→15 / 52→55；StreamIT 12→14 / 68→76；client 12→12、providers 6→6）。
 
-### 9.4 写域与禁区（相对基线 `f3c29f0`，全部 0）
+### 10.4 写域与禁区（相对基线 `f3c29f0`，全部 0）
 `worker-python`/`contracts`/`acceptance`/`backend/tests`/`doc`/`deploy`/`face-service`/
 `db/migration` diff **各 0 文件**；`pom.xml`（**未新增依赖**）、`ErrorCode.java`（**29 个未新增**）、
 `AssessmentReadService`/`AssessmentRepository`/`SkinReportService`（共享读路径）、
@@ -213,7 +213,7 @@ service 14→15 / 52→55；StreamIT 12→14 / 68→76；client 12→12、provid
 `git diff --check` rc=0；无工件入 git；新增行中 `LTAI…`/`+86…`/私钥块/`dev.ai-skin`/`10.3.6.163`/
 非 loopback IP 命中**全 0**，两个容器口令字面量**均未写入**提交内容。
 
-## 10. 待总协调/根执行（Oracle r3 §5 与我一致）
+## 11. 待总协调/根执行（Oracle r3 §5 与我一致）
 1. **D 上游补齐并冻结 `pores`/`spots`/`surface_gloss` 的四键结构**
    （`score`/`severity`/`name`/`regions`，region 项 `region`/`name`/`score`/`severity`）。
    在此之前真实报告必然 **422 fail-closed**，**端到端未打通**。
