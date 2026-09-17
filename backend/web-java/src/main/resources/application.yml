@@ -128,6 +128,14 @@ app:
     api-key: ${APP_GIMBAL_AI_API_KEY:}
     connect-timeout-millis: ${APP_GIMBAL_AI_CONNECT_TIMEOUT_MILLIS:3000}
     read-timeout-millis: ${APP_GIMBAL_AI_READ_TIMEOUT_MILLIS:10000}
+  report-narration:
+    # M3-A07 报告播报真实接入（POST /internal/v1/weijing/reports/assess:stream）。
+    # 安全占位：默认空 = 未配置 → 非生产运行时 503 DEPENDENCY_UNAVAILABLE；
+    # 生产信号下启动 fail-closed。真实 base-url 与 api-key 一律由部署环境经 env 注入，绝不写入仓库。
+    base-url: ${APP_REPORT_NARRATION_BASE_URL:}
+    api-key: ${APP_REPORT_NARRATION_API_KEY:}
+    connect-timeout-millis: ${APP_REPORT_NARRATION_CONNECT_TIMEOUT_MILLIS:3000}
+    read-timeout-millis: ${APP_REPORT_NARRATION_READ_TIMEOUT_MILLIS:30000}
 
 logging:
   pattern:
