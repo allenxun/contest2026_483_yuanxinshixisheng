@@ -285,4 +285,52 @@ class AssessmentReportIT extends AssessmentTestSupport {
         assertEquals(200, r.getResponse().getStatus(), r.getResponse().getContentAsString());
         assertEquals("waiting_inputs", data(r).path("planStatus").asText());
     }
+
+    @Test
+    @DisplayName("A05 V3 三组（pores/spots/surface_gloss）绝不出现在 brief/full 投影")
+    void v3GroupsNeverLeakIntoProjection() throws Exception {
+        GimbalFixture gimbal = createGimbal();
+        LoginResult app = loginAppWithInstallation(newPhone(), "inst-a05-v3");
+        UUID memberId = seedMember();
+        seedGrant(app.accountId(), memberId, "active");
+        // 冻结 report_payload 顶层携带 V3 三组（ALL-OR-NONE 形状）
+        String payload = "{\"schema_version\":1,\"conclusion\":\"c\","
+                + "\"metrics\":[{\"name\":\"hydration\",\"value\":\"42\",\"unit\":\"%\"}],"
+                + "\"description\":\"d\",\"images\":[],"
+                + "\"model_info\":{\"skin_provider\":\"double\","
+                + "\"model_version\":\"skin-v3-mock@0\"},"
+                + "\"pores\":{\"score\":57.0,\"severity\":\"中度\",\"name\":\"毛孔\","
+                + "\"regions\":[{\"region\":\"forehead\",\"name\":\"额部\","
+                + "\"score\":57.0,\"severity\":\"中度\"}]},"
+                + "\"spots\":{\"score\":42.0,\"severity\":\"中度\",\"name\":\"可见色斑\","
+                + "\"regions\":[]},"
+                + "\"surface_gloss\":{\"score\":72.0,\"severity\":\"轻度\","
+                + "\"name\":\"表面油光\",\"regions\":[]}}";
+        ReportSeed seed = seedReportReady(gimbal.gimbalId(), memberId,
+                Instant.parse("2026-09-03T00:00:00Z"), payload);
+
+        MvcResult full = report(app.accessToken(), seed.reportId(), "full");
+        assertEquals(200, full.getResponse().getStatus(), full.getResponse().getContentAsString());
+        assertNoV3Leak(full.getResponse().getContentAsString());
+
+        MvcResult brief = report(app.accessToken(), seed.reportId(), "brief");
+        assertEquals(200, brief.getResponse().getStatus(), brief.getResponse().getContentAsString());
+        assertNoV3Leak(brief.getResponse().getContentAsString());
+
+        // 云台 brief 分支（同一 project 白名单）同样不泄漏
+        UUID taskId = acceptA01(gimbal);
+        UUID reportId = markReportReady(taskId, memberId);
+        jdbc.update("UPDATE skin_assessments SET report_payload=?::jsonb WHERE report_id=?",
+                payload, reportId);
+        MvcResult gimbalBrief = report(gimbal.token(), reportId, null);
+        assertEquals(200, gimbalBrief.getResponse().getStatus(),
+                gimbalBrief.getResponse().getContentAsString());
+        assertNoV3Leak(gimbalBrief.getResponse().getContentAsString());
+    }
+
+    private static void assertNoV3Leak(String body) {
+        for (String key : new String[]{"pores", "spots", "surface_gloss"}) {
+            assertFalse(body.contains("\"" + key + "\""), key + " leaked into projection: " + body);
+        }
+    }
 }

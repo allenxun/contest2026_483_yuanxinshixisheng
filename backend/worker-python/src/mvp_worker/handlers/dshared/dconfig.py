@@ -34,6 +34,7 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | ``MVP_D_FACE_DOUBLE_SEARCH`` | ``reliable_new`` | 测试注入：1:N 分类（``reliable_new``/``matched``/``uncertain``/``ambiguous``/``dependency_failed``） |
 | ``MVP_D_SKIN_DOUBLE_HOLD`` | ``false`` | 测试注入：进程级 hold（严格布尔；analyze 可重试失败，旧执行停在 queued，可释放） |
 | ``MVP_D_SKIN_DOUBLE_INVALID`` | ``none`` | 测试注入：skin 指标违约（``none``/``unknown_metric``/``out_of_range``/``bad_unit``）→ 既有 ``PROVIDER_CONTRACT_VIOLATION`` 终态 |
+| ``MVP_D_SKIN_V3_MOCK`` | ``false`` | 测试注入：dev/test 下 skin 替身携带 V3 三组 mock（严格布尔；生产信号 + true → 拒绝启动） |
 | ``MVP_D_DOUBLE_LATE_BARRIER`` | ``false`` | 测试注入：SC-02-09 迟到返回 barrier（严格布尔；一次性/有界；仅 face 首个调用） |
 | ``MVP_D_DOUBLE_LATE_BARRIER_DIR`` | 空 | barrier 文件目录（**barrier=true 时必填**，须每 RUN_ID 独立；空→加载期 fail fast；释放=写 ``released``） |
 | ``MVP_D_DOUBLE_LATE_BARRIER_SHA256`` | 空 | 命中标记：被拦照片内容的 sha256（64 hex），barrier 开启时必填 |
@@ -123,6 +124,10 @@ DEFAULT_FACE_DOUBLE_SEARCH = "reliable_new"
 DEFAULT_PLAN_DOUBLE_MODE = "valid"
 DEFAULT_SKIN_DOUBLE_HOLD = False
 DEFAULT_SKIN_DOUBLE_INVALID = "none"
+DEFAULT_SKIN_V3_MOCK = False
+
+#: V3 三组 mock 开关（仅 dev/test；生产信号 + true → fail-closed 拒绝启动）。
+SKIN_V3_MOCK_ENV = "MVP_D_SKIN_V3_MOCK"
 DEFAULT_DOUBLE_LATE_BARRIER = False
 DEFAULT_DOUBLE_LATE_BARRIER_TIMEOUT_SECONDS = 30
 
@@ -167,6 +172,7 @@ DOUBLE_INJECTION_SWITCHES: dict[str, Any] = {
     "MVP_D_PLAN_DOUBLE_MODE": DEFAULT_PLAN_DOUBLE_MODE,
     "MVP_D_SKIN_DOUBLE_HOLD": DEFAULT_SKIN_DOUBLE_HOLD,
     "MVP_D_SKIN_DOUBLE_INVALID": DEFAULT_SKIN_DOUBLE_INVALID,
+    SKIN_V3_MOCK_ENV: DEFAULT_SKIN_V3_MOCK,
     "MVP_D_DOUBLE_LATE_BARRIER": DEFAULT_DOUBLE_LATE_BARRIER,
     DOUBLE_LATE_BARRIER_DIR_ENV: "",
     DOUBLE_LATE_BARRIER_SHA256_ENV: "",
@@ -179,6 +185,7 @@ _BOOLEAN_INJECTION_SWITCHES = frozenset(
         "MVP_D_SKIN_DOUBLE_HOLD",
         "MVP_D_DOUBLE_LATE_BARRIER",
         STORAGE_DOUBLE_FAIL_PUT_ENV,
+        SKIN_V3_MOCK_ENV,
     }
 )
 
@@ -505,6 +512,10 @@ class DConfig:
     # SC-02-10：skin 替身返回违反既有白名单/基线的指标 → 既有 PROVIDER_CONTRACT_VIOLATION 终态。
     skin_double_invalid: str = field(
         default_factory=lambda: _env("MVP_D_SKIN_DOUBLE_INVALID", DEFAULT_SKIN_DOUBLE_INVALID)
+    )
+    # V3 三组 mock 开关（严格布尔；默认关闭）。生产信号 + true → 既有生产守卫拒绝启动。
+    skin_v3_mock: bool = field(
+        default_factory=lambda: strict_env_bool(SKIN_V3_MOCK_ENV, DEFAULT_SKIN_V3_MOCK)
     )
     # SC-02-09：文件式一次性 barrier（先算后等/有界/默认关闭），仅 FaceDouble 首个调用读取。
     double_late_barrier: bool = field(

@@ -33,6 +33,7 @@ from .dshared.constants import (
 from .dshared.dconfig import DConfig
 from .dshared.dfence import fenced_business_tx
 from .dshared.dmedia import ArchiveError, archive_result_images, load_image_bytes
+from .dshared.dskin_mock import V3_SKIN_GROUP_KEYS, V3_SKIN_SEVERITIES
 from .dshared.denqueue import EnrollSlotOccupied, enqueue_identity_enroll, insert_job
 from .dshared.jsonschema_support import load_payload_validator, validate_payload
 from .dshared.providers import ProviderUnavailable
@@ -297,6 +298,10 @@ class AssessmentAnalyzeHandler:
         try:
             analysis = skin.analyze(images)
             metrics = _validate_metrics(dcfg, analysis.metrics)
+            # 可选 V3 三组：存在即**发布前**严格校验（all-or-none + 闭合键白名单 +
+            # 类型/范围/词表/唯一性）。违约 → 既有 _ContractViolation → 终态
+            # PROVIDER_CONTRACT_VIOLATION（不发布、不静默丢弃、不补零）。
+            v3_groups = _validate_v3_skin_groups(getattr(analysis, "v3_groups", None))
         except _ContractViolation as exc:
             self._terminal(
                 ctx, job, assessment_id, rev,
@@ -440,6 +445,11 @@ class AssessmentAnalyzeHandler:
                 "model_version": getattr(analysis, "model_version", "unknown"),
             },
         }
+        if v3_groups is not None:
+            # V3 三组：逐键写入规范化深拷贝（恰好三键；绝不多拷贝任何键）。
+            # 缺省时不写、不置 null、不补零 —— payload 保持原样。
+            for _group_key in V3_SKIN_GROUP_KEYS:
+                report_payload[_group_key] = v3_groups[_group_key]
         return HandlerResult(
             business_tx=lambda conn: _publish(
                 conn,
@@ -659,6 +669,119 @@ def _validate_metrics(dcfg: DConfig, raw: Any) -> list[dict[str, Any]]:
         if not (float(base["min"]) <= float(value) <= float(base["max"])):
             raise _ContractViolation(f"$.metrics[{i}].value: out of approved range")
         normalized.append({"name": name, "value": value, "unit": unit})
+    return normalized
+
+
+def _validate_v3_skin_groups(raw: Any) -> Optional[dict[str, Any]]:
+    """发布前严格校验可选的 V3 三组（``pores``/``spots``/``surface_gloss``）。
+
+    契约（用户字段说明，data-only）与 B 的消费形状（T05 ``report_payload`` 顶层三组，
+    all-or-none）：
+
+    - 顶层**恰**三组键（缺任一或出现未知键 → 违约）；
+    - 每组闭合键白名单 ``{score, severity, name, regions}``（未知键 → 违约）；
+    - ``score``：``null``（缺测）或数值 0..100（``bool`` 拒绝）；**绝不**把 null 变 0；
+    - ``severity``：``null`` 或冻结词表（``未见明显/轻度/中度/较明显/显著``）；
+    - ``name``：非空字符串，**逐字保留**；
+    - ``regions``：数组；元素闭合键白名单 ``{region, name, score, severity}``；
+      ``region`` 非空字符串且在组内**唯一**；``name`` 非空字符串**逐字保留**
+      （画面左右措辞不做任何转换/补区）；``score``/``severity`` 同上。
+
+    返回：``None``（原本就缺省）或**规范化后的深拷贝**（仅白名单键、值逐字保留；
+    与来源结构完全隔离）。任何违约 → :class:`_ContractViolation` → 既有终态
+    ``PROVIDER_CONTRACT_VIOLATION``（不发布、不部分发布、不静默丢弃）。
+    """
+    if raw is None:
+        return None
+    if not isinstance(raw, dict) or set(raw) != set(V3_SKIN_GROUP_KEYS):
+        raise _ContractViolation(
+            "$.v3_skin: expected exactly pores/spots/surface_gloss (all-or-none)"
+        )
+    group_allowed = {"score", "severity", "name", "regions"}
+    region_allowed = {"region", "name", "score", "severity"}
+    normalized: dict[str, Any] = {}
+    for group_key in V3_SKIN_GROUP_KEYS:
+        group = raw[group_key]
+        if not isinstance(group, dict):
+            raise _ContractViolation(f"$.{group_key}: expected object")
+        if set(group) - group_allowed:
+            raise _ContractViolation(f"$.{group_key}: additionalProperties violated")
+        for required in ("score", "severity", "name", "regions"):
+            if required not in group:
+                raise _ContractViolation(f"$.{group_key}.{required}: required")
+        score = group["score"]
+        if score is not None and (
+            not isinstance(score, (int, float))
+            or isinstance(score, bool)
+            or not (0.0 <= float(score) <= 100.0)
+        ):
+            raise _ContractViolation(f"$.{group_key}.score: type/range violated")
+        severity = group["severity"]
+        if severity is not None and severity not in V3_SKIN_SEVERITIES:
+            raise _ContractViolation(f"$.{group_key}.severity: not in frozen vocabulary")
+        name = group["name"]
+        if not isinstance(name, str) or not name:
+            raise _ContractViolation(f"$.{group_key}.name: non-empty string required")
+        regions = group["regions"]
+        if not isinstance(regions, list):
+            raise _ContractViolation(f"$.{group_key}.regions: expected array")
+        seen_regions: set[str] = set()
+        out_regions: list[dict[str, Any]] = []
+        for i, item in enumerate(regions):
+            if not isinstance(item, dict):
+                raise _ContractViolation(f"$.{group_key}.regions[{i}]: expected object")
+            if set(item) - region_allowed:
+                raise _ContractViolation(
+                    f"$.{group_key}.regions[{i}]: additionalProperties violated"
+                )
+            for required in ("region", "name", "score", "severity"):
+                if required not in item:
+                    raise _ContractViolation(
+                        f"$.{group_key}.regions[{i}].{required}: required"
+                    )
+            region = item["region"]
+            if not isinstance(region, str) or not region:
+                raise _ContractViolation(
+                    f"$.{group_key}.regions[{i}].region: non-empty string required"
+                )
+            if region in seen_regions:
+                raise _ContractViolation(
+                    f"$.{group_key}.regions[{i}].region: duplicate region"
+                )
+            seen_regions.add(region)
+            region_name = item["name"]
+            if not isinstance(region_name, str) or not region_name:
+                raise _ContractViolation(
+                    f"$.{group_key}.regions[{i}].name: non-empty string required"
+                )
+            region_score = item["score"]
+            if region_score is not None and (
+                not isinstance(region_score, (int, float))
+                or isinstance(region_score, bool)
+                or not (0.0 <= float(region_score) <= 100.0)
+            ):
+                raise _ContractViolation(
+                    f"$.{group_key}.regions[{i}].score: type/range violated"
+                )
+            region_severity = item["severity"]
+            if region_severity is not None and region_severity not in V3_SKIN_SEVERITIES:
+                raise _ContractViolation(
+                    f"$.{group_key}.regions[{i}].severity: not in frozen vocabulary"
+                )
+            out_regions.append(
+                {
+                    "region": region,
+                    "name": region_name,
+                    "score": region_score,
+                    "severity": region_severity,
+                }
+            )
+        normalized[group_key] = {
+            "score": score,
+            "severity": severity,
+            "name": name,
+            "regions": out_regions,
+        }
     return normalized
 
 

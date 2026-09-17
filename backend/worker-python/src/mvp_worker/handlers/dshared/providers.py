@@ -40,6 +40,10 @@ from .dconfig import (
     production_environment_signals,
 )
 from .dtokenfile import read_token_file
+from .dskin_mock import (
+    V3_SKIN_MOCK_GROUPS,
+    V3_SKIN_MOCK_MODEL_VERSION,
+)
 from .dtransport import (
     FaceServiceHttpError,
     FaceServiceTimeout,
@@ -110,6 +114,9 @@ class SkinAnalysisResult:
     description: str
     result_images: list[dict[str, Any]]  # {ref, bytes|provider_uri, caption}
     model_version: str
+    #: 可选 V3 三组评分载荷（``pores``/``spots``/``surface_gloss``，all-or-none）。
+    #: 默认 ``None`` = 不携带（既有替身/流程行为不变）。真实 provider 未来可填充。
+    v3_groups: Optional[dict[str, Any]] = None
 
 
 @dataclass
@@ -379,6 +386,8 @@ class SkinDouble:
         result_images: Optional[list[dict[str, Any]]] = None,
         invalid: Optional[str] = None,
         faults: Optional[dict[str, list[BaseException]]] = None,
+        v3_groups: Optional[dict[str, Any]] = None,
+        model_version: Optional[str] = None,
     ) -> None:
         self._conclusion = conclusion
         self._metrics = metrics
@@ -386,6 +395,9 @@ class SkinDouble:
         self._result_images = result_images
         self._invalid = invalid
         self._faults = _FaultInjector(faults)
+        self._v3_groups = v3_groups
+        if model_version is not None:
+            self.model_version = model_version
         self.calls: dict[str, int] = {}
 
     def analyze(self, images: dict[str, bytes]) -> SkinAnalysisResult:
@@ -409,12 +421,17 @@ class SkinDouble:
             ]
         )
         self._apply_invalid(metrics)
+        # mock V3：每次调用返回独立深拷贝（调用方/发布方改动互不影响）。
+        v3_groups = (
+            json.loads(json.dumps(self._v3_groups)) if self._v3_groups is not None else None
+        )
         return SkinAnalysisResult(
             conclusion=self._conclusion,
             metrics=metrics,
             description=self._description,
             result_images=result_images,
             model_version=self.model_version,
+            v3_groups=v3_groups,
         )
 
     def _apply_invalid(self, metrics: list[dict[str, Any]]) -> None:
@@ -1435,12 +1452,23 @@ def _skin_double_from_config(cfg: DConfig) -> SkinDouble:
 
     ``MVP_D_SKIN_DOUBLE_INVALID``：返回违反既有指标白名单/基线的指标 → handler 经
     既有 ``_ContractViolation`` 落 **PROVIDER_CONTRACT_VIOLATION** 终态（确定性，1 次）。
+
+    ``MVP_D_SKIN_V3_MOCK=true``（仅 dev/test）：替身额外携带 V3 三组 mock
+    （:mod:`dskin_mock`，派生自用户样本、**非算法证据**），并以含 ``mock`` 的
+    ``model_version`` 明确标记；生产信号下本开关被既有守卫拒绝启动（fail-closed）。
+    hold 与 V3 mock 同时开启时 **hold 优先**（仍注入可重试失败，不掩盖故障语义）。
     """
     invalid = None if cfg.skin_double_invalid == "none" else cfg.skin_double_invalid
     if cfg.skin_double_hold:
         return SkinDouble(
             invalid=invalid,
             faults={"analyze": [ProviderUnavailable("analyze hold: injected retryable hold")]},
+        )
+    if cfg.skin_v3_mock:
+        return SkinDouble(
+            invalid=invalid,
+            v3_groups=V3_SKIN_MOCK_GROUPS,
+            model_version=V3_SKIN_MOCK_MODEL_VERSION,
         )
     return SkinDouble(invalid=invalid)
 
