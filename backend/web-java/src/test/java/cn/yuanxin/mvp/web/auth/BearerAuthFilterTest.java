@@ -10,8 +10,10 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -21,6 +23,51 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BearerAuthFilterTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @Test
+    @DisplayName("context path 下的公开登录放行，业务接口仍校验并注入 Bearer 主体")
+    void contextPathDoesNotBypassBearerAuthentication() throws Exception {
+        InMemorySessionDouble sessions = new InMemorySessionDouble();
+        PrincipalRevalidator revalidator = new PrincipalRevalidator(null) {
+            @Override
+            public boolean stillValid(AuthenticatedPrincipal p) {
+                return true;
+            }
+        };
+        BearerAuthFilter filter = new BearerAuthFilter(sessions, revalidator, mapper);
+
+        MockHttpServletRequest login = contextRequest("POST", "/api/v1/gimbal-sessions");
+        MockHttpServletResponse loginResponse = new MockHttpServletResponse();
+        filter.doFilter(login, loginResponse, (request, response) ->
+                loginResponse.setStatus(204));
+        assertEquals(204, loginResponse.getStatus());
+
+        String path = "/api/v1/gimbals/" + UUID.randomUUID() + "/current-assessment";
+        MockHttpServletRequest missingBearer = contextRequest("GET", path);
+        MockHttpServletResponse missingResponse = new MockHttpServletResponse();
+        filter.doFilter(missingBearer, missingResponse, (request, response) -> {
+            throw new AssertionError("protected route must not bypass authentication");
+        });
+        assertEquals(401, missingResponse.getStatus());
+        assertEquals("AUTH_REQUIRED", mapper.readTree(missingResponse.getContentAsString())
+                .path("error").path("code").asText());
+
+        String token = sessions.createGimbalSession(UUID.randomUUID(), 1).sessionToken();
+        MockHttpServletRequest authenticated = contextRequest("GET", path);
+        authenticated.addHeader("Authorization", "Bearer " + token);
+        MockHttpServletResponse authenticatedResponse = new MockHttpServletResponse();
+        filter.doFilter(authenticated, authenticatedResponse, (request, response) -> {
+            assertNotNull(request.getAttribute(BearerAuthFilter.ATTR_PRINCIPAL));
+            authenticatedResponse.setStatus(204);
+        });
+        assertEquals(204, authenticatedResponse.getStatus());
+    }
+
+    private static MockHttpServletRequest contextRequest(String method, String applicationPath) {
+        MockHttpServletRequest request = new MockHttpServletRequest(method, "/openvela" + applicationPath);
+        request.setContextPath("/openvela");
+        return request;
+    }
 
     @Test
     @DisplayName("provider.authenticate 抛异常 → 503 信封（retryable=true），链不继续")

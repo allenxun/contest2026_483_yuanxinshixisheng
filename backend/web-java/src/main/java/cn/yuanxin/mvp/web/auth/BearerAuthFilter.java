@@ -64,7 +64,9 @@ public class BearerAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
-        String path = request.getRequestURI();
+        // getRequestURI() includes the deployment context path (for example /openvela).
+        // Match API and public routes against the path inside this application.
+        String path = request.getRequestURI().substring(request.getContextPath().length());
         if (!path.startsWith("/api/") || PUBLIC.contains(request.getMethod() + " " + path)) {
             chain.doFilter(request, response);
             return;
