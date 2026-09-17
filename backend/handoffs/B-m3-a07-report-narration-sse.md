@@ -7,6 +7,13 @@
 写域：`backend/web-java/**`（+ 本文件）。**已提交**：`f68248f`(实现) → `ac574a1`(门禁修复) →
 `550d628`(r2 五项整改) → 文档更正若干；工作树 clean。**未合并 dev、未推送、未部署。**
 
+> **现场联调状态（2026-09-17 更新）**：**root 已在 internal.dxg170 的隔离临时环境完成合成 V3 样例的
+> Java → 部署中真实 llm-rag-api 联调**（`start` → 6×`text_delta` → `done`、`seq` 1..8、
+> 缺 `spots` → 预流 **422 `UNSUPPORTED_CONTRACT`** 且不新开下游；临时 Java/PG/私有目录**已停止并删除**，
+> 持久 `openvela-backend.service` 保持 active）。**OpenCode/B 侧未执行、未独立复核该次运行**，
+> 仅把 root 的观测与代码事实交叉印证（§14.3）。证据、范围与**仍未验证项**见 **§14**。
+> **该联调不证明当前 Worker 报告可播报**：Worker 仍缺三组 ⇒ 真实报告仍会 422（§6）。
+
 > **第二轮整改（Oracle 判 FAIL）**：Oracle 第二轮对 `f68248f`+`ac574a1` 判 FAIL（2 BLOCKER + 2 IMPORTANT +
 > 1 SUGGESTION）。经 orchestrator 逐条读码核实**五项全部成立**，其中两项的**根因在 orchestrator 冻结的
 > 规格自身**：① `score`/`severity` 缺键被视为 null（**冻结规格** `.coordination/B-work/llm-narration-sse/spec.md` §4.2 只写"number 或 JSON null"、未写"键必须存在"）；
@@ -74,12 +81,13 @@
 `ReportNarrationProperties.toString()` 对 api-key **与 base-url 均**只输出 `<redacted>`/`<configured>`/`<absent>`，
 绝不输出内部主机；`normalizedBaseUrl()` 仍返回真实值供客户端拼 URL（第二轮修正，见 §8 修法 4）。
 
-## 6. 如实披露的限制（端到端尚未打通）
+## 6. 如实披露的限制（**真实 Worker 链路**尚未打通；合成 V3 的 Java→真实 AI 链路已由 root 验证，见 §14）
 
 当前 Worker 写入的 `report_payload` 只有 `schema_version/conclusion/metrics/description/images/model_info`
 六键，**不含** `pores/spots/surface_gloss` ⇒ 真实报告必然在发 AI 前以 **422 `UNSUPPORTED_CONTRACT`**
 fail-closed（`details` 只含结构性键路径，不含任何评分值/区域值/报告内容）。这是**正确行为**，
-不得用 `metrics` 伪映射、不得回退 mock、不得声称端到端已成功。测试锁定：
+不得用 `metrics` 伪映射、不得回退 mock、不得声称"真实 Worker 报告端到端已成功"（§14 记录的是
+**合成 V3 输入**的现场联调，**不改变本条**）。测试锁定：
 `ReportNarrationStreamIT.missingThreeGroupsFailsClosedWithoutDownstream`（422 且下游请求计数 == 0）、
 `ReportNarrationServiceTest.workerPayloadFailsClosedWithoutDownstream`。
 
@@ -92,7 +100,7 @@ fail-closed（`details` 只含结构性键路径，不含任何评分值/区域�
 （如 `pores.score`、`pores.regions[0].score`）；显式 JSON null → 原样透传（裁定 A）；类型/越界/空白 →
 `details.invalid`。两者任一非空即 422。`details` 只含结构性键路径，绝不含任何评分值/区域值/报告内容。
 
-## 7. root-only 真实联调（OpenCode 侧**未执行**）
+## 7. root-only 真实联调入口（OpenCode 侧**未执行**；**root 已于 2026-09-17 另行执行，证据见 §14**）
 
 `ReportNarrationLiveSmokeIT` 三重 opt-in，默认全量套件 `Tests run: 0`、绝不联网。root 运行命令：
 
@@ -107,7 +115,10 @@ mvn -B test -Dtest=ReportNarrationLiveSmokeIT -Dmvp.b.narration.live=true
 
 真实调用使用明确标注为合成的 V3 形状三项评分（不触库、不写 DB、不用真实成员数据），只打印事件计数、
 seq 列表、帧字节长度、delta/spoken_text 字符长度与耗时；绝不打印 api-key、base-url 主机或任何内容。
-**OpenCode 侧未执行真实联调，故不得声称端到端已成功。**
+**OpenCode/B 侧未执行真实联调**（本节交付的是**入口**：三重 opt-in，在 B 的全量套件内恒为
+`Tests run: 0`）。**root 已于 2026-09-17 用隔离临时环境另行执行了真实联调，其证据与范围见 §14**——
+两者不得混同：§7 是 B 交付的**入口与纪律**，§14 是 root 的**执行结果**。
+即便如此，**仍不得声称"真实 Worker 报告端到端已成功"**（§6、§14.4 第 1 项）。
 
 ### 7.1 本 smoke fixture 的**覆盖局限**（必须明示，避免被误读成已验证 V3 全量）
 `ReportNarrationLiveSmokeIT.syntheticScores()`（`:154-166`）的实际形状经核实为：
@@ -246,7 +257,8 @@ service 14→15 / 52→55；StreamIT 12→14 / 68→76；client 12→12、provid
 ## 11. 待总协调/根执行（与 Oracle r3 裁定书 §5「总协调/根待办」一致）
 1. **D 上游补齐并冻结 `pores`/`spots`/`surface_gloss` 的四键结构**
    （`score`/`severity`/`name`/`regions`，region 项 `region`/`name`/`score`/`severity`）。
-   在此之前真实报告必然 **422 fail-closed**，**端到端未打通**。
+   在此之前真实报告必然 **422 fail-closed**，**真实 Worker 链路未打通**（合成 V3 的 Java→真实 AI
+   链路已由 root 验证，见 §14，但那**不**解除本项）。
 2. **root 以明确合成数据执行一次三重 opt-in live smoke**（命令见 §7），确认：
    `score=null` 是否被真实 AI 接受；region 命名与左右语义；AI 实际的
    accepted/delta/completed 顺序与终态字段。**若真实合同与本文档不一致，必须回报并重新冻结，
@@ -255,7 +267,11 @@ service 14→15 / 52→55；StreamIT 12→14 / 68→76；client 12→12、provid
    无残留，现仅 `mvp_a_dev`+`postgres`）。
 4. 既有人脸 `/v1/verify` 客户端 threshold 仍由总协调另行裁定，**与本轮无关**。
 
-## 12. 总协调现场门禁（2026-09-17）：**阻塞，未现场通过**——如实记录，不回退 mock
+## 12. 总协调现场门禁（2026-09-17）：**B 侧当时阻塞**（凭据不可得）——如实记录，不回退 mock
+
+> **【本节结论已被 §14 取代】** root 随后取得凭据并在隔离临时环境**完成了该门禁的真实联调**。
+> 本节保留为 **B 侧当时的取证记录与阻塞归因**（含我探测错端口一事），
+> **不得再被引用为"现场未通过"的现状**。
 
 总协调要求：在 B 自己隔离 PG/运行环境构造标为 synthetic 的 `report_ready` 云台任务，T05
 `report_payload` 顶层给**完整 V3** 三项评分，用**云台设备 Bearer** 调 Java M3-A07，让 Java
@@ -284,12 +300,19 @@ service 14→15 / 52→55；StreamIT 12→14 / 68→76；client 12→12、provid
 | 我的探测（已作废） | TCP 探测 `10.3.6.163:8000` | 连接被拒绝。**该探测用错了端口**：我当时不掌握权威端口便自行猜测 8000，并据此在本文写下「并无权威 base-url/端口」——**该表述不准确，已由总协调纠正**（权威值为 7861）。此项保留仅为如实记录我犯过的错，**不得再被引用为服务不可达的证据** |
 | **认证凭据** | 同上 17 个候选名 + 受限配置文件 + token 文件逐项取证 | **本地不存在受限 `APP_REPORT_NARRATION_API_KEY`** ⇒ 无法构造带认证的 Java→真实 AI 调用。**这是现场门禁唯一且充分的阻塞原因** |
 
-⇒ **现场门禁仍阻塞**，但阻塞性质已澄清为**纯凭据缺失**（非网络、非合同、非代码）：
-只要 root 在受限环境中提供 `APP_REPORT_NARRATION_API_KEY`（base-url 用 `http://10.3.6.163:7861`），
-即可按 §7 的三重 opt-in 命令执行，**无需任何代码改动**。
-**不声称现场通过、不回退 mock、不伪造联调结果。** 按任务书要求，`score=null` 的真实可接受性、
-regions 左右/区域码口径、AI 实际事件顺序与终态字段**仍属未验证**，须由 root 执行。
-现有普通 Worker 报告因缺三组而 **422 fail-closed 是预期行为**（§6），本轮未改变该结论。
+⇒ **B 侧当时阻塞**，阻塞性质为**纯凭据缺失**（非网络、非合同、非代码）：只要 root 在受限环境中提供
+`APP_REPORT_NARRATION_API_KEY`（base-url 用 `http://10.3.6.163:7861`），即可执行，**无需任何代码改动**。
+**该判断已被 root 的实际执行证实**：root 取得凭据后在隔离临时环境跑通了真实联调（**§14**），
+且**未改动任何代码** ⇒ 本节"零代码改动即可执行"的结论成立。
+**B 侧当时不声称现场通过、不回退 mock、不伪造联调结果**，该纪律保持不变。
+当时列为未验证的三项，现状更新如下：
+- **AI 实际事件顺序与终态字段** → **已由 root 验证**（`accepted`→`delta`×6→`completed` 映射为
+  `start`→`text_delta`×6→`done`、`seq` 1..8、恰一终态；见 §14.2/§14.3）；
+- **`score=null` 的真实可接受性** → **仍未验证**（合成样例三组与 26 个 region 的 score 全非 null；
+  见 §14.4 第 2 项）；
+- **regions 左右/区域码口径** → **仍未验证**（服务端只原样转发，无法从一次成功调用推断 AI 用画面左右
+  还是本人左右；见 §14.4 第 3 项）。
+现有普通 Worker 报告因缺三组而 **422 fail-closed 是预期行为**（§6），**该结论未因 §14 改变**。
 
 ### 12.2 权威 V3 结构（总协调 2026-09-17 补充，逐字取自任务书）
 顶层恰有 `pores`、`spots`、`surface_gloss`；每组 `score`/`severity`/`name`/`regions`，
@@ -338,9 +361,15 @@ regions 左右/区域码口径、AI 实际事件顺序与终态字段**仍属未
   （正确 env、只打 B 的 55435）；`ReportNarrationLiveSmokeIT` 在全量内 **Tests run: 0**（三重 opt-in
   容器级中止），日志中 `dev.ai-skin`/`assess:stream` 命中 **0** ⇒ **本轮从未发起任何真实 AI 调用**。
 
-**因此本节标题即结论：现场门禁「Java 真正调用 dev.ai-skin llm-rag-api」= 阻塞未执行；
-「云台侧 200/首 delta 早于 done/增量拼接一致/取消与错误路径」= 已由本地 stub + 真实 PG/Bearer
-在 B 隔离环境验证，但其证据不代表真实 AI 服务行为。** 二者不得混同。
+**本节记录的是 B 侧当时的证据分层，其结论已被 §14 部分取代，现更正如下：**
+- 「Java 真正调用 dev.ai-skin llm-rag-api」：**B 侧当时阻塞未执行**；**root 已于 2026-09-17 执行并通过**（§14）。
+- 「云台侧 200 / 首 delta 早于 done / 增量拼接一致 / 错误路径」：B 侧当时只有**本地 stub + 真实 PG/Bearer**
+  的离线证据；**root 的现场执行已给出真实 AI 服务下的同类证据**（200、`start`→6×`text_delta`→`done`、
+  484 字符拼接一致、缺 `spots` → 422 且下游打开计数仍为 1）。
+- 「**取消路径**」：**仍只有离线证据**（`ReportNarrationStreamIT` 本地 stub）；root 本次**未在现场验证**
+  （§14.4 第 5 项）。
+
+**三类证据不得混同：B 离线 stub ≠ root 现场真实 AI ≠ 真实 Worker 报告链路（后者仍未打通）。**
 
 ## 13. `mvp-a-pg` 误启处置（已按总协调条件执行 stop，未删除任何数据）
 总协调要求：只读核实原为 Exited 且当前无其他会话使用，**只有确定本次误启且无依赖时才停止这一容器**，
@@ -361,3 +390,65 @@ regions 左右/区域码口径、AI 实际事件顺序与终态字段**仍属未
 
 > 若 A 包后续需要该容器，`docker start mvp-a-pg` 即可恢复；**数据与卷从未被删除或修改**。
 > 我此前两次全量误打该容器一事已在 §9 如实更正，Oracle r3 §1.8 亦裁定该处置正确。
+
+## 14. root 现场联调证据（2026-09-17）——**root 执行，B 未独立复核**
+
+### 14.1 归因、隔离方式与本节边界
+- **执行者：root**（在 `internal.dxg170`）。**B/OpenCode 侧未执行、未参与、未独立复核**该次运行；
+  本节所有观测均为 **root 报告的证据**，B 只在 §14.3 把它们与**代码事实**交叉印证。
+- **隔离方式**：临时 PostgreSQL **仅绑 `127.0.0.1:18434`**、临时 Java 服务 **仅绑 `127.0.0.1:18390`**；
+  跑完**已停止并删除**临时 Java、临时 PG 与私有目录；**持久 `openvela-backend.service` 保持 active**
+  （未被重启或修改）。
+- 本节**不含**任何凭据、token、播报文本或合成 JSON 全文，只记结构化计数。
+
+### 14.2 root 观测到的事实
+| 项 | 观测 |
+|---|---|
+| 合成样例 | 三组 `pores`/`spots`/`surface_gloss`，region 数 **9 / 8 / 9**（合计 **26**），**无个人信息** |
+| 对样例的唯一改动 | **仅临时数据库的 `report_payload`** 添加 `schema_version=1`；**原始样例文件未变** |
+| 合成设备登录 | `POST /api/v1/gimbal-sessions` → **200** |
+| 播报 SSE | Bearer `GET` → **200**、`text/event-stream`、**`no-store`**、**`X-Request-Id` 非空** |
+| 事件序列 | `start` → **6 × `text_delta`** → `done`；**`seq` 1..8**；每帧 `requestId`/`taskId`/`reportId` **一致** |
+| 文本量与耗时 | `text_delta` 合计 **484 字符**、约 **0.1 秒** |
+| Java 日志 | 下游 `stream opened status=200` **恰一次**；**无** spoken_text mismatch / non-2xx / timeout / transport failure |
+| 错误路径 | 同一临时 payload **去掉 `spots`** → **预流 HTTP 422 JSON、`UNSUPPORTED_CONTRACT`**；**AI 下游打开计数仍为 1**（即未新开下游）；随后**数据已恢复** |
+
+### 14.3 B 的代码侧交叉印证（**这一列是 B 自己核实的代码事实**，与 root 观测逐条吻合）
+| root 观测 | 代码依据 | B 的结论 |
+|---|---|---|
+| 需给 `report_payload` 加 `schema_version` | `V1__create_tables.sql:219-220` 的 `ck_assessment_report_payload_schema`：`report_payload` 必须是 object 且含**数值型** `schema_version` | 该添加是 **DB CHECK 强制**，非装饰性改动 |
+| 加 `schema_version` 是否影响 AI body | 抽取器只读 `GROUPS = List.of("pores","spots","surface_gloss")`（`ReportNarrationScoreExtractor:59`）、body 恰由这三组组装（`:95`）、**未知键记日志并丢弃**（`:248-250`）；已审 IT 的四个夹具（`:72`/`:84`/`:93`/`:103`）本就含 `schema_version` 且全部通过 | **AI body 不可能因此改变**；root"原始样例未变、只在临时库加"与代码事实一致 |
+| `no-store` | `ReportNarrationStreamController:63` `.cacheControl(CacheControl.noStore())` | 吻合 |
+| `X-Request-Id` 非空 | `BearerAuthFilter:150` `response.setHeader(RequestIdFilter.HEADER, id)` | 吻合 |
+| `seq` 1..8（start + 6 delta + done = **8** 帧） | `ReportNarrationService:166` `int seq = 0` + **7 个写帧点写前自增**（`:172/176/180/185/192/202/209`） | **算术逐位吻合**（1 + 6 + 1 = 8 ⇒ seq 恰为 1..8） |
+| `stream opened status=200` 恰一次 | `HttpReportNarrationClient:144` 的 `log.info("report narration downstream stream opened … status=…")` | 吻合；"恰一次"= 单次下游调用，无重试放大 |
+| 错误路径下**下游打开计数仍为 1** | 抽取与校验发生在**开流之前**（`ReportNarrationService` 预流顺序 `:100-128`） | **决定性印证**：422 是**预流 fail-closed**，缺三组时**根本不产生任何下游 AI 调用** |
+| 无 spoken_text mismatch | `ReportNarrationSseParser:210-225` 对上界内累计的 delta 文本与 `completed.spoken_text` 做**逐字比较**，不一致才置标志并 `log.warn`（只记长度） | Oracle r2 **IMPORTANT 3** 的修法**在真实服务上首次得到确认**：484 字符拼接 == 完整 `spoken_text` |
+
+> 说明：§14.3 只证明"root 的观测与我方代码的既定行为一致"，**不构成 B 对该次运行的独立复核**
+> （B 没有该临时环境的访问权，也未重新执行）。
+
+### 14.4 这次**证明了**什么、**没有证明**什么（严格区分，不得混同）
+**已证明（在合成 V3 输入下）**：
+1. Java → **部署中的真实 llm-rag-api** 的 SSE 链路可通：认证请求头被接受；下游
+   `accepted`→`delta`×6→`completed` 正确映射为外部 `start`→`text_delta`×6→`done`；`seq` 严格连续；
+   响应头契约（200 / `text/event-stream` / `no-store` / `X-Request-Id`）成立；每帧三个 ID 一致。
+2. **增量拼接与下游完整文本逐字一致**（无 mismatch 告警）。
+3. **预流 fail-closed 在真实环境成立**：缺 `spots` → **422 `UNSUPPORTED_CONTRACT`** 且**未新开下游**。
+
+**未证明 / 仍未验证**：
+1. **当前 Worker 的 T05 `report_payload` 不可播报**——Worker 仍只写六键、不含三组 ⇒ **真实报告仍会 422**。
+   **真实 Worker 链路未打通**，这一点**没有**因本次联调而改变；解除条件仍是 §11 第 1 项
+   （D 上游补齐并冻结四键结构）。
+2. **`score=null` 的真实 AI 可接受性**——合成样例三组与全部 26 个 region 的 `score` **全非 null**
+   （B 独立结构复核，见 `remote-smoke-plan.md` §0.1）⇒ 本次**完全未触及**该分支。
+3. **原始左右口径**（画面左右 vs 受检者本人左右）——服务端**只原样转发**，一次成功调用**无法推断**
+   AI 采用哪种口径；若日后发现 AI 期望 `F`/`L`/`R` 或本人左右，**须停止并回报差异，不得自作映射**。
+4. 阈值与区域码口径**未经真实标定**；本次为**合成**数据，**不得**当作算法有效性或临床准确性证据。
+5. **取消路径**（客户端断开 → 及时关闭下游 AI 连接）本次**未在现场验证**；其证据仍只有离线的
+   `ReportNarrationStreamIT`（本地 stub）。
+6. 多实例/并发、长文本（接近解析器 200 000 字符上界）、下游超时与非 2xx 的**现场**行为**未覆盖**
+   （离线已由 17 项解析器测试与 14 项 StreamIT 覆盖）。
+
+**⇒ 一句话结论**：本次仅证明**合成 V3 输入下的 Java → 真实 AI 链路与预流错误路径**；
+**不证明**当前 Worker 报告可播报。**不得**据此声称"端到端已打通"。
