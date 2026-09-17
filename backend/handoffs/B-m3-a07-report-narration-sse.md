@@ -6,7 +6,7 @@
 > **第二轮整改（Oracle 判 FAIL）**：Oracle 第二轮对 `f68248f`+`ac574a1` 判 FAIL（2 BLOCKER + 2 IMPORTANT +
 > 1 SUGGESTION）。经 orchestrator 逐条读码核实**五项全部成立**，其中两项的**根因在 orchestrator 冻结的
 > 规格自身**：① `score`/`severity` 缺键被视为 null（**冻结规格** `.coordination/B-work/llm-narration-sse/spec.md` §4.2 只写"number 或 JSON null"、未写"键必须存在"）；
-> ② `toString()` 输出 base-url（规格 §5 说 baseUrl 可原样、§6.5 又说日志绝不含 base-url 主机，自相矛盾）。<br>本文后续凡写「规格 §N」均指该 `spec.md`；凡写「§N」不带"规格"二字者指本文档章节。
+> ② `toString()` 输出 base-url（规格 §5 说 baseUrl 可原样、§6.5 又说日志绝不含 base-url 主机，自相矛盾）。<br>**本文的三类章节引用**（此前我只声明了两类，漏了第三类，现补全）：①「规格 §N」或紧邻 `spec.md` 完整路径者 → 指冻结规格 `.coordination/B-work/llm-narration-sse/spec.md`；②「Oracle rN §M」→ 指该轮 **Oracle 裁定书**自身的章节，既非本文档亦非规格；③不带上述限定的裸「§N」→ 指本文档章节。同一句内已出现「规格 §」时，其后并列的裸「§N」沿用同一指向（如 §5 与 §6.5 并列）。
 > 已按 orchestrator 冻结的修法整改，见 §8。另三项（accepted 顺序与 seq 编号、完整文本一致性、测试固化错误状态机）
 > 为真实实现缺陷。**无任何静默偏离。**
 
@@ -177,7 +177,7 @@ report_ready 门禁缺口，2 文件 +65 −3) → **`550d628`**(r2 五项整改
 | BLOCKER 1 | `response.accepted` 未约束"首个且唯一"；且 `pump` 的 `int seq = 1` 下 **`start` 分支不自增** ⇒ 两个 accepted 会写出两个 seq=1 的 start、delta 先于 accepted 会产出无 start 的流、**未写任何帧就失败时 error 拿到 seq=2** | 实现缺陷（比我规格更严重，我核实后补全了三种后果） | `ReportNarrationSseParser:84,174-178,194`；`ReportNarrationService:166,172,176,180,185,192,202,209`（7 个写帧点统一"写前 `seq++`"） |
 | BLOCKER 2 | 缺 `score`/`severity` 键被**静默当成显式 null** 送给 AI | **我的规格缺陷**：规格 §4.2 只写"number 或 JSON null"、未写"键必须存在"，实施道按宽松方向解释 | `ReportNarrationScoreExtractor:143-153,181-204,207-225,228-243`（`has(key)` → `missing`；`isNull()` → 透传；类型/越界/空白 → `invalid`） |
 | IMPORTANT 3 | 一致性检测只比**字符长度**，同长度不同内容不会告警 | 实现弱于我的裁定 | `ReportNarrationSseParser:82,202-206,210-225,244-245`（200k 上界内累计文本、逐字比较、包级 `spokenTextMismatch()` 可测、日志只记长度、仍发 `done`） |
-| IMPORTANT 4 | `toString()` 输出裸 `baseUrl`（含内部主机） | **我的规格自相矛盾**：§5 说 baseUrl 可原样、§6.5 说日志绝不含 base-url 主机 | `ReportNarrationProperties:63-68`（`<configured>`/`<absent>`）；`normalizedBaseUrl():56-60` 仍返真实值 |
+| IMPORTANT 4 | `toString()` 输出裸 `baseUrl`（含内部主机） | **我的规格自相矛盾**：规格 §5 说 baseUrl 可原样、规格 §6.5 说日志绝不含 base-url 主机 | `ReportNarrationProperties:63-68`（`<configured>`/`<absent>`）；`normalizedBaseUrl():56-60` 仍返真实值 |
 | SUGGESTION 5 | `pumpFailedEventMapping` 用 `delta→failed`（无 accepted）**固化了错误状态机** | 测试缺陷 | 改为 `accepted→delta→failed`；`pumpDefensiveError` 增加 `seq==1` 断言 |
 
 ### 10.2 r3 八项裁定（全部"已闭合"）与 Oracle 的独立结论
@@ -213,7 +213,7 @@ service 14→15 / 52→55；StreamIT 12→14 / 68→76；client 12→12、provid
 `git diff --check` rc=0；无工件入 git；新增行中 `LTAI…`/`+86…`/私钥块/`dev.ai-skin`/`10.3.6.163`/
 非 loopback IP 命中**全 0**，两个容器口令字面量**均未写入**提交内容。
 
-## 11. 待总协调/根执行（Oracle r3 §5 与我一致）
+## 11. 待总协调/根执行（与 Oracle r3 裁定书 §5「总协调/根待办」一致）
 1. **D 上游补齐并冻结 `pores`/`spots`/`surface_gloss` 的四键结构**
    （`score`/`severity`/`name`/`regions`，region 项 `region`/`name`/`score`/`severity`）。
    在此之前真实报告必然 **422 fail-closed**，**端到端未打通**。
