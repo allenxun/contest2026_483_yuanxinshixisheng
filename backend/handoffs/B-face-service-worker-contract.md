@@ -335,7 +335,7 @@ bound to a different subject`，`details` 只含 `namespace`，**不回显**另�
 
 | FacePort 方法 | 调用 | 映射 |
 |---|---|---|
-| `quality(images)` | 对每个视角 `POST /v1/quality` | 全部 `min_acceptable=true` → `QualityResult("accepted", ())`；否则 `QualityResult("needs_retake", <不合格视角元组>)`。**任一视角调用失败 → 抛 `ProviderUnavailable`**，绝不把失败当合格 |
+| `quality(images)` | 对每个视角 `POST /v1/quality` | 逐视角判定：400 `NO_FACE`/`MULTI_FACES_AMBIGUOUS`/`IMAGE_DECODE_FAILED` 或 `min_acceptable=false` 将对应视角收入**规范顺序** `required_views`；**仅所有视角都有确定结果**才返回 `QualityResult("accepted", ())` / `QualityResult("needs_retake", required_views)`；传输/超时/5xx/未知失败**立即**抛 `ProviderUnavailable`（现有不可用异常），鉴权仍 `ProviderConfigError`；**瞬态失败支配部分重拍**（任何视角状态未知时不得输出 needs_retake；瞬态消退后重试收敛）；绝不把失败当合格。`same_person`/`search_1n` 映射不变。（2026-09-17 修订：总协调裁定+B 正式同意；对应 D 代码 `e006e6b`，Oracle 第四轮 PASS 零发现） |
 | `same_person(images)` | `POST /v1/compare`（按 D 选定策略两两或对着主视角比） | 全部 `matched=true` → `SamePersonResult(True)`；任一 `false` → `False`；调用失败 → `ProviderUnavailable` |
 | `search_1n(ns, images)` | `POST /v1/namespaces/{ns}/search`（建议用 `front`） | `decision` **直接**用作 `classification`（三值均在 Worker 词表内）；`matched` 时 `face_subject_ref = subject_id`，其余为 `None`。传输失败 → `ProviderUnavailable`；**4xx 参数/鉴权类 → `ProviderConfigError`**（不可重试），**5xx/超时 → `ProviderUnavailable`**（可重试） |
 | `register_person(ns, entity_id, images, correlation_id, provider_request_id)` | `POST /v1/namespaces/{ns}/subjects`，`subject_id=entity_id`，带两个对账键，**不传 `on_exists`**（用服务端默认 `conflict`）、**不传 `require_liveness`** | 201/200 → `success`；409 `SUBJECT_ALREADY_EXISTS` → `failed`；客户端超时 → `timeout`；5xx/`MODEL_*`/`STORE_UNAVAILABLE` → `unknown`；其它 4xx → `failed` |
