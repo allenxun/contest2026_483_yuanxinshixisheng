@@ -154,3 +154,73 @@ seq 列表、帧字节长度、delta/spoken_text 字符长度与耗时；绝不�
   **本轮权威数字以 55435 上重跑的 825 run / 0 / 0 / 18 skipped 为准**。
 - 教训：B 的 Java 测试基建与 Python 侧（`migrate.sh`/`createdb.sh` 读 `MVP_A_PG_CONTAINER`）
   **覆盖方式不同**，不可类推；此后 B 侧任何 Java 测试运行都必须显式设置 `MVP_A_PG_JDBC`。
+
+## 9. Oracle 审查链与最终交付 SHA
+
+| 轮次 | 被审 SHA | 裁定 | 发现 |
+|---|---|---|---|
+| r1 | `f68248f`（实现） | —— | 未单独送审（与门禁修复合并送审） |
+| r2 | `ac574a1` | **FAIL** | 2 BLOCKER + 2 IMPORTANT + 1 SUGGESTION |
+| **r3** | **`550d628`** | **PASS-with-notes** | **新发现：无**；八项逐条闭合 |
+
+**最终代码 SHA = `550d62834c60d6b89cce0f39cdd116c8222581ee`**，
+**Oracle reviewed SHA = 同一 SHA**。Oracle 原文：「**可以将 `550d628…` 作为本轮最终交付 SHA
+交总协调整合**」「不要求补跑验证」。
+
+提交链（全部普通提交，**无** reset/rebase/amend/改写历史）：
+`f3c29f0`(基线=dev) → `f68248f`(实现，29 文件 +4107 −320) → `ac574a1`(我自查发现的
+report_ready 门禁缺口，2 文件 +65 −3) → **`550d628`**(r2 五项整改 + 假陈述更正，10 文件 +513 −204)。
+
+### 9.1 r2 五项发现的核实与根因（我逐条读码核实，五项全部成立）
+| # | 发现 | 根因归属 | 修法落实 |
+|---|---|---|---|
+| BLOCKER 1 | `response.accepted` 未约束"首个且唯一"；且 `pump` 的 `int seq = 1` 下 **`start` 分支不自增** ⇒ 两个 accepted 会写出两个 seq=1 的 start、delta 先于 accepted 会产出无 start 的流、**未写任何帧就失败时 error 拿到 seq=2** | 实现缺陷（比我规格更严重，我核实后补全了三种后果） | `ReportNarrationSseParser:84,174-178,194`；`ReportNarrationService:166,172,176,180,185,192,202,209`（7 个写帧点统一"写前 `seq++`"） |
+| BLOCKER 2 | 缺 `score`/`severity` 键被**静默当成显式 null** 送给 AI | **我的规格缺陷**：§4.2 只写"number 或 JSON null"、未写"键必须存在"，实施道按宽松方向解释 | `ReportNarrationScoreExtractor:143-153,181-204,207-225,228-243`（`has(key)` → `missing`；`isNull()` → 透传；类型/越界/空白 → `invalid`） |
+| IMPORTANT 3 | 一致性检测只比**字符长度**，同长度不同内容不会告警 | 实现弱于我的裁定 | `ReportNarrationSseParser:82,202-206,210-225,244-245`（200k 上界内累计文本、逐字比较、包级 `spokenTextMismatch()` 可测、日志只记长度、仍发 `done`） |
+| IMPORTANT 4 | `toString()` 输出裸 `baseUrl`（含内部主机） | **我的规格自相矛盾**：§5 说 baseUrl 可原样、§6.5 说日志绝不含 base-url 主机 | `ReportNarrationProperties:63-68`（`<configured>`/`<absent>`）；`normalizedBaseUrl():56-60` 仍返真实值 |
+| SUGGESTION 5 | `pumpFailedEventMapping` 用 `delta→failed`（无 accepted）**固化了错误状态机** | 测试缺陷 | 改为 `accepted→delta→failed`；`pumpDefensiveError` 增加 `seq==1` 断言 |
+
+### 9.2 r3 八项裁定（全部"已闭合"）与 Oracle 的独立结论
+1. accepted 顺序纪律闭合，且**未过度收紧**（heartbeat 注释行仍在顺序检查**之前**被忽略
+   `:121-123`；`id`/`retry`/未知 SSE 字段仍按标准忽略 `:130-144`）。
+2. seq 编号闭合：7 个写帧点均"写入前恰好自增一次"，无遗漏、无双重自增；未写帧即失败 → seq=1，
+   start 后失败 → seq=2，正常流仍 1..N+2。
+3. 缺键 vs 显式 null 在**组级与 region 级都**正确区分；`details` 只含固定结构路径、不含值。
+4. 完整文本一致性闭合；累计文本受 200_000 上界约束，"最大额外内存约为两个受限字符串，仍有明确上界"。
+5. `toString()` 脱敏彻底且 `normalizedBaseUrl()` 未被误伤。
+6. **新增 11 项负向测试具备判别力**：「这些断言会在原实现上失败，不是恒真检查」。
+7. **既有测试调整未弱化**：「被删除的『缺失 severity 视为 null』断言与新合同冲突，现已由两组 422
+   和显式 null 正向测试分别覆盖，**替换更强**」；测试与断言数量均增加。
+8. **我的假陈述更正与容器处置被裁定为正确**：「811/814 是实际执行结果，但使用了未授权的 A 容器，
+   因此**不能作为资源纪律合规证据**」「不改写历史、明确披露，并以显式 55435 环境重跑的
+   **825/0/0/18** 作为权威证据，是正确处理」「已启动的 A 容器**不应由 B 继续擅自停止**；
+   由总协调/A 所有者决定恢复状态」。
+
+### 9.3 权威测试数字（orchestrator 亲跑，正确 env）
+`mvn -B test-compile` rc=0；Oracle 指定最小 7 类定向 **79 run / 0 / 0 / 0**，`ApiDocsCoverageIT`
+**1/0/0**；**全量 `mvn -B test`：825 run / 0 failures / 0 errors / 18 skipped，BUILD SUCCESS rc=0**
+（747 基线 → `f68248f` 811(+64) → `ac574a1` 814(+3) → `550d628` **825**(+11)，每轮增量与新增测试
+逐项吻合）；**117 份 surefire xml、幻影 0**；**端口证据只有 55435（20 次命中）、55432 零命中**；
+`ReportNarrationLiveSmokeIT` 全量内 **Tests run: 0**；日志中 `dev.ai-skin`/`assess:stream` 命中 **0**。
+`@Test` 与 `assert` 计数全程**只增不减**（parser 13→17 / assert 31→48；extractor 11→15 / 34→46；
+service 14→15 / 52→55；StreamIT 12→14 / 68→76；client 12→12、providers 6→6）。
+
+### 9.4 写域与禁区（相对基线 `f3c29f0`，全部 0）
+`worker-python`/`contracts`/`acceptance`/`backend/tests`/`doc`/`deploy`/`face-service`/
+`db/migration` diff **各 0 文件**；`pom.xml`（**未新增依赖**）、`ErrorCode.java`（**29 个未新增**）、
+`AssessmentReadService`/`AssessmentRepository`/`SkinReportService`（共享读路径）、
+`ReportNarrationStreamErrorAdvice`、`web/gimbalai/**` diff **各 0 行**；迁移仍恰为 **V1+V2**；
+`git diff --check` rc=0；无工件入 git；新增行中 `LTAI…`/`+86…`/私钥块/`dev.ai-skin`/`10.3.6.163`/
+非 loopback IP 命中**全 0**，两个容器口令字面量**均未写入**提交内容。
+
+## 10. 待总协调/根执行（Oracle r3 §5 与我一致）
+1. **D 上游补齐并冻结 `pores`/`spots`/`surface_gloss` 的四键结构**
+   （`score`/`severity`/`name`/`regions`，region 项 `region`/`name`/`score`/`severity`）。
+   在此之前真实报告必然 **422 fail-closed**，**端到端未打通**。
+2. **root 以明确合成数据执行一次三重 opt-in live smoke**（命令见 §7），确认：
+   `score=null` 是否被真实 AI 接受；region 命名与左右语义；AI 实际的
+   accepted/delta/completed 顺序与终态字段。**若真实合同与本文档不一致，必须回报并重新冻结，
+   不得添加 mock 回退或猜测转换。**
+3. **A 所有者决定是否停止被误启动的 `mvp-a-pg`**（B 不擅自停止；其 ephemeral 测试库已自行清理、
+   无残留，现仅 `mvp_a_dev`+`postgres`）。
+4. 既有人脸 `/v1/verify` 客户端 threshold 仍由总协调另行裁定，**与本轮无关**。
