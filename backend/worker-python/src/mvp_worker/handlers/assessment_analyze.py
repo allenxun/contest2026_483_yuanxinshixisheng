@@ -680,7 +680,9 @@ def _validate_v3_skin_groups(raw: Any) -> Optional[dict[str, Any]]:
 
     - 顶层**恰**三组键（缺任一或出现未知键 → 违约）；
     - 每组闭合键白名单 ``{score, severity, name, regions}``（未知键 → 违约）；
-    - ``score``：``null``（缺测）或数值 0..100（``bool`` 拒绝）；**绝不**把 null 变 0；
+    - ``score``：``null``（缺测）或数值 0..100（``bool`` 拒绝）；比较**不转 float**
+      （Python 整数比较精确/任意精度：``10**10000``/``inf``/``nan`` 一律判违约，
+      绝不逃逸为瞬时依赖错误）；**绝不**把 null 变 0；
     - ``severity``：``null`` 或冻结词表（``未见明显/轻度/中度/较明显/显著``）；
     - ``name``：非空字符串，**逐字保留**；
     - ``regions``：数组；元素闭合键白名单 ``{region, name, score, severity}``；
@@ -713,7 +715,7 @@ def _validate_v3_skin_groups(raw: Any) -> Optional[dict[str, Any]]:
         if score is not None and (
             not isinstance(score, (int, float))
             or isinstance(score, bool)
-            or not (0.0 <= float(score) <= 100.0)
+            or not (0 <= score <= 100)
         ):
             raise _ContractViolation(f"$.{group_key}.score: type/range violated")
         severity = group["severity"]
@@ -758,7 +760,7 @@ def _validate_v3_skin_groups(raw: Any) -> Optional[dict[str, Any]]:
             if region_score is not None and (
                 not isinstance(region_score, (int, float))
                 or isinstance(region_score, bool)
-                or not (0.0 <= float(region_score) <= 100.0)
+                or not (0 <= region_score <= 100)
             ):
                 raise _ContractViolation(
                     f"$.{group_key}.regions[{i}].score: type/range violated"

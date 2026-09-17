@@ -395,7 +395,11 @@ class SkinDouble:
         self._result_images = result_images
         self._invalid = invalid
         self._faults = _FaultInjector(faults)
-        self._v3_groups = v3_groups
+        # 构造期即深拷贝：调用方事后改动**传入的 dict** 不得影响后续结果
+        # （返回结果另经 analyze 内的逐调用深拷贝隔离）。
+        self._v3_groups = (
+            json.loads(json.dumps(v3_groups)) if v3_groups is not None else None
+        )
         if model_version is not None:
             self.model_version = model_version
         self.calls: dict[str, int] = {}
@@ -421,7 +425,7 @@ class SkinDouble:
             ]
         )
         self._apply_invalid(metrics)
-        # mock V3：每次调用返回独立深拷贝（调用方/发布方改动互不影响）。
+        # 每次调用返回独立深拷贝（调用方/发布方改动互不影响；构造期已另做一次深拷贝）。
         v3_groups = (
             json.loads(json.dumps(self._v3_groups)) if self._v3_groups is not None else None
         )

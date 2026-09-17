@@ -51,8 +51,42 @@ from mvp_worker.handlers.dshared.dskin_mock import (
     V3_SKIN_MOCK_MODEL_VERSION,
     V3_SKIN_SEVERITIES,
 )
-from mvp_worker.handlers.dshared.providers import FaceDouble, SkinDouble, build_skin_port
+from mvp_worker.handlers.dshared.providers import (
+    FaceDouble,
+    SkinAnalysisResult,
+    SkinDouble,
+    build_skin_port,
+)
 from mvp_worker.media.storage import FilesystemStorageDouble
+
+
+class _V3SkinStub:
+    """In-process SkinPort stub delivering ``v3_groups`` **verbatim** (no JSON copy).
+
+    Needed for pathological numeric shapes (``10**10000`` / ``inf`` / ``nan``) that
+    cannot round-trip through ``SkinDouble``'s JSON deep copy (Python 3.12 int→str
+    digit limit / non-standard JSON numbers).
+    """
+
+    provider_name = "double"
+    model_version = V3_SKIN_MOCK_MODEL_VERSION
+
+    def __init__(self, groups: dict[str, Any]) -> None:
+        self._groups = groups
+
+    def analyze(self, images: dict[str, bytes]) -> SkinAnalysisResult:
+        return SkinAnalysisResult(
+            conclusion="balanced",
+            metrics=[
+                {"name": "moisture", "value": 55.0, "unit": "percent"},
+                {"name": "oiliness", "value": 42.0, "unit": "percent"},
+                {"name": "smoothness", "value": 70.0, "unit": "score"},
+            ],
+            description="v3 stub",
+            result_images=[],
+            model_version=self.model_version,
+            v3_groups=self._groups,
+        )
 
 _V3_ENVS = (SKIN_V3_MOCK_ENV,)
 _PROD_SIGNALS = ("APP_ENV", "MVP_NOTIFY_ENV", "MVP_WORKER_ENVIRONMENT", "SPRING_PROFILES_ACTIVE")
@@ -119,7 +153,7 @@ def _enqueue_analyze(engine: Engine, aid: str, rev: int) -> str:
 
 
 def _run_publish(
-    engine: Engine, tmp_path: Any, skin: SkinDouble
+    engine: Engine, tmp_path: Any, skin: Any
 ) -> tuple[str, Any, str, dict[str, Any]]:
     ref = str(uuid.uuid4())
     storage, aid = _seed_analysis_case(engine, tmp_path, ref=ref)
@@ -226,6 +260,31 @@ def test_validator_rejects_duplicate_region_and_bad_item() -> None:
     bad_item["pores"]["regions"][0] = "not-an-object"
     with pytest.raises(_ContractViolation):
         _validate_v3_skin_groups(bad_item)
+
+
+@pytest.mark.parametrize("bad", [float("inf"), float("-inf"), float("nan")])
+def test_validator_rejects_non_finite_scores(bad: float) -> None:
+    """Oracle IMPORTANT：非有限数值必须判违约（比较不转 float，NaN/Inf 亦然）。"""
+    payload = _mock()
+    payload["pores"]["score"] = bad
+    with pytest.raises(_ContractViolation):
+        _validate_v3_skin_groups(payload)
+    region_payload = _mock()
+    region_payload["spots"]["regions"][0]["score"] = bad
+    with pytest.raises(_ContractViolation):
+        _validate_v3_skin_groups(region_payload)
+
+
+def test_validator_rejects_huge_int_scores() -> None:
+    """Oracle IMPORTANT：巨大整数不得因 float() 溢出逃逸为瞬时错误。"""
+    payload = _mock()
+    payload["pores"]["score"] = 10 ** 10000
+    with pytest.raises(_ContractViolation):
+        _validate_v3_skin_groups(payload)
+    region_payload = _mock()
+    region_payload["spots"]["regions"][0]["score"] = 10 ** 10000
+    with pytest.raises(_ContractViolation):
+        _validate_v3_skin_groups(region_payload)
 
 
 def test_validator_accepts_null_score_and_severity() -> None:
@@ -351,16 +410,59 @@ def test_publish_invalid_v3_is_terminal_and_unpolluted(
     assert assessment["report_payload"] is None
 
 
+@pytest.mark.parametrize("bad_label", ["huge_int", "inf", "nan"])
+@pytest.mark.parametrize("site", ["group", "region"])
+def test_publish_pathological_score_is_terminal(
+    engine: Engine, tmp_path: Any, bad_label: str, site: str
+) -> None:
+    """Oracle IMPORTANT：巨大整数/非有限 score 必须**终态**违约，绝不当瞬时依赖错误。
+
+    走 in-process stub（非 ``SkinDouble``）以保留 ``10**10000`` / ``inf`` / ``nan``
+    原始数值（JSON 无法承载）；label 化参数避免 pytest 对巨大整数取 str。
+    """
+    bad = {"huge_int": 10 ** 10000, "inf": float("inf"), "nan": float("nan")}[bad_label]
+    groups = _mock()
+    if site == "group":
+        groups["pores"]["score"] = bad
+    else:
+        groups["spots"]["regions"][0]["score"] = bad
+    status, exc, _aid, assessment = _run_publish(engine, tmp_path, _V3SkinStub(groups))
+    assert status == "failed", (status, exc)
+    assert exc is not None and exc.code == "PROVIDER_CONTRACT_VIOLATION", exc
+    assert exc.retryable is False
+    assert assessment["failure_code"] == "PROVIDER_CONTRACT_VIOLATION"
+    assert assessment["failure_code"] != "DEPENDENCY_UNAVAILABLE"
+    assert assessment["report_payload"] is None
+    assert assessment["report_id"] is None
+
+
+def test_publish_normal_score_via_double_constructor_still_publishes(
+    engine: Engine, tmp_path: Any
+) -> None:
+    """正常数值经 SkinDouble 构造期深拷贝后发布仍是原始值（隔离回归）。"""
+    status, exc, _aid, assessment = _run_publish(
+        engine, tmp_path, SkinDouble(v3_groups=_mock(), model_version=V3_SKIN_MOCK_MODEL_VERSION)
+    )
+    assert status == "succeeded", (status, exc)
+    assert assessment["report_payload"]["pores"]["score"] == 57.0
+
+
 def test_double_analyze_returns_independent_copies() -> None:
-    double = SkinDouble(v3_groups=_mock())
+    source = _mock()
+    double = SkinDouble(v3_groups=source)
     first = double.analyze({})
     second = double.analyze({})
     assert first.v3_groups == second.v3_groups
     assert first.v3_groups is not second.v3_groups
+    # 返回结果互相隔离
     first.v3_groups["pores"]["name"] = "mutated"
     assert second.v3_groups["pores"]["name"] == "毛孔"
-    # 也不回写构造来源
-    assert V3_SKIN_MOCK_GROUPS["pores"]["name"] == "毛孔"
+    # 构造期深拷贝：改动**实际传入构造函数的对象**也不影响后续结果
+    source["pores"]["name"] = "ctor-mutated"
+    source["spots"]["regions"][0]["score"] = 999
+    third = double.analyze({})
+    assert third.v3_groups["pores"]["name"] == "毛孔"
+    assert third.v3_groups["spots"]["regions"][0]["score"] == 38.0
 
 
 # ================================================================ 3) 开关 / 生产守卫
