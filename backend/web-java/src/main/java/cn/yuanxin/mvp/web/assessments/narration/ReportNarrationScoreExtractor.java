@@ -26,8 +26,14 @@ import java.util.Set;
  *
  * <p><b>恰好四键白名单</b>：每组只序列化 {@code score}/{@code severity}/{@code name}/{@code regions}，
  * 每个 region 只序列化 {@code region}/{@code name}/{@code score}/{@code severity}。未知键丢弃，
- * 但会 {@code log.warn} 记录<b>被丢弃的键名</b>（组名 + 键名，<b>绝不记录值</b>）以便发现上游契约漂移。
- * 缺失的 {@code score}/{@code severity} 视为 JSON null（既非类型错误也非拒绝）。</p>
+ * 但会 {@code log.warn} 记录<b>被丢弃的键名</b>（组名 + 键名，<b>绝不记录值</b>）以便发现上游契约漂移。</p>
+ *
+ * <p><b>键缺失 vs 显式 null（必须区分）</b>：组级与 region 级的四键<b>必须存在</b>（{@code has(key)}）。
+ * <b>缺键</b> → 键路径进 {@code details.missing}（例如 {@code pores.score}、
+ * {@code pores.regions[0].score}）；<b>显式 JSON {@code null}</b> → 映射为 Java {@code null} 并原样透传
+ * （裁定 A，绝不 coerce 成 0）。二者语义不同：缺键代表上游未提供该评分，显式 null 代表上游明确声明"无值"。
+ * 两类问题任一非空即 422 fail-closed，{@code details} 只含结构性键路径（{@code missing}/{@code invalid}），
+ * 绝不含任何评分值、区域值或报告内容。{@code invalid} = 键存在但类型/取值/空白不合法。</p>
  *
  * <p><b>裁定 A（{@code score=null}）</b>：V3 明确 score 可为 null，且任务书要求接受/拒绝以正式
  * AI 合同与真实响应为准、不一致则回报、不猜值。在无法访问真实 AI（无凭据）的前提下，唯一不编造的
@@ -121,36 +127,45 @@ final class ReportNarrationScoreExtractor {
         warnUnknownKeys(groupName, node, GROUP_KEYS);
 
         int invalidBefore = invalid.size();
-        BigDecimal score = readScore(node.get("score"), groupName + ".score", invalid);
-        String severity = readSeverity(node.get("severity"), groupName + ".severity", invalid);
-        String name = readName(node.get("name"), groupName + ".name", invalid);
+        int missingBefore = missing.size();
+        BigDecimal score = readScore(node, "score", groupName + ".score", missing, invalid);
+        String severity = readSeverity(node, "severity", groupName + ".severity", missing, invalid);
+        String name = readRequiredText(node, "name", groupName + ".name", missing, invalid);
         List<ReportNarrationScores.Region> regions =
-                readRegions(node.get("regions"), groupName, invalid);
-        if (invalid.size() != invalidBefore || name == null || regions == null) {
+                readRegions(node, groupName, missing, invalid);
+        if (invalid.size() != invalidBefore || missing.size() != missingBefore
+                || name == null || regions == null) {
             return null;
         }
         return new ReportNarrationScores.ScoreGroup(score, severity, name, regions);
     }
 
     private static List<ReportNarrationScores.Region> readRegions(JsonNode node, String groupName,
+                                                                  List<String> missing,
                                                                   List<String> invalid) {
-        if (node == null || !node.isArray() || node.isEmpty()) {
+        if (!node.has("regions")) {
+            missing.add(groupName + ".regions");
+            return null;
+        }
+        JsonNode regionsNode = node.get("regions");
+        if (regionsNode.isNull() || !regionsNode.isArray() || regionsNode.isEmpty()) {
             invalid.add(groupName + ".regions");
             return null;
         }
         List<ReportNarrationScores.Region> regions = new ArrayList<>();
-        for (int i = 0; i < node.size(); i++) {
-            JsonNode region = node.get(i);
+        for (int i = 0; i < regionsNode.size(); i++) {
+            JsonNode region = regionsNode.get(i);
             String path = groupName + ".regions[" + i + "]";
             if (!region.isObject()) {
                 invalid.add(path);
                 continue;
             }
             warnUnknownKeys(path, region, REGION_KEYS);
-            String regionCode = readName(region.get("region"), path + ".region", invalid);
-            String regionName = readName(region.get("name"), path + ".name", invalid);
-            BigDecimal regionScore = readScore(region.get("score"), path + ".score", invalid);
-            String regionSeverity = readSeverity(region.get("severity"), path + ".severity", invalid);
+            String regionCode = readRequiredText(region, "region", path + ".region", missing, invalid);
+            String regionName = readRequiredText(region, "name", path + ".name", missing, invalid);
+            BigDecimal regionScore = readScore(region, "score", path + ".score", missing, invalid);
+            String regionSeverity =
+                    readSeverity(region, "severity", path + ".severity", missing, invalid);
             if (regionCode != null && regionName != null) {
                 regions.add(new ReportNarrationScores.Region(
                         regionCode, regionName, regionScore, regionSeverity));
@@ -163,9 +178,18 @@ final class ReportNarrationScoreExtractor {
         return regions;
     }
 
-    /** {@code score}：number 且 0–100，或 null；缺失视为 null。其它类型/越界 → invalid。 */
-    private static BigDecimal readScore(JsonNode node, String path, List<String> invalid) {
-        if (node == null || node.isNull()) {
+    /**
+     * {@code score}：键<b>必须存在</b>；显式 {@code null} → Java {@code null}（裁定 A，原样透传，
+     * 绝不 coerce 成 0）；number 且 0–100 保留；其它类型/越界 → {@code invalid}；缺键 → {@code missing}。
+     */
+    private static BigDecimal readScore(JsonNode parent, String key, String path,
+                                        List<String> missing, List<String> invalid) {
+        if (!parent.has(key)) {
+            missing.add(path);
+            return null;
+        }
+        JsonNode node = parent.get(key);
+        if (node.isNull()) {
             return null;
         }
         if (!node.isNumber()) {
@@ -180,9 +204,18 @@ final class ReportNarrationScoreExtractor {
         return value;
     }
 
-    /** {@code severity}：非空白 string，或 null；缺失视为 null。其它类型/空白 → invalid。 */
-    private static String readSeverity(JsonNode node, String path, List<String> invalid) {
-        if (node == null || node.isNull()) {
+    /**
+     * {@code severity}：键<b>必须存在</b>；显式 {@code null} → Java {@code null}（原样透传）；
+     * 非空白 string 保留；其它类型/空白 → {@code invalid}；缺键 → {@code missing}。
+     */
+    private static String readSeverity(JsonNode parent, String key, String path,
+                                       List<String> missing, List<String> invalid) {
+        if (!parent.has(key)) {
+            missing.add(path);
+            return null;
+        }
+        JsonNode node = parent.get(key);
+        if (node.isNull()) {
             return null;
         }
         if (!node.isTextual() || node.asText().isBlank()) {
@@ -192,9 +225,18 @@ final class ReportNarrationScoreExtractor {
         return node.asText();
     }
 
-    /** {@code name}/{@code region}：必需、非空白 string。 */
-    private static String readName(JsonNode node, String path, List<String> invalid) {
-        if (node == null || !node.isTextual() || node.asText().isBlank()) {
+    /**
+     * {@code name}/{@code region} 等必需文本：键<b>必须存在</b>（缺键 → {@code missing}）；
+     * 非空白 string 保留；其它类型/空白（含显式 null）→ {@code invalid}。
+     */
+    private static String readRequiredText(JsonNode parent, String key, String path,
+                                           List<String> missing, List<String> invalid) {
+        if (!parent.has(key)) {
+            missing.add(path);
+            return null;
+        }
+        JsonNode node = parent.get(key);
+        if (!node.isTextual() || node.asText().isBlank()) {
             invalid.add(path);
             return null;
         }

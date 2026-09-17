@@ -10,7 +10,9 @@ import java.util.List;
  *
  * <p><b>安全</b>：本类只读环境/config；仓库内只允许安全占位（默认空 = 未配置），
  * 绝不硬编码真实服务地址或密钥。缺失校验只输出<b>键名</b>；{@link #toString()}
- * 对 api-key 脱敏。base-url 被允许原样输出（它不是凭据），但仓库内默认必须为空。</p>
+ * 对 api-key 脱敏。<b>base-url 虽非凭据，但会暴露内部主机，故 {@link #toString()} 同样不输出实际值</b>
+ * （只给 {@code <configured>}/{@code <absent>}）；{@link #normalizedBaseUrl()} 仍返回<b>真实值</b>
+ * 供客户端拼接 URL。</p>
  *
  * <p><b>read-timeout 默认 30000ms 的理由</b>：它是 {@code TimeoutLineSource} 的
  * <b>每行/每次 poll</b> 超时（不是整段播报的总时长）。报告播报是长文本生成，逐段下发之间
@@ -60,7 +62,7 @@ public record ReportNarrationProperties(
 
     @Override
     public String toString() {
-        return "ReportNarrationProperties[baseUrl=" + baseUrl
+        return "ReportNarrationProperties[baseUrl=" + (baseUrl == null ? "<absent>" : "<configured>")
                 + ", apiKey=" + (apiKey == null ? "<absent>" : "<redacted>")
                 + ", connectTimeoutMillis=" + connectTimeoutMillis
                 + ", readTimeoutMillis=" + readTimeoutMillis + "]";

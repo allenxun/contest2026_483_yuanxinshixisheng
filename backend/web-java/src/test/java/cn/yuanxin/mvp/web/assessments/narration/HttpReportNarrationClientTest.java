@@ -323,7 +323,7 @@ class HttpReportNarrationClientTest {
     }
 
     @Test
-    @DisplayName("properties：缺失键只列键名、api-key 脱敏、read-timeout 默认 30s")
+    @DisplayName("properties：缺失键只列键名；api-key 与 base-url 均脱敏；normalizedBaseUrl 仍返真实值")
     void propertiesRedactionAndDefaults() {
         ReportNarrationProperties empty = new ReportNarrationProperties("", "", null, null);
         assertThat(empty.missingRequiredKeys())
@@ -334,6 +334,8 @@ class HttpReportNarrationClientTest {
 
         ReportNarrationProperties configured = properties("http://127.0.0.1:1/", 3000, 10000);
         assertThat(configured.normalizedBaseUrl()).isEqualTo("http://127.0.0.1:1");
-        assertThat(configured.toString()).doesNotContain(API_KEY).contains("<redacted>");
+        // toString() 绝不含实际主机（base-url 虽非凭据，但会暴露内部主机）；仅客户端用真实值。
+        assertThat(configured.toString()).doesNotContain(API_KEY)
+                .doesNotContain("127.0.0.1").contains("<redacted>").contains("<configured>");
     }
 }

@@ -291,26 +291,43 @@ class ReportNarrationServiceTest {
     @DisplayName("pump 下游 response.failed code 含 TIMEOUT → error DEPENDENCY_TIMEOUT，否则 UNAVAILABLE")
     void pumpFailedEventMapping() throws Exception {
         FakeStream timeout = new FakeStream(List.of(
+                ReportNarrationEvent.accepted(),
                 ReportNarrationEvent.delta("a"),
                 ReportNarrationEvent.failed("AI_UPSTREAM_TIMEOUT")));
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         service.pump(new ReportNarrationService.Session(timeout, "r", taskId.toString(),
                 reportId.toString()), out);
-        assertThat(JSON.readTree(parseFrames(out.toString(StandardCharsets.UTF_8)).get(1)[1])
+        assertThat(JSON.readTree(parseFrames(out.toString(StandardCharsets.UTF_8)).get(2)[1])
                 .path("code").asText()).isEqualTo("DEPENDENCY_TIMEOUT");
 
         FakeStream unavailable = new FakeStream(List.of(
+                ReportNarrationEvent.accepted(),
                 ReportNarrationEvent.delta("a"),
                 ReportNarrationEvent.failed("AI_INTERNAL")));
         out = new ByteArrayOutputStream();
         service.pump(new ReportNarrationService.Session(unavailable, "r", taskId.toString(),
                 reportId.toString()), out);
-        assertThat(JSON.readTree(parseFrames(out.toString(StandardCharsets.UTF_8)).get(1)[1])
+        assertThat(JSON.readTree(parseFrames(out.toString(StandardCharsets.UTF_8)).get(2)[1])
                 .path("code").asText()).isEqualTo("DEPENDENCY_UNAVAILABLE");
     }
 
     @Test
-    @DisplayName("pump 循环无终态结束 → 防御性 error（绝不静默成功）")
+    @DisplayName("下游未发 accepted 即失败 → 外部只有恰一个 error 帧且其 seq == 1（无 start）")
+    void pumpFailureWithoutAcceptedHasErrorSeqOne() throws Exception {
+        FakeStream stream = new FakeStream(List.of(),
+                new ReportNarrationException(ReportNarrationFailureKind.MALFORMED, "no accepted"));
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        service.pump(new ReportNarrationService.Session(stream, "req-1", taskId.toString(),
+                reportId.toString()), out);
+
+        List<String[]> frames = parseFrames(out.toString(StandardCharsets.UTF_8));
+        assertThat(frames).extracting(f -> f[0]).containsExactly("error");
+        assertThat(JSON.readTree(frames.get(0)[1]).path("seq").asInt()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("pump 循环无终态结束 → 防御性 error（绝不静默成功），seq == 1")
     void pumpDefensiveError() throws Exception {
         FakeStream stream = new FakeStream(List.of());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -318,6 +335,7 @@ class ReportNarrationServiceTest {
                 reportId.toString()), out);
         List<String[]> frames = parseFrames(out.toString(StandardCharsets.UTF_8));
         assertThat(frames).extracting(f -> f[0]).containsExactly("error");
+        assertThat(JSON.readTree(frames.get(0)[1]).path("seq").asInt()).isEqualTo(1);
     }
 
     @Test

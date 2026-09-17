@@ -20,9 +20,14 @@ import java.util.Set;
  * （成功终态；{@code data.spoken_text} 权威）、{@code response.failed}（终态失败，
  * {@code code} 仅作诊断）。</p>
  *
+ * <p><b>顺序纪律（fail-closed）</b>：{@code response.accepted} 必须且只能是流的<b>第一个</b>事件；
+ * 首个事件不是 accepted（含 delta/终态先到）→ {@code MALFORMED}；重复 accepted → {@code MALFORMED}。
+ * 这保证外部 {@code start} 恰一帧且 seq=1。</p>
+ *
  * <p><b>fail-closed</b>：未知事件、事件后又有事件（含重复终态）、缺终态（EOF）、
  * 事件缺 data、data 非 JSON/非对象、{@code response.delta} 缺文本、
- * {@code response.completed} 缺非空 {@code spoken_text}、事件数/累计增量越界 → 抛
+ * {@code response.completed} 缺非空 {@code spoken_text}、事件顺序违规（缺首 accepted / 重复 accepted）、
+ * 事件数/累计增量越界 → 抛
  * {@link ReportNarrationException}（{@code MALFORMED}）。读取超时/传输失败由行源抛
  * {@code TIMEOUT}/{@code UNAVAILABLE}。绝不返回部分/合成文案。</p>
  *
@@ -31,8 +36,10 @@ import java.util.Set;
  *   <li><b>零 delta 即失败</b>：{@code completed} 到达时一个 delta 都没发过 → {@code MALFORMED}，
  *       外部只发一个 {@code error} 终态。理由：设备将朗读不到任何内容却收到 {@code done}，那是假成功。</li>
  *   <li><b>拼接与 {@code spoken_text} 不一致只告警不失败</b>：累计 delta 与
- *       {@code completed.spoken_text} 不等时，{@code log.warn} 记录<b>两者的字符长度</b>
- *       （绝不记录内容），仍正常发 {@code done}。理由：文本已真实逐段送达客户端，AI 自身摘要与
+ *       {@code completed.spoken_text} <b>逐字比较</b>（同长度不同内容也会命中），不等时
+ *       {@code log.warn} 记录<b>两者的字符长度</b>（绝不记录内容），仍正常发 {@code done}。
+ *       是否不一致可由包级 {@link #spokenTextMismatch()} 直接断言（不靠捕获日志）。
+ *       理由：文本已真实逐段送达客户端，AI 自身摘要与
  *       其增量不一致属下游内部矛盾；在已送达全部文本后再发 {@code error} 会让设备在朗读完毕后显示失败。</li>
  * </ol>
  *
@@ -72,7 +79,10 @@ final class ReportNarrationSseParser implements AutoCloseable {
     private boolean hasData;
     private int eventCount;
     private int accumulatedChars;
+    private final StringBuilder accumulatedText = new StringBuilder();
     private boolean deltaSeen;
+    private boolean acceptedSeen;
+    private boolean spokenTextMismatch;
 
     ReportNarrationSseParser(ReportNarrationLineSource source) {
         this.source = source;
@@ -160,6 +170,13 @@ final class ReportNarrationSseParser implements AutoCloseable {
         if (terminalSeen) {
             throw malformed("stream event after the terminal event");
         }
+        // 顺序纪律：response.accepted 必须且只能是流的第一个事件（heartbeat 走注释行，不算事件）。
+        if (!acceptedSeen && !"response.accepted".equals(name)) {
+            throw malformed("stream event before response.accepted");
+        }
+        if (acceptedSeen && "response.accepted".equals(name)) {
+            throw malformed("duplicate response.accepted");
+        }
         if (payload == null) {
             throw malformed("stream event missing data");
         }
@@ -173,7 +190,10 @@ final class ReportNarrationSseParser implements AutoCloseable {
             throw malformed("stream event data is not a JSON object");
         }
         switch (name) {
-            case "response.accepted" -> ready.add(ReportNarrationEvent.accepted());
+            case "response.accepted" -> {
+                acceptedSeen = true;
+                ready.add(ReportNarrationEvent.accepted());
+            }
             case "response.delta" -> {
                 JsonNode delta = root.get("delta");
                 if (delta == null || !delta.isTextual()) {
@@ -183,6 +203,7 @@ final class ReportNarrationSseParser implements AutoCloseable {
                 if (accumulatedChars > MAX_ACCUMULATED_CHARS) {
                     throw malformed("accumulated delta exceeded the maximum length");
                 }
+                accumulatedText.append(delta.asText());
                 deltaSeen = true;
                 ready.add(ReportNarrationEvent.delta(delta.asText()));
             }
@@ -197,8 +218,9 @@ final class ReportNarrationSseParser implements AutoCloseable {
                 if (!deltaSeen) {
                     throw malformed("response.completed arrived without any delta");
                 }
-                if (accumulatedChars != text.asText().length()) {
+                if (!accumulatedText.toString().equals(text.asText())) {
                     // 绝不记录内容：只记两者字符长度。
+                    spokenTextMismatch = true;
                     log.warn("report narration spoken_text mismatch accumulatedChars={} completedChars={}",
                             accumulatedChars, text.asText().length());
                 }
@@ -213,6 +235,14 @@ final class ReportNarrationSseParser implements AutoCloseable {
             }
             default -> throw malformed("unknown stream event");
         }
+    }
+
+    /**
+     * 累计 delta 的完整文本与 {@code completed.spoken_text} 是否<b>逐字</b>不一致。
+     * 仅供单测直接断言，绝不暴露任何文本内容。
+     */
+    boolean spokenTextMismatch() {
+        return spokenTextMismatch;
     }
 
     @Override

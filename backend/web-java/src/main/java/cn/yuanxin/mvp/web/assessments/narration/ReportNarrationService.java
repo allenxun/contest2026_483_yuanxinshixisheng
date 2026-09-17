@@ -152,17 +152,26 @@ public class ReportNarrationService {
     /**
      * 消费下游事件并逐事件重编码为外部 SSE 写到 {@code out}。
      *
-     * <p>外部事件序列：{@code start}（seq 1）→ {@code text_delta}×N（seq 逐个 +1）→
-     * {@code done}（成功终态）；失败则以恰一个 {@code error} 终态替代。每事件即时 flush，
-     * 绝不缓冲整段文案。客户端断开（写 IOException）时不写 error 终态，直接上抛。</p>
+     * <p><b>seq 纪律（无特例）</b>：{@code seq} 恒等于"已写出的外部帧数 + 1"，即
+     * <b>每一次 writeEvent/writeError 之前立即自增</b>，对 {@code start}/{@code text_delta}/
+     * {@code done}/{@code error} 一律同一规则。正常流可见结果 = {@code start}(1) →
+     * {@code text_delta}(2..N+1) → {@code done}(N+2)；异常路径（例如下游首个事件就失败）从 0 起
+     * 自增，故唯一一个 {@code error} 帧拿到 {@code seq=1}。</p>
+     *
+     * <p>外部事件序列：成功时 {@code start} → {@code text_delta}×N → {@code done}；失败则以恰一个
+     * {@code error} 终态替代。每事件即时 flush，绝不缓冲整段文案。客户端断开（写 IOException）时
+     * 不写 error 终态，直接上抛。</p>
      */
     public void pump(Session session, OutputStream out) throws IOException {
-        int seq = 1;
+        int seq = 0;
         try {
             ReportNarrationEvent event;
             while ((event = session.stream().next()) != null) {
                 switch (event.type()) {
-                    case ACCEPTED -> writeEvent(out, "start", json(payload(session, seq, null)));
+                    case ACCEPTED -> {
+                        seq++;
+                        writeEvent(out, "start", json(payload(session, seq, null)));
+                    }
                     case DELTA -> {
                         seq++;
                         writeEvent(out, "text_delta", json(payload(session, seq, event.delta())));

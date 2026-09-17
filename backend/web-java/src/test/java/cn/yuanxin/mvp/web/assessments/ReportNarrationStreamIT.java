@@ -491,6 +491,38 @@ class ReportNarrationStreamIT {
     }
 
     @Test
+    @DisplayName("下游未发 accepted 直接 delta 即失败 → 外部只有恰一个 error 帧且 seq == 1")
+    void downstreamWithoutAcceptedYieldsSingleErrorSeqOne() throws Exception {
+        Fixture fixture = seedReportReadyTask(VALID_PAYLOAD);
+        STUB.script(List.of(ReportNarrationAiStub.delta("a")));
+
+        List<Frame> frames = requestFrames(fixture);
+
+        assertThat(frames).extracting(Frame::event).containsExactly("error");
+        assertThat(JSON.readTree(frames.get(0).data()).path("seq").asInt()).isEqualTo(1);
+        assertThat(frames).noneMatch(f -> "start".equals(f.event()));
+        assertThat(frames).noneMatch(f -> "done".equals(f.event()));
+    }
+
+    @Test
+    @DisplayName("下游重复 accepted → 外部 error 终态且恰一个 start（绝不两个 start）")
+    void duplicateAcceptedYieldsErrorInsteadOfTwoStarts() throws Exception {
+        Fixture fixture = seedReportReadyTask(VALID_PAYLOAD);
+        STUB.script(List.of(
+                ReportNarrationAiStub.accepted(),
+                ReportNarrationAiStub.accepted(),
+                ReportNarrationAiStub.delta("a"),
+                ReportNarrationAiStub.completed("a")));
+
+        List<Frame> frames = requestFrames(fixture);
+
+        assertThat(frames).extracting(Frame::event).containsExactly("start", "error");
+        assertThat(frames.stream().filter(f -> "start".equals(f.event())).count()).isEqualTo(1);
+        assertThat(frames.stream().filter(f -> "error".equals(f.event())).count()).isEqualTo(1);
+        assertThat(frames).noneMatch(f -> "done".equals(f.event()));
+    }
+
+    @Test
     @DisplayName("外部客户端断开 → 下游 AI 连接被关闭（stub 观测断开）")
     void clientDisconnectClosesDownstream() throws Exception {
         Fixture fixture = seedReportReadyTask(VALID_PAYLOAD);
