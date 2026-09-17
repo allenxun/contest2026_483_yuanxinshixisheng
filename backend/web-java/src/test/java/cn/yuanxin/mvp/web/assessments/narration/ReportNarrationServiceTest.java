@@ -143,6 +143,56 @@ class ReportNarrationServiceTest {
     }
 
     @Test
+    @DisplayName("report_ready 门禁复核：行状态已不是 report_ready → 404，下游请求数 == 0")
+    void staleStatusFailsClosedWithoutDownstream() {
+        // getTask 与 findByReportId 是两次独立查询；其间 Worker 可能把任务转入补拍并改写 status。
+        // 若不复核，就会把一份已被取代的报告送给 AI。
+        when(readService.getTask(eq(taskId), any())).thenReturn(view(reportId.toString()));
+        when(repository.findByReportId(reportId)).thenReturn(Optional.of(
+                new AssessmentRepository.ReportRow(taskId, gimbalId, UUID.randomUUID(),
+                        "analyzing", VALID_PAYLOAD, Instant.now())));
+
+        assertThatThrownBy(() -> service.openStream(gimbal(), taskId))
+                .isInstanceOf(ApiException.class)
+                .satisfies(thrown -> {
+                    ApiException failure = (ApiException) thrown;
+                    assertThat(failure.getCode()).isEqualTo(ErrorCode.RESOURCE_NOT_VISIBLE);
+                    assertThat(failure.getHttpStatus()).isEqualTo(404);
+                });
+        assertThat(client.openCalls).isZero();
+    }
+
+    @Test
+    @DisplayName("归属复核：findByReportId 返回的行不属于本任务 → 404，下游请求数 == 0")
+    void foreignRowFailsClosedWithoutDownstream() {
+        // uq_assessment_report UNIQUE(report_id) 已保证 report_id 全局唯一，故本条是纵深防御：
+        // 即使将来 schema 变化或查询被误用，也绝不把别的任务的报告载荷送去播报。
+        when(readService.getTask(eq(taskId), any())).thenReturn(view(reportId.toString()));
+        when(repository.findByReportId(reportId)).thenReturn(Optional.of(
+                new AssessmentRepository.ReportRow(UUID.randomUUID(), gimbalId, UUID.randomUUID(),
+                        "report_ready", VALID_PAYLOAD, Instant.now())));
+
+        assertThatThrownBy(() -> service.openStream(gimbal(), taskId))
+                .isInstanceOf(ApiException.class)
+                .satisfies(thrown -> assertThat(((ApiException) thrown).getCode())
+                        .isEqualTo(ErrorCode.RESOURCE_NOT_VISIBLE));
+        assertThat(client.openCalls).isZero();
+    }
+
+    @Test
+    @DisplayName("findByReportId 无行 → 404，下游请求数 == 0")
+    void missingReportRowFailsClosedWithoutDownstream() {
+        when(readService.getTask(eq(taskId), any())).thenReturn(view(reportId.toString()));
+        when(repository.findByReportId(reportId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.openStream(gimbal(), taskId))
+                .isInstanceOf(ApiException.class)
+                .satisfies(thrown -> assertThat(((ApiException) thrown).getCode())
+                        .isEqualTo(ErrorCode.RESOURCE_NOT_VISIBLE));
+        assertThat(client.openCalls).isZero();
+    }
+
+    @Test
     @DisplayName("合法 payload → 以解析后的三项打开下游")
     void validPayloadOpensDownstream() {
         when(readService.getTask(eq(taskId), any())).thenReturn(view(reportId.toString()));

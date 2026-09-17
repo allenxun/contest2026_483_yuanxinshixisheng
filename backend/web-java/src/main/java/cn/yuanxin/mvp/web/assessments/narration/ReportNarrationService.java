@@ -37,6 +37,9 @@ import java.util.UUID;
  *       禁止修改 {@link AssessmentRepository}。两者冲突时以"不得改共享读路径"为准，改用既有的
  *       {@code findByReportId(reportId)} → {@code ReportRow.reportPayload()}（规格同句给出的行号
  *       {@code AssessmentRepository:84,91} 正指向该方法）。此为第二次查询，为不改共享读路径而接受；</li>
+ *   <li><b>report_ready 门禁复核</b>：{@code row.status()} 必须仍为 {@code report_ready} 且
+ *       {@code row.id()} 必须等于 {@code taskId}，否则 404 {@code RESOURCE_NOT_VISIBLE}
+ *       （与 {@code SkinReportService:110-112} 同口径；两次查询之间任务可能已转入补拍）；</li>
  *   <li>payload 为空/空白 → 404 {@code RESOURCE_NOT_VISIBLE}；</li>
  *   <li>校验三项结构（{@link ReportNarrationScoreExtractor}）：缺/非法 → 422
  *       {@code UNSUPPORTED_CONTRACT}（fail-closed，绝不用 {@code metrics} 伪映射、绝不回退 mock、
@@ -102,9 +105,18 @@ public class ReportNarrationService {
             throw notReady();
         }
         String reportId = view.reportId();
-        String payload = assessmentRepository.findByReportId(UUID.fromString(reportId))
-                .map(AssessmentRepository.ReportRow::reportPayload)
-                .orElse(null);
+        AssessmentRepository.ReportRow row = assessmentRepository
+                .findByReportId(UUID.fromString(reportId))
+                .orElseThrow(ReportNarrationService::notReady);
+        // report_ready 门禁（任务书明令保留）+ 归属复核。与 SkinReportService:110-112 同口径：
+        // getTask 与 findByReportId 是两次独立查询，其间 Worker 可能把任务转入补拍并改写
+        // status/report_id，故必须在此重新确认"这一行仍是 report_ready"，否则会把一份已被
+        // 取代的报告送给 AI。uq_assessment_report UNIQUE(report_id)（V1:198）保证 report_id
+        // 全局唯一，所以显式的 id==taskId 复核是纵深防御（防将来 schema 变化），不是唯一保障。
+        if (!"report_ready".equals(row.status()) || !taskId.equals(row.id())) {
+            throw notReady();
+        }
+        String payload = row.reportPayload();
         if (payload == null || payload.isBlank()) {
             throw notReady();
         }
