@@ -312,6 +312,53 @@ def test_severity_vocabulary_matches_field_doc() -> None:
                 assert region["severity"] in V3_SKIN_SEVERITIES
 
 
+# --- Coordinator ruling §688: align with B SSE extractor rejection semantics ---
+
+
+@pytest.mark.parametrize("group_key", list(V3_SKIN_GROUP_KEYS))
+def test_validator_rejects_empty_regions(group_key: str) -> None:
+    """空 regions 数组 → 违约（对齐 B ReportNarrationScoreExtractor.java:151/:174-176）。"""
+    payload = _mock()
+    payload[group_key]["regions"] = []
+    with pytest.raises(_ContractViolation):
+        _validate_v3_skin_groups(payload)
+
+
+@pytest.mark.parametrize("blank", [" ", "\t\n", "　"])  # 含全角 U+3000
+def test_validator_rejects_blank_group_name(blank: str) -> None:
+    payload = _mock()
+    payload["pores"]["name"] = blank
+    with pytest.raises(_ContractViolation):
+        _validate_v3_skin_groups(payload)
+
+
+@pytest.mark.parametrize("blank", [" ", "\t\n", "　"])
+def test_validator_rejects_blank_region_name(blank: str) -> None:
+    payload = _mock()
+    payload["spots"]["regions"][0]["name"] = blank
+    with pytest.raises(_ContractViolation):
+        _validate_v3_skin_groups(payload)
+
+
+@pytest.mark.parametrize("blank", [" ", "\t\n", "　"])
+def test_validator_rejects_blank_region_code(blank: str) -> None:
+    payload = _mock()
+    payload["surface_gloss"]["regions"][0]["region"] = blank
+    with pytest.raises(_ContractViolation):
+        _validate_v3_skin_groups(payload)
+
+
+def test_validator_internal_whitespace_not_trimmed() -> None:
+    """仅拒绝空白串；含内部空白的值**逐字保留**（不 trim）。"""
+    payload = _mock()
+    payload["pores"]["name"] = "额 部"
+    payload["pores"]["regions"][0]["name"] = "额 部"
+    normalized = _validate_v3_skin_groups(payload)
+    assert normalized is not None
+    assert normalized["pores"]["name"] == "额 部"
+    assert normalized["pores"]["regions"][0]["name"] == "额 部"
+
+
 # ================================================================ 2) 发布集成
 
 
@@ -463,6 +510,43 @@ def test_double_analyze_returns_independent_copies() -> None:
     third = double.analyze({})
     assert third.v3_groups["pores"]["name"] == "毛孔"
     assert third.v3_groups["spots"]["regions"][0]["score"] == 38.0
+
+
+# --- ruling §688: publish-level terminal for empty regions + verbatim whitespace ---
+
+
+def test_publish_empty_regions_is_terminal(engine: Engine, tmp_path: Any) -> None:
+    groups = _mock()
+    groups["spots"]["regions"] = []
+    status, exc, _aid, assessment = _run_publish(engine, tmp_path, _V3SkinStub(groups))
+    assert status == "failed", (status, exc)
+    assert exc is not None and exc.code == "PROVIDER_CONTRACT_VIOLATION", exc
+    assert exc.retryable is False
+    assert assessment["failure_code"] == "PROVIDER_CONTRACT_VIOLATION"
+    assert assessment["report_payload"] is None
+    assert assessment["report_id"] is None
+
+
+def test_publish_blank_group_name_is_terminal(engine: Engine, tmp_path: Any) -> None:
+    groups = _mock()
+    groups["pores"]["name"] = "　"  # 全角空白
+    status, exc, _aid, assessment = _run_publish(engine, tmp_path, _V3SkinStub(groups))
+    assert status == "failed", (status, exc)
+    assert exc is not None and exc.code == "PROVIDER_CONTRACT_VIOLATION", exc
+    assert assessment["report_payload"] is None
+
+
+def test_publish_internal_whitespace_preserved_verbatim(engine: Engine, tmp_path: Any) -> None:
+    groups = _mock()
+    groups["pores"]["name"] = "额 部"
+    groups["pores"]["regions"][0]["name"] = "额 部"
+    status, exc, _aid, assessment = _run_publish(
+        engine, tmp_path, SkinDouble(v3_groups=groups, model_version=V3_SKIN_MOCK_MODEL_VERSION)
+    )
+    assert status == "succeeded", (status, exc)
+    pores = assessment["report_payload"]["pores"]
+    assert pores["name"] == "额 部"
+    assert pores["regions"][0]["name"] == "额 部"
 
 
 # ================================================================ 3) 开关 / 生产守卫

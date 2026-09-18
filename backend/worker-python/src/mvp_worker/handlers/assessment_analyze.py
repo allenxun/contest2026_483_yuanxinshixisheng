@@ -684,10 +684,19 @@ def _validate_v3_skin_groups(raw: Any) -> Optional[dict[str, Any]]:
       （Python 整数比较精确/任意精度：``10**10000``/``inf``/``nan`` 一律判违约，
       绝不逃逸为瞬时依赖错误）；**绝不**把 null 变 0；
     - ``severity``：``null`` 或冻结词表（``未见明显/轻度/中度/较明显/显著``）；
-    - ``name``：非空字符串，**逐字保留**；
-    - ``regions``：数组；元素闭合键白名单 ``{region, name, score, severity}``；
-      ``region`` 非空字符串且在组内**唯一**；``name`` 非空字符串**逐字保留**
+    - ``name``：非**空白**字符串（``.strip()`` 后非空），**逐字保留**（不 trim）；
+    - ``regions``：**非空**数组；元素闭合键白名单 ``{region, name, score, severity}``；
+      ``region`` 非**空白**字符串且在组内**唯一**；``name`` 非**空白**字符串**逐字保留**
       （画面左右措辞不做任何转换/补区）；``score``/``severity`` 同上。
+
+    对齐 B 的 SSE 提取器（read-only 参考，不复制其逻辑）：
+    ``ReportNarrationScoreExtractor.java:151``（``regionsNode.isNull() || !isArray() ||
+    isEmpty()`` → invalid）与 ``:174-176``（过滤后为空 → invalid）；``readRequiredText``
+    ``:239``（``!isTextual() || asText().isBlank()`` → invalid，应用于 group.name
+    ``:133`` / region.region ``:164`` / region.name ``:165``），且其接受值**不 trim**。
+    Python ``str.strip()`` 覆盖 Unicode 空白（含全角 U+3000），比 Java ``isBlank``
+    略严；此为**方向安全**（D 放行的值一定可被 B 消费）。D 另有既有的**更严**处
+    （未知键拒绝而非 drop+warn、非有限/巨大整数 score 拒绝）——保持不放宽。
 
     返回：``None``（原本就缺省）或**规范化后的深拷贝**（仅白名单键、值逐字保留；
     与来源结构完全隔离）。任何违约 → :class:`_ContractViolation` → 既有终态
@@ -722,11 +731,15 @@ def _validate_v3_skin_groups(raw: Any) -> Optional[dict[str, Any]]:
         if severity is not None and severity not in V3_SKIN_SEVERITIES:
             raise _ContractViolation(f"$.{group_key}.severity: not in frozen vocabulary")
         name = group["name"]
-        if not isinstance(name, str) or not name:
-            raise _ContractViolation(f"$.{group_key}.name: non-empty string required")
+        # 非空白（`strip()` 后非空）——对齐 B readRequiredText:239 的 isBlank 拒绝；值不 trim。
+        if not isinstance(name, str) or not name.strip():
+            raise _ContractViolation(f"$.{group_key}.name: non-blank string required")
         regions = group["regions"]
         if not isinstance(regions, list):
             raise _ContractViolation(f"$.{group_key}.regions: expected array")
+        # 非空数组——对齐 B ReportNarrationScoreExtractor.java:151/:174-176（空区域 invalid）。
+        if not regions:
+            raise _ContractViolation(f"$.{group_key}.regions: non-empty array required")
         seen_regions: set[str] = set()
         out_regions: list[dict[str, Any]] = []
         for i, item in enumerate(regions):
@@ -742,9 +755,10 @@ def _validate_v3_skin_groups(raw: Any) -> Optional[dict[str, Any]]:
                         f"$.{group_key}.regions[{i}].{required}: required"
                     )
             region = item["region"]
-            if not isinstance(region, str) or not region:
+            # 非空白——对齐 B :164 readRequiredText；值不 trim、大小写/写法不做转换。
+            if not isinstance(region, str) or not region.strip():
                 raise _ContractViolation(
-                    f"$.{group_key}.regions[{i}].region: non-empty string required"
+                    f"$.{group_key}.regions[{i}].region: non-blank string required"
                 )
             if region in seen_regions:
                 raise _ContractViolation(
@@ -752,9 +766,10 @@ def _validate_v3_skin_groups(raw: Any) -> Optional[dict[str, Any]]:
                 )
             seen_regions.add(region)
             region_name = item["name"]
-            if not isinstance(region_name, str) or not region_name:
+            # 非空白——对齐 B :165 readRequiredText；值不 trim。
+            if not isinstance(region_name, str) or not region_name.strip():
                 raise _ContractViolation(
-                    f"$.{group_key}.regions[{i}].name: non-empty string required"
+                    f"$.{group_key}.regions[{i}].name: non-blank string required"
                 )
             region_score = item["score"]
             if region_score is not None and (
