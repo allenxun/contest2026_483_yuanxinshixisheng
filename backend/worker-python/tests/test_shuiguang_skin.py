@@ -184,10 +184,11 @@ class _Stub:
         self.queue_ids_used: list[str] = []
         self.poll_index: dict[str, int] = {}
         self.next_queue = 0
-        # safe_inputs 保真：成功前校验共享挂载文件仍存在（兄弟条目执行时读取）。
+        # safe_inputs 保真：每条队列只在执行时读取本次 POST 的路径。
         self.check_shared_paths = False
         self.input_root: Any = None
         self.missing_paths: list[str] = []
+        self.paths_by_queue: dict[str, list[str]] = {}
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -225,6 +226,7 @@ class _Handler(BaseHTTPRequestHandler):
         self.stub.next_queue += 1
         qid = f"q-{self.stub.next_queue}"  # 每次都新 queue 条目
         self.stub.queue_ids_used.append(qid)
+        self.stub.paths_by_queue[qid] = [item["path"] for item in body.get("images", [])]
         self._send(202, {
             "task_id": task_id, "queue_id": qid, "status": "queued",
             "score_source": self.stub.score_source,
@@ -236,12 +238,8 @@ class _Handler(BaseHTTPRequestHandler):
         if self.stub.poll_script is None:
             if self.stub.check_shared_paths:
                 root = Path(self.stub.input_root)
-                missing = [
-                    item["path"]
-                    for post in self.stub.posts
-                    for item in post.get("images", [])
-                    if not (root / item["path"]).exists()
-                ]
+                missing = [path for path in self.stub.paths_by_queue.get(qid, [])
+                           if not (root / path).exists()]
                 if missing:
                     # 模拟真实 safe_inputs 在执行时读不到共享文件 → INVALID_INPUT
                     self.stub.missing_paths = missing
@@ -343,13 +341,16 @@ def test_staging_atomic_relative_and_mirrored_false(monkeypatch: Any, tmp_path: 
     a = _adapter(cfg)
     imgs = _images()
     tid = a._task_id(imgs)
-    rel = a._stage(imgs, tid)
+    stage_dir, rel = a._stage(imgs, tid)
     assert [v for v, _ in rel] == ["front", "left", "right"]
+    assert re.fullmatch(r"sg-stage-[0-9a-f]{32}", stage_dir.name)
     for view, path in rel:
-        assert path == f"{tid}/{view}.png"
+        assert path == f"{stage_dir.name}/{view}.png"
         assert not path.startswith("/")  # 相对 INPUT_ROOT
         assert (tmp_path / path).read_bytes() == imgs[view]
-    assert not list((tmp_path / tid).glob("*.tmp"))  # 无残留临时文件
+    assert not list(stage_dir.glob("*.tmp"))  # 无残留临时文件
+    manifest = json.loads((stage_dir / ".submission.json").read_text())
+    assert manifest["task_id"] == tid and manifest["state"] == "submitting"
 
 
 # ================================================================ 3) 预检（零 HTTP）
@@ -389,7 +390,7 @@ def test_submit_malformed_202_variants(monkeypatch: Any, tmp_path: Any) -> None:
     cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
     a = _adapter(cfg)
     imgs = _images()
-    rel = a._stage(imgs, a._task_id(imgs))
+    _stage_dir, rel = a._stage(imgs, a._task_id(imgs))
     for bad in (
         (200, {"task_id": "x", "queue_id": "q", "status": "queued", "score_source": "s"}),
         (202, {"task_id": a._task_id(imgs), "queue_id": "", "status": "queued", "score_source": "s"}),
@@ -514,7 +515,7 @@ def test_success_969_consumed_as_is(monkeypatch: Any, tmp_path: Any) -> None:
 
 
 # ================================================================ 7) 端到端（真 HTTP stub）
-def test_end_to_end_success_retains_staging(monkeypatch: Any, tmp_path: Any, stub_server: Any) -> None:
+def test_end_to_end_success_cleans_own_staging(monkeypatch: Any, tmp_path: Any, stub_server: Any) -> None:
     stub, url = stub_server
     cfg = _set_env(monkeypatch, url, tmp_path)
     a = ShuiguangSkinAdapter(cfg, sleep=lambda _s: None, clock=lambda: 0.0)
@@ -530,11 +531,12 @@ def test_end_to_end_success_retains_staging(monkeypatch: Any, tmp_path: Any, stu
     assert [i["image_id"] for i in body["images"]] == [
         f"{tid}-front", f"{tid}-left", f"{tid}-right"
     ]
+    stage_id = body["images"][0]["path"].split("/")[0]
+    assert re.fullmatch(r"sg-stage-[0-9a-f]{32}", stage_id)
     assert [i["path"] for i in body["images"]] == [
-        f"{tid}/front.png", f"{tid}/left.png", f"{tid}/right.png"
+        f"{stage_id}/front.png", f"{stage_id}/left.png", f"{stage_id}/right.png"
     ]
-    # 成功**不删**共享暂存（兄弟 queue 条目可能尚未读取）。
-    assert (tmp_path / tid / "front.png").exists()
+    assert not (tmp_path / stage_id).exists()  # 只在本 queue 明确成功后清理
 
 
 def test_repeated_post_same_task_id_yields_distinct_queue_ids(
@@ -552,28 +554,33 @@ def test_repeated_post_same_task_id_yields_distinct_queue_ids(
     assert stub.queue_ids_used[0] != stub.queue_ids_used[1]  # 但每次 POST 新 queue 条目
 
 
-def test_sibling_entries_share_staged_dir_safely(
+def test_sibling_entries_use_independent_staging(
     monkeypatch: Any, tmp_path: Any, stub_server: Any
 ) -> None:
-    """两个同内容 queue 条目：首个完成不得删除共享目录，第二个仍能读到文件。"""
+    """同内容 POST 产生不同目录；首条完成清理不影响另一条 safe_inputs。"""
     stub, url = stub_server
     cfg = _set_env(monkeypatch, url, tmp_path)
     stub.check_shared_paths = True
     stub.input_root = tmp_path  # 模拟 safe_inputs：成功前校验共享挂载文件仍在
     a = ShuiguangSkinAdapter(cfg, sleep=lambda _s: None, clock=lambda: 0.0)
     imgs = _images()
-    tid = a._task_id(imgs)
-    r1 = a.analyze(imgs)
-    assert r1.v3_groups is not None
-    assert (tmp_path / tid / "front.png").exists()  # 首个完成不删
-    r2 = a.analyze(imgs)  # 第二个 queue 条目
-    assert stub.missing_paths == [], stub.missing_paths  # safe_inputs 能读到共享文件
-    assert r2.v3_groups is not None
-    assert (tmp_path / tid / "front.png").exists()
+    task_id = a._task_id(imgs)
+    first_dir, first_rel = a._stage(imgs, task_id)
+    q1, _ = a._submit(task_id, first_rel)
+    a._write_manifest(first_dir, task_id, q1)
+    second_dir, second_rel = a._stage(imgs, task_id)
+    q2, _ = a._submit(task_id, second_rel)
+    a._write_manifest(second_dir, task_id, q2)
+    assert first_dir != second_dir and first_dir.exists() and second_dir.exists()
+    assert a._poll(q1, on_terminal=lambda: a._remove_stage(first_dir))
+    assert not first_dir.exists() and second_dir.exists()
+    assert a._poll(q2, on_terminal=lambda: a._remove_stage(second_dir))
+    assert not second_dir.exists()
+    assert stub.missing_paths == []  # 第二条 safe_inputs 仍能读自己的目录
     assert len(stub.queue_ids_used) == 2 and len(set(stub.queue_ids_used)) == 2
 
 
-def test_staged_retained_on_all_exit_paths(monkeypatch: Any, tmp_path: Any, stub_server: Any) -> None:
+def test_stage_cleanup_requires_own_queue_terminal(monkeypatch: Any, tmp_path: Any, stub_server: Any) -> None:
     stub, url = stub_server
     cfg = _set_env(monkeypatch, url, tmp_path, poll_max=100)
     state = {"t": 0.0, "step": 1000.0}
@@ -584,32 +591,156 @@ def test_staged_retained_on_all_exit_paths(monkeypatch: Any, tmp_path: Any, stub
 
     a = ShuiguangSkinAdapter(cfg, sleep=lambda _s: None, clock=clock)
     imgs = _images()
-    tid = a._task_id(imgs)
+    def last_stage() -> Path:
+        return tmp_path / stub.posts[-1]["images"][0]["path"].split("/")[0]
+
     stub.poll_script = [(200, {"queue_id": "q", "status": "pending", "progress": 0})]
     with pytest.raises(ProviderUnavailable):
         a.analyze(imgs)  # 预算耗尽
-    assert (tmp_path / tid / "front.png").exists()
+    pending = last_stage()
+    assert pending.exists()
     state["step"] = 0.0  # 解除预算压力，让后续轮询真正到达
     stub.poll_script = [(200, {"status": "failed", "error": {"code": "WORKER_FAILED"}})]
     stub.poll_index.clear()
     with pytest.raises(ProviderUnavailable):
         a.analyze(imgs)  # 可重试失败
-    assert (tmp_path / tid / "front.png").exists()
+    assert not last_stage().exists() and pending.exists()
     stub.poll_script = [(200, {"status": "failed", "error": {"code": "SCORING_REFERENCE_NOT_READY"}})]
     stub.poll_index.clear()
     with pytest.raises(ShuiguangScoringReferenceNotReady):
         a.analyze(imgs)  # 确定性终态
-    assert (tmp_path / tid / "front.png").exists()
+    assert not last_stage().exists() and pending.exists()
     bad = _v3_969()
     bad["extra"] = 1
     stub.poll_script = None
     stub.success_groups = bad
     with pytest.raises(V3SkinViolation):
         a.analyze(imgs)  # 契约违约终态
-    assert (tmp_path / tid / "front.png").exists()
+    malformed = last_stage()
+    assert malformed.exists()  # 非法结构不能证明远端消费完成
     stub.success_groups = _v3_969()
     assert a.analyze(imgs).v3_groups is not None  # 成功
-    assert (tmp_path / tid / "front.png").exists()  # 全路径保留
+    assert not last_stage().exists() and pending.exists() and malformed.exists()
+
+
+def test_reaper_recovers_persisted_queue_after_process_exit(
+    monkeypatch: Any, tmp_path: Any, stub_server: Any
+) -> None:
+    stub, url = stub_server
+    cfg = _set_env(monkeypatch, url, tmp_path)
+    first = ShuiguangSkinAdapter(cfg)
+    imgs = _images()
+    task_id = first._task_id(imgs)
+    finished_dir, rel = first._stage(imgs, task_id)
+    queue_id, _ = first._submit(task_id, rel)
+    first._write_manifest(finished_dir, task_id, queue_id)
+    # 另一进程/实例重读磁盘 manifest，再查真实 queue_id；不依赖本地对象状态。
+    second = ShuiguangSkinAdapter(cfg)
+    assert second.reap_staged() == {"checked": 1, "removed": 1, "unresolved": 0}
+    assert not finished_dir.exists()
+    assert stub.gets == ["/api/score-jobs/" + queue_id]
+
+
+def test_reaper_never_guesses_pending_or_unknown_submit(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
+    a = _adapter(cfg)
+    imgs = _images()
+    tid = a._task_id(imgs)
+    unknown_dir, _ = a._stage(imgs, tid)  # POST 回包丢失/尚未提交：只有 submitting
+    pending_dir, _ = a._stage(imgs, tid)
+    a._write_manifest(pending_dir, tid, "q-pending")
+    calls: list[str] = []
+
+    def request(method: str, path: str, _body: Any) -> tuple[int, Any]:
+        calls.append(path)
+        return 200, {"status": "pending", "progress": 0}
+
+    a._do_request = request
+    assert a.reap_staged() == {"checked": 2, "removed": 0, "unresolved": 2}
+    assert calls == ["/api/score-jobs/q-pending"]
+    assert unknown_dir.exists() and pending_dir.exists()
+
+
+def test_submit_lost_ack_retains_unique_intent_without_guess_cleanup(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
+    a = _adapter(cfg)
+    a._do_request = lambda *_: (_ for _ in ()).throw(ProviderUnavailable("ack lost"))
+    with pytest.raises(ProviderUnavailable):
+        a.analyze(_images())
+    dirs = list(tmp_path.glob("sg-stage-*"))
+    assert len(dirs) == 1
+    manifest = json.loads((dirs[0] / ".submission.json").read_text())
+    assert manifest["state"] == "submitting" and manifest["queue_id"] is None
+    assert a.reap_staged() == {"checked": 1, "removed": 0, "unresolved": 1}
+    assert dirs[0].exists()
+
+
+def test_reaper_cursor_does_not_starve_later_terminal_directory(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
+    a = _adapter(cfg)
+    imgs = _images()
+    task_id = a._task_id(imgs)
+    dirs = sorted(a._stage(imgs, task_id)[0] for _ in range(2))
+    a._write_manifest(dirs[0], task_id, "q-pending")
+    a._write_manifest(dirs[1], task_id, "q-done")
+
+    def request(_method: str, path: str, _body: Any) -> tuple[int, Any]:
+        return (200, {"status": "pending"}) if path.endswith("q-pending") else (200, _v3_969())
+
+    a._do_request = request
+    assert a.reap_staged(limit=1) == {"checked": 1, "removed": 0, "unresolved": 1}
+    assert a.reap_staged(limit=1) == {"checked": 1, "removed": 1, "unresolved": 0}
+    assert dirs[0].exists() and not dirs[1].exists()
+
+
+def test_queue_manifest_write_failure_preserves_accepted_submission(
+    monkeypatch: Any, tmp_path: Any, stub_server: Any
+) -> None:
+    stub, url = stub_server
+    cfg = _set_env(monkeypatch, url, tmp_path)
+    a = ShuiguangSkinAdapter(cfg)
+    write = a._write_manifest
+    calls = {"n": 0}
+
+    def fail_after_accepted(stage_dir: Path, task_id: str, queue_id: Optional[str]) -> None:
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise OSError("private mounted path must not escape")
+        write(stage_dir, task_id, queue_id)
+
+    monkeypatch.setattr(a, "_write_manifest", fail_after_accepted)
+    with pytest.raises(ShuiguangStagingError) as ei:
+        a.analyze(_images())
+    assert "private mounted path" not in _chain_text(ei.value)
+    assert len(stub.posts) == 1
+    stage_dir = tmp_path / stub.posts[0]["images"][0]["path"].split("/")[0]
+    manifest = json.loads((stage_dir / ".submission.json").read_text())
+    assert manifest["state"] == "submitting" and stage_dir.exists()
+
+
+def test_cleanup_failure_does_not_retry_success_and_reaper_recovers(
+    monkeypatch: Any, tmp_path: Any, stub_server: Any
+) -> None:
+    stub, url = stub_server
+    cfg = _set_env(monkeypatch, url, tmp_path)
+    a = ShuiguangSkinAdapter(cfg)
+    import mvp_worker.handlers.dshared.dshuiguang as mod
+    original = mod.shutil.rmtree
+    with monkeypatch.context() as patcher:
+        patcher.setattr(mod.shutil, "rmtree", lambda *_args, **_kw: (_ for _ in ()).throw(OSError("busy")))
+        assert a.analyze(_images()).v3_groups is not None
+    assert mod.shutil.rmtree is original
+    assert len(stub.posts) == 1  # 清理失败不能重做一次 POST
+    stage_dir = tmp_path / stub.posts[0]["images"][0]["path"].split("/")[0]
+    assert stage_dir.exists()
+    assert a.reap_staged() == {"checked": 1, "removed": 1, "unresolved": 0}
+    assert not stage_dir.exists()
 
 
 # ================================================================ 8) 泄漏纪律
@@ -830,7 +961,11 @@ def test_staging_error_sanitized_direct(monkeypatch: Any, tmp_path: Any) -> None
     cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
     imgs = _images()
     tid = derive_task_id(imgs)
-    (tmp_path / tid).write_text("precreated file blocks staging")
+    import mvp_worker.handlers.dshared.dshuiguang as mod
+    collision = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+    monkeypatch.setattr(mod.uuid, "uuid4", lambda: collision)
+    blocked = tmp_path / ("sg-stage-" + collision.hex)
+    blocked.write_text("precreated file blocks staging")
     a = _adapter(cfg)
     with pytest.raises(ShuiguangStagingError) as ei:
         a.analyze(imgs)
@@ -838,6 +973,7 @@ def test_staging_error_sanitized_direct(monkeypatch: Any, tmp_path: Any) -> None
     text = _chain_text(ei.value)
     for needle in (str(tmp_path), tid, ".tmp", "front.png"):
         assert needle not in text, needle
+    assert blocked.read_text() == "precreated file blocks staging"  # 碰撞不可删他人目录
 
 
 def test_staging_error_through_handler_sanitized(
@@ -848,7 +984,10 @@ def test_staging_error_through_handler_sanitized(
     _set_env(monkeypatch, "http://127.0.0.1:1", root)
     storage, aid, ref, images = _seed_bits(engine, tmp_path)
     tid = derive_task_id(images)
-    (root / tid).write_text("precreated file blocks staging")
+    import mvp_worker.handlers.dshared.dshuiguang as mod
+    collision = uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
+    monkeypatch.setattr(mod.uuid, "uuid4", lambda: collision)
+    (root / ("sg-stage-" + collision.hex)).write_text("precreated file blocks staging")
     jid = _enqueue_ma(engine, aid, 2, 2)
     face = FaceDouble(search="matched", face_subject_ref=ref)
     real = build_shuiguang_skin_port(DConfig.from_env())  # 预检/暂存真实路径（零网络）
@@ -974,8 +1113,7 @@ def test_stage_permissions_immune_to_umask(monkeypatch: Any, tmp_path: Any) -> N
     try:
         a = _adapter(cfg)
         tid = a._task_id(imgs)
-        a._stage(imgs, tid)
-        d = tmp_path / tid
+        d, _rel = a._stage(imgs, tid)
         assert oct(d.stat().st_mode & 0o777) == oct(0o700)
         for f in d.iterdir():
             assert oct(f.stat().st_mode & 0o777) == oct(0o600)
@@ -989,7 +1127,7 @@ def test_partial_staging_failure_removes_temps_keeps_targets(
     cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
     imgs = _images()
     tid = derive_task_id(imgs)
-    job_dir = tmp_path / tid
+    job_dir = tmp_path / tid  # 历史内容目录：新尝试绝不能碰
     job_dir.mkdir()
     (job_dir / "front.png").write_bytes(imgs["front"])  # 上一尝试目标（同 task_id 同字节）
     (job_dir / "left.png").write_bytes(imgs["left"])
@@ -999,11 +1137,11 @@ def test_partial_staging_failure_removes_temps_keeps_targets(
     real_open = os.open
     calls = {"n": 0}
 
-    def flaky_open(path: Any, flags: int, mode: int = 0o777) -> int:
+    def flaky_open(path: Any, flags: int, mode: int = 0o777, **kwargs: Any) -> int:
         calls["n"] += 1
         if calls["n"] == 2:  # 第二个临时文件写入失败
             raise OSError("disk full")
-        return real_open(path, flags, mode)
+        return real_open(path, flags, mode, **kwargs)
 
     monkeypatch.setattr(mod.os, "open", flaky_open)
     a = _adapter(cfg)
@@ -1013,6 +1151,7 @@ def test_partial_staging_failure_removes_temps_keeps_targets(
     assert (job_dir / "front.png").read_bytes() == imgs["front"]
     assert (job_dir / "left.png").read_bytes() == imgs["left"]  # 既有 target 未被删
     assert not list(job_dir.glob("*.tmp"))  # 本次临时文件已清
+    assert not list(tmp_path.glob("sg-stage-*"))  # 未 POST 的本次目录可安全清理
 
 
 def test_repr_redacts_shuiguang_values(monkeypatch: Any, tmp_path: Any) -> None:

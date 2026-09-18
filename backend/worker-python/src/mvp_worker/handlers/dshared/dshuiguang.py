@@ -6,8 +6,8 @@
   ``images`` **恰三张**（``front``/``left``/``right``），``path`` 为相对 ``INPUT_ROOT`` 的
   共享挂载文件路径。**每一次 POST 都会入队一个新任务并返回新的 ``queue_id``**——即使
   ``task_id`` 与输入完全相同；且每个排队任务在**执行时**才读取共享文件
-  （``safe_inputs`` 先于任何既有 job/结果判定）。因此**绝不能**按单个 ``queue_id`` 的
-  结果删除共享内容目录：会饿死同一内容目录上仍在排队/执行的兄弟任务。
+  （``safe_inputs`` 先于任何既有 job/结果判定）。因此每次 POST 都使用独立输入目录；
+  只在该 ``queue_id`` 明确终态后删除其独占目录，不会饿死兄弟条目。
   （API 的 job/结果幂等语义属算法侧、本项目**未核实**——仅确认 ``safe_inputs`` 的读取
   时序，不得依赖其余语义。）
 - ``GET /api/score-jobs/{queue_id}``：``pending``/``started``/``progress`` 为进行中；
@@ -16,27 +16,18 @@
 
 设计要点：
 
-- ``task_id`` 由**内容**派生（``sha256`` 的 160-bit 截断前缀）→ 同字节同 id、异字节
-  高概率不同 id；**碰撞抗性是概率性的**（截断摘要，非"异字节必然异 id"）。无需改
-  handler 签名；暂存目录 ``{INPUT_ROOT}/{task_id}/{view}.{ext}``，临时文件 + ``os.replace``
-  原子落盘，目录 0700 / 文件 0600（不受 umask 影响）。
+- ``task_id`` 仍由内容派生（160-bit 截断摘要）；暂存目录改为每次 POST 独立的
+  ``{INPUT_ROOT}/sg-stage-<uuid>/{view}.{ext}``。目录 0700 / 文件 0600，提交前持久化
+  ``submitting`` manifest，取得 queue_id 后更新为 ``queued``。
 - 成功体用 :func:`dshared.dv3.validate_v3_skin_groups` **同一严格语义**校验（防御式；
   handler 发布前还会再校验一次）。
 - ``metrics=[]``、``result_images=[]``、``conclusion``/``description=""``——**绝不伪造**
   旧指标/结果图/叙述/四区。
-- 生命周期（**已按真实源码更正**）：**暂存输入在任何退出路径都保留**——成功、
-  确定性终态（``V3SkinViolation`` / ``ShuiguangScoringReferenceNotReady``）、可重试失败、
-  轮询预算耗尽，**一律不删**。
-  - 为什么不能按结果删除：每次 POST 产生**新的 queue 条目**（新 ``queue_id``），且每个
-    排队任务在执行时才读共享文件——删除共享内容目录会**饿死兄弟条目**（INVALID_INPUT）；
-    确定性终态删除有同样缺陷；粗粒度补偿删除还会在租约竞态/照片版本换代时误删他人
-    或新代次的活跃目录。无**持久化 staging 所有权记录**前，任何删除都不安全
-    （新建表/迁移属 coordination territory，本轮禁止）。
-  - 保留 `_stage` 失败时**只清本次调用**记录的临时文件（可证明本调用所有，见 ``_stage``）。
-- **四类残留/孤儿全部延后到"激活前置的 ops 机制"**：(a) 重试耗尽终态、(b) 照片版本换代、
-  (c) 硬进程崩溃、(d) 每一次已完成结果的残留。activation 已被"共享挂载 + ops 裁定"把关；
-  ops 清理契约（授权的清扫器**或**持久化 staging 所有权记录）属
-  **activation-blocking 前置条件**——需另立 coordination 记录，不得用结果驱动的删除替代。
+- 明确成功/失败终态可清理本次独占目录；轮询超时、网络故障、崩溃时保留。
+  独立 reaper 只重查持久化 queue_id 并在远端确认终态后精确清理，绝不按 TTL 猜删。
+  POST 已受理但回包丢失时只有 ``submitting`` manifest，现有 GET-by-queue_id 无法
+  确认消费结束，必须由算法侧增加幂等请求标识/查询合同或人工对账；在此之前仍不可
+  正式激活 provider。reaper 需按部署要求周期运行。
 - 日志/异常只含键名与已消毒的 ``code``/``score_source``；**绝不**输出 token、图像字节、
   暂存路径或 ``message`` 原文。
 """
@@ -46,7 +37,10 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import socket
+import stat
+import sys
 import time
 import uuid
 from http.client import HTTPConnection, HTTPSConnection
@@ -71,6 +65,9 @@ _CODE_RE = re.compile(r"^[A-Z0-9_]{1,64}$")
 _SOURCE_RE = re.compile(r"^[A-Za-z0-9._:@+\-]{1,64}$")
 _JPEG_MAGIC = b"\xff\xd8\xff"
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+_STAGE_RE = re.compile(r"^sg-stage-[0-9a-f]{32}$")
+_MANIFEST = ".submission.json"
+_REAPER_CURSOR = ".reap-cursor"
 
 
 def derive_task_id(images: dict[str, bytes]) -> str:
@@ -99,7 +96,7 @@ class ShuiguangStagingError(ProviderUnavailable):
     """暂存失败（可写根上的 FS 压力/路径冲突）→ 可重试 ``DEPENDENCY_UNAVAILABLE``。
 
     消息**只含键名**；经"捕获后退出 except 再 raise"模式抛出，``__cause__``/
-    ``__context__`` 均不携带任何路径。暂存保留供重试（同内容同 ``task_id``）。
+    ``__context__`` 均不携带任何路径。无法确认远端终态时暂存保留供对账。
     """
 
 
@@ -153,12 +150,19 @@ class ShuiguangSkinAdapter:
     def analyze(self, images: dict[str, bytes]) -> SkinAnalysisResult:
         self._preflight(images)
         task_id = self._task_id(images)
-        rel = self._stage(images, task_id)
-        # 暂存输入**在所有退出路径保留**（成功/确定性终态/可重试/预算耗尽均不删）：
-        # 每次 POST 都是新 queue 条目、且排队任务在执行时才读共享文件——按本次结果
-        # 删除共享内容目录会饿死兄弟条目。清理延后到激活前置的 ops 所有权契约。
+        stage_dir, rel = self._stage(images, task_id)
         queue_id, score_source = self._submit(task_id, rel)
-        groups = self._poll(queue_id)
+        manifest_error = False
+        try:
+            self._write_manifest(stage_dir, task_id, queue_id)
+        except OSError:
+            # POST 已受理；没有持久 queue_id 的目录不能安全清理。
+            manifest_error = True
+        if manifest_error:
+            raise ShuiguangStagingError(
+                "shuiguang queue ownership persist failed; check " + SHUIGUANG_INPUT_ROOT_ENV
+            ) from None
+        groups = self._poll(queue_id, on_terminal=lambda: self._remove_stage(stage_dir))
         version = f"shuiguang:{_sanitize_source(score_source)}"
         self.model_version = version
         return SkinAnalysisResult(
@@ -189,13 +193,16 @@ class ShuiguangSkinAdapter:
     def _task_id(self, images: dict[str, bytes]) -> str:
         return derive_task_id(images)
 
-    def _stage(self, images: dict[str, bytes], task_id: str) -> list[tuple[str, str]]:
-        job_dir = self._root / task_id
+    def _stage(self, images: dict[str, bytes], task_id: str) -> tuple[Path, list[tuple[str, str]]]:
+        stage_id = "sg-stage-" + uuid.uuid4().hex
+        job_dir = self._root / stage_id
         rel: list[tuple[str, str]] = []
         tmp_names: list[Path] = []
         failure: Optional[OSError] = None
+        created = False
         try:
-            job_dir.mkdir(parents=True, exist_ok=True)
+            job_dir.mkdir(mode=self._dir_mode, exist_ok=False)
+            created = True
             os.chmod(job_dir, self._dir_mode)  # mkdir 的 mode 会被 umask 掩码
             for view in REQUIRED_VIEWS_ALL:
                 data = bytes(images[view])
@@ -208,25 +215,139 @@ class ShuiguangSkinAdapter:
                 tmp_names.append(tmp)
                 with os.fdopen(fd, "wb") as fh:
                     fh.write(data)
+                    fh.flush()
+                    os.fsync(fh.fileno())
                 os.replace(tmp, target)  # 原子；保留 0600 模式
                 tmp_names.remove(tmp)
-                rel.append((view, f"{task_id}/{view}.{ext}"))
+                rel.append((view, f"{stage_id}/{view}.{ext}"))
+            self._write_manifest(job_dir, task_id, None)
         except OSError as exc:
             failure = exc
         if failure is not None:
-            # 只清**本次调用**的临时文件；保留既有 target（同 task_id 同字节，
-            # 可能正被已排队的算法 job 读取）。绝不删上一尝试的目标文件。
+            # 尚未 POST，整个独立目录只归本次调用所有。
             for tmp in tmp_names:
                 try:
                     os.unlink(tmp)
                 except OSError:
                     pass
+            if created:
+                self._remove_stage(job_dir)
             # 关键：已退出 except 块（sys.exc_info 清空）→ raise 无隐式 __context__；
             # ``from None`` 再清 __cause__。消息只含键名，绝不含路径。
             raise ShuiguangStagingError(
                 "shuiguang staging failed; check " + SHUIGUANG_INPUT_ROOT_ENV
             ) from None
-        return rel
+        return job_dir, rel
+
+    def _write_manifest(self, stage_dir: Path, task_id: str, queue_id: Optional[str]) -> None:
+        body = {"schema_version": 1, "stage_id": stage_dir.name, "task_id": task_id,
+                "state": "queued" if queue_id is not None else "submitting",
+                "queue_id": queue_id}
+        tmp = stage_dir / (".submission." + uuid.uuid4().hex + ".tmp")
+        try:
+            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, self._file_mode)
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                json.dump(body, fh, separators=(",", ":"))
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp, stage_dir / _MANIFEST)
+            dir_fd = os.open(stage_dir, os.O_RDONLY | os.O_DIRECTORY)
+            try:
+                os.fsync(dir_fd)
+            finally:
+                os.close(dir_fd)
+        finally:
+            try:
+                os.unlink(tmp)
+            except FileNotFoundError:
+                pass
+
+    @staticmethod
+    def _remove_stage(stage_dir: Path) -> bool:
+        """仅删独立 stage 目录；失败留给 reaper，不能令成功报告重试。"""
+        if not _STAGE_RE.fullmatch(stage_dir.name):
+            return False
+        try:
+            if not stage_dir.exists():
+                return True
+            if not stat.S_ISDIR(stage_dir.lstat().st_mode):
+                return False
+            shutil.rmtree(stage_dir)
+            return True
+        except OSError:
+            return False
+
+    @staticmethod
+    def _terminal(status: int, payload: Any) -> bool:
+        return status == 200 and isinstance(payload, dict) and (
+            set(payload) == set(V3_SKIN_GROUP_KEYS) or payload.get("status") == "failed"
+        )
+
+    def reap_staged(self, *, limit: int = 32) -> dict[str, int]:
+        """重查已持久化 queue_id；只删远端明确终态的独立目录。"""
+        if not 1 <= limit <= 1000:
+            raise ValueError("reaper limit out of range")
+        counts = {"checked": 0, "removed": 0, "unresolved": 0}
+        candidates = sorted(
+            path for path in self._root.iterdir()
+            if _STAGE_RE.fullmatch(path.name) and not path.is_symlink() and path.is_dir()
+        )
+        if not candidates:
+            return counts
+        try:
+            cursor = (self._root / _REAPER_CURSOR).read_text(encoding="ascii").strip()
+        except (OSError, UnicodeError):
+            cursor = ""
+        start = next((i for i, path in enumerate(candidates) if path.name > cursor), 0)
+        last_name = ""
+        for offset in range(min(limit, len(candidates))):
+            stage_dir = candidates[(start + offset) % len(candidates)]
+            last_name = stage_dir.name
+            counts["checked"] += 1
+            try:
+                manifest_path = stage_dir / _MANIFEST
+                manifest_stat = manifest_path.lstat()
+                if not stat.S_ISREG(manifest_stat.st_mode) or manifest_stat.st_size > 4096:
+                    raise ValueError("manifest too large")
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                counts["unresolved"] += 1
+                continue
+            if not isinstance(manifest, dict) or manifest.get("stage_id") != stage_dir.name:
+                counts["unresolved"] += 1
+                continue
+            queue_id = manifest.get("queue_id")
+            if manifest.get("state") != "queued" or not isinstance(queue_id, str) or not queue_id:
+                counts["unresolved"] += 1
+                continue
+            try:
+                status, payload = self._do_request(
+                    "GET", "/api/score-jobs/" + quote(queue_id, safe=""), None
+                )
+            except ProviderUnavailable:
+                counts["unresolved"] += 1
+                continue
+            if self._terminal(status, payload) and self._remove_stage(stage_dir):
+                counts["removed"] += 1
+            else:
+                counts["unresolved"] += 1
+        # 持久轮转，避免永久 pending/unknown 目录占满每轮预算，饿死后面的终态目录。
+        cursor_tmp = self._root / (".reap-cursor." + uuid.uuid4().hex + ".tmp")
+        try:
+            fd = os.open(cursor_tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, self._file_mode)
+            with os.fdopen(fd, "w", encoding="ascii") as fh:
+                fh.write(last_name + "\n")
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(cursor_tmp, self._root / _REAPER_CURSOR)
+        except OSError:
+            pass  # 游标损坏只影响公平性，下轮仍按远端状态安全判定
+        finally:
+            try:
+                os.unlink(cursor_tmp)
+            except FileNotFoundError:
+                pass
+        return counts
 
     # ------------------------------------------------------------- HTTP
     def _http_request(self, method: str, path: str, body: Optional[dict[str, Any]]) -> tuple[int, Any]:
@@ -286,7 +407,9 @@ class ShuiguangSkinAdapter:
             raise ProviderUnavailable("shuiguang score_source missing")
         return queue_id, payload["score_source"]
 
-    def _poll(self, queue_id: str) -> dict[str, Any]:
+    def _poll(
+        self, queue_id: str, *, on_terminal: Optional[Callable[[], Any]] = None
+    ) -> dict[str, Any]:
         path = "/api/score-jobs/" + quote(queue_id, safe="")
         deadline = self._clock() + self._poll_max
         while True:
@@ -296,11 +419,15 @@ class ShuiguangSkinAdapter:
             if status != 200 or not isinstance(payload, dict):
                 raise ProviderUnavailable(f"shuiguang status query failed (status={status})")
             if set(payload) == set(V3_SKIN_GROUP_KEYS):
+                if on_terminal is not None:
+                    on_terminal()
                 validated = validate_v3_skin_groups(payload)
                 assert validated is not None  # payload 非 None → 规范化必为 dict
                 return validated  # 同冻严格语义；违约→V3SkinViolation
             state = payload.get("status")
             if state == "failed":
+                if on_terminal is not None:
+                    on_terminal()
                 self._raise_failed(payload)
             if state in ("pending", "started", "progress"):
                 self._sleep(self._poll_interval)
@@ -348,3 +475,10 @@ def build_shuiguang_skin_port(cfg: DConfig) -> ShuiguangSkinAdapter:
             + SHUIGUANG_INPUT_ROOT_ENV
         )
     return ShuiguangSkinAdapter(cfg)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2 or sys.argv[1] != "--reap":
+        raise SystemExit("usage: python -m mvp_worker.handlers.dshared.dshuiguang --reap")
+    summary = build_shuiguang_skin_port(DConfig.from_env()).reap_staged()
+    print("shuiguang_reap checked={checked} removed={removed} unresolved={unresolved}".format(**summary))
