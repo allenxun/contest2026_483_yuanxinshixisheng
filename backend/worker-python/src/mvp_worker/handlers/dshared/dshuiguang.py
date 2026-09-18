@@ -19,9 +19,21 @@
   handler 发布前还会再校验一次）。
 - ``metrics=[]``、``result_images=[]``、``conclusion``/``description=""``——**绝不伪造**
   旧指标/结果图/叙述/四区。
-- 生命周期：成功或**终态** → best-effort 删除暂存目录（绝不让清理失败影响结果）；
-  可重试 → **保留**文件以便幂等复用。崩溃孤儿**不做** TTL 清扫（照片敏感），
-  属运维前置条件（见交付报告 blocker）。
+- 生命周期（**所有权安全**，Oracle 复核后定稿）：
+  - **成功**或**适配器级确定性终态**（``V3SkinViolation`` /
+    ``ShuiguangScoringReferenceNotReady``）→ best-effort 删除暂存目录。所有权安全
+    依据：API 幂等（**同内容 = 同 task_id = 同 queue 条目**）——成功时该共享条目对
+    所有同内容调用者都已完成；上述确定性终态对所有同内容调用者都同样失败。
+  - 可重试失败 → **保留**文件（已排队的算法 job 可能仍在读；重试同 task_id 幂等复用）。
+  - ``_stage`` 失败 → 只清**本次调用**记录的临时文件（可证明本调用所有）；绝不删
+    上一尝试的 target。
+  - **不做任何"推断式"补偿删除**（handler 退出/租约丢失/代次作废/最终尝试耗尽均
+    不删）——Oracle 探针证明会导致**销毁活跃 job 的暂存**（租约竞态、照片版本换代时
+    误删新代次、同内容换代共享 task_id 的活性风险）；无持久化所有权记录前删除不安全。
+  - 因此以下**三类孤儿被显式延后到"激活前置的 ops 机制"**：(a) 重试耗尽的终态残留、
+    (b) 照片版本换代残留、(c) 硬进程崩溃残留。activation 已被"共享挂载 + ops 裁定"
+    把关；ops 孤儿契约（授权的清扫器或持久化 staging 所有权记录）属
+    **activation-blocking 前置条件**——需另立 coordination 记录，不得用推断删除替代。
 - 日志/异常只含键名与已消毒的 ``code``/``score_source``；**绝不**输出 token、图像字节、
   暂存路径或 ``message`` 原文。
 """
@@ -78,24 +90,16 @@ def derive_task_id(images: dict[str, bytes]) -> str:
 
 
 def _remove_staged(root: Path, task_id: str) -> bool:
+    """删除暂存目录/文件；**返回是否成功**（失败可被调用方观测并告警）。"""
     path = root / task_id
     try:
         if path.is_dir():
-            shutil.rmtree(path, ignore_errors=True)
+            shutil.rmtree(path)  # 不 ignore_errors：失败必须可观测
         elif path.exists():
             path.unlink()  # 预创建为文件的畸形暂存也要清掉
         return True
     except Exception:  # 清理 best-effort：绝不因清理失败影响结果
         return False
-
-
-def cleanup_staged(root: str, images: dict[str, bytes]) -> None:
-    """best-effort 清除由 ``images`` 派生的暂存目录；**绝不抛异常**、绝不记路径。"""
-    try:
-        task_id = derive_task_id(images)
-    except Exception:
-        return
-    _remove_staged(Path(root), task_id)
 
 
 class ShuiguangInputViolation(RuntimeError):

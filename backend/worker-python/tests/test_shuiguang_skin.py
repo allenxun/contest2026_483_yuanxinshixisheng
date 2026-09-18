@@ -316,7 +316,8 @@ def test_task_id_deterministic_and_charset(monkeypatch: Any, tmp_path: Any) -> N
     assert tid == a._task_id(dict(imgs))  # 同字节同 id
     other = dict(imgs)
     other["front"] = _png(99)
-    assert a._task_id(other) != tid  # 异字节异 id
+    # distinct fixtures → different IDs（碰撞抗性为概率性质，非"异字节必然异 id"）
+    assert a._task_id(other) != tid
     assert re.match(r"^[A-Za-z0-9_-]{1,64}$", tid)
 
 
@@ -834,7 +835,7 @@ def test_staging_error_through_handler_sanitized(
         assert needle not in text, needle
 
 
-def test_final_attempt_exhaustion_cleans_staged(
+def test_final_attempt_exhaustion_keeps_staged_disclosed_orphan(
     engine: Engine, tmp_path: Any, monkeypatch: Any
 ) -> None:
     root = tmp_path / "in"
@@ -848,7 +849,8 @@ def test_final_attempt_exhaustion_cleans_staged(
         engine, jid, extras={"storage": storage, "face_port": face, "skin_port": _StagingStub(root)}
     )
     assert exc is not None and exc.retryable is False
-    assert not (root / tid).exists()  # 终态 → 补偿清理
+    # 推断式补偿删除已移除：终态残留属**已披露孤儿**，延后到激活前置的 ops 机制。
+    assert (root / tid / "front.png").exists()
 
 
 def test_retryable_non_final_keeps_staged(
@@ -868,24 +870,59 @@ def test_retryable_non_final_keeps_staged(
     assert (root / tid / "front.png").exists()  # 可重试 → 保留（勿回归）
 
 
-def test_stale_revision_cleans_staged(engine: Engine, tmp_path: Any, monkeypatch: Any) -> None:
+def test_stale_supersession_deletes_neither_old_nor_new(
+    engine: Engine, tmp_path: Any, monkeypatch: Any
+) -> None:
+    """真·照片版本换代：旧=A 内容、新=B 内容。作废退出**不得删任何一方**。
+
+    这是针对 367bd14 破坏性行为的判别性测试：旧实现会误删**当前 B** 且漏掉旧 A。
+    """
     root = tmp_path / "in"
     root.mkdir()
     _set_env(monkeypatch, "http://127.0.0.1:1", root)
-    storage, aid, ref, images = _seed_bits(engine, tmp_path, rev=2)
-    tid = derive_task_id(images)
-    (root / tid).mkdir(parents=True)
-    (root / tid / "front.png").write_bytes(images["front"])
-    jid = _enqueue_ma(engine, aid, 99, 5)  # 与 row.revision=2 不同 → 旧代次作废
+    storage, aid, ref, images_a = _seed_bits(engine, tmp_path, rev=2)  # pv=1 content A
+    tid_a = derive_task_id(images_a)
+    (root / tid_a).mkdir(parents=True)
+    (root / tid_a / "front.png").write_bytes(images_a["front"])
+    # 换代：current_photo_version 1 → 2，内容 B 不同字节
+    refs_b = seed_source_media(engine, storage, assessment_id=aid, photo_version=2)
+    with engine.begin() as conn:
+        rows = conn.execute(
+            text(
+                "SELECT id::text AS id, object_key FROM media_objects"
+                " WHERE assessment_id = CAST(:a AS uuid) AND photo_version = 2"
+            ),
+            {"a": aid},
+        ).mappings().all()
+    key_by_ref = {r["id"]: r["object_key"] for r in rows}
+    for view, data in (("front", _png(11)), ("left", _png(12)), ("right", _png(13))):
+        storage.put(key_by_ref[refs_b[view]], data)
+    _attach_photo_versions(engine, aid, 2, refs_b)
+    with engine.begin() as conn:
+        conn.execute(
+            text("UPDATE skin_assessments SET current_photo_version = 2 WHERE id = CAST(:a AS uuid)"),
+            {"a": aid},
+        )
+    images_b = load_image_bytes(engine, storage, refs_b)
+    assert isinstance(images_b, dict)
+    tid_b = derive_task_id(images_b)
+    assert tid_a != tid_b
+    (root / tid_b).mkdir(parents=True)
+    (root / tid_b / "front.png").write_bytes(images_b["front"])
+    jid = _enqueue_ma(engine, aid, 99, 5)  # rev != row.revision(2) → 旧代次作废
     face = FaceDouble(search="matched", face_subject_ref=ref)
     _claim, exc = _handle_once(
-        engine, jid, extras={"storage": storage, "face_port": face, "skin_port": _StubSkin(_sg_result())}
+        engine, jid,
+        extras={"storage": storage, "face_port": face, "skin_port": _StubSkin(_sg_result())},
     )
     assert exc is None  # 作废=成功
-    assert not (root / tid).exists()
+    assert (root / tid_a / "front.png").exists()  # 旧孤儿**不再被推断删除**
+    assert (root / tid_b / "front.png").exists()  # 新活跃目录**绝不被删除**（判别点）
 
 
-def test_abort_exit_cleans_staged(engine: Engine, tmp_path: Any, monkeypatch: Any) -> None:
+def test_abort_exit_keeps_staged(
+    engine: Engine, tmp_path: Any, monkeypatch: Any
+) -> None:
     root = tmp_path / "in"
     root.mkdir()
     _set_env(monkeypatch, "http://127.0.0.1:1", root)
@@ -896,11 +933,40 @@ def test_abort_exit_cleans_staged(engine: Engine, tmp_path: Any, monkeypatch: An
     jid = _enqueue_ma(engine, aid, 2, 5)
     face = FaceDouble(search="matched", face_subject_ref=ref)
     _claim, exc = _handle_once(
-        engine, jid, extras={"storage": storage, "face_port": face, "skin_port": _StubSkin(_sg_result())},
+        engine, jid,
+        extras={"storage": storage, "face_port": face, "skin_port": _StubSkin(_sg_result())},
         abort=True,
     )
-    assert exc is None  # 协作中止
-    assert not (root / tid).exists()
+    assert exc is None  # 协作中止（常见于租约丢失：他人可能已在用该目录）
+    assert (root / tid / "front.png").exists()  # 不删（所有权不安全）
+
+
+def test_cleanup_failure_warning_fires_without_leaks(
+    monkeypatch: Any, tmp_path: Any, caplog: Any
+) -> None:
+    cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
+    a = _adapter(cfg)
+
+    def req(method: str, path: str, body: Any) -> tuple[int, Any]:
+        if method == "POST":
+            return (202, {"task_id": body["task_id"], "queue_id": "q", "status": "queued", "score_source": "s"})
+        return (200, _v3_969())
+
+    a._do_request = req
+    imgs = _images()
+
+    import mvp_worker.handlers.dshared.dshuiguang as mod
+
+    def boom(_path: Any, **_kw: Any) -> None:
+        raise OSError("rmtree denied")
+
+    monkeypatch.setattr(mod.shutil, "rmtree", boom)
+    with caplog.at_level(logging.WARNING):
+        result = a.analyze(imgs)
+    assert result.v3_groups is not None  # 清理失败不影响结果
+    assert "staged_cleanup_failed" in caplog.text  # 失败可观测（此前被 ignore_errors 吞掉）
+    for needle in (str(tmp_path), str(tmp_path), "http://", "front.png"):
+        assert needle not in caplog.text
 
 
 def test_stage_permissions_immune_to_umask(monkeypatch: Any, tmp_path: Any) -> None:

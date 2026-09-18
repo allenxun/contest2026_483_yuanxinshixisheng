@@ -40,7 +40,6 @@ from .dshared.dv3 import V3SkinViolation, validate_v3_skin_groups
 from .dshared.dshuiguang import (
     ShuiguangInputViolation,
     ShuiguangScoringReferenceNotReady,
-    cleanup_staged,
 )
 from .dshared.providers import ProviderConfigError, ProviderUnavailable
 from .dshared.resolve import dconfig_for, face_port_for, skin_port_for, storage_for
@@ -208,11 +207,6 @@ class AssessmentAnalyzeHandler:
         if int(row["processing_revision"]) != rev:
             # 旧输入代次：合法作废，无写回，任务成功。
             mlog(log, logging.INFO, "analyze.stale_input", **job.log_fields())
-            # shuiguang 暂存生命周期：本 job 可能是同 task_id 的真前一次尝试（可重试时曾
-            # **保留**照片目录）。作废退出必须补偿清理，否则成为永久孤儿（无 TTL 清扫）。
-            # 此处图像尚未加载：best-effort 读取本 job 代次的照片再内容派生 task_id。
-            # 代价：罕见路径上一次有界存储读；任何失败仅告警键名，绝不影响作废退出。
-            _shuiguang_cleanup_best_effort(ctx, job, dcfg, row)
             return None
 
         if row["status"] == "failed":
@@ -279,7 +273,6 @@ class AssessmentAnalyzeHandler:
 
         # 3) 质量 + 同人
         if ctx.abort_event.is_set():
-            _shuiguang_cleanup_images(dcfg, images)
             return None
         try:
             quality = face.quality(images)
@@ -298,7 +291,6 @@ class AssessmentAnalyzeHandler:
                 required_views=views, detail="quality check rejected current views",
             )
         if ctx.abort_event.is_set():
-            _shuiguang_cleanup_images(dcfg, images)
             return None
         try:
             same = face.same_person(images)
@@ -319,7 +311,6 @@ class AssessmentAnalyzeHandler:
 
         # 4) 测肤分析 + 白名单校验
         if ctx.abort_event.is_set():
-            _shuiguang_cleanup_images(dcfg, images)
             return None
         try:
             analysis = skin.analyze(images)
@@ -367,14 +358,11 @@ class AssessmentAnalyzeHandler:
                 code="DEPENDENCY_UNAVAILABLE",
                 message="skin provider unavailable",
                 reason=type(exc).__name__,
-                # 最终尝试耗尽 → 补偿清理 shuiguang 暂存（可重试仍保留）。
-                on_terminal=lambda: _shuiguang_cleanup_images(dcfg, images),
             )
             return None  # pragma: no cover
 
         # 5) 结果图归档（发布前完成；幂等复用 provider_ref）
         if ctx.abort_event.is_set():
-            _shuiguang_cleanup_images(dcfg, images)
             return None
         try:
             archived = archive_result_images(
@@ -403,7 +391,6 @@ class AssessmentAnalyzeHandler:
 
         # 6) 身份 1:N 检索
         if ctx.abort_event.is_set():
-            _shuiguang_cleanup_images(dcfg, images)
             return None
         try:
             search = face.search_1n(dcfg.identity_namespace, images)
@@ -655,16 +642,8 @@ class AssessmentAnalyzeHandler:
         code: str,
         message: str,
         reason: str,
-        on_terminal: Optional[Any] = None,
     ) -> None:
         if job.attempt_count >= job.max_attempts:
-            # 仅在瞬时→**终态**转换时调用补偿清理（可重试重排队**保留**文件：
-            # 已排队的算法 job 可能仍在读）。回调自身必须不抛；此处再兜底。
-            if on_terminal is not None:
-                try:
-                    on_terminal()
-                except Exception:
-                    mlog(log, logging.WARNING, "analyze.terminal_cleanup_failed", **job.log_fields())
             raise JobFailed(
                 code, message, retryable=False,
                 business_tx=_mark_failed_tx(assessment_id, rev, code, reason),
@@ -677,37 +656,6 @@ class AssessmentAnalyzeHandler:
 
 def _json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False)
-
-
-def _shuiguang_cleanup_images(dcfg: DConfig, images: Any) -> None:
-    """已加载图像后：内容派生 task_id 并 best-effort 清暂存（绝不抛、绝不记路径）。"""
-    if dcfg.skin_provider != "shuiguang" or not isinstance(images, dict):
-        return
-    cleanup_staged(dcfg.shuiguang_input_root, images)
-
-
-def _shuiguang_cleanup_best_effort(
-    ctx: HandlerContext, job: JobRow, dcfg: DConfig, row: dict[str, Any]
-) -> None:
-    """图像尚未加载的退出（旧输入代次作废）：best-effort 读图再清暂存。
-
-    代价：罕见路径上一次**有界**存储读。任何失败（存储/配置/形状）仅告警键名，
-    绝不影响作废/终态退出。仅 provider=shuiguang 生效。
-    """
-    if dcfg.skin_provider != "shuiguang":
-        return
-    try:
-        media_ids = _images_for_version(
-            row["photo_versions"], int(row["current_photo_version"])
-        )
-        if not isinstance(media_ids, dict):
-            return
-        images = load_image_bytes(ctx.engine, storage_for(ctx), media_ids)
-        if not isinstance(images, dict):
-            return
-        cleanup_staged(dcfg.shuiguang_input_root, images)
-    except Exception:
-        mlog(log, logging.WARNING, "analyze.shuiguang_cleanup_failed", **job.log_fields())
 
 
 def _load_assessment(engine: Engine, assessment_id: str) -> Optional[dict[str, Any]]:
