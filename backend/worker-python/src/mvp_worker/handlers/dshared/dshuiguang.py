@@ -4,14 +4,19 @@
 
 - ``POST /api/score-jobs``（HTTP 202）body ``{task_id, images:[{image_id, path}], mirrored:false}``；
   ``images`` **恰三张**（``front``/``left``/``right``），``path`` 为相对 ``INPUT_ROOT`` 的
-  共享挂载文件路径；同 ``task_id`` + 同输入 = 幂等。
+  共享挂载文件路径。**每一次 POST 都会入队一个新任务并返回新的 ``queue_id``**——即使
+  ``task_id`` 与输入完全相同；且每个排队任务在**执行时**才读取共享文件
+  （``safe_inputs`` 先于任何既有 job/结果判定）。因此**绝不能**按单个 ``queue_id`` 的
+  结果删除共享内容目录：会饿死同一内容目录上仍在排队/执行的兄弟任务。
+  （API 的 job/结果幂等语义属算法侧、本项目**未核实**——仅确认 ``safe_inputs`` 的读取
+  时序，不得依赖其余语义。）
 - ``GET /api/score-jobs/{queue_id}``：``pending``/``started``/``progress`` 为进行中；
   **成功** response body 直接是恰三组 ``pores``/``spots``/``surface_gloss``；
   **失败** ``{status:"failed", error:{code,message}}``。
 
 设计要点：
 
-- ``task_id`` 由**内容**派生（``sha256`` 的 160-bit 截断前缀）→ 同字节幂等、异字节
+- ``task_id`` 由**内容**派生（``sha256`` 的 160-bit 截断前缀）→ 同字节同 id、异字节
   高概率不同 id；**碰撞抗性是概率性的**（截断摘要，非"异字节必然异 id"）。无需改
   handler 签名；暂存目录 ``{INPUT_ROOT}/{task_id}/{view}.{ext}``，临时文件 + ``os.replace``
   原子落盘，目录 0700 / 文件 0600（不受 umask 影响）。
@@ -19,21 +24,19 @@
   handler 发布前还会再校验一次）。
 - ``metrics=[]``、``result_images=[]``、``conclusion``/``description=""``——**绝不伪造**
   旧指标/结果图/叙述/四区。
-- 生命周期（**所有权安全**，Oracle 复核后定稿）：
-  - **成功**或**适配器级确定性终态**（``V3SkinViolation`` /
-    ``ShuiguangScoringReferenceNotReady``）→ best-effort 删除暂存目录。所有权安全
-    依据：API 幂等（**同内容 = 同 task_id = 同 queue 条目**）——成功时该共享条目对
-    所有同内容调用者都已完成；上述确定性终态对所有同内容调用者都同样失败。
-  - 可重试失败 → **保留**文件（已排队的算法 job 可能仍在读；重试同 task_id 幂等复用）。
-  - ``_stage`` 失败 → 只清**本次调用**记录的临时文件（可证明本调用所有）；绝不删
-    上一尝试的 target。
-  - **不做任何"推断式"补偿删除**（handler 退出/租约丢失/代次作废/最终尝试耗尽均
-    不删）——Oracle 探针证明会导致**销毁活跃 job 的暂存**（租约竞态、照片版本换代时
-    误删新代次、同内容换代共享 task_id 的活性风险）；无持久化所有权记录前删除不安全。
-  - 因此以下**三类孤儿被显式延后到"激活前置的 ops 机制"**：(a) 重试耗尽的终态残留、
-    (b) 照片版本换代残留、(c) 硬进程崩溃残留。activation 已被"共享挂载 + ops 裁定"
-    把关；ops 孤儿契约（授权的清扫器或持久化 staging 所有权记录）属
-    **activation-blocking 前置条件**——需另立 coordination 记录，不得用推断删除替代。
+- 生命周期（**已按真实源码更正**）：**暂存输入在任何退出路径都保留**——成功、
+  确定性终态（``V3SkinViolation`` / ``ShuiguangScoringReferenceNotReady``）、可重试失败、
+  轮询预算耗尽，**一律不删**。
+  - 为什么不能按结果删除：每次 POST 产生**新的 queue 条目**（新 ``queue_id``），且每个
+    排队任务在执行时才读共享文件——删除共享内容目录会**饿死兄弟条目**（INVALID_INPUT）；
+    确定性终态删除有同样缺陷；粗粒度补偿删除还会在租约竞态/照片版本换代时误删他人
+    或新代次的活跃目录。无**持久化 staging 所有权记录**前，任何删除都不安全
+    （新建表/迁移属 coordination territory，本轮禁止）。
+  - 保留 `_stage` 失败时**只清本次调用**记录的临时文件（可证明本调用所有，见 ``_stage``）。
+- **四类残留/孤儿全部延后到"激活前置的 ops 机制"**：(a) 重试耗尽终态、(b) 照片版本换代、
+  (c) 硬进程崩溃、(d) 每一次已完成结果的残留。activation 已被"共享挂载 + ops 裁定"把关；
+  ops 清理契约（授权的清扫器**或**持久化 staging 所有权记录）属
+  **activation-blocking 前置条件**——需另立 coordination 记录，不得用结果驱动的删除替代。
 - 日志/异常只含键名与已消毒的 ``code``/``score_source``；**绝不**输出 token、图像字节、
   暂存路径或 ``message`` 原文。
 """
@@ -41,10 +44,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-import logging
 import os
 import re
-import shutil
 import socket
 import time
 import uuid
@@ -53,7 +54,6 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 from urllib.parse import quote, urlsplit
 
-from ...logging_setup import mlog
 from .constants import REQUIRED_VIEWS_ALL
 from .dconfig import (
     SHUIGUANG_BASE_URL_ENV,
@@ -64,8 +64,6 @@ from .dconfig import (
 from .dskin_mock import V3_SKIN_GROUP_KEYS
 from .dv3 import V3SkinViolation, validate_v3_skin_groups
 from .providers import ProviderUnavailable, SkinAnalysisResult
-
-log = logging.getLogger("mvp_worker.handlers.dshared.dshuiguang")
 
 _MAX_IMAGE_BYTES = 25 * 1024 * 1024  # 契约上限：单图 >25MB → job 失败
 _MAX_RESPONSE_BYTES = 1024 * 1024
@@ -89,19 +87,6 @@ def derive_task_id(images: dict[str, bytes]) -> str:
     return "sg-" + h.hexdigest()[:40]
 
 
-def _remove_staged(root: Path, task_id: str) -> bool:
-    """删除暂存目录/文件；**返回是否成功**（失败可被调用方观测并告警）。"""
-    path = root / task_id
-    try:
-        if path.is_dir():
-            shutil.rmtree(path)  # 不 ignore_errors：失败必须可观测
-        elif path.exists():
-            path.unlink()  # 预创建为文件的畸形暂存也要清掉
-        return True
-    except Exception:  # 清理 best-effort：绝不因清理失败影响结果
-        return False
-
-
 class ShuiguangInputViolation(RuntimeError):
     """输入确定性问题（缺视图/超限/非 JPEG-PNG/重复）→ 终态 ``PROVIDER_CONTRACT_VIOLATION``。"""
 
@@ -114,7 +99,7 @@ class ShuiguangStagingError(ProviderUnavailable):
     """暂存失败（可写根上的 FS 压力/路径冲突）→ 可重试 ``DEPENDENCY_UNAVAILABLE``。
 
     消息**只含键名**；经"捕获后退出 except 再 raise"模式抛出，``__cause__``/
-    ``__context__`` 均不携带任何路径。重试时同 task_id 幂等复用（若暂存已完整）。
+    ``__context__`` 均不携带任何路径。暂存保留供重试（同内容同 ``task_id``）。
     """
 
 
@@ -169,17 +154,11 @@ class ShuiguangSkinAdapter:
         self._preflight(images)
         task_id = self._task_id(images)
         rel = self._stage(images, task_id)
-        try:
-            queue_id, score_source = self._submit(task_id, rel)
-            groups = self._poll(queue_id)
-        except (ShuiguangScoringReferenceNotReady, V3SkinViolation):
-            # 确定性终态：清除本次暂存，绝不留给后续重试。
-            self._cleanup_staged(task_id)
-            raise
-        except ProviderUnavailable:
-            # 可重试：保留暂存，下次同 task_id 幂等复用。
-            raise
-        self._cleanup_staged(task_id)
+        # 暂存输入**在所有退出路径保留**（成功/确定性终态/可重试/预算耗尽均不删）：
+        # 每次 POST 都是新 queue 条目、且排队任务在执行时才读共享文件——按本次结果
+        # 删除共享内容目录会饿死兄弟条目。清理延后到激活前置的 ops 所有权契约。
+        queue_id, score_source = self._submit(task_id, rel)
+        groups = self._poll(queue_id)
         version = f"shuiguang:{_sanitize_source(score_source)}"
         self.model_version = version
         return SkinAnalysisResult(
@@ -346,12 +325,6 @@ class ShuiguangSkinAdapter:
             raise ProviderUnavailable("shuiguang job failed (code=WORKER_FAILED)")
         # 未知 code：保守可重试（绝不因未知瞬时丢 job，也绝不伪造分数）。
         raise ProviderUnavailable(f"shuiguang job failed (code={code})")
-
-    # ------------------------------------------------------------- 清理
-    def _cleanup_staged(self, task_id: str) -> None:
-        if not _remove_staged(self._root, task_id):
-            # best-effort：绝不让清理失败影响结果；只记键名，不记路径/内容。
-            mlog(log, logging.WARNING, "shuiguang.staged_cleanup_failed", stage="cleanup")
 
 
 def build_shuiguang_skin_port(cfg: DConfig) -> ShuiguangSkinAdapter:

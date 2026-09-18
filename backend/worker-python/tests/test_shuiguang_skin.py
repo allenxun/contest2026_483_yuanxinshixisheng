@@ -180,9 +180,14 @@ class _Stub:
         self.success_groups: Any = _v3_969()
         self.posts: list[dict[str, Any]] = []
         self.gets: list[str] = []
-        self.queue_ids: dict[str, str] = {}
+        # 真实 API：每次 POST 都入队新任务并返回**新的 queue_id**（即使 task_id/输入相同）。
+        self.queue_ids_used: list[str] = []
         self.poll_index: dict[str, int] = {}
         self.next_queue = 0
+        # safe_inputs 保真：成功前校验共享挂载文件仍存在（兄弟条目执行时读取）。
+        self.check_shared_paths = False
+        self.input_root: Any = None
+        self.missing_paths: list[str] = []
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -217,11 +222,9 @@ class _Handler(BaseHTTPRequestHandler):
             self._send(*self.stub.submit_override)
             return
         task_id = body.get("task_id")
-        qid = self.stub.queue_ids.get(task_id)
-        if qid is None:
-            self.stub.next_queue += 1
-            qid = f"q-{self.stub.next_queue}"
-            self.stub.queue_ids[task_id] = qid
+        self.stub.next_queue += 1
+        qid = f"q-{self.stub.next_queue}"  # 每次都新 queue 条目
+        self.stub.queue_ids_used.append(qid)
         self._send(202, {
             "task_id": task_id, "queue_id": qid, "status": "queued",
             "score_source": self.stub.score_source,
@@ -231,6 +234,20 @@ class _Handler(BaseHTTPRequestHandler):
         self.stub.gets.append(self.path)
         qid = self.path.rsplit("/", 1)[1]
         if self.stub.poll_script is None:
+            if self.stub.check_shared_paths:
+                root = Path(self.stub.input_root)
+                missing = [
+                    item["path"]
+                    for post in self.stub.posts
+                    for item in post.get("images", [])
+                    if not (root / item["path"]).exists()
+                ]
+                if missing:
+                    # 模拟真实 safe_inputs 在执行时读不到共享文件 → INVALID_INPUT
+                    self.stub.missing_paths = missing
+                    self._send(200, {"status": "failed", "error": {
+                        "code": "INVALID_INPUT", "message": "missing staged inputs"}})
+                    return
             self._send(200, self.stub.success_groups)
             return
         idx = self.stub.poll_index.get(qid, 0)
@@ -497,7 +514,7 @@ def test_success_969_consumed_as_is(monkeypatch: Any, tmp_path: Any) -> None:
 
 
 # ================================================================ 7) 端到端（真 HTTP stub）
-def test_end_to_end_success_and_cleanup(monkeypatch: Any, tmp_path: Any, stub_server: Any) -> None:
+def test_end_to_end_success_retains_staging(monkeypatch: Any, tmp_path: Any, stub_server: Any) -> None:
     stub, url = stub_server
     cfg = _set_env(monkeypatch, url, tmp_path)
     a = ShuiguangSkinAdapter(cfg, sleep=lambda _s: None, clock=lambda: 0.0)
@@ -516,10 +533,47 @@ def test_end_to_end_success_and_cleanup(monkeypatch: Any, tmp_path: Any, stub_se
     assert [i["path"] for i in body["images"]] == [
         f"{tid}/front.png", f"{tid}/left.png", f"{tid}/right.png"
     ]
-    assert not (tmp_path / tid).exists()  # 成功 → 清理
+    # 成功**不删**共享暂存（兄弟 queue 条目可能尚未读取）。
+    assert (tmp_path / tid / "front.png").exists()
 
 
-def test_end_to_end_retryable_keeps_staging(monkeypatch: Any, tmp_path: Any, stub_server: Any) -> None:
+def test_repeated_post_same_task_id_yields_distinct_queue_ids(
+    monkeypatch: Any, tmp_path: Any, stub_server: Any
+) -> None:
+    stub, url = stub_server
+    cfg = _set_env(monkeypatch, url, tmp_path)
+    a = ShuiguangSkinAdapter(cfg, sleep=lambda _s: None, clock=lambda: 0.0)
+    imgs = _images()
+    a.analyze(imgs)
+    a.analyze(imgs)
+    assert len(stub.posts) == 2
+    assert stub.posts[0]["task_id"] == stub.posts[1]["task_id"]  # 同内容同 task_id
+    assert len(stub.queue_ids_used) == 2
+    assert stub.queue_ids_used[0] != stub.queue_ids_used[1]  # 但每次 POST 新 queue 条目
+
+
+def test_sibling_entries_share_staged_dir_safely(
+    monkeypatch: Any, tmp_path: Any, stub_server: Any
+) -> None:
+    """两个同内容 queue 条目：首个完成不得删除共享目录，第二个仍能读到文件。"""
+    stub, url = stub_server
+    cfg = _set_env(monkeypatch, url, tmp_path)
+    stub.check_shared_paths = True
+    stub.input_root = tmp_path  # 模拟 safe_inputs：成功前校验共享挂载文件仍在
+    a = ShuiguangSkinAdapter(cfg, sleep=lambda _s: None, clock=lambda: 0.0)
+    imgs = _images()
+    tid = a._task_id(imgs)
+    r1 = a.analyze(imgs)
+    assert r1.v3_groups is not None
+    assert (tmp_path / tid / "front.png").exists()  # 首个完成不删
+    r2 = a.analyze(imgs)  # 第二个 queue 条目
+    assert stub.missing_paths == [], stub.missing_paths  # safe_inputs 能读到共享文件
+    assert r2.v3_groups is not None
+    assert (tmp_path / tid / "front.png").exists()
+    assert len(stub.queue_ids_used) == 2 and len(set(stub.queue_ids_used)) == 2
+
+
+def test_staged_retained_on_all_exit_paths(monkeypatch: Any, tmp_path: Any, stub_server: Any) -> None:
     stub, url = stub_server
     cfg = _set_env(monkeypatch, url, tmp_path, poll_max=100)
     state = {"t": 0.0, "step": 1000.0}
@@ -533,57 +587,29 @@ def test_end_to_end_retryable_keeps_staging(monkeypatch: Any, tmp_path: Any, stu
     tid = a._task_id(imgs)
     stub.poll_script = [(200, {"queue_id": "q", "status": "pending", "progress": 0})]
     with pytest.raises(ProviderUnavailable):
-        a.analyze(imgs)  # 预算立即超限
-    assert (tmp_path / tid / "front.png").exists()  # 可重试 → 保留
-
-    # 幂等重发：同 task_id → 同 queue_id → 续轮询到成功
-    state["t"] = 0.0
-    state["step"] = 0.0  # 不再施加预算压力
-    stub.poll_script = [
-        (200, {"queue_id": "q", "status": "pending", "progress": 0}),
-        (200, {"queue_id": "q", "status": "started", "progress": 50}),
-        (200, _v3_969()),
-    ]
+        a.analyze(imgs)  # 预算耗尽
+    assert (tmp_path / tid / "front.png").exists()
+    state["step"] = 0.0  # 解除预算压力，让后续轮询真正到达
+    stub.poll_script = [(200, {"status": "failed", "error": {"code": "WORKER_FAILED"}})]
     stub.poll_index.clear()
-    result = a.analyze(imgs)
-    assert result.v3_groups is not None
-    assert len(stub.posts) == 2
-    assert stub.posts[0]["task_id"] == stub.posts[1]["task_id"]  # 幂等同 id
-    assert len(stub.queue_ids) == 1  # 同 queue
-    assert not (tmp_path / tid).exists()
-
-
-def test_end_to_end_terminal_cleans_staging(monkeypatch: Any, tmp_path: Any, stub_server: Any) -> None:
-    stub, url = stub_server
-    cfg = _set_env(monkeypatch, url, tmp_path)
+    with pytest.raises(ProviderUnavailable):
+        a.analyze(imgs)  # 可重试失败
+    assert (tmp_path / tid / "front.png").exists()
     stub.poll_script = [(200, {"status": "failed", "error": {"code": "SCORING_REFERENCE_NOT_READY"}})]
-    a = ShuiguangSkinAdapter(cfg, sleep=lambda _s: None, clock=lambda: 0.0)
-    imgs = _images()
-    tid = a._task_id(imgs)
+    stub.poll_index.clear()
     with pytest.raises(ShuiguangScoringReferenceNotReady):
-        a.analyze(imgs)
-    assert not (tmp_path / tid).exists()
-
-
-def test_cleanup_failure_never_breaks_outcome(monkeypatch: Any, tmp_path: Any) -> None:
-    cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
-    a = _adapter(cfg)
-
-    def req(method: str, path: str, body: Any) -> tuple[int, Any]:
-        if method == "POST":
-            return (202, {"task_id": body["task_id"], "queue_id": "q", "status": "queued", "score_source": "s"})
-        return (200, _v3_969())
-
-    a._do_request = req
-
-    def boom(_path: Any) -> None:
-        raise OSError("cleanup exploded")
-
-    import mvp_worker.handlers.dshared.dshuiguang as mod
-
-    monkeypatch.setattr(mod.shutil, "rmtree", boom)
-    result = a.analyze(_images())  # 清理异常被吞，结果照常
-    assert result.v3_groups is not None
+        a.analyze(imgs)  # 确定性终态
+    assert (tmp_path / tid / "front.png").exists()
+    bad = _v3_969()
+    bad["extra"] = 1
+    stub.poll_script = None
+    stub.success_groups = bad
+    with pytest.raises(V3SkinViolation):
+        a.analyze(imgs)  # 契约违约终态
+    assert (tmp_path / tid / "front.png").exists()
+    stub.success_groups = _v3_969()
+    assert a.analyze(imgs).v3_groups is not None  # 成功
+    assert (tmp_path / tid / "front.png").exists()  # 全路径保留
 
 
 # ================================================================ 8) 泄漏纪律
@@ -939,34 +965,6 @@ def test_abort_exit_keeps_staged(
     )
     assert exc is None  # 协作中止（常见于租约丢失：他人可能已在用该目录）
     assert (root / tid / "front.png").exists()  # 不删（所有权不安全）
-
-
-def test_cleanup_failure_warning_fires_without_leaks(
-    monkeypatch: Any, tmp_path: Any, caplog: Any
-) -> None:
-    cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
-    a = _adapter(cfg)
-
-    def req(method: str, path: str, body: Any) -> tuple[int, Any]:
-        if method == "POST":
-            return (202, {"task_id": body["task_id"], "queue_id": "q", "status": "queued", "score_source": "s"})
-        return (200, _v3_969())
-
-    a._do_request = req
-    imgs = _images()
-
-    import mvp_worker.handlers.dshared.dshuiguang as mod
-
-    def boom(_path: Any, **_kw: Any) -> None:
-        raise OSError("rmtree denied")
-
-    monkeypatch.setattr(mod.shutil, "rmtree", boom)
-    with caplog.at_level(logging.WARNING):
-        result = a.analyze(imgs)
-    assert result.v3_groups is not None  # 清理失败不影响结果
-    assert "staged_cleanup_failed" in caplog.text  # 失败可观测（此前被 ignore_errors 吞掉）
-    for needle in (str(tmp_path), str(tmp_path), "http://", "front.png"):
-        assert needle not in caplog.text
 
 
 def test_stage_permissions_immune_to_umask(monkeypatch: Any, tmp_path: Any) -> None:
