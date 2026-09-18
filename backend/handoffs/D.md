@@ -160,3 +160,13 @@
 - **证据**：worker 全量每候选 orchestrator 亲跑绑定——9f96f10=821、**e133461=832 passed exit 0**（778 基线+54）；Java 针对 11/0/0/0（9f96f10 时跑；rebind 轮 Java 零 delta，证据沿用有效）；无关套件未重跑。
 - **边界（尚未现场接入真实算法）**：真实测肤算法**未接入**——AliyunSkinAdapter 未实现/未激活；V3 三组当前仅能来自显式 mock 开关（默认关）后的 dev/test 替身（带 mock 标记）；生产 fail-closed 零注入；真实算法 provider 接入并经协调标定前，不存在 V3 生产发布路径；AI 侧对三组体的消费与已实证合同存在上述未决差异（容器形状/词表/N.5 帧/N.4 信封）。
 - 提交：代码 `9f96f10` + 修复 `e133461`（独立提交）；报告=本提交（report-only）。
+
+## V3 校验收紧轮（2026-09-18）：最终代码 SHA `959af5d`（取代 e133461；Oracle PASS 零发现）
+
+- **基线**：监督者已将本地 dev 快进同步入 feature（链 …→9983c1d→dev 合入（含 B 的 ReportNarration SSE 增量 31 文件）→29e7287→959af5d）；治理文档（AGENTS.md/doc README/COMMON）零 delta。仅本地——未合并 dev、未 push、未部署、未改 B 代码/其它工作树。
+- **裁定与范围（总协调 §688）**：仅收紧 D Worker V3 三组预发布校验——**拒绝空 regions 列表**与**空白字符构成的 group.name/region.name/region.region**，与 B 已集成 SSE extractor 的拒绝语义对齐（取证亲读：ReportNarrationScoreExtractor.java:151（isNull/!isArray/isEmpty→invalid）与 :174-176（过滤后空→invalid）、readRequiredText:239（!isTextual||asText().isBlank()→invalid）施于 :133/:164/:165、接受值不 trim；ReportNarrationScores.java:34-41/:51-57 记录级复核）；其它已验收契约与 mock 默认关**不变**；最小测试（未跑全量/重型模型）；**真实 dermavision 适配明令未做**。
+- **实现**（恰 2 文件 +108/−9：validator +24/−9、测试 +84）：三处文本检查由真值升级为非空白（`.strip()` 非空；**仅拒绝、绝不 trim/规范化**——与 B 的 asText() 不 trim 一致）；regions 非空数组守卫（既有 isinstance-list 检查之后）；违例仍走 _ContractViolation→终态 PROVIDER_CONTRACT_VIOLATION（零发布）。**方向安全实证**（Oracle 亲验）：JavaWhitespace−PythonStrip=∅（跨已安装运行时）；Python 额外剥 U+0085/U+00A0/U+2007/U+202F=仅 D 更严（NBSP 类 D 拒 B 收）⇒ D 放行值必可被 B 消费；D 既有更严处（未知键拒绝 vs B drop+warn、非有限/巨大整数拒绝）保持**零放宽**。其余行为字节级不变：null≠0、非 float 0..100 精确比较、severity 词表、region 唯一、all-or-none 恰三键、闭合白名单、规范化深拷贝、fenced 恰三键发布合并；dskin_mock/dconfig/providers **字节未变**且 mock 数据未改即过新规。
+- **测试**（最小验证=仅定向文件；rg 复核无其它文件引用 v3_groups）：tests/test_skin_v3_groups.py +16（54→**70 passed exit 0**，orchestrator 亲跑绑定）：空 regions×3 组；三文本位×3 空白形态（" "/制表换行/全角 U+3000）；publish 级空 regions+空白组名→终态 PROVIDER_CONTRACT_VIOLATION（retryable=False、report_payload/report_id 缺位）；内部与首尾空白（"额 部"/" 额 部 "）**逐字节 verbatim 保留**。判别变异：回退真值检查+移除空守卫→恰 14 判别用例失败（2 个 verbatim 保留用例如实标注非判别守卫）；sha256 逐字节还原、零残留。
+- **Oracle**（同一审查会话，有界轮）：**PASS@`959af5d`=ACCEPTED 为本收紧增量最终代码 SHA**；六焦点全 COMPLIANT（对齐保真/方向安全反向缺口搜索/零松弛回归/测试判别力/scope 纪律含禁 dermavision 适配/引证准确性）；blockingFindings=[]；**零发现（全严重级）**；14 探针全阻断。事实更正（审查者核出）：validator 实际插入 24 行（审查指令中 33 为 diffstat 变更行数；合计 +108/−9 不变；仓库工件无该误数）。
+- **残留真实适配缺项（未做、不编造）**：可见最新 origin/dev `787a500` 的真实 dermavision API **只接受单图或 RGB/PP/CP/UV 四图、返回 11 模块两种评分**，**不提供**用户给的 pores/spots/surface_gloss、9/8/9 regions、高分更好的精简 V3 API；**三视角调用方式与分数映射未定**——真实适配需总协调/算法侧裁定后另起增量，D 零猜测实现、零伪造映射。集成由总协调负责。
+- 提交：代码 `959af5d`（独立）；报告=本提交（report-only）。V3 谱系 Oracle 累计：9f96f10 PASS-with-notes→e133461 PASS（历史 FINAL）→**959af5d PASS（现最终代码 SHA）**。
