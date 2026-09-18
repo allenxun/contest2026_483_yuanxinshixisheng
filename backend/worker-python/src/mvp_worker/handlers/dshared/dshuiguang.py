@@ -11,9 +11,10 @@
 
 设计要点：
 
-- ``task_id`` 由**内容**派生（``sha256`` 定长前缀）→ 同字节幂等、异字节异 id，无需改
+- ``task_id`` 由**内容**派生（``sha256`` 的 160-bit 截断前缀）→ 同字节幂等、异字节
+  高概率不同 id；**碰撞抗性是概率性的**（截断摘要，非"异字节必然异 id"）。无需改
   handler 签名；暂存目录 ``{INPUT_ROOT}/{task_id}/{view}.{ext}``，临时文件 + ``os.replace``
-  原子落盘。
+  原子落盘，目录 0700 / 文件 0600（不受 umask 影响）。
 - 成功体用 :func:`dshared.dv3.validate_v3_skin_groups` **同一严格语义**校验（防御式；
   handler 发布前还会再校验一次）。
 - ``metrics=[]``、``result_images=[]``、``conclusion``/``description=""``——**绝不伪造**
@@ -62,12 +63,55 @@ _JPEG_MAGIC = b"\xff\xd8\xff"
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 
+def derive_task_id(images: dict[str, bytes]) -> str:
+    """内容派生 task_id：``sha256`` 的 **160-bit 截断**（40 hex）。
+
+    同字节 → 同 id（幂等）；不同字节 → **高概率**不同 id（碰撞抗性为概率性质，
+    并非"异字节必然异 id"）。字符集 ``[A-Za-z0-9-]``，长度 43 ≤ 64。
+    """
+    h = hashlib.sha256()
+    for view in REQUIRED_VIEWS_ALL:
+        data = bytes(images[view])
+        h.update(len(data).to_bytes(8, "big"))
+        h.update(data)
+    return "sg-" + h.hexdigest()[:40]
+
+
+def _remove_staged(root: Path, task_id: str) -> bool:
+    path = root / task_id
+    try:
+        if path.is_dir():
+            shutil.rmtree(path, ignore_errors=True)
+        elif path.exists():
+            path.unlink()  # 预创建为文件的畸形暂存也要清掉
+        return True
+    except Exception:  # 清理 best-effort：绝不因清理失败影响结果
+        return False
+
+
+def cleanup_staged(root: str, images: dict[str, bytes]) -> None:
+    """best-effort 清除由 ``images`` 派生的暂存目录；**绝不抛异常**、绝不记路径。"""
+    try:
+        task_id = derive_task_id(images)
+    except Exception:
+        return
+    _remove_staged(Path(root), task_id)
+
+
 class ShuiguangInputViolation(RuntimeError):
     """输入确定性问题（缺视图/超限/非 JPEG-PNG/重复）→ 终态 ``PROVIDER_CONTRACT_VIOLATION``。"""
 
 
 class ShuiguangScoringReferenceNotReady(RuntimeError):
     """服务端确定性状态 ``SCORING_REFERENCE_NOT_READY`` → 立即终态，**绝不伪造分数**。"""
+
+
+class ShuiguangStagingError(ProviderUnavailable):
+    """暂存失败（可写根上的 FS 压力/路径冲突）→ 可重试 ``DEPENDENCY_UNAVAILABLE``。
+
+    消息**只含键名**；经"捕获后退出 except 再 raise"模式抛出，``__cause__``/
+    ``__context__`` 均不携带任何路径。重试时同 task_id 幂等复用（若暂存已完整）。
+    """
 
 
 def _is_supported_image(data: bytes) -> bool:
@@ -109,6 +153,8 @@ class ShuiguangSkinAdapter:
         self._poll_max = float(cfg.shuiguang_poll_max_seconds)
         self._max_image_bytes = max_image_bytes
         self._max_response_bytes = max_response_bytes
+        self._dir_mode = cfg.shuiguang_stage_dir_mode
+        self._file_mode = cfg.shuiguang_stage_file_mode
         self._do_request = request_fn if request_fn is not None else self._http_request
         self._sleep = sleep
         self._clock = clock
@@ -158,26 +204,45 @@ class ShuiguangSkinAdapter:
             raise ShuiguangInputViolation("duplicate views are not allowed")
 
     def _task_id(self, images: dict[str, bytes]) -> str:
-        h = hashlib.sha256()
-        for view in REQUIRED_VIEWS_ALL:
-            data = bytes(images[view])
-            h.update(len(data).to_bytes(8, "big"))
-            h.update(data)
-        return "sg-" + h.hexdigest()[:40]  # [A-Za-z0-9-], 43 chars ≤ 64
+        return derive_task_id(images)
 
     def _stage(self, images: dict[str, bytes], task_id: str) -> list[tuple[str, str]]:
         job_dir = self._root / task_id
-        job_dir.mkdir(parents=True, exist_ok=True)
         rel: list[tuple[str, str]] = []
-        for view in REQUIRED_VIEWS_ALL:
-            data = bytes(images[view])
-            ext = _image_ext(data)
-            target = job_dir / f"{view}.{ext}"
-            tmp = job_dir / f".{view}.{uuid.uuid4().hex}.tmp"
-            with open(tmp, "wb") as fh:
-                fh.write(data)
-            os.replace(tmp, target)  # 原子：读者永不见部分文件
-            rel.append((view, f"{task_id}/{view}.{ext}"))
+        tmp_names: list[Path] = []
+        failure: Optional[OSError] = None
+        try:
+            job_dir.mkdir(parents=True, exist_ok=True)
+            os.chmod(job_dir, self._dir_mode)  # mkdir 的 mode 会被 umask 掩码
+            for view in REQUIRED_VIEWS_ALL:
+                data = bytes(images[view])
+                ext = _image_ext(data)
+                target = job_dir / f"{view}.{ext}"
+                tmp = job_dir / f".{view}.{uuid.uuid4().hex}.tmp"
+                fd = os.open(
+                    tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, self._file_mode
+                )
+                tmp_names.append(tmp)
+                with os.fdopen(fd, "wb") as fh:
+                    fh.write(data)
+                os.replace(tmp, target)  # 原子；保留 0600 模式
+                tmp_names.remove(tmp)
+                rel.append((view, f"{task_id}/{view}.{ext}"))
+        except OSError as exc:
+            failure = exc
+        if failure is not None:
+            # 只清**本次调用**的临时文件；保留既有 target（同 task_id 同字节，
+            # 可能正被已排队的算法 job 读取）。绝不删上一尝试的目标文件。
+            for tmp in tmp_names:
+                try:
+                    os.unlink(tmp)
+                except OSError:
+                    pass
+            # 关键：已退出 except 块（sys.exc_info 清空）→ raise 无隐式 __context__；
+            # ``from None`` 再清 __cause__。消息只含键名，绝不含路径。
+            raise ShuiguangStagingError(
+                "shuiguang staging failed; check " + SHUIGUANG_INPUT_ROOT_ENV
+            ) from None
         return rel
 
     # ------------------------------------------------------------- HTTP
@@ -280,11 +345,7 @@ class ShuiguangSkinAdapter:
 
     # ------------------------------------------------------------- 清理
     def _cleanup_staged(self, task_id: str) -> None:
-        try:
-            shutil.rmtree(self._root / task_id)
-        except FileNotFoundError:
-            return
-        except OSError:
+        if not _remove_staged(self._root, task_id):
             # best-effort：绝不让清理失败影响结果；只记键名，不记路径/内容。
             mlog(log, logging.WARNING, "shuiguang.staged_cleanup_failed", stage="cleanup")
 

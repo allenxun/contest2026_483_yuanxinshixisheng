@@ -25,6 +25,8 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | ``MVP_D_SHUIGUANG_READ_TIMEOUT_MS`` | ``10000`` | 严格整数 ≥1 |
 | ``MVP_D_SHUIGUANG_POLL_INTERVAL_SECONDS`` | ``2`` | 轮询间隔秒（严格整数 ≥1） |
 | ``MVP_D_SHUIGUANG_POLL_MAX_SECONDS`` | ``120`` | 轮询总预算秒（严格整数 ≥1） |
+| ``MVP_D_SHUIGUANG_STAGE_DIR_MODE`` | ``0700`` | 暂存目录权限（严格八进制 0..0777；不受 umask 影响） |
+| ``MVP_D_SHUIGUANG_STAGE_FILE_MODE`` | ``0600`` | 暂存文件权限（严格八进制 0..0777） |
 | ``MVP_PLAN_CAPABILITY_BASELINE`` | 内置受控基线 | JSON；能力/参数范围/批准区域/N 边界 |
 | ``MVP_PLAN_CAPABILITY_STALE_SECONDS`` | ``86400`` | T04 观察新鲜窗口；0=忽略 |
 | ``MVP_PLAN_WAIT_CHECK_SECONDS`` | ``30`` | 能力待补齐的 defer 再检查间隔（合法等待态，不消耗 attempt） |
@@ -104,6 +106,10 @@ DEFAULT_SHUIGUANG_CONNECT_TIMEOUT_MS = 2000
 DEFAULT_SHUIGUANG_READ_TIMEOUT_MS = 10000
 DEFAULT_SHUIGUANG_POLL_INTERVAL_SECONDS = 2
 DEFAULT_SHUIGUANG_POLL_MAX_SECONDS = 120
+#: 暂存权限：默认最小权限（目录 0700/文件 0600，不受 umask 影响）。部署 ACL 裁决
+#: 仍是**激活前置条件**；放宽需 ops 裁定（本仓库默认从紧）。
+DEFAULT_SHUIGUANG_STAGE_DIR_MODE = 0o700
+DEFAULT_SHUIGUANG_STAGE_FILE_MODE = 0o600
 DEFAULT_PLAN_PROVIDER = "double"
 DEFAULT_STORAGE_PROVIDER = STORAGE_PROVIDER_DOUBLE
 DEFAULT_IDENTITY_NAMESPACE = "mvp-ns-1"
@@ -238,6 +244,24 @@ def _env(name: str, default: str) -> str:
 def _env_int(name: str, default: int) -> int:
     raw = os.environ.get(name, "").strip()
     return int(raw) if raw else default
+
+
+def _strict_env_octal(name: str, default: int) -> int:
+    """严格八进制模式解析（暂存权限）：非法/越界 → 加载期 ``ProviderConfigError``。"""
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw, 8)
+    except ValueError:
+        raise ProviderConfigError(
+            f"invalid {name}={raw!r}; expected octal mode 0..0777"
+        ) from None
+    if not (0 <= value <= 0o777):
+        raise ProviderConfigError(
+            f"invalid {name}={raw!r}; expected octal mode 0..0777"
+        ) from None
+    return value
 
 
 def _strict_env_int(name: str, default: int, *, minimum: int) -> int:
@@ -444,6 +468,16 @@ class DConfig:
             "MVP_D_SHUIGUANG_POLL_MAX_SECONDS",
             DEFAULT_SHUIGUANG_POLL_MAX_SECONDS,
             minimum=1,
+        )
+    )
+    shuiguang_stage_dir_mode: int = field(
+        default_factory=lambda: _strict_env_octal(
+            "MVP_D_SHUIGUANG_STAGE_DIR_MODE", DEFAULT_SHUIGUANG_STAGE_DIR_MODE
+        )
+    )
+    shuiguang_stage_file_mode: int = field(
+        default_factory=lambda: _strict_env_octal(
+            "MVP_D_SHUIGUANG_STAGE_FILE_MODE", DEFAULT_SHUIGUANG_STAGE_FILE_MODE
         )
     )
     plan_provider: str = field(
@@ -653,7 +687,15 @@ class DConfig:
         （orchestrator 已 grep 核实：worker-python 的 src 与 tests 中 ``repr(`` 命中 0），
         故本方法属**预防性硬化**，不改变任何现有行为。
         """
-        redact_hints = ("access_key", "secret", "token", "endpoint", "bucket")
+        redact_hints = (
+        "access_key",
+        "secret",
+        "token",
+        "endpoint",
+        "bucket",
+        "shuiguang_base_url",
+        "shuiguang_input_root",
+    )
         parts = [
             f"{f.name}='<redacted>'"
             if any(hint in f.name for hint in redact_hints)

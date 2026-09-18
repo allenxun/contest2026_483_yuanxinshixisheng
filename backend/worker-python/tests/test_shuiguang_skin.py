@@ -19,18 +19,29 @@ from pathlib import Path
 from typing import Any, Optional
 
 import pytest
-from sqlalchemy import Engine
+from sqlalchemy import Engine, text
 
 from conftest import enqueue
 from d_support import (
+    DEFAULT_NS,
     clean_d_tables,
     fetch_assessment,
+    make_ctx,
+    photo_versions_for,
     run_claimed,
     seed_assessment,
     seed_member,
     seed_source_media,
 )
-from test_skin_v3_groups import _enqueue_analyze, _seed_analysis_case  # 复用 D-owned helper
+from mvp_worker.handlers import JobFailed
+from test_skin_v3_groups import (  # 复用 D-owned helper
+    _attach_photo_versions,
+    _enqueue_analyze,
+    _seed_analysis_case,
+)
+from mvp_worker.runtime.claim import claim_batch
+from mvp_worker.runtime.expire import release_claim
+from mvp_worker.handlers.dshared.dmedia import load_image_bytes
 
 from mvp_worker.handlers.assessment_analyze import handler as analyze_handler
 from mvp_worker.handlers.dshared.dconfig import (
@@ -43,7 +54,9 @@ from mvp_worker.handlers.dshared.dshuiguang import (
     ShuiguangInputViolation,
     ShuiguangScoringReferenceNotReady,
     ShuiguangSkinAdapter,
+    ShuiguangStagingError,
     build_shuiguang_skin_port,
+    derive_task_id,
 )
 from mvp_worker.handlers.dshared.dv3 import V3SkinViolation
 from mvp_worker.handlers.dshared.providers import (
@@ -52,6 +65,7 @@ from mvp_worker.handlers.dshared.providers import (
     SkinAnalysisResult,
     build_skin_port,
 )
+from mvp_worker.media.storage import FilesystemStorageDouble
 
 
 # ---------------------------------------------------------------- fixtures
@@ -699,3 +713,251 @@ def test_handler_skin_provider_config_immediate_terminal(
     assert exc is not None and exc.code == "SKIN_PROVIDER_CONFIG"
     a = fetch_assessment(engine, aid)
     assert a["failure_code"] == "SKIN_PROVIDER_CONFIG"
+
+
+# ================================================================ 10) 生命周期 / 权限 / 泄漏（Oracle FAIL 修复）
+class _StagingStub:
+    """模拟适配器暂存后抛可重试错误（handler 语义）。"""
+
+    provider_name = "shuiguang"
+
+    def __init__(self, root: Any) -> None:
+        self._root = Path(root)
+        self.model_version = "shuiguang:test"
+
+    def analyze(self, images: dict[str, bytes]) -> Any:
+        tid = derive_task_id(images)
+        d = self._root / tid
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "front.png").write_bytes(images["front"])
+        raise ProviderUnavailable("injected retryable skin failure")
+
+
+def _enqueue_ma(engine: Engine, aid: str, rev: int, max_attempts: int) -> str:
+    jid, _ = enqueue(
+        engine, job_type="assessment.analyze", dedup_key=f"assessment:{aid}:{rev}",
+        owner_type="assessment", owner_id=aid, input_revision=rev,
+        payload={"schema_version": 1, "assessment_id": aid, "processing_revision": str(rev)},
+        max_attempts=max_attempts,
+    )
+    return jid
+
+
+def _seed_bits(engine: Engine, tmp_path: Any, *, rev: int = 2) -> tuple[Any, str, str, Any]:
+    storage = FilesystemStorageDouble(tmp_path / "storage")
+    aid = seed_assessment(engine, status="queued", current_photo_version=1, processing_revision=rev)
+    refs = seed_source_media(engine, storage, assessment_id=aid, photo_version=1)
+    # 用**互不相同且合法**的合成 PNG 覆盖三视图（seed 默认同字节 → 会被去重预检拒绝）。
+    with engine.begin() as conn:
+        rows = conn.execute(
+            text(
+                "SELECT id::text AS id, object_key FROM media_objects"
+                " WHERE assessment_id = CAST(:a AS uuid) AND photo_version = 1"
+            ),
+            {"a": aid},
+        ).mappings().all()
+    key_by_ref = {r["id"]: r["object_key"] for r in rows}
+    for view, data in (("front", _png(1)), ("left", _png(2)), ("right", _png(3))):
+        storage.put(key_by_ref[refs[view]], data)
+    _attach_photo_versions(engine, aid, 1, refs)
+    ref = str(uuid.uuid4())
+    seed_member(engine, ns=DEFAULT_NS, ref=ref, assessment_id=aid)
+    images = load_image_bytes(engine, storage, refs)
+    assert isinstance(images, dict)
+    return storage, aid, ref, images
+
+
+def _handle_once(
+    engine: Engine, job_id: str, *, extras: dict[str, Any], abort: bool = False
+) -> tuple[Any, Any]:
+    claims = claim_batch(engine, worker_id="w-d", lease_seconds=60, batch_size=50)
+    claim = next(c for c in claims if c.id == job_id)
+    for other in claims:
+        if other.id != job_id:
+            release_claim(engine, other, worker_id="w-d")
+    analyze_handler.validate(claim.payload)
+    ctx = make_ctx(engine, claim, extras=extras)
+    if abort:
+        ctx.abort_event.set()
+    exc = None
+    try:
+        analyze_handler.handle(ctx, claim)
+    except JobFailed as e:  # noqa: F821
+        exc = e
+    return claim, exc
+
+
+def _chain_text(exc: Any) -> str:
+    parts: list[str] = []
+    seen: set[int] = set()
+    cur = exc
+    while cur is not None and id(cur) not in seen:
+        seen.add(id(cur))
+        parts.append(str(cur))
+        parts.append(repr(cur))
+        cur = cur.__cause__ or cur.__context__
+    return "\n".join(parts)
+
+
+def test_staging_error_sanitized_direct(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
+    imgs = _images()
+    tid = derive_task_id(imgs)
+    (tmp_path / tid).write_text("precreated file blocks staging")
+    a = _adapter(cfg)
+    with pytest.raises(ShuiguangStagingError) as ei:
+        a.analyze(imgs)
+    assert isinstance(ei.value, ProviderUnavailable)  # 可重试类别
+    text = _chain_text(ei.value)
+    for needle in (str(tmp_path), tid, ".tmp", "front.png"):
+        assert needle not in text, needle
+
+
+def test_staging_error_through_handler_sanitized(
+    engine: Engine, tmp_path: Any, monkeypatch: Any
+) -> None:
+    root = tmp_path / "in"
+    root.mkdir()
+    _set_env(monkeypatch, "http://127.0.0.1:1", root)
+    storage, aid, ref, images = _seed_bits(engine, tmp_path)
+    tid = derive_task_id(images)
+    (root / tid).write_text("precreated file blocks staging")
+    jid = _enqueue_ma(engine, aid, 2, 2)
+    face = FaceDouble(search="matched", face_subject_ref=ref)
+    real = build_shuiguang_skin_port(DConfig.from_env())  # 预检/暂存真实路径（零网络）
+    _claim, exc = _handle_once(
+        engine, jid, extras={"storage": storage, "face_port": face, "skin_port": real}
+    )
+    assert exc is not None and exc.retryable is True
+    text = _chain_text(exc)
+    for needle in (str(root), tid, ".tmp", "front.png"):
+        assert needle not in text, needle
+
+
+def test_final_attempt_exhaustion_cleans_staged(
+    engine: Engine, tmp_path: Any, monkeypatch: Any
+) -> None:
+    root = tmp_path / "in"
+    root.mkdir()
+    _set_env(monkeypatch, "http://127.0.0.1:1", root)
+    storage, aid, ref, images = _seed_bits(engine, tmp_path)
+    tid = derive_task_id(images)
+    jid = _enqueue_ma(engine, aid, 2, 1)  # 首次即最终尝试
+    face = FaceDouble(search="matched", face_subject_ref=ref)
+    _claim, exc = _handle_once(
+        engine, jid, extras={"storage": storage, "face_port": face, "skin_port": _StagingStub(root)}
+    )
+    assert exc is not None and exc.retryable is False
+    assert not (root / tid).exists()  # 终态 → 补偿清理
+
+
+def test_retryable_non_final_keeps_staged(
+    engine: Engine, tmp_path: Any, monkeypatch: Any
+) -> None:
+    root = tmp_path / "in"
+    root.mkdir()
+    _set_env(monkeypatch, "http://127.0.0.1:1", root)
+    storage, aid, ref, images = _seed_bits(engine, tmp_path)
+    tid = derive_task_id(images)
+    jid = _enqueue_ma(engine, aid, 2, 3)  # 非最终
+    face = FaceDouble(search="matched", face_subject_ref=ref)
+    _claim, exc = _handle_once(
+        engine, jid, extras={"storage": storage, "face_port": face, "skin_port": _StagingStub(root)}
+    )
+    assert exc is not None and exc.retryable is True
+    assert (root / tid / "front.png").exists()  # 可重试 → 保留（勿回归）
+
+
+def test_stale_revision_cleans_staged(engine: Engine, tmp_path: Any, monkeypatch: Any) -> None:
+    root = tmp_path / "in"
+    root.mkdir()
+    _set_env(monkeypatch, "http://127.0.0.1:1", root)
+    storage, aid, ref, images = _seed_bits(engine, tmp_path, rev=2)
+    tid = derive_task_id(images)
+    (root / tid).mkdir(parents=True)
+    (root / tid / "front.png").write_bytes(images["front"])
+    jid = _enqueue_ma(engine, aid, 99, 5)  # 与 row.revision=2 不同 → 旧代次作废
+    face = FaceDouble(search="matched", face_subject_ref=ref)
+    _claim, exc = _handle_once(
+        engine, jid, extras={"storage": storage, "face_port": face, "skin_port": _StubSkin(_sg_result())}
+    )
+    assert exc is None  # 作废=成功
+    assert not (root / tid).exists()
+
+
+def test_abort_exit_cleans_staged(engine: Engine, tmp_path: Any, monkeypatch: Any) -> None:
+    root = tmp_path / "in"
+    root.mkdir()
+    _set_env(monkeypatch, "http://127.0.0.1:1", root)
+    storage, aid, ref, images = _seed_bits(engine, tmp_path)
+    tid = derive_task_id(images)
+    (root / tid).mkdir(parents=True)
+    (root / tid / "front.png").write_bytes(images["front"])
+    jid = _enqueue_ma(engine, aid, 2, 5)
+    face = FaceDouble(search="matched", face_subject_ref=ref)
+    _claim, exc = _handle_once(
+        engine, jid, extras={"storage": storage, "face_port": face, "skin_port": _StubSkin(_sg_result())},
+        abort=True,
+    )
+    assert exc is None  # 协作中止
+    assert not (root / tid).exists()
+
+
+def test_stage_permissions_immune_to_umask(monkeypatch: Any, tmp_path: Any) -> None:
+    cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
+    imgs = _images()
+    old = os.umask(0o000)
+    try:
+        a = _adapter(cfg)
+        tid = a._task_id(imgs)
+        a._stage(imgs, tid)
+        d = tmp_path / tid
+        assert oct(d.stat().st_mode & 0o777) == oct(0o700)
+        for f in d.iterdir():
+            assert oct(f.stat().st_mode & 0o777) == oct(0o600)
+    finally:
+        os.umask(old)
+
+
+def test_partial_staging_failure_removes_temps_keeps_targets(
+    monkeypatch: Any, tmp_path: Any
+) -> None:
+    cfg = _set_env(monkeypatch, "http://127.0.0.1:1", tmp_path)
+    imgs = _images()
+    tid = derive_task_id(imgs)
+    job_dir = tmp_path / tid
+    job_dir.mkdir()
+    (job_dir / "front.png").write_bytes(imgs["front"])  # 上一尝试目标（同 task_id 同字节）
+    (job_dir / "left.png").write_bytes(imgs["left"])
+
+    import mvp_worker.handlers.dshared.dshuiguang as mod
+
+    real_open = os.open
+    calls = {"n": 0}
+
+    def flaky_open(path: Any, flags: int, mode: int = 0o777) -> int:
+        calls["n"] += 1
+        if calls["n"] == 2:  # 第二个临时文件写入失败
+            raise OSError("disk full")
+        return real_open(path, flags, mode)
+
+    monkeypatch.setattr(mod.os, "open", flaky_open)
+    a = _adapter(cfg)
+    with pytest.raises(ShuiguangStagingError) as ei:
+        a._stage(imgs, tid)
+    assert str(tmp_path) not in _chain_text(ei.value)
+    assert (job_dir / "front.png").read_bytes() == imgs["front"]
+    assert (job_dir / "left.png").read_bytes() == imgs["left"]  # 既有 target 未被删
+    assert not list(job_dir.glob("*.tmp"))  # 本次临时文件已清
+
+
+def test_repr_redacts_shuiguang_values(monkeypatch: Any, tmp_path: Any) -> None:
+    sentinel_url = "http://sentinel-host.invalid:9999"
+    sentinel_root = str(tmp_path / "sentinel-root")
+    cfg = _set_env(monkeypatch, sentinel_url, sentinel_root)
+    monkeypatch.setenv("MVP_D_FACE_SERVICE_TOKEN_FILE", "/x/secret.token")
+    cfg = DConfig.from_env()
+    text = repr(cfg)
+    assert sentinel_url not in text
+    assert sentinel_root not in text
+    assert "secret.token" not in text  # 既有脱敏仍生效
