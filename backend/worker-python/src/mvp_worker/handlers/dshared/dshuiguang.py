@@ -1,33 +1,55 @@
 """真实 **shuiguang-test** HTTP 皮肤评分适配器（非 dermavision；非旧 ``shuiguang_cloud_v1`` 计划路径）。
 
-绑定的外部契约（supervisor 从 shuiguang-test ``d7c84c18`` 核实，**不猜测**）：
+绑定的外部契约（supervisor 从 shuiguang-test ``d7c84c18`` 源码核实，并于 2026-09-18 在
+test.gpu2 上对**真实运行服务**活体取证，**不猜测**）：
 
 - ``POST /api/score-jobs``（HTTP 202）body ``{task_id, images:[{image_id, path}], mirrored:false}``；
-  ``images`` **恰三张**（``front``/``left``/``right``），``path`` 为相对 ``INPUT_ROOT`` 的
-  共享挂载文件路径。**每一次 POST 都会入队一个新任务并返回新的 ``queue_id``**——即使
-  ``task_id`` 与输入完全相同；且每个排队任务在**执行时**才读取共享文件
-  （``safe_inputs`` 先于任何既有 job/结果判定）。因此每次 POST 都使用独立输入目录；
-  只在该 ``queue_id`` 明确终态后删除其独占目录，不会饿死兄弟条目。
-  （API 的 job/结果幂等语义属算法侧、本项目**未核实**——仅确认 ``safe_inputs`` 的读取
-  时序，不得依赖其余语义。）
-- ``GET /api/score-jobs/{queue_id}``：``pending``/``started``/``progress`` 为进行中；
-  **成功** response body 直接是恰三组 ``pores``/``spots``/``surface_gloss``；
-  **失败** ``{status:"failed", error:{code,message}}``。
+  ``images`` **恰三张**（``front``/``left``/``right``），``path`` 为相对 ``INPUT_ROOT`` 的共享
+  挂载路径。每次 POST 都 ``.delay()`` 一个**新 Celery 任务**、返回**新 ``queue_id``**（UUID）；
+  每个排队任务在**执行时**才读共享文件（``safe_inputs`` **先于**任何既有 job/结果判定），
+  故删除目录会饿死同目录上仍在排队的兄弟条目（``INVALID_INPUT``）。
+- ``task_id`` 是算法侧的**持久幂等键**（``contracts.AnalyzeRequest.task_id`` 字段描述：
+  "同ID同输入幂等返回，不同输入拒绝"）。``service_scores.execute_scores`` 以
+  ``request.model_dump()``（**含每张图的 ``path``**）+ 三图 sha256 + ``VERSION`` + 预处理模式
+  + 参考文件 sha256 计算指纹，持久化于 ``RUNTIME/score_jobs/{task_id}/request.json``：
+  指纹相同且已有 ``result.json`` → **直接返回缓存结果**（幂等重放，不重跑 GPU）；
+  指纹不同 → ``TASK_ID_CONFLICT``；有 ``request.json`` 无 ``result.json``（服务端曾硬崩溃）→
+  ``INTERRUPTED``。后两者对同一 ``task_id`` **永久成立**。
+  ⇒ **暂存路径必须由内容确定**。活体实证（test.gpu2，远端 ``request.json`` 取证）：改用
+  "每次 POST 独占 uuid 目录"后，同内容第二次提交因 ``path`` 变化 → 指纹不符 → 真实服务
+  返回 ``TASK_ID_CONFLICT``，重试永不可能成功。该设计已回退。
+- ``GET /api/score-jobs/{queue_id}``：``queue_id`` 非 UUID → HTTP 400；``pending``/``started``/
+  ``progress`` 为进行中；**成功** body 直接是恰三组 ``pores``/``spots``/``surface_gloss``；
+  **失败** ``{status:"failed", error:{code,message}}``（Celery 异常统一 ``WORKER_FAILED``）。
+  失败体经 Celery 结果层以 **HTTP 200** 返回。
+- 算法侧真实码（``service.py``/``service_scores.py`` 核实）：``INVALID_INPUT``（绝对路径/``..``/
+  缺文件/>25MB/非 RGB JPEG-PNG/像素超限）、``DUPLICATE_IMAGES``、``BUSY``（同 task_id 锁竞争）、
+  ``INPUT_CHANGED``、``ORIENTATION_UNCERTAIN``、``ANALYSIS_FAILED``、``MODEL_ASSET_INVALID``、
+  ``DIAGNOSTIC_MODE_REQUIRED``、``SCORING_REFERENCE_NOT_READY``、``TASK_ID_CONFLICT``、
+  ``INTERRUPTED``。
 
 设计要点：
 
-- ``task_id`` 仍由内容派生（160-bit 截断摘要）；暂存目录改为每次 POST 独立的
-  ``{INPUT_ROOT}/sg-stage-<uuid>/{view}.{ext}``。目录 0700 / 文件 0600，提交前持久化
-  ``submitting`` manifest，取得 queue_id 后更新为 ``queued``。
+- ``task_id`` 由内容派生（``sha256`` 的 160-bit 截断，43 字符 ≤64、字符集合规）；
+  ``image_id`` = ``{task_id}-{view}``；暂存 ``{INPUT_ROOT}/{task_id}/{view}.{ext}``——三者
+  **全部由内容确定**，故同内容重提的请求逐字节相同 → 命中算法侧幂等重放（免重跑 GPU，
+  也让 ack 丢失后的重试安全）。目录 0700 / 文件 0600（chmod 显式设置，免 umask），
+  临时文件 + ``os.replace`` 原子落盘。
 - 成功体用 :func:`dshared.dv3.validate_v3_skin_groups` **同一严格语义**校验（防御式；
   handler 发布前还会再校验一次）。
 - ``metrics=[]``、``result_images=[]``、``conclusion``/``description=""``——**绝不伪造**
   旧指标/结果图/叙述/四区。
-- 明确成功/失败终态可清理本次独占目录；轮询超时、网络故障、崩溃时保留。
-  独立 reaper 只重查持久化 queue_id 并在远端确认终态后精确清理，绝不按 TTL 猜删。
-  POST 已受理但回包丢失时只有 ``submitting`` manifest，现有 GET-by-queue_id 无法
-  确认消费结束，必须由算法侧增加幂等请求标识/查询合同或人工对账；在此之前仍不可
-  正式激活 provider。reaper 需按部署要求周期运行。
+- **生命周期**：同内容的多次提交共享同一目录，每次提交在 ``.submissions/{nonce}.json``
+  留下**一条独立所有权记录**（POST 前 ``submitting``，拿到 ack 后原子升级为 ``queued``+
+  queue_id；O_EXCL 独占创建 → 无读改写、无需跨进程锁）。``analyze`` **绝不删除**目录：
+  任一 queue 条目的终态都不能证明兄弟条目已取图。唯一清理路径是独立 reaper——仅当该目录
+  **全部**记录都是 ``queued`` 且**每个** queue_id 都被远端确认终态时才精确删除；存在
+  ``submitting``、记录缺失/不可读、或任一 queue 未终态 → ``unresolved`` 保留。**绝不按
+  TTL 猜删**。持久轮转游标防止永久未决目录饿死后面的可清理目录；reaper 需按部署周期运行。
+- 仍阻断激活（需算法侧合同）：①POST 已受理但 ack 丢失 → 记录停在 ``submitting``，现有
+  GET-by-queue_id 无法确认消费结束；②``TASK_ID_CONFLICT``/``INTERRUPTED`` 会让内容派生的
+  ``task_id`` **永久不可用**，需算法侧提供 task_id 重置或版本化命名空间。二者解决前
+  provider 不得正式激活。
 - 日志/异常只含键名与已消毒的 ``code``/``score_source``；**绝不**输出 token、图像字节、
   暂存路径或 ``message`` 原文。
 """
@@ -65,8 +87,8 @@ _CODE_RE = re.compile(r"^[A-Z0-9_]{1,64}$")
 _SOURCE_RE = re.compile(r"^[A-Za-z0-9._:@+\-]{1,64}$")
 _JPEG_MAGIC = b"\xff\xd8\xff"
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
-_STAGE_RE = re.compile(r"^sg-stage-[0-9a-f]{32}$")
-_MANIFEST = ".submission.json"
+_STAGE_RE = re.compile(r"^sg-[0-9a-f]{40}$")  # = derive_task_id 输出：内容确定目录名
+_SUBMISSIONS = ".submissions"  # 每次提交一条所有权记录（O_EXCL 追加，无需跨进程锁）
 _REAPER_CURSOR = ".reap-cursor"
 
 
@@ -85,7 +107,12 @@ def derive_task_id(images: dict[str, bytes]) -> str:
 
 
 class ShuiguangInputViolation(RuntimeError):
-    """输入确定性问题（缺视图/超限/非 JPEG-PNG/重复）→ 终态 ``PROVIDER_CONTRACT_VIOLATION``。"""
+    """确定性输入/绑定问题 → 终态 ``PROVIDER_CONTRACT_VIOLATION``。
+
+    覆盖：缺视图/超限/非 JPEG-PNG/重复三图；以及算法侧对同一 ``task_id`` **永久**成立的
+    ``TASK_ID_CONFLICT``（指纹已绑定其他输入或评分版本）与 ``INTERRUPTED``（服务端上次
+    执行硬崩溃、未写 result.json）——两者重试必然重现，故终态而非可重试。
+    """
 
 
 class ShuiguangScoringReferenceNotReady(RuntimeError):
@@ -150,19 +177,21 @@ class ShuiguangSkinAdapter:
     def analyze(self, images: dict[str, bytes]) -> SkinAnalysisResult:
         self._preflight(images)
         task_id = self._task_id(images)
-        stage_dir, rel = self._stage(images, task_id)
+        stage_dir, rel, nonce = self._stage(images, task_id)
         queue_id, score_source = self._submit(task_id, rel)
-        manifest_error = False
+        record_error = False
         try:
-            self._write_manifest(stage_dir, task_id, queue_id)
+            self._record_submission(stage_dir, nonce, queue_id)
         except OSError:
-            # POST 已受理；没有持久 queue_id 的目录不能安全清理。
-            manifest_error = True
-        if manifest_error:
+            # POST 已受理；记录停在 submitting → reaper 永久保留该目录供对账，绝不猜删。
+            record_error = True
+        if record_error:
             raise ShuiguangStagingError(
                 "shuiguang queue ownership persist failed; check " + SHUIGUANG_INPUT_ROOT_ENV
             ) from None
-        groups = self._poll(queue_id, on_terminal=lambda: self._remove_stage(stage_dir))
+        # 目录由同内容的所有 queue 条目共享，且排队任务在执行时才读图：**任何单一条目的
+        # 终态都不触发删除**（会饿死兄弟）。清理唯一路径 = reaper 确认全部条目终态。
+        groups = self._poll(queue_id)
         version = f"shuiguang:{_sanitize_source(score_source)}"
         self.model_version = version
         return SkinAnalysisResult(
@@ -193,16 +222,21 @@ class ShuiguangSkinAdapter:
     def _task_id(self, images: dict[str, bytes]) -> str:
         return derive_task_id(images)
 
-    def _stage(self, images: dict[str, bytes], task_id: str) -> tuple[Path, list[tuple[str, str]]]:
-        stage_id = "sg-stage-" + uuid.uuid4().hex
-        job_dir = self._root / stage_id
+    def _stage(
+        self, images: dict[str, bytes], task_id: str
+    ) -> tuple[Path, list[tuple[str, str]], str]:
+        """内容确定暂存 ``{root}/{task_id}/{view}.{ext}``；返回 (目录, 相对路径, 本次 nonce)。
+
+        路径**必须由内容确定**：算法侧把每张图的 ``path`` 计入 ``task_id`` 指纹，任何每次
+        提交都变化的路径都会让同内容重提退化为 ``TASK_ID_CONFLICT``（活体实证），并白白
+        丢掉算法侧的幂等结果缓存。
+        """
+        job_dir = self._root / task_id
         rel: list[tuple[str, str]] = []
         tmp_names: list[Path] = []
         failure: Optional[OSError] = None
-        created = False
         try:
-            job_dir.mkdir(mode=self._dir_mode, exist_ok=False)
-            created = True
+            job_dir.mkdir(parents=True, exist_ok=True)  # 同内容兄弟提交共享此目录
             os.chmod(job_dir, self._dir_mode)  # mkdir 的 mode 会被 umask 掩码
             for view in REQUIRED_VIEWS_ALL:
                 data = bytes(images[view])
@@ -217,45 +251,49 @@ class ShuiguangSkinAdapter:
                     fh.write(data)
                     fh.flush()
                     os.fsync(fh.fileno())
-                os.replace(tmp, target)  # 原子；保留 0600 模式
+                os.replace(tmp, target)  # 原子；并发同内容双方均呈现完整同字节
                 tmp_names.remove(tmp)
-                rel.append((view, f"{stage_id}/{view}.{ext}"))
-            self._write_manifest(job_dir, task_id, None)
+                rel.append((view, f"{task_id}/{view}.{ext}"))
         except OSError as exc:
             failure = exc
         if failure is not None:
-            # 尚未 POST，整个独立目录只归本次调用所有。
+            # 目录可能已被兄弟提交创建/共享：**只删本次调用追踪的临时文件**，绝不删目录
+            # 或既有目标（可能正被已排队的算法 job 读取）。
             for tmp in tmp_names:
                 try:
                     os.unlink(tmp)
                 except OSError:
                     pass
-            if created:
-                self._remove_stage(job_dir)
             # 关键：已退出 except 块（sys.exc_info 清空）→ raise 无隐式 __context__；
             # ``from None`` 再清 __cause__。消息只含键名，绝不含路径。
             raise ShuiguangStagingError(
                 "shuiguang staging failed; check " + SHUIGUANG_INPUT_ROOT_ENV
             ) from None
-        return job_dir, rel
+        nonce = uuid.uuid4().hex
+        # POST **之前**落盘 submitting 记录：reaper 见 submitting 一律保留（POST 在途/ack 丢失）。
+        self._record_submission(job_dir, nonce, None)
+        return job_dir, rel, nonce
 
-    def _write_manifest(self, stage_dir: Path, task_id: str, queue_id: Optional[str]) -> None:
-        body = {"schema_version": 1, "stage_id": stage_dir.name, "task_id": task_id,
+    def _record_submission(self, stage_dir: Path, nonce: str, queue_id: Optional[str]) -> None:
+        """写入/升级一条所有权记录 ``.submissions/{nonce}.json``。
+
+        每次提交一个独立文件（O_EXCL 独占创建）→ 无读改写、无需跨进程锁；升级为
+        ``queued`` 时用 temp + ``os.replace`` 原子替换，读者只会看到完整旧值或完整新值。
+        """
+        journal = stage_dir / _SUBMISSIONS
+        journal.mkdir(exist_ok=True)
+        os.chmod(journal, self._dir_mode)  # 免 umask
+        body = {"schema_version": 2,
                 "state": "queued" if queue_id is not None else "submitting",
                 "queue_id": queue_id}
-        tmp = stage_dir / (".submission." + uuid.uuid4().hex + ".tmp")
+        tmp = journal / (nonce + "." + uuid.uuid4().hex + ".tmp")
         try:
             fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, self._file_mode)
             with os.fdopen(fd, "w", encoding="utf-8") as fh:
                 json.dump(body, fh, separators=(",", ":"))
                 fh.flush()
                 os.fsync(fh.fileno())
-            os.replace(tmp, stage_dir / _MANIFEST)
-            dir_fd = os.open(stage_dir, os.O_RDONLY | os.O_DIRECTORY)
-            try:
-                os.fsync(dir_fd)
-            finally:
-                os.close(dir_fd)
+            os.replace(tmp, journal / (nonce + ".json"))
         finally:
             try:
                 os.unlink(tmp)
@@ -284,7 +322,7 @@ class ShuiguangSkinAdapter:
         )
 
     def reap_staged(self, *, limit: int = 32) -> dict[str, int]:
-        """重查已持久化 queue_id；只删远端明确终态的独立目录。"""
+        """重查每个目录内**全部**所有权记录；只在所有 queue_id 都远端终态后删除。"""
         if not 1 <= limit <= 1000:
             raise ValueError("reaper limit out of range")
         counts = {"checked": 0, "removed": 0, "unresolved": 0}
@@ -304,30 +342,7 @@ class ShuiguangSkinAdapter:
             stage_dir = candidates[(start + offset) % len(candidates)]
             last_name = stage_dir.name
             counts["checked"] += 1
-            try:
-                manifest_path = stage_dir / _MANIFEST
-                manifest_stat = manifest_path.lstat()
-                if not stat.S_ISREG(manifest_stat.st_mode) or manifest_stat.st_size > 4096:
-                    raise ValueError("manifest too large")
-                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            except (OSError, ValueError):
-                counts["unresolved"] += 1
-                continue
-            if not isinstance(manifest, dict) or manifest.get("stage_id") != stage_dir.name:
-                counts["unresolved"] += 1
-                continue
-            queue_id = manifest.get("queue_id")
-            if manifest.get("state") != "queued" or not isinstance(queue_id, str) or not queue_id:
-                counts["unresolved"] += 1
-                continue
-            try:
-                status, payload = self._do_request(
-                    "GET", "/api/score-jobs/" + quote(queue_id, safe=""), None
-                )
-            except ProviderUnavailable:
-                counts["unresolved"] += 1
-                continue
-            if self._terminal(status, payload) and self._remove_stage(stage_dir):
+            if self._all_entries_terminal(stage_dir) and self._remove_stage(stage_dir):
                 counts["removed"] += 1
             else:
                 counts["unresolved"] += 1
@@ -348,6 +363,46 @@ class ShuiguangSkinAdapter:
             except FileNotFoundError:
                 pass
         return counts
+
+    def _all_entries_terminal(self, stage_dir: Path) -> bool:
+        """目录内**每一条**记录都是 ``queued`` 且其 queue_id 被远端确认终态 → True。
+
+        同内容的多次提交共享此目录，每次 POST 又是独立 queue 条目、在执行时才读图；因此
+        只要有一条 ``submitting``（POST 在途/ack 丢失）或任一 queue 未终态，删除就会饿死
+        兄弟条目 → 一律 False 保留。记录缺失/不可读同样 False（无法证明远端已消费完）。
+        """
+        journal = stage_dir / _SUBMISSIONS
+        try:
+            entries = sorted(p for p in journal.iterdir() if p.suffix == ".json")
+        except OSError:
+            return False
+        if not entries:
+            return False
+        queue_ids: list[str] = []
+        for entry in entries:
+            try:
+                st = entry.lstat()
+                if not stat.S_ISREG(st.st_mode) or st.st_size > 4096:
+                    return False
+                record = json.loads(entry.read_text(encoding="utf-8"))
+            except (OSError, ValueError, UnicodeError):
+                return False
+            if not isinstance(record, dict) or record.get("state") != "queued":
+                return False
+            queue_id = record.get("queue_id")
+            if not isinstance(queue_id, str) or not queue_id:
+                return False
+            queue_ids.append(queue_id)
+        for queue_id in queue_ids:
+            try:
+                status, payload = self._do_request(
+                    "GET", "/api/score-jobs/" + quote(queue_id, safe=""), None
+                )
+            except ProviderUnavailable:
+                return False
+            if not self._terminal(status, payload):
+                return False
+        return True
 
     # ------------------------------------------------------------- HTTP
     def _http_request(self, method: str, path: str, body: Optional[dict[str, Any]]) -> tuple[int, Any]:
@@ -407,9 +462,7 @@ class ShuiguangSkinAdapter:
             raise ProviderUnavailable("shuiguang score_source missing")
         return queue_id, payload["score_source"]
 
-    def _poll(
-        self, queue_id: str, *, on_terminal: Optional[Callable[[], Any]] = None
-    ) -> dict[str, Any]:
+    def _poll(self, queue_id: str) -> dict[str, Any]:
         path = "/api/score-jobs/" + quote(queue_id, safe="")
         deadline = self._clock() + self._poll_max
         while True:
@@ -419,15 +472,11 @@ class ShuiguangSkinAdapter:
             if status != 200 or not isinstance(payload, dict):
                 raise ProviderUnavailable(f"shuiguang status query failed (status={status})")
             if set(payload) == set(V3_SKIN_GROUP_KEYS):
-                if on_terminal is not None:
-                    on_terminal()
                 validated = validate_v3_skin_groups(payload)
                 assert validated is not None  # payload 非 None → 规范化必为 dict
                 return validated  # 同冻严格语义；违约→V3SkinViolation
             state = payload.get("status")
             if state == "failed":
-                if on_terminal is not None:
-                    on_terminal()
                 self._raise_failed(payload)
             if state in ("pending", "started", "progress"):
                 self._sleep(self._poll_interval)
@@ -447,6 +496,17 @@ class ShuiguangSkinAdapter:
         if code == "SCORING_REFERENCE_NOT_READY":
             raise ShuiguangScoringReferenceNotReady(
                 "shuiguang scoring reference not ready (SCORING_REFERENCE_NOT_READY)"
+            )
+        if code == "TASK_ID_CONFLICT":
+            # 算法侧 request.json 已绑定不同指纹（含 path/VERSION/参考 sha）→ 对内容派生的
+            # 同一 task_id **永久**成立；重试必然再冲突 → 终态，绝不制造重试风暴。
+            raise ShuiguangInputViolation(
+                "shuiguang task_id is bound to a different input fingerprint (TASK_ID_CONFLICT)"
+            )
+        if code == "INTERRUPTED":
+            # 服务端上次执行硬崩溃且未写 result.json → 同 task_id 永久 INTERRUPTED → 终态。
+            raise ShuiguangInputViolation(
+                "shuiguang task_id was interrupted server-side and requires a new id (INTERRUPTED)"
             )
         if code == "WORKER_FAILED":
             raise ProviderUnavailable("shuiguang job failed (code=WORKER_FAILED)")
