@@ -5,7 +5,7 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | env | 默认 | 说明 |
 |---|---|---|
 | ``MVP_D_FACE_PROVIDER`` | ``double`` | double / aliyun_face / insightface |
-| ``MVP_D_SKIN_PROVIDER`` | ``double`` | double / aliyun_skin |
+| ``MVP_D_SKIN_PROVIDER`` | ``double`` | double / aliyun_skin / shuiguang |
 | ``MVP_D_PLAN_PROVIDER`` | ``double`` | double / aliyun_llm / llm_rag |
 | ``MVP_D_STORAGE_PROVIDER`` | ``double`` | double / aliyun_oss（生产 double → 拒绝） |
 | ``MVP_A_STORAGE_OSS_REGION`` | ``cn-hangzhou`` | OSS 区域（对齐 Java app.storage.oss.region） |
@@ -19,6 +19,12 @@ env 一览（全部可选，dev 初值仅为联调起点，非验收硬值）：
 | ``MVP_D_PROVIDER_CONFIG_REVISION`` | ``1`` | 供应商配置代次（对账用） |
 | ``MVP_D_RESULT_IMAGE_MAX_BYTES`` | ``10485760`` | 结果图大小上限（10MiB） |
 | ``MVP_SKIN_METRICS_BASELINE`` | 内置受控基线 | JSON；指标白名单（name/unit/min/max） |
+| ``MVP_D_SHUIGUANG_BASE_URL`` | （无，必填） | 真实 shuiguang 服务基址；provider=shuiguang 时必填 |
+| ``MVP_D_SHUIGUANG_INPUT_ROOT`` | （无，必填） | 共享挂载输入根；provider=shuiguang 时必须为可写目录 |
+| ``MVP_D_SHUIGUANG_CONNECT_TIMEOUT_MS`` | ``2000`` | 严格整数 ≥1 |
+| ``MVP_D_SHUIGUANG_READ_TIMEOUT_MS`` | ``10000`` | 严格整数 ≥1 |
+| ``MVP_D_SHUIGUANG_POLL_INTERVAL_SECONDS`` | ``2`` | 轮询间隔秒（严格整数 ≥1） |
+| ``MVP_D_SHUIGUANG_POLL_MAX_SECONDS`` | ``120`` | 轮询总预算秒（严格整数 ≥1） |
 | ``MVP_PLAN_CAPABILITY_BASELINE`` | 内置受控基线 | JSON；能力/参数范围/批准区域/N 边界 |
 | ``MVP_PLAN_CAPABILITY_STALE_SECONDS`` | ``86400`` | T04 观察新鲜窗口；0=忽略 |
 | ``MVP_PLAN_WAIT_CHECK_SECONDS`` | ``30`` | 能力待补齐的 defer 再检查间隔（合法等待态，不消耗 attempt） |
@@ -89,6 +95,15 @@ class ProviderConfigError(RuntimeError):
 
 DEFAULT_FACE_PROVIDER = "double"
 DEFAULT_SKIN_PROVIDER = "double"
+
+#: 真实 shuiguang 适配器配置（provider=shuiguang 时 BASE_URL/INPUT_ROOT 必填，否则
+#: 端口构造期 fail-closed ``ProviderConfigError``——绝不部分激活）。
+SHUIGUANG_BASE_URL_ENV = "MVP_D_SHUIGUANG_BASE_URL"
+SHUIGUANG_INPUT_ROOT_ENV = "MVP_D_SHUIGUANG_INPUT_ROOT"
+DEFAULT_SHUIGUANG_CONNECT_TIMEOUT_MS = 2000
+DEFAULT_SHUIGUANG_READ_TIMEOUT_MS = 10000
+DEFAULT_SHUIGUANG_POLL_INTERVAL_SECONDS = 2
+DEFAULT_SHUIGUANG_POLL_MAX_SECONDS = 120
 DEFAULT_PLAN_PROVIDER = "double"
 DEFAULT_STORAGE_PROVIDER = STORAGE_PROVIDER_DOUBLE
 DEFAULT_IDENTITY_NAMESPACE = "mvp-ns-1"
@@ -395,6 +410,41 @@ class DConfig:
     )
     skin_provider: str = field(
         default_factory=lambda: _env("MVP_D_SKIN_PROVIDER", DEFAULT_SKIN_PROVIDER)
+    )
+    # --- 真实 shuiguang skin provider（provider=shuiguang 时 BASE_URL/INPUT_ROOT 必填） ---
+    shuiguang_base_url: str = field(
+        default_factory=lambda: _env(SHUIGUANG_BASE_URL_ENV, "")
+    )
+    shuiguang_input_root: str = field(
+        default_factory=lambda: _env(SHUIGUANG_INPUT_ROOT_ENV, "")
+    )
+    shuiguang_connect_timeout_ms: int = field(
+        default_factory=lambda: _strict_env_int(
+            "MVP_D_SHUIGUANG_CONNECT_TIMEOUT_MS",
+            DEFAULT_SHUIGUANG_CONNECT_TIMEOUT_MS,
+            minimum=1,
+        )
+    )
+    shuiguang_read_timeout_ms: int = field(
+        default_factory=lambda: _strict_env_int(
+            "MVP_D_SHUIGUANG_READ_TIMEOUT_MS",
+            DEFAULT_SHUIGUANG_READ_TIMEOUT_MS,
+            minimum=1,
+        )
+    )
+    shuiguang_poll_interval_seconds: int = field(
+        default_factory=lambda: _strict_env_int(
+            "MVP_D_SHUIGUANG_POLL_INTERVAL_SECONDS",
+            DEFAULT_SHUIGUANG_POLL_INTERVAL_SECONDS,
+            minimum=1,
+        )
+    )
+    shuiguang_poll_max_seconds: int = field(
+        default_factory=lambda: _strict_env_int(
+            "MVP_D_SHUIGUANG_POLL_MAX_SECONDS",
+            DEFAULT_SHUIGUANG_POLL_MAX_SECONDS,
+            minimum=1,
+        )
     )
     plan_provider: str = field(
         default_factory=lambda: _env("MVP_D_PLAN_PROVIDER", DEFAULT_PLAN_PROVIDER)

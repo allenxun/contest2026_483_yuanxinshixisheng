@@ -50,12 +50,19 @@ def face_port_for(ctx: HandlerContext) -> Any:
 
 
 def skin_port_for(ctx: HandlerContext) -> Any:
+    """皮肤 provider 解析：**不吞** :class:`ProviderConfigError`（镜像 ``plan_port_for``）。
+
+    shuiguang 缺 BASE_URL/INPUT_ROOT、未知 provider、生产 + double 拒绝 → 由 handler
+    落**终态** ``SKIN_PROVIDER_CONFIG``（fenced，1 次不重试，避免 retry storm 与 T05
+    滞留）；``ProviderNotActivated``/``ProviderUnavailable`` 保持可重试
+    ``DEPENDENCY_UNAVAILABLE``。face/storage 解析路径**不变**。
+    """
     injected = ctx.extras.get("skin_port")
     if injected is not None:
         return injected
     try:
         return build_skin_port(dconfig_for(ctx), environment=ctx.config.environment)
-    except (ProviderConfigError, ProviderNotActivated, ProviderUnavailable) as exc:
+    except (ProviderNotActivated, ProviderUnavailable) as exc:
         raise _dependency_failed("skin", exc) from exc
 
 

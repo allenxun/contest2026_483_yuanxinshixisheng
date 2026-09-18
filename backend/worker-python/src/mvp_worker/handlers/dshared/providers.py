@@ -1484,6 +1484,11 @@ def build_skin_port(cfg: DConfig, *, environment: str) -> SkinPort:
         return _skin_double_from_config(cfg)
     if provider == "aliyun_skin":
         return AliyunSkinAdapter(cfg)
+    if provider == "shuiguang":
+        # 局部导入避免 providers ↔ dshuiguang 循环导入；真实适配器契约见 dshuiguang。
+        from .dshuiguang import build_shuiguang_skin_port
+
+        return build_shuiguang_skin_port(cfg)
     raise ProviderConfigError(f"unknown skin provider: {provider}")
 
 

@@ -36,7 +36,12 @@ from .dshared.dmedia import ArchiveError, archive_result_images, load_image_byte
 from .dshared.dskin_mock import V3_SKIN_GROUP_KEYS, V3_SKIN_SEVERITIES
 from .dshared.denqueue import EnrollSlotOccupied, enqueue_identity_enroll, insert_job
 from .dshared.jsonschema_support import load_payload_validator, validate_payload
-from .dshared.providers import ProviderUnavailable
+from .dshared.dv3 import V3SkinViolation, validate_v3_skin_groups
+from .dshared.dshuiguang import (
+    ShuiguangInputViolation,
+    ShuiguangScoringReferenceNotReady,
+)
+from .dshared.providers import ProviderConfigError, ProviderUnavailable
 from .dshared.resolve import dconfig_for, face_port_for, skin_port_for, storage_for
 
 log = logging.getLogger("mvp_worker.handlers.assessment_analyze")
@@ -246,7 +251,19 @@ class AssessmentAnalyzeHandler:
             return None  # pragma: no cover
 
         face = face_port_for(ctx)
-        skin = skin_port_for(ctx)
+        try:
+            skin = skin_port_for(ctx)
+        except ProviderConfigError as exc:
+            # skin provider 配置错误（shuiguang 缺 BASE_URL/INPUT_ROOT、未知 provider、
+            # 生产 double 拒绝）→ **立即** fenced 终态 SKIN_PROVIDER_CONFIG（镜像
+            # PLAN_PROVIDER_CONFIG 先例：1 次不重试，避免 retry storm 与 T05 滞留）。
+            self._terminal(
+                ctx, job, assessment_id, rev,
+                code="SKIN_PROVIDER_CONFIG",
+                message="skin provider configuration error",
+                reason=type(exc).__name__,
+            )
+            return None  # pragma: no cover - _terminal always raises
         storage = storage_for(ctx)
 
         # 2) 标记 analyzing（自有短事务；0 行 = 并发变更 → 合法作废）
@@ -297,11 +314,34 @@ class AssessmentAnalyzeHandler:
             return None
         try:
             analysis = skin.analyze(images)
-            metrics = _validate_metrics(dcfg, analysis.metrics)
+            if dcfg.skin_provider == "shuiguang":
+                # 真实 provider：**V3-only**（metrics 恰 []、无结果图、V3 必在）——
+                # 绝不伪造旧指标/结果图/四区；任何偏差 → _ContractViolation → 终态。
+                metrics = _validate_shuiguang_v3_only(analysis)
+            else:
+                metrics = _validate_metrics(dcfg, analysis.metrics)
             # 可选 V3 三组：存在即**发布前**严格校验（all-or-none + 闭合键白名单 +
             # 类型/范围/词表/唯一性）。违约 → 既有 _ContractViolation → 终态
             # PROVIDER_CONTRACT_VIOLATION（不发布、不静默丢弃、不补零）。
             v3_groups = _validate_v3_skin_groups(getattr(analysis, "v3_groups", None))
+        except (V3SkinViolation, ShuiguangInputViolation) as exc:
+            # 确定性输入/契约违约（含真实适配器预检与成功体校验）→ 终态。
+            self._terminal(
+                ctx, job, assessment_id, rev,
+                code="PROVIDER_CONTRACT_VIOLATION",
+                message="skin provider contract violation",
+                reason=str(exc)[:200],
+            )
+            return None  # pragma: no cover
+        except ShuiguangScoringReferenceNotReady as exc:
+            # 服务端确定性状态：立即终态，**绝不**伪造分数、不重试风暴。
+            self._terminal(
+                ctx, job, assessment_id, rev,
+                code="SKIN_SCORING_REFERENCE_NOT_READY",
+                message="shuiguang scoring reference not ready",
+                reason=type(exc).__name__,
+            )
+            return None  # pragma: no cover
         except _ContractViolation as exc:
             self._terminal(
                 ctx, job, assessment_id, rev,
@@ -672,134 +712,34 @@ def _validate_metrics(dcfg: DConfig, raw: Any) -> list[dict[str, Any]]:
     return normalized
 
 
-def _validate_v3_skin_groups(raw: Any) -> Optional[dict[str, Any]]:
-    """发布前严格校验可选的 V3 三组（``pores``/``spots``/``surface_gloss``）。
+def _validate_shuiguang_v3_only(analysis: Any) -> list[dict[str, Any]]:
+    """真实 shuiguang 适配器：**V3-only** —— ``metrics`` 必须恰为 ``[]``、无结果图、V3 必在。
 
-    契约（用户字段说明，data-only）与 B 的消费形状（T05 ``report_payload`` 顶层三组，
-    all-or-none）：
-
-    - 顶层**恰**三组键（缺任一或出现未知键 → 违约）；
-    - 每组闭合键白名单 ``{score, severity, name, regions}``（未知键 → 违约）；
-    - ``score``：``null``（缺测）或数值 0..100（``bool`` 拒绝）；比较**不转 float**
-      （Python 整数比较精确/任意精度：``10**10000``/``inf``/``nan`` 一律判违约，
-      绝不逃逸为瞬时依赖错误）；**绝不**把 null 变 0；
-    - ``severity``：``null`` 或冻结词表（``未见明显/轻度/中度/较明显/显著``）；
-    - ``name``：非**空白**字符串（``.strip()`` 后非空），**逐字保留**（不 trim）；
-    - ``regions``：**非空**数组；元素闭合键白名单 ``{region, name, score, severity}``；
-      ``region`` 非**空白**字符串且在组内**唯一**；``name`` 非**空白**字符串**逐字保留**
-      （画面左右措辞不做任何转换/补区）；``score``/``severity`` 同上。
-
-    对齐 B 的 SSE 提取器（read-only 参考，不复制其逻辑）：
-    ``ReportNarrationScoreExtractor.java:151``（``regionsNode.isNull() || !isArray() ||
-    isEmpty()`` → invalid）与 ``:174-176``（过滤后为空 → invalid）；``readRequiredText``
-    ``:239``（``!isTextual() || asText().isBlank()`` → invalid，应用于 group.name
-    ``:133`` / region.region ``:164`` / region.name ``:165``），且其接受值**不 trim**。
-    Python ``str.strip()`` 覆盖 Unicode 空白（含全角 U+3000），比 Java ``isBlank``
-    略严；此为**方向安全**（D 放行的值一定可被 B 消费）。D 另有既有的**更严**处
-    （未知键拒绝而非 drop+warn、非有限/巨大整数 score 拒绝）——保持不放宽。
-
-    返回：``None``（原本就缺省）或**规范化后的深拷贝**（仅白名单键、值逐字保留；
-    与来源结构完全隔离）。任何违约 → :class:`_ContractViolation` → 既有终态
-    ``PROVIDER_CONTRACT_VIOLATION``（不发布、不部分发布、不静默丢弃）。
+    绝不伪造旧指标/结果图/四区；任何偏差 → :class:`_ContractViolation` → 终态
+    ``PROVIDER_CONTRACT_VIOLATION``（不发布、不补零）。
     """
-    if raw is None:
-        return None
-    if not isinstance(raw, dict) or set(raw) != set(V3_SKIN_GROUP_KEYS):
+    if not isinstance(analysis.metrics, list) or analysis.metrics:
         raise _ContractViolation(
-            "$.v3_skin: expected exactly pores/spots/surface_gloss (all-or-none)"
+            "$.metrics: shuiguang must emit exactly [] (no legacy metrics)"
         )
-    group_allowed = {"score", "severity", "name", "regions"}
-    region_allowed = {"region", "name", "score", "severity"}
-    normalized: dict[str, Any] = {}
-    for group_key in V3_SKIN_GROUP_KEYS:
-        group = raw[group_key]
-        if not isinstance(group, dict):
-            raise _ContractViolation(f"$.{group_key}: expected object")
-        if set(group) - group_allowed:
-            raise _ContractViolation(f"$.{group_key}: additionalProperties violated")
-        for required in ("score", "severity", "name", "regions"):
-            if required not in group:
-                raise _ContractViolation(f"$.{group_key}.{required}: required")
-        score = group["score"]
-        if score is not None and (
-            not isinstance(score, (int, float))
-            or isinstance(score, bool)
-            or not (0 <= score <= 100)
-        ):
-            raise _ContractViolation(f"$.{group_key}.score: type/range violated")
-        severity = group["severity"]
-        if severity is not None and severity not in V3_SKIN_SEVERITIES:
-            raise _ContractViolation(f"$.{group_key}.severity: not in frozen vocabulary")
-        name = group["name"]
-        # 非空白（`strip()` 后非空）——对齐 B readRequiredText:239 的 isBlank 拒绝；值不 trim。
-        if not isinstance(name, str) or not name.strip():
-            raise _ContractViolation(f"$.{group_key}.name: non-blank string required")
-        regions = group["regions"]
-        if not isinstance(regions, list):
-            raise _ContractViolation(f"$.{group_key}.regions: expected array")
-        # 非空数组——对齐 B ReportNarrationScoreExtractor.java:151/:174-176（空区域 invalid）。
-        if not regions:
-            raise _ContractViolation(f"$.{group_key}.regions: non-empty array required")
-        seen_regions: set[str] = set()
-        out_regions: list[dict[str, Any]] = []
-        for i, item in enumerate(regions):
-            if not isinstance(item, dict):
-                raise _ContractViolation(f"$.{group_key}.regions[{i}]: expected object")
-            if set(item) - region_allowed:
-                raise _ContractViolation(
-                    f"$.{group_key}.regions[{i}]: additionalProperties violated"
-                )
-            for required in ("region", "name", "score", "severity"):
-                if required not in item:
-                    raise _ContractViolation(
-                        f"$.{group_key}.regions[{i}].{required}: required"
-                    )
-            region = item["region"]
-            # 非空白——对齐 B :164 readRequiredText；值不 trim、大小写/写法不做转换。
-            if not isinstance(region, str) or not region.strip():
-                raise _ContractViolation(
-                    f"$.{group_key}.regions[{i}].region: non-blank string required"
-                )
-            if region in seen_regions:
-                raise _ContractViolation(
-                    f"$.{group_key}.regions[{i}].region: duplicate region"
-                )
-            seen_regions.add(region)
-            region_name = item["name"]
-            # 非空白——对齐 B :165 readRequiredText；值不 trim。
-            if not isinstance(region_name, str) or not region_name.strip():
-                raise _ContractViolation(
-                    f"$.{group_key}.regions[{i}].name: non-blank string required"
-                )
-            region_score = item["score"]
-            if region_score is not None and (
-                not isinstance(region_score, (int, float))
-                or isinstance(region_score, bool)
-                or not (0 <= region_score <= 100)
-            ):
-                raise _ContractViolation(
-                    f"$.{group_key}.regions[{i}].score: type/range violated"
-                )
-            region_severity = item["severity"]
-            if region_severity is not None and region_severity not in V3_SKIN_SEVERITIES:
-                raise _ContractViolation(
-                    f"$.{group_key}.regions[{i}].severity: not in frozen vocabulary"
-                )
-            out_regions.append(
-                {
-                    "region": region,
-                    "name": region_name,
-                    "score": region_score,
-                    "severity": region_severity,
-                }
-            )
-        normalized[group_key] = {
-            "score": score,
-            "severity": severity,
-            "name": name,
-            "regions": out_regions,
-        }
-    return normalized
+    if analysis.result_images:
+        raise _ContractViolation("$.images: shuiguang must not emit result images")
+    if getattr(analysis, "v3_groups", None) is None:
+        raise _ContractViolation("$.v3_skin: shuiguang response missing the three groups")
+    return []
+
+
+def _validate_v3_skin_groups(raw: Any) -> Optional[dict[str, Any]]:
+    """发布前严格校验可选 V3 三组；规则见 :func:`dshared.dv3.validate_v3_skin_groups`。
+
+    单一事实源在 :mod:`dshared.dv3`（与真实 shuiguang 适配器**共用**同一实现）；
+    此处仅把 :class:`V3SkinViolation` 转成既有 :class:`_ContractViolation`，保持
+    终态 ``PROVIDER_CONTRACT_VIOLATION`` 路由与既有测试不变。
+    """
+    try:
+        return validate_v3_skin_groups(raw)
+    except V3SkinViolation as exc:
+        raise _ContractViolation(str(exc)) from exc
 
 
 def _mark_analyzing(engine: Engine, job: JobRow, assessment_id: str, rev: int) -> bool:
