@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aisia:ai:schema:request:1.0",
+  "title": "InternalAiRequest",
+  "description": "POST /internal/v1/ai/responses 与 POST /internal/v1/ai/responses:stream 的请求正文。封闭结构：出现未知字段一律返回 400 AI_REQUEST_INVALID。是否流式由路径和 Accept 决定，正文不包含 response_mode。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol_version", "request_id", "use_case", "input"],
+  "properties": {
+    "protocol_version": {
+      "const": "1.0",
+      "description": "协议版本，必须与 X-Protocol-Version Header 完全一致。"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{8,128}$",
+      "description": "调用方生成的请求 ID，必须与 X-Request-Id Header 完全一致。"
+    },
+    "use_case": {
+      "description": "入口用例，只接受这四个值；其他值返回 400 AI_REQUEST_INVALID。",
+      "enum": [
+        "MINI_LIGHT_REPORT_EXPLANATION",
+        "APP_AGENT_CONVERSATION",
+        "CONSOLE_PAGE_ASSISTANT",
+        "CONSOLE_PATIENT_ASSISTANT"
+      ]
+    },
+    "input": { "$ref": "#/$defs/input" },
+    "history": {
+      "type": "array",
+      "maxItems": 10,
+      "items": { "$ref": "#/$defs/historyMessage" },
+      "description": "由调用方按次携带的多轮历史；AI 服务不保存会话。最多 10 条，且正文合计不超过 8000 字符。"
+    },
+    "knowledge_scope_refs": {
+      "type": "array",
+      "maxItems": 8,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "本次允许使用的知识范围引用，必须是 AI 服务已登记的 scope_ref；未登记或超出 use_case 可见范围返回 400。省略时使用该 use_case 可见的全部已登记范围。"
+    },
+    "continuation_state": {
+      "type": ["object", "null"],
+      "description": "上一轮响应返回的 continuation_state 原样回传，用于多轮澄清。对调用方不透明，序列化后不得超过 8 KiB。"
+    },
+    "max_output_chars": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4000,
+      "default": 1200,
+      "description": "回答文字上限；超出部分被截断并把 finish_reason 置为 MAX_OUTPUT_CHARS。"
+    }
+  },
+  "$defs": {
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000,
+          "description": "用户问题。不得包含报告原文全文、用户 Token、密钥或与问题无关的个人信息。"
+        }
+      }
+    },
+    "historyMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "text"],
+      "properties": {
+        "role": { "enum": ["user", "assistant"] },
+        "text": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    }
+  }
+}

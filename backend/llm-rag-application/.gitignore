@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Local environment
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Tool caches
+.pytest_cache/
+.uv-cache/
+
+# Local scripts
+/scripts/
+
+# Local tests
+/tests/
+
+# Logs and runtime data
+logs/
+*.log
+*.db
+*.sqlite
+/.tmp/
+/local_knowledge_base/
+
+# Local model files
+/models/
+*.bin
+*.pt
+*.pth
+
+# IDE
+.vscode/
+.idea/

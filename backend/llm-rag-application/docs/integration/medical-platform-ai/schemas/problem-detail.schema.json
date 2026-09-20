@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aisia:ai:schema:problem-detail:1.0",
+  "title": "InternalAiProblemDetail",
+  "description": "AI 服务的错误响应体（Content-Type: application/problem+json）。SSE 建立前的流式接口错误、以及建立后的 response.failed 事件 data 都使用它。detail 不包含 Prompt、模型原文、Token、Secret、Grant、完整业务正文或医疗敏感正文。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "title",
+    "status",
+    "code",
+    "detail",
+    "request_id",
+    "invocation_id",
+    "retryable"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "pattern": "^urn:aisia:ai:error:AI_[A-Z0-9_]{2,63}$",
+      "description": "错误类型标识，形如 urn:aisia:ai:error:<code>。"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "面向人的简短错误标题。"
+    },
+    "status": {
+      "type": "integer",
+      "minimum": 400,
+      "maximum": 599,
+      "description": "HTTP 状态码。SSE 建立后的 response.failed 中它表示逻辑状态，实际 HTTP 状态仍是 200。"
+    },
+    "code": {
+      "description": "机器可读错误码。AI_RESPONSE_INVALID 属于医疗云后端自身，不在本服务错误码内。",
+      "enum": [
+        "AI_REQUEST_INVALID",
+        "AI_UNAUTHORIZED",
+        "AI_PAYLOAD_TOO_LARGE",
+        "AI_INTERNAL_ERROR",
+        "AI_SERVICE_UNAVAILABLE",
+        "AI_UPSTREAM_TIMEOUT"
+      ]
+    },
+    "detail": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "脱敏后的错误说明，可包含出错的字段路径，不包含字段值。"
+    },
+    "request_id": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "回传的 X-Request-Id；请求尚未通过校验时为空字符串。"
+    },
+    "invocation_id": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "AI 服务生成的执行 ID；未进入执行阶段时为空字符串。"
+    },
+    "retryable": {
+      "type": "boolean",
+      "description": "true 表示后端可以在退避后重试；false 表示重试也会得到同样结果。"
+    }
+  }
+}

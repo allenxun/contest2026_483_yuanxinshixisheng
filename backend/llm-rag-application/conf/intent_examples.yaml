@@ -1,0 +1,88 @@
+examples:
+  - example_id: chat_001
+    query: 你好，你能帮我做什么
+    intent_ids: [casual_conversation]
+
+  - example_id: knowledge_001
+    query: 敏感性皮肤平时应该怎么护理
+    intent_ids: [knowledge_question]
+    business_type: customer
+
+  - example_id: knowledge_002
+    query: 帮我解释知识库里的这份检测指标说明
+    intent_ids: [knowledge_question]
+
+  - example_id: inventory_001
+    query: 查询这个产品现在还有没有库存
+    intent_ids: [inventory_query]
+    business_type: advisor
+
+  - example_id: pricing_001
+    query: 帮我查一下这款产品的当前价格
+    intent_ids: [pricing_query]
+    business_type: advisor
+
+  - example_id: interaction_001
+    query: 检查这两种药物是否存在相互作用
+    intent_ids: [drug_interaction_query]
+    business_type: doctor
+
+  - example_id: literature_001
+    query: 查询敏感性皮肤屏障修复的相关研究
+    intent_ids: [literature_query]
+    business_type: doctor
+
+  - example_id: knowledge_literature_001
+    query: 什么是玫瑰痤疮？再帮我找相关临床研究
+    intent_ids: [knowledge_question, literature_query]
+    business_type: doctor
+
+  - example_id: knowledge_greeting_001
+    query: 你好，玫瑰痤疮平时应该怎么护理比较稳妥
+    intent_ids: [knowledge_question]
+    business_type: customer
+
+  - example_id: inventory_polite_001
+    query: 麻烦顺便帮我看下货架上 A 款还有没有
+    intent_ids: [inventory_query]
+    business_type: advisor
+
+  - example_id: cosmetic_001
+    query: 帮我查一下国妆特字20231455的注册信息
+    intent_ids: [cosmetic_product_query]
+    business_type: customer
+
+  - example_id: cosmetic_002
+    query: 余仁生美白抗皱淡黑眼霜的备案人是谁
+    intent_ids: [cosmetic_product_query]
+    business_type: advisor
+
+  - example_id: drug_001
+    query: 查一下国药准字H42022050的批准信息
+    intent_ids: [drug_product_query]
+    business_type: doctor
+
+  - example_id: drug_002
+    query: 地塞米松磷酸钠注射液的生产企业是哪家
+    intent_ids: [drug_product_query]
+    business_type: customer
+
+  - example_id: cosmetic_negative_001
+    query: 这两个药是否相互作用
+    intent_ids: [drug_interaction_query]
+    business_type: doctor
+
+  - example_id: cosmetic_negative_002
+    query: 这个产品还有库存吗
+    intent_ids: [inventory_query]
+    business_type: advisor
+
+  - example_id: cosmetic_negative_003
+    query: 推荐一种适合敏感肌的产品
+    intent_ids: [knowledge_question]
+    business_type: customer
+
+  - example_id: drug_negative_001
+    query: 国妆特字20231455的注册信息
+    intent_ids: [cosmetic_product_query]
+    business_type: customer

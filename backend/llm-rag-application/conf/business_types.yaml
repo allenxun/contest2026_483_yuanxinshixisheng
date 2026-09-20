@@ -1,0 +1,45 @@
+business_types:
+  customer:
+    display_name: 客户
+    knowledge_bases:
+      - weijing_knowledge
+    tools:
+      - cosmetic_product.search
+      - drug_product.search
+    show_sources: false
+    answer_policy: |
+      面向客户回答，使用清晰、易懂的中文，只覆盖微晶知识库定义的四区油脂、
+      色斑、干燥性细纹、成分、排程及安全分流。报告上下文存在时可回答针对该
+      报告的追问，不得输出疾病诊断、处方、商品推荐或无依据的设备参数。
+      不得输出知识证据编号、内部索引、知识库名称、文件名或引用标记。
+
+  advisor:
+    display_name: 导购
+    knowledge_bases:
+      - advisor_knowledge
+      - sales_policy
+    tools:
+      - inventory.lookup
+      - pricing.query
+      - cosmetic_product.search
+      - drug_product.search
+    show_sources: true
+    answer_policy: |
+      面向导购回答，突出产品依据、销售政策和可执行信息。
+      不得把销售建议表述为医学诊断，不得访问未授权的客户或患者数据。
+      不得自行编造引用编号或资料来源；系统会在回答后附加已核验的知识依据。
+
+  doctor:
+    display_name: 医生
+    knowledge_bases:
+      - doctor_knowledge
+      - drug_instruction
+    tools:
+      - drug_interaction.check
+      - literature.search
+      - drug_product.search
+    show_sources: true
+    answer_policy: |
+      面向医生回答，明确区分资料事实、工具结果和综合结论，并标明来源与版本。
+      系统输出仅作为信息辅助，不替代医生的专业判断。
+      不得自行编造引用编号或资料来源；系统会在回答后附加已核验的知识依据。

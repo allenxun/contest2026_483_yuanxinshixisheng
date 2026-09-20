@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aisia:ai:schema:response:1.0",
+  "title": "InternalAiResponse",
+  "description": "POST /internal/v1/ai/responses 的完成响应，同时也是 SSE response.completed 事件的 data。封闭结构：不含前端 URL、HTTP 方法或可直接执行的业务指令。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "output_schema_version",
+    "request_id",
+    "invocation_id",
+    "status",
+    "answer",
+    "citations",
+    "cards",
+    "proposed_actions",
+    "continuation_state",
+    "safety",
+    "versions",
+    "usage",
+    "finish_reason",
+    "replayed"
+  ],
+  "properties": {
+    "protocol_version": { "const": "1.0" },
+    "output_schema_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 32,
+      "description": "本次响应使用的输出 Schema 版本。"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{8,128}$",
+      "description": "与请求正文和 X-Request-Id 一致。"
+    },
+    "invocation_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{8,128}$",
+      "description": "AI 服务为本次执行生成的 ID；同一次调用的 JSON 响应与 SSE 事件共用它。"
+    },
+    "status": {
+      "enum": ["COMPLETED", "NEEDS_CLARIFICATION", "BLOCKED"],
+      "description": "COMPLETED=已给出回答；NEEDS_CLARIFICATION=需要用户补充信息（answer.text 是澄清问题）；BLOCKED=安全策略拦截，不含受限正文。"
+    },
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": {
+        "text": { "type": "string", "description": "回答文字；BLOCKED 时可能为空字符串。" }
+      }
+    },
+    "citations": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/citation" },
+      "description": "回答依据的受控引用。不含物理知识库名、内部 URL 或完整检索片段。"
+    },
+    "cards": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/card" },
+      "description": "给医疗云后端处理的 AiSemanticCard，不能直接发给前端。"
+    },
+    "proposed_actions": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/proposedAction" },
+      "description": "动作建议，仅供后端决策；AI 服务不执行任何业务操作。"
+    },
+    "continuation_state": {
+      "type": ["object", "null"],
+      "description": "下一轮请求应原样回传的不透明状态；无多轮上下文时为 null。"
+    },
+    "safety": { "$ref": "#/$defs/safety" },
+    "versions": { "$ref": "#/$defs/versions" },
+    "usage": { "$ref": "#/$defs/usage" },
+    "finish_reason": {
+      "enum": ["STOP", "MAX_OUTPUT_CHARS"],
+      "description": "STOP=正常结束；MAX_OUTPUT_CHARS=按 max_output_chars 截断。"
+    },
+    "replayed": {
+      "type": "boolean",
+      "description": "是否为幂等重放结果。本次交付未启用幂等存储，恒为 false。"
+    }
+  },
+  "$defs": {
+    "citation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["citation_id", "type", "title"],
+      "properties": {
+        "citation_id": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$" },
+        "type": { "enum": ["KNOWLEDGE", "BUSINESS"] },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "excerpt": { "type": "string", "maxLength": 200 },
+        "source_ref": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "登记过的 knowledge_scope_ref，不是物理知识库名或 URL。"
+        },
+        "tool_call_id": { "type": "string", "maxLength": 128 },
+        "snapshot_hash": { "type": "string", "maxLength": 128 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "KNOWLEDGE" } } },
+          "then": { "required": ["source_ref", "excerpt"] }
+        },
+        {
+          "if": { "properties": { "type": { "const": "BUSINESS" } } },
+          "then": { "required": ["tool_call_id", "snapshot_hash"] }
+        }
+      ]
+    },
+    "card": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["card_id", "card_type", "schema_version", "title"],
+      "properties": {
+        "card_id": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$" },
+        "card_type": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$" },
+        "schema_version": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "summary": { "type": "string", "maxLength": 500 },
+        "payload": { "type": "object" },
+        "refs": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "type": "string" },
+          "description": "关联的 citation_id 或本轮允许的资源引用。"
+        }
+      }
+    },
+    "proposedAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action_id", "action_type", "title"],
+      "properties": {
+        "action_id": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$" },
+        "action_type": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "rationale": { "type": "string", "maxLength": 500 },
+        "parameters": { "type": "object" },
+        "refs": { "type": "array", "maxItems": 20, "items": { "type": "string" } }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "codes", "display_allowed", "requires_human_handoff"],
+      "properties": {
+        "decision": { "enum": ["ALLOW", "WARN", "BLOCK", "ESCALATE_HUMAN"] },
+        "codes": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "type": "string" },
+          "description": "命中的安全判定代码；代码表冻结前恒为空数组。"
+        },
+        "display_allowed": { "type": "boolean" },
+        "requires_human_handoff": { "type": "boolean" }
+      }
+    },
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "embedding_model_id",
+        "prompt_version",
+        "safety_policy_version",
+        "output_schema_version"
+      ],
+      "properties": {
+        "model_id": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "embedding_model_id": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "prompt_version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "safety_policy_version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "output_schema_version": { "type": "string", "minLength": 1, "maxLength": 32 }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_chars", "output_chars", "retrieved_documents"],
+      "properties": {
+        "input_chars": { "type": "integer", "minimum": 0 },
+        "output_chars": { "type": "integer", "minimum": 0 },
+        "retrieved_documents": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

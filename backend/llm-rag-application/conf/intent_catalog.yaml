@@ -1,0 +1,144 @@
+intents:
+  - intent_id: casual_conversation
+    name: 普通对话
+    description: 问候、能力询问或不需要企业知识和业务数据的普通交流。
+    include_when:
+      - 用户目标本身仅为问候、闲聊或询问助手能力
+    exclude_when:
+      - 已经存在任何知识、工具或业务操作目标
+      - 句首问候、语气词、客套表达不构成第二意图
+      - 用户询问美容、产品、医疗或机构知识
+      - 用户要求查询实时业务数据
+    hard_negative_examples:
+      - 你好，玫瑰痤疮平时应该怎么护理比较稳妥
+      - 帮我看一下检测报告现在审到哪一步了
+    target:
+      type: chat
+      name: ""
+    allowed_roles: [customer, advisor, doctor]
+
+  - intent_id: knowledge_question
+    name: 知识问答
+    description: 需要从当前身份已授权且用户已选择的知识库中检索资料后回答。
+    include_when:
+      - 用户询问美容知识、产品资料、护理方法、制度、指南或文档内容
+    exclude_when:
+      - 用户要求查询库存、价格、患者数据等实时业务数据
+      - 用户只是普通问候
+    positive_examples:
+      - 敏感性皮肤应该如何进行基础护理
+      - 帮我解释这份知识库中的内容
+    hard_negative_examples:
+      - 帮我看一下检测报告现在审到哪一步了
+      - 你好
+    target:
+      type: knowledge
+      name: ""
+    allowed_roles: [customer, advisor, doctor]
+
+  - intent_id: inventory_query
+    name: 查询库存
+    description: 导购查询具体产品的当前库存。
+    include_when:
+      - 用户要求查询产品库存或是否有货
+    required_slots: [product_name]
+    target:
+      type: tool
+      name: inventory.lookup
+    allowed_roles: [advisor]
+
+  - intent_id: pricing_query
+    name: 查询价格
+    description: 导购查询具体产品的当前业务价格。
+    include_when:
+      - 用户要求查询产品实时价格
+    required_slots: [product_name]
+    target:
+      type: tool
+      name: pricing.query
+    allowed_roles: [advisor]
+
+  - intent_id: drug_interaction_query
+    name: 药物相互作用查询
+    description: 医生查询已明确药物之间的相互作用资料。
+    include_when:
+      - 医生要求检查两个或多个明确药物的相互作用
+    required_slots: [drugs]
+    target:
+      type: tool
+      name: drug_interaction.check
+    risk_level: high
+    allowed_roles: [doctor]
+
+  - intent_id: literature_query
+    name: 医学文献查询
+    description: 医生查询指定主题的医学文献或研究资料。
+    include_when:
+      - 医生明确要求查找文献、研究或证据
+    required_slots: [topic]
+    target:
+      type: tool
+      name: literature.search
+    allowed_roles: [doctor]
+
+  - intent_id: cosmetic_product_query
+    name: 化妆品注册备案查询
+    description: 查询化妆品注册或备案信息，包括注册编号、注册人/备案人、生产企业、国产或进口、普通或特殊、产品状态等。
+    include_when:
+      - 用户要求查询化妆品注册编号、备案信息
+      - 用户询问某化妆品的注册人或备案人、生产企业
+      - 用户查询某化妆品是国产还是进口、普通还是特殊
+      - 用户查询某化妆品的当前状态
+      - 用户提到具体注册编号如"国妆特字"
+    exclude_when:
+      - 用户询问药物相互作用
+      - 用户询问药品批准信息
+      - 用户询问库存或价格
+      - 用户要求开放式推荐适合某肤质的产品
+      - 用户询问个体诊断或处方建议
+    positive_examples:
+      - 帮我查一下国妆特字20231455的注册信息
+      - 余仁生美白抗皱淡黑眼霜的注册编号是什么
+      - 这个化妆品是国产还是进口的
+      - 查一下这款产品的备案人是谁
+    hard_negative_examples:
+      - 这两个药是否相互作用
+      - 这个产品还有库存吗
+      - 推荐一种适合敏感肌的产品
+      - 查国药准字H44024808的批准信息
+    required_slots: []
+    target:
+      type: tool
+      name: cosmetic_product.search
+    allowed_roles: [customer, advisor]
+
+  - intent_id: drug_product_query
+    name: 药品批准信息查询
+    description: 查询药品批准信息，包括批准文号、通用名、商品名、生产企业、剂型、规格、状态等。
+    include_when:
+      - 用户要求查询药品批准文号或注册信息
+      - 用户询问某药品的通用名、商品名
+      - 用户查询某药品的生产企业、剂型或规格
+      - 用户查询某药品的批准状态
+      - 用户提到具体批准文号如"国药准字"
+    exclude_when:
+      - 用户询问药物相互作用
+      - 用户询问化妆品注册信息
+      - 用户询问库存或价格
+      - 用户要求个体诊断或处方建议
+      - 用户要求开放式语义推荐
+    positive_examples:
+      - 帮我查一下国药准字H42022050的批准信息
+      - 地塞米松磷酸钠注射液的生产企业是哪家
+      - 这个药品的批准文号是什么
+      - 查一下这个药是国产还是进口
+    hard_negative_examples:
+      - 这两个药是否相互作用
+      - 这个产品还有库存吗
+      - 推荐一种适合敏感肌的产品
+      - 国妆特字20231455的注册信息
+    required_slots: []
+    target:
+      type: tool
+      name: drug_product.search
+    allowed_roles: [customer, advisor, doctor]
