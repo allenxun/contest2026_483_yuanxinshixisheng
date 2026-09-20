@@ -492,7 +492,5 @@
 | 3D 模型图片 | `/face/img/a_3d.png` | 测肤分析页面 |
 | 美颜检测图片 | `/face/img/a_skin.png` | 测肤分析页面 |
 | 小钢炮图片 | `/face/img/a_xgp.png` | 护肤卡片 |
-| LED 图片 | `/face/img/a_led.png` | 护肤卡片 |
-| 摄像头图片 | `/face/img/a_sxt.png` | 护肤卡片 |
 | 额头区域图 | `/face/img/face_et.png` | 护肤方案区域图标 |
 | 隐私政策 | `/face/privacy.html` | 登录页隐私政策 WebView |

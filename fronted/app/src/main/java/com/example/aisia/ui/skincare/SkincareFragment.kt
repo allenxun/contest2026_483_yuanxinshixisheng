@@ -73,25 +73,15 @@ class SkincareFragment : Fragment(R.layout.fragment_skincare) {
             imageRes = R.drawable.openvela_board,
             targetName = "openVela",
             guidePage = ""
-        ),
-        DeviceCardConfig(
-            id = 4,
-            title = "摄像头",
-            desc = "智能肤检",
-            imageUrl = "https://eveaisia.com/face/img/a_sxt.png",
-            targetName = "",
-            guidePage = ""
         )
     )
 
     private lateinit var cardDevice1: MaterialCardView
     private lateinit var cardDevice2: MaterialCardView
     private lateinit var cardDevice3: MaterialCardView
-    private lateinit var cardCamera: MaterialCardView
     private lateinit var imgDevice1: ImageView
     private lateinit var imgDevice2: ImageView
     private lateinit var imgDevice3: ImageView
-    private lateinit var imgCamera: ImageView
 
     // ================== 蓝牙搜索弹窗（BottomSheetDialog）==================
     private var bleDialog: BottomSheetDialog? = null
@@ -146,11 +136,9 @@ class SkincareFragment : Fragment(R.layout.fragment_skincare) {
         cardDevice1 = view.findViewById(R.id.cardDevice1)
         cardDevice2 = view.findViewById(R.id.cardDevice2)
         cardDevice3 = view.findViewById(R.id.cardDevice3)
-        cardCamera = view.findViewById(R.id.cardCamera)
         imgDevice1 = view.findViewById(R.id.imgDevice1)
         imgDevice2 = view.findViewById(R.id.imgDevice2)
         imgDevice3 = view.findViewById(R.id.imgDevice3)
-        imgCamera = view.findViewById(R.id.imgCamera)
 
         // 按比例设置卡片尺寸和间距（适配大屏设备）
         setupAdaptiveLayout(view)
@@ -184,7 +172,7 @@ class SkincareFragment : Fragment(R.layout.fragment_skincare) {
         cardContainer?.setPadding(containerPaddingHorizontal, 0, containerPaddingHorizontal, 0)
         
         // 设置每张卡片的 margin 和内部 padding
-        val cards = listOf(cardDevice1, cardDevice2, cardDevice3, cardCamera)
+        val cards = listOf(cardDevice1, cardDevice2, cardDevice3)
         cards.forEachIndexed { index, card ->
             // 设置卡片 marginBottom（最后一张卡片不需要底部间距）
             val layoutParams = card.layoutParams as LinearLayout.LayoutParams
@@ -389,11 +377,6 @@ class SkincareFragment : Fragment(R.layout.fragment_skincare) {
                 requireContext(),
                 com.example.aisia.ui.device.OpenVelaConnectActivity::class.java
             )
-            startActivity(intent)
-        }
-        // 摄像头卡片点击 → 跳转到WiFi摄像头皮肤测试页面
-        cardCamera.setOnClickListener {
-            val intent = android.content.Intent(requireContext(), com.example.aisia.ui.device.DeviceSkinTestActivity::class.java)
             startActivity(intent)
         }
     }

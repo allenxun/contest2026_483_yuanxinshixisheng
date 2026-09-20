@@ -26,7 +26,7 @@ android {
 
     sourceSets {
         getByName("main") {
-            jniLibs.srcDirs("src/main/jniLibs", "../filament-extract/jni")
+            jniLibs.srcDirs("../filament-extract/jni")
         }
     }
 
@@ -49,7 +49,7 @@ android {
     }
 }
 
-// Note: native libs are provided under project-level `libs/` and configured via `jniLibs.srcDirs` above.
+// The 3D model renderer uses the Filament JNI libraries in `filament-extract/jni`.
 
 dependencies {
     implementation(libs.androidx.activity.ktx)

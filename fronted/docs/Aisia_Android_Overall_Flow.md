@@ -1,6 +1,6 @@
 # Aisia Android 应用总体流程图
 
-> 依据当前工作区代码生成，更新时间：2026-08-21。  
+> 依据当前工作区代码生成，更新时间：2026-09-20。
 > 范围：页面功能、用户交互、Activity/Fragment 跳转、关键接口与异常回退。  
 > 说明：实线表示当前可达流程；虚线表示隐藏、旧版或暂无直接入口的页面。
 
@@ -36,12 +36,10 @@ flowchart TD
 
     K --> K1["微晶"]
     K --> K2["小超炮"]
-    K --> K3["LED"]
-    K --> K4["摄像头"]
+    K --> K3["openVela"]
     K1 --> BLE["BLE 扫描与连接"]
     K2 --> BLE
-    K3 --> BLE
-    K4 --> DST["DeviceSkinTestActivity"]
+    K3 --> K7["K7 BLE 配网"]
 
     M --> AUTH{"头像：是否登录"}
     AUTH -- "否" --> LOGIN["LoginActivity"]
@@ -175,7 +173,7 @@ flowchart TD
 flowchart TD
     A["首页设备卡片"] --> K["切换到小信养肤 Tab"]
     K --> T{"选择设备类型"}
-    T -- "微晶 / 小超炮 / LED" --> PERM["蓝牙与定位权限"]
+    T -- "微晶 / 小超炮" --> PERM["蓝牙与定位权限"]
     PERM --> SCAN["BLE 扫描弹窗"]
     SCAN --> DEV["选择设备"]
     DEV --> CONN["GATT 连接与服务发现"]
@@ -183,11 +181,7 @@ flowchart TD
     SAVE --> SH["SkinHistoryActivity"]
     CONN -- "失败" --> RETRY["提示并重新扫描"]
 
-    T -- "摄像头" --> CAMERA["DeviceSkinTestActivity"]
-    CAMERA --> WIFI["连接设备 Wi-Fi"]
-    WIFI --> CTRL["相机连接"]
-    CTRL --> ACT["拍照 / 水分读取 / LED 0-3 档 / 刷新"]
-    ACT --> BACK["断开相机并返回"]
+    T -- "openVela" --> K7["K7 BLE 连接与 Wi-Fi 配网"]
 
     M["我的 → 设备历史"] --> DH["DeviceHistoryActivity"]
     DH --> SEARCH["名称搜索/筛选"]
@@ -236,7 +230,7 @@ flowchart TD
 | 主框架 | `MainActivity` | 隐私授权、四 Tab Fragment 切换 | 首页 / 智能咨询 / 养肤 / 我的 |
 | 首页 | `HomeFragment` | 轮播、测肤卡片、设备卡片、数据状态 | `SkinListActivity` / 养肤 Tab |
 | 智能咨询 | `ScanFragment` | 热门问题、文本、语音、SSE 连续会话 | 当前 Fragment 内完成 |
-| 养肤 | `SkincareFragment` | BLE 扫描连接、摄像头入口 | `SkinHistoryActivity` / `DeviceSkinTestActivity` |
+| 养肤 | `SkincareFragment` | BLE 扫描连接、openVela 配网入口 | `SkinHistoryActivity` / `OpenVelaConnectActivity` |
 | 我的 | `MineFragment` | 登录资料、测肤历史、设备历史、3D 历史 | 多个历史/资料页面 |
 | 检测菜单 | `SkinListActivity` | 肤质、3D、人脸三类入口 | `SmartSkinTestActivity` |
 | 智能采集 | `SmartSkinTestActivity` | 相机/相册、人脸校验、图片标准化、OSS 上传 | 报告 / 3D / 人脸结果 |
@@ -250,7 +244,6 @@ flowchart TD
 | 3D 任务 | `Model3DReportListActivity` | 历史模型、生成方案 | 3D 渲染 / 方案 |
 | 方案 | `SolutionActivity` | 方案详情、图片、去护理 | `WorkActivity` / 首页 |
 | 护理执行 | `WorkActivity` | 读取步骤、启动、执行、安全停止设备 | 首页 |
-| 摄像头设备 | `DeviceSkinTestActivity` | Wi-Fi 相机、拍照、水分、LED 控制 | 返回养肤 |
 | 设备历史 | `DeviceHistoryActivity` | 设备列表、本地搜索 | `HistoryPlanActivity` |
 | 历史方案 | `HistoryPlanActivity` | 指定设备的方案列表 | `PlanDetailActivity` |
 | 方案详情 | `PlanDetailActivity` | 单个设备方案详情 | 返回 |

@@ -16,7 +16,7 @@ AISIA 是一款美容护肤 Android 应用，提供智能测肤、3D 人脸模�
 | 主框架结构 | `MainActivity` 通过 BottomNavigationView 承载 4 个 Tab，hide/show 方式切换 Fragment |
 | 登录态管理 | `TokenManager` 存取 Token；`HttpHelper` 全局拦截 401（清 Token + 跳登录页） |
 | 合规要求 | 首次启动由 `PrivacyManager` 弹出隐私政策弹窗，同意前不初始化功能页面 |
-| 页面规模 | 29 个 Activity + 4 个 Fragment |
+| 页面规模 | 35 个已注册 Activity + 4 个 Fragment |
 
 ---
 
@@ -35,7 +35,7 @@ AISIA 是一款美容护肤 Android 应用，提供智能测肤、3D 人脸模�
 |----------|------|------|------|
 | 首页 | `HomeFragment` | `ui/home/HomeFragment.kt` | 轮播图（自动滚动 3s）、智能测肤卡片、连接设备卡片（区分有/无数据两种样式） |
 | 咨询 | `ScanFragment` | `ui/scan/ScanFragment.kt` | 智能聊天：文字输入 / 长按语音录音（16kHz WAV）→ ASR 识别（`/api/asr/recognize`）→ 发送消息，含热门问题卡片与打字机动画 |
-| 养肤 | `SkincareFragment` | `ui/skincare/SkincareFragment.kt` | 设备卡片：微晶 / 小超炮 / LED（蓝牙搜索连接）+ 摄像头（WiFi 测肤） |
+| 养肤 | `SkincareFragment` | `ui/skincare/SkincareFragment.kt` | 设备卡片：微晶、小超炮（蓝牙连接）和 openVela（K7 蓝牙配网） |
 | 我的 | `MineFragment` | `ui/mine/MineFragment.kt` | 头像/昵称/手机号（`/api/user/profile`）、测肤历史、设备历史、3D 模型入口 |
 
 ### 2.3 功能页面（Activity）
@@ -59,7 +59,6 @@ AISIA 是一款美容护肤 Android 应用，提供智能测肤、3D 人脸模�
 | 测肤历史 | 报告列表页 | `ReportListActivity` | `ui/skinhistory/ReportListActivity.kt` |
 | 测肤历史 | 报告对比页 | `ReportCompareActivity` | `ui/skinhistory/ReportCompareActivity.kt` |
 | 设备 | 蓝牙设备连接页（无入口） | `DeviceConnectionActivity` | `ui/device/DeviceConnectionActivity.kt` |
-| 设备 | WiFi 摄像头测肤页 | `DeviceSkinTestActivity` | `ui/device/DeviceSkinTestActivity.kt` |
 | 设备历史 | 设备历史页 | `DeviceHistoryActivity` | `ui/devicehistory/DeviceHistoryActivity.kt` |
 | 设备历史 | 历史方案列表页 | `HistoryPlanActivity` | `ui/devicehistory/HistoryPlanActivity.kt` |
 | 设备历史 | 方案详情页 | `PlanDetailActivity` | `ui/devicehistory/PlanDetailActivity.kt` |
@@ -92,7 +91,7 @@ SplashActivity ──2 秒──▶ [首次启动：隐私政策弹窗] ──�
 |-----|----------|----------|
 | 首页 | `HomeFragment` | 轮播图、智能测肤卡片、连接设备卡片；根据接口数据区分"功能卡片"与"数据卡片"两种样式 |
 | 咨询 | `ScanFragment` | 智能聊天界面：热门问题、文字输入、长按语音（ASR 转文字后自动发送） |
-| 养肤 | `SkincareFragment` | 设备卡片：微晶、小超炮、LED、摄像头 |
+| 养肤 | `SkincareFragment` | 设备卡片：微晶、小超炮、openVela |
 | 我的 | `MineFragment` | 用户资料、测肤历史、设备历史、3D 模型入口 |
 
 - 支持通过 `MainActivity.EXTRA_TAB`（"home" / "scan" / "skincare" / "mine"）指定启动 Tab，`onNewIntent` 中同样处理；
@@ -157,18 +156,18 @@ MineFragment ──▶ SkinHistoryActivity（测肤人列表）
 ### 流程 7：设备连接流程（蓝牙 / WiFi）
 
 ```
-SkincareFragment 设备卡片（微晶/小超炮/LED）
+SkincareFragment 设备卡片（微晶/小超炮）
     ──▶ 蓝牙搜索 BottomSheet（按名称关键字过滤 "EVE AISIA"）
     ──▶ "连接中"波纹弹窗 ──连接成功──▶ 保存设备到服务器
     ──▶ SkinHistoryActivity（携带 id / deviceId / deviceName / deviceType）
 
-摄像头卡片 ──▶ DeviceSkinTestActivity（WiFi 摄像头测肤：SDP 配置、拍照保存、水分值读取）
+openVela 卡片 ──▶ OpenVelaConnectActivity（BLE 配网：扫描 Wi-Fi、联网结果通知）
 ```
 
 1. 设备卡片配置（`DeviceCardConfig`）：id、标题、蓝牙名称过滤关键字、引导页路径；
 2. BLE 扫描使用 `BluetoothLeScanner`，权限经 `PrivacyManager` 同意后申请；
 3. 连接成功后先调接口保存/查询历史设备获得服务端 `device_id`，再跳转 `SkinHistoryActivity`；
-4. `DeviceSkinTestActivity` 走 WiFi 摄像头（WifiCamera SDK）：创建 SDP 文件、取流拍照保存到相册、读取水分值，可跳转系统 WiFi 设置。
+4. `OpenVelaConnectActivity` 使用 K7 的 BLE 服务与通知通道，连接 Wi-Fi 成功以设备返回的 `wifi_connected` 和有效 IP 为准。
 
 ### 流程 8：设备历史流程
 
@@ -245,8 +244,8 @@ MainActivity（主框架，底部 4 Tab）
  ├── ScanFragment（咨询）：智能聊天 + 语音 ASR
  │
  ├── SkincareFragment（养肤）
- │    ├── 微晶/小超炮/LED ──▶ 蓝牙搜索弹窗 ──▶ 连接 ──▶ SkinHistoryActivity
- │    └── 摄像头 ──▶ DeviceSkinTestActivity
+ │    ├── 微晶/小超炮 ──▶ 蓝牙搜索弹窗 ──▶ 连接 ──▶ SkinHistoryActivity
+ │    └── openVela ──▶ OpenVelaConnectActivity
  │
  └── MineFragment（我的）
       ├── 头像 ──已登录──▶ ProfileActivity ──▶ ProfileEditActivity
