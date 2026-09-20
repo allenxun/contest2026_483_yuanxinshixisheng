@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aisia:ai:schema:sse-event:1.0",
+  "title": "InternalAiSseEvent",
+  "description": "POST /internal/v1/ai/responses:stream 的一条 SSE 事件（解析后的 event/id/data 三元组）。只允许四类事件；每次流调用恰好一个终态（response.completed 或 response.failed）。不支持 Last-Event-ID 与断线续传。",
+  "oneOf": [
+    { "$ref": "#/$defs/accepted" },
+    { "$ref": "#/$defs/delta" },
+    { "$ref": "#/$defs/completed" },
+    { "$ref": "#/$defs/failed" }
+  ],
+  "$defs": {
+    "sequenceId": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]{0,9}$",
+      "description": "SSE id 字段，等于严格递增的十进制 sequence，从 1 开始。"
+    },
+    "accepted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event", "id", "data"],
+      "properties": {
+        "event": { "const": "response.accepted" },
+        "id": { "$ref": "#/$defs/sequenceId" },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "protocol_version",
+            "request_id",
+            "invocation_id",
+            "use_case",
+            "accepted_at"
+          ],
+          "properties": {
+            "protocol_version": { "const": "1.0" },
+            "request_id": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{8,128}$" },
+            "invocation_id": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{8,128}$" },
+            "use_case": {
+              "enum": [
+                "MINI_LIGHT_REPORT_EXPLANATION",
+                "APP_AGENT_CONVERSATION",
+                "CONSOLE_PAGE_ASSISTANT",
+                "CONSOLE_PATIENT_ASSISTANT"
+              ]
+            },
+            "accepted_at": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+            }
+          }
+        }
+      }
+    },
+    "delta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event", "id", "data"],
+      "properties": {
+        "event": { "const": "response.delta" },
+        "id": { "$ref": "#/$defs/sequenceId" },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["request_id", "invocation_id", "sequence", "delta"],
+          "properties": {
+            "request_id": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{8,128}$" },
+            "invocation_id": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{8,128}$" },
+            "sequence": { "type": "integer", "minimum": 1 },
+            "delta": {
+              "type": "string",
+              "minLength": 1,
+              "description": "只包含回答文字增量；引用、卡片、动作、安全和版本只出现在 response.completed。"
+            }
+          }
+        }
+      }
+    },
+    "completed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event", "id", "data"],
+      "properties": {
+        "event": { "const": "response.completed" },
+        "id": { "$ref": "#/$defs/sequenceId" },
+        "data": { "$ref": "urn:aisia:ai:schema:response:1.0" }
+      }
+    },
+    "failed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event", "id", "data"],
+      "properties": {
+        "event": { "const": "response.failed" },
+        "id": { "$ref": "#/$defs/sequenceId" },
+        "data": { "$ref": "urn:aisia:ai:schema:problem-detail:1.0" }
+      }
+    }
+  }
+}

@@ -1,0 +1,126 @@
+knowledge_version: "1.0"
+project_rule_ids: [R001, R002, R003, R004, R005, R006, R007, R008, R009, R010, R011, R012, R013, R014, R015]
+
+ingredients:
+  IN01:
+    head_id: H01
+    name: 烟酰胺 Niacinamide
+    inci: Niacinamide
+    roles: [O_core, P_core]
+    selection: preferred_shared
+    evidence_refs: [OIL-E01, PIG-E01]
+    study_frequency: 研究条件依试验而异，摘要未充分列出每日次数
+    reason: 作为油脂核心与色素共享核心，跨区复用以减少重复成分。
+  IN02:
+    head_id: H02
+    name: 甘油 Glycerin
+    inci: Glycerin
+    roles: [D_support]
+    selection: support
+    evidence_refs: [DRY-E01]
+    study_frequency: 研究多为保湿霜连续使用，不等于设备联用
+    reason: 作为干燥性细纹的基础保湿支持；不把保湿宣称为治疗皱纹。
+  IN03:
+    head_id: H03
+    name: 透明质酸 Hyaluronic Acid
+    inci: Hyaluronic Acid
+    roles: [D_support]
+    selection: support_alternative
+    evidence_refs: [DRY-E02]
+    study_frequency: 0.1% 特定HA乳霜研究周期长于本模板
+    reason: 可作为保湿支持替代，不与甘油同时作为重复保湿头。
+  IN04:
+    head_id: H04
+    name: 泛醇 Panthenol
+    inci: Panthenol
+    roles: [D_support]
+    selection: support_alternative
+    evidence_refs: [DRY-E03]
+    study_frequency: 特定完整配方研究，摘要未统一浓度
+    reason: 保湿支持替代路线，仅在已有耐受或明确偏好时使用。
+  IN05:
+    head_id: H05
+    name: 神经酰胺类
+    inci: Ceramide
+    roles: [D_support]
+    selection: support_alternative
+    evidence_refs: [DRY-E04]
+    study_frequency: 完整配方/乳霜体系研究
+    reason: 屏障支持候选，不与多个保湿头叠加。
+  IN06:
+    head_id: H06
+    name: 依克多因 Ectoin
+    inci: Ectoin
+    roles: [D_support]
+    selection: optional
+    evidence_refs: [DRY-E05]
+    study_frequency: 特定乳霜28天
+    reason: 干燥辅助，证据不足以作为默认核心。
+  IN07:
+    head_id: H07
+    name: N-乙酰氨基葡萄糖 NAG
+    inci: Acetyl Glucosamine
+    roles: [P_auxiliary]
+    selection: conditional_auxiliary
+    evidence_refs: [PIG-E02]
+    study_frequency: 研究多为每日使用数周，本模板间歇日不等于原研究
+    reason: 色素辅助，仅在共享核心仍未覆盖且已试用时加入。
+  IN08:
+    head_id: H08
+    name: 抗坏血酸 Ascorbic Acid
+    inci: Ascorbic Acid
+    roles: [P_auxiliary]
+    selection: conditional_auxiliary
+    evidence_refs: [PIG-E03]
+    study_frequency: 5%乳霜16周
+    reason: 色素备选，注意酸度和刺激；不与多种美白同时首次引入。
+  IN09:
+    head_id: H09
+    name: α-熊果苷 Alpha-Arbutin
+    inci: Alpha-Arbutin
+    roles: [P_auxiliary]
+    selection: restricted
+    evidence_refs: [PIG-E04]
+    study_frequency: 研究配方与安全限值需单独核对
+    reason: 浓度与配方未核定时不自动选用。
+  IN10:
+    head_id: H10
+    name: 传明酸 Tranexamic Acid
+    inci: Tranexamic Acid
+    roles: [P_auxiliary]
+    selection: conditional_auxiliary
+    evidence_refs: [PIG-E05]
+    study_frequency: 外用研究不等于注射用法
+    reason: 色素备选，不与NAG、维C、熊果苷同时首次引入。
+  IN11:
+    head_id: H11
+    name: EGCG
+    inci: EGCG
+    roles: [O_backup]
+    selection: backup
+    evidence_refs: [OIL-E02]
+    study_frequency: 特定配方比较研究
+    reason: 油脂备选，证据弱于烟酰胺，不能宣称等效。
+  IN12:
+    head_id: H12
+    name: 左旋肉碱 L-Carnitine
+    inci: Carnitine
+    roles: [O_backup]
+    selection: backup
+    evidence_refs: [OIL-E03]
+    study_frequency: 透皮相关研究
+    reason: 油脂备选，不自动替代EGCG或烟酰胺。
+
+patterns:
+  M01: [O]
+  M02: [P]
+  M03: [D]
+  M04: [O, P]
+  M05: [O, D]
+  M06: [P, D]
+  M07: [O, P, D]
+
+sim_preview:
+  region_caps: {F: 40, C: 20, L: 60, R: 60}
+  face_cap: 180
+  coefficients: {S1: 0.5, S2: 0.75, S3: 0.75, S4: 0.75}

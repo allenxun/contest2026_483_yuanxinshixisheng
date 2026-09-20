@@ -1,0 +1,239 @@
+openapi: 3.1.0
+info:
+  title: AISIA 内部 AI 服务接入契约（医疗云后端调用面）
+  version: "1.0"
+  summary: 医疗云后端调用 AI 服务的四个接口。
+  description: 请求、响应、SSE 与错误结构见 `schemas/` 下的 JSON Schema。
+servers:
+  - url: https://<ai-service-host>
+    description: 由运维提供
+paths:
+  /internal/health/live:
+    get:
+      operationId: getInternalHealthLive
+      summary: 存活检查
+      description: 进程存活即返回 200，无需鉴权。
+      tags: [Internal Health]
+      responses:
+        "200":
+          description: 进程存活
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    enum: [LIVE]
+  /internal/health/ready:
+    get:
+      operationId: getInternalHealthReady
+      summary: 就绪检查
+      description: 配置、数据库与生成模型可接单时返回 200，否则 503；无需鉴权。
+      tags: [Internal Health]
+      responses:
+        "200":
+          description: 可以接单
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessReport"
+        "503":
+          description: 尚不能接单
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessReport"
+  /internal/v1/ai/responses:
+    post:
+      operationId: createInternalAiResponse
+      summary: 一次性 JSON 问答
+      description: 请求与响应结构见对应 JSON Schema。
+      tags: [Internal AI]
+      parameters:
+        - $ref: "#/components/parameters/ServiceName"
+        - $ref: "#/components/parameters/ApiKey"
+        - $ref: "#/components/parameters/RequestId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/Traceparent"
+        - $ref: "#/components/parameters/BusinessDataGrant"
+        - $ref: "#/components/parameters/AcceptJson"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/request.schema.json'
+      responses:
+        "200":
+          description: 完成响应
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/response.schema.json'
+        "400":
+          $ref: "#/components/responses/ProblemDetail"
+        "401":
+          $ref: "#/components/responses/ProblemDetail"
+        "413":
+          $ref: "#/components/responses/ProblemDetail"
+        "500":
+          $ref: "#/components/responses/ProblemDetail"
+        "503":
+          $ref: "#/components/responses/ProblemDetail"
+        "504":
+          $ref: "#/components/responses/ProblemDetail"
+  "/internal/v1/ai/responses:stream":
+    post:
+      operationId: streamInternalAiResponse
+      summary: SSE 流式问答
+      description: 请求正文与一次性接口相同；事件结构见 sse-event.schema.json。
+      tags: [Internal AI]
+      parameters:
+        - $ref: "#/components/parameters/ServiceName"
+        - $ref: "#/components/parameters/ApiKey"
+        - $ref: "#/components/parameters/RequestId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/Traceparent"
+        - $ref: "#/components/parameters/BusinessDataGrant"
+        - $ref: "#/components/parameters/AcceptEventStream"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/request.schema.json'
+      responses:
+        "200":
+          description: SSE 事件流
+          content:
+            text/event-stream:
+              schema:
+                $ref: './schemas/sse-event.schema.json'
+        "400":
+          $ref: "#/components/responses/ProblemDetail"
+        "401":
+          $ref: "#/components/responses/ProblemDetail"
+        "413":
+          $ref: "#/components/responses/ProblemDetail"
+        "500":
+          $ref: "#/components/responses/ProblemDetail"
+        "503":
+          $ref: "#/components/responses/ProblemDetail"
+        "504":
+          $ref: "#/components/responses/ProblemDetail"
+
+components:
+  parameters:
+    ServiceName:
+      name: X-Service-Name
+      in: header
+      required: true
+      description: 调用方服务身份。
+      schema:
+        type: string
+        enum: [medical-platform]
+      example: medical-platform
+    ApiKey:
+      name: X-API-Key
+      in: header
+      required: true
+      description: 调用方资格密钥。
+      schema:
+        type: string
+      example: <api-key>
+    RequestId:
+      name: X-Request-Id
+      in: header
+      required: true
+      description: 请求 ID，须与正文 request_id 一致。
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9._:-]{8,128}$'
+      example: req-20260908-0001
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: 幂等键。
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9._:-]{8,128}$'
+      example: idem-20260908-0001
+    ProtocolVersion:
+      name: X-Protocol-Version
+      in: header
+      required: true
+      description: 协议版本，须为 1.0。
+      schema:
+        type: string
+        enum: ["1.0"]
+      example: "1.0"
+    Traceparent:
+      name: traceparent
+      in: header
+      required: true
+      description: W3C Trace Context（version 00）。
+      schema:
+        type: string
+        pattern: '^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$'
+      example: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
+    BusinessDataGrant:
+      name: X-Business-Data-Grant
+      in: header
+      required: false
+      description: 本次业务数据查询授权，当前不改变返回内容。
+      schema:
+        type: string
+      example: <business-data-grant>
+    AcceptJson:
+      name: Accept
+      in: header
+      required: true
+      description: 必须包含 application/json。
+      schema:
+        type: string
+      example: application/json
+    AcceptEventStream:
+      name: Accept
+      in: header
+      required: true
+      description: 必须包含 text/event-stream。
+      schema:
+        type: string
+      example: text/event-stream
+  responses:
+    ProblemDetail:
+      description: application/problem+json 错误
+      content:
+        application/problem+json:
+          schema:
+            $ref: './schemas/problem-detail.schema.json'
+  schemas:
+    ReadinessReport:
+      type: object
+      additionalProperties: false
+      required: [status, checks]
+      properties:
+        status:
+          type: string
+          enum: [READY, NOT_READY]
+        checks:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [name, ok, detail]
+            properties:
+              name:
+                type: string
+                enum: [configuration, database, generation_model]
+              ok:
+                type: boolean
+              detail:
+                type: string
+                description: 不通过原因。
