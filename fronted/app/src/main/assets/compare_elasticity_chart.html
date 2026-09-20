@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弹性曲线对比</title>
+    <script src="echarts.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: transparent; }
+        #chart { width: 100%; height: 200px; }
+    </style>
+</head>
+<body>
+    <div id="chart"></div>
+    <script>
+        var chart = echarts.init(document.getElementById('chart'));
+        
+        function setCompareLineData(data) {
+            var series = [];
+            // 报告A
+            var seriesDataA = [];
+            for (var i = 0; i < data.xDataA.length; i++) {
+                var x = data.xDataA[i];
+                var y = data.yDataA[i];
+                seriesDataA.push({
+                    value: [x, y],
+                    symbol: (x % 10 === 0) ? 'circle' : 'none',
+                    symbolSize: 6,
+                    itemStyle: { color: '#ffffff', borderColor: '#3a6df0', borderWidth: 2 }
+                });
+            }
+            series.push({
+                name: '报告A',
+                data: seriesDataA,
+                type: 'line',
+                smooth: true,
+                lineStyle: { color: '#3a6df0', width: 2 },
+                itemStyle: { color: '#3a6df0' },
+                areaStyle: {
+                    color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+                        colorStops: [
+                            { offset: 0, color: 'rgba(58,109,240,0.2)' },
+                            { offset: 1, color: 'rgba(58,109,240,0)' }
+                        ]
+                    }
+                }
+            });
+            // 报告B
+            var seriesDataB = [];
+            for (var j = 0; j < data.xDataB.length; j++) {
+                var xb = data.xDataB[j];
+                var yb = data.yDataB[j];
+                seriesDataB.push({
+                    value: [xb, yb],
+                    symbol: (xb % 10 === 0) ? 'circle' : 'none',
+                    symbolSize: 6,
+                    itemStyle: { color: '#ffffff', borderColor: '#FF6B35', borderWidth: 2 }
+                });
+            }
+            series.push({
+                name: '报告B',
+                data: seriesDataB,
+                type: 'line',
+                smooth: true,
+                lineStyle: { color: '#FF6B35', width: 2, type: 'dashed' },
+                itemStyle: { color: '#FF6B35' },
+                areaStyle: {
+                    color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+                        colorStops: [
+                            { offset: 0, color: 'rgba(255,107,53,0.15)' },
+                            { offset: 1, color: 'rgba(255,107,53,0)' }
+                        ]
+                    }
+                }
+            });
+
+            var allY = data.yDataA.concat(data.yDataB);
+            var maxY = Math.max.apply(null, allY);
+            var yAxisMax = Math.ceil(maxY / 20) * 20 + 20;
+
+            var option = {
+                legend: {
+                    data: ['报告A', '报告B'],
+                    bottom: 0,
+                    textStyle: { color: '#666', fontSize: 11 }
+                },
+                grid: { left: 35, right: 12, top: 20, bottom: 35 },
+                xAxis: {
+                    type: 'value', min: 0, max: 100, interval: 20,
+                    axisLine: { lineStyle: { color: '#d8dde4' } },
+                    axisTick: { show: false },
+                    axisLabel: { color: '#999', fontSize: 10 },
+                    splitLine: { show: false }
+                },
+                yAxis: {
+                    type: 'value', min: 0, max: yAxisMax, interval: 20,
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    axisLabel: { color: '#999', fontSize: 10 },
+                    splitLine: { lineStyle: { type: 'dashed', color: '#eef0f3' } }
+                },
+                series: series
+            };
+            chart.setOption(option, true);
+        }
+
+        setCompareLineData({
+            xDataA: [10,20,30,40,50,60,70,80,90,100],
+            yDataA: [30,45,55,60,65,70,68,72,75,78],
+            xDataB: [10,20,30,40,50,60,70,80,90,100],
+            yDataB: [35,50,58,62,68,72,70,74,78,82]
+        });
+
+        window.addEventListener('resize', function() { chart.resize(); });
+    </script>
+</body>
+</html>

@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>3D 扫描</title>
+<style>
+/* ============= 基础 ============= */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a1a; }
+
+.container {
+  width: 100%; height: 100vh;
+  background-color: #1a1a1a;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* ============= 3D Canvas 区域 ============= */
+.canvas-container {
+  flex: 1; position: relative; width: 100%;
+  overflow: hidden; display: none;
+}
+.canvas-container.visible { display: block; }
+.canvas-container canvas {
+  position: absolute; top: 0; left: 0;
+  width: 100% !important; height: 100% !important;
+}
+
+/* WebGL 骨架层 */
+.webgl-skeleton {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, #e3eeff 0%, #f5f7fa 45%, #e3eeff 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 5; background-size: 200% 200%;
+  animation: webgl-skeleton-flow 3s ease-in-out infinite;
+}
+.webgl-skeleton-spinner {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 3px solid rgba(102, 126, 234, 0.15);
+  border-top-color: rgba(102, 126, 234, 0.9);
+  animation: webgl-skeleton-spin 1s linear infinite;
+}
+.webgl-skeleton-text {
+  margin-top: 12px; font-size: 13px; color: #666e91; letter-spacing: 1px;
+}
+@keyframes webgl-skeleton-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes webgl-skeleton-spin { to { transform: rotate(360deg); } }
+
+/* 控制按钮 */
+.controls {
+  position: absolute; bottom: 30px; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 16px;
+  z-index: 10; padding: 0 20px;
+}
+.btn-back, .btn-reset {
+  flex: 1; max-width: 140px; height: 40px; line-height: 40px;
+  text-align: center; border-radius: 20px; font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border: none; cursor: pointer; outline: none;
+}
+.btn-back {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff; font-weight: 500; letter-spacing: 1px;
+}
+.btn-reset {
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #333; font-weight: 400;
+}
+
+/* ============= 生成 3D 模型蒙层 ============= */
+.analyzing-mask {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(145deg, #0f1020 0%, #1a1c42 35%, #15183a 70%, #0a0b1e 100%);
+  z-index: 999999;
+  display: flex; flex-direction: column; align-items: center;
+  overflow: hidden; pointer-events: auto;
+}
+.analyzing-mask.hidden { display: none; }
+
+/* 左上角关闭按钮 */
+.analyzing-close {
+  position: absolute; top: 40px; left: 12px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(102, 126, 234, 0.6);
+  box-shadow: 0 0 6px rgba(102, 126, 234, 0.3);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10; cursor: pointer;
+}
+.analyzing-close:active { background: rgba(102, 126, 234, 0.5); }
+.analyzing-close-x { position: relative; width: 13px; height: 13px; }
+.analyzing-close-x::before, .analyzing-close-x::after {
+  content: ''; position: absolute; top: 50%; left: 0;
+  width: 100%; height: 2px; background: #e3eeff; border-radius: 1px;
+  transform-origin: center;
+}
+.analyzing-close-x::before { transform: translateY(-50%) rotate(45deg); }
+.analyzing-close-x::after { transform: translateY(-50%) rotate(-45deg); }
+
+/* 背景柔光流动 */
+.analyzing-bg-flow {
+  position: absolute; top: -20%; left: -20%; width: 140%; height: 140%;
+  background: radial-gradient(circle at 30% 30%, rgba(102, 126, 234, 0.25) 0%, transparent 45%),
+              radial-gradient(circle at 70% 70%, rgba(118, 75, 162, 0.2) 0%, transparent 50%),
+              radial-gradient(circle at 50% 100%, rgba(64, 158, 255, 0.15) 0%, transparent 55%);
+  animation: bg-flow 12s linear infinite;
+  pointer-events: none;
+}
+@keyframes bg-flow {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-4%, 2%) rotate(8deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* 3D 线框人脸区域 */
+.analyzing-face-wrap {
+  position: relative; margin-top: 90px;
+  width: 280px; height: 280px;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2;
+}
+.analyzing-face-circle {
+  position: relative; width: 100%; height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.08) 0%, transparent 70%);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; clip-path: inset(0 0 0 0 round 50%);
+}
+
+/* 3D 线框人脸 */
+.wireframe-face {
+  position: relative; width: 170px; height: 220px;
+  transform-style: preserve-3d; perspective: 600px;
+}
+.wf-face-oval {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  border: 1px solid rgba(102, 126, 234, 0.55);
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3), inset 0 0 20px rgba(102, 126, 234, 0.15);
+}
+.wf-line {
+  position: absolute; left: 50%;
+  border: 1px solid rgba(118, 75, 162, 0.5);
+  border-radius: 50%; transform: translateX(-50%);
+}
+.wf-line-1 { top: 10px; width: 110px; height: 25px; }
+.wf-line-2 { top: 60px; width: 150px; height: 35px; border-color: rgba(102, 126, 234, 0.55); }
+.wf-line-3 { top: 120px; width: 140px; height: 35px; }
+.wf-line-4 { top: 170px; width: 100px; height: 25px; border-color: rgba(118, 75, 162, 0.4); }
+.wf-line-v1 { top: 0; width: 35px; height: 220px; left: 30px; border-color: rgba(102, 126, 234, 0.35); }
+.wf-line-v2 { top: 0; width: 35px; height: 220px; left: 50%; transform: translateX(-50%); border-color: rgba(102, 126, 234, 0.5); }
+.wf-line-v3 { top: 0; width: 35px; height: 220px; right: 30px; left: auto; border-color: rgba(102, 126, 234, 0.35); }
+.wf-eye {
+  position: absolute; top: 75px; width: 30px; height: 17px;
+  border: 1px solid rgba(64, 158, 255, 0.7);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(64, 158, 255, 0.3);
+}
+.wf-eye-left { left: 40px; }
+.wf-eye-right { right: 40px; }
+.wf-nose {
+  position: absolute; top: 105px; left: 50%;
+  width: 18px; height: 30px; transform: translateX(-50%);
+  border-left: 1px solid rgba(102, 126, 234, 0.6);
+  border-right: 1px solid rgba(102, 126, 234, 0.6);
+  border-bottom: 1px solid rgba(102, 126, 234, 0.6);
+  border-radius: 0 0 18px 18px / 0 0 14px 14px;
+}
+.wf-mouth {
+  position: absolute; top: 155px; left: 50%;
+  width: 50px; height: 15px; transform: translateX(-50%);
+  border-bottom: 1px solid rgba(118, 75, 162, 0.6);
+  border-radius: 50%;
+}
+.wf-grid-glow {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(180deg,
+    transparent 0%, transparent 40%,
+    rgba(102, 220, 255, 0.35) 50%,
+    transparent 60%, transparent 100%);
+  animation: scan-line-y 4s ease-in-out infinite;
+  pointer-events: none; border-radius: 50%;
+}
+@keyframes scan-line-y {
+  0% { transform: translateY(-40px); opacity: 0.5; }
+  50% { transform: translateY(40px); opacity: 1; }
+  100% { transform: translateY(-40px); opacity: 0.5; }
+}
+.wf-rotate-slow { animation: face-spin 12s linear infinite; }
+@keyframes face-spin {
+  0% { transform: rotateY(0deg) rotateX(0deg); }
+  50% { transform: rotateY(10deg) rotateX(8deg); }
+  100% { transform: rotateY(0deg) rotateX(0deg); }
+}
+
+/* 双层反向旋转光圈 */
+.analyzing-ring {
+  position: absolute; top: 50%; left: 50%;
+  border-radius: 50%; pointer-events: none;
+}
+.ring-rotate-1 {
+  width: 250px; height: 250px; margin: -125px 0 0 -125px;
+  border: 1px dashed rgba(102, 126, 234, 0.5);
+  border-top-color: rgba(102, 220, 255, 0.9);
+  animation: ring-cw 6s linear infinite;
+  box-shadow: 0 0 15px rgba(102, 126, 234, 0.2), inset 0 0 15px rgba(102, 126, 234, 0.15);
+}
+.ring-rotate-2 {
+  width: 220px; height: 220px; margin: -110px 0 0 -110px;
+  border: 1px dashed rgba(118, 75, 162, 0.45);
+  border-right-color: rgba(180, 120, 220, 0.85);
+  animation: ring-ccw 9s linear infinite;
+}
+@keyframes ring-cw { to { transform: rotate(360deg); } }
+@keyframes ring-ccw { to { transform: rotate(-360deg); } }
+
+/* 粒子光点 */
+.particle {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(102, 220, 255, 0.9);
+  box-shadow: 0 0 6px rgba(102, 220, 255, 0.9), 0 0 12px rgba(102, 220, 255, 0.5);
+  pointer-events: none;
+}
+.p1 { top: 10%; left: 20%; animation: p-float1 5s ease-in-out infinite; }
+.p2 { top: 15%; right: 18%; background: rgba(180, 120, 220, 0.85); box-shadow: 0 0 6px rgba(180, 120, 220, 0.85); animation: p-float2 6s ease-in-out infinite; }
+.p3 { bottom: 20%; left: 15%; animation: p-float3 4.5s ease-in-out infinite; }
+.p4 { bottom: 25%; right: 20%; background: rgba(180, 120, 220, 0.85); box-shadow: 0 0 6px rgba(180, 120, 220, 0.85); animation: p-float4 5.5s ease-in-out infinite; }
+.p5 { top: 30%; left: 50%; animation: p-float1 7s ease-in-out infinite; }
+.p6 { top: 60%; right: 40%; animation: p-float2 6.5s ease-in-out infinite; }
+.p7 { bottom: 40%; left: 45%; background: rgba(255, 255, 255, 0.7); box-shadow: 0 0 5px rgba(255, 255, 255, 0.7); animation: p-float3 5s ease-in-out infinite; }
+.p8 { top: 45%; right: 10%; animation: p-float4 4s ease-in-out infinite; }
+@keyframes p-float1 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+  50% { transform: translate(15px, -10px) scale(1.3); opacity: 1; }
+}
+@keyframes p-float2 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+  50% { transform: translate(-12px, 12px) scale(1.2); opacity: 1; }
+}
+@keyframes p-float3 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+  50% { transform: translate(10px, 15px) scale(1.4); opacity: 1; }
+}
+@keyframes p-float4 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+  50% { transform: translate(-15px, -12px) scale(1.2); opacity: 1; }
+}
+
+/* 标题 */
+.analyzing-title { margin-top: 30px; z-index: 2; }
+.analyzing-title-text {
+  font-size: 19px; font-weight: 600; color: #ffffff;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
+}
+.analyzing-subtitle {
+  margin-top: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 1px; z-index: 2;
+}
+
+/* 上传进度条 */
+.analyzing-progress-box {
+  width: 280px; margin-top: 20px; z-index: 2;
+}
+.analyzing-progress-track {
+  position: relative; width: 100%; height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px; overflow: hidden;
+}
+.analyzing-progress-fill {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: linear-gradient(90deg, rgba(102, 126, 234, 0.9) 0%, rgba(102, 220, 255, 0.95) 100%);
+  border-radius: 3px;
+  transition: width 1.5s ease-out;
+  box-shadow: 0 0 6px rgba(102, 220, 255, 0.5);
+  width: 0%;
+}
+.analyzing-progress-shine {
+  position: absolute; top: 0; left: -30%; width: 30%; height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+  animation: progress-shine 2s linear infinite;
+}
+@keyframes progress-shine {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(500%); }
+}
+.analyzing-progress-text {
+  display: block; margin-top: 6px; font-size: 11px;
+  color: rgba(255, 255, 255, 0.5); text-align: center; letter-spacing: 1px;
+}
+
+/* 建模步骤列表 */
+.analyzing-items {
+  width: 280px; margin-top: 20px; z-index: 2;
+  max-height: 340px; overflow-y: auto;
+}
+.ai-item {
+  position: relative; display: flex; align-items: center;
+  padding: 9px 0; opacity: 0.4;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.ai-item-active { opacity: 1; transform: translateY(-2px); }
+.ai-item-done { opacity: 1; }
+.ai-item-left {
+  position: relative; width: 20px; height: 20px;
+  margin-right: 10px; flex-shrink: 0;
+}
+.ai-item-dot {
+  position: absolute; top: 50%; left: 50%;
+  width: 14px; height: 14px; margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.6s ease;
+}
+.ai-item-active .ai-item-dot {
+  background: rgba(102, 126, 234, 0.9);
+  border-color: rgba(102, 220, 255, 0.9);
+  box-shadow: 0 0 7px rgba(102, 220, 255, 0.6);
+}
+.ai-item-done .ai-item-dot {
+  background: #00d4ff;
+  border-color: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 6px rgba(0, 212, 255, 0.55);
+}
+.ai-item-check {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  z-index: 1;
+  color: #fff;
+  font-size: 12px; font-weight: 700;
+  line-height: 1;
+  animation: check-pop 0.6s ease forwards;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+}
+@keyframes check-pop {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  60% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+.ai-item-text {
+  flex: 1; font-size: 12px; color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 1px; line-height: 1.5;
+  transition: color 0.6s ease;
+}
+.ai-item-active .ai-item-text, .ai-item-done .ai-item-text {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* 完成动画 */
+.analyzing-complete {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 10;
+  animation: complete-fade 0.5s ease forwards;
+}
+.analyzing-complete.hidden { display: none; }
+.complete-bg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle, rgba(15, 16, 32, 0.92) 0%, rgba(10, 11, 30, 0.96) 100%);
+}
+.complete-circle {
+  position: relative; width: 100px; height: 100px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(102, 220, 255, 0.85) 0%, rgba(102, 126, 234, 0.75) 100%);
+  display: flex; align-items: center; justify-content: center;
+  animation: complete-pop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  box-shadow: 0 0 30px rgba(102, 220, 255, 0.8), 0 0 60px rgba(102, 126, 234, 0.4);
+  z-index: 2;
+}
+.complete-check {
+  font-size: 50px; color: #ffffff; font-weight: 300;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+.complete-title {
+  position: relative; margin-top: 25px; font-size: 18px; font-weight: 500;
+  color: #ffffff; letter-spacing: 2px;
+  animation: complete-title-in 1s ease 0.3s forwards;
+  opacity: 0; z-index: 2;
+  text-shadow: 0 0 10px rgba(102, 220, 255, 0.5);
+}
+@keyframes complete-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes complete-pop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes complete-title-in {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 3D 展示区域 -->
+  <div class="canvas-container" id="canvasContainer">
+    <div class="webgl-skeleton" id="webglSkeleton">
+      <div class="webgl-skeleton-spinner"></div>
+      <div class="webgl-skeleton-text">正在加载 3D 模型…</div>
+    </div>
+    <canvas id="webgl-canvas"></canvas>
+    <div class="controls">
+      <button class="btn-back" onclick="goBack()">← 返回</button>
+    </div>
+  </div>
+
+  <!-- 生成 3D 模型蒙层 -->
+  <div class="analyzing-mask" id="analyzingMask">
+    <div class="analyzing-close" onclick="cancelGeneration()">
+      <div class="analyzing-close-x"></div>
+    </div>
+    <div class="analyzing-bg-flow"></div>
+    <div class="analyzing-face-wrap">
+      <div class="analyzing-face-circle">
+        <div class="wireframe-face">
+          <div class="wf-face-oval wf-rotate-slow"></div>
+          <div class="wf-line wf-line-1"></div>
+          <div class="wf-line wf-line-2"></div>
+          <div class="wf-line wf-line-3"></div>
+          <div class="wf-line wf-line-4"></div>
+          <div class="wf-line wf-line-v1"></div>
+          <div class="wf-line wf-line-v2"></div>
+          <div class="wf-line wf-line-v3"></div>
+          <div class="wf-eye wf-eye-left"></div>
+          <div class="wf-eye wf-eye-right"></div>
+          <div class="wf-nose"></div>
+          <div class="wf-mouth"></div>
+          <div class="wf-grid-glow"></div>
+        </div>
+        <div class="analyzing-ring ring-rotate-1" id="ring1"></div>
+        <div class="analyzing-ring ring-rotate-2" id="ring2"></div>
+        <div class="particle p1" id="pt1"></div>
+        <div class="particle p2" id="pt2"></div>
+        <div class="particle p3" id="pt3"></div>
+        <div class="particle p4" id="pt4"></div>
+        <div class="particle p5" id="pt5"></div>
+        <div class="particle p6" id="pt6"></div>
+        <div class="particle p7" id="pt7"></div>
+        <div class="particle p8" id="pt8"></div>
+      </div>
+    </div>
+    <div class="analyzing-title">
+      <span class="analyzing-title-text">正在生成你的 3D 人脸模型</span>
+    </div>
+    <div class="analyzing-subtitle">请勿退出页面，预计 30–45 秒</div>
+    <div class="analyzing-progress-box">
+      <div class="analyzing-progress-track">
+        <div class="analyzing-progress-fill" id="progressFill"></div>
+        <div class="analyzing-progress-shine"></div>
+      </div>
+      <div class="analyzing-progress-text" id="progressText">图片上传进度 0%</div>
+    </div>
+    <div class="analyzing-items" id="analysisItems"></div>
+    <div class="analyzing-complete hidden" id="completeView">
+      <div class="complete-bg"></div>
+      <div class="complete-circle">
+        <span class="complete-check">✓</span>
+      </div>
+      <div class="complete-title">模型生成完成</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="three.min.js"></script>
+<script src="GLTFLoader.js"></script>
+<script>
+// ==================== 全局状态 ====================
+var scene, camera, renderer, model;
+var isAnimating = false;
+var rafId = null;
+var isTouching = false;
+var prevX = 0, prevY = 0;
+
+// 分析步骤数据
+var analysisItems = [
+  { label: '人脸关键点特征提取（眼、鼻、嘴、轮廓特征点匹配）', active: false, done: false },
+  { label: '三维稀疏点云生成，构建人脸基础空间点位', active: false, done: false },
+  { label: '生成人脸基础三角网格, 搭建3D立体轮廓', active: false, done: false },
+  { label: '照片纹理映射烘焙，还原肤色、毛孔、细纹真实贴图', active: false, done: false },
+  { label: '轻量化模型压缩，输出标准 GLB 二进制文件', active: false, done: false },
+  { label: '3D 模型资源分发，准备前端加载渲染', active: false, done: false }
+];
+
+var uploadProgress = 0;
+var progressTarget = 0;
+var progressMax = 55;
+var allItemsDone = false;
+var downloadDone = false;
+var downloadFailed = false;
+var resultReady = false;
+var currentItemIndex = 0;
+var downloadedBuffer = null;
+
+var itemTimer = null;
+var smoothTimer = null;
+var timeoutTimer = null;
+var fastProgressTimer = null;
+
+// ==================== DOM 元素 ====================
+var analyzingMask = document.getElementById('analyzingMask');
+var canvasContainer = document.getElementById('canvasContainer');
+var webglSkeleton = document.getElementById('webglSkeleton');
+var progressFill = document.getElementById('progressFill');
+var progressText = document.getElementById('progressText');
+var analysisItemsEl = document.getElementById('analysisItems');
+var completeView = document.getElementById('completeView');
+var ring1 = document.getElementById('ring1');
+var ring2 = document.getElementById('ring2');
+var particles = [];
+for (var i = 1; i <= 8; i++) particles.push(document.getElementById('pt' + i));
+
+// ==================== 初始化步骤列表 ====================
+function renderAnalysisItems() {
+  analysisItemsEl.innerHTML = '';
+  for (var i = 0; i < analysisItems.length; i++) {
+    var item = analysisItems[i];
+    var cls = 'ai-item';
+    if (item.active) cls += ' ai-item-active';
+    if (item.done) cls += ' ai-item-done';
+    var checkHtml = item.done ? '<div class="ai-item-check">✓</div>' : '';
+    analysisItemsEl.innerHTML +=
+      '<div class="' + cls + '">' +
+        '<div class="ai-item-left"><div class="ai-item-dot"></div>' + checkHtml + '</div>' +
+        '<div class="ai-item-text">' + item.label + '</div>' +
+      '</div>';
+  }
+}
+
+// ==================== 主流程 ====================
+function startGeneration(threeDType, taskId) {
+  // 重置状态
+  uploadProgress = 0; progressTarget = 0; progressMax = 55;
+  allItemsDone = false; downloadDone = false; downloadFailed = false;
+  resultReady = false; currentItemIndex = 0;
+  downloadedBuffer = null;
+  clearTimers();
+
+  for (var i = 0; i < analysisItems.length; i++) {
+    analysisItems[i].active = false;
+    analysisItems[i].done = false;
+  }
+  renderAnalysisItems();
+
+  analyzingMask.classList.remove('hidden');
+  canvasContainer.classList.remove('visible');
+  completeView.classList.add('hidden');
+  updateProgressUI();
+  showRingsAndParticles(true);
+
+  startSmoothProgress();
+
+  // 前3条正常点亮（每3秒一条），然后暂停等待接口返回
+  var totalItems = analysisItems.length;
+  var pauseAfterIndex = 3;
+
+  lightItem(0, totalItems);
+  currentItemIndex = 1;
+  itemTimer = setInterval(function() {
+    if (currentItemIndex > pauseAfterIndex) {
+      clearInterval(itemTimer); itemTimer = null;
+      return;
+    }
+    lightItem(currentItemIndex, totalItems);
+    currentItemIndex++;
+  }, 3000);
+
+  if (threeDType === 'list') {
+    _currentTaskId = taskId;
+    setTimeout(function() { fetchResultNative(); }, 3000);
+  } else {
+    createTask();
+  }
+
+  // 5分钟超时兜底
+  timeoutTimer = setTimeout(function() {
+    if (downloadDone && allItemsDone) return;
+    onAnalysisFail('生成超时，请重试');
+  }, 300000);
+}
+
+// ==================== API 调用（通过 AndroidBridge 走原生 OkHttp） ====================
+var _currentTaskId = '';
+
+function createTask() {
+  if (!window.AndroidBridge) { onAnalysisFail('Bridge 不可用'); return; }
+  AndroidBridge.createTask();
+}
+
+function onTaskCreated(taskId) {
+  console.log('[scan] 任务创建成功, task_id:', taskId);
+  _currentTaskId = taskId;
+  pollStatusNative();
+}
+
+function onTaskCreateError(msg) {
+  console.error('[scan] 创建任务失败:', msg);
+  onAnalysisFail('创建任务失败：' + (msg || '请重试'));
+}
+
+function pollStatusNative() {
+  if (!window.AndroidBridge || !_currentTaskId) return;
+  AndroidBridge.pollStatus();
+}
+
+function onPollStatus(status, error) {
+  console.log('[scan] 任务状态:', status);
+  if (status === 'succeeded') {
+    fetchResultNative();
+  } else if (status === 'failed') {
+    onAnalysisFail(error || '模型生成失败');
+  } else {
+    setTimeout(function() { pollStatusNative(); }, 5000);
+  }
+}
+
+function onPollError(msg) {
+  console.error('[scan] 轮询失败:', msg);
+  setTimeout(function() { pollStatusNative(); }, 5000);
+}
+
+function fetchResultNative() {
+  if (!window.AndroidBridge || !_currentTaskId) return;
+  AndroidBridge.fetchResult();
+}
+
+function onFetchResult() {
+  console.log('[scan] 获取结果成功');
+  resultReady = true;
+  progressMax = 99;
+  continueLightItems();
+  downloadGLBNative();
+}
+
+function onFetchResultError(msg) {
+  console.error('[scan] 获取结果失败:', msg);
+  onAnalysisFail('获取结果失败：' + (msg || '请重试'));
+}
+
+function downloadGLBNative() {
+  if (!window.AndroidBridge) { onAnalysisFail('Bridge 不可用'); return; }
+  AndroidBridge.downloadGLB();
+}
+
+function onGLBReady(url) {
+  fetch(url).then(function(response) {
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    return response.arrayBuffer();
+  }).then(function(buffer) {
+    downloadedBuffer = buffer;
+    downloadDone = true;
+    tryFinishAnalysis();
+  }).catch(function(error) {
+    onGLBDownloadError(error.message);
+  });
+}
+
+function onGLBDownloadError(msg) {
+  console.error('[scan] GLB 下载失败:', msg);
+  downloadFailed = true;
+  onAnalysisFail('模型下载失败：' + (msg || '请重试'));
+}
+
+// ==================== 步骤点亮 ====================
+function lightItem(index, totalItems) {
+  analysisItems[index].active = true;
+  var maxProgress = progressMax || 55;
+  var target = Math.ceil(((index + 1) / totalItems) * maxProgress);
+  progressTarget = Math.min(target, maxProgress);
+  renderAnalysisItems();
+  setTimeout(function() {
+    analysisItems[index].done = true;
+    renderAnalysisItems();
+  }, 1500);
+}
+
+function continueLightItems() {
+  var totalItems = analysisItems.length;
+  var startIdx = currentItemIndex || 4;
+  if (itemTimer) { clearInterval(itemTimer); itemTimer = null; }
+  if (startIdx >= totalItems) {
+    allItemsDone = true;
+    tryFinishAnalysis();
+    return;
+  }
+  lightItem(startIdx, totalItems);
+  currentItemIndex = startIdx + 1;
+  itemTimer = setInterval(function() {
+    if (currentItemIndex >= totalItems) {
+      clearInterval(itemTimer); itemTimer = null;
+      allItemsDone = true;
+      tryFinishAnalysis();
+      return;
+    }
+    lightItem(currentItemIndex, totalItems);
+    currentItemIndex++;
+  }, 2000);
+}
+
+// ==================== 进度控制 ====================
+function startSmoothProgress() {
+  smoothTimer = setInterval(function() {
+    if (uploadProgress >= progressTarget) return;
+    var gap = progressTarget - uploadProgress;
+    var step = Math.max(2, Math.ceil(gap * 0.20));
+    var next = Math.min(uploadProgress + step, progressTarget, progressMax);
+    if (next !== uploadProgress) {
+      uploadProgress = next;
+      updateProgressUI();
+    }
+  }, 200);
+}
+
+function fastCompleteProgress() {
+  if (smoothTimer) { clearInterval(smoothTimer); smoothTimer = null; }
+  progressMax = 100; progressTarget = 100;
+  fastProgressTimer = setInterval(function() {
+    if (uploadProgress >= 100) {
+      clearInterval(fastProgressTimer); fastProgressTimer = null;
+      uploadProgress = 100;
+      updateProgressUI();
+      onProgressComplete();
+      return;
+    }
+    uploadProgress = Math.min(uploadProgress + 5, 100);
+    updateProgressUI();
+  }, 50);
+}
+
+function updateProgressUI() {
+  progressFill.style.width = uploadProgress + '%';
+  progressText.textContent = '图片上传进度 ' + uploadProgress + '%';
+}
+
+function onProgressComplete() {
+  completeView.classList.remove('hidden');
+  showRingsAndParticles(false);
+  setTimeout(function() {
+    analyzingMask.classList.add('hidden');
+    canvasContainer.classList.add('visible');
+    setTimeout(function() { initWebGL(downloadedBuffer); }, 50);
+  }, 1800);
+}
+
+function tryFinishAnalysis() {
+  if (!downloadDone || !allItemsDone) return;
+  clearTimers();
+  fastCompleteProgress();
+}
+
+function onAnalysisFail(msg) {
+  clearTimers();
+  analyzingMask.classList.add('hidden');
+  canvasContainer.classList.remove('visible');
+  completeView.classList.add('hidden');
+  uploadProgress = 0; updateProgressUI();
+  // 通知原生层显示错误
+  if (window.AndroidBridge) {
+    AndroidBridge.onError(msg || '生成失败');
+  }
+}
+
+function showRingsAndParticles(show) {
+  var display = show ? 'block' : 'none';
+  ring1.style.display = display;
+  ring2.style.display = display;
+  for (var i = 0; i < particles.length; i++) {
+    particles[i].style.display = display;
+  }
+}
+
+function clearTimers() {
+  if (itemTimer) { clearInterval(itemTimer); itemTimer = null; }
+  if (smoothTimer) { clearInterval(smoothTimer); smoothTimer = null; }
+  if (timeoutTimer) { clearTimeout(timeoutTimer); timeoutTimer = null; }
+  if (fastProgressTimer) { clearInterval(fastProgressTimer); fastProgressTimer = null; }
+}
+
+function cancelGeneration() {
+  clearTimers();
+  analyzingMask.classList.add('hidden');
+  completeView.classList.add('hidden');
+  if (window.AndroidBridge) {
+    AndroidBridge.onCancel();
+  }
+}
+
+// ==================== Three.js WebGL ====================
+function initWebGL(buffer) {
+  console.log('[scan] initWebGL 开始, buffer:', buffer ? buffer.byteLength : 'null');
+  if (!buffer || buffer.byteLength < 4) {
+    console.error('[scan] buffer 为空或太小');
+    if (window.AndroidBridge) AndroidBridge.onError('模型数据为空');
+    return;
+  }
+  // 检查 GLB magic
+  var magic = new Uint8Array(buffer, 0, 4);
+  console.log('[scan] GLB magic:', magic[0], magic[1], magic[2], magic[3]);
+  if (magic[0] !== 0x67 || magic[1] !== 0x6C || magic[2] !== 0x54 || magic[3] !== 0x46) {
+    console.error('[scan] 不是有效 GLB 文件');
+    if (window.AndroidBridge) AndroidBridge.onError('模型文件格式错误');
+    return;
+  }
+
+  var canvas = document.getElementById('webgl-canvas');
+  var container = canvasContainer;
+  var width = container.clientWidth;
+  var height = container.clientHeight;
+  var dpr = window.devicePixelRatio || 1;
+  console.log('[scan] canvas 尺寸:', width, 'x', height, 'dpr:', dpr);
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x1a1a1a);
+
+  camera = new THREE.PerspectiveCamera(50, width / height, 0.01, 1000);
+  camera.position.set(0, 0, 3);
+
+  renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+  renderer.setPixelRatio(dpr);
+  renderer.setSize(width, height);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.85;
+  console.log('[scan] WebGL renderer 创建成功');
+
+  // 灯光 - 模拟自然光，轻微暖色调
+  var hemiLight = new THREE.HemisphereLight(0xfff5e6, 0x888888, 0.9);
+  hemiLight.position.set(0, 20, 0);
+  scene.add(hemiLight);
+
+  var dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight1.position.set(5, 10, 7);
+  scene.add(dirLight1);
+
+  var dirLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+  dirLight2.position.set(-5, 5, -5);
+  scene.add(dirLight2);
+
+  var dirLight3 = new THREE.DirectionalLight(0xffffff, 0.3);
+  dirLight3.position.set(0, -5, 3);
+  scene.add(dirLight3);
+
+  // 正面补光，减少面部阴影/疤痕感
+  var frontLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  frontLight.position.set(0, 0, 10);
+  scene.add(frontLight);
+
+  isAnimating = true;
+  webglSkeleton.style.display = 'none';
+
+  var animate = function() {
+    if (!isAnimating) return;
+    rafId = requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  };
+  renderer.render(scene, camera);
+  animate();
+
+  // 解析 GLB
+  var loader = new THREE.GLTFLoader();
+  loader.parse(buffer, '', function(gltf) {
+    console.log('[scan] GLB 解析成功');
+    var modelScene = gltf.scene;
+    fitModel(modelScene);
+    model = modelScene;
+    scene.add(modelScene);
+  }, function(err) {
+    console.error('[scan] 解析失败:', err);
+    if (window.AndroidBridge) AndroidBridge.onError('模型解析失败');
+  });
+
+  // 触摸事件
+  canvas.addEventListener('touchstart', onTouchStart, { passive: true });
+  canvas.addEventListener('touchmove', onTouchMove, { passive: true });
+  canvas.addEventListener('touchend', onTouchEnd, { passive: true });
+  canvas.addEventListener('mousedown', onMouseDown);
+  canvas.addEventListener('mousemove', onMouseMove);
+  canvas.addEventListener('mouseup', onMouseUp);
+}
+
+function fitModel(modelScene) {
+  var box = new THREE.Box3().setFromObject(modelScene);
+  var size = box.getSize(new THREE.Vector3());
+  var center = box.getCenter(new THREE.Vector3());
+  var maxDim = Math.max(size.x, size.y, size.z);
+  var scale = 2.0 / maxDim;
+  modelScene.scale.setScalar(scale);
+  modelScene.position.sub(center.multiplyScalar(scale));
+  var aspect = renderer.domElement.width / renderer.domElement.height;
+  var fitHeightDistance = maxDim * scale / (2 * Math.tan(Math.PI / 8));
+  var fitWidthDistance = fitHeightDistance / aspect;
+  var distance = Math.max(fitHeightDistance, fitWidthDistance) * 1.2;
+  camera.position.set(0, 0, distance);
+  camera.lookAt(0, 0, 0);
+  camera.near = distance / 100;
+  camera.far = distance * 100;
+  camera.updateProjectionMatrix();
+}
+
+// ==================== 触摸/鼠标旋转 ====================
+function onTouchStart(e) {
+  if (!e.touches || !e.touches.length) return;
+  isTouching = true;
+  prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
+}
+// 左右（Y 轴）360° 自由旋转，禁止上下（X 轴）翻转
+function clampRotation() {
+  if (!model) return;
+  // 将角度归一化到 [-PI, PI]，避免数值无限增大
+  if (model.rotation.y > Math.PI) model.rotation.y -= Math.PI * 2;
+  if (model.rotation.y < -Math.PI) model.rotation.y += Math.PI * 2;
+  model.rotation.x = 0; // 禁止上下翻转
+}
+
+function onTouchMove(e) {
+  if (!isTouching || !model || !e.touches || !e.touches.length) return;
+  var t = e.touches[0];
+  var dx = t.clientX - prevX;
+  prevX = t.clientX; prevY = t.clientY;
+  model.rotation.y += dx * 0.01;
+  clampRotation();
+}
+function onTouchEnd() { isTouching = false; }
+
+function onMouseDown(e) { isTouching = true; prevX = e.clientX; prevY = e.clientY; }
+function onMouseMove(e) {
+  if (!isTouching || !model) return;
+  var dx = e.clientX - prevX;
+  prevX = e.clientX; prevY = e.clientY;
+  model.rotation.y += dx * 0.01;
+  clampRotation();
+}
+function onMouseUp() { isTouching = false; }
+
+// ==================== 控制按钮 ====================
+function goBack() {
+  clearTimers();
+  isAnimating = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  if (window.AndroidBridge) AndroidBridge.onBack();
+}
+
+function resetView() {
+  if (!model || !camera) return;
+  model.rotation.set(0, 0, 0);
+  fitModel(model);
+}
+
+// ==================== 原生调用入口 ====================
+// 由原生 WebView 通过 evaluateJavascript 调用
+function nativeStart(threeDType, taskId) {
+  startGeneration(threeDType, taskId);
+}
+</script>
+</body>
+</html>

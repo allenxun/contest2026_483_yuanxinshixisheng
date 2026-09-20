@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="84dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_marginStart="6dp"
+    android:layout_marginEnd="6dp"
+    android:padding="6dp"
+    android:background="@drawable/effect_item_bg"
+    android:clickable="true"
+    android:focusable="true">
+
+    <TextView
+        android:id="@+id/ivEffectIcon"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:contentDescription="效果"
+        android:gravity="center"
+        android:textSize="32sp"
+        android:background="#F5F0E5" />
+
+    <TextView
+        android:id="@+id/tvEffectName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#333333"
+        android:textSize="12sp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+</LinearLayout>

@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:paddingTop="60dp">
+
+    <!-- ============== 阶段1：多角度拍照（CameraX 预览） ============== -->
+    <FrameLayout
+        android:id="@+id/layoutCapture"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- CameraX 预览视图 -->
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- 顶部角度提示 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="#80000000"
+            android:paddingTop="56dp"
+            android:paddingBottom="20dp">
+
+            <TextView
+                android:id="@+id/tvAngleHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/skin_test_step_front"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAngleSubHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/skin_test_step_front_sub"
+                android:textColor="#CCFFFFFF"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- 三角度指示器 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="160dp"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/dotFront"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/indicator_selected" />
+
+            <View
+                android:id="@+id/dotLeft"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/indicator_unselected" />
+
+            <View
+                android:id="@+id/dotRight"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/indicator_unselected" />
+        </LinearLayout>
+
+        <!-- 底部拍照按钮 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="#80000000"
+            android:paddingTop="20dp"
+            android:paddingBottom="36dp">
+
+            <TextView
+                android:id="@+id/tvCaptureProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 / 3"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:layout_marginBottom="10dp" />
+
+            <Button
+                android:id="@+id/btnCapture"
+                android:layout_width="200dp"
+                android:layout_height="48dp"
+                android:backgroundTint="#af8d59"
+                android:text="@string/take_photo"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- ============== 阶段2：3D 头像渲染 + 效果列表 ============== -->
+    <LinearLayout
+        android:id="@+id/layoutModel3D"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- 3D 模型展示区 -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <com.example.aisia.ui.skintest.GlbModelView
+                android:id="@+id/glbView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#F0F4F8" />
+
+            <!-- 手势提示（覆盖在 3D 底部） -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:gravity="center"
+                android:background="#66000000"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:text="@string/skin_test_gesture_hint"
+                android:textColor="@color/white"
+                android:textSize="11sp" />
+
+            <!-- 重置按钮（右上角悬浮） -->
+            <Button
+                android:id="@+id/btnResetView"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="12dp"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:backgroundTint="#af8d59"
+                android:text="@string/skin_test_reset"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+        </FrameLayout>
+
+        <!-- 效果改造列表 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="#E0E0E0" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="6dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/skin_test_effect_title"
+                android:textColor="#222222"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/skin_test_effect_hint"
+                android:textColor="#999999"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvEffects"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp"
+            android:clipToPadding="false"
+            android:overScrollMode="never" />
+
+        <Button
+            android:id="@+id/btnGoAnalysis"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="#af8d59"
+            android:text="查看测肤分析"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- ============== 加载进度遮罩 ============== -->
+    <FrameLayout
+        android:id="@+id/layoutLoading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC000000"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ProgressBar
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:indeterminateTint="@color/white" />
+
+            <TextView
+                android:id="@+id/tvLoadingText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/skin_test_uploading"
+                android:textColor="@color/white"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 左上角返回按钮（拍照阶段） -->
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="48dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_arrow_back"
+        android:contentDescription="返回"
+        android:background="?attr/selectableItemBackgroundBorderless" />
+
+    <!-- 图片预览层（拍照后显示：重拍 / 确认上传） -->
+    <FrameLayout
+        android:id="@+id/previewOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="#CC000000">
+
+        <ImageView
+            android:id="@+id/ivPreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="18dp">
+
+            <Button
+                android:id="@+id/btnRetake"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="重新拍照"
+                android:backgroundTint="#FFFFFF"
+                android:textColor="#333333" />
+
+            <Button
+                android:id="@+id/btnConfirm"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="确定"
+                android:backgroundTint="#AF8D59"
+                android:textColor="@color/white" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 分析中蒙层（图片上传 + 分析流程） -->
+    <FrameLayout
+        android:id="@+id/analyzingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="#CC0A2233">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/tvAnalyzingTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="正在深度分析你的肌肤"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAnalyzingSub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="请勿退出页面"
+                android:textColor="#DDFFFFFF"
+                android:textSize="13sp" />
+
+            <LinearLayout
+                android:id="@+id/layoutAnalysisItems"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="20dp">
+                <!-- items added dynamically -->
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="20dp">
+                <TextView
+                    android:id="@+id/tvUploadProgressLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="图片上传 0%"
+                    android:textColor="#FFFFFF" />
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="8dp"
+                    android:background="#333333">
+                    <View
+                        android:id="@+id/viewUploadFill"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:background="#AF8D59" />
+                </FrameLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 渐变背景 -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#f093fb"
+                android:centerColor="#f5576c"
+                android:endColor="#ff9a9e"
+                android:type="linear" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+    <!-- 装饰圆 -->
+    <item
+        android:bottom="60dp"
+        android:left="200dp"
+        android:right="-40dp"
+        android:top="-40dp">
+        <shape android:shape="oval">
+            <solid android:color="#33FFFFFF" />
+        </shape>
+    </item>
+    <item
+        android:bottom="-20dp"
+        android:left="-60dp"
+        android:right="180dp"
+        android:top="80dp">
+        <shape android:shape="oval">
+            <solid android:color="#22FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

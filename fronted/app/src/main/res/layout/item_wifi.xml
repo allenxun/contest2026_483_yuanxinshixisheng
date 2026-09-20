@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="16dp"
+    android:minHeight="76dp"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- 四级信号：圆点 + 三道弧线，未亮部分为浅灰色 -->
+    <ImageView
+        android:id="@+id/ivWifiIcon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/ic_wifi_signal_4"
+        android:contentDescription="WIFI" />
+
+    <!-- WIFI 信息 -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="9dp"
+        android:layout_marginEnd="9dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvWifiSsid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="WIFI 名称"
+            android:textColor="#111111"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/tvWifiRssi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="信号极强"
+            android:textColor="#52667E"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- 点击输入密码 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:text="›"
+        android:textColor="#C0C0C8"
+        android:textSize="18sp" />
+
+</LinearLayout>

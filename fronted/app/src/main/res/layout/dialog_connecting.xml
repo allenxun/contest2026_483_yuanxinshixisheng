@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#59000000"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="36dp"
+        android:background="#FFFFFF"
+        android:layout_margin="32dp"
+        android:backgroundTintMode="src_atop">
+
+        <!-- 动画区域（对应 JS 的 connecting-visual） -->
+        <FrameLayout
+            android:layout_width="120dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="16dp">
+
+            <!-- 左侧波纹1 -->
+            <View
+                android:id="@+id/waveLeft1"
+                android:layout_width="25dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="5dp"
+                android:background="@drawable/connecting_wave_left" />
+
+            <!-- 左侧波纹2 -->
+            <View
+                android:id="@+id/waveLeft2"
+                android:layout_width="25dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="18dp"
+                android:background="@drawable/connecting_wave_left" />
+
+            <!-- 中心蓝牙圆 -->
+            <FrameLayout
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                android:background="@drawable/connecting_bt_circle">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="28dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_bluetooth"
+                    android:tint="#FFFFFF" />
+            </FrameLayout>
+
+            <!-- 右侧波纹1 -->
+            <View
+                android:id="@+id/waveRight1"
+                android:layout_width="25dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center_vertical|end"
+                android:layout_marginEnd="5dp"
+                android:background="@drawable/connecting_wave_right" />
+
+            <!-- 右侧波纹2 -->
+            <View
+                android:id="@+id/waveRight2"
+                android:layout_width="25dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center_vertical|end"
+                android:layout_marginEnd="18dp"
+                android:background="@drawable/connecting_wave_right" />
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="连接中"
+            android:textColor="#3A6DF0"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1" />
+
+    </LinearLayout>
+
+</FrameLayout>
