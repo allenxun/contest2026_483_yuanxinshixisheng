@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions/8a71e9f2-a663-47c3-a779-cda7aa44fd23/observations",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "conflict": true
+  },
+  "response_excerpt": "{\"requestId\": \"84b819e7-815f-4101-a6c5-894bcd291aaf\", \"error\": {\"code\": \"RECORD_CONFLICT\", \"message\": \"record batch conflicts with duplicate or existing content\", \"retryable\": false, \"details\": {\"conflictingRecordIds\": [\"r-8a71e9f2-1\"], \"totalConflicts\": 1}}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T110730Z-e8ba213c"
+}

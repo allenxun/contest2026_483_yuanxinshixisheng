@@ -1,0 +1,14 @@
+{
+  "method": "DELETE",
+  "path": "/api/v1/me/gimbal-bindings/a9931dd7-f13c-47ee-b16d-d476f226a827",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "stale": true
+  },
+  "response_excerpt": "{\"requestId\": \"0ec57350-f20f-4985-8959-ef8ea10657e9\", \"error\": {\"code\": \"BINDING_CHANGED\", \"message\": \"gimbal binding revision changed\", \"retryable\": false, \"details\": {\"currentBindingRevision\": \"3\"}}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T165237Z-cb762349"
+}

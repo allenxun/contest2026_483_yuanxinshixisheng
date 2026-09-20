@@ -1,0 +1,14 @@
+{
+  "method": "GET",
+  "path": "/api/v1/microcrystals/062f975e-b814-4553-9a6c-ff49683316bb/capabilities",
+  "status": 200,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "observer": "a"
+  },
+  "response_excerpt": "{\"requestId\": \"c2df6c7e-5f60-404b-be78-26cb8e0277bd\", \"data\": {\"capabilities\": {\"n_bounds\": {\"max\": 100, \"min\": 1}, \"revision\": \"1\", \"capability_id\": \"mvp-double-capability\", \"schema_version\": 1, \"approved_regions\": [\"forehead\", \"left_cheek\", \"right_cheek\", \"nose\"], \"parameter_ranges\": {\"duration\": {\"max\": 600.0, \"min\": 1.0, \"unit\": \"second\"}, \"intensity\": {\"max\": 100.0, \"min\": 0.0, \"unit\": \"percent\"}, \"pulse_count\": {\"max\": 1000.0, \"min\": 1.0, \"unit\": \"count\"}}, \"supported_regions\": [\"forehead\", \"left_cheek\", \"right_cheek\", \"nose\"]}, \"capabilityRevision\": \"1\", \"observedAt\": \"2026-09-12T11:10:00Z\", \"receivedAt\": \"2026-09-12T11:10:00Z\", \"isStale\": false}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-12T11:10:00Z\"}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T110730Z-e8ba213c"
+}

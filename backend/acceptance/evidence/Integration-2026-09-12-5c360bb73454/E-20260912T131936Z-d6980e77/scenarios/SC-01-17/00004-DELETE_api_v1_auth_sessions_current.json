@@ -1,0 +1,14 @@
+{
+  "method": "DELETE",
+  "path": "/api/v1/auth/sessions/current",
+  "status": 401,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "repeat": true
+  },
+  "response_excerpt": "{\"requestId\": \"c3953469-e431-4269-a8f0-5c488528d29b\", \"error\": {\"code\": \"SESSION_INVALID\", \"message\": \"session token invalid or expired\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T131936Z-d6980e77"
+}

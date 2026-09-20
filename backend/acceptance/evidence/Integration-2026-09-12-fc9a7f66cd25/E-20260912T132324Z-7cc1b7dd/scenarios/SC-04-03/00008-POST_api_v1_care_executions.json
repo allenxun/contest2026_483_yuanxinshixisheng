@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "case": "plan_completed"
+  },
+  "response_excerpt": "{\"requestId\": \"6b00528e-2ba7-45de-9405-dac6fbdcecd4\", \"error\": {\"code\": \"PLAN_COMPLETED\", \"message\": \"care plan target count already reached\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T132324Z-7cc1b7dd"
+}

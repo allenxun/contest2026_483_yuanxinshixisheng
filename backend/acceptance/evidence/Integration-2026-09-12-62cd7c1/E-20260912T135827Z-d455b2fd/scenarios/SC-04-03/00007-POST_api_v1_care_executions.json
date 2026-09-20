@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "case": "capability_mismatch"
+  },
+  "response_excerpt": "{\"requestId\": \"fd661a78-d36c-4ebf-9ed8-3752fbdc5b7b\", \"error\": {\"code\": \"PLAN_NOT_READY\", \"message\": \"care plan is not ready\", \"retryable\": false, \"details\": {\"reason\": \"capability_id_mismatch\"}}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T135827Z-d455b2fd"
+}

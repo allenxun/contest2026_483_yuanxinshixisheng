@@ -1,0 +1,36 @@
+[Unit]
+Description=InsightFace for openvela (project-dedicated, isolated library)
+Documentation=file:%h/deployment/InsightFace-for-openvela/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# User-level unit: no User=/Group= (the user manager already runs as the owner).
+WorkingDirectory=%h/deployment/InsightFace-for-openvela
+# 0600 file holding FACE_SVC_* values (token path and non-secret config).
+# The file must exist before the unit starts; deploy.sh checks this.
+EnvironmentFile=%h/.config/face-service-openvela.env
+ExecStart=%h/deployment/InsightFace-for-openvela/.venv/bin/python -m face_service
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=face-service-openvela
+
+# --- resource limits (conservative; tune to the host) --------------------
+# Inference is CPU/GPU bound and buffers one image per request.
+MemoryMax=4G
+CPUQuota=200%
+
+# --- hardening (see deploy/README-deploy.md for per-directive trade-offs) -
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+# Data dir is the only writable path; model weights stay read-only.
+ReadWritePaths=%h/deployment/InsightFace-for-openvela/data
+ReadOnlyPaths=%h/.insightface %h/deployment/InsightFace-for-openvela
+
+[Install]
+WantedBy=default.target

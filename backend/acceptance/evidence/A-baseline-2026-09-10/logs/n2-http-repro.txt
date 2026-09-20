@@ -1,0 +1,11 @@
+jobId=9f68d39f-98a3-42c4-9799-b3eb59ac4b8d（合成数据，无真实凭据）
+SQL[marker]（完整可执行）: WITH u AS (UPDATE async_jobs SET last_error=jsonb_build_object('code','E_DIAG_MARKER','message','Bearer E2E_DIAG_SECRET_MARKER_12345','retryable',false) WHERE id='9f68d39f-98a3-42c4-9799-b3eb59ac4b8d' RETURNING id) SELECT count(*) FROM u
+curl --noproxy '*' -H 'Authorization: Bearer <token>' http://127.0.0.1:18081/api/v1/system/echo-jobs/9f68d39f-98a3-42c4-9799-b3eb59ac4b8d -> http=200
+data.lastError[:400]='{"code": "E_DIAG_MARKER", "message": "Bearer E2E_DIAG_SECRET_MARKER_12345", "retryable": false}'
+len=95 marker_echoed=True
+
+SQL[long]（完整可执行）: WITH u AS (UPDATE async_jobs SET last_error=jsonb_build_object('code','E_DIAG_LONG','message',repeat('L',4000),'retryable',false) WHERE id='9f68d39f-98a3-42c4-9799-b3eb59ac4b8d' RETURNING id) SELECT count(*) FROM u
+curl --noproxy '*' -H 'Authorization: Bearer <token>' http://127.0.0.1:18081/api/v1/system/echo-jobs/9f68d39f-98a3-42c4-9799-b3eb59ac4b8d -> http=200
+data.lastError[:400]='{"code": "E_DIAG_LONG", "message": "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL'
+len=4058 marker_echoed=False
+

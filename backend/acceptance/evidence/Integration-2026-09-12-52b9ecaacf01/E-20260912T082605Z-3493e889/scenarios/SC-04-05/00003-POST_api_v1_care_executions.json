@@ -1,0 +1,15 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "key": "552e4a36-038f-42ae-ae9f-2f256758bb64",
+    "n": 1
+  },
+  "response_excerpt": "{\"requestId\": \"83b3443c-4ff8-4109-a8c7-1b6acfcbded6\", \"error\": {\"code\": \"PLAN_NOT_READY\", \"message\": \"care plan is not ready\", \"retryable\": false, \"details\": {\"reason\": \"region_not_supported\"}}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T082605Z-3493e889"
+}

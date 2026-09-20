@@ -1,0 +1,499 @@
+{
+  "schema": "e-acceptance-a-baseline/1",
+  "run_id": "E-AB-20260910T133648Z-7a35b619",
+  "mode": "formal",
+  "baseline": {
+    "sha": null,
+    "candidate_code_sha": "26d97fbe908cb93c1fe366e28ba54a91c21b497c",
+    "report_head": "617354d0634c55b9420a3256c619186a1177b3c3",
+    "isolated_dev": "24232d3ccb203d50acfb6aed6b6e74e336654cb0",
+    "integrated_head": "df0fa32ee42310d8adfa779f215c8b7a8da80fc7",
+    "a_oracle": "round-3 PASS-with-notes",
+    "synced_at": "2026-09-10T12:32:08Z"
+  },
+  "expected": 52,
+  "settled": 52,
+  "missing": [],
+  "extra": [],
+  "duplicates": [],
+  "unknown_status": [],
+  "counts": {
+    "pass": 50,
+    "fail": 1,
+    "blocked": 0,
+    "info": 1
+  },
+  "counts_sum": 52,
+  "rows": 52,
+  "final_exit": 1,
+  "results": [
+    {
+      "id": "SETUP-pg",
+      "title": "启动 E 专用 PG（mvp-e-pg@55433，label=本 run）",
+      "status": "PASS",
+      "command": "docker run --label mvp.e.run=... postgres:16",
+      "rc": 0,
+      "excerpt": "UP",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-01a",
+      "title": "Java 构建（-DskipTests package）产出可运行 jar",
+      "status": "PASS",
+      "command": "mvn -B -q -DskipTests package",
+      "rc": 0,
+      "excerpt": "",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-09a/N1j",
+      "title": "Java 目标测试（真实类）：SchemaVersionBoundaryTest（N1 服务层整数校验） + ProductionFailClosedTest（N3 fail-closed，targeted）",
+      "status": "PASS",
+      "command": "mvn -B -q test -Dtest=SchemaVersionBoundaryTest,ProductionFailClosedTest",
+      "rc": 0,
+      "excerpt": "21:36:59.955 [main] ERROR cn.yuanxin.mvp.web.config.ProductionFailClosedValidator -- production fail-closed: unsafe production configuration -> [SessionProvider=absent, SmsCodeProvider=absent, DeviceCredentialProvider=absent, FaceProvider=absent, StoragePort=absent] (configure app.providers.mode=rea",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-09b",
+      "title": "jcs.py selftest（17 向量权威数对）",
+      "status": "PASS",
+      "command": "scripts/jcs.py selftest",
+      "rc": 0,
+      "excerpt": "selftest: PASS (26 checks, 23 number pairs)",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-09c",
+      "title": "validate_samples.py（样例+向量重算）",
+      "status": "PASS",
+      "command": "scripts/validate_samples.py",
+      "rc": 0,
+      "excerpt": "RESULT: PASS — all samples valid, all canonicalization vectors match",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-09d",
+      "title": "openapi_spec_validator（基础契约）",
+      "status": "PASS",
+      "command": "python -c validate(openapi.yaml)",
+      "rc": 0,
+      "excerpt": "OPENAPI VALID",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-10a",
+      "title": "fail-closed black-box：prod+doubles 启动被拒且日志含具体原因行",
+      "status": "PASS",
+      "command": "java -jar (SPRING_PROFILES_ACTIVE=prod, prod+doubles)",
+      "rc": 1,
+      "excerpt": "exited=True reason_line=True : SessionProvider=doubles/disabled only",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-10b",
+      "title": "fail-closed black-box：prod+owner-dev 启动被拒且日志含具体原因行",
+      "status": "PASS",
+      "command": "java -jar (SPRING_PROFILES_ACTIVE=prod, prod+owner-dev)",
+      "rc": 1,
+      "excerpt": "exited=True reason_line=True : app.media.access-mode=owner-dev",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-10c",
+      "title": "fail-closed black-box：prod+allow-any 启动被拒且日志含具体原因行",
+      "status": "PASS",
+      "command": "java -jar (SPRING_PROFILES_ACTIVE=prod, prod+allow-any)",
+      "rc": 1,
+      "excerpt": "exited=True reason_line=True : app.media.allow-any-authenticated=true",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-01b",
+      "title": "Java dev 启动 + /actuator/health UP（健康绑定子进程存活）",
+      "status": "PASS",
+      "command": "java -jar (SERVER_PORT=18081, db=mvp_e_dev)",
+      "rc": "0",
+      "excerpt": "first pid=3448780",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-01c",
+      "title": "SIGTERM 停止 → 再启动 UP；Flyway no-op（重复启动无破坏）",
+      "status": "PASS",
+      "command": "restart cycle",
+      "rc": "0",
+      "excerpt": "second UP=True; flyway_noop=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-03",
+      "title": "全新 E 库 Flyway V1+V2 迁移：14 表（实际 14），版本=1,2",
+      "status": "PASS",
+      "command": "fresh db migrate via app start",
+      "rc": "15",
+      "excerpt": "missing=[] extra=[] history=1,2 success_rows=2",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-02a",
+      "title": "worker --check 连通自检（E 库）",
+      "status": "PASS",
+      "command": "python -m mvp_worker --check",
+      "rc": 0,
+      "excerpt": "PostgreSQL server_version: 16.15 (Debian 16.15-1.pgdg13+2)",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-02b",
+      "title": "worker 运行循环 + /healthz /readyz UP（健康绑定本 run 子进程存活）",
+      "status": "PASS",
+      "command": "python -m mvp_worker (loop)",
+      "rc": "0",
+      "excerpt": "healthz=UP readyz=UP",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-02c",
+      "title": "SIGTERM 优雅停机：真实 Popen wait 后 returncode==0 且日志见停机行",
+      "status": "PASS",
+      "command": "proc.send_signal(SIGTERM) → proc.wait()",
+      "rc": 0,
+      "excerpt": "graceful_log=True（未依赖已清空变量）",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-02d",
+      "title": "E 定向执行 worker pytest（claim/renew/expire/complete/attempt-ceiling/unsupported；E 专属 PG 临时库，绝不混 A 库）",
+      "status": "PASS",
+      "command": "pytest -q tests/test_claim.py tests/test_renew.py tests/test_expire.py tests/test_complete.py tests/test_attempt_ceiling.py tests/test_unsupported.py",
+      "rc": 0,
+      "excerpt": "passed=26 : 26 passed in 5.36s",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "N1-db",
+      "title": "JSONB 写入边界（DB object+number CHECK）：非对象/null/字符串/bool/缺键拒绝，整数接受；小数/负数 DB 放行=已知限制（服务层兜底）",
+      "status": "PASS",
+      "command": "psql INSERT async_jobs.payload 变体",
+      "rc": "0/1",
+      "excerpt": "array:rej null_version:rej string_version:rej bool_version:rej missing_key:rej int1:accept fractional:accept negative:accept",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-04a",
+      "title": "约束负例最小父链种子",
+      "status": "PASS",
+      "command": "psql seed",
+      "rc": 0,
+      "excerpt": "INSERT 0 6 INSERT 0 1 INSERT 0 1 INSERT 0 1 INSERT 0 1 INSERT 0 1 INSERT 0 1 INSERT 0 1 INSERT 0 1",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-04b",
+      "title": "同一微晶第二个未收尾执行 → 拒绝（双占用）（拒因含 uq_execution_open_microcrystal）",
+      "status": "PASS",
+      "command": "psql negative INSERT",
+      "rc": 1,
+      "excerpt": "constraint_seen=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-04c",
+      "title": "同一执行重复源三元组记录 → 拒绝（双记录）（拒因含 uq_record_source）",
+      "status": "PASS",
+      "command": "psql negative INSERT",
+      "rc": 1,
+      "excerpt": "constraint_seen=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-04d",
+      "title": "app 控制端缺 account/installation → 控制端归属 CHECK 拒绝（拒因含 ck_execution_controller_ownership）",
+      "status": "PASS",
+      "command": "psql negative INSERT",
+      "rc": 1,
+      "excerpt": "constraint_seen=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-04e",
+      "title": "active 通知目标无 registration → CHECK 拒绝（拒因含 ck_destination_active_fields）",
+      "status": "PASS",
+      "command": "psql negative INSERT",
+      "rc": 1,
+      "excerpt": "constraint_seen=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-04f",
+      "title": "T13 (principal,operation,key) 重复 → 拒绝（拒因含 uq_idem_principal）",
+      "status": "PASS",
+      "command": "psql negative INSERT",
+      "rc": 1,
+      "excerpt": "constraint_seen=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-04g",
+      "title": "members (identity_namespace,face_subject_ref) 双非空重复 → 拒绝（拒因含 uq_members_identity）",
+      "status": "PASS",
+      "command": "psql negative INSERT",
+      "rc": 1,
+      "excerpt": "constraint_seen=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-04h",
+      "title": "skin_assessments 非法 status → CHECK 拒绝（拒因含 ck_assessment_status）",
+      "status": "PASS",
+      "command": "psql negative INSERT",
+      "rc": 1,
+      "excerpt": "constraint_seen=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-04i",
+      "title": "skin_assessments current_photo_version=0 → CHECK 拒绝（拒因含 ck_assessment_current_photo_version）",
+      "status": "PASS",
+      "command": "psql negative INSERT",
+      "rc": 1,
+      "excerpt": "constraint_seen=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-05a",
+      "title": "无 token → 401 AUTH_REQUIRED 信封",
+      "status": "PASS",
+      "command": "GET /me/member-access-grants",
+      "rc": 401,
+      "excerpt": "{\"requestId\": \"f7d54110-1808-40ae-910a-e9bb8a78cb59\", \"error\": {\"code\": \"AUTH_REQUIRED\", \"message\": \"missing bearer token\", \"retryable\": false}}",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-05b",
+      "title": "伪造 Bearer → 401 SESSION_INVALID",
+      "status": "PASS",
+      "command": "GET with forged token",
+      "rc": 401,
+      "excerpt": "{\"requestId\": \"df491349-5a0a-4725-83a1-0cdb57edc6f7\", \"error\": {\"code\": \"SESSION_INVALID\", \"message\": \"session token invalid or expired\", \"retryable\": false}}",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-05c",
+      "title": "手机号会话建立（SMS 替身 123456 + installationId）",
+      "status": "PASS",
+      "command": "POST sms-challenges→sessions",
+      "rc": 200,
+      "excerpt": "accountId=7178de7d-665c-425c-ab98-6f6d918cb952 前置有效码=501",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-05d",
+      "title": "refresh 轮换后旧 refresh token → 401 SESSION_INVALID（独立会话）",
+      "status": "PASS",
+      "command": "POST session-refreshes (old reused)",
+      "rc": "200/401",
+      "excerpt": "{\"requestId\": \"11d44b91-fcd1-479c-81b8-b7182c402b5c\", \"error\": {\"code\": \"SESSION_INVALID\", \"message\": \"refresh credential invalid or rotated\", \"retryable\": false}}",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-05e",
+      "title": "账号 disabled 后旧 token → 401 SESSION_INVALID（每请求复核）",
+      "status": "PASS",
+      "command": "独立会话 → 变更真实 accountId → GET",
+      "rc": "501->401",
+      "excerpt": "rows_changed=1 account=7178de7d",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-05f",
+      "title": "auth_revision 递增后旧 token → 401（撤销代次不可复活）",
+      "status": "PASS",
+      "command": "独立会话 → 变更真实 accountId → GET",
+      "rc": "501->401",
+      "excerpt": "rows_changed=1 account=7178de7d",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-05g",
+      "title": "revision 变更后重新登录成功且新会话有效（非仅返回 200）",
+      "status": "PASS",
+      "command": "POST sessions again + GET",
+      "rc": "200",
+      "excerpt": "new_session_valid=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-05h",
+      "title": "云台凭据轮换后旧云台 token → 401（独立云台会话，影响行数=1）",
+      "status": "PASS",
+      "command": "gimbal-sessions → rotate → old token GET",
+      "rc": "200/501->401",
+      "excerpt": "rows_changed=1",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-06a",
+      "title": "echo POST → 200 queued + jobId",
+      "status": "PASS",
+      "command": "POST /system/echo-jobs (Idempotency-Key)",
+      "rc": 200,
+      "excerpt": "{\"requestId\": \"5c22845f-cf3a-4484-8cc0-ad62e68996d8\", \"data\": {\"jobId\": \"9f68d39f-98a3-42c4-9799-b3eb59ac4b8d\", \"dedupKey\": \"system:echo:8657b6d4-a5c4-4475-896a-4f21f85a34ad\", \"status\": \"queued\"}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-10",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-08a",
+      "title": "T13 同 Idempotency-Key 同内容重放 → 同 jobId + meta.replayed=true",
+      "status": "PASS",
+      "command": "POST same key/content",
+      "rc": 200,
+      "excerpt": "replayed=True same_job=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-08b",
+      "title": "T13 同键不同内容 → 409 冲突（非 200/假成功）",
+      "status": "PASS",
+      "command": "POST same key/different content",
+      "rc": 409,
+      "excerpt": "{\"requestId\": \"d934f838-5cb4-4a9b-bf0d-bf594930e79f\", \"error\": {\"code\": \"IDEMPOTENCY_CONTENT_CONFLICT\", \"message\": \"Idempotency-Key reused with different request content; use a new key for a new logic",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-06b",
+      "title": "worker --once 领取并处理本次 enqueued job（日志含 jobId 或状态推进）",
+      "status": "PASS",
+      "command": "python -m mvp_worker --once",
+      "rc": 0,
+      "excerpt": "job=9f68d39f status=succeeded",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-06c",
+      "title": "GET echo job → succeeded + attemptCount=1 + leaseRevision=1",
+      "status": "PASS",
+      "command": "GET /system/echo-jobs/{id}",
+      "rc": 200,
+      "excerpt": "status=succeeded attempt=1 lease=1",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-11a",
+      "title": "非法输入 → 400 INVALID_INPUT 信封，X-Request-Id==body.requestId（均非空）",
+      "status": "PASS",
+      "command": "POST /system/echo-jobs {}",
+      "rc": 400,
+      "excerpt": "rid_hdr=54b682a7-c4ba-43f3-89ef-03d96416197a rid_body=54b682a7-c4ba-43f3-89ef-03d96416197a",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-11b",
+      "title": "业务 stub（有 token）→ 501 NOT_IMPLEMENTED，不给假 200",
+      "status": "PASS",
+      "command": "GET /me/member-access-grants",
+      "rc": 501,
+      "excerpt": "{\"requestId\": \"1f226c77-01bd-43e8-a479-fa1e934c585a\", \"error\": {\"code\": \"NOT_IMPLEMENTED\", \"message\": \"business endpoint is contract-only and not implemented yet\", \"retryable\": false, \"details\": {\"api",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-11c",
+      "title": "未知资源 → 404 结构化信封（含 requestId）",
+      "status": "PASS",
+      "command": "GET /system/echo-jobs/<random>",
+      "rc": 404,
+      "excerpt": "{\"requestId\": \"5149eea2-6887-4ba7-8e85-00882ea7354b\", \"error\": {\"code\": \"RESOURCE_NOT_VISIBLE\", \"message\": \"job not visible\", \"retryable\": false}}",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "N2-http",
+      "title": "诊断列 HTTP 投影：须脱敏/限大小/不原样返回（实测 data.lastError）",
+      "status": "FAIL",
+      "command": "诊断 UPDATE RETURNING count==1 + GET 断言 200/目标 job → 判定",
+      "rc": "200/200",
+      "excerpt": "marker: marker 原样回显（len=95） | long: 未限大小（len=4058 > 1000）",
+      "doubles": "n/a"
+    },
+    {
+      "id": "N3-media",
+      "title": "媒体 deny-all：任何 GET 统一 404（含 face purpose、含真实上传者本人、无 403 泄露）",
+      "status": "PASS",
+      "command": "真实上传者主体 GET /media/{id}/content",
+      "rc": "404/404",
+      "excerpt": "uploader_self_404=True no_403=True uploader=7178de7d",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-07a",
+      "title": "过期 running 租约回收 → queued + lease_revision+1 + 释放 owner（条件更新）",
+      "status": "PASS",
+      "command": "worker --recover",
+      "rc": 0,
+      "excerpt": "status=queued lease_revision=2 owner=NULL",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "AB-06d",
+      "title": "陈旧代次同事务回滚 + 重试上限（运行时边界集成，非 HTTP；受控回调在 E 驱动内）",
+      "status": "PASS",
+      "command": "python ab06d_runtime.py（真实 mvp_worker runtime + E 专属 PG）",
+      "rc": 0,
+      "excerpt": "ceiling={'claimed': True, 'recovered': 1, 'status': 'failed', 'attempt': 1, 'max': 1, 'code': 'RETRY_LIMIT_EXCEEDED', 'retryable': False, 'second_recover': 0} stale={'raised': 'StaleGeneration', 'sentinel_rows': 0, 'old_revision': 1}",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "N1-py-schema",
+      "title": "Python echo payload schema：string/null/bool/1.5/-2/不支持版本/数组/缺字段拒绝",
+      "status": "PASS",
+      "command": "python -c EchoHandler().validate(变体)",
+      "rc": 0,
+      "excerpt": "string:REJECT null:REJECT bool:REJECT fractional:REJECT negative:REJECT unsupported:REJECT array:REJECT missing:REJECT",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "N1-py-runtime",
+      "title": "Python 运行时拒绝非法 schema_version（failed/UNSUPPORTED_CONTRACT，不循环）",
+      "status": "PASS",
+      "command": "worker --once 处理坏版本 job",
+      "rc": "0/1",
+      "excerpt": "293d95:failed/UNSUPPORTED_CONTRACT 293d95:failed/UNSUPPORTED_CONTRACT 293d95:failed/UNSUPPORTED_CONTRACT",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "N2-db",
+      "title": "五诊断列豁免：无 schema_version 可写；CHECK 定义不含这些诊断列",
+      "status": "PASS",
+      "command": "UPDATE async_jobs.last_error 无版本 + 查 pg_constraint",
+      "rc": 0,
+      "excerpt": "no_check_on_diag_cols=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "N2-codereview",
+      "title": "诊断列消费点分类检视（23 处，待人工复核 9 处，客户端投影=True）",
+      "status": "INFO",
+      "command": "grep Java/Python src + file:line/片段/分类记录",
+      "rc": 0,
+      "excerpt": "hits=23 uncertain=9 详见 logs/n2-code-review.md（有未判定项，降为 INFO，不作为 PASS 依据）",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CLEANUP",
+      "title": "停 Java/worker、按 run 标签删除本 run 的 mvp-e-pg",
+      "status": "PASS",
+      "command": "docker rm -f -v mvp-e-pg (label mvp.e.run)",
+      "rc": "0",
+      "excerpt": "",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CLEANUP-ports",
+      "title": "端口释放：18081 free=True 18082 free=True 55433 free=True",
+      "status": "PASS",
+      "command": "ss probe",
+      "rc": "0",
+      "excerpt": "",
+      "doubles": "doubles_pass"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "method": "GET",
+  "path": "/api/v1/gimbals/b0174891-2756-4df0-b4fb-ff0a72b968c4/current-assessment",
+  "status": 403,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "impersonate": true
+  },
+  "response_excerpt": "{\"requestId\": \"35d005e1-6e52-4908-b921-7843183884c4\", \"error\": {\"code\": \"CALLER_NOT_ALLOWED\", \"message\": \"only the gimbal itself may query its current assessment\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T131646Z-42aada5b"
+}

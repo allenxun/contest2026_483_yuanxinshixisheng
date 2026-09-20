@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/skin-assessment-tasks",
+  "status": 400,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "missing": "right"
+  },
+  "response_excerpt": "{\"requestId\": \"00a383f7-6aad-412c-a1a7-73ed9f6df359\", \"error\": {\"code\": \"INVALID_INPUT\", \"message\": \"image parts must be exactly [front,left,right]; missing=[right] extra=[]\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T072946Z-7b0d14b0"
+}

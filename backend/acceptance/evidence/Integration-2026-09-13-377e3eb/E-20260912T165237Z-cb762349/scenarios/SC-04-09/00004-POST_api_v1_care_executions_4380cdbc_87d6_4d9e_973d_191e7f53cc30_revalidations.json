@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions/4380cdbc-87d6-4d9e-973d-191e7f53cc30/revalidations",
+  "status": 409,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "stale_rev": true
+  },
+  "response_excerpt": "{\"requestId\": \"de8d1920-ccc9-47cb-94da-984a17d37012\", \"error\": {\"code\": \"EXECUTION_NOT_RESUMABLE\", \"message\": \"care execution is not resumable\", \"retryable\": false, \"details\": {\"reason\": \"verification_revision_mismatch\"}}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T165237Z-cb762349"
+}

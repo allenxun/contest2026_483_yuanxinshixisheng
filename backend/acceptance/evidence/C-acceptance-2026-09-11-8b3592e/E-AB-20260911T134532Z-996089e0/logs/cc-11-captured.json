@@ -1,0 +1,634 @@
+{
+  "A03": {
+    "status": 201,
+    "body": {
+      "requestId": "2940503b-fe61-4270-8203-3d5e0c562f1e",
+      "data": {
+        "executionId": "de4b20a4-6838-40e3-8522-677a200c40a0",
+        "status": "admitted",
+        "controller": {
+          "controllerType": "app_account",
+          "installationId": "e-inst-4bc47f1e",
+          "gimbalId": null
+        },
+        "memberId": "3d351294-b280-433f-b61b-c2fc2fff9020",
+        "planId": "e5c0666a-b996-4108-968b-e34f1583c125",
+        "planExecution": {
+          "steps": [
+            {
+              "region": "face",
+              "parameters": {
+                "intensity": "3"
+              }
+            }
+          ]
+        },
+        "progress": {
+          "targetCount": "3",
+          "completedCount": "0",
+          "remainingCount": "3",
+          "isCompleted": false,
+          "progressRevision": "0",
+          "completedAt": null
+        },
+        "verification": {
+          "verificationRevision": "1",
+          "captureId": "9ce97fd6-c3f1-4ef9-8f7c-5ea1505bd12b",
+          "clientContinuityId": "cc-1",
+          "verifiedAt": "2026-09-11T13:46:08Z",
+          "validUntil": null,
+          "applicablePurpose": "admission",
+          "replayed": false
+        },
+        "recordStreamEpoch": "de4b20a4-6838-40e3-8522-677a200c40a0"
+      },
+      "meta": {
+        "replayed": false,
+        "serverTime": "2026-09-11T13:46:08Z"
+      }
+    }
+  },
+  "A05": {
+    "status": 200,
+    "body": {
+      "requestId": "b934838d-af7d-45c6-bb15-b6e30626c9a3",
+      "data": {
+        "acknowledgedRecords": [
+          {
+            "recordId": "r-de4b20a4-1",
+            "disposition": "accepted",
+            "rejectReason": null
+          }
+        ],
+        "executionStatus": "paused",
+        "acceptedCount": "1",
+        "progress": {
+          "targetCount": "3",
+          "completedCount": "1",
+          "remainingCount": "2",
+          "isCompleted": false,
+          "progressRevision": "1",
+          "completedAt": null
+        }
+      },
+      "meta": {
+        "replayed": false,
+        "serverTime": "2026-09-11T13:46:08Z"
+      }
+    }
+  },
+  "A04": {
+    "status": 200,
+    "body": {
+      "requestId": "e1c4222a-5e81-4ea0-9e83-77a6b1cc5bbe",
+      "data": {
+        "executionId": "de4b20a4-6838-40e3-8522-677a200c40a0",
+        "status": "paused",
+        "planId": "e5c0666a-b996-4108-968b-e34f1583c125",
+        "planExecution": {
+          "steps": [
+            {
+              "region": "face",
+              "parameters": {
+                "intensity": "3"
+              }
+            }
+          ]
+        },
+        "progress": {
+          "targetCount": "3",
+          "completedCount": "0",
+          "remainingCount": "3",
+          "isCompleted": false,
+          "progressRevision": "0",
+          "completedAt": null
+        },
+        "verification": {
+          "verificationRevision": "2",
+          "captureId": "be4c26ce-b319-4c93-9a5c-5025a2137f1c",
+          "clientContinuityId": "cc-1",
+          "verifiedAt": "2026-09-11T13:46:08Z",
+          "validUntil": null,
+          "applicablePurpose": "revalidation",
+          "replayed": false
+        }
+      },
+      "meta": {
+        "replayed": false,
+        "serverTime": "2026-09-11T13:46:08Z"
+      }
+    }
+  },
+  "A06": {
+    "status": 200,
+    "body": {
+      "requestId": "54fff415-e683-4b8b-9dc8-4a619fb15f93",
+      "data": {
+        "closed": true,
+        "closedAt": "2026-09-11T13:46:08Z",
+        "occupancyReleased": true
+      },
+      "meta": {
+        "replayed": false,
+        "serverTime": "2026-09-11T13:46:08Z"
+      }
+    }
+  },
+  "A01": {
+    "status": 200,
+    "body": {
+      "requestId": "eb14aea0-8276-4be6-a8e9-c0d24473ab63",
+      "data": {
+        "items": [
+          {
+            "planId": "e5c0666a-b996-4108-968b-e34f1583c125",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "1",
+              "remainingCount": "2",
+              "isCompleted": false,
+              "progressRevision": "1",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "e650d238-5e9a-4338-b6aa-64a601e9551b",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "6a93d041-cd66-456d-b540-94ecbaefaa7d",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "10",
+              "completedCount": "9223372036854775807",
+              "remainingCount": "0",
+              "isCompleted": true,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "4230d6c7-12d6-4c4f-a6f4-382bbdb88497",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "10",
+              "completedCount": "13",
+              "remainingCount": "0",
+              "isCompleted": true,
+              "progressRevision": "12",
+              "completedAt": "2026-09-11T13:46:01Z"
+            }
+          },
+          {
+            "planId": "30dffe91-5aba-47a7-bf96-b6c1aba57ef5",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "de392935-374c-4295-b24a-ac76a848e4fc",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "5fc88a67-c404-43d1-abdf-217237fa0ffa",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "75d632ee-4b40-4b63-a33f-8dc90a82b4f0",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "cfe7912b-bbfa-4574-b09e-0a94e28c4d66",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "79a5da05-ee41-4981-8818-922e09c89f90",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "a6885ea3-dfa6-4e6d-a1e3-abb1d010a148",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "d111a715-5e93-49b8-9790-9e3c41b14cf5",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "b274be9e-6036-4e71-bbad-71c86cb34645",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "b7cd3641-04c9-42a1-b494-d5653978b409",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "9981ddc8-6372-4bb7-9764-c7c740a38262",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "572baaab-e1e8-403f-b629-8389c073708f",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "8f9589f2-868b-41a9-9d55-fd1f92b91d1e",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "3c6e4905-8333-46bf-87a2-7d850e6fe8d3",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "94b4d678-a122-43c6-8d1d-1c19b8391061",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          },
+          {
+            "planId": "21b1b8c8-9f4e-4b3d-bb55-84984302afa3",
+            "generationStatus": "ready",
+            "planSummary": null,
+            "progress": {
+              "targetCount": "3",
+              "completedCount": "0",
+              "remainingCount": "3",
+              "isCompleted": false,
+              "progressRevision": "0",
+              "completedAt": null
+            }
+          }
+        ],
+        "nextCursor": "eyJrIjoiMjAyNi0wOS0xMVQxMzo0NTo1MS41OTMxOTlaIiwiaSI6IjIxYjFiOGM4LTlmNGUtNGIzZC1iYjU1LTg0OTg0MzAyYWZhMyIsImYiOiJyZXBvcnRJZD0ifQ"
+      },
+      "meta": {
+        "replayed": false,
+        "serverTime": "2026-09-11T13:46:08Z"
+      }
+    }
+  },
+  "A02": {
+    "status": 200,
+    "body": {
+      "requestId": "635b4aa6-d7c9-48c2-a16f-1e6b0f06178b",
+      "data": {
+        "planId": "e5c0666a-b996-4108-968b-e34f1583c125",
+        "generationStatus": "ready",
+        "plan": {
+          "steps": [
+            {
+              "region": "face",
+              "parameters": {
+                "intensity": "3"
+              }
+            }
+          ],
+          "title": "完整方案"
+        },
+        "progress": {
+          "targetCount": "3",
+          "completedCount": "1",
+          "remainingCount": "2",
+          "isCompleted": false,
+          "progressRevision": "1",
+          "completedAt": null
+        },
+        "waitingReason": null
+      },
+      "meta": {
+        "replayed": false,
+        "serverTime": "2026-09-11T13:46:08Z"
+      }
+    }
+  },
+  "A07": {
+    "status": 200,
+    "body": {
+      "requestId": "8ba206fe-41e4-4f00-bcf4-24a1fe2f446c",
+      "data": {
+        "executionId": "de4b20a4-6838-40e3-8522-677a200c40a0",
+        "status": "closed",
+        "controller": {
+          "controllerType": "app_account",
+          "installationId": "e-inst-4bc47f1e",
+          "gimbalId": null
+        },
+        "memberId": "3d351294-b280-433f-b61b-c2fc2fff9020",
+        "planId": "e5c0666a-b996-4108-968b-e34f1583c125",
+        "microcrystalId": "e4d30fae-a93d-47bb-92fd-da838521c8c2",
+        "acceptedCount": "1",
+        "latestObservation": {
+          "epoch": "de4b20a4-6838-40e3-8522-677a200c40a0",
+          "seq": "3",
+          "state": "stopped",
+          "occurredAt": "2026-09-11T13:46:08Z",
+          "verificationRevision": "1",
+          "continuityValid": true
+        },
+        "recordWatermark": {
+          "epoch": "de4b20a4-6838-40e3-8522-677a200c40a0",
+          "maxSourceSeq": "1",
+          "acceptedCount": "1"
+        },
+        "acknowledgedRecordIds": null,
+        "closedAt": "2026-09-11T13:46:08Z",
+        "progress": {
+          "targetCount": "3",
+          "completedCount": "1",
+          "remainingCount": "2",
+          "isCompleted": false,
+          "progressRevision": "1",
+          "completedAt": null
+        }
+      },
+      "meta": {
+        "replayed": false,
+        "serverTime": "2026-09-11T13:46:08Z"
+      }
+    }
+  },
+  "A08": {
+    "status": 200,
+    "body": {
+      "requestId": "720f927d-0745-41ad-a7da-602f2540aaec",
+      "data": {
+        "targetCount": "3",
+        "completedCount": "1",
+        "remainingCount": "2",
+        "isCompleted": false,
+        "progressRevision": "1",
+        "completedAt": null,
+        "lastSyncedAt": "2026-09-11T13:46:08Z"
+      },
+      "meta": {
+        "replayed": false,
+        "serverTime": "2026-09-11T13:46:08Z"
+      }
+    }
+  },
+  "A09": {
+    "status": 200,
+    "body": {
+      "requestId": "5c0da41a-1b51-4304-bce9-6ed5752c9c53",
+      "data": {
+        "items": [
+          {
+            "executionId": "de4b20a4-6838-40e3-8522-677a200c40a0",
+            "status": "closed",
+            "createdAt": "2026-09-11T13:46:08Z",
+            "closedAt": "2026-09-11T13:46:08Z",
+            "acceptedCount": "1",
+            "planSnapshotSummary": null
+          },
+          {
+            "executionId": "54f88ab0-dcfd-4903-968c-a61d4def7fb8",
+            "status": "closed",
+            "createdAt": "2026-09-11T13:46:05Z",
+            "closedAt": "2026-09-11T13:46:05Z",
+            "acceptedCount": "0",
+            "planSnapshotSummary": null
+          },
+          {
+            "executionId": "30d6be2d-e361-425d-a883-0734ddee3750",
+            "status": "admitted",
+            "createdAt": "2026-09-11T13:46:03Z",
+            "closedAt": null,
+            "acceptedCount": "0",
+            "planSnapshotSummary": null
+          },
+          {
+            "executionId": "297dc908-99e6-4050-a07a-387d69a53caf",
+            "status": "closed",
+            "createdAt": "2026-09-11T13:46:01Z",
+            "closedAt": "2026-09-11T13:46:04Z",
+            "acceptedCount": "13",
+            "planSnapshotSummary": null
+          },
+          {
+            "executionId": "1330a971-fd65-4308-afbd-871630069e28",
+            "status": "admitted",
+            "createdAt": "2026-09-11T13:46:00Z",
+            "closedAt": null,
+            "acceptedCount": "0",
+            "planSnapshotSummary": null
+          },
+          {
+            "executionId": "016775e3-4b8a-49dd-a3a4-100bfb7f3ab4",
+            "status": "admitted",
+            "createdAt": "2026-09-11T13:45:59Z",
+            "closedAt": null,
+            "acceptedCount": "0",
+            "planSnapshotSummary": null
+          },
+          {
+            "executionId": "60132d44-9499-491a-af8b-8aa1abf6ed0b",
+            "status": "closed",
+            "createdAt": "2026-09-11T13:45:58Z",
+            "closedAt": "2026-09-11T13:45:58Z",
+            "acceptedCount": "0",
+            "planSnapshotSummary": null
+          },
+          {
+            "executionId": "0318ea42-4343-4b82-bc69-f2df30ab5d34",
+            "status": "closed",
+            "createdAt": "2026-09-11T13:45:57Z",
+            "closedAt": "2026-09-11T13:45:57Z",
+            "acceptedCount": "0",
+            "planSnapshotSummary": null
+          },
+          {
+            "executionId": "a723fe1d-ea92-4fb4-97da-bc32bd7dc661",
+            "status": "admitted",
+            "createdAt": "2026-09-11T13:45:56Z",
+            "closedAt": null,
+            "acceptedCount": "0",
+            "planSnapshotSummary": null
+          },
+          {
+            "executionId": "16c12f32-68c8-4f4e-9682-d643b7b73a03",
+            "status": "admitted",
+            "createdAt": "2026-09-11T13:45:56Z",
+            "closedAt": null,
+            "acceptedCount": "0",
+            "planSnapshotSummary": null
+          },
+          {
+            "executionId": "195737b8-d7b5-402a-bd59-e8bbe4d0d503",
+            "status": "admitted",
+            "createdAt": "2026-09-11T13:45:55Z",
+            "closedAt": null,
+            "acceptedCount": "0",
+            "planSnapshotSummary": null
+          },
+          {
+            "executionId": "8d91429a-8ab9-4e3c-a71b-6efd43ccab08",
+            "status": "admitted",
+            "createdAt": "2026-09-11T13:45:42Z",
+            "closedAt": null,
+            "acceptedCount": "0",
+            "planSnapshotSummary": {
+              "title": "完整方案",
+              "description": "d",
+              "source_report_id": "rep-1"
+            }
+          },
+          {
+            "executionId": "d72bf287-4265-452e-88a2-d75dba45de14",
+            "status": "admitted",
+            "createdAt": "2026-09-11T13:45:42Z",
+            "closedAt": null,
+            "acceptedCount": "0",
+            "planSnapshotSummary": null
+          }
+        ],
+        "nextCursor": null
+      },
+      "meta": {
+        "replayed": false,
+        "serverTime": "2026-09-11T13:46:08Z"
+      }
+    }
+  }
+}

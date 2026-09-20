@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mvp:contracts:schemas:job-async_jobs.json",
+  "title": "async_jobs 跨语言交接对象（T12 行：Java 写入 / Python 读取）",
+  "description": "Java Web 与 Python Worker 双方共同解析的 async_jobs 行 JSON（snake_case，与 PostgreSQL 列同名）。交接核心字段 job_type/owner_type/owner_id/input_revision/dedup_key/payload（ARCH 4.2）；租约与尝试字段支撑领取/续租/过期结果代次控制（DD 9.2）。payload 权威结构按 job_type 由对应 payload-*.json 校验，payload 不持有第二套租约状态。bigint 列以十进制字符串跨语言传递（decisions #9）。",
+  "$comment": "未知 job_type/版本或 payload 校验失败 → 标 failed/UNSUPPORTED_CONTRACT 并隔离告警；不记成功、不无限立即重试。",
+  "type": "object",
+  "required": [
+    "id",
+    "job_type",
+    "dedup_key",
+    "owner_type",
+    "owner_id",
+    "input_revision",
+    "payload",
+    "status",
+    "available_at",
+    "attempt_count",
+    "max_attempts",
+    "lease_owner",
+    "lease_until",
+    "lease_revision",
+    "last_error",
+    "finished_at",
+    "created_at",
+    "updated_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid"
+    },
+    "job_type": {
+      "type": "string",
+      "enum": [
+        "assessment.analyze",
+        "identity.enroll",
+        "plan.generate",
+        "notification.deliver",
+        "media.cleanup",
+        "system.echo"
+      ],
+      "description": "跨语言注册表；system.echo 为 A 包最小测试任务（decisions #4）"
+    },
+    "dedup_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "T12 UNIQUE 逻辑去重键：assessment:{id}:{revision}、plan:{id}:{revision}、notification:{id}、media:{id}:cleanup:{revision}、system:echo:<uuid> 等（DD 9.1）"
+    },
+    "owner_type": {
+      "type": "string",
+      "enum": [
+        "assessment",
+        "plan",
+        "notification",
+        "media",
+        "identity_namespace",
+        "system",
+        "app_account",
+        "gimbal"
+      ],
+      "description": "decisions #3 固定枚举 + RV-5/RV-7 创建者归属（app_account=APP 账号，gimbal=云台；foundation system.echo 使用，installation 不入 owner_id）"
+    },
+    "owner_id": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/uuid",
+      "description": "owner 主键文本（多态无外键，服务端校验归属）。identity_namespace owner = UUIDv5(FIXED_NS, \"<identity_namespace>:<face_subject_ref>\")；system owner = UUIDv5(FIXED_NS, dedup_key)；app_account owner = accountUuid；gimbal owner = gimbalUuid（RV-5/RV-7）；FIXED_NS 见 contracts/decisions-notes.md"
+    },
+    "input_revision": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string",
+      "description": "业务输入版本（processing_revision/generation_revision/清理代次）；system.echo 固定 \"0\"；完成写回时与当前业务行复核"
+    },
+    "payload": {
+      "type": "object",
+      "required": [
+        "schema_version"
+      ],
+      "properties": {
+        "schema_version": {
+          "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/schema_version"
+        }
+      },
+      "description": "按 job_type 选择 payload-<job>.json 严格校验；此处只要求 schema_version"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "succeeded",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "available_at": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/rfc3339_utc"
+    },
+    "attempt_count": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string"
+    },
+    "max_attempts": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string"
+    },
+    "lease_owner": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 128,
+      "description": "当前领取者标识；未领取/已回收为 null"
+    },
+    "lease_until": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$",
+      "description": "租约到期时刻（dev 初值 60s/续租 15s）；null = 无租约"
+    },
+    "lease_revision": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/bigint_string",
+      "description": "领取代次；续租/完成/回收条件更新必须匹配；旧代次结果回滚不发布（stale-generation 完成必须失败，decisions #4）"
+    },
+    "last_error": {
+      "description": "最近失败的可诊断摘要；成功/无错误为 null",
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "不含供应商密钥/堆栈/人脸特征/照片"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "retry_after_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "可选：建议下次尝试延迟（退避 5s→300s 指数+抖动）"
+        }
+      }
+    },
+    "finished_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "created_at": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/rfc3339_utc"
+    },
+    "updated_at": {
+      "$ref": "urn:mvp:contracts:schemas:common.json#/$defs/rfc3339_utc"
+    }
+  }
+}

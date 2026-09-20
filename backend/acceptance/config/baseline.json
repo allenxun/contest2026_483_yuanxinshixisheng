@@ -1,0 +1,71 @@
+{
+  "final_baseline": {
+    "approved": "f04543345ad8a6e649b19c0e9708120700f1897d",
+    "e_merge_head": "08404f8fbae0f90fecbed7ab0d50283bd79f7c7a",
+    "b": {
+      "code": "f95037e5bbd37742175b52685ca833f91396e00c",
+      "reviewed": "5f0a988333b8",
+      "oracle": "R5 PASS-with-notes@5f0a988 + R6 重绑定确认@f95037e（B-oracle.md §4.10）"
+    },
+    "c": {"code": "8b3592e0b5de86eeaf0febe6ffe9497c68f672bb", "oracle": "R3 PASS-with-notes"},
+    "d": {"code": "dc955c0b109fc2c2693e980622512208e0fcdb9e", "oracle": "R1 M3 PASS / R2 M4 PASS-with-notes"},
+    "swagger": {"code": "d3dc853d7ec55ff0fad661a45943e7b60ff12325", "report": "551f16671120"},
+    "approved_by": "总协调",
+    "approved_at": "2026-09-12",
+    "note": "B+C+D+Swagger 集成基线；E 资产经逐字节核实未被 merge 改动。gate=open：矩阵进入真实场景级实测。"
+  },
+  "a_baseline": {
+    "sha": "08404f8fbae0f90fecbed7ab0d50283bd79f7c7a",
+    "candidate_code_sha": "26d97fbe908cb93c1fe366e28ba54a91c21b497c",
+    "report_head": "617354d0634c55b9420a3256c619186a1177b3c3",
+    "isolated_dev": "24232d3ccb203d50acfb6aed6b6e74e336654cb0",
+    "integrated_head": "df0fa32ee42310d8adfa779f215c8b7a8da80fc7",
+    "a_oracle": "round-3 PASS-with-notes",
+    "synced_at": "2026-09-10T12:32:08Z"
+  },
+  "new_a_candidate": {
+    "code": "f6e500e474954781d3438188b6fdd389e61682e7",
+    "report": "cf390e1a37f1575d7b0d4772a51246f9188b67b3",
+    "dev": "f2755ab1741b5ee4f384fa66e73a2e669614ada9",
+    "integrated": "d495a7d7c43aab3baae9afcf8774ae9850e6e41f",
+    "a_oracle": "round-6 PASS (blockingFindings=[])，修复链 bfd2dc3→1ba984e→f6e500e",
+    "reverify": "pass(附条件): settled 11/11, {PASS:10, FAIL:0, BLOCKED:0, INFO:1(RV-5 跨账号可见性政策待总协调裁定)}, exit=0; 入口 RUN_ID 绑定 + 哨兵 final_exit==本次驱动 rc; evidence/A-reverify-2026-09-10/E-AB-20260910T155716Z-c54479dd/",
+    "note": "有界定向复验（RV-1..RV-9 + CLEANUP），非全量 52 项；既有四证据目录 62cd1bee/934529f1/2fc691d7/c94a0bf2 与 A-baseline-2026-09-10 均未覆盖；echo lastError 收敛 closed enum 复验通过；RV-5 INFO 待裁定。",
+    "synced_at": "2026-09-10T15:20:00Z"
+  },
+  "a_rv5_candidate": {
+    "code": "561c338137aaa1da7c8e00969da3c5381207b194",
+    "report": "5ae53b6",
+    "dev": "9b3e4a1",
+    "integrated": "e1d54b92e8b6b20a1e1b5631cc17be95b8d5e2a1",
+    "a_oracle": "round-9 PASS-with-notes @561c338（blockingFindings=[]）",
+    "rv5_reverify": "pass: settled 10/10, {PASS:10,FAIL:0,BLOCKED:0,INFO:0}, exit=0; evidence/A-rv5-2026-09-10-561c338/E-AB-20260911T012453Z-e21ed79b/",
+    "note": "RV-5 有界复验（RV5-1..RV5-8 + CLEANUP，非全量）；echo 创建者归属 + GET/POST 统一 404 + dedup 碰撞（T13 rejected）实测闭合；整体意见由总协调形成。",
+    "synced_at": "2026-09-10T19:10:00Z"
+  },
+  "c_candidate": {
+    "code": "8b3592e",
+    "integrated_head": "93b7e33",
+    "oracle": "R3 PASS-with-notes@8b3592e（C-oracle.md，blockingFindings=[]）",
+    "e_acceptance": "见 evidence/C-acceptance-2026-09-11-8b3592e/",
+    "synced_at": "2026-09-11T08:00:00Z"
+  },
+  "cd_candidate": {
+    "merged_head": "aebccc7",
+    "c_code": "8b3592e",
+    "d_code": "dc955c0",
+    "b_status": "pending",
+    "c_oracle": "R3 PASS-with-notes@8b3592e（blockingFindings=[]）",
+    "d_oracle": "R1 M3 PASS / R2 M4 PASS-with-notes@dc955c0（CONFIRMED-FINAL，blockingFindings=[]）",
+    "e_cd_acceptance": "见 evidence/CD-chain-2026-09-11-aebccc7/",
+    "note": "C care 域 8b3592e..aebccc7 diff=0、contracts diff=0；B 未集成（M1/M2/M5 11 端点 501）。",
+    "synced_at": "2026-09-11T09:00:00Z"
+  },
+  "gate": "open",
+  "e_acceptance": {
+    "stage": "A-baseline",
+    "status": "not_passed_a_defect",
+    "detail": "A 基础验收已执行（正式，exit=1）：52/52 唯一结算，counts={PASS:50, FAIL:1, BLOCKED:0, INFO:1}（计数和=52==行数）→ **A 基础验收未通过**，待 A 修复后绑定新 A SHA 定向重验。通过条件=结算完整+0 FAIL+0 BLOCKED；INFO 为附条件接受（须显式披露残项，本项 1 INFO=N2-codereview 待人工复核 9 处）。A 缺陷：system.echo GET 原样投影 data.lastError（敏感标记串回显、4058 字符未限大小），违反 1fb07cd 五诊断列约定；完整可执行最小复现 evidence/A-baseline-2026-09-10/logs/n2-http-repro.txt。其余 AB-01..11（AB-02d E 定向 worker pytest、AB-06d 运行时边界集成）与 N1/N2-db/N3 通过。gate 保持 closed：B/C/D 业务实现未集成，94 场景 dependency_pending；doubles_pass 语义。",
+    "updated_at": "2026-09-10T13:34:00Z"
+  }
+}

@@ -1,0 +1,334 @@
+<mxfile host="Electron" compressed="false" agent="Codex" pages="3">
+  <diagram id="user-roles" name="01 · APP 与云台使用者：均可发起护理">
+    <mxGraphModel dx="3566" dy="2106" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2100" pageHeight="3000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;verticalAlign=middle;fontSize=32;" value="01 · APP 与云台使用者：均可发起护理" vertex="1">
+          <mxGeometry height="70" width="1900" x="50" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;rounded=0;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;container=1;fontSize=32;" value="" vertex="1">
+          <mxGeometry height="2680" width="1460" x="320" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="fullreport" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;" value="查询完整版测肤报告&lt;br&gt;M3-A04 / M3-A05" vertex="1">
+          <mxGeometry height="160" width="450" x="150" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="fullplan" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;" value="查询本人方案&lt;br&gt;M4-A01 / M4-A02" vertex="1">
+          <mxGeometry height="160" width="450" x="150" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="records" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;" value="查看次数进度与护理记录&lt;br&gt;M4-A08 / M4-A09" vertex="1">
+          <mxGeometry height="160" width="450" x="150" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="device" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;" value="查看云台状态&lt;br&gt;M2-A03" vertex="1">
+          <mxGeometry height="160" width="450" x="150" y="940" as="geometry" />
+        </mxCell>
+        <mxCell id="offline" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;" value="接收绑定云台异常通知&lt;br&gt;无绑定账号则不通知" vertex="1">
+          <mxGeometry height="160" width="450" x="150" y="1150" as="geometry" />
+        </mxCell>
+        <mxCell id="measure" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;" value="上传测肤/补拍照片并取本次结果&lt;br&gt;M3-A01 / M3-A02 / M3-A03" vertex="1">
+          <mxGeometry height="170" width="450" x="850" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="briefreport" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;" value="仅获取本次测肤报告&lt;br&gt;M3-A03 / M3-A05" vertex="1">
+          <mxGeometry height="170" width="450" x="850" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="briefplan" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;" value="仅核验领取本次任务方案&lt;br&gt;M4-A03" vertex="1">
+          <mxGeometry height="170" width="450" x="850" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="register" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;" value="同步实际次数并判定完成&lt;br&gt;M4-A05 / M4-A08" vertex="1">
+          <mxGeometry height="170" width="450" x="850" y="1100" as="geometry" />
+        </mxCell>
+        <mxCell id="faceaccess" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;strokeWidth=2;strokeColor=#263342;fillColor=#ffffff;align=center;fontSize=32;" value="上传授权照片并建立查看关联&lt;br&gt;M1-A01 / M1-A02" vertex="1">
+          <mxGeometry height="160" width="450" x="150" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="appskin" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;strokeWidth=2;strokeColor=#7a8798;fillColor=#f7f8fa;align=center;dashed=1;dashPattern=8 5;fontSize=32;" value="APP 拍照测肤&lt;br&gt;（非 MVP）" vertex="1">
+          <mxGeometry height="160" width="450" x="150" y="2200" as="geometry" />
+        </mxCell>
+        <mxCell id="appcare" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;fillColor=#ffffff;strokeColor=#263342;strokeWidth=2;align=center;fontSize=32;" value="登记 APP 微晶执行&lt;br&gt;M4-A03（详见第 03 页）" vertex="1">
+          <mxGeometry height="160" width="450" x="150" y="1360" as="geometry" />
+        </mxCell>
+        <mxCell id="revoke_access" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;" value="撤销本人账号的查看关联&lt;br&gt;M1-A03" vertex="1">
+          <mxGeometry height="160" width="450" x="150" y="1570" as="geometry" />
+        </mxCell>
+        <mxCell id="notification_destination" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;" value="已登录 APP 登记通知目标&lt;br&gt;M5-A01" vertex="1">
+          <mxGeometry height="160" width="450" x="150" y="1780" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;verticalAlign=middle;fontSize=32;" value="配网不自动绑定；原账号先解绑、新账号再绑定。绑定与成员权限独立。&lt;br&gt;云台仅当前任务；新测肤受理即替换，旧资料供授权 APP 使用。" vertex="1">
+          <mxGeometry height="110" width="1340" x="60" y="2560" as="geometry" />
+        </mxCell>
+        <mxCell id="mvpnote" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;fontSize=32;" value="APP 控制微晶为当前范围；APP 拍照测肤仍为非 MVP。永久查看关联可主动撤销。" vertex="1">
+          <mxGeometry height="90" width="1340" x="60" y="2460" as="geometry" />
+        </mxCell>
+        <mxCell id="syslabel" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;verticalAlign=middle;fontSize=32;" value="后端系统" vertex="1">
+          <mxGeometry height="55" width="1200" x="400" y="147.5" as="geometry" />
+        </mxCell>
+        <mxCell id="appuser" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=#263342;strokeWidth=2;fontSize=32;" value="APP 使用者&lt;br&gt;（经手机 APP）" vertex="1">
+          <mxGeometry height="190" width="160" x="50" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="clouduser" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=#263342;strokeWidth=2;fontSize=32;" value="云台使用者&lt;br&gt;（经云台交互）" vertex="1">
+          <mxGeometry height="190" width="150" x="1880" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="appuser" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="fullreport" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="appuser" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="fullplan" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="appuser" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="records" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="appuser" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="device" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="appuser" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="offline" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="clouduser" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=0;exitY=0.46;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="measure" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="clouduser" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=0;exitY=0.46;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="briefreport" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="clouduser" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=0;exitY=0.46;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="briefplan" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="clouduser" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=0;exitY=0.46;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="register" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;verticalAlign=middle;fontSize=32;" value="使用角色分开；后端仍为系统边界。虚线非 MVP 标记不表示 «extend» 关系。" vertex="1">
+          <mxGeometry height="110" width="1950" x="60" y="2860" as="geometry" />
+        </mxCell>
+        <mxCell id="faceaccessedge" edge="1" parent="1" source="appuser" style="noEdgeStyle=1;curved=0;html=1;endArrow=none;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="faceaccess" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="appskinedge" edge="1" parent="1" source="appuser" style="noEdgeStyle=1;curved=0;html=1;endArrow=none;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;dashed=1;dashPattern=8 5;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="appskin" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="appcareedge" edge="1" parent="1" source="appuser" style="noEdgeStyle=1;curved=0;html=1;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=18;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;" target="appcare" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="revoke_access-actor" edge="1" parent="1" source="appuser" style="rounded=0;html=1;fontFamily=Microsoft YaHei;fontSize=14;labelBackgroundColor=#ffffff;strokeColor=#586e86;endArrow=none;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;edgeStyle=none;" target="revoke_access" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="notification_destination-actor" edge="1" parent="1" source="appuser" style="rounded=0;html=1;fontFamily=Microsoft YaHei;fontSize=14;labelBackgroundColor=#ffffff;strokeColor=#586e86;endArrow=none;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;edgeStyle=none;" target="notification_destination" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bind_gimbal" value="查询后主动绑定云台&lt;br&gt;M2-A07 / M2-A06" style="ellipse;whiteSpace=wrap;html=1;fontSize=32;" vertex="1" parent="boundary">
+          <mxGeometry as="geometry" x="150" y="1990" width="450" height="160" />
+        </mxCell>
+        <mxCell id="app_bind_gimbal" source="appuser" target="bind_gimbal" value="" edge="1" parent="1" style="endArrow=none;html=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="unbind_gimbal" value="原账号解除云台绑定&lt;br&gt;不影响成员授权 · M2-A08" vertex="1" parent="boundary" style="ellipse;html=1;fontSize=32;">
+          <mxGeometry as="geometry" x="850" y="1510" width="450" height="160" />
+        </mxCell>
+        <mxCell id="restore_current" value="恢复唯一当前测肤任务&lt;br&gt;重启/跨次继续 · M3-A06" vertex="1" parent="boundary" style="ellipse;html=1;fontSize=32;">
+          <mxGeometry as="geometry" x="850" y="1800" width="450" height="160" />
+        </mxCell>
+        <mxCell id="app_unbind" source="appuser" target="unbind_gimbal" value="" edge="1" parent="1" style="endArrow=none;html=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="cloud_restore" source="clouduser" target="restore_current" value="" edge="1" parent="1" style="endArrow=none;html=1;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="service-roles" name="02 · 云台自主交互与外部分析服务">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageWidth="2000" pageHeight="1660" pageScale="1" connect="1" arrows="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="02 · 云台自主交互与外部分析服务" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;verticalAlign=middle;fontSize=32;">
+          <mxGeometry x="50.0" y="10.0" width="1900" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary" value="" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;rounded=0;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;container=1;fontSize=32;">
+          <mxGeometry x="340" y="140" width="1320" height="1360" as="geometry" />
+        </mxCell>
+        <mxCell id="syslabel" value="后端系统" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;verticalAlign=middle;fontSize=32;">
+          <mxGeometry x="400.0" y="147.5" width="1200" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cloud" value="云台设备" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=#263342;strokeWidth=2;fontSize=32;">
+          <mxGeometry x="105" y="550" width="170" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="algo" value="算法服务" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=#263342;strokeWidth=2;fontSize=32;">
+          <mxGeometry x="1805" y="335" width="170" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="llm" value="大模型服务" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=#263342;strokeWidth=2;fontSize=32;">
+          <mxGeometry x="1805" y="980" width="170" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="auth" value="云台认证&lt;br&gt;M2-A01" vertex="1" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;">
+          <mxGeometry x="165" y="78" width="440" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="" edge="1" parent="1" source="cloud" target="auth" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="beat" value="云台心跳与在线状态&lt;br&gt;M2-A02 / M2-A03" vertex="1" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;">
+          <mxGeometry x="165" y="253" width="440" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="" edge="1" parent="1" source="cloud" target="beat" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="caps" value="登记/查询连接微晶的能力&lt;br&gt;M2-A04 / M2-A05" vertex="1" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;">
+          <mxGeometry x="165" y="428" width="440" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="" edge="1" parent="1" source="cloud" target="caps" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="task" value="新增测肤、补拍、本次结果&lt;br&gt;M3-A01 / M3-A02 / M3-A03" vertex="1" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;">
+          <mxGeometry x="165" y="603" width="440" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="" edge="1" parent="1" source="cloud" target="task" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="execution" value="仅核验当前任务方案&lt;br&gt;M4-A03 / M4-A04" vertex="1" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;">
+          <mxGeometry x="165" y="778" width="440" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="" edge="1" parent="1" source="cloud" target="execution" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="state" value="同步真实状态及次数、确认收尾&lt;br&gt;M4-A05 / M4-A06" vertex="1" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;">
+          <mxGeometry x="165" y="953" width="440" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="" edge="1" parent="1" source="cloud" target="state" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=1;exitY=0.46;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;edgeStyle=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="analysis" value="原图读取与测肤分析&lt;br&gt;结果图片归档 OSS" vertex="1" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;">
+          <mxGeometry x="775" y="203" width="440" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="" edge="1" parent="1" source="algo" target="analysis" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=0;exitY=0.46;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;edgeStyle=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="plan" value="自动生成方案与目标次数 N&lt;br&gt;M4 护理管理，无独立客户端 API" vertex="1" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;align=center;verticalAlign=middle;strokeColor=#263342;strokeWidth=2;fillColor=#ffffff;fontSize=32;">
+          <mxGeometry x="775" y="808" width="440" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="" edge="1" parent="1" source="llm" target="plan" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;exitX=0;exitY=0.46;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;edgeStyle=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="«include»" edge="1" parent="1" source="task" target="analysis" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;noEdgeStyle=1;curved=0;rounded=0;endArrow=block;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=19;labelBackgroundColor=#ffffff;dashed=1;endArrow=open;endFill=0;edgeStyle=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="云台原图/补拍图及测肤结果图片存入 OSS；APP 授权和执行核验照片同样保存 OSS。&lt;br&gt;保存与受控读取是业务用例中的步骤，OSS 不作为操作用户；APP 拍照测肤仍非 MVP。" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;verticalAlign=middle;fontSize=32;">
+          <mxGeometry x="75.0" y="1305.0" width="1850" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="APP 直接控制微晶；云台控制其连接设备。后端提供数据与记录，不转发开始／暂停／结束指令。" vertex="1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;verticalAlign=middle;fontSize=32;">
+          <mxGeometry x="75.0" y="1567.5" width="1850" height="85" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="app-control" name="03 · APP 控制微晶的后端支持">
+    <mxGraphModel dx="2972" dy="1755" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="2020" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;fontSize=32;" value="03 · APP 控制微晶的后端支持" vertex="1">
+          <mxGeometry height="70" width="1930" x="35" y="15" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;rounded=0;container=1;fillColor=#ffffff;strokeColor=#263342;strokeWidth=2;fontSize=32;" value="" vertex="1">
+          <mxGeometry height="1700" width="1320" x="340" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="system" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;fontSize=32;" value="后端系统" vertex="1">
+          <mxGeometry height="145" width="440" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="device" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;fillColor=#ffffff;strokeColor=#263342;strokeWidth=2;align=center;fontSize=32;" value="登记并查询微晶能力&lt;br&gt;M2-A04 / M2-A05" vertex="1">
+          <mxGeometry height="145" width="440" x="410" y="105" as="geometry" />
+        </mxCell>
+        <mxCell id="identity" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;fillColor=#ffffff;strokeColor=#263342;strokeWidth=2;align=center;fontSize=32;" value="上传当前核验照片并校验本人&lt;br&gt;M4-A03（同一次申请）" vertex="1">
+          <mxGeometry height="145" width="440" x="410" y="315" as="geometry" />
+        </mxCell>
+        <mxCell id="execution" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;fillColor=#ffffff;strokeColor=#263342;strokeWidth=2;align=center;fontSize=32;" value="去重登记执行、固定控制端&lt;br&gt;M4-A03（同一次申请）" vertex="1">
+          <mxGeometry height="145" width="440" x="410" y="525" as="geometry" />
+        </mxCell>
+        <mxCell id="progress" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;fillColor=#ffffff;strokeColor=#263342;strokeWidth=2;align=center;fontSize=32;" value="上报实际状态与次数&lt;br&gt;M4-A05" vertex="1">
+          <mxGeometry height="145" width="440" x="410" y="735" as="geometry" />
+        </mxCell>
+        <mxCell id="records" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;fillColor=#ffffff;strokeColor=#263342;strokeWidth=2;align=center;fontSize=32;" value="查询执行、方案次数与历史&lt;br&gt;M4-A07 / M4-A08 / M4-A09" vertex="1">
+          <mxGeometry height="145" width="440" x="410" y="945" as="geometry" />
+        </mxCell>
+        <mxCell id="revalidation" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;fillColor=#ffffff;strokeColor=#263342;strokeWidth=2;align=center;fontSize=32;" value="上传新一轮照片并重新核验&lt;br&gt;M4-A04" vertex="1">
+          <mxGeometry height="145" width="440" x="410" y="1140" as="geometry" />
+        </mxCell>
+        <mxCell id="closure" parent="boundary" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;ellipse;fillColor=#ffffff;strokeColor=#263342;strokeWidth=2;align=center;fontSize=32;" value="本地停止后确认执行收尾&lt;br&gt;M4-A06" vertex="1">
+          <mxGeometry height="145" width="440" x="410" y="1330" as="geometry" />
+        </mxCell>
+        <mxCell id="appuser" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeWidth=2;fontSize=32;" value="APP 使用者" vertex="1">
+          <mxGeometry height="200" width="170" x="115" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="appclient" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeWidth=2;fontSize=32;" value="手机 APP&lt;br&gt;（外部客户端）" vertex="1">
+          <mxGeometry height="200" width="170" x="1795" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="client_device" edge="1" parent="1" source="appclient" style="noEdgeStyle=1;curved=0;html=1;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=18;labelBackgroundColor=#ffffff;edgeStyle=none;" target="device" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="client_identity" edge="1" parent="1" source="appclient" style="noEdgeStyle=1;curved=0;html=1;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=18;labelBackgroundColor=#ffffff;edgeStyle=none;" target="identity" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="user_identity" edge="1" parent="1" source="appuser" style="noEdgeStyle=1;curved=0;html=1;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=18;labelBackgroundColor=#ffffff;edgeStyle=none;" target="identity" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="client_execution" edge="1" parent="1" source="appclient" style="noEdgeStyle=1;curved=0;html=1;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=18;labelBackgroundColor=#ffffff;edgeStyle=none;" target="execution" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="user_execution" edge="1" parent="1" source="appuser" style="noEdgeStyle=1;curved=0;html=1;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=18;labelBackgroundColor=#ffffff;edgeStyle=none;" target="execution" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="client_progress" edge="1" parent="1" source="appclient" style="noEdgeStyle=1;curved=0;html=1;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=18;labelBackgroundColor=#ffffff;edgeStyle=none;" target="progress" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="client_records" edge="1" parent="1" source="appclient" style="noEdgeStyle=1;curved=0;html=1;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=18;labelBackgroundColor=#ffffff;edgeStyle=none;" target="records" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="user_records" edge="1" parent="1" source="appuser" style="noEdgeStyle=1;curved=0;html=1;endArrow=none;endFill=1;strokeColor=#375c85;strokeWidth=2;fontSize=18;labelBackgroundColor=#ffffff;edgeStyle=none;" target="records" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;fontSize=32;" value="本页均由 M4 护理管理统一提供护理 API。身份核验和执行登记是同一个 M4-A03 请求的职责。&lt;br&gt;APP 本地控制微晶；同一微晶只允许一个控制端。换人/断网参照云台，停止后的确认不等于远程停止。" vertex="1">
+          <mxGeometry height="145" width="1230" x="385" y="1670" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontColor=#233449;text;align=center;fontSize=32;" value="微晶支持 APP 与云台两条控制路径；APP 拍照测肤仍为非 MVP。" vertex="1">
+          <mxGeometry height="55" width="1880" x="60" y="1900" as="geometry" />
+        </mxCell>
+        <mxCell id="revalidation-actor" edge="1" parent="1" source="appclient" style="rounded=0;html=1;fontFamily=Microsoft YaHei;fontSize=14;labelBackgroundColor=#ffffff;strokeColor=#586e86;endArrow=none;entryX=1;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=none;" target="revalidation" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="closure-actor" edge="1" parent="1" source="appclient" style="rounded=0;html=1;fontFamily=Microsoft YaHei;fontSize=14;labelBackgroundColor=#ffffff;strokeColor=#586e86;endArrow=none;entryX=1;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=none;" target="closure" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="integration-usecases" name="08 · 基础协议与 AI 流式联调">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="基础协议与 AI 流式联调用例" style="text=1;html=1;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="30" width="1440" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-app" value="APP&#10;B0-A01 B0-A02 B0-A03 B0-A04" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="100" y="180" width="300" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-media" value="受控读取媒体&#10;B0-A05" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="520" y="180" width="300" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-echo" value="跨语言桥接验收&#10;B0-A06 B0-A07" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="940" y="180" width="360" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-gimbal" value="云台文本追问&#10;M2-A09" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="260" y="520" width="360" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-narration" value="报告就绪后播报&#10;M3-A07" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9fb3c8;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="820" y="520" width="420" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="e0" value="授权后读取" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="uc-app" target="uc-media">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="联调" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="uc-app" target="uc-echo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="报告后可进入聊天" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#8296b0;fontSize=14;" edge="1" parent="1" source="uc-gimbal" target="uc-narration">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
