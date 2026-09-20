@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <style>
+        * { margin: 0; padding: 0; }
+        html, body, #gauge {
+            width: 100%; height: 100%;
+            background: transparent;
+        }
+    </style>
+</head>
+<body>
+<div id="gauge"></div>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script>
+    // Android 会通过 window.setScore(score) 调用此方法
+    var chart = null;
+    var currentScore = 0;
+
+    function getScoreColor(s) {
+        if (s >= 60) return '#4DB6AC';
+        if (s >= 30) return '#FFB74D';
+        return '#EF9A9A';
+    }
+
+    function initChart() {
+        chart = echarts.init(document.getElementById('gauge'), null, { renderer: 'canvas' });
+        renderChart(currentScore);
+    }
+
+    function renderChart(score) {
+        if (!chart) return;
+        var color = getScoreColor(score);
+        chart.setOption({
+            series: [{
+                type: 'gauge',
+                startAngle: 180,
+                endAngle: 0,
+                min: 0,
+                max: 100,
+                splitNumber: 5,
+                radius: '95%',
+                center: ['50%', '70%'],
+                axisLine: {
+                    lineStyle: {
+                        width: 18,
+                        color: [
+                            [0.3, '#EF9A9A'],
+                            [0.6, '#FFB74D'],
+                            [1, '#4DB6AC']
+                        ]
+                    }
+                },
+                axisTick: { show: false },
+                splitLine: { show: false },
+                axisLabel: { show: false },
+                pointer: {
+                    length: '55%',
+                    width: 4,
+                    itemStyle: { color: color }
+                },
+                anchor: {
+                    show: true,
+                    size: 10,
+                    itemStyle: { color: color }
+                },
+                title: { show: false },
+                detail: {
+                    show: true,
+                    offsetCenter: [0, '20%'],
+                    fontSize: 28,
+                    fontWeight: 'bold',
+                    color: color,
+                    formatter: '{value}'
+                },
+                data: [{ value: score }]
+            }]
+        });
+    }
+
+    function setScore(score) {
+        currentScore = score;
+        renderChart(score);
+    }
+
+    window.onload = function () {
+        initChart();
+    };
+
+    window.onresize = function () {
+        if (chart) chart.resize();
+    };
+</script>
+</body>
+</html>

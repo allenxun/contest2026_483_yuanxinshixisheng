@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/report_list_page_bg">
+
+    <!-- 顶部导航栏 -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="24dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <!-- 返回按钮 -->
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="@null"
+            android:focusable="true"
+            android:padding="4dp"
+            android:src="@drawable/ic_back" />
+
+        <!-- 标题 -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="测肤报告"
+            android:textColor="#111111"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- 添加按钮 -->
+        <ImageView
+            android:id="@+id/btnAdd"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="@null"
+            android:focusable="true"
+            android:padding="4dp"
+            android:src="@android:drawable/ic_input_add"
+            android:visibility="gone" />
+
+    </RelativeLayout>
+
+    <!-- 报告列表 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvReports"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="80dp"
+        android:clipToPadding="false"
+        android:paddingTop="12dp"
+        android:paddingBottom="100dp" />
+
+    <!-- 加载提示 -->
+    <TextView
+        android:id="@+id/tvLoading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="60dp"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="加载中..."
+        android:textColor="#999999"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!-- 空状态提示 -->
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="暂无历史数据！"
+        android:textColor="#999999"
+        android:textSize="16sp"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!-- 底部固定区域：测肤历史对比按钮 + 暂无记录提示 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
+
+        <Button
+            android:id="@+id/btnCompare"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:background="@drawable/btn_primary_bg"
+            android:text="测肤历史对比"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvNoRecords"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="暂无测肤记录"
+            android:textColor="#999999"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- ========== 方案生成蒙层 ========== -->
+    <FrameLayout
+        android:id="@+id/generatingMask"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/generating_mask_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        tools:visibility="gone">
+
+        <!-- 背景流光效果 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/generating_bg_flow" />
+
+        <!-- 左上角关闭按钮 -->
+        <FrameLayout
+            android:id="@+id/generatingClose"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="40dp"
+            android:background="@drawable/generating_close_bg"
+            android:clickable="true"
+            android:focusable="true">
+
+            <View
+                android:layout_width="16dp"
+                android:layout_height="2dp"
+                android:layout_gravity="center"
+                android:background="#8C4A2B"
+                android:rotation="45" />
+
+            <View
+                android:layout_width="16dp"
+                android:layout_height="2dp"
+                android:layout_gravity="center"
+                android:background="#8C4A2B"
+                android:rotation="-45" />
+
+        </FrameLayout>
+
+        <!-- 顶部扫描动画区 -->
+        <FrameLayout
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="110dp">
+
+            <!-- 扫描圈背景 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/generating_scan_circle" />
+
+            <!-- 扫描光晕 -->
+            <View
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:layout_gravity="center"
+                android:background="@drawable/generating_scan_glow" />
+
+            <!-- 扫描线 -->
+            <View
+                android:id="@+id/generatingScanLine"
+                android:layout_width="128dp"
+                android:layout_height="2dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/generating_scan_line" />
+
+        </FrameLayout>
+
+        <!-- 主标题 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="300dp"
+            android:letterSpacing="0.05"
+            android:text="智能助手正在为您生成专属护肤方案"
+            android:textColor="#4A3A33"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- 副标题 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="340dp"
+            android:text="深度分析肤质问题 · 定制个性化护肤流程"
+            android:textColor="#A58B7D"
+            android:textSize="13sp" />
+
+        <!-- 步骤列表 -->
+        <LinearLayout
+            android:id="@+id/generatingItems"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="390dp"
+            android:layout_marginEnd="40dp"
+            android:orientation="vertical" />
+
+        <!-- 完成动画 -->
+        <FrameLayout
+            android:id="@+id/generatingDone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#EBFFF5EE"
+            android:visibility="gone">
+
+            <!-- 绿色圆圈容器 -->
+            <FrameLayout
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center">
+
+                <!-- 绿色实心圆背景 -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/generating_done_ring" />
+
+                <!-- 白色✔图标（铺满绿色圆圈） -->
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="15dp"
+                    android:src="@drawable/ic_check_white"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+
+            <!-- 完成文字 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="80dp"
+                android:letterSpacing="0.1"
+                android:text="方案生成完成"
+                android:textColor="#3D2E27"
+                android:textSize="19sp"
+                android:textStyle="bold" />
+
+        </FrameLayout>
+
+    </FrameLayout>
+
+</FrameLayout>

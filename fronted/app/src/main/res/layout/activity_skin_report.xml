@@ -1,0 +1,1280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F6F8">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- 顶部标题栏（白底浮动） -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="#FFFFFF"
+            android:elevation="4dp">
+
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="4dp"
+                android:padding="8dp"
+                android:src="@drawable/ic_back"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="返回" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="测肤报告"
+                android:textColor="#111111"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="24dp">
+
+                <!-- ══════ 卡片1：基础信息 ══════ -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/metric_card_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- 卡片标题 -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <View
+                            android:layout_width="4dp"
+                            android:layout_height="16dp"
+                            android:background="#3a6df0" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="基础信息"
+                            android:textColor="#111111"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- 左侧：报告ID/昵称/测肤时间/原照片 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.7"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvReportId"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="报告ID：-"
+                                android:textColor="#333333"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvNickname"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:text="昵称：-"
+                                android:textColor="#333333"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvTestTime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:text="测肤时间：-"
+                                android:textColor="#333333"
+                                android:textSize="12sp" />
+
+                            <!-- 用户测肤原照片 -->
+                            <ImageView
+                                android:id="@+id/ivFacePhoto"
+                                android:layout_width="100dp"
+                                android:layout_height="130dp"
+                                android:layout_marginTop="10dp"
+                                android:scaleType="centerCrop"
+                                android:adjustViewBounds="true"
+                                android:background="#F0F0F0"
+                                android:contentDescription="测肤原照片" />
+                        </LinearLayout>
+
+                        <!-- 右侧：雷达图 + 总体得分 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1.3"
+                            android:orientation="horizontal">
+
+                            <!-- 雷达图 -->
+                            <FrameLayout
+                                android:layout_width="0dp"
+                                android:layout_height="170dp"
+                                android:layout_weight="1.5">
+
+                                <WebView
+                                    android:id="@+id/webViewRadar"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:background="@android:color/transparent" />
+                            </FrameLayout>
+
+                            <!-- 雷达图右侧：总体得分 + 指标列表 -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:paddingStart="8dp">
+
+                                <TextView
+                                    android:id="@+id/tvScoreValue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="总体得分 -分"
+                                    android:textColor="#3a6df0"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvMetric1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:text="水油平衡: -"
+                                    android:textColor="#333333"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:id="@+id/tvMetric2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:text="毛孔状态: -"
+                                    android:textColor="#333333"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:id="@+id/tvMetric3"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:text="肤质弹性: -"
+                                    android:textColor="#333333"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:id="@+id/tvMetric4"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:text="屏障健康: -"
+                                    android:textColor="#333333"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:id="@+id/tvMetric5"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:text="色素沉着: -"
+                                    android:textColor="#333333"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- ══════ 卡片2：弹性得分折线图 ══════ -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/metric_card_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- 折线图标题 -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="8dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <View
+                                android:layout_width="4dp"
+                                android:layout_height="16dp"
+                                android:background="#3a6df0" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="弹性得分"
+                                android:textColor="#111111"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <View
+                                android:layout_width="16dp"
+                                android:layout_height="2dp"
+                                android:background="#3a6df0" />
+
+                            <TextView
+                                android:id="@+id/tvReferenceScore"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="60分"
+                                android:textColor="#3a6df0"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:layout_marginStart="5dp" />
+                        </LinearLayout>
+                    </RelativeLayout>
+
+                    <!-- 折线图 (WebView) -->
+                    <WebView
+                        android:id="@+id/webViewChart"
+                        android:layout_width="match_parent"
+                        android:layout_height="180dp"
+                        android:background="@android:color/transparent" />
+                </LinearLayout>
+
+                <!-- ══════ 卡片3：皱纹检测 ══════ -->
+                <LinearLayout
+                    android:id="@+id/cardWrinkle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/metric_card_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <View
+                            android:layout_width="4dp"
+                            android:layout_height="16dp"
+                            android:background="#3a6df0" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="皱纹检测"
+                            android:textColor="#111111"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- 表格（可横向滚动） -->
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fillViewport="true"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/tableWrinkle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </HorizontalScrollView>
+
+                    <!-- 皱纹图片区域（含 loading） -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp">
+
+                        <ImageView
+                            android:id="@+id/ivWrinkle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:scaleType="centerCrop"
+                            android:adjustViewBounds="true"
+                            android:background="#F0F0F0"
+                            android:contentDescription="皱纹检测图" />
+
+                        <!-- 皱纹图片 loading -->
+                        <LinearLayout
+                            android:id="@+id/loadingWrinkle"
+                            android:layout_width="match_parent"
+                            android:layout_height="160dp"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:background="#F0F0F0"
+                            android:visibility="gone">
+
+                            <ProgressBar
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:indeterminate="true" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="加载中..."
+                                android:textColor="#888888"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </FrameLayout>
+                </LinearLayout>
+
+                <!-- ══════ 卡片4：色斑检测 ══════ -->
+                <LinearLayout
+                    android:id="@+id/cardSpots"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/metric_card_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <View
+                            android:layout_width="4dp"
+                            android:layout_height="16dp"
+                            android:background="#3a6df0" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="色斑检测"
+                            android:textColor="#111111"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fillViewport="true"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/tableSpots"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </HorizontalScrollView>
+
+                    <ImageView
+                        android:id="@+id/ivSpots"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:scaleType="centerCrop"
+                        android:adjustViewBounds="true"
+                        android:background="#F0F0F0"
+                        android:contentDescription="色斑检测图" />
+                </LinearLayout>
+
+                <!-- ══════ 卡片5：痤疮检测 ══════ -->
+                <LinearLayout
+                    android:id="@+id/cardAcne"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/metric_card_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <View
+                            android:layout_width="4dp"
+                            android:layout_height="16dp"
+                            android:background="#3a6df0" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="痤疮检测"
+                            android:textColor="#111111"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fillViewport="true"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/tableAcne"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </HorizontalScrollView>
+
+                    <!-- 痤疮图片区域（含 loading） -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp">
+
+                        <ImageView
+                            android:id="@+id/ivAcne"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:scaleType="centerCrop"
+                            android:adjustViewBounds="true"
+                            android:background="#F0F0F0"
+                            android:contentDescription="痤疮检测图" />
+
+                        <!-- 痤疮图片 loading -->
+                        <LinearLayout
+                            android:id="@+id/loadingAcne"
+                            android:layout_width="match_parent"
+                            android:layout_height="160dp"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:background="#F0F0F0"
+                            android:visibility="gone">
+
+                            <ProgressBar
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:indeterminate="true" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="加载中..."
+                                android:textColor="#888888"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </FrameLayout>
+                </LinearLayout>
+
+                <!-- ══════ 卡片6：红区检测 ══════ -->
+                <LinearLayout
+                    android:id="@+id/cardRedness"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/metric_card_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <View
+                            android:layout_width="4dp"
+                            android:layout_height="16dp"
+                            android:background="#3a6df0" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="红区检测"
+                            android:textColor="#111111"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fillViewport="true"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/tableRedness"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </HorizontalScrollView>
+
+                    <ImageView
+                        android:id="@+id/ivRedness"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:scaleType="centerCrop"
+                        android:adjustViewBounds="true"
+                        android:background="#F0F0F0"
+                        android:contentDescription="红区检测图" />
+                </LinearLayout>
+
+                <!-- ══════ 卡片7：棕区检测 ══════ -->
+                <LinearLayout
+                    android:id="@+id/cardBrown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/metric_card_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <View
+                            android:layout_width="4dp"
+                            android:layout_height="16dp"
+                            android:background="#3a6df0" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="棕区检测"
+                            android:textColor="#111111"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fillViewport="true"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/tableBrown"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </HorizontalScrollView>
+
+                    <ImageView
+                        android:id="@+id/ivBrown"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:scaleType="centerCrop"
+                        android:adjustViewBounds="true"
+                        android:background="#F0F0F0"
+                        android:contentDescription="棕区检测图" />
+                </LinearLayout>
+
+                <!-- ══════ 卡片7.5：紫区检测 ══════ -->
+                <LinearLayout
+                    android:id="@+id/cardPurple"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/metric_card_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <View
+                            android:layout_width="4dp"
+                            android:layout_height="16dp"
+                            android:background="#3a6df0" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="紫区检测"
+                            android:textColor="#111111"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fillViewport="true"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/tablePurple"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </HorizontalScrollView>
+
+                    <ImageView
+                        android:id="@+id/ivPurple"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:scaleType="centerCrop"
+                        android:adjustViewBounds="true"
+                        android:background="#F0F0F0"
+                        android:contentDescription="紫区检测图" />
+                </LinearLayout>
+
+                <!-- ══════ 卡片8：毛孔检测 ══════ -->
+                <LinearLayout
+                    android:id="@+id/cardPores"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/metric_card_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <View
+                            android:layout_width="4dp"
+                            android:layout_height="16dp"
+                            android:background="#3a6df0" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="毛孔检测"
+                            android:textColor="#111111"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fillViewport="true"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/tablePores"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </HorizontalScrollView>
+
+                    <ImageView
+                        android:id="@+id/ivPores"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:scaleType="centerCrop"
+                        android:adjustViewBounds="true"
+                        android:background="#F0F0F0"
+                        android:contentDescription="毛孔检测图" />
+                </LinearLayout>
+
+                <!-- ══════ 卡片9：纹理检测 ══════ -->
+                <LinearLayout
+                    android:id="@+id/cardTexture"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/metric_card_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <View
+                            android:layout_width="4dp"
+                            android:layout_height="16dp"
+                            android:background="#3a6df0" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="纹理检测"
+                            android:textColor="#111111"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fillViewport="true"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/tableTexture"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </HorizontalScrollView>
+
+                    <ImageView
+                        android:id="@+id/ivTexture"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:scaleType="centerCrop"
+                        android:adjustViewBounds="true"
+                        android:background="#F0F0F0"
+                        android:contentDescription="纹理检测图" />
+                </LinearLayout>
+
+                <!-- 底部按钮：返回首页 -->
+                <TextView
+                    android:id="@+id/btnNext"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="24dp"
+                    android:gravity="center"
+                    android:text="返回首页"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/btn_primary_bg" />
+
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+
+    <!-- 智能分析蒙层 -->
+    <FrameLayout
+        android:id="@+id/layout_analyzing"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <!-- 蒙层背景 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/analyzing_bg" />
+
+        <!-- 背景光斑1 -->
+        <View
+            android:id="@+id/view_glow1"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:layout_gravity="center"
+            android:layout_marginStart="-100dp"
+            android:layout_marginTop="-100dp"
+            android:background="@drawable/glow_spot"
+            android:alpha="0.3" />
+
+        <!-- 背景光斑2 -->
+        <View
+            android:id="@+id/view_glow2"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="-80dp"
+            android:layout_marginBottom="-80dp"
+            android:background="@drawable/glow_spot"
+            android:alpha="0.2" />
+
+        <!-- 中央扫描动画区域 -->
+        <FrameLayout
+            android:id="@+id/layout_scan_animation"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="100dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/scan_outer_glow" />
+
+            <View
+                android:id="@+id/view_ring1"
+                android:layout_width="180dp"
+                android:layout_height="180dp"
+                android:layout_gravity="center"
+                android:background="@drawable/scan_ring1" />
+
+            <View
+                android:id="@+id/view_ring2"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:layout_gravity="center"
+                android:background="@drawable/scan_ring2" />
+
+            <View
+                android:id="@+id/view_ring3"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_gravity="center"
+                android:background="@drawable/scan_ring3" />
+
+            <View
+                android:layout_width="100dp"
+                android:layout_height="130dp"
+                android:layout_gravity="center"
+                android:background="@drawable/face_placeholder" />
+
+            <View
+                android:id="@+id/view_analyzing_scan_line"
+                android:layout_width="100dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="35dp"
+                android:background="@drawable/scan_line_gradient" />
+
+            <View android:id="@+id/particle1" android:layout_width="6dp" android:layout_height="6dp" android:background="@drawable/particle_dot" android:layout_gravity="top|start" android:layout_marginTop="20dp" android:layout_marginStart="20dp" />
+            <View android:id="@+id/particle2" android:layout_width="4dp" android:layout_height="4dp" android:background="@drawable/particle_dot" android:layout_gravity="top|end" android:layout_marginTop="30dp" android:layout_marginEnd="25dp" />
+            <View android:id="@+id/particle3" android:layout_width="5dp" android:layout_height="5dp" android:background="@drawable/particle_dot" android:layout_gravity="bottom|start" android:layout_marginBottom="25dp" android:layout_marginStart="30dp" />
+            <View android:id="@+id/particle4" android:layout_width="4dp" android:layout_height="4dp" android:background="@drawable/particle_dot" android:layout_gravity="bottom|end" android:layout_marginBottom="20dp" android:layout_marginEnd="20dp" />
+            <View android:id="@+id/particle5" android:layout_width="5dp" android:layout_height="5dp" android:background="@drawable/particle_dot" android:layout_gravity="center|start" android:layout_marginStart="10dp" />
+            <View android:id="@+id/particle6" android:layout_width="4dp" android:layout_height="4dp" android:background="@drawable/particle_dot" android:layout_gravity="center|end" android:layout_marginEnd="10dp" />
+        </FrameLayout>
+
+        <!-- 标题 -->
+        <TextView
+            android:id="@+id/tv_analyzing_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="320dp"
+            android:text="正在深度分析你的肌肤"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05" />
+
+        <!-- 副标题 -->
+        <TextView
+            android:id="@+id/tv_analyzing_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="352dp"
+            android:text="请勿退出页面"
+            android:textColor="#804A9EFF"
+            android:textSize="14sp" />
+
+        <!-- 进度条区域 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="390dp"
+            android:orientation="vertical"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp">
+
+            <TextView
+                android:id="@+id/tv_upload_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="分析 0%"
+                android:textColor="#4A9EFF"
+                android:textSize="14sp" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="8dp">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/progress_bar_bg" />
+
+                <View
+                    android:id="@+id/view_progress_fill"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/progress_bar_fill" />
+
+                <View
+                    android:id="@+id/view_progress_glow"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="@drawable/progress_glow_dot"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- 8条分析维度列表 -->
+        <LinearLayout
+            android:id="@+id/layout_analysis_items"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="440dp"
+            android:orientation="vertical"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp">
+
+            <LinearLayout
+                android:id="@+id/item_analysis_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:layout_marginBottom="4dp">
+
+                <View
+                    android:id="@+id/item_icon_1"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:background="@drawable/analysis_item_inactive" />
+
+                <TextView
+                    android:id="@+id/item_text_1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="面部图像清晰度校准"
+                    android:textColor="#60FFFFFF"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/item_status_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="#80FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/item_analysis_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:layout_marginBottom="4dp">
+
+                <View
+                    android:id="@+id/item_icon_2"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:background="@drawable/analysis_item_inactive" />
+
+                <TextView
+                    android:id="@+id/item_text_2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="面部区域分割"
+                    android:textColor="#60FFFFFF"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/item_status_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="#80FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/item_analysis_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:layout_marginBottom="4dp">
+
+                <View
+                    android:id="@+id/item_icon_3"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:background="@drawable/analysis_item_inactive" />
+
+                <TextView
+                    android:id="@+id/item_text_3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="肌肤水分含量检测"
+                    android:textColor="#60FFFFFF"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/item_status_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="#80FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/item_analysis_4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:layout_marginBottom="4dp">
+
+                <View
+                    android:id="@+id/item_icon_4"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:background="@drawable/analysis_item_inactive" />
+
+                <TextView
+                    android:id="@+id/item_text_4"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="皮肤油脂分泌分析"
+                    android:textColor="#60FFFFFF"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/item_status_4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="#80FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/item_analysis_5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:layout_marginBottom="4dp">
+
+                <View
+                    android:id="@+id/item_icon_5"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:background="@drawable/analysis_item_inactive" />
+
+                <TextView
+                    android:id="@+id/item_text_5"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="干纹、静态皱纹识别"
+                    android:textColor="#60FFFFFF"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/item_status_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="#80FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/item_analysis_6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:layout_marginBottom="4dp">
+
+                <View
+                    android:id="@+id/item_icon_6"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:background="@drawable/analysis_item_inactive" />
+
+                <TextView
+                    android:id="@+id/item_text_6"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="毛孔粗大程度测算"
+                    android:textColor="#60FFFFFF"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/item_status_6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="#80FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/item_analysis_7"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:layout_marginBottom="4dp">
+
+                <View
+                    android:id="@+id/item_icon_7"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:background="@drawable/analysis_item_inactive" />
+
+                <TextView
+                    android:id="@+id/item_text_7"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="黑色素、色斑检测"
+                    android:textColor="#60FFFFFF"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/item_status_7"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="#80FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/item_analysis_8"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
+
+                <View
+                    android:id="@+id/item_icon_8"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:background="@drawable/analysis_item_inactive" />
+
+                <TextView
+                    android:id="@+id/item_text_8"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="泛红敏感区域识别"
+                    android:textColor="#60FFFFFF"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/item_status_8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="#80FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+
+</FrameLayout>

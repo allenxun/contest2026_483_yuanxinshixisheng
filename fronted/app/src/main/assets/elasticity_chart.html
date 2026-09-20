@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弹性得分折线图</title>
+    <script src="echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: transparent;
+        }
+        #chart {
+            width: 100%;
+            height: 180px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chart"></div>
+    <script>
+        var chart = echarts.init(document.getElementById('chart'));
+        
+        function buildLineOption(dataX, dataY, refY, skinAge, skinAgeScore) {
+            // 构建数据点：每隔10个数据显示一个圆点
+            var seriesData = [];
+            for (var i = 0; i < dataX.length; i++) {
+                var x = dataX[i];
+                var y = dataY[i];
+                // 只在x为10的倍数时显示圆点
+                if (x % 10 === 0) {
+                    seriesData.push({
+                        value: [x, y],
+                        symbol: 'circle',
+                        symbolSize: 8,
+                        itemStyle: { color: '#ffffff', borderColor: '#3a6df0', borderWidth: 2 }
+                    });
+                } else {
+                    seriesData.push({
+                        value: [x, y],
+                        symbol: 'none'
+                    });
+                }
+            }
+            
+            var series = [{
+                data: seriesData,
+                type: 'line',
+                smooth: true,
+                lineStyle: { color: '#3a6df0', width: 2 },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0, y: 0, x2: 0, y2: 1,
+                        colorStops: [
+                            { offset: 0, color: 'rgba(58, 109, 240, 0.32)' },
+                            { offset: 1, color: 'rgba(58, 109, 240, 0)' }
+                        ]
+                    }
+                },
+                markLine: {
+                    symbol: 'none',
+                    silent: true,
+                    lineStyle: { type: 'dashed', color: '#3a6df0', width: 1 },
+                    label: { show: false },
+                    data: [{ yAxis: refY }]
+                }
+            }];
+            
+            // 如果有 skinAge 和 skinAgeScore，添加一个特殊标记点
+            if (skinAge !== null && skinAge !== undefined && skinAgeScore !== null && skinAgeScore !== undefined) {
+                series.push({
+                    name: 'skinAge',
+                    type: 'scatter',
+                    data: [[skinAge, skinAgeScore]],
+                    symbol: 'circle',
+                    symbolSize: 12,
+                    itemStyle: { 
+                        color: '#ff6b6b',
+                        borderColor: '#ffffff', 
+                        borderWidth: 2 
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: skinAge + '岁',
+                        color: '#ff6b6b',
+                        fontSize: 11,
+                        fontWeight: 'bold'
+                    },
+                    z: 10
+                });
+            }
+            
+            // 计算Y轴最大值
+            var maxY = Math.max.apply(null, dataY);
+            if (skinAgeScore !== null && skinAgeScore !== undefined) {
+                maxY = Math.max(maxY, skinAgeScore);
+            }
+            var yAxisMax = Math.ceil(maxY / 20) * 20 + 20;
+            
+            return {
+                grid: { left: 35, right: 12, top: 25, bottom: 25 },
+                xAxis: {
+                    type: 'value',
+                    min: 0,
+                    max: 100,
+                    interval: 10,  // X轴每隔10一个刻度（0, 10, 20... 100）
+                    axisLine: { lineStyle: { color: '#d8dde4' } },
+                    axisTick: { show: false },
+                    axisLabel: {
+                        color: '#999',
+                        fontSize: 10
+                    },
+                    splitLine: { show: false }
+                },
+                yAxis: {
+                    type: 'value',
+                    min: 0,
+                    max: yAxisMax,
+                    interval: 20,  // Y轴每隔20一个刻度
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    axisLabel: { color: '#999', fontSize: 10 },
+                    splitLine: { lineStyle: { type: 'dashed', color: '#eef0f3' } }
+                },
+                series: series
+            };
+        }
+        
+        function setChartData(data) {
+            console.log('setChartData:', JSON.stringify(data));
+            var option = buildLineOption(data.xData, data.yData, data.referenceScore, data.skinAge, data.skinAgeScore);
+            chart.setOption(option, true);
+        }
+        
+        // 默认数据
+        setChartData({
+            xData: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+            yData: [30, 45, 55, 60, 65, 70, 68, 72, 75, 78],
+            referenceScore: 65,
+            skinAge: 45,
+            skinAgeScore: 72
+        });
+        
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    </script>
+</body>
+</html>

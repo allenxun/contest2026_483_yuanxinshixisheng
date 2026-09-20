@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <!-- 面膜脸型轮廓 -->
+    <path
+        android:fillColor="#F5E6D3"
+        android:pathData="M24,4C14,4,8,12,8,22C8,32,12,40,18,44C20,45.5,22,46,24,46C26,46,28,45.5,30,44C36,40,40,32,40,22C40,12,34,4,24,4Z" />
+    <!-- 眼睛 -->
+    <path
+        android:fillColor="#5C4A3A"
+        android:pathData="M17,22A2.5,2,0,1,1,22,22A2.5,2,0,1,1,17,22Z" />
+    <path
+        android:fillColor="#5C4A3A"
+        android:pathData="M26,22A2.5,2,0,1,1,31,22A2.5,2,0,1,1,26,22Z" />
+    <!-- 嘴巴 -->
+    <path
+        android:fillColor="#D4A08A"
+        android:pathData="M20,32Q24,35,28,32"
+        android:strokeColor="#D4A08A"
+        android:strokeWidth="1.5" />
+    <!-- 面膜边缘 -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M24,4C14,4,8,12,8,22C8,32,12,40,18,44C20,45.5,22,46,24,46C26,46,28,45.5,30,44C36,40,40,32,40,22C40,12,34,4,24,4Z"
+        android:strokeColor="#AF8D59"
+        android:strokeWidth="1.5" />
+</vector>

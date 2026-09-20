@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/homeRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/home_bg">
+
+    <!-- 轮播图区域 -->
+    <FrameLayout
+        android:id="@+id/carouselArea"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/bannerPager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- 长条形指示点（覆盖在轮播图底部） -->
+        <LinearLayout
+            android:id="@+id/indicators"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="12dp" />
+
+    </FrameLayout>
+
+    <!-- 内容区域：必须是 CoordinatorLayout 的直接子视图 -->
+    <LinearLayout
+        android:id="@+id/bottomSheet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/home_bg"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="24dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+        <!-- 拖拽指示条 -->
+        <View
+            android:layout_width="44dp"
+            android:layout_height="5dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/handle_bg" />
+
+        <!-- 双卡片容器 - 使用 LinearLayout 确保两个卡片并列 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+
+            <!-- ==================== 左侧：智能测肤卡片区域 ==================== -->
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="12dp">
+
+                <!-- 功能卡片（无数据时显示） -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardSkinTestFunc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="visible"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/card_func_bg"
+                        android:minHeight="170dp">
+
+                        <ImageView
+                            android:id="@+id/imgSkinTestFunc"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:contentDescription="智能测肤" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="智能测肤"
+                            android:textColor="@color/white"
+                            android:textSize="19sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.1"
+                            android:shadowColor="#26000000"
+                            android:shadowDx="0"
+                            android:shadowDy="1"
+                            android:shadowRadius="4" />
+
+                    </FrameLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 数据卡片（有数据时显示） -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardSkinTestData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="170dp"
+                        android:background="@drawable/card_data_bg"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="10dp">
+
+                        <!-- 肤质检测入口标题 -->
+                        <TextView
+                            android:id="@+id/tvSkinType"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="肤质检测"
+                            android:textColor="@color/data_card_text_title"
+                            android:textSize="23sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.1" />
+
+                        <!-- 结果评分入口标题 -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal"
+                            android:baselineAligned="false">
+
+                            <TextView
+                                android:id="@+id/tvSkinScore"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="结果评分"
+                                android:textColor="@color/data_card_score"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <!-- 描述文案 -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="智能分析 · 跟踪变化"
+                            android:textColor="@color/data_card_text_desc"
+                            android:textSize="10sp"
+                            android:letterSpacing="0.05" />
+
+                        <!-- 重新测肤按钮 -->
+                        <TextView
+                            android:id="@+id/btnRescan"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginEnd="16dp"
+                            android:background="@drawable/btn_data_card_bg"
+                            android:gravity="center"
+                            android:paddingTop="6dp"
+                            android:paddingBottom="6dp"
+                            android:text="重新测肤"
+                            android:textColor="@color/data_card_score"
+                            android:textSize="12sp"
+                            android:letterSpacing="0.1" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </FrameLayout>
+
+            <!-- ==================== 右侧：连接设备卡片区域 ==================== -->
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp">
+
+                <!-- 功能卡片（无数据时显示） -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardDeviceFunc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="visible"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/card_func_bg"
+                        android:minHeight="170dp">
+
+                        <ImageView
+                            android:id="@+id/imgDeviceFunc"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:contentDescription="连接设备" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="连接设备"
+                            android:textColor="@color/white"
+                            android:textSize="19sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.1"
+                            android:shadowColor="#26000000"
+                            android:shadowDx="0"
+                            android:shadowDy="1"
+                            android:shadowRadius="4" />
+
+                    </FrameLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 数据卡片（有数据时显示） -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardDeviceData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="170dp"
+                        android:background="@drawable/card_data_bg"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="10dp">
+
+                        <!-- 设备图片 -->
+                        <ImageView
+                            android:id="@+id/imgDeviceData"
+                            android:layout_width="55dp"
+                            android:layout_height="55dp"
+                            android:layout_marginTop="4dp"
+                            android:contentDescription="设备"
+                            android:scaleType="fitCenter" />
+
+                        <!-- 设备名称 -->
+                        <TextView
+                            android:id="@+id/tvDeviceName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="设备名称"
+                            android:textColor="@color/data_card_text_title"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.05"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+
+                        <!-- 最近使用时间 -->
+                        <TextView
+                            android:id="@+id/tvDeviceTime"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="最近使用：2026-06-25"
+                            android:textColor="@color/data_card_text_desc"
+                            android:textSize="10sp"
+                            android:letterSpacing="0.05"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+
+                        <!-- 重新连接按钮 -->
+                        <TextView
+                            android:id="@+id/btnReconnect"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginEnd="16dp"
+                            android:background="@drawable/btn_data_card_bg"
+                            android:gravity="center"
+                            android:paddingTop="6dp"
+                            android:paddingBottom="6dp"
+                            android:text="重新连接"
+                            android:textColor="@color/data_card_score"
+                            android:textSize="12sp"
+                            android:letterSpacing="0.1" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

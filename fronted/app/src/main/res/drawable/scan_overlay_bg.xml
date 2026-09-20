@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 顶部渐变遮罩（极轻，几乎透明） -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#330A1929"
+                android:endColor="#00000000"
+                android:angle="270" />
+        </shape>
+    </item>
+    <!-- 底部渐变遮罩（极轻，几乎透明） -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#00000000"
+                android:endColor="#330A1929"
+                android:angle="270" />
+        </shape>
+    </item>
+    <!-- 左侧渐变遮罩（完全透明） -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#1A0A1929"
+                android:endColor="#00000000"
+                android:angle="0" />
+        </shape>
+    </item>
+    <!-- 右侧渐变遮罩（完全透明） -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#00000000"
+                android:endColor="#1A0A1929"
+                android:angle="0" />
+        </shape>
+    </item>
+</layer-list>

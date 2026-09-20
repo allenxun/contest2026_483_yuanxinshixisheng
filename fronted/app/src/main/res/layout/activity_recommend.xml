@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/home_bg"
+    android:paddingTop="60dp">
+
+    <!-- 左上角返回按钮 -->
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="48dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_arrow_back"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="返回" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <!-- 内容区域 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- 您的皮肤：二级标题 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="您的皮肤"
+                android:textColor="#666666"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <!-- 皮肤标签行 -->
+            <LinearLayout
+                android:id="@+id/layoutSkinTags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal" />
+
+            <!-- 一级标签：智能推荐导语 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="智能推荐导语"
+                android:textColor="#333333"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <!-- 导语内容 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="结合你的肤质检测结果，当前优先解决缺水、毛孔粗大、浅表干纹三大问题。护肤以「深度补水 + 锁水」为主，搭配温和调理毛孔、基础抗老护理，分区控油避免水油失衡，循序渐进改善肌肤状态。"
+                android:textColor="#666666"
+                android:textSize="22sp"
+                android:lineSpacingExtra="4dp" />
+
+            <!-- 一级标签：分类产品推荐 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="分类产品推荐"
+                android:textColor="#333333"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <!-- 二级标题：洁面类 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="洁面类"
+                android:textColor="#666666"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <!-- 洁面类推荐内容 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="推荐：氨基酸温和洁面乳\n功效：弱酸性配方，清洁力适中\n推荐理由：不破坏皮肤屏障，避免过度清洁加剧干燥、干纹，同时可带走表层多余油脂。"
+                android:textColor="#666666"
+                android:textSize="22sp"
+                android:lineSpacingExtra="4dp" />
+
+            <!-- 二级标题：水 / 精华水类 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="水 / 精华水类"
+                android:textColor="#666666"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <!-- 水类推荐内容 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="推荐：高保湿舒缓爽肤水\n功效：快速补水、舒缓肌肤、二次清洁\n推荐理由：改善肌肤紧绷缺水状态，为后续护肤打底，提升整体水润度。"
+                android:textColor="#666666"
+                android:textSize="22sp"
+                android:lineSpacingExtra="4dp" />
+
+            <!-- 一级标签：护肤避坑提醒（重点警示） -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="护肤避坑提醒（重点警示）"
+                android:textColor="#333333"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <!-- 避坑提醒 1 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="• 不要频繁使用强力清洁产品、清洁面膜全脸厚敷，会加剧干燥、干纹。"
+                android:textColor="#666666"
+                android:textSize="26sp"
+                android:lineSpacingExtra="4dp" />
+
+            <!-- 避坑提醒 2 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="• 不盲目使用高浓度酸类、强效控油产品，容易破坏水油平衡，让外油内干更严重。"
+                android:textColor="#666666"
+                android:textSize="26sp"
+                android:lineSpacingExtra="4dp" />
+
+            <!-- 避坑提醒 3 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="• 不要只控油不补水：出油根源是缺水，单纯控油治标不治本。"
+                android:textColor="#666666"
+                android:textSize="26sp"
+                android:lineSpacingExtra="4dp" />
+
+            <!-- 避坑提醒 4 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="24dp"
+                android:text="• 省略防晒：紫外线会不可逆加重毛孔粗大和纹路加深。"
+                android:textColor="#666666"
+                android:textSize="26sp"
+                android:lineSpacingExtra="4dp" />
+
+            <Button
+                android:id="@+id/btnViewProjectDetail"
+                android:layout_width="220dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="24dp"
+                android:backgroundTint="#af8d59"
+                android:text="查看详细方案"
+                android:textColor="@color/white"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</FrameLayout>

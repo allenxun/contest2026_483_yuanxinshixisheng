@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 金色背景 -->
+    <item>
+        <shape android:shape="rectangle">
+            <size android:width="18dp" android:height="18dp" />
+            <solid android:color="#af8d59" />
+            <corners android:radius="3dp" />
+        </shape>
+    </item>
+    <!-- 白色打勾（用路径绘制） -->
+    <item android:left="3dp" android:top="3dp" android:right="3dp" android:bottom="3dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#00000000" />
+        </shape>
+    </item>
+</layer-list>
