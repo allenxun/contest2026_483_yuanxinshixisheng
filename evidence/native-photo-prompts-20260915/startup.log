@@ -1,0 +1,235 @@
+{"sha256": "0a271d7222f4973a4439036522ccc39b4e0fd38e0705e65c65d2e8d7ebb21b0b", "bytes": 19576944, "usb_ack": true, "ram_crc_verified": false, "firmware_started": false, "flash_commands": false, "claim_attempts": 1, "seconds": 2.00007814799028}
+=> crc32 40c00800 12ab870
+crc32 for 40c00800 ... 41eac06f ==> 0d736e4f
+=> cp.b 40c00800 50000000 2f2c8
+=> crc32 50000000 2f2c8
+crc32 for 50000000 ... 5002f2c7 ==> 8d81864c
+=> cp.b 40c40800 50100000 57108
+=> crc32 50100000 57108
+crc32 for 50100000 ... 50157107 ==> 876828ce
+=> cp.b 40ca0800 50180000 25
+=> crc32 50180000 25
+crc32 for 50180000 ... 50180024 ==> f2b828eb
+=> cp.b 40ca1800 50190000 944
+=> crc32 50190000 944
+crc32 for 50190000 ... 50190943 ==> 2e852f87
+=> cp.b 41c00800 40400000 2ab870
+=> crc32 40400000 2ab870
+crc32 for 40400000 ... 406ab86f ==> 66f24f14
+=> md.l 48300000 1
+48300000: edfe0dd0                               ....
+=> booti 40400000 - 48300000
+Fdt Ramdisk skip relocation
+## Flattened Device Tree blob at 0x48300000
+   Booting using the fdt blob at 0x48300000
+   Using Device Tree in place at 0000000048300000, end 0000000048326532
+No resource file: logo_kernel.bmp
+VP0 fail to load kernel logo
+## reserved-memory:
+  ramoops@40110000: addr=40110000 size=e0000
+Adding bank: 0x40200000 - 0x48400000 (size: 0x08200000)
+Addi bank: 0x100000000 - 0x140000000 (size: 0x40000000)
+Total: 107087.840/107440.636 ms
+
+Starting kernel ...
+
+- Ready to Boot Primary CPU
+RK3576 HCR_EL2=0000000008000032
+RK3576 SCTLR_EL1=0000000030d00800
+- Boot from EL2
+- Boot from EL1
+- Boot to C runtime for OS Initialize
+[CPU0] arm64_chip_boot: RK3576: MMU enabled
+[CPU0] rk3576_uart6_initialize: UART6 M0: 115200 8N1, internal loopback PASS, IRQ114 ttyS1
+I/TC: Secondary CPU 1 initializing
+I/TC: Secondary CPU 1 switching to normal world boot
+
+NutI/TC: Secondary CPU 4 initializing
+tShI/TC: Secondary CPU 4 switching to normal world boot
+- ReI/TC: Secondary CPU 2 initializing
+ady -t I/TC: Secondary CPU 2 switching to normal world boot
+Ro eBadooy tI/TC: Secondary CPU 5 initializing
+-t  oSR eBceooont da dSI/TC: Secondary CPU 5 switching to normal world boot
+yeC cPotUnod 
+B I/TC: Secondary CPU 3 initializing
+R-CP oKoRUet3a 5
+S7dRKey63  cI/TC: Secondary CPU 3 switching to normal world boot
+ot5noH76 CdI/TC: Secondary CPU 6 initializing
+R -B_o H I/TC: Secondary CPU 6 switching to normal world boot
+oR CPU 7 initializing
+a-U _2Ed SRL=ye
+ec2 R0=0aKtoI/TC: Secondar5y0d 0 7 B0oC6t00 0P0ootUH00 0B0C
+R 00oSo0-R0_00 KtE0 0eR30e5cS012=0=E00
+0
+=L0R002R=K0K0000033000500507
+7000000660R00K00  03730R0_00T060E Ld00R008LS0C0020_08T=0000000LE0
+LR020100_-
+
+0E 3T oCE0LT0m003LRd L00E_R2_E
+0LdEL80R
+2010KL
+183005==7000
+0060L 
+020B
+o3o0-
+td 0B f08roo0m0ot E 
+L- f2Br
+oootm  EfrL2om- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for O-S  BoIonitt itoa lCi zreu
+ntime for OS Initialize
+
+nsh> [K
+k7radio sdio-boot
+RADIO PMU repair=fdffffff idle=00000001 ack=00000001
+RADIO CRU gate42=00000000 reset42=00000000 clksel104=00002f02 gate17=00000000
+RADIO IOC Bhigh=00000000 Clow=00000000 Chigh=00000000
+RADI id13 C4/C5 GPIO inputs pull-up; C6 pull-up, pullC=00007ff5 ext=SDIO controller ver=5342270a hcon=04c434c1
+RADIO GPIO1 ver=010219c8 drh=00000040 ddrh=00000040 ext=007df9ff
+RADIO SDIO ctrl=00000000 clkdiv=00000000 clkena=00000001 uhs=00000000
+RADIO SDIO usrid=20230001 phase_out=00000002 phase_in=00000000
+RADIO PAD ieB=000000ff ieC=000000ff pullB=0000ffd7 pullC=00007fff
+RADIO PAD driveBhigh=00002222 driveClow=00006622 expected_masked=2222/22
+RADIO PAD observed_changes=00020000 clock_changes=801 (sampled, not frequency measurement)
+SDIO init_hz=400000 (configured, not measured)
+SDIO CMD52 pad_samples=561 cmd_changes=10 clk_changes=335
+SDIO CMD52 arg=00000c00 irq=00000100 status=00000106
+SDIO CMD52 pad_samples=379 cmd_changes=10 clk_changes=237
+SDIO CMD52 arg=80000c08 irq=00000100 status=00000106
+SDIO pre-reset read_ret=-5 write_ret=-5 r5=00000000
+SDIO CMD0 pad_samples1
+SDIO CMD5 pad_samples=171 cmd_changes=20 clk_changes=102
+SDIO OCR initial=90ffff00 functions=1
+SDIO CMD5 pad_samples=123 cmd_changes=12 clk_changes=80
+SDIO RCA=0001
+SDIO CCCR=43 caps=17
+SDIO CIS base=000 ptr=001000
+SDIO ID vendor=1ffe device=6621
+RADIO data mode 4-bit 12000000Hz configured CCCR07=02
+RADIO id36 F1 ready; bind_ret=0
+RADIO CMD53 chip bytes: 53 56 36 31 36 30 4c 49 54 45 00 00 00 00 00 01be_ret=0 lite_verified=1 host_bytes=16 card_bytes=16 raw=00000000 status=00000000 cleanup=0
+RADIO FW write 20200000 ret=0 completed=193224/193224
+RADIO FW verified 20200000 bytes=193224 crc16=2a29
+RADIO FW write 00100000 ret=0 completed=356616/356616
+RADIO FW verified 00100000 bytes=356616 crc16=d34b
+RADIO pre-start window[0]=00
+RADIO pre-start window[1]=70
+RADIO pre-start RADIO notify cccr05=02 fifo=00->01 GPIO=207ff9ff
+RADIO RX bytes=2048 valid=79 next=0 header=013f004f
+RADIO RX channel=1 len=79RADIO notify cccr05=02 fifo=01->02 GPIO=207ff9ff
+RADIO RX bytes=2048 valid=21 next=0 header=013f0015
+RADIO RX channel=1 len=21RADIO notify cccr05=02 fifo=02->03 GPIO=207df9ff
+RADIO RX bytes=2048 valid=19 next=0 header=013f0013
+RADIO RX channel=1 len=19
+RADIO CP message: BTREADY
+RADIO notify cccr05=02 fifo=03->05 GPIO=207df9ff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12RADIO notify cccr05=00 fifo=05->05 GPIO=207ff9ff
+RADIO RX bytes=2048 valid=27 next=0 header=023f001b
+RADIO RX channel=2 len=27
+RADIO HCI event: 0e 0c 01 01 10 00 0c 02 53 0c 4d 0c 0d 00
+RADIO id36 boot_ret=0 cp_ready=1 wifi_ready=1 bt_ready=1; network_connected=0 paired=0
+RADIO final fault=0 raw=00000000 status=00000000 host=0 card=2048 cleanup=0
+nsh> [K
+k7radio bt-host
+RADIO notify cccr05=02 fifo=05->07 GPIO=207ff9ff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12RADIO notify cccr05=00 fifo=07->07 GPIO=207df9ff
+RADIO RX bytes=2048 valid=27 next=0 header=023f001b
+RADIO RX channel=2 len=27
+RADIO HCI event: 0e 0c 01 01 10 00 0c 02 53 0c 4d 0c 0d 00
+RADIO HCI opcode=1001 complete=1 status=0 ret=0
+RADIO notify cccr05=02 fifo=07->09 GPIO=207ff9ff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12
+RADIO notify cccr05=00 fifo=09->09 GPIO=207df9ff
+RADIO RX bytes=2048 valid=25 next=0 header=023f0019
+RADIO RX channel=2 len=25RADIO HCI opcode=1009 complete=1 status=0 ret=0
+RADIO notify cccr05=02 fifo=09->0b GPIO=207ff9ff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12RADIO notify cccr05=00 fifo=0b->0b GPIO=207ff9ff
+RADIO RX bytes=2048 valid=19 next=0 header=023f0013
+RADIO RX channel=2 len=19RADIO HCI opcode=fc80 complete=1 status=0 ret=0
+RADIO notify cccr05=02 fifo=0b->0d GPIO=207df9ff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12RADIO notify cccr05=00 fifo=0d->0d GPIO=207df9ff
+RADIO RX bytes=2048 valid=19 next=0 header=023f0013
+RADIO RX channel=2 len=19RADIO HCI opcode=0c03 complete=1 status=0 ret=0
+RADIO notify cccr05=02 fifo=0d->0f GPIO=207ff9ff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12
+RADIO notify cccr05=00 fifo=0f->0f GPIO=207df9ff
+RADIO RX bytes=2048 valid=25 next=0 header=023f0019
+RADIO RX channel=2 len=25
+RADIO HCI event: 0e 0a 01 09 10 00 1d 17 b5 9c 48 60
+RADIO HCI opcode=1009 complete=1 status=0 ret=0
+RADIO BT controller address=60:48:9c:b5:17:1d post_reset=1
+RADIO HCI TX op=0c03 bytes=3
+RADIO HCI complete op=0c03 status=0
+RADIO HCI TX op=1003 bytes=3
+RADIO HCI complete op=1003 status=0
+RADIO HCI TX op=1001 bytes=3
+RADIO HCI complete op=1001 status=0
+RADIO HCI TX op=1009 bytes=3
+RADIO HCI complete op=1009 status=0
+RADIO HCI TX op=2003 bytes=3
+RADIO HCI complete op=2003 status=0
+RADIO HCI TX op=2002 bytes=3
+RADIO HCI complete op=2002 status=0
+RADIO HCI controller buffers LE_MTU=251 LE_COUNT=10
+RADIO HCI TX op=0c01 bytes=11
+RADIO HCI complete op=0c01 status=0
+RADIO HCI TX op=2001 bytes=11
+RADIO HCI complete op=2001 status=0
+RADIO HCI TX op=0c31 bytes=4
+RADIO HCI controller-to-host flow=0
+RADIO HCI complete op=0c31 status=0
+RADIO HCI TX op=0c6d bytes=5
+RADIO HCI complete op=0c6d status=0
+RADIO HCI TX op=2008 bytes=35
+RADIO HCI complete op=2008 status=0
+RADIO BLE advertising HCI op=2008 status=0
+RADIO HCI TX op=2009 bytes=35
+RADIO HCI complete op=2009 status=0
+RADIO BLE advertising HCI op=2009 status=0
+RADIO HCI TX op=2006 bytes=18
+RADIO HCI complete op=2006 status=0
+RADIO BLE advertising HCI op=2006 status=0
+RADIO HCI TX op=200a bytes=4
+RADIO HCI complete op=200a status=0
+RADIO BLE advertising HCI op=200a status=0
+RADIO HCI TX op=200a bytes=4
+RADIO HCI complete op=200a status=0
+RADIO BLE advertising HCI op=200a status=0
+RADIO HCI TX op=2008 bytes=35
+RADIO HCI complete op=2008 status=0
+RADIO BLE advertising HCI op=2008 status=0
+RADIO HCI TX op=2009 bytes=35
+RADIO HCI complete op=2009 status=0
+RADIO BLE advertising HCI op=2009 status=0
+RADIO HCI TX op=2006 bytes=18
+RADIO HCI complete op=2006 status=0
+RADIO BLE advertising HCI op=2006 status=0
+RADIO HCI TX op=200a bytes=4
+RADIO HCI complete op=200a status=0
+RADIO BLE advertising HCI op=200a status=0
+PROV service ready version=1 write=8 notify=10 status=13 scan=1 receive_credentials=1 connect=true advertise=0
+RADIO native Bluetooth host register=0 txpid=13 rxpid=14 tx=19 link_ack=19 RX=38 fault=0; WiFi_=0
+nsh> [K
+k7radio wifi-service-start
+WIFI shared start ret=0
+nsh> [K
+k7radio provision-status
+PROV registered=1 connected=0 subscribed=0 busy=0 session=0 commands=0 notify_queued=0 errors=0 connects=0 disconnects=0 reads=0 input_bytes=0
+PROV last command=0 id=0 session=0 ret=0 notify_ret=0
+nsh> [K

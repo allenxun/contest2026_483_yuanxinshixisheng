@@ -1,0 +1,60 @@
+{
+  "scope": "Actual C++17 parser plus frozen dispatcher header; no NuttX/model/backend",
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O0",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-robot-tools\\include",
+        "tool_json.cpp",
+        "test_tool_json.cpp",
+        "-o",
+        "tests-O0.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\tool-json-v1\\tests-O0.exe"
+      ],
+      "returncode": 0,
+      "stdout": "tool JSON PASS checks=15237; parser allocated zero; no backend/event execution\r\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-robot-tools\\include",
+        "tool_json.cpp",
+        "test_tool_json.cpp",
+        "-o",
+        "tests-O2.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\tool-json-v1\\tests-O2.exe"
+      ],
+      "returncode": 0,
+      "stdout": "tool JSON PASS checks=15237; parser allocated zero; no backend/event execution\r\n",
+      "stderr": ""
+    }
+  ]
+}

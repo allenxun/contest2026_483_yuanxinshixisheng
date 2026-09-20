@@ -1,0 +1,92 @@
+{
+  "started_at": "2026-09-09T10:13:17.085038+00:00",
+  "finished_at": "2026-09-09T10:43:17.182457+00:00",
+  "elapsed_s": 1800.11,
+  "target_s": 1800,
+  "passed": false,
+  "mode": "wifi-only",
+  "revision": "wifi-amsdu-index-20260909",
+  "firmware_sha256": "85fb84d34a7dbc74469b91c501b3e289791a1b99636829690d3cc6210e688dfe",
+  "rounds_completed": 30,
+  "sent": 1500,
+  "received": 1499,
+  "failures": [
+    {
+      "round": 29,
+      "reason": "ping_loss",
+      "sent": 50,
+      "received": 49
+    }
+  ],
+  "initial": {
+    "ble": {
+      "connected": 0,
+      "handle": 17,
+      "acl_rx": 22,
+      "acl_tx": 22,
+      "connections": 2,
+      "disconnections": 2,
+      "last_reason": 19,
+      "encrypt_status": 0,
+      "encrypted": 0
+    },
+    "wifi": {
+      "active": 1,
+      "connected": 1,
+      "ip": "10.3.0.214",
+      "gateway": "10.3.0.1",
+      "result": 0,
+      "rx": 1220,
+      "tx": 93,
+      "dropped": 0,
+      "amsdu_complete": 1,
+      "amsdu_subframes": 2,
+      "rx_rejected": 2
+    },
+    "memory": {
+      "total": 126877688,
+      "used": 72312,
+      "free": 126805376,
+      "maxused": 98880,
+      "maxfree": 126788432,
+      "nused": 55,
+      "nfree": 4
+    }
+  },
+  "final": {
+    "ble": {
+      "connected": 0,
+      "handle": 17,
+      "acl_rx": 22,
+      "acl_tx": 22,
+      "connections": 2,
+      "disconnections": 2,
+      "last_reason": 19,
+      "encrypt_status": 0,
+      "encrypted": 0
+    },
+    "wifi": {
+      "active": 1,
+      "connected": 1,
+      "ip": "10.3.0.214",
+      "gateway": "10.3.0.1",
+      "result": 0,
+      "rx": 3921,
+      "tx": 1599,
+      "dropped": 0,
+      "amsdu_complete": 3,
+      "amsdu_subframes": 6,
+      "rx_rejected": 17
+    },
+    "memory": {
+      "total": 126877688,
+      "used": 72248,
+      "free": 126805440,
+      "maxused": 98880,
+      "maxfree": 126788432,
+      "nused": 54,
+      "nfree": 3
+    }
+  },
+  "scope": "30 minute native Wi-Fi gateway ping; BLE observed only, not required for pass; no BLE application throughput, reconnect, internet or guaranteed rekey coverage"
+}

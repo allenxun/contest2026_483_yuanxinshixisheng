@@ -1,0 +1,858 @@
+--- a/include/voicelink/types.hpp
++++ b/include/voicelink/types.hpp
+@@ -12,6 +12,8 @@
+   ScanningWifi,
+   WaitingNetworkChoice,
+   EnteringPassword,
++  CredentialsReceived,
++  ConnectingWifi,
+   Completed,
+   Error,
+   Idle,
+@@ -49,21 +51,21 @@
+   std::vector<std::string> wake_words{defaultWakeWords()};
+   std::string greeting{"你好，我是 openvela，开始为你配置网络"};
+   std::size_t max_networks{5};
++  std::uint64_t connect_timeout_ms{30000};
+   std::size_t min_password_length{8};
+   std::size_t max_password_length{63};
+ };
+ 
++// Receipt/association is not IP readiness. No legacy synchronous Ok status.
+ enum class ConnectStatus {
+-  Ok,
+-  WrongPassword,
+-  Timeout,
+-  NetworkNotFound,
+-  Failed,
++  CredentialsReceived, Connecting, IpReady, WrongPassword, Timeout,
++  NetworkNotFound, Failed, Busy, Unsupported, Cancelled
+ };
+-
+ struct ConnectResult {
+   ConnectStatus status{ConnectStatus::Failed};
+   int error_code{};
++  std::uint64_t request_id{};
++  std::string ipv4;
+ };
+ 
+ struct Context {
+--- a/include/voicelink/ports.hpp
++++ b/include/voicelink/ports.hpp
+@@ -34,9 +34,22 @@
+  public:
+   virtual ~WifiPort() = default;
+   virtual ScanResult scan() = 0;
+-  // password may be nullptr when joining an open network. Never log it.
+-  virtual ConnectResult connect(const std::string& ssid, const char* password,
+-                                std::size_t password_len) = 0;
++  // Connection methods are bounded/nonblocking, noexcept, never call Controller.
++  // beginConnect must copy needed credentials before returning, never retain
++  // the caller pointer or log secrets; erase its copy on completion/cancel.
++  // IDs are unique for this port lifetime, including rejected attempts.
++  virtual ConnectResult beginConnect(const std::string& ssid, const char* password,
++                                    std::size_t password_len) noexcept = 0;
++  virtual ConnectResult pollConnect(std::uint64_t request_id) noexcept = 0;
++  // Cancel only this transaction; idempotent. Never disconnect another client.
++  virtual void cancelConnect(std::uint64_t request_id) noexcept = 0;
++
++};
++
++class ClockPort {
++ public:
++  virtual ~ClockPort() = default;
++  virtual std::uint64_t nowMs() const noexcept = 0; // monotonic milliseconds
+ };
+ 
+ class TextInputPort {
+--- a/include/voicelink/controller.hpp
++++ b/include/voicelink/controller.hpp
+@@ -9,13 +9,15 @@
+ 
+ class Controller {
+  public:
+-  Controller(TtsPort& tts, WifiPort& wifi, Config config = {});
++  Controller(TtsPort& tts, WifiPort& wifi, ClockPort& clock, Config config = {});
+   ~Controller();
+ 
+   Controller(const Controller&) = delete;
+   Controller& operator=(const Controller&) = delete;
+ 
+   void start();
++  void poll(); // schedule independently of ASR (recommended <= 50 ms)
++  void cancel();
+   void ingest(const std::string& recognized_text);
+   // Handle a non-Ok input status. Returns true if the loop may continue, false
+   // if the caller must stop the run loop. On EndOfInput passwords are wiped; on
+@@ -33,12 +35,17 @@
+   void handlePasswordControl(PasswordControl control);
+   void finishPasswordRound();
+   void tryConnect(const char* password, std::size_t password_len);
++  void applyConnectResult(const ConnectResult& result);
++  void cancelPending();
+   void repeat(const std::string& text);
+   void wipePassword();
+   void setTerminal(State state, const std::string& text);
+ 
+   TtsPort& tts_;
+   WifiPort& wifi_;
++  ClockPort& clock_;
++  std::uint64_t request_id_{};
++  std::uint64_t started_ms_{};
+   Config config_;
+   Context context_;
+ };
+--- a/src/core.cpp
++++ b/src/core.cpp
+@@ -12,39 +12,47 @@
+   volatile char* bytes = value.empty() ? nullptr : value.data();
+   for (std::size_t i = 0; i < value.size(); ++i) bytes[i] = 0;
+   value.clear();
+-  value.shrink_to_fit();
++  // Keep reserved storage: no allocation/reallocation while entering secrets.
+ }
+ 
+ }  // namespace
+ 
+-Controller::Controller(TtsPort& tts, WifiPort& wifi, Config config)
+-    : tts_(tts), wifi_(wifi), config_(std::move(config)) {
++Controller::Controller(TtsPort& tts, WifiPort& wifi, ClockPort& clock, Config config)
++    : tts_(tts), wifi_(wifi), clock_(clock), config_(std::move(config)) {
+   if (config_.wake_words.empty()) config_.wake_words = defaultWakeWords();
++  config_.max_networks = std::min<std::size_t>(5, config_.max_networks);
++  config_.max_password_length = std::min<std::size_t>(63, config_.max_password_length);
++  context_.password.reserve(config_.max_password_length);
+   if (config_.min_password_length > config_.max_password_length)
+     config_.min_password_length = config_.max_password_length;
+ }
+ 
+-Controller::~Controller() { wipePassword(); }
++Controller::~Controller() { cancelPending(); wipePassword(); }
+ 
+ void Controller::start() { resetToWake(); }
+ 
+ void Controller::resetToWake() {
+   wipePassword();
+-  context_ = Context{};
++  cancelPending();
++  context_.candidates.clear();
++  context_.selected_index.reset();
++  context_.password_mode = PasswordMode::Lower;
+   context_.state = State::WaitingWake;
+   context_.grammar = Grammar::WakeWord;
+   // Never speak the wake phrase while arming KWS; doing so can self-trigger.
++#if defined(__cpp_exceptions) || defined(__EXCEPTIONS)
++  try { tts_.stop(); } catch (...) { context_.state = State::Error; }
++#else
+   tts_.stop();
++#endif
+ }
+ 
+ void Controller::ingest(const std::string& text) {
+   switch (context_.state) {
+     case State::WaitingWake:
+       if (isWakeWord(text, config_.wake_words)) {
+-        if (!tts_.speak(config_.greeting)) {
+-          context_.state = State::Error;
+-          return;
+-        }
++        repeat(config_.greeting);
++        if (context_.state == State::Error) return;
+         beginScan();
+       }
+       return;
+@@ -53,6 +61,10 @@
+       return;
+     case State::EnteringPassword:
+       handlePassword(text);
++      return;
++    case State::CredentialsReceived:
++    case State::ConnectingWifi:
++      if (isCancel(text)) cancel();
+       return;
+     default:
+       return;
+@@ -71,10 +83,12 @@
+       repeat("没有听清，请再说一次");
+       return context_.state != State::Error;
+     case IoStatus::EndOfInput:
+-      // Input source exhausted: wipe secrets and signal the caller to exit.
++      cancelPending();
++      context_.state = State::Idle;
+       wipePassword();
+       return false;
+     case IoStatus::FatalError:
++      cancelPending();
+       wipePassword();
+       context_.state = State::Error;
+       return false;
+@@ -246,50 +260,116 @@
+     return;
+   }
+   const auto& ap = context_.candidates[*context_.selected_index];
+-  const std::string ssid = ap.ssid;
+-  const bool secured = ap.secured;
+-  ConnectResult result;
++  started_ms_ = clock_.nowMs();
++  const auto result = wifi_.beginConnect(ap.ssid, password, password_len);
++  wipePassword();
++  request_id_ = result.request_id;
++  if (!request_id_) {
++    setTerminal(State::Error, "连接接口未提供事务编号");
++    return;
++  }
++  applyConnectResult(result);
++}
++
++void Controller::cancelPending() {
++  const auto id = request_id_;
++  request_id_ = 0;
++  if (id) wifi_.cancelConnect(id);
++}
++
++void Controller::cancel() {
++  cancelPending();
++  setTerminal(State::Idle, "已取消配置");
++}
++
++void Controller::poll() {
++  if (!request_id_) return;
++  // Timeout wins at the exact deadline, including a simultaneously ready event.
++  if (clock_.nowMs() - started_ms_ >= config_.connect_timeout_ms) {
++    const auto id = request_id_;
++    cancelPending();
++    applyConnectResult({ConnectStatus::Timeout, 0, id, {}});
++    return;
++  }
++  auto result = wifi_.pollConnect(request_id_);
++  if (result.request_id != request_id_) return; // stale/foreign event
++  applyConnectResult(result);
++}
++
++namespace {
++bool usableIpv4(const std::string& ip) {
++  unsigned octets[4]{};
++  std::size_t pos = 0;
++  for (unsigned i = 0; i < 4; ++i) {
++    std::size_t digits = 0;
++    while (pos < ip.size() && ip[pos] >= '0' && ip[pos] <= '9') {
++      if (++digits > 3) return false;
++      octets[i] = octets[i] * 10 + static_cast<unsigned>(ip[pos++] - '0');
++    }
++    if (!digits || octets[i] > 255) return false;
++    if (i < 3 && (pos == ip.size() || ip[pos++] != '.')) return false;
++  }
++  return pos == ip.size() && octets[0] != 0 && octets[0] != 127 &&
++         octets[0] < 224 && !(octets[0] == 169 && octets[1] == 254);
++}
++}
++
++void Controller::applyConnectResult(const ConnectResult& result) {
++  if (result.status == ConnectStatus::CredentialsReceived) {
++    if (context_.state != State::ConnectingWifi &&
++        context_.state != State::CredentialsReceived) {
++      context_.state = State::CredentialsReceived;
++      repeat("已收到凭据，等待联网结果");
++    }
++    return;
++  }
++  if (result.status == ConnectStatus::Connecting) {
++    if (context_.state != State::ConnectingWifi) {
++      context_.state = State::ConnectingWifi;
++      repeat("正在连接网络");
++    }
++    return;
++  }
++  if (result.status == ConnectStatus::IpReady && usableIpv4(result.ipv4)) {
++    request_id_ = 0; // successful transaction already released by port
++    setTerminal(State::Completed, "已连接到" +
++                context_.candidates[*context_.selected_index].ssid);
++    return;
++  }
++  cancelPending(); // terminal failures must release provider-side state
++  wipePassword();
++  context_.password_mode = PasswordMode::Lower;
++  const bool secured = context_.selected_index &&
++      context_.candidates[*context_.selected_index].secured;
++  context_.state = secured ? State::EnteringPassword : State::WaitingNetworkChoice;
++  context_.grammar = secured ? Grammar::PasswordToken : Grammar::NetworkSelection;
++  switch (result.status) {
++    case ConnectStatus::WrongPassword: repeat("密码错误，请重新输入"); break;
++    case ConnectStatus::Timeout: repeat("连接超时，请重试"); break;
++    case ConnectStatus::Busy: repeat("网络服务忙，请稍后重试"); break;
++    case ConnectStatus::Unsupported: repeat("暂不支持该网络，请重新选择网络"); break;
++    case ConnectStatus::NetworkNotFound: repeat("找不到该网络，请重新选择网络"); break;
++    case ConnectStatus::Cancelled: setTerminal(State::Idle, "已取消配置"); break;
++    default: repeat("连接失败，请重试"); break;
++  }
++}
++
++void Controller::repeat(const std::string& text) {
++  bool spoken = false;
+ #if defined(__cpp_exceptions) || defined(__EXCEPTIONS)
+   try {
+-    result = wifi_.connect(ssid, password, password_len);
+-  } catch (...) {
+-    result.status = ConnectStatus::Failed;
+-  }
++    tts_.stop();
++    spoken = tts_.speak(text);
++  } catch (...) { spoken = false; }
+ #else
+-  result = wifi_.connect(ssid, password, password_len);
++  tts_.stop();
++  spoken = tts_.speak(text);
+ #endif
+-  wipePassword();
+-  if (result.status == ConnectStatus::Ok) {
+-    setTerminal(State::Completed, "已连接到" + ssid);
+-    return;
+-  }
+-  if (!secured) {
+-    context_.state = State::WaitingNetworkChoice;
+-    context_.grammar = Grammar::NetworkSelection;
+-    repeat("连接失败，请重新选择网络");
+-    return;
+-  }
+-  context_.state = State::EnteringPassword;
+-  context_.grammar = Grammar::PasswordToken;
+-  context_.password_mode = PasswordMode::Lower;
+-  if (result.status == ConnectStatus::WrongPassword) {
+-    repeat("密码错误，请重新输入，默认小写");
+-    return;
+-  }
+-  if (result.status == ConnectStatus::Timeout) {
+-    repeat("连接超时，请重新输入密码，默认小写");
+-    return;
+-  }
+-  if (result.status == ConnectStatus::NetworkNotFound) {
+-    repeat("找不到该网络，请重新输入密码或重新选择网络");
+-    return;
+-  }
+-  repeat("连接失败，请重新输入密码，默认小写");
+-}
+-
+-void Controller::repeat(const std::string& text) {
+-  tts_.stop();
+-  if (!tts_.speak(text)) context_.state = State::Error;
++  if (!spoken) {
++    cancelPending();
++    wipePassword();
++    context_.state = State::Error;
++  }
+ }
+ 
+ void Controller::wipePassword() { secureWipe(context_.password); }
+--- /dev/null
++++ b/include/voicelink/audio.hpp
+@@ -0,0 +1,49 @@
++#pragma once
++#include <atomic>
++#include <cstddef>
++#include <cstdint>
++#include <string>
++#include <sherpa-onnx/c-api/c-api.h>
++
++namespace voicelink {
++std::int16_t floatToPcm16(float sample) noexcept;
++float pcm16ToFloat(std::int16_t sample) noexcept;
++enum class AudioStatus { Ok, Invalid, IoError, Cancelled, DecodeLimit };
++
++class PcmSink {
++ public:
++  virtual ~PcmSink() = default;
++  // Mono signed PCM16 little endian. A failed begin must release partial setup.
++  virtual bool begin(int sample_rate) noexcept = 0;
++  // Returns bytes consumed; 0/negative is terminal (no busy retry).
++  // Driver implements EINTR/EAGAIN readiness/deadline handling internally.
++  virtual std::ptrdiff_t write(const std::uint8_t*, std::size_t) noexcept = 0;
++  virtual void end() noexcept = 0;
++};
++
++// Owns recognizer/TTS. Single owner thread; only stop flag may be set cross-thread.
++// Config strings must remain valid through init. No board/audio device access.
++class SpeechSession {
++ public:
++  SpeechSession() = default;
++  ~SpeechSession();
++  SpeechSession(const SpeechSession&) = delete;
++  SpeechSession& operator=(const SpeechSession&) = delete;
++  bool init(const SherpaOnnxOfflineTtsConfig&, const SherpaOnnxOnlineRecognizerConfig&);
++  void close() noexcept;
++  AudioStatus speak(const char*, PcmSink&, const std::atomic_bool& stop);
++  bool beginStream();
++  AudioStatus feed(const std::int16_t*, std::size_t, int sample_rate,
++                   const std::atomic_bool& stop, std::size_t decode_budget = 1024);
++  AudioStatus finish(std::string&, const std::atomic_bool& stop,
++                     std::size_t decode_budget = 1024);
++  bool endpoint() const noexcept;
++ private:
++  void abortStream() noexcept;
++  AudioStatus drain(const std::atomic_bool&, std::size_t);
++  const SherpaOnnxOfflineTts* tts_{};
++  const SherpaOnnxOnlineRecognizer* recognizer_{};
++  const SherpaOnnxOnlineStream* stream_{};
++  bool finished_{};
++};
++} // namespace voicelink
+--- /dev/null
++++ b/src/audio.cpp
+@@ -0,0 +1,133 @@
++#include "voicelink/audio.hpp"
++#include <algorithm>
++#include <array>
++#include <cmath>
++#include <memory>
++
++namespace voicelink {
++std::int16_t floatToPcm16(float x) noexcept {
++  if (std::isnan(x)) return 0;
++  if (x >= 1.0f) return 32767;
++  if (x <= -1.0f) return -32768;
++  const long value = std::lround(x * 32768.0f);
++  return static_cast<std::int16_t>(std::min(32767L, std::max(-32768L, value)));
++}
++float pcm16ToFloat(std::int16_t x) noexcept { return x / 32768.0f; }
++
++SpeechSession::~SpeechSession() { close(); }
++void SpeechSession::abortStream() noexcept {
++  if (stream_) SherpaOnnxDestroyOnlineStream(stream_);
++  stream_ = nullptr;
++  finished_ = true;
++}
++void SpeechSession::close() noexcept {
++  if (stream_) SherpaOnnxDestroyOnlineStream(stream_);
++  if (recognizer_) SherpaOnnxDestroyOnlineRecognizer(recognizer_);
++  if (tts_) SherpaOnnxDestroyOfflineTts(tts_);
++  stream_ = nullptr;
++  recognizer_ = nullptr;
++  tts_ = nullptr;
++  finished_ = false;
++}
++bool SpeechSession::init(const SherpaOnnxOfflineTtsConfig& t,
++                         const SherpaOnnxOnlineRecognizerConfig& r) {
++  close();
++  tts_ = SherpaOnnxCreateOfflineTts(&t);
++  if (!tts_) return false;
++  recognizer_ = SherpaOnnxCreateOnlineRecognizer(&r);
++  if (!recognizer_) { close(); return false; }
++  return true;
++}
++AudioStatus SpeechSession::speak(const char* text, PcmSink& sink,
++                                const std::atomic_bool& stop) {
++  if (!tts_ || !text) return AudioStatus::Invalid;
++  if (stop.load()) return AudioStatus::Cancelled;
++  using Audio = std::unique_ptr<const SherpaOnnxGeneratedAudio,
++      decltype(&SherpaOnnxDestroyOfflineTtsGeneratedAudio)>;
++  Audio audio(SherpaOnnxOfflineTtsGenerate(tts_, text, 0, 1.0f),
++              SherpaOnnxDestroyOfflineTtsGeneratedAudio);
++  if (!audio || !audio->samples || audio->n <= 0 || audio->sample_rate <= 0)
++    return AudioStatus::Invalid;
++  if (stop.load()) return AudioStatus::Cancelled;
++  if (!sink.begin(audio->sample_rate)) return AudioStatus::IoError;
++  struct End { PcmSink& sink; ~End() { sink.end(); } } end{sink};
++  std::array<std::uint8_t, 1024> bytes{};
++  for (std::int32_t offset = 0; offset < audio->n;) {
++    if (stop.load()) return AudioStatus::Cancelled;
++    const auto count = std::min<std::int32_t>(512, audio->n - offset);
++    for (std::int32_t i = 0; i < count; ++i) {
++      const auto v = static_cast<std::uint16_t>(floatToPcm16(audio->samples[offset + i]));
++      bytes[2 * i] = static_cast<std::uint8_t>(v & 255);
++      bytes[2 * i + 1] = static_cast<std::uint8_t>(v >> 8);
++    }
++    const auto size = static_cast<std::size_t>(count) * 2;
++    std::size_t sent = 0;
++    while (sent < size) {
++      if (stop.load()) return AudioStatus::Cancelled;
++      const auto n = sink.write(bytes.data() + sent, size - sent);
++      if (n <= 0 || static_cast<std::size_t>(n) > size - sent) return AudioStatus::IoError;
++      sent += static_cast<std::size_t>(n); // retain odd-byte short writes exactly
++    }
++    offset += count;
++  }
++  return AudioStatus::Ok;
++}
++bool SpeechSession::beginStream() {
++  if (stream_) SherpaOnnxDestroyOnlineStream(stream_);
++  stream_ = nullptr;
++  finished_ = false;
++  if (!recognizer_) return false;
++  stream_ = SherpaOnnxCreateOnlineStream(recognizer_);
++  return stream_ != nullptr;
++}
++AudioStatus SpeechSession::drain(const std::atomic_bool& stop, std::size_t budget) {
++  while (SherpaOnnxIsOnlineStreamReady(recognizer_, stream_)) {
++    if (stop.load()) return AudioStatus::Cancelled;
++    if (budget-- == 0) return AudioStatus::DecodeLimit;
++    SherpaOnnxDecodeOnlineStream(recognizer_, stream_);
++  }
++  return stop.load() ? AudioStatus::Cancelled : AudioStatus::Ok;
++}
++AudioStatus SpeechSession::feed(const std::int16_t* samples, std::size_t n,
++                               int rate, const std::atomic_bool& stop,
++                               std::size_t budget) {
++  if (!stream_ || finished_) return AudioStatus::Invalid;
++  if ((!samples && n) || rate <= 0 || n > 512) {
++    abortStream();
++    return AudioStatus::Invalid;
++  }
++  if (stop.load()) { abortStream(); return AudioStatus::Cancelled; }
++  std::array<float, 512> normalized{};
++  for (std::size_t i = 0; i < n; ++i) normalized[i] = pcm16ToFloat(samples[i]);
++  if (n) SherpaOnnxOnlineStreamAcceptWaveform(stream_, rate, normalized.data(),
++                                             static_cast<std::int32_t>(n));
++  const auto status = drain(stop, budget);
++  if (status != AudioStatus::Ok) abortStream();
++  return status;
++}
++AudioStatus SpeechSession::finish(std::string& text, const std::atomic_bool& stop,
++                                 std::size_t budget) {
++  text.clear();
++  if (!stream_ || finished_) return AudioStatus::Invalid;
++  finished_ = true;
++  // Release the stream on every exit, including result-copy allocation failure.
++  using Stream = std::unique_ptr<const SherpaOnnxOnlineStream,
++      decltype(&SherpaOnnxDestroyOnlineStream)>;
++  struct Reset { const SherpaOnnxOnlineStream*& ptr; ~Reset() { ptr = nullptr; } } reset{stream_};
++  Stream stream(stream_, SherpaOnnxDestroyOnlineStream);
++  if (stop.load()) return AudioStatus::Cancelled;
++  SherpaOnnxOnlineStreamInputFinished(stream_);
++  auto status = drain(stop, budget);
++  if (status != AudioStatus::Ok) return status;
++  using Result = std::unique_ptr<const SherpaOnnxOnlineRecognizerResult,
++      decltype(&SherpaOnnxDestroyOnlineRecognizerResult)>;
++  Result result(SherpaOnnxGetOnlineStreamResult(recognizer_, stream_),
++                SherpaOnnxDestroyOnlineRecognizerResult);
++  if (!result || !result->text) return AudioStatus::Invalid;
++  text = result->text;
++  return AudioStatus::Ok;
++}
++bool SpeechSession::endpoint() const noexcept {
++  return stream_ && SherpaOnnxOnlineStreamIsEndpoint(recognizer_, stream_);
++}
++} // namespace voicelink
+--- /dev/null
++++ b/tests/test_async.cpp
+@@ -0,0 +1,167 @@
++#include "voicelink/controller.hpp"
++#include <cstdlib>
++#include <iostream>
++#include <deque>
++#include <stdexcept>
++using namespace voicelink;
++namespace {
++int failures = 0, cases = 0;
++#define CHECK(x) do { if (!(x)) { ++failures; std::cerr << __LINE__ << ": " #x "\n"; } } while (0)
++struct Clock : ClockPort {
++  std::uint64_t now{};
++  std::uint64_t nowMs() const noexcept override { return now; }
++};
++struct Tts : TtsPort {
++  std::vector<std::string> lines;
++  bool fail{};
++  bool throw_speak{}, throw_stop{};
++  bool speak(const std::string& s) override {
++    if (throw_speak) throw std::runtime_error("synthetic TTS failure");
++    lines.push_back(s); return !fail;
++  }
++  void stop() override { if (throw_stop) throw std::runtime_error("synthetic stop failure"); }
++  bool contains(const std::string& s) const {
++    for (auto& line : lines) if (line.find(s) != std::string::npos) return true;
++    return false;
++  }
++};
++struct Wifi : WifiPort {
++  std::uint64_t id{}, cancelled{};
++  int begins{}, polls{};
++  bool throw_scan{}, scan_fail{}, open{}, many{};
++  ConnectStatus initial{ConnectStatus::CredentialsReceived};
++  std::deque<ConnectResult> events;
++  ScanResult scan() override {
++    if (throw_scan) throw std::runtime_error("synthetic scan failure");
++    if (scan_fail) return {IoStatus::FatalError, {}, -38};
++    ScanResult r{IoStatus::Ok, {{"TestNet", -10, !open}}, 0};
++    if (many) for (int i = 0; i < 10; ++i) r.access_points.push_back({"Extra" + std::to_string(i), -30-i, true});
++    return r;
++  }
++  ConnectResult beginConnect(const std::string&, const char* p, std::size_t n) noexcept override {
++    ++begins; ++id;
++    CHECK(open ? (p == nullptr && n == 0) : (p && n == 8));
++    // No credential storage in the mock. Synthetic IP is not hardware evidence.
++    return {initial, 0, id, initial == ConnectStatus::IpReady ? "192.0.2.7" : ""};
++  }
++  ConnectResult pollConnect(std::uint64_t req) noexcept override {
++    ++polls;
++    if (events.empty()) return {ConnectStatus::CredentialsReceived, 0, req, {}};
++    auto e = events.front(); events.pop_front(); return e;
++  }
++  void cancelConnect(std::uint64_t req) noexcept override { cancelled = req; }
++};
++struct Fixture {
++  Tts t; Wifi w; Clock clock; Controller c;
++  Fixture(Config config = {}) : c(t, w, clock, config) {}
++  void select() { c.start(); c.ingest("hello openvela"); c.ingest("网络一"); }
++  void submit() { for (int i = 0; i < 8; ++i) c.ingest("a"); c.ingest("完成"); }
++  void event(ConnectStatus s, const std::string& ip = "") {
++    w.events.push_back({s, 0, w.id, ip}); c.poll();
++  }
++};
++void receiptToSuccess() {
++  ++cases; Fixture f; f.select(); f.submit();
++  CHECK(f.c.context().state == State::CredentialsReceived);
++  CHECK(f.c.context().password.empty()); CHECK(!f.t.contains("已连接到"));
++  f.c.ingest("完成"); CHECK(f.w.begins == 1);
++  f.event(ConnectStatus::Connecting); CHECK(f.c.context().state == State::ConnectingWifi);
++  f.event(ConnectStatus::CredentialsReceived); CHECK(f.c.context().state == State::ConnectingWifi);
++  f.event(ConnectStatus::IpReady, "192.0.2.7"); CHECK(f.c.context().state == State::Completed);
++  CHECK(f.t.contains("已连接到")); CHECK(!f.t.contains("aaaaaaaa"));
++  f.c.poll(); CHECK(f.w.polls == 3); CHECK(f.w.cancelled == 0);
++}
++void failurePaths() {
++  for (auto status : {ConnectStatus::WrongPassword, ConnectStatus::Timeout,
++       ConnectStatus::NetworkNotFound, ConnectStatus::Failed, ConnectStatus::Busy,
++       ConnectStatus::Unsupported, ConnectStatus::Cancelled}) {
++    ++cases; Fixture f; f.select(); f.submit(); f.event(status);
++    CHECK(f.c.context().state == (status == ConnectStatus::Cancelled ? State::Idle : State::EnteringPassword));
++    CHECK(f.w.cancelled == 1); CHECK(f.c.context().password.empty());
++    CHECK(!f.t.contains("已连接到"));
++  }
++}
++void invalidIps() {
++  for (auto ip : {"", "0.0.0.0", "127.0.0.1", "169.254.1.2", "224.0.0.1", "255.255.255.255",
++                 "192.0.2", "192.0.2.999", "192.0.2.1junk", "192.0.2.1.2"}) {
++    ++cases; Fixture f; f.select(); f.submit(); f.event(ConnectStatus::IpReady, ip);
++    CHECK(f.c.context().state == State::EnteringPassword); CHECK(!f.t.contains("已连接到"));
++  }
++}
++void timeoutAndStale() {
++  ++cases; Fixture f; f.select(); f.submit();
++  f.w.events.push_back({ConnectStatus::IpReady, 0, 999, "192.0.2.7"}); f.c.poll();
++  CHECK(f.c.context().state == State::CredentialsReceived);
++  f.clock.now = 29999; f.c.poll(); CHECK(f.w.cancelled == 0);
++  f.w.events.push_back({ConnectStatus::IpReady, 0, 1, "192.0.2.7"});
++  f.clock.now = 30000; f.c.poll(); CHECK(f.w.cancelled == 1);
++  CHECK(f.t.contains("连接超时")); CHECK(!f.t.contains("已连接到"));
++  f.submit(); CHECK(f.w.id == 2); f.c.poll(); // previous success cannot complete retry
++  CHECK(f.c.context().state == State::CredentialsReceived);
++  f.event(ConnectStatus::IpReady, "192.0.2.8"); CHECK(f.c.context().state == State::Completed);
++}
++void cleanup() {
++  for (int action = 0; action < 6; ++action) {
++    ++cases; Fixture f; f.select(); f.submit();
++    switch (action) {
++      case 0: f.c.ingest("取消"); break;
++      case 1: f.c.resetToWake(); break;
++      case 2: CHECK(!f.c.handleInputStatus(IoStatus::EndOfInput)); break;
++      case 3: CHECK(!f.c.handleInputStatus(IoStatus::FatalError)); break;
++      case 4: f.t.fail = true; f.event(ConnectStatus::Connecting); break;
++      case 5: f.t.fail = true; CHECK(!f.c.handleInputStatus(IoStatus::RetryableError)); break;
++    }
++    CHECK(f.w.cancelled == 1); CHECK(f.c.context().password.empty());
++    auto n = f.w.polls; f.c.poll(); CHECK(f.w.polls == n);
++  }
++  ++cases; Tts t; Wifi w; Clock clock;
++  { Controller c(t, w, clock); c.start(); c.ingest("openvela"); c.ingest("网络一");
++    for (int i = 0; i < 8; ++i) { c.ingest("a"); }
++    c.ingest("完成"); }
++  CHECK(w.cancelled == 1);
++}
++void otherPaths() {
++  ++cases; Fixture f; f.w.open = true; f.w.initial = ConnectStatus::Unsupported; f.select();
++  CHECK(f.c.context().state == State::WaitingNetworkChoice); CHECK(f.t.contains("暂不支持"));
++  ++cases; Fixture busy; busy.w.initial = ConnectStatus::Busy; busy.select(); busy.submit();
++  CHECK(busy.t.contains("网络服务忙")); CHECK(!busy.t.contains("已连接到"));
++  ++cases; Fixture immediate; immediate.w.initial = ConnectStatus::IpReady; immediate.select(); immediate.submit();
++  CHECK(immediate.c.context().state == State::Completed);
++  for (bool throwing : {false, true}) {
++    ++cases; Fixture bad; bad.w.scan_fail = !throwing; bad.w.throw_scan = throwing; bad.select();
++    CHECK(bad.c.context().state == State::Error); CHECK(!bad.t.contains("没有发现网络"));
++  }
++  ++cases; Config cfg; cfg.max_networks = 20; Fixture many(cfg); many.w.many = true; many.select();
++  CHECK(many.c.context().candidates.size() == 5);
++  ++cases; Fixture pw; pw.select(); pw.c.ingest("切换大写"); pw.c.ingest("a");
++  CHECK(pw.c.context().password[0] == 'A'); pw.c.ingest("删除"); CHECK(pw.c.context().password.empty());
++  pw.c.ingest("b"); pw.c.ingest("清空"); pw.c.ingest("a"); CHECK(pw.c.context().password[0] == 'a');
++  pw.t.fail = true; pw.c.ingest("b"); CHECK(pw.c.context().password.empty());
++  CHECK(pw.c.context().state == State::Error);
++}
++void ttsExceptions() {
++  for (int stage = 0; stage < 4; ++stage) {
++    for (bool on_stop : {false, true}) {
++      ++cases; Fixture f;
++      if (stage >= 1) f.select();
++      if (stage == 1) f.c.ingest("a");
++      if (stage >= 2) f.submit();
++      f.t.throw_stop = on_stop; f.t.throw_speak = !on_stop;
++      if (stage == 0) f.c.ingest("openvela");
++      if (stage == 1) f.c.ingest("b");
++      if (stage == 2) f.event(ConnectStatus::Connecting);
++      if (stage == 3) f.c.cancel();
++      CHECK(f.c.context().state == State::Error);
++      CHECK(f.c.context().password.empty());
++      if (stage >= 2) CHECK(f.w.cancelled == 1);
++    }
++  }
++  ++cases; Fixture f; f.select(); f.submit(); f.t.throw_stop = true;
++  f.c.resetToWake(); CHECK(f.c.context().state == State::Error); CHECK(f.w.cancelled == 1);
++}
++}
++int main() {
++  receiptToSuccess(); failurePaths(); invalidIps(); timeoutAndStale(); cleanup(); otherPaths(); ttsExceptions();
++  std::cout << "async cases=" << cases << " failures=" << ::failures << "\n";
++  return ::failures ? EXIT_FAILURE : EXIT_SUCCESS;
++}
+--- /dev/null
++++ b/tests/test_audio.cpp
+@@ -0,0 +1,152 @@
++#include "voicelink/audio.hpp"
++#include <algorithm>
++#include <cmath>
++#include <cstdlib>
++#include <iostream>
++#include <limits>
++#include <vector>
++using namespace voicelink;
++namespace {
++int failures{}, cases{};
++#define CHECK(x) do { if (!(x)) { ++failures; std::cerr << __LINE__ << ": " #x "\n"; } } while (0)
++int tts_live{}, recognizer_live{}, stream_live{}, audio_live{}, result_live{};
++int ready{}, decodes{}, finishes{};
++bool fail_tts{}, fail_recognizer{}, fail_stream{}, fail_result{}, stuck{};
++int audio_mode{}; // 1=null, 2=missing samples, 3=zero, 4=negative, 5=bad rate
++std::vector<float> accepted;
++float generated[] = {-1, -0.5f, 0, 0.5f, 1};
++}
++// Fake implementations compile against the unmodified official C header.
++// They exercise API use/ownership; no real model inference or ORT linking.
++struct SherpaOnnxOfflineTts {};
++struct SherpaOnnxOnlineRecognizer {};
++struct SherpaOnnxOnlineStream {};
++extern "C" {
++const SherpaOnnxOfflineTts* SherpaOnnxCreateOfflineTts(const SherpaOnnxOfflineTtsConfig*) {
++  if (fail_tts) return nullptr;
++  ++tts_live; return new SherpaOnnxOfflineTts;
++}
++void SherpaOnnxDestroyOfflineTts(const SherpaOnnxOfflineTts* p) { if (p) { --tts_live; delete p; } }
++const SherpaOnnxOnlineRecognizer* SherpaOnnxCreateOnlineRecognizer(const SherpaOnnxOnlineRecognizerConfig*) {
++  if (fail_recognizer) return nullptr;
++  ++recognizer_live; return new SherpaOnnxOnlineRecognizer;
++}
++void SherpaOnnxDestroyOnlineRecognizer(const SherpaOnnxOnlineRecognizer* p) { if (p) { CHECK(stream_live == 0); --recognizer_live; delete p; } }
++const SherpaOnnxOnlineStream* SherpaOnnxCreateOnlineStream(const SherpaOnnxOnlineRecognizer*) {
++  if (fail_stream) return nullptr;
++  ++stream_live; ready = 0; return new SherpaOnnxOnlineStream;
++}
++void SherpaOnnxDestroyOnlineStream(const SherpaOnnxOnlineStream* p) { if (p) { --stream_live; delete p; } }
++const SherpaOnnxGeneratedAudio* SherpaOnnxOfflineTtsGenerate(const SherpaOnnxOfflineTts*, const char*, int32_t, float) {
++  if (audio_mode == 1) return nullptr;
++  ++audio_live;
++  return new SherpaOnnxGeneratedAudio{audio_mode == 2 ? nullptr : generated,
++      audio_mode == 3 ? 0 : (audio_mode == 4 ? -1 : 5), audio_mode == 5 ? 0 : 22050};
++}
++void SherpaOnnxDestroyOfflineTtsGeneratedAudio(const SherpaOnnxGeneratedAudio* p) { if (p) { --audio_live; delete p; } }
++void SherpaOnnxOnlineStreamAcceptWaveform(const SherpaOnnxOnlineStream*, int32_t rate, const float* p, int32_t n) {
++  CHECK(rate == 16000); accepted.assign(p, p + n); ready += 3;
++}
++int32_t SherpaOnnxIsOnlineStreamReady(const SherpaOnnxOnlineRecognizer*, const SherpaOnnxOnlineStream*) { return stuck || ready > 0; }
++void SherpaOnnxDecodeOnlineStream(const SherpaOnnxOnlineRecognizer*, const SherpaOnnxOnlineStream*) { CHECK(ready > 0 || stuck); ++decodes; if (ready) --ready; }
++void SherpaOnnxOnlineStreamInputFinished(const SherpaOnnxOnlineStream*) { ++finishes; ready += 2; }
++int32_t SherpaOnnxOnlineStreamIsEndpoint(const SherpaOnnxOnlineRecognizer*, const SherpaOnnxOnlineStream*) { CHECK(ready == 0); return 1; }
++const SherpaOnnxOnlineRecognizerResult* SherpaOnnxGetOnlineStreamResult(const SherpaOnnxOnlineRecognizer*, const SherpaOnnxOnlineStream*) {
++  CHECK(ready == 0);
++  if (fail_result) return nullptr;
++  ++result_live; auto r = new SherpaOnnxOnlineRecognizerResult{}; r->text = "synthetic recognition"; return r;
++}
++void SherpaOnnxDestroyOnlineRecognizerResult(const SherpaOnnxOnlineRecognizerResult* p) { if (p) { --result_live; delete p; } }
++}
++namespace {
++struct Sink : PcmSink {
++  std::vector<std::uint8_t> bytes;
++  int rate{}, ends{}, writes{};
++  std::ptrdiff_t limit{3};
++  bool fail_begin{}, oversize{};
++  std::atomic_bool* stop{};
++  bool begin(int r) noexcept override { rate = r; return !fail_begin; }
++  std::ptrdiff_t write(const std::uint8_t* p, std::size_t n) noexcept override {
++    ++writes;
++    if (oversize) return static_cast<std::ptrdiff_t>(n) + 1;
++    if (limit <= 0) return limit;
++    auto count = std::min(n, static_cast<std::size_t>(limit)); bytes.insert(bytes.end(), p, p + count);
++    if (stop) stop->store(true);
++    return static_cast<std::ptrdiff_t>(count);
++  }
++  void end() noexcept override { ++ends; }
++};
++void conversion() {
++  ++cases;
++  CHECK(floatToPcm16(-1) == -32768); CHECK(floatToPcm16(1) == 32767);
++  CHECK(floatToPcm16(-0.5f) == -16384); CHECK(floatToPcm16(0.5f) == 16384);
++  CHECK(floatToPcm16(0) == 0); CHECK(floatToPcm16(99) == 32767);
++  CHECK(floatToPcm16(-99) == -32768); CHECK(floatToPcm16(std::numeric_limits<float>::quiet_NaN()) == 0);
++  CHECK(floatToPcm16(std::numeric_limits<float>::infinity()) == 32767);
++  CHECK(floatToPcm16(-std::numeric_limits<float>::infinity()) == -32768);
++  CHECK(floatToPcm16(0.5f / 32768) == 1); CHECK(floatToPcm16(-0.5f / 32768) == -1);
++  for (int i = -32768; i <= 32767; ++i) CHECK(floatToPcm16(pcm16ToFloat(static_cast<std::int16_t>(i))) == i);
++}
++void playback() {
++  SpeechSession s; CHECK(s.init({}, {})); std::atomic_bool stop{false};
++  ++cases; Sink good; CHECK(s.speak("test", good, stop) == AudioStatus::Ok);
++  CHECK(good.rate == 22050); CHECK(good.ends == 1); CHECK(good.writes == 4);
++  CHECK(good.bytes == std::vector<std::uint8_t>({0,128,0,192,0,0,0,64,255,127})); CHECK(audio_live == 0);
++  for (int mode = 1; mode <= 5; ++mode) {
++    ++cases; audio_mode = mode; Sink sink; CHECK(s.speak("test", sink, stop) == AudioStatus::Invalid);
++    CHECK(audio_live == 0); CHECK(sink.ends == 0);
++  }
++  audio_mode = 0;
++  for (int limit : {0, -1}) {
++    ++cases; Sink sink; sink.limit = limit; CHECK(s.speak("test", sink, stop) == AudioStatus::IoError);
++    CHECK(sink.ends == 1); CHECK(sink.writes == 1); CHECK(audio_live == 0);
++  }
++  ++cases; Sink large; large.oversize = true; CHECK(s.speak("test", large, stop) == AudioStatus::IoError); CHECK(large.ends == 1);
++  ++cases; Sink fail; fail.fail_begin = true; CHECK(s.speak("test", fail, stop) == AudioStatus::IoError);
++  CHECK(fail.ends == 0); CHECK(audio_live == 0);
++  ++cases; Sink cancel; cancel.stop = &stop; CHECK(s.speak("test", cancel, stop) == AudioStatus::Cancelled);
++  CHECK(cancel.ends == 1); CHECK(audio_live == 0);
++  ++cases; Sink pre; CHECK(s.speak("test", pre, stop) == AudioStatus::Cancelled); CHECK(pre.rate == 0);
++}
++void streaming() {
++  SpeechSession s; CHECK(s.init({}, {})); CHECK(s.beginStream()); std::atomic_bool stop{false};
++  std::int16_t samples[] = {-32768, 0, 32767};
++  ++cases; decodes = 0; CHECK(s.feed(samples, 3, 16000, stop) == AudioStatus::Ok);
++  CHECK(decodes == 3); CHECK(accepted[0] == -1); CHECK(accepted[1] == 0); CHECK(accepted[2] < 1);
++  CHECK(s.endpoint()); std::string text; CHECK(s.finish(text, stop) == AudioStatus::Ok);
++  CHECK(decodes == 5); CHECK(text == "synthetic recognition"); CHECK(result_live == 0); CHECK(stream_live == 0);
++  CHECK(s.feed(samples, 3, 16000, stop) == AudioStatus::Invalid);
++  CHECK(s.finish(text, stop) == AudioStatus::Invalid);
++  ++cases; CHECK(s.beginStream()); fail_result = true; CHECK(s.finish(text, stop) == AudioStatus::Invalid);
++  CHECK(stream_live == 0); fail_result = false;
++  ++cases; CHECK(s.beginStream()); CHECK(s.feed(nullptr, 1, 16000, stop) == AudioStatus::Invalid);
++  CHECK(stream_live == 0); CHECK(s.beginStream());
++  CHECK(s.feed(samples, 513, 16000, stop) == AudioStatus::Invalid);
++  CHECK(stream_live == 0); CHECK(s.beginStream());
++  CHECK(s.feed(samples, 3, 0, stop) == AudioStatus::Invalid);
++  CHECK(stream_live == 0); CHECK(s.beginStream());
++  CHECK(s.feed(nullptr, 0, 16000, stop) == AudioStatus::Ok);
++  ++cases; stuck = true; decodes = 0; CHECK(s.feed(samples, 3, 16000, stop, 4) == AudioStatus::DecodeLimit);
++  CHECK(decodes == 4); CHECK(stream_live == 0);
++  CHECK(s.finish(text, stop, 2) == AudioStatus::Invalid);
++  CHECK(s.beginStream()); CHECK(s.finish(text, stop, 2) == AudioStatus::DecodeLimit); CHECK(stream_live == 0); stuck = false;
++  ++cases; CHECK(s.beginStream()); stop = true; CHECK(s.feed(samples, 3, 16000, stop) == AudioStatus::Cancelled);
++  CHECK(stream_live == 0); CHECK(s.finish(text, stop) == AudioStatus::Invalid);
++  CHECK(s.beginStream()); CHECK(s.finish(text, stop) == AudioStatus::Cancelled); CHECK(stream_live == 0);
++  ++cases; stop = false; CHECK(s.beginStream()); CHECK(s.beginStream()); CHECK(stream_live == 1);
++  s.close(); s.close(); CHECK(stream_live == 0); CHECK(tts_live == 0); CHECK(recognizer_live == 0);
++}
++void initialization() {
++  ++cases; SpeechSession s; fail_tts = true; CHECK(!s.init({}, {})); CHECK(tts_live == 0); fail_tts = false;
++  ++cases; fail_recognizer = true; CHECK(!s.init({}, {})); CHECK(tts_live == 0); fail_recognizer = false;
++  ++cases; CHECK(s.init({}, {})); fail_stream = true; CHECK(!s.beginStream()); CHECK(stream_live == 0); fail_stream = false;
++  ++cases; CHECK(s.init({}, {})); CHECK(tts_live == 1); CHECK(recognizer_live == 1); CHECK(s.beginStream());
++  // Destructor must release stream before recognizer, then TTS.
++}
++}
++int main() {
++  conversion(); playback(); streaming(); initialization();
++  CHECK(tts_live == 0 && recognizer_live == 0 && stream_live == 0 && audio_live == 0 && result_live == 0);
++  std::cout << "audio cases=" << cases << " failures=" << failures << "\n";
++  return failures ? EXIT_FAILURE : EXIT_SUCCESS;
++}

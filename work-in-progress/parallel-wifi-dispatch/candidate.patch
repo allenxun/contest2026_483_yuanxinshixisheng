@@ -1,0 +1,376 @@
+--- /dev/null
++++ b/include/wifi_dispatch.h
+@@ -0,0 +1,60 @@
++#ifndef WIFI_DISPATCH_H
++#define WIFI_DISPATCH_H
++#include "wifi_broker.h"
++#include <stdbool.h>
++#define WD_REQUESTS 8u
++#define WD_EVENTS 16u
++#define WD_RESULTS 16u
++enum wd_rc { WD_OK,WD_FULL,WD_INVALID,WD_UNKNOWN,WD_FORBIDDEN,WD_BUSY,WD_EXHAUSTED };
++enum wd_phase { WD_QUEUED,WD_BROKER };
++enum wd_event_kind { WD_PROGRESS,WD_COMPLETION };
++struct wd_view { uint64_t ticket;enum wd_phase phase;enum wb_status status;bool held;uint8_t ip[4]; };
++struct wd_event { enum wd_event_kind kind;struct wb_done done; };
++struct wd_port {
++ void *ctx;
++ void (*lock)(void *);void (*unlock)(void *);
++ uint64_t (*now_ms)(void *); /* thread-safe, monotonic, nonblocking */
++ /* Outside queue lock, nonblocking. Copy job before return=0; nonzero MUST
++  * prove no worker or link was started. Backend clears its own copy.
++  * Stop return=0 only acknowledges receipt; it is NOT a quiescence fence. */
++ int (*submit)(void *,const struct wb_job *);
++ int (*stop)(void *,uint64_t owner,uint64_t broker_id);
++};
++struct wd_command {uint64_t ticket,owner,submitted,timeout;struct wb_job credentials;};
++struct wd_slot {uint64_t owner;struct wd_view view;bool live,cancel,release;};
++struct wd_dispatch {
++ struct wd_port port;
++ /* Only pump touches broker/active/sequence/stop_sent outside queue lock. */
++ struct wb_broker broker;uint64_t active_ticket,sequence;bool stop_sent;
++ struct wd_command requests[WD_REQUESTS];unsigned rq_head,rq_count;
++ struct wd_event events[WD_EVENTS];unsigned ev_head,ev_count;
++ struct wd_slot slots[WD_RESULTS];uint64_t next_ticket;
++ bool pumping;
++ uint64_t request_full,event_full; /* queue lock protected */
++};
++/* Call before threads start. proven_offline requires supervisor proof that all
++ * legacy join/maintenance workers exited AND link offline. No takeover API. */
++int wd_init(struct wd_dispatch *,const struct wd_port *,bool proven_offline);
++/* Trusted entry points: never accept owner IDs from BLE JSON or speech text.
++ * On WD_OK credentials are copied; caller must wipe its own input afterwards.
++ * All valid-context attempts consume a unique ticket, including rejection.
++ * Rejections are returned inline, not retained in query history. Only exhausted
++ * IDs / invalid API pointers produce ticket 0. No alias to another request. */
++enum wd_rc wd_ble_begin(struct wd_dispatch *,const char *,size_t,const char *,size_t,uint64_t,uint64_t *);
++enum wd_rc wd_voice_begin(struct wd_dispatch *,const char *,size_t,const char *,size_t,uint64_t,uint64_t *);
++enum wd_rc wd_ble_poll(struct wd_dispatch *,uint64_t,struct wd_view *);
++enum wd_rc wd_voice_poll(struct wd_dispatch *,uint64_t,struct wd_view *);
++enum wd_rc wd_ble_cancel(struct wd_dispatch *,uint64_t);
++enum wd_rc wd_voice_cancel(struct wd_dispatch *,uint64_t);
++enum wd_rc wd_ble_release(struct wd_dispatch *,uint64_t);
++enum wd_rc wd_voice_release(struct wd_dispatch *,uint64_t);
++/* Trusted backend publisher, strictly increasing per-job sequence. On FULL
++ * retain/retry the exact completion until accepted; never lose an exit fence.
++ * PROGRESS never calls wb_complete or promotes status to IP_READY.
++ * COMPLETION carries a complete authoritative snapshot, not accumulated bits.
++ */
++enum wd_rc wd_post(struct wd_dispatch *,const struct wd_event *);
++/* One owner invocation processes at most one request and one event. Overlap
++ * or callback reentry returns BUSY. Does not wait for worker or network. */
++enum wd_rc wd_pump(struct wd_dispatch *);
++#endif
+--- /dev/null
++++ b/src/wifi_dispatch.c
+@@ -0,0 +1,132 @@
++#include "wifi_dispatch.h"
++#include <string.h>
++#define BLE_OWNER UINT64_C(1)
++#define VOICE_OWNER UINT64_C(2)
++static void lock(struct wd_dispatch *d){d->port.lock(d->port.ctx);}
++static void unlock(struct wd_dispatch *d){d->port.unlock(d->port.ctx);}
++static void wipe(void *p,size_t n){volatile unsigned char *b=p;while(n--)*b++=0;}
++static struct wd_slot *find(struct wd_dispatch *d,uint64_t id){
++ unsigned i;for(i=0;i<WD_RESULTS;i++)if(id && d->slots[i].view.ticket==id)return &d->slots[i];return NULL;
++}
++int wd_init(struct wd_dispatch *d,const struct wd_port *p,bool offline){
++ if(!d || !p || !p->lock || !p->unlock || !p->now_ms || !p->submit || !p->stop)return -1;
++ memset(d,0,sizeof(*d));d->port=*p;d->next_ticket=1;wb_init(&d->broker,p->now_ms(p->ctx),offline);return 0;
++}
++static enum wd_rc begin(struct wd_dispatch *d,uint64_t owner,const char *ssid,size_t slen,
++                       const char *password,size_t plen,uint64_t timeout,uint64_t *id){
++ struct wd_slot *slot=NULL;struct wd_command *cmd;unsigned i;uint64_t submitted;
++ if(!id)return WD_INVALID;
++ *id=0;if(!d)return WD_INVALID;
++ submitted=d->port.now_ms(d->port.ctx);lock(d);
++ if(!d->next_ticket){unlock(d);return WD_EXHAUSTED;}
++ *id=d->next_ticket;d->next_ticket=d->next_ticket==UINT64_MAX?0:d->next_ticket+1;
++ if(!ssid || !slen || slen>32 || !password || plen<8 || plen>63 ||
++    !timeout || memchr(password,0,plen)){unlock(d);return WD_INVALID;}
++ if(d->rq_count==WD_REQUESTS){++d->request_full;unlock(d);return WD_FULL;}
++ for(i=0;i<WD_RESULTS;i++)if(!d->slots[i].live &&
++   (!slot || d->slots[i].view.ticket<slot->view.ticket))slot=&d->slots[i];
++ if(!slot){++d->request_full;unlock(d);return WD_FULL;}
++ memset(slot,0,sizeof(*slot));slot->owner=owner;slot->live=true;
++ slot->view.ticket=*id;
++ slot->view.phase=WD_QUEUED;slot->view.status=WB_RECEIVED;slot->view.held=true;
++ cmd=&d->requests[(d->rq_head+d->rq_count)%WD_REQUESTS];memset(cmd,0,sizeof(*cmd));
++ cmd->ticket=slot->view.ticket;cmd->owner=owner;cmd->submitted=submitted;cmd->timeout=timeout;
++ cmd->credentials.ssid_len=slen;cmd->credentials.password_len=plen;
++ memcpy(cmd->credentials.ssid,ssid,slen);memcpy(cmd->credentials.password,password,plen);
++ ++d->rq_count;*id=slot->view.ticket;unlock(d);return WD_OK;
++}
++enum wd_rc wd_ble_begin(struct wd_dispatch *d,const char *s,size_t n,const char *p,size_t m,uint64_t t,uint64_t *id){return begin(d,BLE_OWNER,s,n,p,m,t,id);}
++enum wd_rc wd_voice_begin(struct wd_dispatch *d,const char *s,size_t n,const char *p,size_t m,uint64_t t,uint64_t *id){return begin(d,VOICE_OWNER,s,n,p,m,t,id);}
++static enum wd_rc poll(struct wd_dispatch *d,uint64_t owner,uint64_t id,struct wd_view *out){
++ struct wd_slot *s;if(!d || !out)return WD_INVALID;lock(d);s=find(d,id);
++ if(!s){unlock(d);return WD_UNKNOWN;}if(s->owner!=owner){unlock(d);return WD_FORBIDDEN;}
++ *out=s->view;unlock(d);return WD_OK;
++}
++enum wd_rc wd_ble_poll(struct wd_dispatch *d,uint64_t id,struct wd_view *v){return poll(d,BLE_OWNER,id,v);}
++enum wd_rc wd_voice_poll(struct wd_dispatch *d,uint64_t id,struct wd_view *v){return poll(d,VOICE_OWNER,id,v);}
++static enum wd_rc flag(struct wd_dispatch *d,uint64_t owner,uint64_t id,bool release){
++ struct wd_slot *s;unsigned i;if(!d)return WD_INVALID;lock(d);s=find(d,id);
++ if(!s){unlock(d);return WD_UNKNOWN;}if(s->owner!=owner){unlock(d);return WD_FORBIDDEN;}
++ if(release)s->release=true;else s->cancel=true;
++ /* Queue cancellation never needs a free command slot. Wipe credentials still
++  * owned by the queue; an already dequeued job belongs to the owner/worker. */
++ if(!release)for(i=0;i<d->rq_count;i++){
++  struct wd_command *c=&d->requests[(d->rq_head+i)%WD_REQUESTS];
++  if(c->ticket==id)wb_job_clear(&c->credentials);
++ }
++ unlock(d);return WD_OK;
++}
++enum wd_rc wd_ble_cancel(struct wd_dispatch *d,uint64_t id){return flag(d,BLE_OWNER,id,false);}
++enum wd_rc wd_voice_cancel(struct wd_dispatch *d,uint64_t id){return flag(d,VOICE_OWNER,id,false);}
++enum wd_rc wd_ble_release(struct wd_dispatch *d,uint64_t id){return flag(d,BLE_OWNER,id,true);}
++enum wd_rc wd_voice_release(struct wd_dispatch *d,uint64_t id){return flag(d,VOICE_OWNER,id,true);}
++enum wd_rc wd_post(struct wd_dispatch *d,const struct wd_event *e){
++ if(!d || !e || (e->kind!=WD_PROGRESS && e->kind!=WD_COMPLETION) ||
++    !e->done.owner || !e->done.id || !e->done.sequence)return WD_INVALID;
++ lock(d);if(d->ev_count==WD_EVENTS){++d->event_full;unlock(d);return WD_FULL;}
++ d->events[(d->ev_head+d->ev_count)%WD_EVENTS]=*e;++d->ev_count;unlock(d);return WD_OK;
++}
++static void publish(struct wd_dispatch *d,uint64_t ticket,struct wb_result r,bool held){
++ struct wd_slot *s;lock(d);s=find(d,ticket);
++ if(s){s->view.phase=WD_BROKER;s->view.status=r.status;s->view.held=held;
++  memcpy(s->view.ip,r.ip,4);s->live=held;}
++ unlock(d);
++}
++static bool cancelled(struct wd_dispatch *d,uint64_t ticket,bool *release){
++ struct wd_slot *s;bool cancel=false;*release=false;lock(d);s=find(d,ticket);
++ if(s){cancel=s->cancel;*release=s->release;}unlock(d);return cancel;
++}
++enum wd_rc wd_pump(struct wd_dispatch *d){
++ struct wd_command cmd;struct wd_event event;struct wb_job job;
++ bool have_cmd=false,have_event=false,release=false;uint64_t now,old_id=0,old_owner=0;
++ if(!d)return WD_INVALID;
++ memset(&cmd,0,sizeof(cmd));memset(&event,0,sizeof(event));memset(&job,0,sizeof(job));
++ lock(d);if(d->pumping){unlock(d);return WD_BUSY;}d->pumping=true;
++ if(d->rq_count){cmd=d->requests[d->rq_head];wipe(&d->requests[d->rq_head],sizeof(cmd));
++  d->rq_head=(d->rq_head+1)%WD_REQUESTS;--d->rq_count;have_cmd=true;}
++ if(d->ev_count){event=d->events[d->ev_head];memset(&d->events[d->ev_head],0,sizeof(event));
++  d->ev_head=(d->ev_head+1)%WD_EVENTS;--d->ev_count;have_event=true;}
++ unlock(d);
++ now=d->port.now_ms(d->port.ctx);wb_tick(&d->broker,now);
++ if(d->active_ticket){
++  old_id=d->broker.active.id;old_owner=d->broker.active.owner;
++  if(cancelled(d,d->active_ticket,&release))wb_cancel(&d->broker,old_owner,old_id,now);
++  if(release)wb_release(&d->broker,old_owner,old_id,now);
++ }
++ if(have_event && event.done.owner==d->broker.active.owner && event.done.id==d->broker.active.id &&
++    event.done.sequence>d->sequence){
++  d->sequence=event.done.sequence;
++  if(event.kind==WD_COMPLETION)wb_complete(&d->broker,&event.done,now);
++ }
++ if(d->active_ticket){
++  const bool held=d->broker.radio!=WB_FREE;
++  publish(d,d->active_ticket,wb_poll(&d->broker,old_owner,old_id),held);
++  if(!held){d->active_ticket=0;d->stop_sent=false;}
++ }
++ if(have_cmd){
++  struct wb_result r;memset(&r,0,sizeof(r));r.owner=cmd.owner;
++  if(cancelled(d,cmd.ticket,&release))r.status=WB_CANCELLED;
++  else if(now<cmd.submitted)r.status=WB_CLOCK_ERROR;
++  else if(now-cmd.submitted>=cmd.timeout)r.status=WB_TIMEOUT;
++  else r=wb_begin(&d->broker,cmd.owner,cmd.credentials.ssid,cmd.credentials.ssid_len,
++                  cmd.credentials.password,cmd.credentials.password_len,now,cmd.timeout-(now-cmd.submitted));
++  wb_job_clear(&cmd.credentials);
++  if(r.status==WB_RECEIVED){
++   d->active_ticket=cmd.ticket;d->sequence=0;d->stop_sent=false;
++   if(wb_take_job(&d->broker,&job,now)){
++    int rc=d->port.submit(d->port.ctx,&job);
++    if(rc){struct wb_done failed;memset(&failed,0,sizeof(failed));
++     failed.owner=job.owner;failed.id=job.id;failed.sequence=1;failed.worker_exited=1;
++     wb_complete(&d->broker,&failed,d->port.now_ms(d->port.ctx));}
++    wb_job_clear(&job);
++   }
++   r=wb_poll(&d->broker,cmd.owner,r.id);
++   publish(d,cmd.ticket,r,d->broker.radio!=WB_FREE);
++   if(d->broker.radio==WB_FREE)d->active_ticket=0;
++  }else publish(d,cmd.ticket,r,false);
++ }
++ if(d->broker.radio==WB_DRAINING && !d->stop_sent)
++  d->stop_sent=d->port.stop(d->port.ctx,d->broker.active.owner,d->broker.active.id)==0;
++ wipe(&cmd,sizeof(cmd));wb_job_clear(&job);
++ lock(d);d->pumping=false;unlock(d);return WD_OK;
++}
+--- /dev/null
++++ b/tests/test_dispatch.c
+@@ -0,0 +1,161 @@
++#include "wifi_dispatch.h"
++#include <pthread.h>
++#include <stdatomic.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++static atomic_uint checks;
++#define CHECK(x) do {atomic_fetch_add(&checks,1);if(!(x)){fprintf(stderr,"check_failed_line=%d\n",__LINE__);abort();}}while(0)
++static const char secret[]="!WD.secret#123";
++struct fixture {
++ pthread_mutex_t queue,backend;
++ atomic_uint_fast64_t clock;
++ struct wd_dispatch d;struct wb_job job;
++ unsigned submits,stops;bool reject;
++};
++static void lock(void *p){CHECK(pthread_mutex_lock(&((struct fixture *)p)->queue)==0);}
++static void unlock(void *p){CHECK(pthread_mutex_unlock(&((struct fixture *)p)->queue)==0);}
++static uint64_t now(void *p){return atomic_load(&((struct fixture *)p)->clock);}
++static void outside_lock(struct fixture *f){CHECK(pthread_mutex_trylock(&f->queue)==0);CHECK(pthread_mutex_unlock(&f->queue)==0);}
++static int submit(void *p,const struct wb_job *job){
++ struct fixture *f=p;
++ /* During concurrent tests another producer can legitimately hold the mutex;
++  * reentrant queue API is the stronger deadlock test, performed every submit. */
++ struct wd_view v;CHECK(wd_ble_poll(&f->d,UINT64_MAX,&v)==WD_UNKNOWN);
++ CHECK(wd_pump(&f->d)==WD_BUSY);
++ CHECK(pthread_mutex_lock(&f->backend)==0);++f->submits;
++ CHECK(job->password_len==sizeof(secret)-1 && !memcmp(job->password,secret,sizeof(secret)-1));
++ if(!f->reject)f->job=*job;
++ CHECK(pthread_mutex_unlock(&f->backend)==0);return f->reject?-1:0;
++}
++static int stop(void *p,uint64_t owner,uint64_t id){
++ struct fixture *f=p;CHECK(owner && id);++f->stops;
++ struct wd_view v;CHECK(wd_voice_poll(&f->d,UINT64_MAX,&v)==WD_UNKNOWN);return 0;
++}
++static void init(struct fixture *f,bool offline){
++ memset(f,0,sizeof(*f));CHECK(pthread_mutex_init(&f->queue,NULL)==0);CHECK(pthread_mutex_init(&f->backend,NULL)==0);
++ atomic_init(&f->clock,1);struct wd_port port={f,lock,unlock,now,submit,stop};CHECK(wd_init(&f->d,&port,offline)==0);
++}
++static void end(struct fixture *f){wb_job_clear(&f->job);CHECK(pthread_mutex_destroy(&f->backend)==0);CHECK(pthread_mutex_destroy(&f->queue)==0);}
++static enum wd_rc begin(struct fixture *f,bool ble,uint64_t *id){return ble?
++ wd_ble_begin(&f->d,"mock",4,secret,sizeof(secret)-1,1000,id):wd_voice_begin(&f->d,"mock",4,secret,sizeof(secret)-1,1000,id);}
++static struct wd_view view(struct fixture *f,bool ble,uint64_t id){struct wd_view v;CHECK((ble?wd_ble_poll(&f->d,id,&v):wd_voice_poll(&f->d,id,&v))==WD_OK);return v;}
++static void pump(struct fixture *f){CHECK(wd_pump(&f->d)==WD_OK);}
++static struct wd_event event(struct fixture *f,uint64_t sequence,enum wd_event_kind kind,bool success,bool exit,bool online){
++ struct wd_event e;memset(&e,0,sizeof(e));e.kind=kind;e.done.owner=f->job.owner;e.done.id=f->job.id;
++ e.done.sequence=sequence;e.done.success=success;e.done.authenticated=success;e.done.dhcp=success;e.done.worker_exited=exit;e.done.link_up=online;
++ e.done.ip[0]=192;e.done.ip[1]=0;e.done.ip[2]=2;e.done.ip[3]=1;return e;
++}
++static void post(struct fixture *f,struct wd_event e){CHECK(wd_post(&f->d,&e)==WD_OK);pump(f);}
++static void clean(struct fixture *f,uint64_t seq){struct wd_event e=event(f,seq,WD_COMPLETION,false,true,false);wb_job_clear(&f->job);post(f,e);}
++struct caller {struct fixture *f;pthread_barrier_t *barrier;bool ble;unsigned rounds;uint64_t id;enum wd_rc rc;};
++static void barrier(pthread_barrier_t *b){int rc=pthread_barrier_wait(b);CHECK(rc==0 || rc==PTHREAD_BARRIER_SERIAL_THREAD);}
++static void *client(void *p){struct caller *c=p;for(unsigned i=0;i<c->rounds;i++){
++ barrier(c->barrier);c->rc=begin(c->f,c->ble,&c->id);barrier(c->barrier);
++ /* Actual clients read concurrently with owner processing and each other. */
++ for(unsigned j=0;j<8;j++){struct wd_view v;CHECK((c->ble?wd_ble_poll(&c->f->d,c->id,&v):wd_voice_poll(&c->f->d,c->id,&v))==WD_OK);}
++ barrier(c->barrier);
++ }return NULL;}
++struct publisher {struct fixture *f;struct wd_event *events;unsigned count;};
++static void *publish_thread(void *p){struct publisher *pub=p;for(unsigned i=0;i<pub->count;i++)CHECK(wd_post(&pub->f->d,&pub->events[i])==WD_OK);return NULL;}
++static void concurrent_rounds(void){
++ struct fixture f;pthread_barrier_t b;pthread_t threads[2];struct caller c[2];init(&f,true);
++ CHECK(pthread_barrier_init(&b,NULL,3)==0);
++ for(unsigned i=0;i<2;i++){c[i]=(struct caller){&f,&b,i==0,200,0,WD_UNKNOWN};CHECK(pthread_create(&threads[i],NULL,client,&c[i])==0);}
++ for(unsigned round=0;round<200;round++){
++  barrier(&b);barrier(&b);CHECK(c[0].rc==WD_OK && c[1].rc==WD_OK && c[0].id!=c[1].id);
++  pump(&f);pump(&f);barrier(&b);
++  struct wd_view a=view(&f,true,c[0].id),v=view(&f,false,c[1].id);
++  CHECK((a.status==WB_CONNECTING && v.status==WB_BUSY) || (v.status==WB_CONNECTING && a.status==WB_BUSY));
++  bool ble=a.status==WB_CONNECTING;uint64_t ticket=ble?c[0].id:c[1].id;
++  CHECK((ble?wd_voice_cancel(&f.d,ticket):wd_ble_cancel(&f.d,ticket))==WD_FORBIDDEN);
++  CHECK((ble?wd_ble_cancel(&f.d,ticket):wd_voice_cancel(&f.d,ticket))==WD_OK);pump(&f);
++  CHECK(view(&f,ble,ticket).status==WB_CANCELLED && view(&f,ble,ticket).held);
++  struct wd_event e[3]={event(&f,1,WD_PROGRESS,true,false,true),event(&f,2,WD_COMPLETION,true,true,true),event(&f,3,WD_COMPLETION,false,true,false)};
++  struct publisher pub={&f,e,3};pthread_t t;
++  /* Copy release event before worker-owned credential cleanup. */
++  wb_job_clear(&f.job);CHECK(pthread_create(&t,NULL,publish_thread,&pub)==0);
++  /* Pump concurrently with backend event publisher; no busy waiting on network. */
++  for(unsigned j=0;j<5;j++)pump(&f);
++  CHECK(pthread_join(t,NULL)==0);for(unsigned j=0;j<3;j++)pump(&f);
++  CHECK(view(&f,ble,ticket).status==WB_CANCELLED && !view(&f,ble,ticket).held);
++  CHECK(f.d.broker.radio==WB_FREE);
++ }
++ for(unsigned i=0;i<2;i++)CHECK(pthread_join(threads[i],NULL)==0);
++ CHECK(f.submits==200 && f.stops==200);CHECK(pthread_barrier_destroy(&b)==0);end(&f);
++}
++static bool has_secret(const void *ptr,size_t n){const unsigned char *b=ptr;for(size_t i=0;i+sizeof(secret)-1<=n;i++)if(!memcmp(b+i,secret,sizeof(secret)-1))return true;return false;}
++static void *burst_client(void *p){
++ struct caller *c=p;barrier(c->barrier);c->rc=begin(c->f,c->ble,&c->id);return NULL;
++}
++static void concurrent_full(void){
++ struct fixture f;pthread_barrier_t b;pthread_t t[12];struct caller c[12];unsigned accepted=0,full=0;
++ init(&f,true);CHECK(pthread_barrier_init(&b,NULL,13)==0);
++ for(unsigned i=0;i<12;i++){c[i]=(struct caller){&f,&b,i%2==0,1,0,WD_UNKNOWN};CHECK(pthread_create(&t[i],NULL,burst_client,&c[i])==0);}
++ barrier(&b);
++ for(unsigned i=0;i<12;i++){
++  CHECK(pthread_join(t[i],NULL)==0);CHECK(c[i].id!=0);
++  for(unsigned j=0;j<i;j++){CHECK(c[j].id!=c[i].id);}
++  if(c[i].rc==WD_OK){++accepted;CHECK((c[i].ble?wd_ble_cancel(&f.d,c[i].id):wd_voice_cancel(&f.d,c[i].id))==WD_OK);}
++  else {CHECK(c[i].rc==WD_FULL);++full;}
++ }
++ CHECK(accepted==WD_REQUESTS && full==4);
++ for(unsigned i=0;i<WD_REQUESTS;i++){pump(&f);}
++ CHECK(f.submits==0 && !has_secret(&f.d,sizeof(f.d)));
++ CHECK(pthread_barrier_destroy(&b)==0);end(&f);
++}
++static void targeted(void){
++ struct fixture f;uint64_t id,retry;init(&f,true);CHECK(begin(&f,true,&id)==WD_OK);pump(&f);
++ outside_lock(&f);CHECK(!has_secret(&f.d,sizeof(f.d)));CHECK(has_secret(&f.job,sizeof(f.job)));
++ post(&f,event(&f,1,WD_PROGRESS,true,false,true));CHECK(view(&f,true,id).status==WB_CONNECTING);
++ post(&f,event(&f,2,WD_COMPLETION,true,true,true));CHECK(view(&f,true,id).status==WB_IP_READY);
++ CHECK(wd_ble_cancel(&f.d,id)==WD_OK);pump(&f);CHECK(view(&f,true,id).status==WB_IP_READY);
++ CHECK(wd_voice_release(&f.d,id)==WD_FORBIDDEN);CHECK(wd_ble_release(&f.d,id)==WD_OK);pump(&f);
++ CHECK(begin(&f,false,&retry)==WD_OK);pump(&f);CHECK(view(&f,false,retry).status==WB_BUSY);
++ post(&f,event(&f,3,WD_COMPLETION,false,false,false));CHECK(view(&f,true,id).held);
++ post(&f,event(&f,4,WD_COMPLETION,true,true,true));CHECK(view(&f,true,id).held);
++ struct wd_event stale=event(&f,100,WD_COMPLETION,true,true,true);clean(&f,5);
++ CHECK(!view(&f,true,id).held && !has_secret(&f.d,sizeof(f.d)));
++ CHECK(begin(&f,false,&retry)==WD_OK);pump(&f);post(&f,stale);CHECK(view(&f,false,retry).status==WB_CONNECTING);
++ CHECK(wd_voice_cancel(&f.d,retry)==WD_OK);pump(&f);clean(&f,1);end(&f);
++ /* Full request queue: cancellation does not need another queue slot. */
++ init(&f,true);uint64_t ids[WD_REQUESTS];
++ for(unsigned i=0;i<WD_REQUESTS;i++)CHECK(begin(&f,true,&ids[i])==WD_OK);
++ CHECK(begin(&f,false,&retry)==WD_FULL && retry!=0);
++ for(unsigned i=0;i<WD_REQUESTS;i++)CHECK(wd_ble_cancel(&f.d,ids[i])==WD_OK);
++ CHECK(!has_secret(f.d.requests,sizeof(f.d.requests)));
++ for(unsigned i=0;i<WD_REQUESTS;i++)pump(&f);
++ CHECK(f.submits==0);end(&f);
++ /* Event queue full: backend retains final fence and retries unchanged. */
++ init(&f,true);CHECK(begin(&f,true,&id)==WD_OK);pump(&f);CHECK(wd_ble_cancel(&f.d,id)==WD_OK);pump(&f);
++ for(unsigned i=0;i<WD_EVENTS;i++){struct wd_event e=event(&f,i+1,WD_PROGRESS,true,false,true);CHECK(wd_post(&f.d,&e)==WD_OK);}
++ struct wd_event exit=event(&f,WD_EVENTS+1,WD_COMPLETION,false,true,false);
++ CHECK(wd_post(&f.d,&exit)==WD_FULL);pump(&f);CHECK(view(&f,true,id).held);
++ CHECK(wd_post(&f.d,&exit)==WD_OK);wb_job_clear(&f.job);
++ for(unsigned i=0;i<WD_EVENTS;i++){pump(&f);}
++ CHECK(!view(&f,true,id).held);end(&f);
++ /* Submission rejection has proof of no started worker, so may free. */
++ init(&f,true);CHECK(begin(&f,true,&id)==WD_OK);pump(&f);
++ post(&f,event(&f,1,WD_COMPLETION,true,true,true));CHECK(view(&f,true,id).status==WB_IP_READY);
++ post(&f,event(&f,2,WD_COMPLETION,false,false,false));
++ CHECK(view(&f,true,id).status==WB_FAILED && view(&f,true,id).held);
++ CHECK(begin(&f,false,&retry)==WD_OK);pump(&f);CHECK(view(&f,false,retry).status==WB_BUSY);
++ post(&f,event(&f,3,WD_COMPLETION,true,true,true));CHECK(view(&f,true,id).status==WB_FAILED && view(&f,true,id).held);
++ clean(&f,4);CHECK(!view(&f,true,id).held);end(&f);
++ /* Submission rejection has proof of no started worker, so may free. */
++ init(&f,true);f.reject=true;CHECK(begin(&f,true,&id)==WD_OK);pump(&f);
++ CHECK(view(&f,true,id).status==WB_FAILED && !view(&f,true,id).held);end(&f);
++ /* Queue time counts in deadline and wipes without starting. */
++ init(&f,true);CHECK(begin(&f,true,&id)==WD_OK);atomic_store(&f.clock,1001);pump(&f);
++ CHECK(view(&f,true,id).status==WB_TIMEOUT && f.submits==0 && !has_secret(&f.d,sizeof(f.d)));end(&f);
++ /* Running timeout retains ownership despite late IP and concurrent retry. */
++ init(&f,true);CHECK(begin(&f,true,&id)==WD_OK);pump(&f);atomic_store(&f.clock,1001);pump(&f);
++ CHECK(view(&f,true,id).status==WB_TIMEOUT && view(&f,true,id).held && f.stops==1);
++ CHECK(begin(&f,false,&retry)==WD_OK);pump(&f);CHECK(view(&f,false,retry).status==WB_BUSY);
++ post(&f,event(&f,2,WD_COMPLETION,true,true,true));CHECK(view(&f,true,id).status==WB_TIMEOUT && view(&f,true,id).held);
++ post(&f,event(&f,1,WD_COMPLETION,false,true,false));CHECK(view(&f,true,id).held);
++ clean(&f,3);CHECK(!view(&f,true,id).held);end(&f);
++ /* Unproven legacy ownership never automatically frees on arbitrary events. */
++ init(&f,false);CHECK(begin(&f,true,&id)==WD_OK);pump(&f);CHECK(view(&f,true,id).status==WB_BUSY && f.submits==0);end(&f);
++}
++int main(void){atomic_init(&checks,0);concurrent_rounds();concurrent_full();targeted();printf("actual_pthread_rounds=200 burst_clients=12 checks=%u failures=0 mock_backend_only\n",atomic_load(&checks));return 0;}
+--- a/src/wifi_broker.c
++++ b/src/wifi_broker.c
+@@ -101,7 +101,10 @@
+     return;
+   }
+   if(b->radio==WB_OWNED) {
+-    if(d->worker_exited && !d->link_up) { b->active.status=WB_FAILED; memset(b->active.ip,0,4); free_radio(b); }
++    if(!d->link_up) {
++      terminate(b,WB_FAILED);
++      if(d->worker_exited) free_radio(b);
++    }
+     return;
+   }
+   if(b->radio!=WB_RUNNING) return;

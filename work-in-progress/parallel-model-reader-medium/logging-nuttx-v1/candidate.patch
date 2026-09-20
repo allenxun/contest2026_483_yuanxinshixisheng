@@ -1,0 +1,29 @@
+--- a/onnxruntime/core/common/logging/logging.cc
++++ b/onnxruntime/core/common/logging/logging.cc
+@@ -18,7 +18,7 @@
+ #include <unistd.h>
+ #if defined(__MACH__) || defined(__wasm__) || defined(_AIX)
+ #include <pthread.h>
+-#else
++#elif !defined(ORT_K7_NUTTX)
+ #include <sys/syscall.h>
+ #endif
+ #endif
+@@ -217,6 +217,8 @@
+ unsigned int GetThreadId() {
+ #ifdef _WIN32
+   return static_cast<unsigned int>(GetCurrentThreadId());
++#elif defined(ORT_K7_NUTTX)
++  return static_cast<unsigned int>(gettid());
+ #elif defined(__MACH__)
+   uint64_t tid64;
+   pthread_threadid_np(NULL, &tid64);
+@@ -238,7 +240,7 @@
+ unsigned int GetProcessId() {
+ #ifdef _WIN32
+   return static_cast<unsigned int>(GetCurrentProcessId());
+-#elif defined(__MACH__) || defined(__wasm__) || defined(_AIX)
++#elif defined(ORT_K7_NUTTX) || defined(__MACH__) || defined(__wasm__) || defined(_AIX)
+   return static_cast<unsigned int>(getpid());
+ #else
+   return static_cast<unsigned int>(syscall(SYS_getpid));

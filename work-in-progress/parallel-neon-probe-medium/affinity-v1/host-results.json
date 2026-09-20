@@ -1,0 +1,31 @@
+{
+  "scope": "Mock callbacks only; NuttX adapter and pool not compiled or executed",
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "affinity_gate.c",
+        "test_affinity.c",
+        "-o",
+        "test-affinity.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\affinity-v1\\test-affinity.exe"
+      ],
+      "returncode": 0,
+      "stdout": "mock affinity PASS checks=70; no NuttX scheduling executed\n",
+      "stderr": ""
+    }
+  ]
+}

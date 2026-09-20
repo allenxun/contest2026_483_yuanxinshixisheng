@@ -1,0 +1,87 @@
+{
+  "camera_capture_active": false,
+  "rounds": [
+    {
+      "file": "evidence\\skin-command-20260916\\metrics\\1789546770251427900.json",
+      "frames": 150,
+      "completed": true,
+      "error": false,
+      "events": [
+        {
+          "type": "ready",
+          "text_chars": 0,
+          "elapsed_ms": 625,
+          "frames_received": 0
+        },
+        {
+          "type": "partial",
+          "text_chars": 0,
+          "elapsed_ms": 4141,
+          "frames_received": 99
+        },
+        {
+          "type": "partial",
+          "text_chars": 3,
+          "elapsed_ms": 4297,
+          "frames_received": 107
+        },
+        {
+          "type": "partial",
+          "text_chars": 2,
+          "elapsed_ms": 5032,
+          "frames_received": 144
+        },
+        {
+          "type": "final",
+          "text_chars": 5,
+          "elapsed_ms": 5469,
+          "frames_received": 150
+        },
+        {
+          "type": "completed",
+          "text_chars": 0,
+          "elapsed_ms": 5469,
+          "frames_received": 150
+        }
+      ]
+    },
+    {
+      "file": "evidence\\skin-command-20260916\\metrics\\1789546797181091200.json",
+      "frames": 101,
+      "completed": false,
+      "error": true,
+      "events": [
+        {
+          "type": "ready",
+          "text_chars": 0,
+          "elapsed_ms": 375,
+          "frames_received": 0
+        },
+        {
+          "type": "partial",
+          "text_chars": 0,
+          "elapsed_ms": 2781,
+          "frames_received": 51
+        },
+        {
+          "type": "partial",
+          "text_chars": 2,
+          "elapsed_ms": 2969,
+          "frames_received": 60
+        },
+        {
+          "type": "partial",
+          "text_chars": 2,
+          "elapsed_ms": 3891,
+          "frames_received": 101
+        }
+      ]
+    }
+  ],
+  "board_capture_error": -28,
+  "board_frames_sent_failed": 102,
+  "original_buffer_frames": 32,
+  "original_buffer_ms": 640,
+  "candidate_buffer_frames": 150,
+  "candidate_loaded": false
+}

@@ -1,0 +1,22 @@
+{
+  "generated_at_utc": "2026-09-12T09:06:09.1989774Z",
+  "scope": "host fake ports only; no device, SDK, serial, VM, network, or fixed prompt playback",
+  "source_contract": "VelaVision/app/voicelink Controller/ports/asr_runtime and app/k7radio shared transaction adapter",
+  "password_logged": false,
+  "records": [
+    {
+      "optimization": "O0",
+      "executable_sha256": "b4c52ed2bb99c8d973bccc1417301460896ca5516f30b32e7f59639ab7f362f8",
+      "build_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test_log_sha256": "b15c277584435377b60ca8c8d55adbc55f8daa2371a88defb5966fb5620710b2",
+      "output": "voice_loop_checks=103 scenarios=9 failures=0 secrets_in_output=0"
+    },
+    {
+      "optimization": "O2",
+      "executable_sha256": "d7d6bc6227aa65de0242f464ea8e2d831a8d2a361c7bd13d05397d5f5dec3834",
+      "build_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test_log_sha256": "b15c277584435377b60ca8c8d55adbc55f8daa2371a88defb5966fb5620710b2",
+      "output": "voice_loop_checks=103 scenarios=9 failures=0 secrets_in_output=0"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "build_exit_code": 0,
+  "build_kind": "incremental diagnostic from audio-rx4-20260911 build tree",
+  "sources": {
+    "app/k7sound/k7sound_main.c": "8017a71b79cf3abd104ab87eaef943e9847eb550e8fd0c1b1959a764c9807263",
+    "app/k7sound/pio.c": "f4ee92b2e5ca730a332a4ef32e99cd0fd6fc64101f645bca37ed89f1f8051986",
+    "app/k7sound/pio.h": "7542003157568246b4d744774b740bee4947c66932773ebe526aed539a0a67ec"
+  },
+  "artifacts": {
+    "nuttx": {
+      "bytes": 42406536,
+      "sha256": "007b44d58c245969540fe0e7c798e9ccccf95224653f299340319150e2f07bb7"
+    },
+    "nuttx.bin": {
+      "bytes": 15263088,
+      "sha256": "4eabd6d71f7087893d018cb75b81565bd5fc149376b2c9724a3aa99d65c45244"
+    },
+    ".config": {
+      "bytes": 64532,
+      "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+    },
+    "otg_payload": {
+      "bytes": 115926384,
+      "sha256": "6cd66bdab48717a5d62070d8f43c58ce9760a66398fd10c30dd4dadde62a3fbe",
+      "crc32": "26ef4fd6",
+      "firmware_crc32": "9ce0eb60"
+    }
+  },
+  "elf_symbols": [
+    "k7sound_main",
+    "pio_run_mono",
+    "pio_run_rx4",
+    "pio_run_rx4_all"
+  ],
+  "hardware_tested": true,
+  "hardware_evidence": {
+    "raw_log": "work-in-progress/audio-mono-20260911/mono-smoke-20260911-203929.log",
+    "raw_log_sha256": "c08344b0b9e111e1f62cac70256b1c2607b92529023520e4483be9dff74f67f4"
+  },
+  "limitations": [
+    "Incremental diagnostic build; use a fresh independent build for a production candidate",
+    "MONO_CR slot0 and one-word reads retained the four-bank cadence",
+    "UART output has missing fragments, so only intact terminal and trace fields are claimed"
+  ]
+}

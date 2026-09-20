@@ -1,0 +1,135 @@
+{
+  "session_id": "01a0892e-2964-7ec3-bd76-9ab4937980cb",
+  "scope": "Windows CPU real models; official CLI and unchanged candidate C++ linked to official C API DLL",
+  "python": "3.12.14",
+  "platform": "Windows-11-10.0.26100-SP0",
+  "inputs_unchanged": [
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\encoder.int8.onnx",
+      "sha256": "81a70226a8934e6ed92aa1d4fc486b428b5398e2f2619ed4897b7294cab90e9a",
+      "bytes": 165462184
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\decoder.int8.onnx",
+      "sha256": "f3cca9f77bb9d93c8fcbfb63ae617b6b1ee96818df3aa3b151c40658fe38594f",
+      "bytes": 71664561
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\tokens.txt",
+      "sha256": "59aba8873a2ed1e122c25fee421e25f283b63290efbde85c1f01a853d83cb6e6",
+      "bytes": 75756
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\README.md",
+      "sha256": "16b56210f03531d00f5580b060ff6843461e618e5642c070a58df6f0a5c98875",
+      "bytes": 415
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\test_wavs\\0.wav",
+      "sha256": "7d93384ca14702cc584a7a33fe2fed92e89e708549161cb12ea38c916882103b",
+      "bytes": 321744
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\date.fst",
+      "sha256": "eb8aa079ae3cb81d8f4404992f39d61a0cb990947512b5b8d1e54d1f6980e718",
+      "bytes": 59154
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+      "sha256": "ab2e61d357551e7b24ddd965d924aca784c20165ff58c150794e539c6b5e9e35",
+      "bytes": 2042943
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+      "sha256": "5511d651b7840c0a93a6bbfd4afd070a2c7f39ca1ec3ff2ecd73191519bbb852",
+      "bytes": 30482262
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\new_heteronym.fst",
+      "sha256": "ca14b2127e27baa571664e4bb791e143e7425f56a6bc29db08d74f97e6aa4e29",
+      "bytes": 21974
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\number.fst",
+      "sha256": "743f402181fcfebf76cc2f0546b71fa26476e626fbe4e460fb7b4c3a7a8bd5bd",
+      "bytes": 64482
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\phone.fst",
+      "sha256": "1ac2b6fa56b1442320c4de7db08353bab8963a2b57f365eebcdd3a2d3562f8d7",
+      "bytes": 88630
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+      "sha256": "b090ed05e333fe125b62d8b1de5f1a1d4579fb237c606e7ac0b84707c863a01f",
+      "bytes": 180717014
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\speakers.txt",
+      "sha256": "50a825fc9a89172eee04a4d68869d933d0eca0d847f3b6fcffff9514cc72442d",
+      "bytes": 1392
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+      "sha256": "50b45a7b7de1752fd3c7b4755661c285f1547f59186eca2281089a81307ad953",
+      "bytes": 1671
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\src\\audio.cpp",
+      "sha256": "01f13a1fb74e8f517c47352f3969bca1c8e1b769ebfc7984305c1d6c4c7800ab",
+      "bytes": 5741
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\include\\voicelink\\audio.hpp",
+      "sha256": "d3c0960fba5df4e51f66336659c505b24027c4256fdaef96173437d90e789dd9",
+      "bytes": 1925
+    }
+  ],
+  "reports": [
+    "evidence/tts-cli-20260910T032007632390Z/result.json",
+    "evidence/asr-cli-20260910T032011222176Z/result.json",
+    "evidence/cpp-binding-20260910T032131279150Z/result.json"
+  ],
+  "wav": {
+    "evidence/tts-cli.wav": {
+      "sample_rate": 8000,
+      "frames": 26443,
+      "channels": 1,
+      "sample_width": 2
+    },
+    "evidence/tts-binding.wav": {
+      "sample_rate": 8000,
+      "frames": 35328,
+      "channels": 1,
+      "sample_width": 2
+    }
+  },
+  "files": {
+    "HANDOFF.md": "9cc5863733b2f2b3bd61c351f5556f03b775c425b3cb1be3270fb88884b67390",
+    "MODELS.md": "55bf2f8de931793e7aceac4f8833f4bd0685685639556e4cb8eb0948ea95d176",
+    "build_binding.ps1": "6ca259ff1df060ac0d25d424df44612666d831266850ad4a77eff1744a91371d",
+    "scripts/inspect_models.py": "a765af2a0c9f47189048124170501419c97f2717573696952ead48a51c18a452",
+    "scripts/run_measured.py": "a5cbc09ceffc90aa5076ac888e2d0a84d825bc2e42efbb6cdea10a8872a21bf0",
+    "scripts/real_binding.cpp": "3152b79fe7cf112f3fc43dec5fd278d0c7f09468b476baae9f9254ccc7178d9f",
+    "real_binding.exe": "415ef78c81561e4a812d47d8c0d38ca3c14ad7d230b966cb37d55b377d4e00d5",
+    "evidence/models.json": "3869727a565af598b1139a7f521698f00adb697354fd1e0fd5cd25e11ad1e347",
+    "evidence/requirements-lock.txt": "88af3134d76ff18a567f56f3b210d9ac29ebf1ea5e87ccff0cf831f3668c46f5",
+    "evidence/tts-cli.wav": "ff513dea6c5b604158311812e5b61a0d13bb9247b0c268aa9050985b2ebc0264",
+    "evidence/tts-binding.wav": "90f1ae6e5a7c70fabc6aa187fb0a29e8eea7b8724b25f88e18c09d540ce211c1",
+    "evidence/ort-version.txt": "186b9585c786efd29ac82bfe17e732e491f73f77903e19d1e2d562745e524f0c",
+    "evidence/binding-build.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/binding-build-exit.txt": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+    "downloads/sherpa-onnx-v1.12.14-win-x64-shared.tar.bz2": "78fa331bac4d20828a867b14283950727ce668fe751d1a792352b7e035b0ffe1",
+    "evidence/tts-cli-20260910T032007632390Z/result.json": "661a38ec93e107c786c06a56a33a73438eb09e38dbba7d12e6d30b9fbc8caa2b",
+    "evidence/asr-cli-20260910T032011222176Z/result.json": "7895957dbcda7ede6f745345649d1f48639f426d92dd49cd2ca1088288d3a667",
+    "evidence/cpp-binding-20260910T032131279150Z/result.json": "f7307d11ec253a834d6781776c44149d5b138415c286fe7b788cd7aee5bb54aa",
+    "runtime/sherpa-onnx-v1.12.14-win-x64-shared/lib/cargs.dll": "017c64c811aac0c6cb454f8c7be84edc888497fc4c6cc9df5d4cb49bdb29a343",
+    "runtime/sherpa-onnx-v1.12.14-win-x64-shared/lib/cargs.lib": "c4323ebf0b83da058e1c2b89c195fe67c2a40a057b464a571222c7a1351407eb",
+    "runtime/sherpa-onnx-v1.12.14-win-x64-shared/lib/onnxruntime.dll": "b9dba35ec85d49c0186332c19a01601ae598ede701b79dcc70de50d4dba36fa6",
+    "runtime/sherpa-onnx-v1.12.14-win-x64-shared/lib/onnxruntime_providers_shared.dll": "ba645bf03bd60df622cf27d6111d1359506a90d0e3b5558f0a271f0b560cf97c",
+    "runtime/sherpa-onnx-v1.12.14-win-x64-shared/lib/sherpa-onnx-c-api.dll": "c5f25b0aeb51f71dc8941990f0570c0e1438381e4e00008a9f2ce20f292164a8",
+    "runtime/sherpa-onnx-v1.12.14-win-x64-shared/lib/sherpa-onnx-c-api.lib": "c1bc42e9564d499ab4f1d8ebc4614b14b926bb4c2af539d34ee2c0ff84242049",
+    "runtime/sherpa-onnx-v1.12.14-win-x64-shared/lib/sherpa-onnx-cxx-api.dll": "e97bc08c40429c3d81f9d0eefdaa7ca6efd5bb0ec1d44457a1eb285d3b5d0176",
+    "runtime/sherpa-onnx-v1.12.14-win-x64-shared/lib/sherpa-onnx-cxx-api.lib": "647c1d2bc23bc054d2d1166fcd6cdef12d858f2c191c92c98c4bc52e26b39053"
+  }
+}

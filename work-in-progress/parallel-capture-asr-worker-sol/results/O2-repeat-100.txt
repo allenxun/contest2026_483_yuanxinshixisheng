@@ -1,0 +1,4 @@
+command: for ($i=0; $i -lt 100; $i++) { & work-in-progress/parallel-capture-asr-worker-sol/build/test_worker_O2.exe | Out-Null; if ($LASTEXITCODE) { throw "iteration $i failed" } }
+result: o2_repeat_100=PASS
+iterations: 100
+exit_code: 0

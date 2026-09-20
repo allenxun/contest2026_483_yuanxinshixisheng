@@ -1,0 +1,51 @@
+{
+  "build_exit_code": 0,
+  "build_kind": "incremental diagnostic from audio-mono-20260911 build tree",
+  "sources": {
+    "app/k7sound/k7sound_main.c": "f8c1b8194432bfe9a16136fb97188ad65d7da9ffd8a558583b6c7792b9d93d96",
+    "app/k7sound/pio.c": "d369a8a6a56498f019f8e4c3b7301036d147e4d061b0f1e1d71d4fb8221b97db",
+    "app/k7sound/pio.h": "d501b049983f4b5582faf6975cde9ba5c87dcf531aee61f9c2af5a66a343c520"
+  },
+  "artifacts": {
+    "nuttx": {
+      "bytes": 42408640,
+      "sha256": "5633c405f98f63dbf88a3c53c758833b146452c0ccf2cde7d5f1e847730f46cc"
+    },
+    "nuttx.bin": {
+      "bytes": 15263088,
+      "sha256": "4b93f58381aebf60cfa98e31a1e0114450fbcd5ee64f2b709cb82d63f4d9c82c"
+    },
+    ".config": {
+      "bytes": 64532,
+      "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+    },
+    "otg_payload": {
+      "bytes": 115926384,
+      "sha256": "10378c8c5e6bdcf781a9e9505d4aa566abf02f68e12214a8dce29c890da9e44b",
+      "crc32": "5442081a",
+      "firmware_crc32": "ee4dacac",
+      "usb_seconds": 13.024406301
+    }
+  },
+  "elf_symbols": [
+    "k7sound_main",
+    "pio_run_grouped"
+  ],
+  "hardware_tested": true,
+  "accepted": false,
+  "hardware_evidence": {
+    "load_log": "work-in-progress/audio-grouped-20260911/final-20260911-212152.log",
+    "load_log_sha256": "023af899d6cfb8e978e72ea19a31674fe222fba5f5f70c394f55bcd5c9c9b259",
+    "probe_log": "work-in-progress/audio-grouped-20260911/probe-20260911-212235.log",
+    "probe_log_sha256": "c3ef5bd2e4eafb0c990f4e990bc2f961ec5f8d78cfe49a2c4e7b49172861512c",
+    "grouped_words": 25600,
+    "frames": 3200,
+    "duration_us": 100102,
+    "copy_mismatches": 0
+  },
+  "limitations": [
+    "Rejected for audio use: 3200 reported frames completed in 100.102 ms, proving each eight-read group was one 32 kHz slot rather than one 16 kHz stereo frame",
+    "This record is retained only as exact predecessor provenance for the corrected two-group implementation",
+    "Incremental diagnostic build; use a fresh independent build for a production candidate"
+  ]
+}

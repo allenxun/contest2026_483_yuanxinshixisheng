@@ -1,0 +1,245 @@
+[
+  {
+    "label": "tail-0",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期",
+    "full_text_equal": false,
+    "published_suffix_present": false,
+    "execution_passed": true
+  },
+  {
+    "label": "tail-300",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "tail-800",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "tail-1200",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "tail-2000",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "chunk-160",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "whole-input",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday tedis is 礼拜二 the day after tomorrow 是星期",
+    "full_text_equal": false,
+    "published_suffix_present": false,
+    "execution_passed": true
+  },
+  {
+    "label": "endpoint",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "cancel",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": null,
+    "full_text_equal": false,
+    "published_suffix_present": null,
+    "execution_passed": true
+  },
+  {
+    "label": "empty",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "",
+    "full_text_equal": false,
+    "published_suffix_present": null,
+    "execution_passed": true
+  },
+  {
+    "label": "budget-zero",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": null,
+    "full_text_equal": false,
+    "published_suffix_present": null,
+    "execution_passed": true
+  },
+  {
+    "label": "synthetic-tail0",
+    "expected_kind": "known generation input; not natural speech accuracy",
+    "expected": "你好，欢迎使用语音助手。",
+    "actual": "你也好刚才经使用语音助手",
+    "full_text_equal": false,
+    "published_suffix_present": null,
+    "execution_passed": true
+  },
+  {
+    "label": "synthetic-tail800",
+    "expected_kind": "known generation input; not natural speech accuracy",
+    "expected": "你好，欢迎使用语音助手。",
+    "actual": "你也好刚才经使用语音助手",
+    "full_text_equal": false,
+    "published_suffix_present": null,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-asr-1",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-tts-1",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": null,
+    "full_text_equal": false,
+    "published_suffix_present": null,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-both-1",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-sequential-1",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-sequential-2",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-both-2",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-tts-2",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": null,
+    "full_text_equal": false,
+    "published_suffix_present": null,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-asr-2",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-asr-3",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-tts-3",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": null,
+    "full_text_equal": false,
+    "published_suffix_present": null,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-both-3",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "memory-sequential-3",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "whole-no-lead",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三",
+    "full_text_equal": false,
+    "published_suffix_present": true,
+    "execution_passed": true
+  },
+  {
+    "label": "lead300-chunk512",
+    "expected_kind": "published model output, not independently verified human ground truth",
+    "expected": "昨天是 monday today day is 零八二 the day after tomorrow 是星期三",
+    "actual": "昨天是 monday tedis is 礼拜二 the day after tomorrow 是星期",
+    "full_text_equal": false,
+    "published_suffix_present": false,
+    "execution_passed": true
+  }
+]

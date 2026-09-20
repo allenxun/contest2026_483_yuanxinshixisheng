@@ -1,0 +1,19 @@
+✔ UTF-8 JSONL handles every fragment width and combined messages (2.1327ms)
+✔ decoder reset removes disconnected partial frame and bounds malformed input (0.9965ms)
+✔ uni adapter discovers, subscribes, reads encryption, scans, and bounds writes (1.6109ms)
+✔ disconnection cancels partial command; late old error cannot reject new request (0.5128ms)
+✔ incomplete scan response is not presented as success (0.3195ms)
+✔ scan page keeps passwords disabled with advertised connect=false (0.5878ms)
+✔ scan page keeps passwords disabled with advertised connect=true (0.2802ms)
+✔ connect capability submits fragmented credentials, ignores stale session and resolves only real IP (0.9452ms)
+✔ credential receipt uses explicit capability, preserves password and does not imply connection (0.8ms)
+✔ receipt-capable device enables send-details UI but never enables connectWifi (0.3884ms)
+✔ submit example clears password input and stale receipt state after failure (0.1746ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 82.7096

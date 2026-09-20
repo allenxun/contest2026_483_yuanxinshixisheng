@@ -1,0 +1,38 @@
+[
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-O0",
+      "candidate/duplex.c",
+      "candidate/rx2_ready.c",
+      "test.c",
+      "-Icandidate",
+      "-o",
+      "test-O0.exe"
+    ],
+    "compile_rc": 0,
+    "test_rc": 0
+  },
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-O2",
+      "candidate/duplex.c",
+      "candidate/rx2_ready.c",
+      "test.c",
+      "-Icandidate",
+      "-o",
+      "test-O2.exe"
+    ],
+    "compile_rc": 0,
+    "test_rc": 0
+  }
+]

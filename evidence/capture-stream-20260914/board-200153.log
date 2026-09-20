@@ -1,0 +1,91 @@
+
+nsh> [K
+k7radio provision-status
+PROV registered=1 connected=0 subscribed=0 busy=0 session=6 commands=2 notify_queued=780 errors=0 connects=3 disconnects=3 reads=0 input_bytes=0
+PROV last command=1 id=2 session=5 ret=0 notify_ret=0
+nsh> [K
+k7cloud capture-stream-check
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=00060300 ien=00000000 gpio_version=010219c8 gpio_input=034d3050
+SOUND platform_result=0 version=23073576 repair=fdffffff ack=00000001 idle=00000001
+SOUND mclkout before=0000001f after=0000001d
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=24 settle_ms=1000
+SOUND playback_gain_db=0 dac_attenuation_db=24 maximum=0
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=000000alue=00000000
+SOUND slot_mask offset=50 value=00000000
+SOUND svalue=00000000
+SOUND pio=0 frames=48000 polls=2289161 stop=0 hest=00000000 last=00000000 TXCR=00000fff RXCR=00700fff FSCR=0101fed=1 count=32
+SOUND trace_init index=0 value=00000000 rc=0
+SOUND trace_init index=1 value=00000002 rc=0
+SOUND trace_init index=2 value=00700fff rc=0
+SOUND trace_init index=3 value=000000e4 rc=0
+SOUND trace_init index=4 value=00000000 rc=0
+SOUND trace_init index=5 value=0000000b rc=0
+SOUND trace_word index=0 us=3847579838 before=00041041 word=ffffffff after=00041040 rc=0,0,0
+SOUND trace_word index=1 us=3847579840 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=2 us=3847579841 before=00041040 word=ffffffff after=00041000 rc=0,0,0
+SOUND trace_word index=3 us=3847579
+SOUND trace_word index=4 us=3847579844 before=00041000 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=5 us=3847579846 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOore=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND trace_ffffff after=00041040 rc=0,0,0
+SOUND trace_word index=9 us=38470,0,0
+SOUND trace_word index=11 us=3847579873 before=00041000 w875 before=00041000 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=13 us=3847579877 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=14 us=3847579878 before=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND trace_word index=15 us=3847579880 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=16 us=3847579899 before=00041041 word=ffffffff after=00041040 rc=0,0,0
+SOUND trace_word index=17 us=3847579901 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=18 us=3847579903 before=00041040 word=ffffffff after=00041000 rc=0,0,0
+SOUND trace_word index=19 us=3847579904 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=20 us=3847579906 before=00041000 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=21 us=3847579907 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=22 us=3847579909 before=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND trace_word index=23 us=3847579911 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=24 us=3847579931 before=00041041 word=ffffffff after=00041040 rc=0,0,0
+SOUND trace_word index=25 us=3847579932 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=26 us=3847579934 before=00041040 word=ffffffff after=00041000 rc=0,0,0
+SOUND trace_word index=27 us=3847579935 before=0004word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=2900 rc=0,0,0
+SOUND trace_word index=31 us=3847579942 before=0000OUND codec reg=00 value=36
+SOUND codec reg=01 value=60
+SOUND cOUND codec reg=05 value=00
+SOUND codec reg=06 value=00
+SOUND creg=08 value=00
+SOUND codec reg=09 value=88
+SOUND codec reg=0a value=f0
+SOUND codec reg=0b value=82
+SOUND codec reg=0c value=10
+SOUND codec reg=0d value=02
+SOUND codec reg=0f value=20
+SOUND codec reg=17 value=20
+SOUND codec reg=18 value=02
+SOUND codec reg=19 value=06
+SOUND codec reg=1a value=30
+SOUND codec reg=1b value=30
+SOUND codec reg=27 value=b8
+SOUND codec reg=2a value=b8
+SOUND codec reg=2b value=80
+SOUND codec reg=30 value=14
+SOUND codec reg=31 value=14
+SOUND input pull=00005515 schmitt=000000ff path=000000e4 gpio_high=50183 transitions=0 samples=50183
+SOUND pad ticks=480004 max_gap=35 counter_hz=24000000 complete=1
+SOUND pad channel=0 high=24779 changes=37021
+SOUND pad channel=1 high=25189 changes=40918
+SOUND pad channel=2 high=25158 changes=640
+SOUND pad channel=3 high=50183 changes=0
+SOUND pcm left_min=-14715392 left_max=11928832 left_nonzero=48000 right_min=-11964672 right_max=13995776 right_nonzero=47998
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+K7CLOUD capture_stream result=0 pcm_frames=150 nonzero_bytes=73071 network_sent=0
+nsh> [K
+k7radio host-status
+RADIO host_mode=1 fault=0 tx=854 ACK=854 RX=1760
+RADIO empty_slots=0
+nsh> [K
+k7radio provision-status
+PROV registered=1 connected=0 subscribed=0 busy=0 session=6 commands=2 notify_queued=780 errors=0 connects=3 disconnects=3 reads=0 input_bytes=0
+PROV last command=1 id=2 session=5 ret=0 notify_ret=0
+nsh> [K

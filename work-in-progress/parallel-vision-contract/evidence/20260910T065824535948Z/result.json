@@ -1,0 +1,49 @@
+{
+  "utc": "20260910T065824535948Z",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "host_only": true,
+  "synthetic_replay": true,
+  "model_inference": false,
+  "input_unchanged": true,
+  "runs": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "gcc.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-IE:\\openvela\\VelaVision\\app\\k7host",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-vision-contract\\vision_contract.c",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-vision-contract\\test_contract.c",
+        "E:\\openvela\\VelaVision\\app\\k7host\\k7_track.c",
+        "-lm",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-vision-contract\\evidence\\20260910T065824535948Z\\test_contract.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-vision-contract\\evidence\\20260910T065824535948Z\\test_contract.exe"
+      ],
+      "returncode": 0,
+      "stdout": "PASS 2236 checks; 1000 synthetic replay frames; production k7_track.c linked; no hardware/model inference\n",
+      "stderr": ""
+    }
+  ],
+  "passed": true
+}

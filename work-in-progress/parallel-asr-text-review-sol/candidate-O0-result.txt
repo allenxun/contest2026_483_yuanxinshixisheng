@@ -1,0 +1,10 @@
+ASR_MIC frames=4 rate=16000 channel=left
+ASR_INFER BEGIN recognizer
+ASR_INFER RESULT seconds=0.000 text=hello openvela
+ASR_MIC frames=4 rate=16000 channel=left
+ASR_INFER BEGIN recognizer
+ASR_MIC frames=4 rate=16000 channel=left
+ASR_INFER BEGIN recognizer
+ASR_INFER busy
+ASR_INFER RESULT seconds=0.000 text=hello openvela
+PASS candidate_host_fake

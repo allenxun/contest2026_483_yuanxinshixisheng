@@ -1,0 +1,40 @@
+{
+  "temporary_arp": false,
+  "status_only": true,
+  "records": [
+    {
+      "time": "2026-09-10T01:11:53.080835+00:00",
+      "command": "k7radio wifi-status",
+      "lines": []
+    },
+    {
+      "time": "2026-09-10T01:11:53.127886+00:00",
+      "command": "arp -i wlan0 -a 10.3.0.1",
+      "lines": [
+        "nsh: arp: command not found"
+      ]
+    },
+    {
+      "time": "2026-09-10T01:11:53.175109+00:00",
+      "command": "k7radio wifi-status",
+      "lines": []
+    },
+    {
+      "time": "2026-09-10T01:11:53.222114+00:00",
+      "command": "k7radio ble-status",
+      "lines": []
+    },
+    {
+      "time": "2026-09-10T01:11:53.269504+00:00",
+      "command": "k7radio provision-status",
+      "lines": []
+    },
+    {
+      "time": "2026-09-10T01:11:53.317732+00:00",
+      "command": "free",
+      "lines": [
+        "131702776      15768  131687008      16448  131687008     27      1 Umem"
+      ]
+    }
+  ]
+}

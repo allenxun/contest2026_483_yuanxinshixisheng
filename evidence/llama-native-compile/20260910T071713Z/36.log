@@ -1,0 +1,315 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/include/ggml-cpu.h:4,
+                 from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/include/llama.h:5,
+                 from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.h:3,
+                 from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1:
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+In file included from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:6,
+                 from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:4:
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h: In constructor 'llama_model_loader::llama_tensor_weight::llama_tensor_weight(const llama_file*, uint16_t, const gguf_context*, ggml_tensor*)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:34:120: warning: declaration of 'tensor' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                                                                          ~~~~~~~~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:32:23: note: shadowed declaration is here
+   32 |         ggml_tensor * tensor;
+      |                       ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:34:63: warning: declaration of 'idx' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                      ~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:29:19: note: shadowed declaration is here
+   29 |         uint16_t  idx; // source file index
+      |                   ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h: In constructor 'llama_model_loader::llama_tensor_weight::llama_tensor_weight(const llama_file*, uint16_t, const gguf_context*, ggml_tensor*)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:34:120: warning: declaration of 'tensor' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                                                                          ~~~~~~~~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:32:23: note: shadowed declaration is here
+   32 |         ggml_tensor * tensor;
+      |                       ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:34:63: warning: declaration of 'idx' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                      ~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:29:19: note: shadowed declaration is here
+   29 |         uint16_t  idx; // source file index
+      |                   ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h: In constructor 'llama_model_loader::llama_tensor_weight::llama_tensor_weight(const llama_file*, uint16_t, const gguf_context*, ggml_tensor*)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:34:120: warning: declaration of 'tensor' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                                                                          ~~~~~~~~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:32:23: note: shadowed declaration is here
+   32 |         ggml_tensor * tensor;
+      |                       ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:34:63: warning: declaration of 'idx' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                      ~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-model-loader.h:29:19: note: shadowed declaration is here
+   29 |         uint16_t  idx; // source file index
+      |                   ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In member function 'void naive_trie::insert(const char*, size_t, int32_t)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:28:55: warning: declaration of 'value' shadows a member of 'naive_trie' [-Wshadow]
+   28 |     void insert(const char * key, size_t len, int32_t value = 0) {
+      |                                               ~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:65:17: note: shadowed declaration is here
+   65 |     llama_token value;
+      |                 ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:39:18: warning: declaration of 'res' shadows a previous local [-Wshadow]
+   39 |             auto res = children.insert(std::make_pair(c, naive_trie()));
+      |                  ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:35:14: note: shadowed declaration is here
+   35 |         auto res = children.find(c);
+      |              ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_spm_session::llm_tokenizer_spm_session(const llama_vocab&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:112:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_spm_session' [-Wshadow]
+  112 |     llm_tokenizer_spm_session(const llama_vocab & vocab) : vocab(vocab) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:228:25: note: shadowed declaration is here
+  228 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_spm_session::llm_tokenizer_spm_session(const llama_vocab&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:112:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_spm_session' [-Wshadow]
+  112 |     llm_tokenizer_spm_session(const llama_vocab & vocab) : vocab(vocab) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:228:25: note: shadowed declaration is here
+  228 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_spm_session::llm_tokenizer_spm_session(const llama_vocab&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:112:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_spm_session' [-Wshadow]
+  112 |     llm_tokenizer_spm_session(const llama_vocab & vocab) : vocab(vocab) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:228:25: note: shadowed declaration is here
+  228 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_bpe_session::llm_tokenizer_bpe_session(const llama_vocab&, const llm_tokenizer_bpe&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:434:84: warning: declaration of 'tokenizer' shadows a member of 'llm_tokenizer_bpe_session' [-Wshadow]
+  434 |     llm_tokenizer_bpe_session(const llama_vocab & vocab, const llm_tokenizer_bpe & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:606:31: note: shadowed declaration is here
+  606 |     const llm_tokenizer_bpe & tokenizer;
+      |                               ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:434:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_bpe_session' [-Wshadow]
+  434 |     llm_tokenizer_bpe_session(const llama_vocab & vocab, const llm_tokenizer_bpe & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:605:25: note: shadowed declaration is here
+  605 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_bpe_session::llm_tokenizer_bpe_session(const llama_vocab&, const llm_tokenizer_bpe&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:434:84: warning: declaration of 'tokenizer' shadows a member of 'llm_tokenizer_bpe_session' [-Wshadow]
+  434 |     llm_tokenizer_bpe_session(const llama_vocab & vocab, const llm_tokenizer_bpe & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:606:31: note: shadowed declaration is here
+  606 |     const llm_tokenizer_bpe & tokenizer;
+      |                               ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:434:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_bpe_session' [-Wshadow]
+  434 |     llm_tokenizer_bpe_session(const llama_vocab & vocab, const llm_tokenizer_bpe & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:605:25: note: shadowed declaration is here
+  605 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_bpe_session::llm_tokenizer_bpe_session(const llama_vocab&, const llm_tokenizer_bpe&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:434:84: warning: declaration of 'tokenizer' shadows a member of 'llm_tokenizer_bpe_session' [-Wshadow]
+  434 |     llm_tokenizer_bpe_session(const llama_vocab & vocab, const llm_tokenizer_bpe & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:606:31: note: shadowed declaration is here
+  606 |     const llm_tokenizer_bpe & tokenizer;
+      |                               ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:434:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_bpe_session' [-Wshadow]
+  434 |     llm_tokenizer_bpe_session(const llama_vocab & vocab, const llm_tokenizer_bpe & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:605:25: note: shadowed declaration is here
+  605 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_wpm_session::llm_tokenizer_wpm_session(const llama_vocab&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:622:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_wpm_session' [-Wshadow]
+  622 |     llm_tokenizer_wpm_session(const llama_vocab & vocab) : vocab(vocab) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:724:25: note: shadowed declaration is here
+  724 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_wpm_session::llm_tokenizer_wpm_session(const llama_vocab&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:622:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_wpm_session' [-Wshadow]
+  622 |     llm_tokenizer_wpm_session(const llama_vocab & vocab) : vocab(vocab) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:724:25: note: shadowed declaration is here
+  724 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_wpm_session::llm_tokenizer_wpm_session(const llama_vocab&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:622:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_wpm_session' [-Wshadow]
+  622 |     llm_tokenizer_wpm_session(const llama_vocab & vocab) : vocab(vocab) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:724:25: note: shadowed declaration is here
+  724 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_ugm_session::llm_tokenizer_ugm_session(const llama_vocab&, const llm_tokenizer_ugm&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:801:84: warning: declaration of 'tokenizer' shadows a member of 'llm_tokenizer_ugm_session' [-Wshadow]
+  801 |     llm_tokenizer_ugm_session(const llama_vocab & vocab, const llm_tokenizer_ugm & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1076:31: note: shadowed declaration is here
+ 1076 |     const llm_tokenizer_ugm & tokenizer;
+      |                               ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:801:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_ugm_session' [-Wshadow]
+  801 |     llm_tokenizer_ugm_session(const llama_vocab & vocab, const llm_tokenizer_ugm & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1075:25: note: shadowed declaration is here
+ 1075 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_ugm_session::llm_tokenizer_ugm_session(const llama_vocab&, const llm_tokenizer_ugm&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:801:84: warning: declaration of 'tokenizer' shadows a member of 'llm_tokenizer_ugm_session' [-Wshadow]
+  801 |     llm_tokenizer_ugm_session(const llama_vocab & vocab, const llm_tokenizer_ugm & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1076:31: note: shadowed declaration is here
+ 1076 |     const llm_tokenizer_ugm & tokenizer;
+      |                               ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:801:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_ugm_session' [-Wshadow]
+  801 |     llm_tokenizer_ugm_session(const llama_vocab & vocab, const llm_tokenizer_ugm & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1075:25: note: shadowed declaration is here
+ 1075 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_ugm_session::llm_tokenizer_ugm_session(const llama_vocab&, const llm_tokenizer_ugm&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:801:84: warning: declaration of 'tokenizer' shadows a member of 'llm_tokenizer_ugm_session' [-Wshadow]
+  801 |     llm_tokenizer_ugm_session(const llama_vocab & vocab, const llm_tokenizer_ugm & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1076:31: note: shadowed declaration is here
+ 1076 |     const llm_tokenizer_ugm & tokenizer;
+      |                               ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:801:51: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_ugm_session' [-Wshadow]
+  801 |     llm_tokenizer_ugm_session(const llama_vocab & vocab, const llm_tokenizer_ugm & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1075:25: note: shadowed declaration is here
+ 1075 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_ugm_session::xcda_array_view::xcda_array_view(const uint32_t*, size_t)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:968:61: warning: declaration of 'xcda_array_size' shadows a member of 'llm_tokenizer_ugm_session::xcda_array_view' [-Wshadow]
+  968 |         xcda_array_view(const uint32_t * xcda_array, size_t xcda_array_size) : xcda_array(xcda_array), xcda_array_size(xcda_array_size) {
+      |                                                      ~~~~~~~^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:994:16: note: shadowed declaration is here
+  994 |         size_t xcda_array_size;
+      |                ^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:968:42: warning: declaration of 'xcda_array' shadows a member of 'llm_tokenizer_ugm_session::xcda_array_view' [-Wshadow]
+  968 |         xcda_array_view(const uint32_t * xcda_array, size_t xcda_array_size) : xcda_array(xcda_array), xcda_array_size(xcda_array_size) {
+      |                         ~~~~~~~~~~~~~~~~~^~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:993:26: note: shadowed declaration is here
+  993 |         const uint32_t * xcda_array;
+      |                          ^~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_ugm_session::xcda_array_view::xcda_array_view(const uint32_t*, size_t)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:968:61: warning: declaration of 'xcda_array_size' shadows a member of 'llm_tokenizer_ugm_session::xcda_array_view' [-Wshadow]
+  968 |         xcda_array_view(const uint32_t * xcda_array, size_t xcda_array_size) : xcda_array(xcda_array), xcda_array_size(xcda_array_size) {
+      |                                                      ~~~~~~~^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:994:16: note: shadowed declaration is here
+  994 |         size_t xcda_array_size;
+      |                ^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:968:42: warning: declaration of 'xcda_array' shadows a member of 'llm_tokenizer_ugm_session::xcda_array_view' [-Wshadow]
+  968 |         xcda_array_view(const uint32_t * xcda_array, size_t xcda_array_size) : xcda_array(xcda_array), xcda_array_size(xcda_array_size) {
+      |                         ~~~~~~~~~~~~~~~~~^~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:993:26: note: shadowed declaration is here
+  993 |         const uint32_t * xcda_array;
+      |                          ^~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_ugm_session::xcda_array_view::xcda_array_view(const uint32_t*, size_t)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:968:61: warning: declaration of 'xcda_array_size' shadows a member of 'llm_tokenizer_ugm_session::xcda_array_view' [-Wshadow]
+  968 |         xcda_array_view(const uint32_t * xcda_array, size_t xcda_array_size) : xcda_array(xcda_array), xcda_array_size(xcda_array_size) {
+      |                                                      ~~~~~~~^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:994:16: note: shadowed declaration is here
+  994 |         size_t xcda_array_size;
+      |                ^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:968:42: warning: declaration of 'xcda_array' shadows a member of 'llm_tokenizer_ugm_session::xcda_array_view' [-Wshadow]
+  968 |         xcda_array_view(const uint32_t * xcda_array, size_t xcda_array_size) : xcda_array(xcda_array), xcda_array_size(xcda_array_size) {
+      |                         ~~~~~~~~~~~~~~~~~^~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:993:26: note: shadowed declaration is here
+  993 |         const uint32_t * xcda_array;
+      |                          ^~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_rwkv_session::llm_tokenizer_rwkv_session(const llama_vocab&, const llm_tokenizer_rwkv&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1154:86: warning: declaration of 'tokenizer' shadows a member of 'llm_tokenizer_rwkv_session' [-Wshadow]
+ 1154 |     llm_tokenizer_rwkv_session(const llama_vocab & vocab, const llm_tokenizer_rwkv & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1186:32: note: shadowed declaration is here
+ 1186 |     const llm_tokenizer_rwkv & tokenizer;
+      |                                ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1154:52: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_rwkv_session' [-Wshadow]
+ 1154 |     llm_tokenizer_rwkv_session(const llama_vocab & vocab, const llm_tokenizer_rwkv & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1185:25: note: shadowed declaration is here
+ 1185 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_rwkv_session::llm_tokenizer_rwkv_session(const llama_vocab&, const llm_tokenizer_rwkv&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1154:86: warning: declaration of 'tokenizer' shadows a member of 'llm_tokenizer_rwkv_session' [-Wshadow]
+ 1154 |     llm_tokenizer_rwkv_session(const llama_vocab & vocab, const llm_tokenizer_rwkv & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1186:32: note: shadowed declaration is here
+ 1186 |     const llm_tokenizer_rwkv & tokenizer;
+      |                                ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1154:52: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_rwkv_session' [-Wshadow]
+ 1154 |     llm_tokenizer_rwkv_session(const llama_vocab & vocab, const llm_tokenizer_rwkv & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1185:25: note: shadowed declaration is here
+ 1185 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llm_tokenizer_rwkv_session::llm_tokenizer_rwkv_session(const llama_vocab&, const llm_tokenizer_rwkv&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1154:86: warning: declaration of 'tokenizer' shadows a member of 'llm_tokenizer_rwkv_session' [-Wshadow]
+ 1154 |     llm_tokenizer_rwkv_session(const llama_vocab & vocab, const llm_tokenizer_rwkv & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1186:32: note: shadowed declaration is here
+ 1186 |     const llm_tokenizer_rwkv & tokenizer;
+      |                                ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1154:52: warning: declaration of 'vocab' shadows a member of 'llm_tokenizer_rwkv_session' [-Wshadow]
+ 1154 |     llm_tokenizer_rwkv_session(const llama_vocab & vocab, const llm_tokenizer_rwkv & tokenizer) : vocab(vocab), tokenizer(tokenizer) {}
+      |                                ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1185:25: note: shadowed declaration is here
+ 1185 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llama_vocab::impl::impl(const llama_vocab&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1286:30: warning: declaration of 'vocab' shadows a member of 'llama_vocab::impl' [-Wshadow]
+ 1286 |     impl(const llama_vocab & vocab) : vocab(vocab) {
+      |          ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1357:25: note: shadowed declaration is here
+ 1357 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llama_vocab::impl::impl(const llama_vocab&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1286:30: warning: declaration of 'vocab' shadows a member of 'llama_vocab::impl' [-Wshadow]
+ 1286 |     impl(const llama_vocab & vocab) : vocab(vocab) {
+      |          ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1357:25: note: shadowed declaration is here
+ 1357 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In constructor 'llama_vocab::impl::impl(const llama_vocab&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1286:30: warning: declaration of 'vocab' shadows a member of 'llama_vocab::impl' [-Wshadow]
+ 1286 |     impl(const llama_vocab & vocab) : vocab(vocab) {
+      |          ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1357:25: note: shadowed declaration is here
+ 1357 |     const llama_vocab & vocab;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In member function 'void llama_vocab::impl::init_tokenizer(llama_vocab_type)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:2163:62: warning: declaration of 'type' shadows a member of 'llama_vocab::impl' [-Wshadow]
+ 2163 | void llama_vocab::impl::init_tokenizer(enum llama_vocab_type type) {
+      |                                        ~~~~~~~~~~~~~~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:1230:31: note: shadowed declaration is here
+ 1230 |     enum llama_vocab_type     type     = LLAMA_VOCAB_TYPE_SPM;
+      |                               ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp: In lambda function:
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:2541:40: warning: declaration of 'const char* token' shadows a parameter [-Wshadow]
+ 2541 |     auto _try_copy = [=] (const char * token, size_t size) -> int32_t {
+      |                           ~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-vocab.cpp:2531:55: note: shadowed declaration is here
+ 2531 | int32_t llama_vocab::impl::token_to_piece(llama_token token, char * buf, int32_t length, int32_t lstrip, bool special) const {
+      |                                           ~~~~~~~~~~~~^~~~~

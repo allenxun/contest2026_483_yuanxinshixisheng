@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "delivery_id": "parallel-cxx-unwind-medium",
+  "generated_at_utc": "2026-09-10T07:00:50.8191597Z",
+  "scope": "Review patch, static ELF audit and bounded threading-risk handoff; no SDK or hardware access by this agent",
+  "files": [
+    {
+      "path": "audit_elf.py",
+      "bytes": 4972,
+      "sha256": "fdaa3d5017634c7403e86a45bec9f7da23b65343c0b431da8844c891942e2841",
+      "original_run_sha256": "fdaa3d5017634c7403e86a45bec9f7da23b65343c0b431da8844c891942e2841",
+      "matches_original_run": true
+    },
+    {
+      "path": "baseline-audit.json",
+      "bytes": 699,
+      "sha256": "db4382a6716f5a05b9fcbe35d371dd3d28235141779eb9c0c6c952c14b92478d",
+      "original_run_sha256": "db4382a6716f5a05b9fcbe35d371dd3d28235141779eb9c0c6c952c14b92478d",
+      "matches_original_run": true
+    },
+    {
+      "path": "candidate-dramboot.ld",
+      "bytes": 4286,
+      "sha256": "cdedfce4b36bbaa2a4afc01b8d6f4cead1acd3c021dad74a7ab849cb2b3ee0cc",
+      "original_run_sha256": "cdedfce4b36bbaa2a4afc01b8d6f4cead1acd3c021dad74a7ab849cb2b3ee0cc",
+      "matches_original_run": true
+    },
+    {
+      "path": "candidate-kickpi_k7_appinit.c",
+      "bytes": 3469,
+      "sha256": "3cb855d7c9d4a03f7e57e7c1da6a2ba77255f2eb6acac8c2f4509aac5386d201",
+      "original_run_sha256": "3cb855d7c9d4a03f7e57e7c1da6a2ba77255f2eb6acac8c2f4509aac5386d201",
+      "matches_original_run": true
+    },
+    {
+      "path": "candidate.patch",
+      "bytes": 2566,
+      "sha256": "ce28ae85d3528ec2499cba10fcb168be60cacd31bade40eeea3f214b79a2d377",
+      "original_run_sha256": "ce28ae85d3528ec2499cba10fcb168be60cacd31bade40eeea3f214b79a2d377",
+      "matches_original_run": true
+    },
+    {
+      "path": "collect_evidence.py",
+      "bytes": 1820,
+      "sha256": "074d69852c551639a7f776d7fdf46acd9b1511095e02147565f3f5ff6fc91ce7",
+      "original_run_sha256": "074d69852c551639a7f776d7fdf46acd9b1511095e02147565f3f5ff6fc91ce7",
+      "matches_original_run": true
+    },
+    {
+      "path": "collect_threading_evidence.py",
+      "bytes": 1073,
+      "sha256": "96c1222a964656653e67af7c50b3b81c85ab18f516cf77112e6522368afe60a6",
+      "original_run_sha256": null,
+      "matches_original_run": null
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 7079,
+      "sha256": "4c178acb7a1697ca7d724a1c9f2c464de688b73514764dad6e9331df5b720642",
+      "original_run_sha256": "4c178acb7a1697ca7d724a1c9f2c464de688b73514764dad6e9331df5b720642",
+      "matches_original_run": true
+    },
+    {
+      "path": "input-source-hashes.json",
+      "bytes": 227,
+      "sha256": "ed82f3cc322471634e075a753567c4a137614da8c5f780b2017145a04d99bdb0",
+      "original_run_sha256": "ed82f3cc322471634e075a753567c4a137614da8c5f780b2017145a04d99bdb0",
+      "matches_original_run": true
+    },
+    {
+      "path": "integrated-audit.json",
+      "bytes": 1021,
+      "sha256": "773b2e2d08dc6cd75afd11d50d8a3c052e93e5e0091fe86dace436ffa96d47d2",
+      "original_run_sha256": null,
+      "matches_original_run": null
+    },
+    {
+      "path": "prepare_candidate.py",
+      "bytes": 2862,
+      "sha256": "6c4921c6e882fef6fb6f37a296f1be7b0f663f750947040fdf8f929cce66c38f",
+      "original_run_sha256": "6c4921c6e882fef6fb6f37a296f1be7b0f663f750947040fdf8f929cce66c38f",
+      "matches_original_run": true
+    },
+    {
+      "path": "run-evidence.json",
+      "bytes": 12345,
+      "sha256": "1ef4a21eff7eb4bb4fb7516a76911fc33ee7e9bd4c06609a53485a897edb1fdc",
+      "original_run_sha256": null,
+      "matches_original_run": null
+    },
+    {
+      "path": "test_audit_elf.py",
+      "bytes": 2653,
+      "sha256": "db28f2875039dc3d87e560c577876c22b3700bddc84924d7c7f29fbae40ed146",
+      "original_run_sha256": "db28f2875039dc3d87e560c577876c22b3700bddc84924d7c7f29fbae40ed146",
+      "matches_original_run": true
+    },
+    {
+      "path": "threading-evidence.json",
+      "bytes": 1812,
+      "sha256": "6f0d526002349385e2a4940fd00eecabe282c961bf582b34d29888a9f4650d57",
+      "original_run_sha256": null,
+      "matches_original_run": null
+    },
+    {
+      "path": "THREADING-RISK.md",
+      "bytes": 6814,
+      "sha256": "29420290da1c6326b9935dfe2384ecc44c02e30a64b974a1311c1794721e4798",
+      "original_run_sha256": null,
+      "matches_original_run": null
+    }
+  ],
+  "historical_evidence": {
+    "report": "run-evidence.json",
+    "preserved": true,
+    "interpretation": "Original pre-integration command outputs and hashes are immutable historical evidence. Current files are independently indexed here. A changed documentation hash means a later documentation revision, not that original tests covered the revision.",
+    "changed_since_original_run": [],
+    "later_evidence": [
+      "integrated-audit.json",
+      "threading-evidence.json",
+      "THREADING-RISK.md"
+    ],
+    "sequence": "Parent applied the patch after original run-evidence, then this agent audited the new ELF and added threading risk plus integration-timing notes in THREADING-RISK.md. HANDOFF remains the historical pre-integration handoff unless its hash comparison says otherwise."
+  },
+  "verification": {
+    "tests_rerun_for_index": false,
+    "reason": "No code changes; this operation only computes the delivery inventory",
+    "original_synthetic_cases": 6,
+    "new_elf_static_audit_passed": true,
+    "new_elf_cies": 2,
+    "new_elf_fdes": 222,
+    "agent_hardware_tested": false,
+    "sdk_accessed": false
+  },
+  "excludes": [
+    "delivery.json (self hash excluded)",
+    "subdirectories; none are delivery artifacts"
+  ]
+}

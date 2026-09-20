@@ -1,0 +1,24 @@
+{
+  "elf": "E:\\openvela\\VelaVision\\artifacts\\cxx-tls-20260910\\nuttx",
+  "sha256": "8f05f77a611aa7c2940aa139521595dcd534b7030b7992f295d17afb2e0e7a3a",
+  "checks": {
+    "eh_frame_present": false,
+    "lsda_consolidated_nonempty": false,
+    "no_orphan_lsda": false,
+    "registration_symbol": true,
+    "first_initializer_is_unwind_registration": false
+  },
+  "records": {
+    "cie": 0,
+    "fde": 0
+  },
+  "first_initializer": "0x404543f4",
+  "passed": false,
+  "hardware_tested": false,
+  "limitations": [
+    "No startup call-order proof",
+    "No full DWARF/FDE PC coverage proof",
+    "No registration call disassembly proof",
+    "No runtime exception proof"
+  ]
+}

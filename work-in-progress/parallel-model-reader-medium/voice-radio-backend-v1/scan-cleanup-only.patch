@@ -1,0 +1,19 @@
+--- a/app/k7radio/k7radio_main.c:1192
++++ b/app/k7radio/k7radio_main.c:1192
+@@ -38,7 +38,7 @@
+       scan[33 + i * 3] = i < 13 ? 0 : 1;
+       scan[34 + i * 3] = 0x80;
+     }
+-  if ((ret = nxmutex_lock(&g_wifi_state))) return ret;
++  if ((ret = nxmutex_lock(&g_wifi_state))) goto scan_close;
+   while (nxsem_trywait(&g_wifi_scansem) == 0) {}
+   g_wifi_scan_done = false; g_wifi_reports = 0; g_wifi_unique = 0;
+   nxmutex_unlock(&g_wifi_state);
+@@ -46,6 +46,7 @@
+   if (!ret)
+     ret = g_bt_host_mode ? nxsem_tickwait_uninterruptible(&g_wifi_scansem, MSEC2TICK(8000)) : fw_receive(8000);
+   if (ret) stop = fw_wifi_command(6, NULL, 0);
++scan_close:
+   close = fw_wifi_command(4, NULL, 0);
+   int locked = nxmutex_lock(&g_wifi_state);
+   if (locked) return locked;

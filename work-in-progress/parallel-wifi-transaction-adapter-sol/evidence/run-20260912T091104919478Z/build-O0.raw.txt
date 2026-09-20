@@ -1,0 +1,9 @@
+E:\openvela\VelaVision\work-in-progress\parallel-wifi-transaction-adapter-sol\tests\test_wifi_transaction_adapter.cpp: In function 'int main()':
+E:\openvela\VelaVision\work-in-progress\parallel-wifi-transaction-adapter-sol\tests\test_wifi_transaction_adapter.cpp:162:19: error: loop variable 'item' creates a copy from type 'const std::pair<voicelink::wifi_transaction::FailureReason, voicelink::ConnectStatus>' [-Werror=range-loop-construct]
+  162 |   for (const auto item : {
+      |                   ^~~~
+E:\openvela\VelaVision\work-in-progress\parallel-wifi-transaction-adapter-sol\tests\test_wifi_transaction_adapter.cpp:162:19: note: use reference type to prevent copying
+  162 |   for (const auto item : {
+      |                   ^~~~
+      |                   &
+cc1plus.exe: all warnings being treated as errors

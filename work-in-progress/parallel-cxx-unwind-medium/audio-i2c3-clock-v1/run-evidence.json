@@ -1,0 +1,84 @@
+{
+  "inputs": [
+    {
+      "path": "E:\\openvela\\VelaVision\\evidence\\audio-sdk-extra-20260910\\kernel-6.1\\drivers\\i2c\\busses\\i2c-rk3x.c",
+      "bytes": 47514,
+      "sha256": "67b6eb49cdb0838bcd00e58021847461fe4b7fa4142f15f3de3ac59ac9b17bb5"
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\evidence\\audio-sdk-extra-20260910\\inputs.json",
+      "bytes": 1971,
+      "sha256": "27e54f22270956ddd1665a3acf12cbf869cd7e19a1e35fe77342ac4866acceef"
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-adapter-v1\\rk3x_registers.c",
+      "bytes": 2325,
+      "sha256": "420bf41f8fbbad4dc20f9611f63b9adf010b39850c0f656d773baf0e60bea2f6"
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-adapter-v1\\HANDOFF.md",
+      "bytes": 6215,
+      "sha256": "4c8531d9abb1a2ad9b8e2fabc375a737e5b116f8fdef6279e7443c8986345595"
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "gcc.EXE (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O0",
+        "i2c3_timing.c",
+        "test_timing.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-clock-v1\\test-O0.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-clock-v1\\test-O0.exe"
+      ],
+      "exit_code": 0,
+      "output": "SYNTHETIC 24MHz input example div_low=16 div_high=12 tuning=00001200 scl_ceiling=100000\nPASS 7 explicit boundaries + 160 grid cases (96 accepted/64 rejected), all accepted match frozen upstream; no target clock read\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "i2c3_timing.c",
+        "test_timing.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-clock-v1\\test-O2.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-clock-v1\\test-O2.exe"
+      ],
+      "exit_code": 0,
+      "output": "SYNTHETIC 24MHz input example div_low=16 div_high=12 tuning=00001200 scl_ceiling=100000\nPASS 7 explicit boundaries + 160 grid cases (96 accepted/64 rejected), all accepted match frozen upstream; no target clock read\n"
+    }
+  ],
+  "upstream_transform": "Selected v1 function; unsigned long mapped to uint64_t for target LP64 oracle",
+  "hardware_clock_read": false
+}

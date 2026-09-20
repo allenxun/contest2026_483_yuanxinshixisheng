@@ -1,0 +1,10 @@
+{
+  "testedAt": "2026-09-18",
+  "boardWifi": true,
+  "usbProbe": "1209:0001 present",
+  "videoDeviceNode": false,
+  "reactivation": {"probe": "committed=1", "voicecam": -114},
+  "cause": "The loaded photo-foreground image intentionally allows one capture/stream attempt per boot and does not release DMA/endpoint state for a second capture after the 1800-second run.",
+  "result": "preserved as failure; no claim of current video readiness",
+  "next": "reload a build with an explicit capture-session reset/restart path, or reboot and reload the known-good image before the next live recording"
+}

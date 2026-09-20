@@ -1,0 +1,129 @@
+[
+  {
+    "name": "kaldi-native-fbank",
+    "version": "1.22.1",
+    "url": "https://github.com/csukuangfj/kaldi-native-fbank/archive/refs/tags/v1.22.1.tar.gz",
+    "expected_sha256": "b292ddd1fa121f28371d11c14dd016c59c54b3f0dbb2bb2cfdc82d562564d0f5",
+    "status": "VERIFIED",
+    "bytes": 69914,
+    "sha256": "b292ddd1fa121f28371d11c14dd016c59c54b3f0dbb2bb2cfdc82d562564d0f5",
+    "cmake_snapshots": [
+      {
+        "path": "kaldi-native-fbank-1.22.1/CMakeLists.txt",
+        "sha256": "54f79b3869383d8defcee42dcc34d0f749c8cf06ca7948ff8049194bfeaae273",
+        "bytes": 3962
+      },
+      {
+        "path": "kaldi-native-fbank-1.22.1/cmake/Modules/FetchContent.cmake",
+        "sha256": "3e2d42a00457a6ec2da59fadb96a0d327167c08a64d583d0db73b076e6f963a5",
+        "bytes": 38023
+      },
+      {
+        "path": "kaldi-native-fbank-1.22.1/cmake/googletest.cmake",
+        "sha256": "0e0e5923bac9cdc649088f39c0d39c1b1531eef0298ca842b370db2d265ee9a3",
+        "bytes": 2545
+      },
+      {
+        "path": "kaldi-native-fbank-1.22.1/cmake/kissfft.cmake",
+        "sha256": "f6038500a227a48df0e309b9490bd9c8cec8ee376008d7211e3fc96f0c689580",
+        "bytes": 2377
+      },
+      {
+        "path": "kaldi-native-fbank-1.22.1/cmake/pybind11.cmake",
+        "sha256": "91938f463d8030274c90502710dc4fa71c0272300750143362da8153702c11a0",
+        "bytes": 1530
+      },
+      {
+        "path": "kaldi-native-fbank-1.22.1/kaldi-native-fbank/CMakeLists.txt",
+        "sha256": "17ee95c2193bb8493d63fe1a2a7984ee76386a35d4ee7c8f269fe368c407f3fb",
+        "bytes": 182
+      },
+      {
+        "path": "kaldi-native-fbank-1.22.1/kaldi-native-fbank/csrc/CMakeLists.txt",
+        "sha256": "38828eae77496fa427bdd64f72d4f1107023d457148c38f22a680ff7839a1553",
+        "bytes": 2371
+      },
+      {
+        "path": "kaldi-native-fbank-1.22.1/kaldi-native-fbank/python/CMakeLists.txt",
+        "sha256": "507515aca359b3b034e4aba3b7e05426d65ba5c8f08346d4c0cac429a1e59106",
+        "bytes": 47
+      },
+      {
+        "path": "kaldi-native-fbank-1.22.1/kaldi-native-fbank/python/csrc/CMakeLists.txt",
+        "sha256": "ffa081c80514f4be84c4dd2de517649d411b51322e279856e473c098b8703ad9",
+        "bytes": 1038
+      },
+      {
+        "path": "kaldi-native-fbank-1.22.1/kaldi-native-fbank/python/tests/CMakeLists.txt",
+        "sha256": "1601cc4de4f3dd58f80e59819f00f1930f9d8bebf1d3398a4c8ad4373fea1a0f",
+        "bytes": 1044
+      },
+      {
+        "path": "kaldi-native-fbank-1.22.1/toolchains/arm-linux-gnueabihf.toolchain.cmake",
+        "sha256": "827edec7a84a1431c78408698b9012d8979bcd84ead8aab8affaad734a547e19",
+        "bytes": 673
+      }
+    ]
+  },
+  {
+    "name": "kaldi-decoder",
+    "version": "0.2.10",
+    "url": "https://github.com/k2-fsa/kaldi-decoder/archive/refs/tags/v0.2.10.tar.gz",
+    "expected_sha256": "a3d602edc1f422acfe663153faf3f0a716305ec1f95b8fcf9d28d301d6827309",
+    "status": "VERIFIED",
+    "bytes": 51908,
+    "sha256": "a3d602edc1f422acfe663153faf3f0a716305ec1f95b8fcf9d28d301d6827309",
+    "cmake_snapshots": [
+      {
+        "path": "kaldi-decoder-0.2.10/CMakeLists.txt",
+        "sha256": "cff5a265501936367e96c1ac4a9a54cdb53ff4c0b6ccc1e6d756929a64bab0c0",
+        "bytes": 2209
+      },
+      {
+        "path": "kaldi-decoder-0.2.10/cmake/eigen.cmake",
+        "sha256": "679d4c5f617ba736c05d512ef26212cf699fe15eaac9a6375c9c624727a555a0",
+        "bytes": 1471
+      },
+      {
+        "path": "kaldi-decoder-0.2.10/cmake/googletest.cmake",
+        "sha256": "c2e427882f294140bccf98b4c0be3a508f4670e89357d8c8ee1c76f2970a9d8e",
+        "bytes": 2425
+      },
+      {
+        "path": "kaldi-decoder-0.2.10/cmake/kaldifst.cmake",
+        "sha256": "68c03175aa8fcb7808d11ba7c624c383b54637db667819d89d39cda50e998cfa",
+        "bytes": 2210
+      },
+      {
+        "path": "kaldi-decoder-0.2.10/cmake/openfst.cmake",
+        "sha256": "d7899a4f9de50dd69aab75cc10e01b83c102de709b13b3085c7129eabf96bd44",
+        "bytes": 3438
+      },
+      {
+        "path": "kaldi-decoder-0.2.10/cmake/pybind11.cmake",
+        "sha256": "3a5c4ac2ef41cedc302ab961d6f5dda98d9a9099d740312f3aebd84349354f42",
+        "bytes": 1412
+      },
+      {
+        "path": "kaldi-decoder-0.2.10/kaldi-decoder/CMakeLists.txt",
+        "sha256": "4789692ff50033bb673a77fd1c2b6efa840731b6844588f77d38bd7edca2c332",
+        "bytes": 90
+      },
+      {
+        "path": "kaldi-decoder-0.2.10/kaldi-decoder/csrc/CMakeLists.txt",
+        "sha256": "83c7bf93b5da9b92c5851a66e27b0925be157ee1386b8aaa7ee5d7c94d050569",
+        "bytes": 1106
+      },
+      {
+        "path": "kaldi-decoder-0.2.10/kaldi-decoder/python/CMakeLists.txt",
+        "sha256": "3b4db6840fde7b8ad6883115f33de2c00f0790fa8f7bea0d3118bcc0a93deab6",
+        "bytes": 23
+      },
+      {
+        "path": "kaldi-decoder-0.2.10/kaldi-decoder/python/csrc/CMakeLists.txt",
+        "sha256": "254f73f4562b4d9fdb0f7745707752f201ac2437845c164c788c98fafa390cc1",
+        "bytes": 989
+      }
+    ]
+  }
+]

@@ -1,0 +1,50 @@
+{
+  "source_manifest": {
+    "skw_bt.c": "c7746ad5b2e734ac66638cc240bf9bbde709499be6485827de06d69fe2fa1c48",
+    "skw_wifi_diag.h": "7c0d88bf3f136565a79963ae4e5d6d6c9c984a2697829192e6368f74d6dc6d35",
+    "skw_wifi_bss.h": "b62a485c6bd2e196d2b48fd9dd83268011a0ecd6a7de7e346de8c6afea9f69a5",
+    "skw_bt.h": "dae6d9d4a57e8a579a0053343e153e14e3bfd763b7e7805b13d06e7972723e3c",
+    "COPYING": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+    "wifi_join_probe.inc": "a58b96ad022ec00f599f856d2a12dd51dc7c937f141a5a27c87d116e5b22315d",
+    "skw_wifi_join.h": "db3188786f03be33b50e88035620e81e1c52f62ff5387b95d1a89f0723a2b362",
+    "skw_native.h": "28985b1fbb80f66441b845e7b509725808fcbb572798b6e214a562dabde43e40",
+    "cJSON.h": "dd689a2905ad7c4c1d15556f1c7b9ce5cfdf9c8a78e4224ffb4a04d01d050f5f",
+    "wifi_assoc_probe.inc": "d9d605e1cc881d2c288b370b0725c61d77d4b15f546f4c3ba486626b0babb784",
+    "prov_service.inc": "c6f08ff06e1eabef85b8c9c1e690de28902ccfaca1e7d8bc3b82e465942600d9",
+    "k7radio_main.c": "4defc82710b8658f109183aea786a4b31836b960f205bc464ef727dc5b0a5bb3",
+    "skw_bus.c": "1d22090f5d61a422c2eb5dfc68bb93ffaee37d99d544588b15f459d4f818bd10",
+    "prov_protocol.c": "25efadcfd17cd58e2ccb42a0340da38a17a39cda62509f2818157768d3f8db09",
+    "skw_rk3576.c": "c23de6076c091e4957a32ed8623cf15f56e8a28cf510da084704e4235b59d056",
+    "cJSON.c": "cf9e08c8524c17406a0d430a47376080aebcdc8e851f7de24d277be61973eaeb",
+    "skw_dw.h": "73f23020808ffc4f9b4668d7f5fa35e775710d12fa7f14b653c1d6a96ec3a6a7",
+    "rk3576_boot.c": "16c4ffe5d3dd3abbbbafb857fb88eac33bf1644d01dc48bee9a953dad2a6b360",
+    "skw_rk3576.h": "1751ad2ce2b68cae51ba9b68b39cc5531d5065e5411c1dbcedfe16aa4bf40a9d",
+    "skw_dw.c": "9cb2b99c0d4c2908ebb41169e7c9a0083565baa4a5b724ec56fc27f62b595858",
+    "Makefile": "26114c643bb583c61d5ac80f00b3fc32b613367b748d3f706a9637608a6f8b13",
+    "prov_protocol.h": "bb5fef0bc52bad86e3601e603af39ce5d52716fcb88502be18179cde6e2a6b89",
+    "CMakeLists.txt": "d9f12f76e45b76b349eae0e10fdb34f8302bce518cc5be552e3e413c91e648e6",
+    "skw_packet.c": "893317055c054a75a0c37e8728646727758266a9d282e7e02c1187d2e8207643"
+  },
+  "host_patch_base": [
+    "host-patch-id28",
+    "host-patch-id29",
+    "host-patch-id30",
+    "host-patch-id34",
+    "host-patch-id35"
+  ],
+  "files": {
+    ".config": {
+      "bytes": 59337,
+      "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+    },
+    "nuttx.bin": {
+      "bytes": 400208,
+      "sha256": "8d53a8cd62b09bea20c4d2d4905c31fe14a0277f0c600914f59a3d189839ab56"
+    },
+    "nuttx": {
+      "bytes": 5704696,
+      "sha256": "ccce291be681e126d132195b178bd1d50718ecdc6370a7f724807a45d5a76175"
+    }
+  },
+  "native_hardware_tested": false
+}

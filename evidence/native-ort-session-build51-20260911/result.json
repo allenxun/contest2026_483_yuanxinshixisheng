@@ -1,0 +1,24 @@
+{
+  "exit_code": 1,
+  "timeout": false,
+  "seconds": 89.94311149200075,
+  "command": [
+    "/dev/shm/cmake-3.28.3-linux-x86_64/bin/cmake",
+    "--build",
+    "/dev/shm/velavision-ort-session-20260911/build",
+    "--target",
+    "onnxruntime_session",
+    "onnxruntime_mlas",
+    "onnxruntime_framework",
+    "onnxruntime_optimizer",
+    "onnxruntime_providers",
+    "onnxruntime_graph",
+    "onnxruntime_util",
+    "onnxruntime_common",
+    "onnxruntime_flatbuffers",
+    "-j4"
+  ],
+  "linked": false,
+  "model_run": false,
+  "config_sha256": "1d9e399617acd8377efa8d597cce0632597b46d1f466162f4bcaaac8721c8ce4"
+}

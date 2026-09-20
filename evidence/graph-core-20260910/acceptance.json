@@ -1,0 +1,46 @@
+{
+  "state": {
+    "running_revision": "graph-core-20260910",
+    "boot": "RAM",
+    "smp_cpus": 8,
+    "firmware_sha256": "6b68dbff8afcd866f8d6e806885f209bd71dcf6e8cd8379b3bd40d768d8ea27b",
+    "ggml_graph_passed": true,
+    "graph_configured_threads": [
+      2,
+      4
+    ],
+    "graph_checked_per_run": 4096,
+    "graph_mismatches": 0,
+    "graph_physical_cpus_observed": false,
+    "model_loaded": false,
+    "agent_deployed": false,
+    "concurrent_cxx_cold_passed": false,
+    "wifi_connected": true,
+    "ip": "10.3.0.214",
+    "gateway_ping": "5/5",
+    "ble_service_running": true,
+    "ble_connected": false,
+    "ble_disconnect": "Test client intentionally disconnected",
+    "wireless_hold_seconds": 30,
+    "receive_rejects_before": 1,
+    "receive_rejects_after": 1,
+    "emmc_written": false,
+    "serial_port_present": true,
+    "evidence_directory": "evidence/graph-core-20260910",
+    "limits": [
+      "No weights or natural language inference",
+      "Configured graph workers do not prove physical CPU placement",
+      "C++ first concurrent throw failed in separate cxx-eh image; unresolved",
+      "Historical AMSDU rejected label covers all RX rejects; cause not established",
+      "Finite wireless regression only; no long-term or internet acceptance"
+    ]
+  },
+  "recorded_utc": "2026-09-10T08:01:19.568607+00:00",
+  "hashes": {
+    "ramload-progress.txt": "3709c82e492cf83dbe0ab087cf897c29abb013a481726257b3fdada448f01e30",
+    "runtime.json": "94979e2a252169f0ac049c5cfce9f853be19ddfe25a0e2d7de1a4c1955605d0a",
+    "affinity-boot.json": "89a8a38f4dcc8a5141e633f9c2dd1a4fd9f6e0a533ad269809b1d1252c37d58f",
+    "ble-wireless.jsonl": "6c5cc1bb11f297cd996c154c843bc04e6da63ea4f559ca6fb97774e33f7948a9",
+    "gateway.json": "24af302f729239881e69e617119fa202bbc2abc4fbd7720cde5a8fc7d5747511"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "records": [
+    {
+      "command": "dd if=/dev/emmc0ro of=/dev/null bs=512 count=128",
+      "elapsed_seconds": 0.046000000002095476,
+      "prompt_returned": true,
+      "lines": [
+        "nsh: dd: infd open failed: 6"
+      ]
+    },
+    {
+      "command": "k7emmc gpt",
+      "elapsed_seconds": 0.03199999999196734,
+      "prompt_returned": true,
+      "lines": [
+        "EMMC registered: reinitialization refused"
+      ]
+    }
+  ],
+  "requested_read_bytes": 65536,
+  "destination": "/dev/null",
+  "storage_writes": false
+}

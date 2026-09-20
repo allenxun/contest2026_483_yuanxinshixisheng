@@ -1,0 +1,33 @@
+{
+  "action": "stop native Wi-Fi after completed coexistence hold, for separate BLE reconnect+scan test",
+  "wifi_stopped": true,
+  "ble_connected_encrypted": true,
+  "records": [
+    {
+      "time": "2026-09-09T11:37:53.538819+00:00",
+      "line": "WIFI link cleanup keys=0 unjoin=0 close=0"
+    },
+    {
+      "time": "2026-09-09T11:37:53.538819+00:00",
+      "line": "WIFI IP worker stopped ret=-125"
+    },
+    {
+      "time": "2026-09-09T11:37:55.549608+00:00",
+      "line": "WIFI status active=0 wifi_connected=0 ip=none gateway=none result=-125"
+    },
+    {
+      "time": "2026-09-09T11:37:57.571701+00:00",
+      "line": "RADIO BLE name=VelaVision K7 connected=1 handle=17 ACL_RX=25 ACL_TX_queued=26"
+    },
+    {
+      "time": "2026-09-09T11:37:57.571701+00:00",
+      "line": "RADIO BLE history connections=3 disconnections=2 last_reason=19 encrypt_status=0 encrypted=1"
+    },
+    {
+      "time": "2026-09-09T11:37:59.589663+00:00",
+      "line": "PROV registered=1 connected=1 subscribed=1 busy=0 session=5 commands=0 notify_queued=0 errors=0 connects=3 disconnects=2 reads=0 input_bytes=0"
+    }
+  ],
+  "wifi_restore_required": true,
+  "firmware_changed": false
+}

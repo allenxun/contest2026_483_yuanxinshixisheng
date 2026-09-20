@@ -1,0 +1,53 @@
+{
+  "revision": "mimo-cloud-client-v25-profile-20260913",
+  "created_at": "2026-09-13T21:45:19+08:00",
+  "scope": "isolated host-only candidate",
+  "formal_source_modified": false,
+  "network_called": false,
+  "board_touched": false,
+  "credentials_read_or_stored": false,
+  "tests": {
+    "gcc_O0": "pass: 12 groups",
+    "gcc_O2": "pass: 12 groups",
+    "asan_ubsan": "unavailable: MinGW runtime libraries not installed"
+  },
+  "source_sha256": {
+    "include/mimo_cloud_client.h": "564cf617131e5eaf70236a06b72924563759d07d5f647931cb4586dbb008610d",
+    "include/mimo_v25_profile.h": "8eb4b2ececddb58e6479b1d431ffcad55aaf038f6a689e419cd9300435e83f1a",
+    "src/mimo_cloud_client.c": "ed3829b5964e2b47e61a3b6372851ca8df08dc4080f1da0630449233ea2e3574",
+    "src/mimo_v25_profile.c": "74618769ae78be7cab4355ffa4f44f3d5822842512c6a8f2d56fdf56db792e02",
+    "tests/test_mimo_cloud_client.c": "0cc4b9614a36168f15db72e3074a50e470b4211f4c59872749ff76dd7856e573",
+    "run_host_tests.ps1": "ba82abd41664db1238f7925159d0f53f9ef588a3184db62b7afe01b34faaa564",
+    "README.md": "59f6aa9dc8947a2c8fca4736e1944e02d77eba4cda29d822507b48f28cc5df57"
+  },
+  "protocol": {
+    "official_spec_source": "../mimo-api-spec-20260913",
+    "transport": "POST /v1/chat/completions, non-streaming",
+    "authentication": "Authorization: Bearer runtime token",
+    "asr_model": "mimo-v2.5-asr",
+    "asr_language": "zh",
+    "asr_formats": ["wav", "mp3"],
+    "asr_encoded_audio_max_bytes": 10000000,
+    "asr_result_path": "choices[0].message.content",
+    "tts_model": "mimo-v2.5-tts",
+    "tts_format": "wav",
+    "tts_result_path": "choices[0].message.audio.data"
+  },
+  "strictness": {
+    "full_json_validation_before_commit": true,
+    "unicode_and_surrogate_validation": true,
+    "embedded_nul_transcript_rejected": true,
+    "canonical_base64_required": true,
+    "riff_wave_validated_before_commit": true,
+    "duplicate_target_fields_rejected": true,
+    "host_header_injection_rejected": true,
+    "logs_exclude_token_text_and_audio": true
+  },
+  "unverified_live_boundaries": [
+    "account-specific Token Plan regional host",
+    "account model entitlement",
+    "16 kHz mono PCM16 WAV service acceptance",
+    "DNS/TLS/CA/time/entropy on the board",
+    "latency and billing behavior"
+  ]
+}

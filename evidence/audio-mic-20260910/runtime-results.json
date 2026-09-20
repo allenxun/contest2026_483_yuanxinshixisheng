@@ -1,0 +1,73 @@
+{
+  "revision": "audio-mic-20260910",
+  "firmware_sha256": "b4a151d83b75669770769dfefd2a13c092194b658b89d7849ca3facd158976c3",
+  "mclk_output_gate_before": "0000001f",
+  "mclk_output_gate_after": "0000001d",
+  "capture_has_variable_data": true,
+  "microphone_audio_passed": false,
+  "periodic_gap": {
+    "frame_modulus": 4,
+    "nonzero_per_phase_per_channel": [
+      12000,
+      0,
+      0,
+      0
+    ],
+    "nominal_frames": 48000,
+    "sample_rate_not_accepted": true
+  },
+  "voice_dump": "voice-first/extraction.json",
+  "observations": [
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6909952,
+        "sha256": "b4a151d83b75669770769dfefd2a13c092194b658b89d7849ca3facd158976c3"
+      },
+      "command": "k7sound capture",
+      "prompt": true,
+      "elapsed_seconds": 1.375,
+      "raw_sha256": "94631397c147aa89ee925945c50b5ffac4097da1fb013d2517cae7212ee01c56",
+      "raw": "k7sound-capture-20260910-192011.bin"
+    },
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6909952,
+        "sha256": "b4a151d83b75669770769dfefd2a13c092194b658b89d7849ca3facd158976c3"
+      },
+      "command": "k7sound capture 48000",
+      "prompt": true,
+      "elapsed_seconds": 4.172000000005937,
+      "raw_sha256": "3f305524112bbf889698653f3d681aef15de635669ae4242b7ba5eb15530acf3",
+      "raw": "k7sound-capture-48000-20260910-192109.bin"
+    },
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6909952,
+        "sha256": "b4a151d83b75669770769dfefd2a13c092194b658b89d7849ca3facd158976c3"
+      },
+      "command": "k7sound dump",
+      "prompt": true,
+      "elapsed_seconds": 0.5310000000026776,
+      "raw_sha256": "c78d3598ef8ec365c0749a0cb289aa25edbfb66b6b7e2393344ffe48de124dbf",
+      "raw": "k7sound-dump-20260910-192042.bin"
+    },
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6909952,
+        "sha256": "b4a151d83b75669770769dfefd2a13c092194b658b89d7849ca3facd158976c3"
+      },
+      "command": "k7sound dump",
+      "prompt": true,
+      "elapsed_seconds": 7.5939999999973224,
+      "raw_sha256": "729a7eb14996c8f0678c0efd22f3f62056c8f5b12b79a84ed9a3d0fe0c1b47cf",
+      "raw": "k7sound-dump-20260910-192144.bin"
+    }
+  ],
+  "speaker_report_scope": "User heard three sounds on older audio-fifo; faithful waveform and intelligible recorded voice playback not yet proven",
+  "wifi_started": false,
+  "emmc_written": false
+}

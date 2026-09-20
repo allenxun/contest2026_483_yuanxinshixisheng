@@ -1,0 +1,42 @@
+{
+  "candidate": "work-in-progress/parallel-neon-probe-medium/audio-sai1-pio-v3",
+  "verified_outputs": {
+    "fifo-sum4.patch": "da08e8e2ecbfbcc0a67a781148b8260543f4d55988bd165243bfb47ef9420dc9",
+    "HANDOFF.md": "c87762d49232b36ca9b6322065e93d6d5350a5af7952e6a6ace54c855e5cfe78",
+    "inputs.json": "790aa3029acad63ffb82b85e26cf9531178d9e99c8fa2237225b2084ecb2da83",
+    "pio.c": "e7608d58a48e852203be00d5316f7b9cabeae74ae5df927fdbefeb7cfa725458",
+    "pio.h": "009c2bef0ad5166a52ba349d15a7c2a6cde04cd8147542688825ba5bf27d1560",
+    "run.py": "1d33ed5738def67ae0d1f63b96a1c678a9cd15ad0ad8b0fe3e0fd387c5352d71",
+    "seal.py": "ee3303b08890d501e9919162d053c20d9bab75c160c734db665bfb17f846947e",
+    "test-output.txt": "09fe24f2e63f5cb9d9034dd9c94880cab19de99edffd378ebf47e77e4ac86da6",
+    "test.c": "8d4b4b95ec36c6ef6e33de6a8ff37b692ce9078c25fbae012fb246c43d3bb35c",
+    "testO0.exe": "7cdea58e53de85c07942b6f54a659c0d602a492123b9f43ad249a53b7e7879fe",
+    "testO2.exe": "f96d7ba5d163df0fe3f722c75e877cb807a75865e0e5d4e46768c32258c488af",
+    "input\\00_pio.c": "43bb434f2a2def4c5da8f77800fb8d3e2051d7ae55579e90d29946ba9ba21bba",
+    "input\\01_pio.h": "e70b9cbf6f0bdd22305f85daab61a72b067edde519e34280344b89914a0a435a",
+    "input\\02_rockchip_sai.h": "0168c0a18f6abda7211af572f6778ff41b77e22602f6ad00f3ffee83e97884ed",
+    "input\\03_rockchip_sai.c": "18aa09ab924f0befee9f021d4bc5fbab8d76fe2baecf4b6225d6e86a0d1c69fa",
+    "input\\04_rockchip_sai.h": "0168c0a18f6abda7211af572f6778ff41b77e22602f6ad00f3ffee83e97884ed",
+    "input\\rockchip_sai.h": "0168c0a18f6abda7211af572f6778ff41b77e22602f6ad00f3ffee83e97884ed"
+  },
+  "host_results": "COMMAND ['D:\\\\software\\\\mingw64\\\\mingw64\\\\bin\\\\gcc.EXE', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-pedantic', 'pio.c', 'test.c', '-o', 'testO0.exe']\nEXIT 0\nCOMMAND ['E:\\\\openvela\\\\VelaVision\\\\work-in-progress\\\\parallel-neon-probe-medium\\\\audio-sai1-pio-v3\\\\testO0.exe']\nPASS v3: vendor sum4 FIFO, strict16word prefill, raw diagnostics,3200TX/48000RX and v2 bounds\nEXIT 0\nCOMMAND ['D:\\\\software\\\\mingw64\\\\mingw64\\\\bin\\\\gcc.EXE', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-pedantic', 'pio.c', 'test.c', '-o', 'testO2.exe']\nEXIT 0\nCOMMAND ['E:\\\\openvela\\\\VelaVision\\\\work-in-progress\\\\parallel-neon-probe-medium\\\\audio-sai1-pio-v3\\\\testO2.exe']\nPASS v3: vendor sum4 FIFO, strict16word prefill, raw diagnostics,3200TX/48000RX and v2 bounds\nEXIT 0\n",
+  "hardware_passed": false,
+  "formal": {
+    "app/k7sound/CMakeLists.txt": "0745a9f90cd037059081dbe0750491b43db286f17399c9f381641c8b0ad5969b",
+    "app/k7sound/codec_duplex.c": "6c5912ab7cd45f24bf9a8f410b1cc5a09071ab9dddd9725e231c2b7351218fb6",
+    "app/k7sound/codec_duplex.h": "02f085739c0e6dec064bad04a165c1b06a8e59baf5760ca6b298612278c1bac1",
+    "app/k7sound/i2c3_timing.c": "e251961268a18c2efae7aa9be2c53fd88d264d52fcae94216866522089754b0a",
+    "app/k7sound/i2c3_timing.h": "1db2c4ffa2b259a4409c4629cd776331056354eecd67b0af32535bbfcff1ae83",
+    "app/k7sound/i2c_owner.inc": "86e94e1c77a4a28328be2faa4a34e7139ac364c3be922694cbfd98546abea65f",
+    "app/k7sound/k7sound_main.c": "30fe275fa61bfb52ac7649c9e79e787011ac9da18a8802f1327ab5bd06948b46",
+    "app/k7sound/Kconfig": "070b43f500ffb65c02c8028bea8c1136aa179acce1b41e8b490978e599adb94a",
+    "app/k7sound/live.c": "d4a9d0ecfc41204b0be9e329715fcb343e9916528154d157b21388bc47a05aa7",
+    "app/k7sound/live.h": "a5c1a1f4fffca693b6440be47e4dd509ee104ddaf18cfc68247e4ea29fa9280c",
+    "app/k7sound/pio.c": "e7608d58a48e852203be00d5316f7b9cabeae74ae5df927fdbefeb7cfa725458",
+    "app/k7sound/pio.h": "009c2bef0ad5166a52ba349d15a7c2a6cde04cd8147542688825ba5bf27d1560",
+    "app/k7sound/platform.c": "6a5549484745d8a3e16189dc7e6f91bd32a73c7ee6fafdf0a85ef6bc0ba04ecc",
+    "app/k7sound/platform.h": "9e7446327f2c239017be7c89a460f7e1d80c1de8d60836411675b84eea30057e",
+    "app/k7sound/README.md": "c89633291fe625b94443d100bb179f3f60913473ba7a5b12a69b015b3aa30fac",
+    "app/k7sound/input/rockchip_sai.h": "0168c0a18f6abda7211af572f6778ff41b77e22602f6ad00f3ffee83e97884ed"
+  }
+}

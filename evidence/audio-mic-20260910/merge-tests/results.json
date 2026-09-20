@@ -1,0 +1,102 @@
+[
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-IE:\\openvela\\VelaVision\\app\\k7sound",
+      "E:\\openvela\\VelaVision\\app\\k7sound\\platform.c",
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\pull.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\pull-O0.exe"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\pull-O0.exe"
+    ],
+    "exit_code": 0,
+    "output": "PASS actual platform10 pull-none maskc0 setup readback restore readback; neighbors preserved, synthetic only\n"
+  },
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-IE:\\openvela\\VelaVision\\app\\k7sound",
+      "E:\\openvela\\VelaVision\\app\\k7sound\\platform.c",
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\pull.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\pull-O2.exe"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\pull-O2.exe"
+    ],
+    "exit_code": 0,
+    "output": "PASS actual platform10 pull-none maskc0 setup readback restore readback; neighbors preserved, synthetic only\n"
+  },
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-IE:\\openvela\\VelaVision\\app\\k7sound",
+      "E:\\openvela\\VelaVision\\app\\k7sound\\platform.c",
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\clkout.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\clkout-O0.exe"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\clkout-O0.exe"
+    ],
+    "exit_code": 0,
+    "output": "PASS MCLKOUT: AUDIO-gated access,bit1-only enable+restore,raw diagnostic,stuck-gate readback rejection\n"
+  },
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-IE:\\openvela\\VelaVision\\app\\k7sound",
+      "E:\\openvela\\VelaVision\\app\\k7sound\\platform.c",
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\clkout.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\clkout-O2.exe"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\merge-tests\\clkout-O2.exe"
+    ],
+    "exit_code": 0,
+    "output": "PASS MCLKOUT: AUDIO-gated access,bit1-only enable+restore,raw diagnostic,stuck-gate readback rejection\n"
+  }
+]

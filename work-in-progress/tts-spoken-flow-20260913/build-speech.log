@@ -1,0 +1,13 @@
+[1/11] cd /home/swl/openvela/cmake_out/velavision_spoken_tts_20260913/libs/libc/misc && /usr/bin/cmake -E touch /home/swl/openvela/nuttx/libs/libc/misc/lib_utsname.c
+[2/11] Generating bin output directories
+[3/11] cd /home/swl/openvela/nuttx && /usr/bin/cmake -DKCONFIG_CONFIG=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_spoken_tts_local/defconfig -DNUTTX_DIR=/home/swl/openvela/nuttx -DCMAKE_BINARY_DIR=/home/swl/openvela/cmake_out/velavision_spoken_tts_20260913 -P /home/swl/openvela/nuttx/cmake/nuttx_generate_dts.cmake
+[4/11] Building C object libs/libc/CMakeFiles/c.dir/misc/lib_utsname.c.o
+[5/11] Building CXX object apps/examples/voicelink/CMakeFiles/apps_k7voice.dir/src/k7voice_main.cpp.o
+[6/11] Linking C static library libs/libc/libc.a
+[7/11] Building CXX object apps/examples/voicelink/CMakeFiles/apps_k7voice.dir/src/core.cpp.o
+[8/11] Linking CXX static library apps/examples/voicelink/libapps_k7voice.a
+[9/11] Linking CXX executable nuttx
+Memory region         Used Size  Region Size  %age Used
+            dram:      19772 KB       126 MB     15.32%
+[10/11] Generating nuttx.bin
+[11/11] Generating System.map

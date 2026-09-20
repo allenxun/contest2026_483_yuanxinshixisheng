@@ -1,0 +1,74 @@
+{
+  "temporary_arp": false,
+  "status_only": false,
+  "records": [
+    {
+      "time": "2026-09-10T05:01:39.209837+00:00",
+      "command": "k7radio wifi-status",
+      "lines": [
+        "WIFI status active=1 wifi_connected=1 ip=10.3.0.214 gateway=10.3.0.1 result=0",
+        "WIFI netdev rx=32 tx=2 dropped=0",
+        "WIFI ARP rx_request=0 rx_reply=0 tx_request=0 tx_reply=0 wait_ms=250 retries=5",
+        "WIFI AMSDU complete=0 subframes=0 rejected=0"
+      ]
+    },
+    {
+      "time": "2026-09-10T05:01:39.258134+00:00",
+      "command": "arp -i wlan0 -a 10.3.0.1",
+      "lines": [
+        "nsh: arp: no such ARP entry: 10.3.0.1"
+      ]
+    },
+    {
+      "time": "2026-09-10T05:01:44.304220+00:00",
+      "command": "ping -c 5 -I wlan0 10.3.0.1",
+      "lines": [
+        "56 bytes from 10.3.0.1: icmp_seq=0 time=99.0 ms",
+        "56 bytes from 10.3.0.1: icmp_seq=1 time=102.0 ms",
+        "56 bytes from 10.3.0.1: icmp_seq=2 time=27.0 ms",
+        "56 bytes from 10.3.0.1: icmp_seq=3 time=48.0 ms",
+        "56 bytes from 10.3.0.1: icmp_seq=4 time=75.0 ms",
+        "5 packets transmitted, 5 received, 0% packet loss, time 5005 ms",
+        "rtt min/avg/max/mdev = 27.000/70.200/102.000/29.061 ms"
+      ]
+    },
+    {
+      "time": "2026-09-10T05:01:44.350580+00:00",
+      "command": "arp -i wlan0 -a 10.3.0.1",
+      "lines": []
+    },
+    {
+      "time": "2026-09-10T05:01:44.397041+00:00",
+      "command": "k7radio wifi-status",
+      "lines": [
+        "WIFI status active=1 wifi_connected=1 ip=10.3.0.214 gateway=10.3.0.1 result=0",
+        "WIFI netdev rx=42 tx=8 dropped=0",
+        "WIFI ARP rx_request=0 rx_reply=2 tx_request=1 tx_reply=0 wait_ms=250 retries=5",
+        "WIFI AMSDU complete=1 subframes=2 rejected=0"
+      ]
+    },
+    {
+      "time": "2026-09-10T05:01:44.444685+00:00",
+      "command": "k7radio ble-status",
+      "lines": [
+        "RADIO BLE name=VelaVision K7 connected=0 handle=17 ACL_RX=44 ACL_TX_queued=68",
+        "RADIO BLE history connections=1 disconnections=1 last_reason=19 encrypt_status=0 encrypted=0"
+      ]
+    },
+    {
+      "time": "2026-09-10T05:01:44.492155+00:00",
+      "command": "k7radio provision-status",
+      "lines": [
+        "PROV registered=1 connected=0 subscribed=0 busy=0 session=2 commands=4 notify_queued=23 errors=1 connects=1 disconnects=1 reads=2 input_bytes=0",
+        "PROV last command=2 id=9103 session=1 ret=0 notify_ret=0"
+      ]
+    },
+    {
+      "time": "2026-09-10T05:01:44.539395+00:00",
+      "command": "free",
+      "lines": [
+        "126840824      72312  126768512      90288  126760176     55      4 Umem"
+      ]
+    }
+  ]
+}

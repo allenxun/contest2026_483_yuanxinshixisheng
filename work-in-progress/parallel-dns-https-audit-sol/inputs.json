@@ -1,0 +1,43 @@
+{
+  "audit": "parallel-dns-https-audit-sol",
+  "captured_at": "2026-09-11T20:10:30.0075279+08:00",
+  "scope": "read-only local repository and Ubuntu VM SDK audit; no network download",
+  "sdk_identity": {
+    "root": "/home/swl/openvela",
+    "nuttx_head": "e987a81c32cab008d1a8521669e5488d00271322",
+    "apps_head": "92cc8c56a4c9b780b38991401295179fa2461908"
+  },
+  "repository_files": {
+    "README.md": {"bytes": 6496, "sha256": "06176d1fc6d11782693ce0edfb6fe1b7557b5ab4bd3c0206a6b2e766874fa50b"},
+    "project-manifest.json": {"bytes": 26969, "sha256": "dcfc4e40607b41ee448f060511b39a9a8041bbe92bd2ba15abe8d703523147bc"},
+    "docs/代码日志对应表.md": {"bytes": 41240, "sha256": "2b64c2c5ee83d971f2be72760ee6a5622a95c9d82505d11c25962f258b14184a"},
+    "artifacts/audio-pause-20260911/.config": {"bytes": 64532, "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"},
+    "board/kickpi_k7/configs/velavision_wifi_ip_local/defconfig": {"bytes": 62448, "sha256": "99b25043fe50183e8c4cc0dc1b9deb213108790cdd9744b3a0b326ee14f6acf6"},
+    "app/k7radio/skw_netdev.c": {"bytes": 7438, "sha256": "0143a361bde3a076598323ce9138d742e8c4dcf676dab709ada5cd3430777c9f"},
+    "app/k7radio/wifi_ip_service.inc": {"bytes": 7203, "sha256": "b1393dc3a9b58f8f95dcb9be75c78aa2d23ba52161ccea9cf85c62359da7511e"},
+    "evidence/build/audio-pause-20260911/verification.json": {"bytes": 3541, "sha256": "0a5f992b5c3b70a2922fd08d384d52843af059617e3f70323d7a5b728ebfdd91"},
+    "evidence/wifi-arp-20260910/final-status.json": {"bytes": 1939, "sha256": "0be2169c92e6c145a9106483491b634e44bfcbd0375d64801993dc70d7162903"}
+  },
+  "sdk_files": {
+    "nuttx/libs/libc/netdb/Kconfig": {"bytes": 9979, "sha256": "d3e36f3a9fddefd4174454e7225cf546d089be1d0c98eb45f3d8b9cca363659d"},
+    "nuttx/include/nuttx/net/dns.h": {"bytes": 10051, "sha256": "a7e0f93e04fa9f460c9e6ac787ab4c9211a31df66c26f6dbb26a71619a431ff9"},
+    "nuttx/libs/libc/netdb/lib_dnsaddserver.c": {"bytes": 10276, "sha256": "212425329c375f5ede04fc89521dea48d75f9e16ad71e96d8adb3cdc2618ae36"},
+    "nuttx/libs/libc/netdb/lib_getaddrinfo.c": {"bytes": 12268, "sha256": "a96f91e471c25b619097f8018545317ba5378ad65a6279ef4a9d0b04e2176772"},
+    "nuttx/drivers/crypto/Kconfig": {"bytes": 3875, "sha256": "9b6fa23b74090753bda9cc61a4ff479f94dd69dcd19ad61d9960d4a5b8053816"},
+    "nuttx/libs/libc/misc/lib_getrandom.c": {"bytes": 3175, "sha256": "188dcd07fe4ddf45fa8fa9c39df2bc2eb4ba64b7ca455f37ee685a51982b3ab9"},
+    "nuttx/arch/arm64/src/rk3576/CMakeLists.txt": {"bytes": 1394, "sha256": "7734d4f1f0b7f28ea4ff5f8aa34ae3e08a04b5bc44de7fe5c85034738c5209b3"},
+    "apps/crypto/mbedtls/Kconfig": {"bytes": 19065, "sha256": "2181c3414497f32e247312b1d32f8d7917cccc53cffbb7ddd3f234775676703c"},
+    "apps/crypto/mbedtls/CMakeLists.txt": {"bytes": 6580, "sha256": "f689b8aee2d56ca95a20add0deba3578536fbc2110eea1a75d0f5a5d354c6424"},
+    "apps/crypto/mbedtls/include/mbedtls/mbedtls_config.h": {"bytes": 146252, "sha256": "35dcbde0e65dcfd308112984773971f833f3e292dd057dfd3767bb9fcb04c38d"},
+    "apps/crypto/mbedtls/mbedtls/library/entropy_poll.c": {"bytes": 6602, "sha256": "3fbabf9ab9d7eeedec3b5d3bc21bba6d434c8823f421436ecba9031d81df0eb6"},
+    "apps/netutils/webclient/Kconfig": {"bytes": 824, "sha256": "580acafe3004cc30d274bd7867d87ab3d141706d2b2dcb230c9b5a4fcb91b745"},
+    "apps/include/netutils/webclient.h": {"bytes": 21107, "sha256": "f1b8258bd3b3c6dd60ded6ef9207c3b5c3ef93828ecb25d68c9d736c87fb5034"},
+    "apps/netutils/webclient/webclient.c": {"bytes": 77870, "sha256": "70903a4a65d25a82752de3993f78fac73ea97a7ca762b6125bc472535279a292"},
+    "apps/netutils/libcurl4nx/Kconfig": {"bytes": 1023, "sha256": "563115e97249018ff8f08749af9543962ac8b5bb0df1a61d9c5d287fe7809d92"},
+    "apps/netutils/libcurl4nx/curl4nx_easy_setopt.c": {"bytes": 6149, "sha256": "f15439b3277d9999735a7a04c01965c7c1ba7dc39ff2f60b8399dd7ddf3aa1c0"},
+    "apps/netutils/dhcpc/Kconfig": {"bytes": 1229, "sha256": "80730d59020dc048a7812c49e11127cdf05fa8dcd5d415380af56cd280d64666"},
+    "apps/include/netutils/dhcpc.h": {"bytes": 6263, "sha256": "d4ec720437737495f5dae825dbd6cd00316068874412843f01e1acf6fabd1660"},
+    "apps/netutils/dhcpc/dhcpc.c": {"bytes": 28259, "sha256": "dd352d23d963fec4d36bd0670ff258c525141ff7e1c211c4322ff191e685d0cb"},
+    "apps/netutils/netlib/netlib_setipv4dnsaddr.c": {"bytes": 2563, "sha256": "aa99d979463f62cc8d9dd4f60746e66d5eab14cb5aa84c57000508374b09144e"}
+  }
+}

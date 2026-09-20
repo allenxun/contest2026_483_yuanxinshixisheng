@@ -1,0 +1,23 @@
+{
+  "command": [
+    "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+    "-std=c11",
+    "-O0",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-Wpedantic",
+    "-pthread",
+    "-I",
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\voice-scan-adapter-v1\\input",
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\voice-scan-adapter-v1\\input\\wifi_broker.c",
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\voice-scan-adapter-v1\\input\\wifi_dispatch.c",
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\voice-scan-adapter-v1\\input\\test_dispatch.c",
+    "-o",
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\voice-scan-adapter-v1\\original-dispatch.exe"
+  ],
+  "compile_rc": 0,
+  "compile_output": "",
+  "run_rc": 0,
+  "output": "actual_pthread_rounds=200 burst_clients=12 checks=44589 failures=0 mock_backend_only\n"
+}

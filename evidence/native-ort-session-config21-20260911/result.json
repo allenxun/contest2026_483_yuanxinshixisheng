@@ -1,0 +1,38 @@
+{
+  "records": [
+    {
+      "name": "nuttx-cmake",
+      "patch_sha256": "3cc801c2cdd5c9c03a2f2f1413791d8014228bf87041fdae82aabee20af21697",
+      "exit_code": 0
+    },
+    {
+      "name": "flatbuffers",
+      "patch_sha256": "736e61748485ab857951a8b6999a9067713524f41b6f39f71df11b4127f8785e",
+      "exit_code": 0
+    },
+    {
+      "name": "protobuf",
+      "patch_sha256": "7f9145c049a27693469200d64dc7940fe371b9221284753f513a68b06ef94e00",
+      "exit_code": 0
+    },
+    {
+      "name": "onnx",
+      "patch_sha256": "07a44703387f158f0fe83940a0519dede87d02b5483f63983bb15662a07742d8",
+      "exit_code": 0
+    },
+    {
+      "name": "reduce-ops",
+      "command": [
+        "python3",
+        "/dev/shm/velavision-ort-session-20260911/ort/tools/ci_build/reduce_op_kernels.py",
+        "/dev/shm/velavision-ort-session-20260911/add-only.config",
+        "--cmake_build_dir",
+        "/dev/shm/velavision-ort-session-20260911/build",
+        "--is_extended_minimal_build_or_higher"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "linked": false,
+  "model_run": false
+}

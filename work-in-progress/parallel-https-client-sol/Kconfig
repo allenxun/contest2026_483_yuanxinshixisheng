@@ -1,0 +1,32 @@
+config VELAVISION_HTTPS_CLIENT_CANDIDATE
+	bool "VelaVision bounded HTTPS client candidate"
+	depends on CRYPTO_MBEDTLS && NET_TCP && NET_SOCKOPTS
+	default n
+	---help---
+		Candidate-only HTTPS/1.1 client with mandatory peer verification,
+		SNI, monotonic deadlines, cancellation, bounded framing and streaming
+		request/response callbacks. DNS and application protocol are external.
+
+if VELAVISION_HTTPS_CLIENT_CANDIDATE
+
+config VELAVISION_HTTPS_REQUEST_HEADER_MAX
+	int "Maximum generated request header bytes"
+	default 4096
+	range 512 16384
+
+config VELAVISION_HTTPS_RESPONSE_HEADER_MAX
+	int "Maximum response header and trailer bytes"
+	default 8192
+	range 512 32768
+
+config VELAVISION_HTTPS_RESPONSE_BODY_MAX
+	int "Maximum decoded response body bytes"
+	default 262144
+	range 1024 4194304
+
+config VELAVISION_HTTPS_CHUNK_MAX
+	int "Maximum single HTTP chunk bytes"
+	default 32768
+	range 256 262144
+
+endif

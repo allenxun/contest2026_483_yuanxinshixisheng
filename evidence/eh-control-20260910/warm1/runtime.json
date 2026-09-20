@@ -1,0 +1,35 @@
+{
+  "mode": "warm1",
+  "passed": true,
+  "prompt_returned": true,
+  "elapsed_seconds": 0.03200000000651926,
+  "error": null,
+  "workers": [
+    {
+      "worker": 0,
+      "caught": 1,
+      "cleaned": 3,
+      "errors": 0,
+      "cpu": 4,
+      "requested_cpu": 4,
+      "cpu_mismatch": 0,
+      "first_begin": 38529006416,
+      "first_end": 38529046374
+    },
+    {
+      "worker": 1,
+      "caught": 1,
+      "cleaned": 3,
+      "errors": 0,
+      "cpu": 5,
+      "requested_cpu": 5,
+      "cpu_mismatch": 0,
+      "first_begin": 38529007874,
+      "first_end": 38529046957
+    }
+  ],
+  "preheat_pass": true,
+  "joined_summary": true,
+  "scope": "One fresh-boot control, not general concurrent unwinder safety or overlap proof",
+  "on_failure": "No forced task deletion/free; preserve output and restore baseline"
+}

@@ -1,0 +1,51 @@
+﻿operation=temporarily stop VMware USB arbitration, inspect exact devices, restore service
+flash_commands=false
+driver_changes=false
+[before-stop]
+timestamp=2026-09-13T16:11:25.1101350+08:00
+name=VMware USB Device
+pnp_id=USB\VID_0E0F&PID_0001\5&5F5591A&0&5
+status=Error
+problem=43
+service=vmusb
+
+name=VMware USB Device
+pnp_id=USB\VID_0E0F&PID_0001\5&5F5591A&0&7
+status=OK
+problem=0
+service=vmusb
+
+Microsoft PnP 工具
+
+正在扫描设备硬件更改。
+扫描完成。
+
+[service-stopped]
+timestamp=2026-09-13T16:11:32.1418463+08:00
+name=VMware USB Device
+pnp_id=USB\VID_0E0F&PID_0001\5&5F5591A&0&5
+status=Error
+problem=43
+service=vmusb
+
+name=VMware USB Device
+pnp_id=USB\VID_0E0F&PID_0001\5&5F5591A&0&7
+status=OK
+problem=0
+service=vmusb
+
+[service-restored]
+timestamp=2026-09-13T16:11:36.0749428+08:00
+name=VMware USB Device
+pnp_id=USB\VID_0E0F&PID_0001\5&5F5591A&0&5
+status=Error
+problem=43
+service=vmusb
+
+name=VMware USB Device
+pnp_id=USB\VID_0E0F&PID_0001\5&5F5591A&0&7
+status=OK
+problem=0
+service=vmusb
+
+service_final=Running

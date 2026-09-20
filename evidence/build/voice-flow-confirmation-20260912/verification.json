@@ -1,0 +1,58 @@
+{
+  "revision": "voice-flow-confirmation-20260912",
+  "build_exit_code": 0,
+  "target": "RK3576 ARM64 openvela/NuttX RAM image",
+  "toolchain": "aarch64-none-elf-gcc from prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin",
+  "memory": {
+    "used_kib": 19644,
+    "available_kib": 129024,
+    "percent": 15.23
+  },
+  "host_flow_tests": {
+    "result": "evidence/voicelink-core-integration-20260910/run-20260912T080844787478Z/result.json",
+    "o0_exit_code": 0,
+    "o2_exit_code": 0,
+    "scenarios": 19,
+    "scope": "simulated audio and Wi-Fi; includes explicit password confirmation and retry/cancel wiping"
+  },
+  "linked_symbols": {
+    "__emutls_get_address": true,
+    "k7_asr_microphone_probe": true,
+    "voicelink_controller_password_confirmation": true,
+    "voicelink_password_retry_parser": true,
+    "voicelink_submit_confirmation_parser": true
+  },
+  "artifacts": {
+    "nuttx": {
+      "bytes": 44129816,
+      "sha256": "6f7472cd9422c5a24ed343863ebdcd9e07409d14135e2abc87a1c08c39d906c6"
+    },
+    "nuttx.bin": {
+      "bytes": 15320432,
+      "sha256": "1b9c662535cad72f8f97993e65b7f5f7de56bc9c19240f5b15850fa9607a12ff"
+    },
+    ".config": {
+      "bytes": 64532,
+      "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+    }
+  },
+  "sources": {
+    "app/voicelink/src/k7voice_main.cpp": "aec57e42fac80d588383c8249684c5eb8769dd0be0e9eabb3dc30b16bfe01133",
+    "app/voicelink/src/core.cpp": "fa6a9a35f8b18bfc6bda6c72b2e1836c79e02f183a985cc9496597682cd35a61",
+    "app/voicelink/src/parsers.cpp": "6cf11624b7420eb286e294e6ff758ebae3cf989cc071705d034cf70caf7aa3df",
+    "app/voicelink/src/voice_wifi_adapter.cpp": "04031a8e96ee93833190c4a46c0f714fd64cacaf9e724b357b2e4461ce8c6887",
+    "app/voicelink/include/voicelink/types.hpp": "e7c164d7b123f673eb91ce2371c7a73de2552f9db7f4d6c2851b61f4bd9fc7bf",
+    "app/voicelink/include/voicelink/controller.hpp": "f56383abee6ac0df2a64adff8d2fe48aa7df5af8d03fad71d0af56b71040127c",
+    "app/voicelink/include/voicelink/parsers.hpp": "48128db551cbf8a9775d3bdaa168d77d43141e9cfa56dca7baa59b0f97d10a3b",
+    "app/voicelink/tests/test_flow.cpp": "64d02bdcc3ccec0944da30e11c6439701377a29d347d074a5c669ab2edfd34f7",
+    "app/voicelink/README.md": "1d2aec0ec3ec918b80f333f5bbae73a3a9e7acb34d4f60a685f3db538db2e2ca"
+  },
+  "build_attempt_notes": [
+    "The first noninteractive build lacked aarch64-none-elf-ar in PATH.",
+    "A second attempt selected an ARM-host toolchain and failed with Exec format error.",
+    "The successful build used the x86_64-hosted ARM64 toolchain; no source workaround was used for either environment error."
+  ],
+  "emmc_written": false,
+  "stm32_written": false,
+  "gimbal_started": false
+}

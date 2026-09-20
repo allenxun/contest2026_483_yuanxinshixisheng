@@ -1,0 +1,156 @@
+--- a/app/k7radio/k7radio_main.c
++++ b/app/k7radio/k7radio_main.c
+@@ -15,6 +15,8 @@
+ #include "skw_rk3576.h"
+ #include "skw_wifi_diag.h"
+ #include "skw_bt.h"
++#include "bt_meta.h"
++struct bt_meta g_bt_meta;
+ #include "skw_wifi_bss.h"
+ #include "skw_wifi_join.h"
+ #include "skw_wpa_transport.h"
+@@ -849,6 +851,7 @@
+           struct skw_packet packet;
+           ret = skw_sdio2_decode_slot(g_rx + i * SKW_RX_SLOT_SIZE,
+                                      SKW_RX_SLOT_SIZE, &packet);
++          bm_slot(g_rx[i * SKW_RX_SLOT_SIZE + 3], ret);
+           if (ret) return fw_rx_fault("sdio2", ret, i, bytes);
+           if (packet.eof) break;
+           if (packet.discard) { __atomic_add_fetch(&g_rx_empty, 1, __ATOMIC_RELAXED); continue; }
+@@ -1274,6 +1277,7 @@
+   memcpy(g_bt_queue[g_bt_tail].data, packet, length);
+   g_bt_queue[g_bt_tail].length = length;
+   g_bt_tail = (g_bt_tail + 1) % 8; g_bt_count++;
++  if (length >= 4 && ((const uint8_t *)packet)[3] == SKW_BT_DATA_PORT) bm_inc(BM_ACL_QUEUED);
+   nxmutex_unlock(&g_bt_qlock);
+   nxsem_post(&g_bt_items);
+   return 0;
+@@ -1286,8 +1290,10 @@
+       __atomic_compare_exchange_n(&g_bt_pending, &pending, false, false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE))
+     {
+       __atomic_add_fetch(&g_bt_host_ack, 1, __ATOMIC_RELAXED);
++      if (channel == SKW_BT_DATA_PORT) bm_inc(BM_ACL_ACK_MATCH);
+       nxsem_post(&g_bt_acksem);
+     }
++  else if (channel == SKW_BT_DATA_PORT) bm_inc(BM_ACL_ACK_OTHER);
+   return 0;
+ }
+ static const struct skw_bt_lower g_bt_lower = { bt_lower_ready, bt_lower_send, bt_lower_ack };
+@@ -1310,9 +1316,12 @@
+       __atomic_store_n(&g_bt_pending_channel, g_bt_current.data[3], __ATOMIC_RELEASE);
+       __atomic_store_n(&g_bt_pending, true, __ATOMIC_RELEASE);
+       ret = fw_packet(true, g_bt_current.data, g_bt_current.length);
++      bm_send(g_bt_current.data[3], ret);
+       if (ret) break;
+       __atomic_add_fetch(&g_bt_host_tx, 1, __ATOMIC_RELAXED);
+       ret = nxsem_tickwait_uninterruptible(&g_bt_acksem, MSEC2TICK(1500));
++      if (ret && g_bt_current.data[3] == SKW_BT_DATA_PORT)
++        { bm_inc(BM_ACL_ACK_WAIT_FAIL); bm_error(&g_bt_meta.last_wait_error, ret); }
+       if (ret) break;
+     }
+   __atomic_store_n(&g_bt_worker_fault, true, __ATOMIC_RELEASE);
+@@ -1435,6 +1444,23 @@
+     g_native_bt.connections,g_native_bt.disconnections,g_native_bt.disconnect_reason,
+     g_native_bt.encryption_status,g_native_bt.encryption_enabled);
+   nxmutex_unlock(&g_native_bt.lock);
++  /* Relaxed atomic reads: each field valid; this is not a coherent snapshot. */
++  printf("RADIO BTM ACL_QUEUED=%u ACL_SEND_OK=%u ACL_SEND_FAIL=%u ACL_ACK_MATCH=%u\n",
++    (unsigned)bm_get(BM_ACL_QUEUED),(unsigned)bm_get(BM_ACL_SEND_OK),(unsigned)bm_get(BM_ACL_SEND_FAIL),(unsigned)bm_get(BM_ACL_ACK_MATCH));
++  printf("RADIO BTM ACL_ACK_OTHER=%u ACL_ACK_WAIT_FAIL=%u PORT5_SLOT=%u SLOT_DECODE_FAIL=%u\n",
++    (unsigned)bm_get(BM_ACL_ACK_OTHER),(unsigned)bm_get(BM_ACL_ACK_WAIT_FAIL),(unsigned)bm_get(BM_PORT5_SLOT),(unsigned)bm_get(BM_SLOT_DECODE_FAIL));
++  printf("RADIO BTM PORT5_SLOT_DECODE_FAIL=%u HCI_DECODE_FAIL=%u PORT5_HCI_DECODE_FAIL=%u READY_REJECT=%u\n",
++    (unsigned)bm_get(BM_PORT5_SLOT_DECODE_FAIL),(unsigned)bm_get(BM_HCI_DECODE_FAIL),(unsigned)bm_get(BM_PORT5_HCI_DECODE_FAIL),(unsigned)bm_get(BM_READY_REJECT));
++  printf("RADIO BTM RX_LOCK_FAIL=%u H4_ACL=%u H4_EVENT=%u H4_SCO=%u\n",
++    (unsigned)bm_get(BM_RX_LOCK_FAIL),(unsigned)bm_get(BM_H4_ACL),(unsigned)bm_get(BM_H4_EVENT),(unsigned)bm_get(BM_H4_SCO));
++  printf("RADIO BTM H4_VENDOR=%u H4_OTHER=%u LINK_ACK=%u FLOW_COMPLETE=%u\n",
++    (unsigned)bm_get(BM_H4_VENDOR),(unsigned)bm_get(BM_H4_OTHER),(unsigned)bm_get(BM_LINK_ACK),(unsigned)bm_get(BM_FLOW_COMPLETE));
++  printf("RADIO BTM last_send=%d last_decode=%d last_ready=%d last_wait=%d flow_status=%u\n",
++    __atomic_load_n(&g_bt_meta.last_send_error,__ATOMIC_RELAXED),
++    __atomic_load_n(&g_bt_meta.last_decode_error,__ATOMIC_RELAXED),
++    __atomic_load_n(&g_bt_meta.last_ready_error,__ATOMIC_RELAXED),
++    __atomic_load_n(&g_bt_meta.last_wait_error,__ATOMIC_RELAXED),
++    (unsigned)__atomic_load_n(&g_bt_meta.flow_status,__ATOMIC_RELAXED));
+   return 0;
+ }
+ 
+--- a/app/k7radio/skw_bt.c
++++ b/app/k7radio/skw_bt.c
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: GPL-2.0-only */
+ /* NuttX bt_driver_s bridge to the Seekwave SDIO2 codec. No Linux shim. */
+ #include "skw_bt.h"
++#include "bt_meta.h"
+ #include <errno.h>
+ #include <string.h>
+ #include <stdio.h>
+@@ -111,19 +112,24 @@
+   if (!bt || !bt->lower) return -EINVAL;
+   ret = skw_sdio2_decode_slot(slot, available, &packet);
+   if (ret || packet.eof || packet.discard) return ret;
++  bm_h4(packet.payload, packet.length);
+   ret = skw_hci_decode(&packet, &hci);
++  if (ret) { if (packet.channel == SKW_BT_DATA_PORT) bm_inc(BM_PORT5_HCI_DECODE_FAIL); bm_inc(BM_HCI_DECODE_FAIL); bm_error(&g_bt_meta.last_decode_error, ret); }
+   if (ret)
+     { printf("RADIO BT HCI decode ret=%d channel=%u length=%zu\n", ret, packet.channel, packet.length); return ret; }
+   ret = nxmutex_lock(&bt->lock);
+-  if (ret) return ret;
++  if (ret) { bm_inc(BM_RX_LOCK_FAIL); bm_error(&g_bt_meta.last_ready_error, ret); return ret; }
+   if (!bt->opened) ret = -ENOTCONN;
+   else ret = ready(bt);
++  if (ret) { bm_inc(BM_READY_REJECT); bm_error(&g_bt_meta.last_ready_error, ret); }
+   if (!ret && !hci.ack && !hci.vendor_log)
+     {
+       const uint8_t *p = hci.data; size_t n = hci.length;
+       if (hci.type == 4 && n >= 6 && p[0] == 0x0e)
+         {
+           uint16_t op=p[3] | p[4]<<8;
++          if (op == 0x0c31)
++            { __atomic_store_n(&g_bt_meta.flow_status, p[5], __ATOMIC_RELAXED); bm_inc(BM_FLOW_COMPLETE); }
+           printf("RADIO HCI complete op=%04x status=%u\n",op,p[5]);
+           if (op==0x2002 && n>=9)
+             printf("RADIO HCI controller buffers LE_MTU=%u LE_COUNT=%u\n",p[6]|p[7]<<8,p[8]);
+--- /dev/null
++++ b/app/k7radio/bt_meta.h
+@@ -0,0 +1,42 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++#ifndef K7_BT_META_H
++#define K7_BT_META_H
++#include <stdint.h>
++#include <stddef.h>
++/* Diagnostic only: no ordering, ownership or flow-control decisions. */
++enum bm_counter { BM_ACL_QUEUED, BM_ACL_SEND_OK, BM_ACL_SEND_FAIL, BM_ACL_ACK_MATCH, BM_ACL_ACK_OTHER, BM_ACL_ACK_WAIT_FAIL, BM_PORT5_SLOT, BM_SLOT_DECODE_FAIL, BM_PORT5_SLOT_DECODE_FAIL, BM_HCI_DECODE_FAIL, BM_PORT5_HCI_DECODE_FAIL, BM_READY_REJECT, BM_RX_LOCK_FAIL, BM_H4_ACL, BM_H4_EVENT, BM_H4_SCO, BM_H4_VENDOR, BM_H4_OTHER, BM_LINK_ACK, BM_FLOW_COMPLETE, BM_COUNT };
++struct bt_meta { uint32_t count[BM_COUNT]; int last_send_error, last_decode_error,
++ last_ready_error, last_wait_error; uint32_t flow_status; };
++extern struct bt_meta g_bt_meta;
++_Static_assert(sizeof(int) == 4, "diagnostic error width");
++_Static_assert(__atomic_always_lock_free(4, 0), "32-bit diagnostics require lock-free atomics");
++static inline void bm_inc(enum bm_counter c)
++{ __atomic_fetch_add(&g_bt_meta.count[c], 1u, __ATOMIC_RELAXED); }
++static inline uint32_t bm_get(enum bm_counter c)
++{ return __atomic_load_n(&g_bt_meta.count[c], __ATOMIC_RELAXED); }
++static inline void bm_error(int *dst, int error)
++{ __atomic_store_n(dst, error, __ATOMIC_RELAXED); }
++static inline void bm_send(unsigned channel, int ret)
++{
++ if (channel != 5) return;
++ bm_inc(ret ? BM_ACL_SEND_FAIL : BM_ACL_SEND_OK);
++ if (ret) bm_error(&g_bt_meta.last_send_error, ret);
++}
++static inline void bm_slot(unsigned channel, int ret)
++{
++ if (channel == 5) bm_inc(BM_PORT5_SLOT);
++ if (ret) { if (channel == 5) bm_inc(BM_PORT5_SLOT_DECODE_FAIL); bm_inc(BM_SLOT_DECODE_FAIL); bm_error(&g_bt_meta.last_decode_error, ret); }
++}
++static inline void bm_h4(const uint8_t *p, size_t n)
++{
++ if (n == 12) { bm_inc(BM_LINK_ACK); return; }
++ if (n < 13) { bm_inc(BM_H4_OTHER); return; }
++ switch(p[12]) {
++ case 2: bm_inc(BM_H4_ACL); break;
++ case 4: bm_inc(BM_H4_EVENT); break;
++ case 3: bm_inc(BM_H4_SCO); break;
++ case 7: bm_inc(BM_H4_VENDOR); break;
++ default: bm_inc(BM_H4_OTHER); break;
++ }
++}
++#endif

@@ -1,0 +1,238 @@
+[1/103] cd /home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/libs/libc/misc && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E touch /home/swl/openvela/nuttx/libs/libc/misc/lib_utsname.c
+[2/103] Generating bin output directories
+[3/103] cd /home/swl/openvela/nuttx && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -DKCONFIG_CONFIG=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_fat_readonly_local/defconfig -DNUTTX_DIR=/home/swl/openvela/nuttx -DCMAKE_BINARY_DIR=/home/swl/openvela/cmake_out/velavision_fat_readonly_20260910 -P /home/swl/openvela/nuttx/cmake/nuttx_generate_dts.cmake
+[4/103] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_video_queue.c.o
+[5/103] Building C object apps/examples/k7load/CMakeFiles/apps_k7load.dir/k7load_main.c.o
+[6/103] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_link_probe.c.o
+[7/103] Building C object apps/examples/k7mem/CMakeFiles/apps_k7mem.dir/k7mem_main.c.o
+[8/103] Building ASM object apps/examples/k7neon/CMakeFiles/apps_k7neon.dir/neon_hold.S.o
+[9/103] Building C object apps/examples/k7neon/CMakeFiles/apps_k7neon.dir/k7neon_main.c.o
+[10/103] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_main.c.o
+[11/103] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_mmutest.c.o
+[12/103] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/rk3576_npu_window.c.o
+[13/103] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/rk3576_npu_mmu.c.o
+[14/103] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_fixture_io.c.o
+[15/103] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_rawtest.c.o
+[16/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_bus.c.o
+[17/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_dw.c.o
+[18/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_rk3576.c.o
+[19/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_packet.c.o
+[20/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_bt.c.o
+[21/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_wpa_transport.c.o
+[22/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/prov_protocol.c.o
+[23/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/cJSON.c.o
+[24/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_supplicant.c.o
+[25/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_supplicant_os.c.o
+[26/103] Building CXX object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/vendor/ggml/src/ggml-cpu/unary-ops.cpp.o
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-backend-impl.h:5,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.h:2,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/common.h:4,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/unary-ops.h:3,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/unary-ops.cpp:1:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-impl.h:6,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.h:3:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+[27/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/rsn_supp/wpa_ie.c.o
+[28/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/k7radio_main.c.o
+[29/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/rsn_supp/pmksa_cache.c.o
+[30/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/common/wpa_common.c.o
+[31/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/rsn_supp/wpa.c.o
+[32/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/utils/wpabuf.c.o
+[33/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/common/ieee802_11_common.c.o
+[34/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/utils/common.c.o
+[35/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/utils/bitfield.c.o
+[36/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-internal.c.o
+[37/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-internal-enc.c.o
+[38/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-unwrap.c.o
+[39/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-internal-dec.c.o
+[40/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-wrap.c.o
+[41/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-omac1.c.o
+[42/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1.c.o
+[43/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1-prf.c.o
+[44/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1-pbkdf2.c.o
+[45/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1-internal.c.o
+[46/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha256.c.o
+[47/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha256-internal.c.o
+[48/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha256-prf.c.o
+[49/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/md5.c.o
+[50/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/rc4.c.o
+[51/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_random.c.o
+[52/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/md5-internal.c.o
+[53/103] Building C object apps/examples/k7smp/CMakeFiles/apps_k7smp.dir/k7smp_main.c.o
+[54/103] Building C object apps/examples/k7storage/CMakeFiles/apps_k7storage.dir/k7storage_main.c.o
+[55/103] Building C object apps/external/android/CMakeFiles/android.dir/dummy.c.o
+[56/103] Linking C static library apps/external/libjpeg-turbo/libturbojpeg-static.a
+FAILED: apps/external/libjpeg-turbo/libturbojpeg-static.a 
+: && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E rm -f apps/external/libjpeg-turbo/libturbojpeg-static.a && aarch64-none-elf-ar rcs apps/external/libjpeg-turbo/libturbojpeg-static.a  apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jaricom.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcapimin.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcapistd.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcarith.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jccoefct.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jccolor.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcdctmgr.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jchuff.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcicc.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcinit.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcmainct.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcmarker.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcmaster.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcomapi.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcparam.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcphuff.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcprepct.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcsample.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jctrans.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdapimin.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdapistd.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdarith.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdatadst-tj.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdatadst.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdatasrc-tj.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdatasrc.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdcoefct.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdcolor.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jddctmgr.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdhuff.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdicc.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdinput.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdmainct.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdmarker.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdmaster.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdmerge.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdphuff.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdpostct.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdsample.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdtrans.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jerror.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jfdctflt.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jfdctfst.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jfdctint.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jidctflt.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jidctfst.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jidctint.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jidctred.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jmemmgr.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jmemnobs.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jpegtran.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jquant1.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jquant2.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jsimd_none.c.o apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jutils.c.o && aarch64-none-elf-gcc-ranlib apps/external/libjpeg-turbo/libturbojpeg-static.a && :
+/bin/sh: 1: aarch64-none-elf-ar: not found
+[57/103] Building C object apps/examples/k7usb/CMakeFiles/apps_k7usb.dir/k7usb_main.c.o
+[58/103] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_netdev.c.o
+[59/103] Building CXX object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/vendor/ggml/src/gguf.cpp.o
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:2:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, T)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:130:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  130 |     gguf_kv(const std::string & key, const T value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::vector<T>&)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:138:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  138 |     gguf_kv(const std::string & key, const std::vector<T> & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::string&)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:148:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  148 |     gguf_kv(const std::string & key, const std::string & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::string&)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:148:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  148 |     gguf_kv(const std::string & key, const std::string & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::string&)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:148:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  148 |     gguf_kv(const std::string & key, const std::string & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::vector<std::__1::basic_string<char> >&)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:154:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  154 |     gguf_kv(const std::string & key, const std::vector<std::string> & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::vector<std::__1::basic_string<char> >&)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:154:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  154 |     gguf_kv(const std::string & key, const std::vector<std::string> & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::vector<std::__1::basic_string<char> >&)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:154:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  154 |     gguf_kv(const std::string & key, const std::vector<std::string> & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_reader::gguf_reader(FILE*)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:222:24: warning: declaration of 'file' shadows a member of 'gguf_reader' [-Wshadow]
+  222 |     gguf_reader(FILE * file) : file(file) {}
+      |                 ~~~~~~~^~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:220:12: note: shadowed declaration is here
+  220 |     FILE * file;
+      |            ^~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_reader::gguf_reader(FILE*)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:222:24: warning: declaration of 'file' shadows a member of 'gguf_reader' [-Wshadow]
+  222 |     gguf_reader(FILE * file) : file(file) {}
+      |                 ~~~~~~~^~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:220:12: note: shadowed declaration is here
+  220 |     FILE * file;
+      |            ^~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_reader::gguf_reader(FILE*)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:222:24: warning: declaration of 'file' shadows a member of 'gguf_reader' [-Wshadow]
+  222 |     gguf_reader(FILE * file) : file(file) {}
+      |                 ~~~~~~~^~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:220:12: note: shadowed declaration is here
+  220 |     FILE * file;
+      |            ^~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In function 'gguf_context* gguf_init_from_file_impl(FILE*, gguf_init_params)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:366:29: warning: format '%zu' expects argument of type 'size_t', but argument 5 has type 'long long unsigned int' [-Wformat=]
+  366 |             fprintf(stderr, "%s: number of tensors is %" PRIi64 " but must be in [0, %zu]\n",
+      |                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:377:29: warning: format '%zu' expects argument of type 'size_t', but argument 5 has type 'long long unsigned int' [-Wformat=]
+  377 |             fprintf(stderr, "%s: number of key value pairs is %" PRIi64 " but must be in [0, %zu]\n",
+      |                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_writer::gguf_writer(std::__1::vector<signed char>&)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:1144:39: warning: declaration of 'buf' shadows a member of 'gguf_writer' [-Wshadow]
+ 1144 |     gguf_writer(std::vector<int8_t> & buf) : buf(buf) {}
+      |                 ~~~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:1142:27: note: shadowed declaration is here
+ 1142 |     std::vector<int8_t> & buf;
+      |                           ^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_writer::gguf_writer(std::__1::vector<signed char>&)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:1144:39: warning: declaration of 'buf' shadows a member of 'gguf_writer' [-Wshadow]
+ 1144 |     gguf_writer(std::vector<int8_t> & buf) : buf(buf) {}
+      |                 ~~~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:1142:27: note: shadowed declaration is here
+ 1142 |     std::vector<int8_t> & buf;
+      |                           ^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp: In constructor 'gguf_writer::gguf_writer(std::__1::vector<signed char>&)':
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:1144:39: warning: declaration of 'buf' shadows a member of 'gguf_writer' [-Wshadow]
+ 1144 |     gguf_writer(std::vector<int8_t> & buf) : buf(buf) {}
+      |                 ~~~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:1142:27: note: shadowed declaration is here
+ 1142 |     std::vector<int8_t> & buf;
+      |                           ^~~
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/gguf.cpp:3:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h: At global scope:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+ninja: build stopped: subcommand failed.

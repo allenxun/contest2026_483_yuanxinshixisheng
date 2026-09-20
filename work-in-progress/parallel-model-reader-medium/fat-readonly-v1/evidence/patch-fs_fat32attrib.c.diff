@@ -1,0 +1,26 @@
+--- a/fs/fat/fs_fat32attrib.c
++++ b/fs/fat/fs_fat32attrib.c
+@@ -48,6 +48,10 @@
+ static int fat_attrib(const char *path, fat_attrib_t *retattrib,
+                       fat_attrib_t setbits, fat_attrib_t clearbits)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  if (setbits != 0 || clearbits != 0) return -EROFS;
++#endif
++
+   FAR struct fat_mountpt_s *fs;
+   struct fat_dirinfo_s dirinfo;
+   struct inode_search_s desc;
+@@ -188,5 +192,12 @@
+ int fat_setattrib(FAR const char *path, fat_attrib_t setbits,
+                   fat_attrib_t clearbits)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)path; (void)setbits; (void)clearbits; 
++  return -EROFS;
++#else
++
+   return fat_attrib(path, NULL, setbits, clearbits);
++
++#endif
+ }

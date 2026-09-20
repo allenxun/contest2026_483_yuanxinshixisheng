@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+project(voice_provision_contract LANGUAGES CXX)
+add_library(voice_provision_contract src/voice_provision_contract.cpp)
+target_include_directories(voice_provision_contract PUBLIC include)
+target_compile_features(voice_provision_contract PUBLIC cxx_std_17)
+add_executable(test_contract tests/test_contract.cpp)
+target_link_libraries(test_contract PRIVATE voice_provision_contract)

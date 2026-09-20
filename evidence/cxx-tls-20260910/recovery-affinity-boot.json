@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "idle_count": 8,
+  "service_tasks": [
+    "    8     0 ---(0x00000001) 192 RR       Kthread   - Waiting  Semaphore 0000000000000000 0008080 0001088  13.4%  hpwork 0x40609ac0 0x40609b48",
+    "    9     0 ---(0x00000001) 100 RR       Kthread   - Waiting  Semaphore 0000000000000000 0008080 0001088  13.4%  lpwork 0x40609a00 0x40609a88",
+    "   10    10 000(0x00000001) 100 RR       Task      - Running            0000000000000000 0008112 0003760  46.3%  nsh_main"
+  ],
+  "scope": "Task affinity snapshot only; not IRQ affinity or migration stress",
+  "storage_writes": false
+}

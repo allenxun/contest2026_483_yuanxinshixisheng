@@ -1,0 +1,23 @@
+{
+  "revision": "audio-grouped-20260911",
+  "hardware_tested": false,
+  "runs": [
+    {
+      "optimization": "O0",
+      "compile_exit_code": 0,
+      "test_exit_code": 0,
+      "stdout": "PASS grouped RXDR cycle, copy agreement diagnostics, timeout and bounds"
+    },
+    {
+      "optimization": "O2",
+      "compile_exit_code": 0,
+      "test_exit_code": 0,
+      "stdout": "PASS grouped RXDR cycle, copy agreement diagnostics, timeout and bounds"
+    }
+  ],
+  "sources": {
+    "work-in-progress/audio-grouped-20260911/test.c": "4baa66f9abb3318060f13c31a4aa2df40109fcd36ff354a64d034513321c81b5",
+    "app/k7sound/pio.c": "ebbfc2e206448e2f945449c95660fb9d024c371147c3f8c3c3816bb9b6ef896c",
+    "app/k7sound/pio.h": "fce056b8fff0311dd0f9c63be0963ba9ff0bc29bab9d07e88b2880e047a90165"
+  }
+}

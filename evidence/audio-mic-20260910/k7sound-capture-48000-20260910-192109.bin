@@ -1,0 +1,35 @@
+k7sound capture 48000
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=00060300 ien=00000000 gpio_version=010219c8 gpio_input=034d3050
+SOUND platform_result=0 version=23073576 repair=fdffffff ack=00000001 idle=00000001
+SOUND mclkout before=0000001f after=0000001d
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=0 settle_ms=1000
+SOUND pio=0 frames=48000 polls=2618327 stop=0 held=0 max_fifo=2
+SOUND fifo first=00000000 last=00000000 TXCR=00000fff RXCR=00400fff FSCR=0101f03f CKR=00000018
+SOUND codec reg=00 value=36
+SOUND codec reg=01 value=60
+SOUND codec reg=02 value=00
+SOUND codec reg=03 value=00
+SOUND codec reg=05 value=00
+SOUND codec reg=06 value=00
+SOUND codec reg=07 value=7c
+SOUND codec reg=08 value=00
+SOUND codec reg=0a value=f0
+SOUND codec reg=0b value=82
+SOUND codec reg=0c value=10
+SOUND codec reg=0d value=02
+SOUND codec reg=0f value=20
+SOUND codec reg=17 value=20
+SOUND codec reg=18 value=02
+SOUND codec reg=19 value=06
+SOUND codec reg=2b value=80
+SOUND input pull=00005515 schmitt=000000ff path=0000e4e4 gpio_high=50425 transitions=0 samples=50425
+SOUND pad ticks=480011 max_gap=35 counter_hz=24000000 complete=1
+SOUND pad channel=0 high=24918 changes=37981
+SOUND pad channel=1 high=25120 changes=40920
+SOUND pad channel=2 high=25216 changes=640
+SOUND pad channel=3 high=50425 changes=0
+SOUND pcm left_min=-68732160 left_max=94833152 left_nonzero=12000 right_min=-94051840 right_max=67804928 right_nonzero=12000
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [K

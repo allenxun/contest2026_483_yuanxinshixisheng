@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "records": [
+    {
+      "optimization": "O0",
+      "stage": "compile",
+      "argv": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-O0",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-IE:\\openvela\\VelaVision\\app\\k7load",
+        "E:\\openvela\\VelaVision\\evidence\\k7load-host-20260910\\test.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\evidence\\k7load-host-20260910\\O0.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "optimization": "O0",
+      "stage": "run",
+      "argv": [
+        "E:\\openvela\\VelaVision\\evidence\\k7load-host-20260910\\O0.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "optimization": "O2",
+      "stage": "compile",
+      "argv": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-IE:\\openvela\\VelaVision\\app\\k7load",
+        "E:\\openvela\\VelaVision\\evidence\\k7load-host-20260910\\test.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\evidence\\k7load-host-20260910\\O2.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "optimization": "O2",
+      "stage": "run",
+      "argv": [
+        "E:\\openvela\\VelaVision\\evidence\\k7load-host-20260910\\O2.exe"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "workload_sha256": "319a3ec849ae3d708d54a392fa2b5764c9cde37529b0a0db7afa281240624671",
+  "reference": "Python uint32 xorshift13/17/5, seed 0x12345678, 4096 steps -> 0xf6e37410",
+  "scope": "Workload integer reference only; not target scheduling or radio"
+}

@@ -1,0 +1,37 @@
+{
+  "base_board_config": "kickpi_k7:velavision_spoken_tts_local",
+  "overlay": "combined-linkonly.fragment",
+  "cmake_cache_required": {
+    "K7VOICE_NATIVE_ORT_ADD": "ON",
+    "K7VOICE_NATIVE_ASR_MODEL": "ON",
+    "K7VOICE_NATIVE_ASR_MIC": "ON",
+    "K7VOICE_NATIVE_TTS": "ON",
+    "K7VOICE_ORT_OBJECT": "absolute path to speech-runtime-gated.arm64.o",
+    "K7VOICE_ORT_OBJECT_SHA256": "32427949d78e73dd2d38e01d79dd1fde5d2f0b7d62c8bf0c00c52b76e8ba4fad",
+    "K7VOICE_TTS_ASSET_INCLUDE": "absolute path containing k7tts_assets_generated.h"
+  },
+  "required_final_elf_symbols_exactly_once": [
+    "k7voice_main",
+    "k7cloud_main",
+    "k7_asr_audio_text",
+    "k7_asr_model_session_probe",
+    "k7_asr_microphone_text",
+    "k7_asr_microphone_probe",
+    "k7_tts_synthesize",
+    "k7_speech_runtime_try_acquire",
+    "k7_speech_runtime_release",
+    "vv_dns_resolve_ipv4",
+    "vv_dns_nuttx_backend_init",
+    "vv_https_perform",
+    "vv_https_mbedtls_create"
+  ],
+  "package_policy": {
+    "ram_only": true,
+    "flash_commands": false,
+    "download_payload_limit_bytes": 117440512,
+    "encoder_prefix_bytes": 100663296,
+    "firmware_target_address": "0x40400000",
+    "download_address": "0x40c00800",
+    "dtb_address": "0x48300000"
+  }
+}

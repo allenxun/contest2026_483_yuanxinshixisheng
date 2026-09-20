@@ -1,0 +1,31 @@
+{
+  "elf": "E:\\openvela\\VelaVision\\artifacts\\audio-guard-20260910\\nuttx",
+  "sha256": "29b4b2328559090337840795c574255fe84583b1c72d0cb941051e63b85d7f02",
+  "checks": {
+    "eh_frame_present": true,
+    "lsda_consolidated_nonempty": true,
+    "no_orphan_lsda": true,
+    "valid_records_terminal_zero_no_hidden_records": true,
+    ".eh_frame_readonly_file_load": true,
+    ".eh_frame_inside_rodata_mmu_range": true,
+    ".gcc_except_table_readonly_file_load": true,
+    ".gcc_except_table_inside_rodata_mmu_range": true,
+    "registration_symbol": true,
+    "first_initializer_is_unwind_registration": true,
+    "start_symbol_exact": true,
+    "end_symbol_exact": true
+  },
+  "records": {
+    "cie": 2,
+    "fde": 340
+  },
+  "first_initializer": "0x4044c8d0",
+  "passed": true,
+  "hardware_tested": false,
+  "limitations": [
+    "No startup call-order proof",
+    "No full DWARF/FDE PC coverage proof",
+    "No registration call disassembly proof",
+    "No runtime exception proof"
+  ]
+}

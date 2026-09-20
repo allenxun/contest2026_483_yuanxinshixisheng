@@ -1,0 +1,47 @@
+--- a/app/k7sound/platform.c
++++ b/app/k7sound/platform.c
+@@ -39,6 +39,8 @@
+  if(hw(p,PMU+0x114,1,0))return -5;
+  rc=poll(p,PMU+0x120,1u<<16,0,&s->ack);if(rc)return rc;
+  rc=poll(p,PMU+0x128,1u<<16,0,&s->idle);if(rc)return rc;
++ /* clk-out domain is AUDIO: first access only after power/de-idle proof. */
++ if(rd(p,IOC+0x6400,&s->mclkout_before))return -5;
+  /* Quiescent exclusive ownership required: gate endpoints before reclock. */
+  if(hw(p,CRU+0x824,1u<<13,1u<<13)||hw(p,CRU+0x820,0x70,0x70)||
+     hw(p,CRU+0x804,1u<<10,1u<<10))return -5;
+@@ -48,6 +50,9 @@
+   if(rd(p,addr[i],&v))return -5;
+   if((v&mask[i])!=value[i])return -5;
+  }
++ /* Independent to-IO gate from mclkout_sai1 DT, bit1 set-to-disable. */
++ if(hw(p,IOC+0x6400,2,0))return -5;
++ if(rd(p,IOC+0x6400,&s->mclkout_after)||(s->mclkout_after&2))return -5;
+  /* Force-ungate clear mirrors Linux after successful power transition. */
+  if(hw(p,PMU+0x144,1,0))return -5;
+  if(rd(p,CRU+0x3b8,&s->clk46)||rd(p,CRU+0x330,&s->fraction))return -5;
+@@ -62,6 +67,7 @@
+  if(!s->modified)return 0;
+  if(!s->ready||!quiescent)return -16;
+  /* No SAI reads here: rely on caller's real stop proof. */
++ if(hw(p,IOC+0x6400,2,2))return -5;
+  if(hw(p,CRU+0x824,1u<<13,1u<<13)||hw(p,CRU+0x820,0x70,0x70)||
+     hw(p,CRU+0x804,1u<<10,1u<<10))return -5;
+  /* Restore parent/div/pins before original gates. */
+@@ -72,5 +78,7 @@
+  }
+  for(i=3;i<=5;i++)if(hw(p,addr[i],mask[i],s->old[i]))return -5;
+  for(i=0;i<9;i++)if(rd(p,addr[i],&v)||(v&mask[i])!=(s->old[i]&mask[i]))return -5;
++ if(hw(p,IOC+0x6400,2,s->mclkout_before))return -5;
++ if(rd(p,IOC+0x6400,&v)||(v&2)!=(s->mclkout_before&2))return -5;
+  s->ready=s->held=s->modified=0;return 0;
+ }
+--- a/app/k7sound/platform.h
++++ b/app/k7sound/platform.h
+@@ -11,6 +11,7 @@
+ struct sap_state {
+  unsigned attempted,saved,modified,ready,held;
+  uint32_t old[9],version,repair,ack,idle,clk46,fraction;
++ uint32_t mclkout_before,mclkout_after;
+ };
+ /* Zero-init state before single-owner lifetime. exclusive is trusted proof:
+  * no users of audio_frac0/SAI1/selected pins; codec muted and amp off;

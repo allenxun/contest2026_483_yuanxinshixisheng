@@ -1,0 +1,82 @@
+{
+  "state": {
+    "running_revision": "audio-preflight-20260910",
+    "boot": "RAM",
+    "firmware_sha256": "40cd635782e6a598c7b60464726d522c763c138c4c7779b07bbd4228988bd37b",
+    "smp_cpus": 8,
+    "audio_preflight_passed": true,
+    "audio_actual_rate_known": false,
+    "audio_recording_tested": false,
+    "audio_playback_tested": false,
+    "i2c_transactions": 0,
+    "wifi_connected": true,
+    "ip": "10.3.0.214",
+    "gateway_ping": "5/5",
+    "wireless_hold_seconds": 30,
+    "ble_service_running": true,
+    "ble_connected": false,
+    "ble_disconnect": "Test client intentionally disconnected",
+    "receive_rejects_before": 0,
+    "receive_rejects_after": 0,
+    "serial_observer_running": false,
+    "model_loaded": false,
+    "agent_deployed": false,
+    "usb_host_started_this_boot": false,
+    "filesystem_mounted": false,
+    "microphone_connection": "User explicitly confirmed MIC connector",
+    "emmc_written": false,
+    "evidence_directory": "evidence/audio-preflight-20260910",
+    "limits": [
+      "Clock/IOC reads only; no codec access, frequency proof, record or playback",
+      "Finite wireless recovery only, not long stability or internet acceptance",
+      "USB storage previous-version results retained, not repeated in this boot",
+      "Cold concurrent C++ exception behavior remains unresolved"
+    ]
+  },
+  "preflight": {
+    "passed": true,
+    "image": {
+      "entry": "0x40400000",
+      "memory_bytes": 6508544,
+      "sha256": "40cd635782e6a598c7b60464726d522c763c138c4c7779b07bbd4228988bd37b"
+    },
+    "raw_sha256": "9bb0cf6f76ea2b642c684cbe912ed5e83c9e4bbad1bfe56a0e518f51ce02e3ef",
+    "snapshots": [
+      {
+        "0x27200300": "0xcf3",
+        "0x27200304": "0x147",
+        "0x272003dc": "0x20",
+        "0x272003e4": "0x0",
+        "0x27200800": "0x0",
+        "0x2720082c": "0x0",
+        "0x27200830": "0x0",
+        "0x2604408c": "0x0"
+      },
+      {
+        "0x27200300": "0xcf3",
+        "0x27200304": "0x147",
+        "0x272003dc": "0x20",
+        "0x272003e4": "0x0",
+        "0x27200800": "0x0",
+        "0x2720082c": "0x0",
+        "0x27200830": "0x0",
+        "0x2604408c": "0x0"
+      }
+    ],
+    "snapshots_identical": true,
+    "scope": "Read-only clock/mux snapshot; no actual rate or codec availability proof",
+    "i2c_transactions": 0,
+    "audio_ready": false,
+    "emmc_written": false
+  },
+  "recorded_utc": "2026-09-10T09:58:57.621575+00:00",
+  "hashes": {
+    "ramload-progress.txt": "a2bd5e2bf719c81748442389a93a3d33ee7f5528778d18487bdd6dd4608c044a",
+    "preflight.bin": "9bb0cf6f76ea2b642c684cbe912ed5e83c9e4bbad1bfe56a0e518f51ce02e3ef",
+    "preflight.json": "28c6d4da1b9a56187fd99b89e6db8818fad0751412e90278f6db16c8b7705126",
+    "affinity-boot.json": "a87b8a63b52ca150e9bc4a38135c652c01da882fee37e561a3b0c370f9b2ab3d",
+    "affinity-radio.json": "6de81589f2ab4013c9d6c7d808e7bca85fa8c0fa2b641b9362d75014382e6a9c",
+    "ble-wireless.jsonl": "e0438f64c20a6a738511edb39c2979a6c9f563ff0f291124a8fd19051ef9c9eb",
+    "gateway.json": "dba9d8911188089fb752c898a4ae039906dd2d9c1459af367993c340c041e102"
+  }
+}

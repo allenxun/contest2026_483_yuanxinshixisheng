@@ -1,0 +1,489 @@
+{
+  "cases": [
+    {
+      "name": "bounded-read",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": true,
+      "errors": [],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "short-cbw",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 30,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "short/invalid CBW transfer"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "short-data",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4095,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "short/invalid data transfer"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "short-csw",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 12,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "short/invalid CSW transfer"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "bad-signature",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 0,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "invalid CSW signature"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "bad-tag",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 8,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "CSW tag mismatch"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "residue",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 1,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "CSW residue/status failure"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "status",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 1
+      },
+      "expected_accept": false,
+      "errors": [
+        "CSW residue/status failure"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "write10",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 8,
+        "opcode": 42,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "not READ10"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "last-lba-overflow",
+      "input": {
+        "blocks": 0,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "capacity10 unsupported/overflow",
+        "outside capacity"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "unsupported-capacity16",
+      "input": {
+        "blocks": 4294967296,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "capacity10 unsupported/overflow"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "truncated-blocksize",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 65536,
+        "lba": 0,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "unsupported sector size",
+        "exceeds initial bounded read",
+        "short/invalid data transfer"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "negative-lba",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": -1,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "LBA outside READ10",
+        "outside capacity"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "out-of-media",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 99999,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "outside capacity"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "read10-count-wrap",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 65536,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "READ10 count outside 1..65535",
+        "exceeds initial bounded read",
+        "short/invalid data transfer"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "zero-count",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 0,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "READ10 count outside 1..65535",
+        "short/invalid data transfer"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "over-limit",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 0,
+        "count": 9,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "exceeds initial bounded read",
+        "short/invalid data transfer"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "lba-wrap",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 4294967296,
+        "count": 8,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": false,
+      "errors": [
+        "LBA outside READ10",
+        "outside capacity"
+      ],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "last-sector",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 512,
+        "lba": 99999,
+        "count": 1,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 512,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": true,
+      "errors": [],
+      "passed": true,
+      "synthetic": true
+    },
+    {
+      "name": "4k-sector",
+      "input": {
+        "blocks": 100000,
+        "blocksize": 4096,
+        "lba": 0,
+        "count": 1,
+        "opcode": 40,
+        "cbw_bytes": 31,
+        "data_bytes": 4096,
+        "csw_bytes": 13,
+        "signature": 1396855637,
+        "cbw_tag": 7,
+        "csw_tag": 7,
+        "residue": 0,
+        "status": 0
+      },
+      "expected_accept": true,
+      "errors": [],
+      "passed": true,
+      "synthetic": true
+    }
+  ],
+  "all_passed": true,
+  "scope": "synthetic policy tests only; driver not patched or tested"
+}

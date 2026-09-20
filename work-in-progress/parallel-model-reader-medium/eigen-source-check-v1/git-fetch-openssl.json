@@ -1,0 +1,31 @@
+[
+  {
+    "cmd": [
+      "git",
+      "init",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\eigen-source-check-v1\\git-proof"
+    ],
+    "returncode": 0,
+    "stdout": "Reinitialized existing Git repository in E:/openvela/VelaVision/work-in-progress/parallel-model-reader-medium/eigen-source-check-v1/git-proof/.git/\n",
+    "stderr": ""
+  },
+  {
+    "cmd": [
+      "git",
+      "-C",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\eigen-source-check-v1\\git-proof",
+      "-c",
+      "credential.helper=",
+      "-c",
+      "http.sslBackend=openssl",
+      "fetch",
+      "--depth=1",
+      "--no-tags",
+      "https://gitlab.com/libeigen/eigen.git",
+      "e7248b26a1ed53fa030c5c459f7ea095dfd276ac"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "From https://gitlab.com/libeigen/eigen\n * branch            e7248b26a1ed53fa030c5c459f7ea095dfd276ac -> FETCH_HEAD\n"
+  }
+]

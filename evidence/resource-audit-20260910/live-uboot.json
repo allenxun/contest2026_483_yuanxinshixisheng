@@ -1,0 +1,26 @@
+[
+  {
+    "command": "bdinfo",
+    "output": "bdinfo\r\narch_number = 0x00000000\r\nboot_params = 0x00000000\r\nDRAM bank   = 0x00000000\r\n-> start    = 0x40200000\r\n-> size     = 0x08200000\r\nDRAM bank   = 0x00000001\r\n-> start    = 0x49400000\r\n-> size     = 0xB6C00000\r\ncurrent eth = unknown\r\nip_addr     = <NULL>\r\nbaudrate    = 1500000 bps\r\nTLB addr    = 0xFFFF0000\r\nrelocaddr   = 0xFDC19000\r\nreloc off   = 0xBDA19000\r\nirq_sp      = 0xFB9FA0E0\r\nsp start    = 0xFB9FA0E0\r\nEarly malloc usage: 3458 / 80000\r\nfdt_blob = 0000000048300000\r\n=> "
+  },
+  {
+    "command": "fdt addr 48300000",
+    "output": "fdt addr 48300000\r\n=> "
+  },
+  {
+    "command": "fdt print /memory",
+    "output": "fdt print /memory\r\nlibfdt fdt_path_offset() returned FDT_ERR_NOTFOUND\r\n=> "
+  },
+  {
+    "command": "fdt print /reserved-memory",
+    "output": "fdt print /reserved-memory\r\nreserved-memory {\r\n\t#address-cells = <0x00000002>;\r\n\t#size-cells = <0x00000002>;\r\n\tranges;\r\n\tdrm-logo@0 {\r\n\t\tcompatible = \"rockchip,drm-logo\";\r\n\t\treg = <0x00000000 0x00000000 0x00000000 0x00000000>;\r\n\t\tphandle = <0x0000002a>;\r\n\t};\r\n\tdrm-cubic-lut@0 {\r\n\t\tcompatible = \"rockchip,drm-cubic-lut\";\r\n\t\treg = <0x00000000 0x00000000 0x00000000 0x00000000>;\r\n\t\tphandle = <0x0000002b>;\r\n\t};\r\n\tramoops@40110000 {\r\n\t\tcompatible = \"ramoops\";\r\n\t\treg = <0x00000000 0x40110000 0x00000000 0x000e0000>;\r\n\t\tboot-log-size = <0x00008000>;\r\n\t\tboot-log-count = <0x00000001>;\r\n\t\tconsole-size = <0x00080000>;\r\n\t\tpmsg-size = <0x00030000>;\r\n\t\tftrace-size = <0x00000000>;\r\n\t\trecord-size = <0x00014000>;\r\n\t};\r\n};\r\n=> "
+  },
+  {
+    "command": "fdt rsvmem print",
+    "output": "fdt rsvmem print\r\nindex\t\t   start\t\t    size\r\n------------------------------------------------\r\n=> "
+  },
+  {
+    "command": "mmc list",
+    "output": "mmc list\r\nmmc@2a310000: 1\r\nmmc@2a330000: 0 (eMMC)\r\nmmc@2a310000: 2\r\nmmc@2a320000: 3\r\nmmc@2a330000: 4\r\n=> "
+  }
+]

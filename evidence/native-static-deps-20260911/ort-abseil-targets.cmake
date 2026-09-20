@@ -1,0 +1,24 @@
+# Exact ORT 1.17.1 ABSEIL_LIBS roots; upstream resolves transitive dependencies.
+set(K7_ORT_ABSEIL_LIBS
+  absl::base
+  absl::city
+  absl::core_headers
+  absl::fixed_array
+  absl::flags
+  absl::flat_hash_map
+  absl::flat_hash_set
+  absl::hash
+  absl::inlined_vector
+  absl::low_level_hash
+  absl::node_hash_map
+  absl::node_hash_set
+  absl::optional
+  absl::raw_hash_set
+  absl::raw_logging_internal
+  absl::span
+  absl::str_format
+  absl::strings
+  absl::synchronization
+  absl::throw_delegate
+  absl::time
+)

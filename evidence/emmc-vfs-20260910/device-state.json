@@ -1,0 +1,49 @@
+{
+  "updated_at": "2026-09-10T03:55:23.393552+00:00",
+  "running_revision": "emmc-vfs-20260910",
+  "firmware_sha256": "06320f4b86326ea91d682fb6192dad5c64f7893279f9d73ed57490f80b9fe10b",
+  "boot": "RAM",
+  "liveness_verified": true,
+  "wifi_connected": true,
+  "test_ip": "10.3.0.214",
+  "ble_service_running": true,
+  "ble_connected": false,
+  "test_client_intentionally_disconnected": true,
+  "real_ble_to_wifi_passed": true,
+  "test_client": "Windows Bleak",
+  "gateway_ping": {
+    "sent": 5,
+    "received": 5
+  },
+  "ble_wifi_hold_seconds": 30,
+  "emmc": {
+    "sectors": 61079552,
+    "sector_bytes": 512,
+    "mode": "400kHz 1-bit PIO",
+    "initialization_passed": true,
+    "gpt_primary_backup_and_entries_crc_passed": true,
+    "partitions": 15,
+    "inter_partition_gaps": 0,
+    "block_device_registered": true,
+    "filesystem_mounted": false,
+    "block_nodes": 16,
+    "block_api_checks_passed": true,
+    "vfs_read_passed": true,
+    "vfs_failure": null,
+    "filesystem_signatures": {
+      "cache": "ext-family",
+      "userdata": "unknown"
+    },
+    "vfs_requested_contiguous_bytes": 65536,
+    "vfs_unaligned_read_bytes": 4
+  },
+  "model_arena": {
+    "mapped_bytes": 1073741824,
+    "retested_this_build": false
+  },
+  "smp_cpus": 1,
+  "emmc_written": false,
+  "production_stability_passed": false,
+  "wireless_note": "5/5 gateway and 30-second BLE hold; not long-term acceptance",
+  "evidence_directory": "evidence/emmc-vfs-20260910"
+}

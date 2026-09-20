@@ -1,0 +1,18 @@
+{
+  "revision": "audio-input-20260910",
+  "firmware_sha256": "1fc817adff940075f82a1076dd5d92c58a71cbc4f57592ad1ba124176cb3a04f",
+  "elf_sha256": "f4c6ca53cdcbe8866f64fa6358f10fdd3735f0969f2f53e2fdfa2186d6965286",
+  "change": "Independent capture-pga24 changes ADC09 only from44 to88; read-only slot snapshots added; default PIO unchanged",
+  "rx_request_probe_integrated": false,
+  "rx_request_probe_executed": false,
+  "reason": "DMA clock/reset/security/channel preconditions not fully established",
+  "host_candidate": "work-in-progress/audio-input-root/delivery.json",
+  "sources": {
+    "k7sound_main.c": "ae0f0744e07f1112a80d01808c74f3032cfee25172b0e42a4728aaae74198d2d",
+    "codec_duplex.c": "ded4da8250620816bdc1d4086d3b78d4fd1773800f64bb0d042b83e5e14e3132",
+    "codec_duplex.h": "95ede2241c10a1270a9f6c808babc71e092f0abc556d7652f53883bc2e013d10",
+    "pio.c": "c7b7a883f2c02df6e1e12ade45603f2e2d17671704ea8a313e7c1a6bacda0289",
+    "pio.h": "df44059ec82979d9bbea22807b0147bb95bb7136fca9a7c9925eb6d854b546e6"
+  },
+  "hardware_tested": false
+}

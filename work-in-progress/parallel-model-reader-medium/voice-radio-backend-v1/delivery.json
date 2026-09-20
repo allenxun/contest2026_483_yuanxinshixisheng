@@ -1,0 +1,24 @@
+{
+  "status": "HOST_SEAMS_PASSED_TARGET_BUILD_AND_HARDWARE_PENDING",
+  "outputs_sha256": "820d5a9a68faecabc8e60eaed2218e8f31224b347a3df3d3e0ce55306d42d3d5",
+  "inputs_sha256": "1e794db1e6d3d63f6c2604f8d307c90d6457d4a827899792f76dd7235fb4d4d7",
+  "candidate_patch_sha256": "bd84f4537493c523e0db5f6c46bef95f2f027e8ed529129b293abadd30ccfc90",
+  "handoff_sha256": "5e806bb6a6a1e6b429cc33b978db7872ec085c7c72493376a0e1acd59c6b1a23",
+  "tests": {
+    "optimizations": [
+      "O0",
+      "O2"
+    ],
+    "real_scan_function_checks_each": 18,
+    "updated_adapter_checks_each": 4308,
+    "backend_inc_scenarios_each": [
+      "normal scan and failed connection",
+      "CLOSE failure held",
+      "no RX drain held",
+      "STOP failure held"
+    ],
+    "host_hardware": "explicit mocks only",
+    "timeout_seconds_each": 20
+  },
+  "scope": "only own directory; formal/SDK/device untouched"
+}

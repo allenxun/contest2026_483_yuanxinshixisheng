@@ -1,0 +1,61 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.cpp:1:
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.cpp: In constructor 'LLM_KV::LLM_KV(llm_arch, const char*)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.cpp:1600:44: warning: declaration of 'suffix' shadows a member of 'LLM_KV' [-Wshadow]
+ 1600 | LLM_KV::LLM_KV(llm_arch arch, const char * suffix) : arch(arch), suffix(suffix) {}
+      |                               ~~~~~~~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:364:18: note: shadowed declaration is here
+  364 |     const char * suffix;
+      |                  ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.cpp:1600:25: warning: declaration of 'arch' shadows a member of 'LLM_KV' [-Wshadow]
+ 1600 | LLM_KV::LLM_KV(llm_arch arch, const char * suffix) : arch(arch), suffix(suffix) {}
+      |                ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:363:14: note: shadowed declaration is here
+  363 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.cpp: In constructor 'LLM_KV::LLM_KV(llm_arch, const char*)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.cpp:1600:44: warning: declaration of 'suffix' shadows a member of 'LLM_KV' [-Wshadow]
+ 1600 | LLM_KV::LLM_KV(llm_arch arch, const char * suffix) : arch(arch), suffix(suffix) {}
+      |                               ~~~~~~~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:364:18: note: shadowed declaration is here
+  364 |     const char * suffix;
+      |                  ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.cpp:1600:25: warning: declaration of 'arch' shadows a member of 'LLM_KV' [-Wshadow]
+ 1600 | LLM_KV::LLM_KV(llm_arch arch, const char * suffix) : arch(arch), suffix(suffix) {}
+      |                ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:363:14: note: shadowed declaration is here
+  363 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.cpp: In constructor 'LLM_KV::LLM_KV(llm_arch, const char*)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.cpp:1600:44: warning: declaration of 'suffix' shadows a member of 'LLM_KV' [-Wshadow]
+ 1600 | LLM_KV::LLM_KV(llm_arch arch, const char * suffix) : arch(arch), suffix(suffix) {}
+      |                               ~~~~~~~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:364:18: note: shadowed declaration is here
+  364 |     const char * suffix;
+      |                  ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.cpp:1600:25: warning: declaration of 'arch' shadows a member of 'LLM_KV' [-Wshadow]
+ 1600 | LLM_KV::LLM_KV(llm_arch arch, const char * suffix) : arch(arch), suffix(suffix) {}
+      |                ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-arch.h:363:14: note: shadowed declaration is here
+  363 |     llm_arch arch;
+      |              ^~~~

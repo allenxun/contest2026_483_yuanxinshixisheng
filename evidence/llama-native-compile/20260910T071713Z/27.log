@@ -1,0 +1,28 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/include/ggml-cpu.h:4,
+                 from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/include/llama.h:5,
+                 from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-impl.cpp:4:
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-impl.cpp: In constructor 'time_meas::time_meas(int64_t&, bool)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-impl.cpp:20:32: warning: declaration of 't_acc' shadows a member of 'time_meas' [-Wshadow]
+   20 | time_meas::time_meas(int64_t & t_acc, bool disable) : t_start_us(disable ? -1 : ggml_time_us()), t_acc(t_acc) {}
+      |                      ~~~~~~~~~~^~~~~
+In file included from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-impl.cpp:1:
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-impl.h:49:15: note: shadowed declaration is here
+   49 |     int64_t & t_acc;
+      |               ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-impl.cpp: In constructor 'time_meas::time_meas(int64_t&, bool)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-impl.cpp:20:32: warning: declaration of 't_acc' shadows a member of 'time_meas' [-Wshadow]
+   20 | time_meas::time_meas(int64_t & t_acc, bool disable) : t_start_us(disable ? -1 : ggml_time_us()), t_acc(t_acc) {}
+      |                      ~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-impl.h:49:15: note: shadowed declaration is here
+   49 |     int64_t & t_acc;
+      |               ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-impl.cpp: In constructor 'time_meas::time_meas(int64_t&, bool)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-impl.cpp:20:32: warning: declaration of 't_acc' shadows a member of 'time_meas' [-Wshadow]
+   20 | time_meas::time_meas(int64_t & t_acc, bool disable) : t_start_us(disable ? -1 : ggml_time_us()), t_acc(t_acc) {}
+      |                      ~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-impl.h:49:15: note: shadowed declaration is here
+   49 |     int64_t & t_acc;
+      |               ^~~~~

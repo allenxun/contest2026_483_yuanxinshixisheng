@@ -1,0 +1,24 @@
+
+/home/swl/openvela/cmake_out/velavision_cxx_eh_20260910/nuttx:     file format elf64-littleaarch64
+
+
+Disassembly of section .text:
+
+00000000404c2dbc <__cxa_get_globals_fast>:
+    404c2dbc:	a9bf7bfd 	stp	x29, x30, [sp, #-16]!
+    404c2dc0:	90000001 	adrp	x1, 404c2000 <_ZNSt3__116generic_categoryEv+0x24>
+    404c2dc4:	91355021 	add	x1, x1, #0xd54
+    404c2dc8:	910003fd 	mov	x29, sp
+    404c2dcc:	90000ae0 	adrp	x0, 4061e000 <g_cbprealloc+0x68>
+    404c2dd0:	91202000 	add	x0, x0, #0x808
+    404c2dd4:	940024d5 	bl	404cc128 <pthread_once>
+    404c2dd8:	34000080 	cbz	w0, 404c2de8 <__cxa_get_globals_fast+0x2c>
+    404c2ddc:	d0000180 	adrp	x0, 404f4000 <boot_string_jump_to_c_entry+0x13f6b>
+    404c2de0:	91067000 	add	x0, x0, #0x19c
+    404c2de4:	97fffef9 	bl	404c29c8 <abort_message>
+    404c2de8:	a8c17bfd 	ldp	x29, x30, [sp], #16
+    404c2dec:	90002340 	adrp	x0, 4092a000 <_ZGVZNSt3__116generic_categoryEvE1s>
+    404c2df0:	b9403800 	ldr	w0, [x0, #56]
+    404c2df4:	14001fcb 	b	404cad20 <pthread_getspecific>
+
+Disassembly of section .vector:

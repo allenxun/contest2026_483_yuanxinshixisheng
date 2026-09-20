@@ -1,0 +1,50 @@
+--- a/voice_wifi_adapter.cpp
++++ b/voice_wifi_adapter.cpp
+@@ -41,7 +41,7 @@
+    const auto& a=v.ap[i]; if(!a.ssid_len) continue;
+    if(a.ssid_len>32 || a.security>3) {r.access_points.clear();r.error_code=-22;return r;}
+    if(!text_ssid(a.ssid,a.ssid_len)) {
+-    r.access_points.clear();r.error_code=-84;return r;
++    continue;
+    }
+    r.access_points.push_back({std::string(reinterpret_cast<const char*>(a.ssid),a.ssid_len),a.rssi,a.security!=0});
+   }
+--- a/wifi_scan.c
++++ b/wifi_scan.c
+@@ -74,6 +74,7 @@
+   struct ws_done e=s->event;s->event_pending=false;
+   if(e.ticket==id&&e.sequence>s->sequence&&s->view.held){
+    s->sequence=e.sequence;
++   if(!e.success && s->view.state==VS_PENDING)s->view.error=e.error?e.error:-5;
+    if(e.stop_ok&&e.close_ok&&e.worker_exited&&e.rx_quiescent&&e.offline){
+     if(s->view.state==VS_PENDING){
+      if(e.success&&e.scan_done&&sc_freeze(&s->collector,id)==SC_OK){
+@@ -83,7 +84,7 @@
+        memcpy(a->ssid,r->ssid,32);a->ssid_len=r->ssid_len;memcpy(a->bssid,r->bssid,6);
+        a->rssi=r->rssi;a->security=r->security;a->channel=r->channel;a->band=r->band;
+       }
+-     }else s->view.state=VS_FAILED;
++     }else {s->view.state=VS_FAILED;if(!s->view.error)s->view.error=e.error?e.error:-5;}
+     }
+     if(s->collector.state==SC_COLLECTING)(void)sc_cancel(&s->collector,id);
+     s->view.held=0;if(b->radio==WB_SCAN)b->radio=WB_FREE;
+@@ -94,7 +95,7 @@
+  unlock(s);
+  if(submit && s->port.submit(s->port.ctx,id)){
+   /* Contract: rejected submit created no worker/interface, therefore no fence owed. */
+-  lock(s);if(s->view.state==VS_PENDING)s->view.state=VS_FAILED;
++  lock(s);if(s->view.state==VS_PENDING){s->view.state=VS_FAILED;s->view.error=-5;}
+   (void)sc_cancel(&s->collector,id);s->view.held=0;if(b->radio==WB_SCAN)b->radio=WB_FREE;unlock(s);
+  }
+  if(stop_req){int rc=s->port.stop(s->port.ctx,id);lock(s);if(!rc)s->stop_sent=true;unlock(s);}
+--- a/wifi_scan.h
++++ b/wifi_scan.h
+@@ -8,7 +8,7 @@
+  * Completion is supervisor-authored after actual worker/RX fences, not worker
+  * return-soon flags. No producer may relabel old firmware reports as new IDs. */
+ struct ws_port {void *ctx;int (*submit)(void*,uint64_t);int (*stop)(void*,uint64_t);};
+-struct ws_done {uint64_t ticket,sequence;bool success,scan_done,stop_ok,close_ok,worker_exited,rx_quiescent,offline;};
++struct ws_done {uint64_t ticket,sequence;int error;bool success,scan_done,stop_ok,close_ok,worker_exited,rx_quiescent,offline;};
+ struct ws_service {
+  struct wd_dispatch*d;struct ws_port port;struct sc_collector collector;
+  struct vs_snapshot view;uint64_t owner,submitted,timeout,last_time,sequence;

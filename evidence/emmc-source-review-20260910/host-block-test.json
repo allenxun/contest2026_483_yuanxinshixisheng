@@ -1,0 +1,23 @@
+{
+  "command": [
+    "D:/software/mingw64/mingw64/bin/gcc.exe",
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-O2",
+    "E:\\openvela\\VelaVision\\app\\k7emmc\\test_block_readonly.c",
+    "-o",
+    "E:\\openvela\\VelaVision\\evidence\\emmc-source-review-20260910\\test_block_readonly.exe"
+  ],
+  "exit_code": 0,
+  "stdout": "EMMC block registered=3 readonly=1 root=/dev/emmc0ro\nEMMC blockcheck rc=0 readonly_geometry=PASS rejected_write=PASS partition_translation=PASS storage_writes=0\nPASS: block geometry, write rejection, range/size guards, busy, partial error/recovery gate, partition translation, registration rollback\n",
+  "hardware_accessed": false,
+  "sources": {
+    "block_readonly.inc": "e4de4baea8d53a69109125bba4540cad869f094791fe979dbbdc03a09a6e838e",
+    "test_block_readonly.c": "e26eea048af24fa5ffd0b6cc6f9b73da6be51c0b8b3abbfc9db5cd44c57b4461",
+    "sdhci_command.h": "4d0535a96bbfc900af780ecdd9d22f08b2d13af23eb683526b571a51c39f376c",
+    "sdhci_read.h": "7d64ae0b074ffbb34ad2c586bfbe1403ddcc81b65585627b593ba88ead11042b",
+    "gpt_readonly.h": "9f8a55621027c47ca6878229e28d51499ff6619c4211b0b6ee53c95b8de3037d"
+  }
+}

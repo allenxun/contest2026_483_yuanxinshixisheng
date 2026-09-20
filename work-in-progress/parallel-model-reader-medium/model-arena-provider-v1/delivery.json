@@ -1,0 +1,199 @@
+{
+  "utc": "2026-09-10T08:10:59Z",
+  "status": "target provider candidate; host mocked API protocol tests only",
+  "target_run": false,
+  "model_loaded": false,
+  "limit_bytes": 1048576,
+  "files": [
+    {
+      "path": "evidence\\buft.o",
+      "bytes": 4741,
+      "sha256": "b1236b841cb2ce4d45f55f6c719335172d45c333f09157e4a2954b0f28b3040c"
+    },
+    {
+      "path": "evidence\\diagnostic.o",
+      "bytes": 2769,
+      "sha256": "190ab91287ab521926cef4b556a615fcbae3b9c74254d85a548e62d11ea87c8b"
+    },
+    {
+      "path": "evidence\\diagnostic.su",
+      "bytes": 53,
+      "sha256": "f116acd929b6f2502f9afbe8ed1c7a3d47fd3d613b5cbe85098e538301968e0d"
+    },
+    {
+      "path": "evidence\\entry.o",
+      "bytes": 2121,
+      "sha256": "43dcf7eb511504a0191ad985adc36f3bd1e11f3167c1ee687dea38afce449191"
+    },
+    {
+      "path": "evidence\\entry.su",
+      "bytes": 215,
+      "sha256": "3a681df646e3496e7b4375c4798363dc56d0bdefeda0fe0d3e3549a7bdfbadf4"
+    },
+    {
+      "path": "evidence\\host-tests.json",
+      "bytes": 12346,
+      "sha256": "e887603400efe704bce74c811f2ca3df11514aecafed6ef3771368bcd996802e"
+    },
+    {
+      "path": "evidence\\input-hashes.json",
+      "bytes": 3700,
+      "sha256": "c396ccf08e02c45730797d512b25896217cf7cf802bb5f25e1d1ee68f741cfd1"
+    },
+    {
+      "path": "evidence\\mock.o",
+      "bytes": 2370,
+      "sha256": "6776c69e363b6be367e7576600d24f34088c026214cb90737b3eb46bbc9e6259"
+    },
+    {
+      "path": "evidence\\mock.su",
+      "bytes": 400,
+      "sha256": "0d8d4593f9235aff359031c3b749cd13368b8eed004b797d8c53fc81656fc054"
+    },
+    {
+      "path": "evidence\\provider.o",
+      "bytes": 2241,
+      "sha256": "5b1ba36464f5c18578bfdbf0042a3a4f7ab2bc750fc08a298cdefbe82307a616"
+    },
+    {
+      "path": "evidence\\provider.su",
+      "bytes": 299,
+      "sha256": "b79ec89a21abda67a38027a3c96a954c528aed89cca88c49c089d72c6853cfbb"
+    },
+    {
+      "path": "evidence\\provider_probe.exe",
+      "bytes": 546718,
+      "sha256": "e01946835eea8ad86f3662bd859d3497b02ad3818d85f27e6317e72f07856a52"
+    },
+    {
+      "path": "evidence\\provider_test.exe",
+      "bytes": 549397,
+      "sha256": "dca512b89e168ec5aa52b9c55abfcd60631a524530ffbbb656cf43c947c46f19"
+    },
+    {
+      "path": "evidence\\target-header-shape-only.o",
+      "bytes": 2145,
+      "sha256": "e4ba3e7e7c53b4437c26c69e588e63eb3faea409ca63291541c80191de30eb60"
+    },
+    {
+      "path": "evidence\\target-header-shape-only.su",
+      "bytes": 298,
+      "sha256": "d1dd6916833f5965a0bf5eb2099de3002f04a426ed3b08ab15c809a47d526b2d"
+    },
+    {
+      "path": "evidence\\test.o",
+      "bytes": 6173,
+      "sha256": "0b068762666fe4fa646906e5a502c9a1be1e04ca454080256c3095ecb41a4fa1"
+    },
+    {
+      "path": "evidence\\test.su",
+      "bytes": 242,
+      "sha256": "f4dbc66dc1a348e2bcab11a69827d8ab925ed761f1f09b324827c101c40d4afc"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 6143,
+      "sha256": "e5c784b47d859e5b9efa5442ca2a8c3881eb8362cd5bc96bd6636e9b3c90d8ed"
+    },
+    {
+      "path": "host-mock\\mock.c",
+      "bytes": 881,
+      "sha256": "0f07523b02abcc911d422dadf116736ed8a5a0df140b9df31b897d19c152b03f"
+    },
+    {
+      "path": "host-mock\\mock.h",
+      "bytes": 144,
+      "sha256": "9a5acc29e374a3251123eac24c67ce1045d028d7f05171d560552369f64eb7f5"
+    },
+    {
+      "path": "host-mock\\nuttx\\mm\\k7_model_arena.h",
+      "bytes": 318,
+      "sha256": "dc82ddb01566d8f1a9b819bb08ca8fb24fc2326867a6363b9db51b9aa840c319"
+    },
+    {
+      "path": "host-mock\\test_provider.c",
+      "bytes": 2678,
+      "sha256": "c81861d0e4e821c0e4df9f34883e33f86ab54fb1565591e868e4628afa6d8adb"
+    },
+    {
+      "path": "input\\arena\\rk3576_model_arena.c",
+      "bytes": 1203,
+      "sha256": "644db1317290b98d06ca8bfb0de773a59325780931c648c335dc0bb09c58ce03"
+    },
+    {
+      "path": "input\\buft\\k7_host_buft.cpp",
+      "bytes": 4441,
+      "sha256": "de9c4a7b86e07d215486027a445f9e2ecb659e7d988881888444643d0d20d1dc"
+    },
+    {
+      "path": "input\\buft\\k7_host_buft.h",
+      "bytes": 1853,
+      "sha256": "2c61960a69fcd34067fbd6f12f97f5d791c29ec21d9118c16513b7fa71e2933a"
+    },
+    {
+      "path": "input\\include\\ggml-alloc.h",
+      "bytes": 3011,
+      "sha256": "8344c5eb56ce9d0e0d45e1ef59846e0dcd0e4f84eb9bb68a6126252247bc0338"
+    },
+    {
+      "path": "input\\include\\ggml-backend-impl.h",
+      "bytes": 11960,
+      "sha256": "387fb6cc6f512e3894610fb9e44f6761db234eabe7b5d123f888afb4840f62ec"
+    },
+    {
+      "path": "input\\include\\ggml-backend.h",
+      "bytes": 19929,
+      "sha256": "760b374e1e1d80a854b4d5385006b36d82e544e43281b5a070d6c895dc301252"
+    },
+    {
+      "path": "input\\include\\ggml-cpu.h",
+      "bytes": 6908,
+      "sha256": "3f43c5f58ff276bf1c3dc16609c5433aeb0c5333427a538cb8d1555c0ce5619e"
+    },
+    {
+      "path": "input\\include\\ggml.h",
+      "bytes": 83713,
+      "sha256": "517b4e03f24089b454223541be264f9e0cae640e5383a045c1221402cf81e01a"
+    },
+    {
+      "path": "input\\nuttx\\mm\\k7_model_arena.h",
+      "bytes": 562,
+      "sha256": "88b6d4f10b15afbdfd8289c1556cb51941902bdfa50470cf9045064cb4a761a8"
+    },
+    {
+      "path": "k7_arena_diagnostic.c",
+      "bytes": 2700,
+      "sha256": "893c63eb919bc8eecd71fbe6c0008f10f20d8dcf9948aa99dbc3f9c2e1d3d3d9"
+    },
+    {
+      "path": "k7_arena_diagnostic.h",
+      "bytes": 681,
+      "sha256": "2b6c367dca4ff05f0d4ca8144d29786b6cb31ae852974eb9e6a22b01892750a1"
+    },
+    {
+      "path": "k7_arena_provider_main.c",
+      "bytes": 995,
+      "sha256": "816f39a561226495646efc7fe85541d8f69ec331329f35c3a8522188a9bfe796"
+    },
+    {
+      "path": "k7_target_provider.c",
+      "bytes": 2557,
+      "sha256": "2b35a853fbe7b7e2dc3c67890523d00fb537c6b731145ab817ae39b4a1574683"
+    },
+    {
+      "path": "k7_target_provider.h",
+      "bytes": 949,
+      "sha256": "1a64c8b17e5281fbe2fa630110b34e2765a1d7deb1e30bcf3c308bb050adc8a7"
+    },
+    {
+      "path": "run_tests.py",
+      "bytes": 2227,
+      "sha256": "7baff3744744df33b895e67a10bdbeabd20d82fbea7cd2ef65ae41ef329a4406"
+    },
+    {
+      "path": "seal_delivery.py",
+      "bytes": 1699,
+      "sha256": "81bb7bd678d99131068f9fa65c72aa0c314c9d02ff0cfffadad19e8be26363ce"
+    }
+  ]
+}

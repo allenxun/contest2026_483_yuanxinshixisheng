@@ -1,0 +1,239 @@
+{
+  "revision": "audio-rxtrace-20260910",
+  "firmware_sha256": "122a05fd82c0428d4c569ff97a22d07aa24b22ad62d8714d5f352b928e133bed",
+  "raw": "k7sound-capture-20260910-194104.bin",
+  "raw_sha256": "cdd09f202b7dd9f7f9c748867326ee2a9772539ab33d04d7966154f7bc25f478",
+  "trace_valid": true,
+  "frames": 3200,
+  "window_us": 200040,
+  "rows": [
+    {
+      "index": 0,
+      "us": 374886277,
+      "before": 2,
+      "word": 4294967295,
+      "after": 1
+    },
+    {
+      "index": 1,
+      "us": 374886279,
+      "before": 1,
+      "word": 4294967295,
+      "after": 0
+    },
+    {
+      "index": 2,
+      "us": 374886340,
+      "before": 128,
+      "word": 0,
+      "after": 64
+    },
+    {
+      "index": 3,
+      "us": 374886341,
+      "before": 64,
+      "word": 0,
+      "after": 0
+    },
+    {
+      "index": 4,
+      "us": 374886403,
+      "before": 8192,
+      "word": 0,
+      "after": 4096
+    },
+    {
+      "index": 5,
+      "us": 374886404,
+      "before": 4096,
+      "word": 0,
+      "after": 0
+    },
+    {
+      "index": 6,
+      "us": 374886464,
+      "before": 524288,
+      "word": 0,
+      "after": 262144
+    },
+    {
+      "index": 7,
+      "us": 374886466,
+      "before": 262144,
+      "word": 0,
+      "after": 0
+    },
+    {
+      "index": 8,
+      "us": 374886527,
+      "before": 2,
+      "word": 4294967295,
+      "after": 1
+    },
+    {
+      "index": 9,
+      "us": 374886529,
+      "before": 1,
+      "word": 4294967295,
+      "after": 0
+    },
+    {
+      "index": 10,
+      "us": 374886590,
+      "before": 128,
+      "word": 0,
+      "after": 64
+    },
+    {
+      "index": 11,
+      "us": 374886592,
+      "before": 64,
+      "word": 0,
+      "after": 0
+    },
+    {
+      "index": 12,
+      "us": 374886652,
+      "before": 8192,
+      "word": 0,
+      "after": 4096
+    },
+    {
+      "index": 13,
+      "us": 374886654,
+      "before": 4096,
+      "word": 0,
+      "after": 0
+    },
+    {
+      "index": 14,
+      "us": 374886715,
+      "before": 524288,
+      "word": 0,
+      "after": 262144
+    },
+    {
+      "index": 15,
+      "us": 374886717,
+      "before": 262144,
+      "word": 0,
+      "after": 0
+    },
+    {
+      "index": 16,
+      "us": 374886777,
+      "before": 2,
+      "word": 4294967295,
+      "after": 1
+    },
+    {
+      "index": 17,
+      "us": 374886779,
+      "before": 1,
+      "word": 4294967295,
+      "after": 0
+    },
+    {
+      "index": 18,
+      "us": 374886840,
+      "before": 128,
+      "word": 0,
+      "after": 64
+    },
+    {
+      "index": 19,
+      "us": 374886842,
+      "before": 64,
+      "word": 0,
+      "after": 0
+    },
+    {
+      "index": 20,
+      "us": 374886903,
+      "before": 8192,
+      "word": 0,
+      "after": 4096
+    },
+    {
+      "index": 21,
+      "us": 374886904,
+      "before": 4096,
+      "word": 0,
+      "after": 0
+    },
+    {
+      "index": 22,
+      "us": 374886965,
+      "before": 524288,
+      "word": 0,
+      "after": 262144
+    },
+    {
+      "index": 23,
+      "us": 374886966,
+      "before": 262144,
+      "word": 0,
+      "after": 0
+    },
+    {
+      "index": 24,
+      "us": 374887027,
+      "before": 2,
+      "word": 4294967295,
+      "after": 1
+    },
+    {
+      "index": 25,
+      "us": 374887029,
+      "before": 1,
+      "word": 4294967295,
+      "after": 0
+    },
+    {
+      "index": 26,
+      "us": 374887090,
+      "before": 128,
+      "word": 0,
+      "after": 64
+    },
+    {
+      "index": 27,
+      "us": 374887092,
+      "before": 64,
+      "word": 0,
+      "after": 0
+    },
+    {
+      "index": 28,
+      "us": 374887152,
+      "before": 8192,
+      "word": 0,
+      "after": 4096
+    },
+    {
+      "index": 29,
+      "us": 374887154,
+      "before": 4096,
+      "word": 0,
+      "after": 0
+    },
+    {
+      "index": 30,
+      "us": 374887215,
+      "before": 524288,
+      "word": 0,
+      "after": 262144
+    },
+    {
+      "index": 31,
+      "us": 374887217,
+      "before": 262144,
+      "word": 0,
+      "after": 0
+    }
+  ],
+  "finding": "All four banks provide valid counted pairs in turn; only bank0 nonzero. Not empty FIFO reads. Cause unproven.",
+  "microphone_audio_passed": false,
+  "wifi_started": false,
+  "emmc_written": false
+}

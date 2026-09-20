@@ -1,0 +1,45 @@
+{
+  "records": [
+    {
+      "command": "dd if=/dev/emmc0ro of=/dev/null bs=512 count=128",
+      "elapsed_seconds": 0.5469999999913853,
+      "prompt_returned": true,
+      "lines": []
+    },
+    {
+      "command": "echo $?",
+      "elapsed_seconds": 0.031000000002677552,
+      "prompt_returned": true,
+      "lines": [
+        "0"
+      ]
+    },
+    {
+      "command": "dd if=/dev/emmc0ro of=/dev/null bs=1 skip=510 count=4",
+      "elapsed_seconds": 0.031000000002677552,
+      "prompt_returned": true,
+      "lines": []
+    },
+    {
+      "command": "echo $?",
+      "elapsed_seconds": 0.031000000002677552,
+      "prompt_returned": true,
+      "lines": [
+        "0"
+      ]
+    },
+    {
+      "command": "k7emmc gpt",
+      "elapsed_seconds": 0.03199999999196734,
+      "prompt_returned": true,
+      "lines": [
+        "EMMC registered: reinitialization refused"
+      ]
+    }
+  ],
+  "vfs_commands_passed": true,
+  "requested_read_bytes": 65536,
+  "unaligned_read_bytes": 4,
+  "destination": "/dev/null",
+  "storage_writes": false
+}

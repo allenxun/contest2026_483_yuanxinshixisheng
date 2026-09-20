@@ -1,0 +1,121 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-cpu.h:4,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/include/llama.h:5,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:3,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp:1:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:6:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h: In constructor 'llama_model_loader::llama_tensor_weight::llama_tensor_weight(const llama_file*, uint16_t, const gguf_context*, ggml_tensor*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:34:120: warning: declaration of 'tensor' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                                                                          ~~~~~~~~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:32:23: note: shadowed declaration is here
+   32 |         ggml_tensor * tensor;
+      |                       ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:34:63: warning: declaration of 'idx' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                      ~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:29:19: note: shadowed declaration is here
+   29 |         uint16_t  idx; // source file index
+      |                   ^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h: In constructor 'llama_model_loader::llama_tensor_weight::llama_tensor_weight(const llama_file*, uint16_t, const gguf_context*, ggml_tensor*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:34:120: warning: declaration of 'tensor' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                                                                          ~~~~~~~~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:32:23: note: shadowed declaration is here
+   32 |         ggml_tensor * tensor;
+      |                       ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:34:63: warning: declaration of 'idx' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                      ~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:29:19: note: shadowed declaration is here
+   29 |         uint16_t  idx; // source file index
+      |                   ^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h: In constructor 'llama_model_loader::llama_tensor_weight::llama_tensor_weight(const llama_file*, uint16_t, const gguf_context*, ggml_tensor*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:34:120: warning: declaration of 'tensor' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                                                                          ~~~~~~~~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:32:23: note: shadowed declaration is here
+   32 |         ggml_tensor * tensor;
+      |                       ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:34:63: warning: declaration of 'idx' shadows a member of 'llama_model_loader::llama_tensor_weight' [-Wshadow]
+   34 |         llama_tensor_weight(const llama_file * file, uint16_t idx, const struct gguf_context * gguf_ctx, ggml_tensor * tensor) : idx(idx), tensor(tensor) {
+      |                                                      ~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:29:19: note: shadowed declaration is here
+   29 |         uint16_t  idx; // source file index
+      |                   ^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp: In function 'std::__1::vector<std::__1::basic_string<char> > llama_get_list_splits(const std::__1::string&, int, int)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp:86:14: warning: declaration of 'int idx' shadows a parameter [-Wshadow]
+   86 |     for (int idx = 0; idx < n_split; ++idx) {
+      |              ^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp:69:91: note: shadowed declaration is here
+   69 | static std::vector<std::string> llama_get_list_splits(const std::string & path, const int idx, const int n_split) {
+      |                                                                                 ~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp: In constructor 'llama_model_loader::llama_model_loader(const std::__1::string&, std::__1::vector<std::__1::basic_string<char> >&, bool, bool, const llama_model_kv_override*, const llama_model_tensor_buft_override*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp:447:14: warning: declaration of 'check_tensors' shadows a member of 'llama_model_loader' [-Wshadow]
+  447 |         bool check_tensors,
+      |         ~~~~~^~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:72:10: note: shadowed declaration is here
+   72 |     bool check_tensors;
+      |          ^~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp:446:14: warning: declaration of 'use_mmap' shadows a member of 'llama_model_loader' [-Wshadow]
+  446 |         bool use_mmap,
+      |         ~~~~~^~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:71:10: note: shadowed declaration is here
+   71 |     bool use_mmap = false;
+      |          ^~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp: In constructor 'llama_model_loader::llama_model_loader(const std::__1::string&, std::__1::vector<std::__1::basic_string<char> >&, bool, bool, const llama_model_kv_override*, const llama_model_tensor_buft_override*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp:447:14: warning: declaration of 'check_tensors' shadows a member of 'llama_model_loader' [-Wshadow]
+  447 |         bool check_tensors,
+      |         ~~~~~^~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:72:10: note: shadowed declaration is here
+   72 |     bool check_tensors;
+      |          ^~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp:446:14: warning: declaration of 'use_mmap' shadows a member of 'llama_model_loader' [-Wshadow]
+  446 |         bool use_mmap,
+      |         ~~~~~^~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:71:10: note: shadowed declaration is here
+   71 |     bool use_mmap = false;
+      |          ^~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp: In constructor 'llama_model_loader::llama_model_loader(const std::__1::string&, std::__1::vector<std::__1::basic_string<char> >&, bool, bool, const llama_model_kv_override*, const llama_model_tensor_buft_override*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp:447:14: warning: declaration of 'check_tensors' shadows a member of 'llama_model_loader' [-Wshadow]
+  447 |         bool check_tensors,
+      |         ~~~~~^~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:72:10: note: shadowed declaration is here
+   72 |     bool check_tensors;
+      |          ^~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp:446:14: warning: declaration of 'use_mmap' shadows a member of 'llama_model_loader' [-Wshadow]
+  446 |         bool use_mmap,
+      |         ~~~~~^~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.h:71:10: note: shadowed declaration is here
+   71 |     bool use_mmap = false;
+      |          ^~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp: In lambda function:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp:947:20: warning: declaration of 'buf' shadows a previous local [-Wshadow]
+  947 |             auto * buf = ggml_backend_buft_alloc_buffer(host_buft, buffer_size);
+      |                    ^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model-loader.cpp:910:16: note: shadowed declaration is here
+  910 |         auto * buf = bufs.count(0) ? bufs.at(0) : nullptr;
+      |                ^~~

@@ -1,0 +1,18 @@
+[
+  {
+    "command": "uname -a",
+    "output": "uname -a\r\nNuttX  0.0.0 e987a81c32c-dirty Sep 11 2026 10:48:31 arm64 kickpi_k7\r\nnsh> \u001b[K"
+  },
+  {
+    "command": "free",
+    "output": "free\r\n      total       used       free    maxused    maxfree  nused  nfree name\r\n  124780544      91520  124689024     126496  124671456     50      3 Umem\r\nnsh> \u001b[K"
+  },
+  {
+    "command": "k7radio host-status",
+    "output": "k7radio host-status\r\nRADIO host_mode=1 fault=0 tx=19 ACK=19 RX=38\r\nRADIO empty_slots=1\r\nnsh> \u001b[K"
+  },
+  {
+    "command": "k7radio wifi-status",
+    "output": "k7radio wifi-status\r\nWIFI status active=0 wifi_connected=0 ip=none gateway=none result=0\r\nWIFI netdev rx=0 tx=0 dropped=0\r\nWIFI ARP rx_request=0 rx_reply=0 tx_request=0 tx_reply=0 wait_ms=250 retries=5\r\nWIFI AMSDU complete=0 subframes=0 rejected=0\r\nnsh> \u001b[K"
+  }
+]

@@ -1,0 +1,547 @@
+{
+  "reference_scope": "Upstream release reference, not proof of local SDK exact source/configuration",
+  "references": [
+    {
+      "path": "evidence\\gcc-unwind-reference-20260910\\unwind-dw2.c",
+      "bytes": 40456,
+      "sha256": "72673ca52286a60eeb3119f6d6dcea1b706e076855954a0a47445a73992b98da",
+      "url": "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-13.4.0/libgcc/unwind-dw2.c",
+      "matches_index": true
+    },
+    {
+      "path": "evidence\\gcc-unwind-reference-20260910\\unwind-dw2-fde.c",
+      "bytes": 33440,
+      "sha256": "ae324febe606bdefbb6cca59153c551f2c8d531416502154eeed443c1a9ea46b",
+      "url": "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-13.4.0/libgcc/unwind-dw2-fde.c",
+      "matches_index": true
+    },
+    {
+      "path": "evidence\\gcc-unwind-reference-20260910\\unwind-dw2-fde.h",
+      "bytes": 5333,
+      "sha256": "389dc871ed84dbc0da37f3d802ffefff7434dc059901e3b60bf58d0e6d9eb9b9",
+      "url": "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-13.4.0/libgcc/unwind-dw2-fde.h",
+      "matches_index": true
+    },
+    {
+      "path": "evidence\\gcc-unwind-reference-20260910\\unwind.inc",
+      "bytes": 10149,
+      "sha256": "5ab5806eaacd3a69c977270e217eb55d5e5b5fff70e00975bcba49bad42e0bcc",
+      "url": "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-13.4.0/libgcc/unwind.inc",
+      "matches_index": true
+    },
+    {
+      "path": "evidence\\gcc-unwind-reference-20260910\\gthr-posix.h",
+      "bytes": 24219,
+      "sha256": "43ae0a3e3012cd19c2103c46125f991a211368225dd371e37485f7c8d51bc589",
+      "url": "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-13.4.0/libgcc/gthr-posix.h",
+      "matches_index": true
+    },
+    {
+      "path": "evidence\\gcc-unwind-reference-20260910\\gthr-single.h",
+      "bytes": 6520,
+      "sha256": "a2ab5bc59297425a168842a3bd8ec64386ebe75d414d04553f69c061ead3b922",
+      "url": "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-13.4.0/libgcc/gthr-single.h",
+      "matches_index": true
+    }
+  ],
+  "inputs": [
+    {
+      "path": "evidence\\gcc-unwind-reference-20260910\\sources.json",
+      "bytes": 1683,
+      "sha256": "1200232abd95dc0a0f812dd8bac66beb6012ea622c721be8bb8963b7cbe9bfcb"
+    },
+    {
+      "path": "evidence\\cxx-eh-20260910\\diagnostics\\abi-macros.txt",
+      "bytes": 176350,
+      "sha256": "5e0e59d47592ba442e05186d7a70cb6e144c8267324f71871ebfbec33437697b"
+    },
+    {
+      "path": "evidence\\cxx-eh-20260910\\diagnostics\\uw_init_context_1.txt",
+      "bytes": 6333,
+      "sha256": "d80f2de0ebceddac0df1540581d3bacbb768615011e3e02fcab53f3445661094"
+    },
+    {
+      "path": "evidence\\cxx-eh-20260910\\diagnostics\\_Unwind_Find_FDE.txt",
+      "bytes": 5172,
+      "sha256": "efa77e145e797b1c6d7f296fb4bdc93b1fd210119c2da4908cb2e8f4bb05d748"
+    },
+    {
+      "path": "evidence\\cxx-eh-20260910\\diagnostics\\__cxa_get_globals.txt",
+      "bytes": 1635,
+      "sha256": "11bc62cc8698a56d3a156a1dbdd998ab94fc0ffd43a5b97da1804f2e5a955e32"
+    },
+    {
+      "path": "evidence\\cxx-eh-20260910\\diagnostics\\__cxa_get_globals_fast.txt",
+      "bytes": 1070,
+      "sha256": "e52eda8c6f6b0aca5da60a446eeb8b0c4ea973628f0451fbe2e6d48bd2726000"
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\cold-failure-v1\\symbols.txt",
+      "bytes": 641105,
+      "sha256": "638a89956f071acb2e167958a34c1d1c6d6882d9371720ea5a955defbbfbc84a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5081,
+      "sha256": "4d1323dd356715f614ecdeaa95208d26891241bb78885b9eee09ecc26cc40462"
+    },
+    {
+      "path": "project-manifest.json",
+      "bytes": 20657,
+      "sha256": "5ec4553a5ff8bc610ad2b12f2e6256229e6e0c1f258371758c6b4e1bb2822578"
+    },
+    {
+      "path": "docs\\\u4ee3\u7801\u65e5\u5fd7\u5bf9\u5e94\u8868.md",
+      "bytes": 20254,
+      "sha256": "70528b4e7b7973d1a59c3bfda5c598d3c8110b7fd19ed50cd0b7dffe8d938f65"
+    }
+  ],
+  "extracts": [
+    {
+      "path": "evidence\\gcc-unwind-reference-20260910\\unwind-dw2.c",
+      "lines": [
+        {
+          "line": 25,
+          "text": "#include \"tconfig.h\""
+        },
+        {
+          "line": 26,
+          "text": "#include \"tsystem.h\""
+        },
+        {
+          "line": 27,
+          "text": "#include \"coretypes.h\""
+        },
+        {
+          "line": 28,
+          "text": "#include \"tm.h\""
+        },
+        {
+          "line": 29,
+          "text": "#include \"libgcc_tm.h\""
+        },
+        {
+          "line": 30,
+          "text": "#include \"dwarf2.h\""
+        },
+        {
+          "line": 31,
+          "text": "#include \"unwind.h\""
+        },
+        {
+          "line": 35,
+          "text": "#include \"unwind-pe.h\""
+        },
+        {
+          "line": 36,
+          "text": "#include \"unwind-dw2-fde.h\""
+        },
+        {
+          "line": 37,
+          "text": "#include \"gthr.h\""
+        },
+        {
+          "line": 38,
+          "text": "#include \"unwind-dw2.h\""
+        },
+        {
+          "line": 39,
+          "text": "#include <stddef.h>"
+        },
+        {
+          "line": 42,
+          "text": "#include <sys/sdt.h>"
+        },
+        {
+          "line": 413,
+          "text": "#include \"md-unwind-support.h\""
+        },
+        {
+          "line": 959,
+          "text": "#include \"unwind-dw2-execute_cfa.h\""
+        },
+        {
+          "line": 972,
+          "text": "#include \"unwind-dw2-execute_cfa.h\""
+        },
+        {
+          "line": 1346,
+          "text": "#if __GTHREADS"
+        },
+        {
+          "line": 1348,
+          "text": "    static __gthread_once_t once_regsizes = __GTHREAD_ONCE_INIT;"
+        },
+        {
+          "line": 1349,
+          "text": "    if (__gthread_once (&once_regsizes, init_dwarf_reg_size_table) != 0"
+        },
+        {
+          "line": 1479,
+          "text": "#include \"unwind.inc\""
+        }
+      ]
+    },
+    {
+      "path": "evidence\\gcc-unwind-reference-20260910\\unwind-dw2-fde.c",
+      "lines": [
+        {
+          "line": 27,
+          "text": "#include \"tconfig.h\""
+        },
+        {
+          "line": 28,
+          "text": "#include \"tsystem.h\""
+        },
+        {
+          "line": 29,
+          "text": "#include \"coretypes.h\""
+        },
+        {
+          "line": 30,
+          "text": "#include \"tm.h\""
+        },
+        {
+          "line": 31,
+          "text": "#include \"libgcc_tm.h\""
+        },
+        {
+          "line": 32,
+          "text": "#include \"dwarf2.h\""
+        },
+        {
+          "line": 33,
+          "text": "#include \"unwind.h\""
+        },
+        {
+          "line": 35,
+          "text": "#include \"unwind-pe.h\""
+        },
+        {
+          "line": 36,
+          "text": "#include \"unwind-dw2-fde.h\""
+        },
+        {
+          "line": 37,
+          "text": "#include \"gthr.h\""
+        },
+        {
+          "line": 39,
+          "text": "#if (defined(__GTHREAD_MUTEX_INIT) || defined(__GTHREAD_MUTEX_INIT_FUNCTION)) \\"
+        },
+        {
+          "line": 48,
+          "text": "#include \"unwind-dw2-btree.h\""
+        },
+        {
+          "line": 81,
+          "text": "#ifdef __GTHREAD_MUTEX_INIT"
+        },
+        {
+          "line": 82,
+          "text": "static __gthread_mutex_t object_mutex = __GTHREAD_MUTEX_INIT;"
+        },
+        {
+          "line": 85,
+          "text": "#ifdef __GTHREAD_MUTEX_INIT_FUNCTION"
+        },
+        {
+          "line": 91,
+          "text": "  __GTHREAD_MUTEX_INIT_FUNCTION (&object_mutex);"
+        },
+        {
+          "line": 97,
+          "text": "  static __gthread_once_t once = __GTHREAD_ONCE_INIT;"
+        },
+        {
+          "line": 98,
+          "text": "  __gthread_once (&once, init_object_mutex);"
+        },
+        {
+          "line": 147,
+          "text": "  __gthread_mutex_lock (&object_mutex);"
+        },
+        {
+          "line": 152,
+          "text": "  __gthread_mutex_unlock (&object_mutex);"
+        },
+        {
+          "line": 195,
+          "text": "  __gthread_mutex_lock (&object_mutex);"
+        },
+        {
+          "line": 200,
+          "text": "  __gthread_mutex_unlock (&object_mutex);"
+        },
+        {
+          "line": 258,
+          "text": "  __gthread_mutex_lock (&object_mutex);"
+        },
+        {
+          "line": 291,
+          "text": "  __gthread_mutex_unlock (&object_mutex);"
+        },
+        {
+          "line": 1213,
+          "text": "      __gthread_mutex_lock (&object_mutex);"
+        },
+        {
+          "line": 1220,
+          "text": "      __gthread_mutex_unlock (&object_mutex);"
+        },
+        {
+          "line": 1227,
+          "text": "  __gthread_mutex_lock (&object_mutex);"
+        },
+        {
+          "line": 1261,
+          "text": "  __gthread_mutex_unlock (&object_mutex);"
+        }
+      ]
+    },
+    {
+      "path": "evidence\\gcc-unwind-reference-20260910\\gthr-posix.h",
+      "lines": [
+        {
+          "line": 32,
+          "text": "#define __GTHREADS 1"
+        },
+        {
+          "line": 33,
+          "text": "#define __GTHREADS_CXX0X 1"
+        },
+        {
+          "line": 35,
+          "text": "#include <pthread.h>"
+        },
+        {
+          "line": 39,
+          "text": "# include <unistd.h>"
+        },
+        {
+          "line": 49,
+          "text": "typedef pthread_once_t __gthread_once_t;"
+        },
+        {
+          "line": 57,
+          "text": "#define __GTHREAD_HAS_COND\t1"
+        },
+        {
+          "line": 59,
+          "text": "#define __GTHREAD_MUTEX_INIT PTHREAD_MUTEX_INITIALIZER"
+        },
+        {
+          "line": 60,
+          "text": "#define __GTHREAD_MUTEX_INIT_FUNCTION __gthread_mutex_init_function"
+        },
+        {
+          "line": 61,
+          "text": "#define __GTHREAD_ONCE_INIT PTHREAD_ONCE_INIT"
+        },
+        {
+          "line": 63,
+          "text": "#define __GTHREAD_RECURSIVE_MUTEX_INIT PTHREAD_RECURSIVE_MUTEX_INITIALIZER"
+        },
+        {
+          "line": 65,
+          "text": "#define __GTHREAD_RECURSIVE_MUTEX_INIT PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP"
+        },
+        {
+          "line": 67,
+          "text": "#define __GTHREAD_RECURSIVE_MUTEX_INIT_FUNCTION __gthread_recursive_mutex_init_function"
+        },
+        {
+          "line": 69,
+          "text": "#define __GTHREAD_COND_INIT PTHREAD_COND_INITIALIZER"
+        },
+        {
+          "line": 70,
+          "text": "#define __GTHREAD_TIME_INIT {0,0}"
+        },
+        {
+          "line": 73,
+          "text": "# undef __GTHREAD_MUTEX_INIT"
+        },
+        {
+          "line": 76,
+          "text": "# undef __GTHREAD_RECURSIVE_MUTEX_INIT"
+        },
+        {
+          "line": 77,
+          "text": "# undef __GTHREAD_RECURSIVE_MUTEX_INIT_FUNCTION"
+        },
+        {
+          "line": 78,
+          "text": "# define __GTHREAD_RECURSIVE_MUTEX_INIT_FUNCTION __gthread_recursive_mutex_init_function"
+        },
+        {
+          "line": 81,
+          "text": "# undef __GTHREAD_COND_INIT"
+        },
+        {
+          "line": 82,
+          "text": "# define __GTHREAD_COND_INIT_FUNCTION __gthread_cond_init_function"
+        },
+        {
+          "line": 85,
+          "text": "#if SUPPORTS_WEAK && GTHREAD_USE_WEAK"
+        },
+        {
+          "line": 157,
+          "text": "#if SUPPORTS_WEAK && GTHREAD_USE_WEAK"
+        },
+        {
+          "line": 240,
+          "text": "# define GTHR_ACTIVE_PROXY\t__gthrw_(__pthread_key_create)"
+        },
+        {
+          "line": 242,
+          "text": "# define GTHR_ACTIVE_PROXY\t__gthrw_(pthread_create)"
+        },
+        {
+          "line": 244,
+          "text": "# define GTHR_ACTIVE_PROXY\t__gthrw_(pthread_cancel)"
+        },
+        {
+          "line": 251,
+          "text": "    = __extension__ (void *) &GTHR_ACTIVE_PROXY;"
+        },
+        {
+          "line": 312,
+          "text": "#include <config.h>"
+        },
+        {
+          "line": 315,
+          "text": "# include <sched.h>"
+        },
+        {
+          "line": 697,
+          "text": "__gthread_once (__gthread_once_t *__once, void (*__func) (void))"
+        },
+        {
+          "line": 746,
+          "text": "__gthread_mutex_lock (__gthread_mutex_t *__mutex)"
+        },
+        {
+          "line": 776,
+          "text": "__gthread_mutex_unlock (__gthread_mutex_t *__mutex)"
+        },
+        {
+          "line": 811,
+          "text": "  return __gthread_mutex_lock (__mutex);"
+        },
+        {
+          "line": 832,
+          "text": "  return __gthread_mutex_unlock (__mutex);"
+        }
+      ]
+    },
+    {
+      "path": "evidence\\gcc-unwind-reference-20260910\\gthr-single.h",
+      "lines": [
+        {
+          "line": 32,
+          "text": "typedef int __gthread_once_t;"
+        },
+        {
+          "line": 36,
+          "text": "#define __GTHREAD_ONCE_INIT 0"
+        },
+        {
+          "line": 37,
+          "text": "#define __GTHREAD_MUTEX_INIT 0"
+        },
+        {
+          "line": 38,
+          "text": "#define __GTHREAD_MUTEX_INIT_FUNCTION(mx) do {} while (0)"
+        },
+        {
+          "line": 39,
+          "text": "#define __GTHREAD_RECURSIVE_MUTEX_INIT 0"
+        },
+        {
+          "line": 217,
+          "text": "__gthread_once (__gthread_once_t *__once UNUSED, void (*__func) (void) UNUSED)"
+        },
+        {
+          "line": 253,
+          "text": "__gthread_mutex_lock (__gthread_mutex_t *__mutex UNUSED)"
+        },
+        {
+          "line": 265,
+          "text": "__gthread_mutex_unlock (__gthread_mutex_t *__mutex UNUSED)"
+        },
+        {
+          "line": 273,
+          "text": "  return __gthread_mutex_lock (__mutex);"
+        },
+        {
+          "line": 285,
+          "text": "  return __gthread_mutex_unlock (__mutex);"
+        }
+      ]
+    }
+  ],
+  "linked_pthread_symbols": {
+    "pthread_once": {
+      "linked_definitions": [
+        "  8902: 00000000404cc128   116 FUNC    GLOBAL DEFAULT    1 pthread_once"
+      ],
+      "missing_does_not_prove_api_absent": true
+    },
+    "pthread_mutex_lock": {
+      "linked_definitions": [
+        "  8563: 00000000404cbeb0     8 FUNC    GLOBAL DEFAULT    1 pthread_mutex_lock"
+      ],
+      "missing_does_not_prove_api_absent": true
+    },
+    "pthread_mutex_unlock": {
+      "linked_definitions": [
+        "  8501: 00000000404cc020   264 FUNC    GLOBAL DEFAULT    1 pthread_mutex_unlock"
+      ],
+      "missing_does_not_prove_api_absent": true
+    },
+    "pthread_mutex_init": {
+      "linked_definitions": [
+        "  8158: 00000000404cbe14   156 FUNC    GLOBAL DEFAULT    1 pthread_mutex_init"
+      ],
+      "missing_does_not_prove_api_absent": true
+    },
+    "pthread_getspecific": {
+      "linked_definitions": [
+        "  8867: 00000000404cad20   168 FUNC    GLOBAL DEFAULT    1 pthread_getspecific"
+      ],
+      "missing_does_not_prove_api_absent": true
+    },
+    "pthread_setspecific": {
+      "linked_definitions": [
+        "  7768: 00000000404cac78   168 FUNC    GLOBAL DEFAULT    1 pthread_setspecific"
+      ],
+      "missing_does_not_prove_api_absent": true
+    },
+    "pthread_key_create": {
+      "linked_definitions": [
+        "  8938: 00000000404ca984   692 FUNC    GLOBAL DEFAULT    1 pthread_key_create"
+      ],
+      "missing_does_not_prove_api_absent": true
+    },
+    "pthread_key_delete": {
+      "linked_definitions": [],
+      "missing_does_not_prove_api_absent": true
+    },
+    "pthread_cancel": {
+      "linked_definitions": [
+        "  8784: 000000004041231c   292 FUNC    GLOBAL DEFAULT    1 pthread_cancel"
+      ],
+      "missing_does_not_prove_api_absent": true
+    },
+    "pthread_mutexattr_settype": {
+      "linked_definitions": [],
+      "missing_does_not_prove_api_absent": true
+    }
+  },
+  "reference_hashes_match": true,
+  "built": false,
+  "hardware_access": false,
+  "network_access": false
+}

@@ -1,0 +1,14 @@
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -119,8 +119,9 @@
+ static void *record(void *arg)
+ {
+   struct live *p=arg;
+-  p->capture_rc=p->chat?k7sound_capture_stream_cued(48000,k7_stream_ring_sample,&p->ring):
+-    k7sound_capture_stream(48000,k7_stream_ring_sample,&p->ring);
++  /* Both real commands and chat use the established cue/ADC handoff.
++   * The chat flag only selects the wire protocol, never microphone timing. */
++  p->capture_rc=k7sound_capture_stream_cued(48000,k7_stream_ring_sample,&p->ring);
+   __atomic_store_n(&p->done,1,__ATOMIC_RELEASE);return NULL;
+ }
+ 

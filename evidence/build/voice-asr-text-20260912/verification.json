@@ -1,0 +1,42 @@
+{
+  "revision": "voice-asr-text-20260912",
+  "configure_exit_code": 0,
+  "build_exit_code": 0,
+  "runtime_sha256": "76e889206473af92026b5c3fe77dde2e1c8200c349daeea9c49bfaa2a5391f7c",
+  "sources": {
+    "app/voicelink/src/native_asr_runtime.cpp": "a1e7138ecb538a61ea08585d5fecd59e1f7c0a3d134d6fa4d2f3e12cb02fcb41",
+    "app/voicelink/include/voicelink/asr_runtime.h": "24cadcd0e13e4a563ded63064a266b8e6c91cbdf06c7dae981fd9a39e80142b1",
+    "app/voicelink/src/k7voice_main.cpp": "ac1360476f6c9d19242c4a3537cbe3f6f0120ed089590871769c13aad5973410",
+    "app/voicelink/CMakeLists.txt": "6a3a67957d13287a07dc6a8e1349529fd0a3ba2b0e093792aea1e1ec563ef5f1",
+    "app/voicelink/README.md": "3c45f6ae8133071c1d79b2ae96ea7b3077328abee06162955351a5b5fe3cdfc7"
+  },
+  "support_inputs": {
+    "add_probe.o": "ffa27d89dfd6c62aea709a1f01d2c93384a95f399072f15612761c7c92185354",
+    "legacychars.h": "68abfad867f517a18804b15bd5bfe8fd03c8401b6f5727a7248a0e78d86c8fbe",
+    "lib_iconv.c": "a841584dbfcba8f0f149852882dac654ed82a7de681dbf49687fcf64854b9814",
+    "libk7_locale.a": "c7c3e30d92e59d8c88389e5f083f9acd45d3cb5b67b8c0fa6c7c8de5709fa60c"
+  },
+  "artifacts": {
+    "nuttx": {
+      "bytes": 44141776,
+      "sha256": "6e8b97e4f5b344f5107852afbfe65577f974d8bfc98ac7557ac9d37e7c537ce7"
+    },
+    "nuttx.bin": {
+      "bytes": 15320432,
+      "sha256": "b3f30aad3118ae7b1cf5960b09bf8c2330eac272685999569f8a88ee53df4442"
+    },
+    ".config": {
+      "bytes": 64532,
+      "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+    }
+  },
+  "elf_symbols_checked": [
+    "k7_asr_microphone_text",
+    "k7_asr_microphone_probe",
+    "k7voice_main",
+    "voicelink::Controller::ingest",
+    "__emutls_get_address"
+  ],
+  "ram_only": true,
+  "board_tested": false
+}

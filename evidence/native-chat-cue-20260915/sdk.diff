@@ -1,0 +1,73 @@
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -22,7 +22,6 @@
+ #include <sched.h>
+ #endif
+ 
+-int k7sound_play_prompt_tone(void);
+ int k7sound_speak_mono16(const int16_t *, unsigned, unsigned);
+ int k7sound_speak_mono16_cancel(const int16_t *,unsigned,int (*)(void *),void *);
+ #include "board_voice_prompts.inc"
+@@ -108,14 +107,15 @@
+ 
+ struct live {
+   struct k7_stream_ring ring;
+-  int fd,done,capture_rc,receive_rc,completed;
++  int fd,done,capture_rc,receive_rc,completed,chat;
+   struct k7_voice_result result;
+ };
+ 
+ static void *record(void *arg)
+ {
+   struct live *p=arg;
+-  p->capture_rc=k7sound_capture_stream(48000,k7_stream_ring_sample,&p->ring);
++  p->capture_rc=p->chat?k7sound_capture_stream_cued(48000,k7_stream_ring_sample,&p->ring):
++    k7sound_capture_stream(48000,k7_stream_ring_sample,&p->ring);
+   __atomic_store_n(&p->done,1,__ATOMIC_RELEASE);return NULL;
+ }
+ 
+@@ -148,12 +148,10 @@
+   pthread_attr_t attr;unsigned char audio[644];char ready[256];
+   uint32_t seq=0,count=0;int rc,have_rx=0,have_capture=0;
+   if(!p)return -ENOMEM;
+-  p->fd=fd;
++  p->fd=fd;p->chat=chat;
+   rc=transfer(fd,(void *)(chat?"K7S1B":"K7S1A"),5,1);
+   if(!rc)rc=json_event(fd,ready,sizeof(ready));
+   if(!rc && !strstr(ready,"\"type\": \"ready\""))rc=-EIO;
+-  if(rc){free(p);return rc;}
+-  if(chat)rc=k7sound_play_prompt_tone();
+   if(rc){free(p);return rc;}
+   rc=pthread_attr_init(&attr);if(rc){free(p);return -rc;}
+   rc=pthread_attr_setstacksize(&attr,32768);
+--- sdk/app/k7sound/k7sound_main.c
++++ app/k7sound/k7sound_main.c
+@@ -588,12 +588,17 @@
+   return main(2, argv) ? -EIO : 0;
+ }
+ 
+-int k7sound_capture_stream(unsigned frames, pio_sample_sink sink, void *arg)
++static int capture_stream(unsigned frames, pio_sample_sink sink, void *arg,int cued)
+ {
+   char count[16];
+-  char *argv[] = {(char *)"k7sound", (char *)"capture-pga24-grouped", count};
++  char *argv[] = {(char *)"k7sound", (char *)(cued?"capture-cued":"capture-pga24-grouped"), count};
+   if (!sink || frames < 320 || frames > PIO_FRAMES || frames % 320)
+     return -EINVAL;
+   snprintf(count, sizeof(count), "%u", frames);
+   return sound_run(3, argv, NULL, NULL, 0, 0, sink, arg, NULL, NULL) ? -EIO : 0;
+ }
++
++int k7sound_capture_stream(unsigned frames,pio_sample_sink sink,void *arg)
++{return capture_stream(frames,sink,arg,0);}
++int k7sound_capture_stream_cued(unsigned frames,pio_sample_sink sink,void *arg)
++{return capture_stream(frames,sink,arg,1);}
+--- sdk/app/k7sound/capture_stream.h
++++ app/k7sound/capture_stream.h
+@@ -7,4 +7,6 @@
+  * Codec setup includes its existing settling delay. Connect and await network
+  * readiness before starting; UI readiness must account for codec settling. */
+ int k7sound_capture_stream(unsigned frames, pio_sample_sink sink, void *arg);
++/* Settle ADC before the audible cue, then capture under the same owner lock. */
++int k7sound_capture_stream_cued(unsigned frames,pio_sample_sink sink,void *arg);
+ #endif

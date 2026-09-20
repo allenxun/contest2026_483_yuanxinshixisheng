@@ -1,0 +1,55 @@
+{
+  "status": "pass",
+  "checks": {
+    "runtime_hash": true,
+    "firmware_hash": true,
+    "package_hash": true,
+    "package_prefix": true,
+    "package_firmware": true,
+    "package_bound": true,
+    "no_flash_commands": true,
+    "runtime_entries_unique": true,
+    "elf_entries_unique": true,
+    "exception_sections": true,
+    "shared_runtime_gate": true
+  },
+  "runtime": {
+    "bytes": 48841760,
+    "sha256": "f453afafc6bb83723779167b9068a4a906438b29b0625087645d92904f3aa2cd"
+  },
+  "firmware": {
+    "nuttx": {
+      "bytes": 44977248,
+      "sha256": "ac035b5bfa89c6c99743b2b13a39f555917edc3e7a97dd0fd01fdf2ad372d7ac"
+    },
+    "nuttx.bin": {
+      "bytes": 15861728,
+      "sha256": "8528072c2713b2928abf13a040ed450482ca279afda32c75e6fda0abe0ad6ee9"
+    },
+    ".config": {
+      "bytes": 64694,
+      "sha256": "e7304e2eb5701287e534b7849e5ac15a5f3dcd315674c5f8f67c1a38e58ab79d"
+    }
+  },
+  "package": {
+    "bytes": 116525024,
+    "sha256": "87b92835c550ed3940ef4fb676bc54ad6f9255f1e748574f498862c3ab28b043",
+    "crc32": "5de1fa8f",
+    "firmware_bytes": 15861728,
+    "firmware_sha256": "8528072c2713b2928abf13a040ed450482ca279afda32c75e6fda0abe0ad6ee9",
+    "firmware_crc32": "69c4e69e",
+    "flash_commands": false,
+    "shared_runtime_gate": true
+  },
+  "required_symbols": [
+    "k7_asr_audio_text",
+    "k7_asr_model_session_probe",
+    "k7_asr_microphone_text",
+    "k7_asr_microphone_probe",
+    "k7_tts_synthesize",
+    "k7_speech_runtime_try_acquire",
+    "k7_speech_runtime_release"
+  ],
+  "board_tested": false,
+  "emmc_written": false
+}

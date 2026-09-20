@@ -1,0 +1,40 @@
+{
+  "updated_at": "2026-09-10T09:39:07.860384+00:00",
+  "priority": "Local voice provisioning first; cloud model after true network",
+  "test_report": "evidence\\voicelink-core-integration-20260910\\run-20260910T093758481394Z\\result.json",
+  "test_report_sha256": "4962ba19d14338189af841d6873d87fdc340dab0a4096932f45ece846a712ee9",
+  "source_hashes": {
+    "app\\voicelink\\include\\voicelink\\controller.hpp": "43440be365fa4b9e262ea04d668c76261bb86db29e6d96ed9fbf5a1fa7f45d7d",
+    "app\\voicelink\\include\\voicelink\\parsers.hpp": "5205f1e9e1d95386789054e4d1bd07762874e2edaae2453399d75cecd0cf764a",
+    "app\\voicelink\\include\\voicelink\\ports.hpp": "5bbd12bd9565b9971fe4610a7a0339a1c6081c31a776cc590241c3b57f8b5bd8",
+    "app\\voicelink\\include\\voicelink\\types.hpp": "5f4b0ccc8e16f0264342ffed3c6273831d79cd16477748437e1d22f4bed28c86",
+    "app\\voicelink\\src\\core.cpp": "7beae611bfc32b29c4a1d2a182f43f76a12340dab6b2b5f1316d9919e53af2d1",
+    "app\\voicelink\\src\\parsers.cpp": "914a9a6734d9e442eca9e34acf3c8811a98b6a7af2d18f72d2b7b1192f1ae8ce",
+    "app\\voicelink\\tests\\test_flow.cpp": "7a56e3a88b98e29acd7cacbeb302aaeed0b5e8480438939a989db1edc50319d4"
+  },
+  "deliveries": [
+    {
+      "directory": "parallel-cxx-unwind-medium/audio-i2c3-clock-v1",
+      "manifest_sha256": "878309b69f6fc3db45cc13ee7002c3b98c729ab9b1b5b288c6fc7f2f4607f93c",
+      "verified_files": 11
+    },
+    {
+      "directory": "parallel-model-reader-medium/audio-codec-capture-review-v1",
+      "manifest_sha256": "396f1d2d292288e68ee74266863ed108f9a5f0226b5cdd17bd6caeab988cc0ec",
+      "verified_files": 9
+    },
+    {
+      "directory": "parallel-neon-probe-medium/voice-wifi-scan-contract-v1",
+      "manifest_sha256": "3103314b36830d7a20d970b7cfabf353e92f2659edd29e7f7eeaf758583196e6",
+      "verified_files": 30
+    }
+  ],
+  "formal_core": true,
+  "asynchronous_scan_interface": true,
+  "radio_scan_backend_integrated": false,
+  "firmware_integrated": false,
+  "hardware_tested": false,
+  "local_llm_required": false,
+  "local_asr_tts_still_required": true,
+  "doc": "docs/本地语音配网优先实施_20260910.md"
+}

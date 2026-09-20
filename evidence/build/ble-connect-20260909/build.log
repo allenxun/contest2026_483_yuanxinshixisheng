@@ -1,0 +1,11 @@
+{"result": "PASS", "source_files": 426, "changes": 0, "applied": true}
+[1/8] cd /home/swl/openvela/cmake_out/velavision_wifi_ip_20260909/libs/libc/misc && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E touch /home/swl/openvela/nuttx/libs/libc/misc/lib_utsname.c
+[2/8] Generating bin output directories
+[3/8] cd /home/swl/openvela/nuttx && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -DKCONFIG_CONFIG=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_wifi_ip_local/defconfig -DNUTTX_DIR=/home/swl/openvela/nuttx -DCMAKE_BINARY_DIR=/home/swl/openvela/cmake_out/velavision_wifi_ip_20260909 -P /home/swl/openvela/nuttx/cmake/nuttx_generate_dts.cmake
+[4/8] Building C object libs/libc/CMakeFiles/c.dir/misc/lib_utsname.c.o
+[5/8] Linking C static library libs/libc/libc.a
+[6/8] Linking C executable nuttx
+Memory region         Used Size  Region Size  %age Used
+            dram:       5124 KB       126 MB      3.97%
+[7/8] Generating nuttx.bin
+[8/8] Generating System.map

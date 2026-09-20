@@ -1,0 +1,27 @@
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/ort/onnxruntime/core/platform/env.h:27[m[K,
+                 from [01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/platform/env.cc:17[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/common.h:88:6:[m[K [01;35m[Kwarning: [m[K"_MSC_VER" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   88 | #if ([01;35m[K_MSC_VER[m[K && !defined(__PRETTY_FUNCTION__))
+      |      [01;35m[K^~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/common.h:35[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K

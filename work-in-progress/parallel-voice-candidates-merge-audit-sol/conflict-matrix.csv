@@ -1,0 +1,6 @@
+candidate,formal_overlap,direct_apply,dependency,blocking_reason,recommended_action
+parallel-asr-text-review-sol,app/voicelink/src/native_asr_runtime.cpp,no,none,implementation already byte-identical to formal source; patch context stale,retain current code and refactor into sample API
+parallel-voice-prompt-adapter-sol,TtsPort and app/k7sound/pio,no,continuous SAI TX plus structured prompts,no stream sink and dynamic Controller text cannot map completely,add sink and PromptId contract first
+parallel-voice-loop-sol,Controller and ClockPort,no,capture and ASR concrete ports,ASR cancel is not a drain fence but Loop releases capture immediately,tighten ownership or add draining state
+parallel-wifi-transaction-adapter-sol,SharedWifiPort and k7wd dispatcher,no,extended k7radio transaction snapshot,formal view lacks sequence facts and failure reason; candidate backend absent,extend dispatcher then reuse translation in SharedWifiPort
+parallel-capture-asr-worker-sol,k7sound_copy_mono and k7_asr_microphone_text,no,generation snapshot plus sample ASR,legacy backend ignores copied samples and rereads global capture,replace legacy backend and port to bounded NuttX worker

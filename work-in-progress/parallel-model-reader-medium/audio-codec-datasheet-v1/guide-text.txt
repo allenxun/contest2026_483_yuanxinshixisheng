@@ -1,0 +1,1860 @@
+PAGE 1
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 1 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ES8388 User Guide 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 2
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+1 ES8388 BLOCK DIAGRAM ..............................................................................................................................................................................................................................................3  
+2 RECOMMENDED OPERATING CONDITION ................................................................................................................................................................................................................4  
+3 TYPICAL APPLICATION CIRCUIT..................................................................................................................................................................................................................................5  
+4 I2C / SPI INTERFACE ........................................................................................................................................................................................................................................................6  
+5 DIGITAL AUDIO INTERFACE...........................................................................................................................................................................................................................................6  
+5.1 MASTER AND SLAVE MODE OPREATION ...........................................................................................................................................................................................................................7  
+5.2 MCLK / LRCK RATIO AND MCLK / SCLK RATIO ...........................................................................................................................................................................................................8  
+5.3 FOUR DIGITAL AUDIO FORMATS.......................................................................................................................................................................................................................................9  
+6 CHIP CONTROL AND POWER MANAGEMENT REGISTER....................................................................................................................................................................................11  
+7 ANALOG INPUT SIGNAL PATH....................................................................................................................................................................................................................................12  
+7.1 THE ANALOG INPUT SIGNAL PATHS AND THE CONTROL REGISTER...................................................................................................................................................................................12  
+7.2 SINGLE-ENDED MICROPHONE INPUT ...............................................................................................................................................................................................................................14  
+7.3 PESUDO-DIFFERENTIAL MICROPHONE INPUT...................................................................................................................................................................................................................14  
+7.4 FULLY-DIFFERENTIAL MICROPHONE INPUT.....................................................................................................................................................................................................................14  
+8 ADC FOR RECORDING ..................................................................................................................................................................................................................................................15  
+8.1 THE ADC BLOCK DIAGRAM.............................................................................................................................................................................................................................................15  
+8.2 THE ADC CONTROL REGISTERS .....................................................................................................................................................................................................................................15  
+8.3 AUTOMATIC LEVEL CONTROL (ALC).............................................................................................................................................................................................................................16  
+8.3.1 CONTROL FIELDS................................................................................................................................................................................................................................................17  
+8.3.2 Recommended Settings for ALC .........................................................................................................................................................................................................................18  
+8.4 MICROPHONE INPUT CIRCUIT AND THE SAMPLE CODE FOR RECORDING...........................................................................................................................................................................19  
+8.4.1 Fully-Differential Microphone input circuit and sample code ...........................................................................................................................................................................19  
+8.4.2 Pseudo-Differential Microphone input circuit and sample code ......................................................................................................................................................................20  
+8.4.3 Single ended Microphone input circuit and sample code ................................................................................................................................................................................21  
+9 OUTPUT SIGNAL PATH..................................................................................................................................................................................................................................................21  
+9.1 THE OUTPUT SIGNAL PATHS AND THE CONTROL REGISTER...........................................................................................................................................................................................22  
+9.2 THE DAC CONTROL REGISTER .......................................................................................................................................................................................................................................24  
+9.3 EQUALIZER AND STEREO ENHANCEMENT .......................................................................................................................................................................................................................24  
+10 REGISTER CONFIGURATION SEQUENCE FOR ES8388 .......................................................................................................................................................................................25  
+10.1 THE SEQUENCE FOR START UP CODEC.............................................................................................................................................................................................................................25  
+10.2 THE SEQUENCE FOR START UP RECORDING .....................................................................................................................................................................................................................26  
+10.3 THE SEQUENCE FOR START UP PLAY BACK MODE............................................................................................................................................................................................................26  
+10.4 THE SEQUENCE FOR START UP BYPASS MODE..................................................................................................................................................................................................................27  
+10.5 POWER DOWN SEQUENCE (TO STANDBY MODE)............................................................................................................................................................................................................27  
+10.6 RESUME FROM STANDBY MODE SEQUENCE.....................................................................................................................................................................................................................28  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 3
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 3 
+1 ES8388 BLOCK DIAGRAM  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 4
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 4 
+INPUT SIGNAL PATH 
+ 
+The two analogue inputs LlNPUT1/2 RlNPUT1/2 can be selected by a switch, and then followed by a PGA gain boost. The inputs can be individually selected or a 
+differential input of either (LlNPUT1 RlNPUT1) or (LlNPUT2 RlNPUT2) may also be selected. These Inputs can be configured as microphone or line level.  The 
+signal then enters a high quality ADC. Alternatively, the two channels can also be mixed in the analogue domain and digitized in one ADC while the other ADC is 
+turned off.  
+ 
+One on-chip ALC module can be used to control the signal level during recording. The gain of the PGA can be controlled either by the user or by the on-chip ALC 
+function.  
+ 
+OUTPUT SIGNAL PATH 
+ 
+The output signal paths consist of digital filters, DACs, analogue mixers and output drivers. The digital filters and DACs are enabled in the “playback” or “record 
+and playback” mode. In “bypass” mode, the analogue mixing and amplification can be utilized while DAC is disabled.   
+DACs output can be mixed with analogue signals from the input pins Linput1/2 and Rinput1/2, and the mixed signal is fed to the output drivers LOUT1/ROUT1, 
+LOUT2/ROUT2. The mixers and output drivers can be separately enabled by individual control bits. 
+ 
+The LOUT1/ROUT1 and LOUT2/ROUT2 can drive a 16Ω (up to 40mW) or 32Ω stereo headphone or stereo line output.  
+2  Recommended operating condition  
+Digital supply range (Core) DVDD 1.8V to 3.3V (Lowest power consumption at 1.8V) 
+Digital supply range (Buffer) PVDD 1.8V to 3.3V 
+Analog supply range HPVDD, AVDD 1.8V to 3.3V (Best audio performance at 3.3V) 
+Ground DGND, AGND, HPGND 0V 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 5
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 5 
+3 Typical Application Circuit  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 6
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 6 
+Notes:  
+       * One LDO is recommended to provide power supply to ES8388 because ES8388 is an analog device which will be sensitive 
+to noise. 
+       * A differential Microphone circuit is recommended to ES8388. 
+       *The signal MIC_INP and MIC_INN must be parallel with each other on PCB layout. 
+       * Filter and decoupling capacitors should be located as close to ES8388 package as possible during layout. 
+       * Two 1K pull up resisters are recommended to I2C bus. R-C low pass filter is recommended to I2C CLK. 
+       * If PIN26 (CE) be pulled down to GND, I2C Chip ID is 0x20, otherwise 0x22. 
+* One 10ohm resister is recommended between AVDD and HPVDD if AVDD and HPVDD share the same power supply. 
+4 I2C / SPI Interface  
+I2C is a bi-directional bus which can be used to read or write register. SPI bus should only be used to write register.  
+Ø I2C BUS 
+Don’t connect CE pin to IO of MCU, CPU or DSP. CE pin should be pulled up to PVDD or pulled down to DGND.  
+The chip address for I2C is 0x20 if CE pin is pulled down to DGND. The chip address for I2C is 0x22 if CE pin is pulled up to PVDD. 
+ 
+There are two pull-up resisters on I2C CCLK pin and I2C CDATA pin. 1KΩ resister is recommended for the pull-up resisters. 
+ 
+Figure 2. I2C timing 
+ 
+Figure 3. I2C write 
+ 
+Figure 4. I2C Read 
+ 
+Ø SPI BUS 
+CE pin should be connected to IO of MCU, CPU or DSP. Don’t connect CE pin to DGND. The chip address for SPI is 0x20. 
+SPI bus should only be used to write register. 
+ 
+5 Digital Audio Interface  
+The digital audio interface is used for inputting DAC data to ES8388 and outputting ADC data from it. The digital audio interface uses 
+four pins: 
+Ø ASDOUT : ADC data output 
+Ø DSDIN   : DAC data input 
+PAGE 7
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 7 
+Ø LRCK    : Left/Right data alignment clock 
+Ø SCLK    : Bit clock, for synchronisation 
+     The clock signals SCLK and LRCK can be outputs when ES8388 operates as a master, or inputs when it is a slave.  
+ 
+ES8388 can support four different audio data formats: 
+Ø I2S 
+Ø Left Justified 
+Ø Right Justified 
+Ø DSP mode (PCM) 
+All four of these formats are MSB first. 
+5.1 Master and Slave Mode opreation 
+ES8388 digital audio interface can operates as a master or a slave as shown in the figure listed below. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+In master mode, SCLK is derived from MCLK via a programmable division set by BCLK_DIV. LRCK is derived from MCLK via a 
+programmable division set by ADCFsRatio or DACFsRatio 
+In slave mode, ES8388 can auto check MCLK/LRCK ratio and MCLK/SCLK ratio. 
+ 
+The Bit7(MSC) in register 0x08 should be used to set ES8388 in Master or Slave mode.  
+
+PAGE 8
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 8 
+5.2 MCLK / LRCK ratio and MCLK / SCLK ratio 
+In master mode, the SCLK and LRCK signals are generated by ES8388 when any of the ADCs or DACs is enabled. 
+In slave mode, the SCLK and LRCK clock outputs are disabled by default to allow another digital audio interface to drive these pins. 
+ 
+ES8388 include stereo ADC and stereo DAC. The ADC and DAC have individual LRCK clock. The LRCK clock for ADC is named ALRCK. 
+The LRCK clock for DAC is named DLRCK. But only one LRCK pin is used in ES8388. Thus the ALRCK and DLRCK must be same in 
+ES8388. Bit7(slrck) in register 43 should be used to select the same LRCK or individual LRCK for ADC and DAC. Bit6(lrck_sel) 
+in Register 43 must be 0. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Register 0x0D is used for ADC MCLK/LRCK ratio setting. Register 0x18 is used for DAC MCLK/LRCK ratio setting. Please refer to the 
+MCLK/LRCK table listed below. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+      In slave mode, ES8388 will auto-check MCLK/LRCK ratio.  Only the left side ratios in the table are supported in slave mode. 
+ 
+In master mode, all ratios in the table are supported. Codec send the LRCK to external CPU/DSP/MCU according to MCLK / LRCK ratio 
+setting. The value of register 0x0D and register 0x18 must be suitable for LRCK frequency. 
+Please refer to the diagram below to learn about the MCLK / LRCK ratio. 
+ 
+MCLK Pin 
+ALRCK Divider 
+According to  MCLK / ALRCK ratio  
+ALRCK  
+DLRCK Divider 
+According to  MCLK / DLRCK ratio  
+DLRCK  
+MCLK / LRCK ratio vs. LRCK Frequency in Master mode 
+slrck 
+Lrck_sel=0 
+SameFs=1 
+PAGE 9
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 9 
+ 
+ 
+The BCLKDIV control bits in register 8 are used for MCLK/SCLK ratio setting. Please refer to the BCLKDIV table listed below. 
+ 
+In slave mode, Codec will auto-check the MCLK/SCLK ratio in slave mode. Thus BCLKDIV control bits in register 0x08 should be 
+“00000” in slave mode. 
+ 
+In master mode, Codec send SCLK signal to external CPU/DSP/MCU according to MCLK/SCLK ratio setting.  
+If the SFI of codec is I2S-24bit, the frequency of SCLK is usually equal to 64 or 48 times frequency of LRCK. If the SFI of codec is 
+I2S-16bit, the frequency of SCLK is usually equal to 32 times frequency of LRCK.  
+ 
+MCLK Pin 
+SCLK Divider 
+According to  MCLK / SCLK ratio SCLK Pin 
+MCLK / SCLK ratio vs. SCLK Frequency in Master mode 
+ 
+ Digital Audio Interface Format SCLK Frequency (Minimum) BCLKDIV(Maximun) 
+I2S / Left Justified / Right Justified / DSP -16bit SCLK = 32 x LRCK 
+I2S / Left Justified / Right Justified / DSP -18bit SCLK = 36 x LRCK 
+I2S / Left Justified / Right Justified / DSP -20bit SCLK = 40 x LRCK 
+I2S / Left Justified / Right Justified / DSP -24bit SCLK = 48 x LRCK 
+Master 
+Mode 
+I2S / Left Justified / Right Justified / DSP -32bit SCLK = 64 x LRCK 
+Integer of 
+MCLK/SCLK 
+5.3 Four Digital Audio Formats 
+ES8388 supports 4 digital audio formats. 
+² I2S 
+² Left Justified 
+² Right Justified 
+² DSP Mode (PCM) 
+All of these four formats are MSB first. 
+The register 12 and register 23 are used for ADC and DAC formats. 
+ 
+PAGE 10
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 10
+ 
+PAGE 11
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 11 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+6 Chip control and Power management Register 
+Some registers are used to ES8388 power management. These register’s address located from register 0 to register 6. 
+The register 0 and register 1 should be used to control the internal bias current and internal reference voltage of ES8388. The control bits in 
+these two registers must be enabled when ES8388 start up. 
+The register 2 should be used to control the digital block, state machine, DLL and internal reference voltage. The bits in register 2 must be zero 
+when ES8388 start up. 
+The register 3 should be used to power up ADC and Line inputs. The register 3 should be used to power up DAC and Line outputs. 
+The register 5 and register 6 should be used to set low power mode. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 12
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 12
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+7 Analog input signal path 
+ES8388 has 4 analog input pins which may be used to support connections to multiple microphone or line input sources. The input 
+multiplexers on the left and right channels can be used to select different configurations for each of the input sources. The analog input paths 
+can support line inputs or microphone inputs, in single-ended mode, pseudo-differential and fully-differential modes. The input stage can also 
+provide common mode noise rejection in some configurations. 
+ 
+The Left and Right analog input channels are routed to ADCs where it is digitised. Alternatively, the two channels can also be mixed in the 
+analog domain and digitized in one ADC while the other ADC is switch off. The mono-mix signal appears on both digital output channels. 
+ 
+There is also a BYPASS path for each channel, enabling the analog input signal to be routed directly to the output multiplexers and PGAs. 
+7.1 The Analog input signal paths and the control register 
+The ES8388 analog input signal paths and control registers are illustrated in the figure which be listed below. 
+ 
+pdnAINL and pdnAINR control bits in register 3 should be used to power up / power down the input channel. 
+ 
+In this figure, LINSEL and RINSEL control bits are used to select independently between external inputs and internally generated differential 
+products (LIN1-RIN1 or LIN2-RIN2). The choice of differential signal, LIN1-RIN1 or LIN2-RIN2 is made using DS, DSSEL and DSR control bits. 
+ 
+Example 1, the ES8388 can be set up to convert one differential signal by applying the differential signal to LIN1/RIN1. By setting the 
+LINSEL and RINSEL to L-R differential and setting the DSSEL, DSR and DS to zero, the differential signal can then be routed to the 
+Left/Right ADCs. 
+ 
+PAGE 13
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 13
+Example 2, the ES8388 can be set up to convert two differential signal by applying one differential signal to LIN1/RIN1 and applying 
+the other to LIN2/RIN2. By setting the LINSEL and RINSEL to L-R differential, setting the DSSEL and DSR to one and setting DS to 
+zero, the LIN1/RIN1 differential signal can be routed to the Left ADC and the LIN2/RIN2 differential signal can be routed to Right ADC. 
+ 
+MicAmpL and MicAmpR control bits are used to control PGA to amplify the amplitude of input signals. The input signals are selected by 
+LINSEL and RINSEL control bits. The PGA gain is adjustable from 0dB to +24dB in 3dB steps.  
+ 
+The two input channels can also be mixed in the analog domain and digitized in one ADC while the other ADC is switch off. By setting 
+MONOMIX to ‘01’ or ‘10’, the mono-mix signal can then be routed to Left ADC or Right ADC. For analog mono mix either the left or right ADC 
+can be used, allowing the unused ADC to be powered off. The user also has the flexibility to select the data output from the audio interface 
+using DATSEL control bits. 
+ 
+LMIXSEL and RMIXSEL control bits are used to select the input channel of Left and Right Bypass path. The selected input channels can be 
+routed directly to the the output multiplexers and PGAs. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 14
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 14
+7.2 Single-ended Microphone input 
+   ES8388 should be used in single-ended microphone input mode when LINSEL and RINSEL in Register 10 don ’t be set to ‘11’. The 
+single-ened microphone input signal can be connected to LIN1, RIN1, LIN2 or RIN2.The MicAmpL or MicAmpR can be used to boost the 
+microphone signal level.  
+Single-ended microphone mode can not provide common mode noise rejection. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+7.3 Pesudo-differential Microphone input 
+   ES8388 should be used in pseudo-differential microphone input mode when LINSEL and RINSEL in Register 10 are set to ‘11’. The 
+pseudo-differential microphone input signal can be connected to LIN1 and RIN1 or LIN2 and RIN2.The MicAmpL and MicAmpR can be used to 
+boost the microphone signal level.  
+When GND has obvious noise, Pseudo-differential microphone mode can provide common mode noise rejection  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+7.4 Fully-differential Microphone input 
+   ES8388 should be used in fully-differential microphone input mode when LINSEL and RINSEL in Register 10 are set to ‘11’. The 
+fully-differential microphone input signal can be connected to LIN1 and RIN1 or LIN2 and RIN2.The MicAmpL and MicAmpR can be used to 
+boost the microphone signal level.  
+Fully-differential microphone mode can provide common mode noise rejection. The recording volume in fully-differential mode should be 2 
+times volume of pseudo-differential mode. 
+The fully-differential microphone mode is recommended for microphone recording. 
+ 
+ 
+ 
+ 
+PAGE 15
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 15
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+8 ADC For Recording  
+ES8388 can provides a stereo ADC for recording via I2S/PCM interface. The digital output data is sent out on ASDOUT pin. 
+The ADC full scale input level is proportional to AVDD. With a 3.3V supply voltage, the full scale level is 1.0Vrms. Any voltage greater than 
+full scale may overload the ADC and cause distortion. 
+ 
+One ALC module should be used for recording. The registers used for ALC is located from register 18 to register 22. 
+8.1 The ADC block diagram 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+r  
+MicAmpL 
+Right Channel ADC 
+Left Channel ADC 
+RADCVOL 
+LADCVOL 
+DIGITAL & CLOCK CONTROL 
+ 
+IBIASGEN BIAS & VREF CIRCUIT 
+pdnAINL 
+pdnAINR 
+pdnADCBiasgen 
+Adcvref_Pdn
+pdnADCR
+pdnADCL
+adc_DigPDN
+adc_stm_rst
+Adc_DLLPDN
+RIN1 
+RIN2 
+LIN1 
+LIN2 
+ES8388 ADC Block 
+VREF 
+pdnVrefBuf 
+pdnAna
+pdnIbiasgen
+RINSEL 
+Reg 0x0A 
+MICAmpR 
+Reg 0x09 
+(0-24dB) 
+Reg 0x09 
+(0-24dB) 
+r 
+LINSEL 
+Reg 0x0A 
+Reg0x03 
+Reg0x03 
+ALC 
+ALC 
+DAI 
+Reg 0x00,Reg0x01,Reg0x03 Reg0x02 Reg0x01  
+Reg0x01
+Reg0x10 
+Reg0x11 
+Reg0x12,Reg0x13, 
+Reg0x14,Reg0x15 
+Reg0x16 
+Reg0x12,Reg0x13, 
+Reg0x14,Reg0x15 
+Reg0x16 
+LIN1-RIN1 or 
+LIN2-RIN2 
+Reg0x0B 
+ 
+8.2 The ADC Control Registers 
+   PdnADCL and PdnADCR control bits in register 3 should be used to power up / power down Left and right ADC. 
+   ADC_invL control bit in register 14 are used to invert the polarity of left channel ADC. ADC_invR control bit in register 14 are used for right 
+channel ADC. 
+PAGE 16
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 16
+   ADC_HPF_L and ADC_HPF_R control bits in register 14 are used to enable or disable high pass filter of left and right channel ADC. The 
+default setting are recommended to ADC_HPF_L and ADC_HPF_R. 
+   ADCSoftRamp control bit is used to fade in and fade out. ADCRampRate control bits are used to set the soft ramp rate. 
+ 
+   ES8388 ADC ’s digital volume can be adjustable from -96dB to 0dB in 0.5dB steps. LADCVOL and RADCVOL is used to independently 
+control the left an right ADC recording volume. If ADCLeR control bit in register 15 is set to ‘1’, the volume of left and right ADC can adjust 
+synchronously by adjusting left ADC volume. 
+  
+   ES8388 ADC should be mute by setting ADCMute to ‘1’. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+8.3 Automatic Level Control (ALC)  
+In applications that offer a recording feature, ALC is often desirable to keep the recorded signal at a constant level. For example, if  
+recording voice, the signal may vary a great deal depending on how loud the user speaks or how close to the mouth the microphone is  
+held. This will result in a recorded signal that is difficult to listen to when played back. 
+The purpose of the ALC is to keep a constant output volume irrespective of the input signal level. This is achieved by continually 
+adjusting the PGA gain so that the signal level at the ADC output remains constant. 
+PAGE 17
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 17
+ 
+Setting up the ALC to be optimal for each recorded source such as voice, classical music, pop music, etc. is quite a complex process. 
+Recommended setups have been provided as a base to work from. The resultant effect is very subjective and may vary between 
+applications. Some further modifications may be required to optimize the feature for a specific application but the recommended 
+settings should offer suitable solutions in most cases. 
+There are some registers which can be use to control ALC. Please refer to the register listed below. 
+REGISTER ADDR 
+(HEX) REMARK BIT[7] BIT[6] BIT[5] BIT[4] BIT[3] BIT[2] BIT[1] BIT[0] DEFAULT 
+Reg. 18 ALC Control 1 ALCSEL MAXGAIN MINGAIN 0011 1000 
+Reg. 19 ALC Control 2 ALCLVL ALCHLD 1011 0000 
+Reg. 20 ALC Control 3 ALCDCY ALCATK 0011 0010 
+Reg. 21 ALC Control 4 ALCMODE ALCZC TIME_OUT WIN_SIZE 0000 0110 
+Reg. 22 ALC Control 5 NGTH NGG NGAT 0000 0000 
+8.3.1 CONTROL FIELDS 
+The ALC function in ES8388 CODEC is highly adaptable on account of the number of different parameters that may be individually set. The 
+following paragraphs describe each of these parameters, and also some of the constraints or tradeoffs that determine the optimum setting for 
+each. Different parameter values will be desirable to suit different types of audio signal. Personal preferences can also influence the choice of 
+settings. 
+ 
+ALC Enable / ALC Level. The ALC function is enabled by setting the register field ALCSEL. ALCSEL=2’b00: ALC OFF; ALCSEL=2’b01: ALC 
+Right Channel Enabled; ALCSEL=2 ’b10: ALC Left Channel Enabled; ALCSEL=2 ’b11: ALC Enabled. When enabled, the ALC output volume 
+can be programmed using the ALCLVL register field. The range of ALC Level varies between 0dBFS and -16.5dBFS with 1.5dBFS per step. 
+The maximum target level is always not above ADC full-scale level to help reduce the possibility of clipped signals. This level should be set as 
+high as possible in order to achieve the best signal to noise performance, but not so high as to allow signal clipping to occur as the signal 
+changes. The more erratic the signal level, the greater the required headroom between the ALC Target Level and the ADC full-scale level. 
+ 
+  
+ALC Maximum Gain. An upper limit for the PGA gain is imposed by setting the register field MAXGAIN. The range of MAXGAIN varies 
+between -6.5dBFS and 35.5dBFS with 6dBFS per step. The purpose of the maximum gain is to ensure the small input signals are 
+accommodated and not excessively amplified by the ALC function.  For example, if a recorded music track fades out; the Maximum Gain 
+setting prevents ALC from destroying the effect by continually increasing the gain as the music signal fades.  The Maximum Gain should be 
+determined from the level of a quiet signal that the designer determines should be treated as a fading signal. 
+ 
+ALC Minimum Gain. A lower limit for the PGA gain is imposed by setting the register field MINGAIN. The range of MINGAIN varies between 
+-12dBFS and 30dBFS with 6dBFS per step. The purpose of the minimum gain is to ensure that large input signals are permitted and not 
+excessively attenuated by the ALC function. If the Minimum Gain is large, then the ALC will be restricted in its ability to control the signal level 
+and there is a greater possibility that it will be unable to prevent distortion of large signals. However, if the Minimum Gain is small, then a 
+greater attenuation will be applied to large signals, which may undesirably limit the dynamic range of the processed signal. The Minimum Gain 
+should be set as low as is possible, and certainly no greater than the gain that would be required to adjust the largest input signal down to the 
+ALC target level. 
+ 
+ALC Hold Time. The time delay between the signal level detected below target level and the PGA gain beginning to ramp up, is controlled by 
+register field ALCHLD. It can be set to zero, or can be programmed in power-of-two (2n) steps, e.g. 2.67ms, 5.33ms, 10.67ms etc. up to 1.36s. 
+Note that the ALC Hold Time only applies to gain ramp-up; there is no delay before ramping the gain down when the signal level is above 
+target. The ALC Hold Time is not active in Limiter Mode (see below). 
+The purpose of this delay is to ensure that the ALC is not over-responsive to a changing signal level. The Hold Time should be set according to 
+the type of ALC response that is desired. A short Hold Time should be used if an immediate gain adjustment is required to a changing signal; 
+PAGE 18
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 18
+this might be applicable to voice applications. A longer Hold Time should be used if the ALC gain adjustments are to be made more sparingly, 
+thus responding only to long term signal level changes and preserving the original signal dynamics to a greater extent; this might be applicable 
+to music containing a large dynamic range, as is frequently found in classical music. 
+ 
+ALC Decay Time. The time taken by the ALC for ramp up the PGA gain is controlled by register field ALCDCY. The ALC Decay Time is 
+defined as a time per gain step. It can be programmed in power-of-two (2n) steps, e.g. 410us/step, 820us/step, 1.64ms/step, etc up to 
+420ms/step. 
+The Decay Time determines how rapidly the ALC will make adjustments in response to a fall in signal level. A short Decay Time should be 
+used if a fast response is required to a changing signal. The Decay Time should not be so short as to cause rapid ALC response to a nominally 
+constant signal level. For example, if the input signal is likely to have pauses or silences, the Decay Time should be set long enough to ensure 
+that the ALC is prevented from making large adjustments to the gain during those durations. 
+ 
+ALC Attack Time. The time taken by the ALC for ramp down the PGA gain is controlled by register field ALCATK. The ALC Attack Time is 
+defined as a time per gain step. It can be programmed in power-of-two (2n) steps, e.g. 104us/step, 208us/step, 416us/step, etc up to 
+106ms/6dB. 
+It is measured similarly to the Decay Time. The advantage of a short Attack Time is that it results in a fast response to an increased signal level. 
+This in turn reduces the possibility of clipping. Many of the same considerations apply as for Hold Time and Decay Time. The Attack Time 
+should be set in conjunction with the Decay Time. If the system requires fast response such as voice applications, a faster Attack/Decay Time 
+may be needed. On the other hand, if a more steady input signal is anticipated, then a slower Attack/Decay Time may be most suitable. 
+ 
+ALC Mode. Two modes of operation are available via register bit ALCMODE. Normal ALC operation is selected by setting ALCMODE = 0. 
+Limiter Mode is selected by setting ALCMODE = 1. In Limiter mode, the ALC Maximum Gain is set equal to the PGA setting at the time that 
+limiter mode is entered. In this mode, the signal level may be reduced to prevent overload, but may not be increased above the initial PGA gain 
+setting - the register field MAXGAIN are not used when Limiter Mode is selected. In Limiter mode, the gain control circuit runs approximately 4 
+times faster to allow quick reduction of high signal levels and quick increment of low signal levels. 
+Don’t use limiter mode during microphone recording. 
+ 
+Peak Limiter. To avoid clipping when a large signal is applied just after a period where the PGA gain has been ramped up (eg. after a period of 
+quiet), the ALC circuit includes a Peak Limiter function. If the input signal after PGA gain exceeding the Peak threshold (fixed at 1.5dB below 
+full scale), the PGA gain is ramped down at the maximum attack rate (as when ALCATK = 0000), until the signal level falls below the Peak 
+threshold. This function is always enabled whenever the ALC is enabled. 
+ 
+Sample Rate. The ALC Hold, Decay and Attack times will vary slightly depending on the sample rate used. For example, when sampling at 
+48kHz, the ALC Hold, Decay and Attack times are equal to the values in registers ’ definition. If the actual sample rate was 44.1kHz, then the 
+ALC Hold, Decay and Attack times would be scaled down by 44.1/48. 
+ 
+ALC Zero Cross/Time out. The register field ALCZC is used to control whether PGA gain updates are timed to occur at the zero-cross points 
+of the input signal. Enabling this feature ensures that pops and clicks arising from the PGA gain adjustments are minimized, but this feature 
+may also result in a faster ALC response. If the PGA gain steps are small enough to eliminate the need for Zero-Cross detection, the 
+Zero-Cross option is not required. 
+A timeout is provided to ensure that the gain may still be updated if a zero-cross has not occurred within a fixed time. The timeout is enabled 
+via register setting TIME_OUT, it is not automatically enabled. 
+ 
+Noise Gate Enable / Noise Gate Threshold / Noise Gate Type. The Noise Gate function is enabled by setting the register field NGAT. When 
+enabled, the Noise Gate Threshold can be programmed using the NGTH register field. The range of Noise Gate Threshold varies between 
+-76.5dBFS and -30dBFS with 1.5dBFS per step; this threshold is the input signal level below which the PGA gain will either be muted or be 
+held constant. the Noise Gate type (Mute or Hold Gain) can be set by register field NGG. 
+8.3.2 Recommended Settings for ALC 
+Recommended settings are provided below for a number of typical portable recording applications. These include voice recording and music 
+recording. A generic setting is also provided, which aims to cater for the widest possible range of sounds. 
+It is important to note that these are suggested initial values only, as a starting point from which to derive the best settings for a particular circuit 
+application. The quoted settings should give adequate performance in many cases, but it may be possible to improve the ALC performance 
+through further adjustment of these settings. 
+ 
+For voice recording, a fast ALC response is desirable in order to quickly compensate for different peoples voices, movement relative to the 
+microphone. 
+For music recording, the fast response is not recommended as it is likely to result in clipping in response to any sudden changes in the music 
+signal level. A reduction in the maximum gain setting may help to avoid clipping when the music level increases after a quiet period and to 
+restrict the extent of the ALC adjustments. This may not be desirable in all music applications and is therefore not shown in the recommended 
+settings. It is one of the many adjustments that the user should consider when optimizing for a known operational environment.  
+For generic recording, the ALC must attempt to accommodate all types of sounds, a compromise setting must be found. For an ALC response 
+that is tolerant to impulses such as handclaps, it is recommended that the ALC Attack time should not be set too fast and the ALC Decay time 
+PAGE 19
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 19
+should not be set too slow. The minimum and maximum gain settings could be adjusted to restrict the extent of the ALC control if desired. The 
+combination of settings should allow the ALC to respond quickly to changes in signal level and to impulse-type sounds, but also to minimize 
+gain pumping caused by the associated level changes. 
+ 
+The settings in following table are the recommended settings for voice, music and generic (hand clap). 
+ 
+RECOMMENDED VALUE 
+REGISTER BIT VOICE 
+(Microphone Recording) MUSIC GENERIC(handclap) 
+ALCSEL[1:0] 11 (Stereo) 11 (Stereo) 11 (Stereo) 
+ALCLVL[3:0] 1100 (-4.5dB) 0011 (-12dB) 0011 (-12dB) 
+MAXGAIN[2:0] 101 (+23.5dB) 111 (+35.5dB) 111 (+35.5dB) 
+MINGAIN[2:0] 010 (0dB) 000 (-12dB) 000 (-12dB) 
+ALCHLD[3:0] 0000 (0ms) 0000 (0ms) 0000 (0ms) 
+ALCDCY[3:0] 0001 (820us/step) 1010 (420ms/step) 0101 (13.1ms/step) 
+ALCATK[3:0] 0010 (416us/step) 0110 (6.66ms/step) 0111 (13.3ms/step) 
+ALCMODE 0  (ALC) 0  (ALC) 0  (ALC) 
+ALCZC 0 (ZC off)  0(ZC off) 0 (ZC off) 
+TIME_OUT 0 (not enable) 0( not enable) 0(not enable) 
+NGAT 1 (enabled) 1 (enabled) 1 (enabled) 
+NGTH[4:0] 11000 (-40.5dB) 01011(-60dB) 10001 (-51dB) 
+NGG[1:0] 01 (mute ADC) 00 or 10 (hold gain) 00 or 10 (hold gain) 
+WIN_SIZE[4:0] 00110(default) 00110(default) 00110(default) 
+MicAmpl Gain 
+Reg. 0x09 0x77 (+21dB)   
+8.4 Microphone input circuit and the sample code for recording 
+In recording mode, the analog input pins can be used as single ended input or differential input.  
+Some microphone input circuits (single ended input or differential input) and sample code for recording are listed below. In microphone 
+recording mode, ALC should be enabled to boost the microphone input signal. 
+ 
+Please note that the fully-differential input circuit and pseudo-differential input circuit are recommended to ES8388 microphone 
+recording.  
+8.4.1 Fully-Differential Microphone input circuit and sample code 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Notes: 
+      1. On PCB layout, these wires which be marked as red must be paralleled each other. 
+      2. On PCB layout, the components such as R1, R2, R3, C1, C2, C3, C4, C5 and C6 must be located as close to Microphone as 
+possible. 
+ 
+The sample code for microphone differential input: 
+ es8388_write( 0x02, 0xF3);  // Reg0x02 = 0xF3, Stop STM, DLL, and digital block 
+PAGE 20
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 20
+    es8388_write(0x08, 0x00);   // Reg 0x08 = 0x00, ES8388 in I2S slave mode 
+ //es8388_write( 0x08 0x80);  // Reg 0x08 = 0x80 (ES8388 in I2S master mode) 
+ es8388_write( 0x2B, 0x80);  // Reg 0x2B = 0x80 (Set ADC and DAC have the same LRCK) 
+ 
+ es8388_write( 0x00, 0x05);  // Reg 0x00 = 0x05 (start up reference) 
+ es8388_write( 0x01, 0x40);  // Reg 0x01 = 0x40 (start up reference) 
+ es8388_write( 0x03, 0x00);  // Reg 0x03 = 0x00 (Power on ADC and LIN/RIN input) 
+ es8388_write( 0x09 0x77);   // Reg 0x09 = 0x77 (MicBoost PGA=+21Db) 
+ es8388_write( 0x0A 0xF0);   // Reg 0x0A = 0xF0 (differential input) 
+ es8388_write( 0x0B 0x02);   // Reg 0x0B = 0x02 (Select LIN1and RIN1 as differential input pairs) 
+   // es8388_write( 0x0B 0x82);   // Reg 0x0B = 0x82 (Select LIN2and RIN2 as differential input pairs) 
+ 
+ es8388_write( 0x0C 0x40);   // Reg 0x0C = 0x00 (I2S – 24bits, Ldata = LADC, Rdata = RADC) 
+ es8388_write( 0x0D 0x02);   // Reg 0x0D = 0x02 (MCLK/LRCK = 256) 
+ es8388_write( 0x10 0x00);   // Reg 0x10= 0x00 (LADC volume = 0dB) 
+ es8388_write( 0x11 0x00);   // Reg 0x11= 0x00 (RADC volume = 0dB) 
+ 
+    es8388_write(0x12, 0xe2);   // Reg 0x12 = 0xe2 (ALC enable, PGA Max. Gain=23.5dB, Min. Gain=0dB) 
+ es8388_write( 0x13, 0xa0);  // Reg 0x13 = 0xc0 (ALC Target=-4.5dB, ALC Hold time =0 mS) 
+ es8388_write( 0x14, 0x12);  // Reg 0x14 = 0x12(Decay time =820uS , Attack time = 416 uS) 
+ es8388_write( 0x15, 0x06);  // Reg 0x15 = 0x06(ALC mode) 
+ es8388_write( 0x16, 0xc3);  // Reg 0x16 = 0xc3(nose gate = -40.5dB, NGG = 0x01(mute ADC)) 
+ es8388_write( 0x02, 0x55);  // Reg 0x16 = 0x55 (Start up DLL, STM and Digital block for recording) 
+8.4.2 Pseudo-Differential Microphone input circuit and sample code 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Notes: 
+      1. On PCB layout, these wires which be marked as red must be paralleled each other. 
+      2. On PCB layout, the components such as R4, R5, C7, C8, C9, C10, and C11 must be located as close to Microphone as 
+possible. 
+ 
+The sample code for microphone pseudo differential input: 
+ es8388_write( 0x02, 0xF3);  // Reg0x02 = 0xF3, Stop STM, DLL, and digital block 
+    es8388_write(0x08, 0x00);   // Reg 0x08 = 0x00, ES8388 in I2S slave mode 
+ //es8388_write( 0x08 0x80);  // Reg 0x08 = 0x80 (ES8388 in I2S master mode) 
+ es8388_write( 0x2B, 0x80);  // Reg 0x2B = 0x80 (Set ADC and DAC have the same LRCK) 
+ es8388_write( 0x00, 0x05);  // Reg 0x00 = 0x05 (start up reference) 
+ es8388_write( 0x01, 0x40);  // Reg 0x01 = 0x40 (start up reference) 
+ es8388_write( 0x03, 0x00);  // Reg 0x03 = 0x00 (Power on ADC and LIN/RIN input) 
+ es8388_write( 0x09 0x77);   // Reg 0x09 = 0x77 (MicBoost PGA=+21Db) 
+ es8388_write( 0x0A 0xF0);   // Reg 0x0A = 0xF0 (differential input) 
+ es8388_write( 0x0B 0x02);   // Reg 0x0B = 0x02 (Select LIN1and RIN1 as differential input pairs) 
+   // es8388_write( 0x0B 0x82);   // Reg 0x0B = 0x82 (Select LIN2and RIN2 as differential input pairs) 
+ es8388_write( 0x0C 0x40);   // Reg 0x0C = 0x00 (I2S – 24bits, Ldata = LADC, Rdata = RADC) 
+ es8388_write( 0x0D 0x02);   // Reg 0x0D = 0x02 (MCLK/LRCK = 256) 
+PAGE 21
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 21
+ es8388_write( 0x10 0x00);   // Reg 0x10= 0x00 (LADC volume = 0dB) 
+ es8388_write( 0x11 0x00);   // Reg 0x11= 0x00 (RADC volume = 0dB) 
+    es8388_write(0x12, 0xe2);   // Reg 0x12 = 0xe2 (ALC enable, PGA Max. Gain=23.5dB, Min. Gain=0dB) 
+ es8388_write( 0x13, 0xa0);  // Reg 0x13 = 0xc0 (ALC Target=-4.5dB, ALC Hold time =0 mS) 
+ es8388_write( 0x14, 0x12);  // Reg 0x14 = 0x12(Decay time =820uS , Attack time = 416 uS) 
+ es8388_write( 0x15, 0x06);  // Reg 0x15 = 0x06(ALC mode) 
+ es8388_write( 0x16, 0xc3);  // Reg 0x16 = 0xc3(nose gate = -40.5dB, NGG = 0x01(mute ADC)) 
+ es8388_write( 0x02, 0x55);  // Reg 0x16 = 0x55 (Start up DLL, STM and Digital block for recording) 
+8.4.3 Single ended Microphone input circuit and sample code 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Notes: 
+      1. On PCB layout, the components such as R6, R7, C12, C13, C14, and C15 must be located as close to Microphone as 
+possible. 
+      2. In customer application, the microphone single ended input circuit must not be recommended for ES8328 microphone 
+recording. 
+ 
+The sample code for microphone single ended input: 
+ es8388_write( 0x02, 0xF3);  // Reg0x02 = 0xF3, Stop STM, DLL, and digital block 
+    es8388_write(0x08, 0x00);   // Reg 0x08 = 0x00, ES8388 in I2S slave mode 
+ //es8388_write( 0x08 0x80);  // Reg 0x08 = 0x80 (ES8388 in I2S master mode) 
+ es8388_write( 0x2B, 0x80);  // Reg 0x2B = 0x80 (Set ADC and DAC have the same LRCK) 
+ es8388_write( 0x00, 0x05);  // Reg 0x00 = 0x05 (start up reference) 
+ es8388_write( 0x01, 0x40);  // Reg 0x01 = 0x40 (start up reference) 
+ es8388_write( 0x03, 0x00);  // Reg 0x03 = 0x00 (Power on ADC and LIN/RIN input) 
+ es8388_write( 0x09 0x77);   // Reg 0x09 = 0x77 (MicBoost PGA=+21Db) 
+ es8388_write( 0x0A 0x00);   // Reg 0x0A = 0xF0 (Lin1 and RIN1 used as single ended input) 
+ //es8388_write( 0x0A 0x50);   // Reg 0x0A = 0xF0 (Lin2 and RIN2 used as single ended input) 
+ es8388_write( 0x0C 0x40);   // Reg 0x0C = 0x00 (I2S – 24bits, Ldata = LADC, Rdata = RADC) 
+ es8388_write( 0x0D 0x02);   // Reg 0x0D = 0x02 (MCLK/LRCK = 256) 
+ es8388_write( 0x10 0x00);   // Reg 0x10= 0x00 (LADC volume = 0dB) 
+ es8388_write( 0x11 0x00);   // Reg 0x11= 0x00 (RADC volume = 0dB) 
+    es8388_write(0x12, 0xe2);   // Reg 0x12 = 0xe2 (ALC enable, PGA Max. Gain=23.5dB, Min. Gain=0dB) 
+ es8388_write( 0x13, 0xa0);  // Reg 0x13 = 0xc0 (ALC Target=-4.5dB, ALC Hold time =0 mS) 
+ es8388_write( 0x14, 0x12);  // Reg 0x14 = 0x12(Decay time =820uS , Attack time = 416 uS) 
+ es8388_write( 0x15, 0x06);  // Reg 0x15 = 0x06(ALC mode) 
+ es8388_write( 0x16, 0xc3);  // Reg 0x16 = 0xc3(nose gate = -40.5dB, NGG = 0x01(mute ADC)) 
+ es8388_write( 0x02, 0x55);  // Reg 0x16 = 0x55 (Start up DLL, STM and Digital block for recording) 
+9 Output Signal Path 
+ES8388 output signal path consist of digital filters, DACs, Analog mixers and Output drivers. The digital filters and DACs are enabled when 
+ES8388 is in ‘play back mode ’ or ‘record and play back mode ’. The mixers and output drivers can be separately enabled by individual 
+control bits. Thus it is possible to utilize the analog mixing and amplification provided by ES8388, irrespective of whether the DACs are 
+PAGE 22
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 22
+running or not. 
+ES8388 receives digital input data on DSDIN pin. The digital filter block process the data to provide the following functions: 
+Ø Digital volume control 
+Ø Equalizer and stereo enhancement 
+Ø Sigma-Delta Modulation 
+Two high performance sigma-delta audio DACs convert the digital input data into two analog signals(left and right). These can be mixed 
+with analog input signals from LIN1/2 and RIN1/2 pins, and the mixed is fed to the output drivers,LOUT1/ROUT1 and LOUT2/ROUT2. 
+Ø LOUT1/ROUT1: can drive 16 Ω or 32 Ω stereo headphone or stereo line output 
+Ø LOUT2/ROUT2: can drive 16 Ω or 32 Ω stereo headphone or stereo line output 
+9.1 The Output Signal Paths And The Control Register 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+    PdnDACL and PdnDACR control bits in register 4 are used to power up / power down Left and Right channel DAC. 
+LOUT1, ROUT1, LOUT2 and ROUT2 control bits in register 4 are used to power up / power down output drivers, LOUT1, ROUT1, LOUT2 
+and ROUT2. 
+ 
+The signal volume on LOUT1, ROUT1, LOUT2 and ROUT2 can be independently adjusted under software control by writing LOUT1VOL, 
+ROUT1VOL, LOUT2VOL and ROUT2VOL, respectively. The output driver volume is adjustable from -45dB to +4.5dB in 1.5dB steps. Note that 
+the volume over 0dB may cause clipping if signal is large.  
+ 
+    Left and right mixers are used to mix the DAC ’s output and the analog input signal which be selected by LMIXSEL and RMIXSEL. If LI2LO 
+control bits in register 39 is set to ‘1’,the analog input signal which be selected by LMIXSEL should be mixed in left mixer. If RI2RO control bits 
+in register 42 is set to ‘1’,the analog input signal which be selected by RMIXSEL should be mixed in right mixer. 
+ 
+The mixed signal can be controlled with Mixer PGAs (LI2LOVOL and RI2ROVOL). The gain of Mixer PGA is adjustable from -15dB to 
++6dB in 3dB steps. The left mixed is fed to LOUT1 and LOUT2 output drivers, and the right mixed is fed to ROUT1 and ROUT2 output drivers. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 23
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 23
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 24
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 24
+9.2 The DAC Control Register 
+     PdnDACL and PdnDACR control bits in register 4 are used to power up / power down Left and Right channel DAC. Please refer to 
+section 9.2. 
+ 
+ES8388 DAC’s digital volume can be adjustable from -96dB to 0dB in 0.5dB steps. LDACVOL and RDACVOL is used to independently 
+control the left an right DAC volume. If DACLeR control bit in register 25 is set to ‘1’, the volume of left and right DAC can adjust synchronously 
+by adjusting left DAC volume. DACs should be mute if DACMute control bit in register 25 is set to ‘1’. 
+ZeroL and ZeroR control bits in register 29 are used to set the left and right channel DACs output all zero. This operation is equivalent to 
+mute the DAC or set the DAC digital volume to -96dB. 
+ 
+DAC_invL control bit in register 28 are used to invert the left channel DAC ouput, and DAC_invR control bit in register 28 is used for right 
+channel DAC. 
+ 
+DACSoft Ramp control bit in register 25 is use to fade in and fade out. DACRampRate control bits are used to set the soft ramp rate. 
+ 
+Mono control bit is used to set the DAC in stereo output mode or mono output mode.  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+9.3 Equalizer and Stereo Enhancement 
+ES8388 provides equalizer and stereo enhancement function in play back mode. These can not be used in Bypass mode. 
+ 
+For equalizer, only 2 band equalizer is used. It can do bass or treble operation, but can not do bass and treble operation at the same time. 
+Everest Semiconductor Co., Ltd will provide equalizer calculator to help user to utilize this equalizer. 
+The equalizer register address is located from register 30 to register 37. 
+ 
+The SE control bits in register 29 are used to set the stereo strength. There are 8 levels stereo strength from 0 to 7. ES8388 will get the 
+strongest stereo effect if SE equal to 7. There is not any stereo enhancement if SE equal to 0. 
+PAGE 25
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 25
+ 
+ Start 
+Set Chip to Master / Slave 
+Mode 
+Reg 0x08 = 0x00 (Slave Mode) 
+Power down DEM and STM 
+Reg 0x02 = 0xF3 
+Set Chip to Play&Record Mode 
+Reg 0x00 = 0x05  
+Power Up Analog and Ibias 
+Reg 0x01= 0x40  
+Power up ADC / Analog Input / 
+Micbias for Record 
+Reg 0x03 = 0x00  
+Power up DAC and Enable 
+LOUT/ROUIT 
+Reg 0x04 = 0x3C  
+Select Analog input channel for 
+ADC 
+Reg 0x0A = 0x00 (Lin1/Rin1) 
+Select Analog Input PGA Gain 
+for ADC 
+Reg 0x09 = 0x88 (24dB) 
+Set SFI for ADC 
+Reg 0x0c = 0x00 (I2S – 24Bit) 
+Select MCLK /  LRCK ratio for 
+ADC  
+Reg 0x0D = 0x02 (256) 
+Set ADC Digital Volume  
+Reg 0x10 = 0x00 (0dB)  
+Reg 0x11 = 0x00 (0dB)  
+Select ALC for ADC Record 
+Reg 0x12 to Reg 0x16  
+Refer to ALC description  
+Setup Mixer 
+Reg 0x26 = 0x00 
+Reg 0x27 = 0xB8 
+Reg 0x28 = 0x38 
+Reg 0x29 = 0x38 
+Reg 0x2A = 0xB8 
+Please refer to Mixer description 
+Set SFI for DAC 
+Reg 0x17 = 0x00 (I2S – 24Bit) 
+Select MCLK /  LRCK ratio for 
+DAC 
+Reg 0x18 = 0x02 (256) 
+Set DAC Digital Volume  
+Reg 0x1A = 0x00 (0dB)  
+Reg 0x1B = 0x00 (0dB)  
+Set LOUT/ROUT  Volume  
+Reg 0x2E = 0x1E (0dB)  
+Reg 0x2F = 0x1E (0dB)  
+Reg 0x30 = 0x1E (0dB) 
+Reg 0x31 = 0x1E (0dB) 
+Power up DEM and STM 
+Reg 0x02 = 0x00 
+ End 
+The above item must 
+be done step by step. 
+Please refer to  MCLK/LRCK ratio 
+description  
+Only for ADC  
+Only for DAC  
+Set same LRCK 
+Reg 0x2B = 0x80  
+ 
+ 
+ 
+10 Register Configuration Sequence for ES8388 
+The Register configuration sequence include start up codec mode, start up recording mode, start up play back mode, start up by pass 
+mode, power down (to standby mode), resume from standby mode, etc. 
+10.1 The Sequence for Start up codec  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 26
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 26
+ 
+ Start 
+Power up ADC / Analog Input / 
+Micbias for Record 
+Reg 0x03 = 0x00  
+Select Analog input channel for 
+ADC 
+Reg 0x0A = 0x00 (Lin1/Rin1) 
+Select PGA Gain for ADC 
+analog input 
+Reg 0x09 = 0x00 (0dB) 
+UnMute ADC 
+Reg 0x0F = 0x30 (ADC unmute) 
+Power up DEM and STM 
+Reg 0x02 = 0x55 
+Set ADC Digital Volume 
+Reg 0x10 = 0x00 (0dB) 
+Reg 0x11 = 0x00 (0dB) 
+Set ALC mode if necessary 
+Refer to ALC description 
+Set Chip to Master / Slave 
+Mode 
+Reg 0x08 = 0x00 (Slave Mode) 
+Reg 0x08 = 0x80 (Master Mode) 
+Power down DEM and STM 
+Reg 0x02 = 0xF3 
+Set Chip to Play&Record Mode 
+Reg 0x00 = 0x05  
+Power Up Analog and Ibias 
+Reg 0x01= 0x40  
+ End 
+These will be done step by step. 
+Set MCLK / LRCK ratio 
+Reg 0x0D = 0x02 (256) 
+Set ADC SFI 
+Reg 0x0C = 0x00 (I2S,24BIT) 
+ 
+Set same LRCK 
+Reg 0x2B= 0x80 
+ 
+ Start 
+Power up DAC / Analog Output 
+for Record 
+Reg 0x04 = 0x3C  
+UnMute DAC 
+Reg 0x19 = 0x32 (DAC unmute) 
+Power up DEM and STM 
+Reg 0x02 = 0xAA 
+Set ADC Digital Volume 
+Reg 0x1A = 0x00 (0dB) 
+Reg 0x1B = 0x00 (0dB) 
+Set Mixer for DAC Output 
+Refer to Mixer description 
+Reg 0x26 = 0x00 
+Reg 0x27 = 0xB8 (LDAC to Lout) 
+Reg 0x28 = 0x38 
+Reg 0x29 = 0x38 
+Reg 0x2A = 0xB8(RDAC to Rout) 
+Please refer to Mixer description 
+Set Chip to Master / Slave 
+Mode 
+Reg 0x08 = 0x00 (Slave Mode) 
+Reg 0x08 = 0x80 (Master Mode) 
+Power down DEM and STM 
+Reg 0x02 = 0xF3 
+Set Chip to Play&Record Mode 
+Reg 0x00 = 0x05  
+Power Up Analog and Ibias 
+Reg 0x01= 0x40  
+ End 
+These will be done step by step. 
+Set MCLK / LRCK ratio 
+Reg 0x18 = 0x02 (256) 
+Set DAC SFI 
+Reg 0x17 = 0x00 (I2S,24BIT) 
+ 
+Set Lout/Rout  Volume 
+Reg 0x2E = 0x1E (0dB) 
+Reg 0x2F = 0x1E (0dB) 
+Reg 0x30 = 0x1E (0dB) 
+Reg 0x31 = 0x1E (0dB) 
+Set same LRCK 
+Reg 0x2B = 0x80  
+10.2 The sequence for Start up recording  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+10.3 The sequence for Start up play back mode  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 27
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 27
+ 
+ Start 
+Power down DAC, Power up 
+Analog Output for Bypass 
+Reg 0x04 = 0xFC  
+Power up DEM and STM  or 
+Power up reference voltage 
+Reg 0x02 = 0xF0 or 0x00 
+Set Mixer for Bypass Output 
+Refer to Mixer description 
+Reg 0x26 = 0x00 (Lin1/Rin1) 
+Reg 0x27 = 0x50 (LIN to LOUT) 
+Reg 0x28 = 0x38 
+Reg 0x29 = 0x38 
+Reg 0x2A = 0x50 (RIN to ROUT) 
+Please refer to Mixer description 
+Set Chip to Master / Slave 
+Mode 
+Reg 0x08 = 0x00 (Slave Mode) 
+Reg 0x08 = 0x80 (Master Mode) 
+Power down DEM and STM 
+Reg 0x02 = 0xF3 
+Set Chip to Play&Record Mode 
+Reg 0x00 = 0x05  
+Power Up Analog and Ibias 
+Reg 0x01= 0x40  
+ End 
+These will be done step by step. 
+Set Lout/Rout  Volume 
+Reg 0x2E = 0x1E (0dB) 
+Reg 0x2F = 0x1E (0dB) 
+Reg 0x30 = 0x1E (0dB) 
+Reg 0x31 = 0x1E (0dB) 
+Power down ADC, Power up 
+Analog Input for Bypass 
+Reg 0x03 = 0x3F  
+Set same LRCK 
+Reg 0x2B = 0x80  
+ 
+ Start 
+Mute ADC and DAC 
+Reg 0x0F = 0x34 (ADC Mute) 
+Reg 0x19 = 0x36 (DAC Mute) 
+Power down DEM and STM 
+Reg 0x02 = 0xF3 
+Power Down  ADC / Analog 
+Input / Micbias for Record 
+Reg 0x03 = 0xFC  
+Power down DAC and disable  
+LOUT/ROUIT 
+Reg 0x04 = 0xC0  
+ End 
+The above item must 
+be done step by step. 
+10.4 The sequence for Start up bypass mode  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+10.5 Power Down Sequence (To Standby Mode) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PAGE 28
+                                                                                  
+ES8388 
+ 
+ ES8388 User Guide 
+2011-06-17 28
+10.6 Resume from standby mode Sequence  
+ 
+ Start 
+UnMute ADC and DAC 
+Reg 0x0F = 0x30 (ADC unmute) 
+Reg 0x19 = 0x32 (DAC unmute) 
+Power up DEM and STM 
+Reg 0x02 = 0x00 
+Power up ADC / Analog Input / 
+Micbias for Record 
+Reg 0x03 = 0x00  
+Power up DAC and enable  
+LOUT/ROUIT 
+Reg 0x04 = 0x3C  
+ End 
+The above item must 
+be done step by step. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

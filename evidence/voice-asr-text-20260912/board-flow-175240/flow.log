@@ -1,0 +1,13 @@
+k7voice flow-mic-wake &
+k7voice [51:100]
+nsh> [KTLS_CHECK PASS workers=2 destructors=2 main_value=123
+ASR_MIC frames=48000 rate=16000 channel=left
+ASR_INFER BEGIN recognizer
+ASR_INFER chunk=1 elapsed=21.730
+ASR_INFER chunk=2 elapsed=22.875
+ASR_INFER chunk=3 elapsed=24.019
+ASR_INFER chunk=4 elapsed=25.163
+ASR_INFER chunk=5 elapsed=26.311
+ASR_STORAGE peak=467093776 live=0 records=1225 failures=0 reason=0
+ASR_INFER FAIL empty recognition result
+VOICE_FLOW asr_error=-5

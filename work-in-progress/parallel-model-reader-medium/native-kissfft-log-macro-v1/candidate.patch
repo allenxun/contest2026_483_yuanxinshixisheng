@@ -1,0 +1,20 @@
+--- a/kiss_fft_log.h
++++ b/kiss_fft_log.h
+@@ -14,14 +14,14 @@
+ #define INFO 3
+ #define DEBUG 4
+ 
+-#define STRINGIFY(x) #x
+-#define TOSTRING(x) STRINGIFY(x)
++#define KISS_FFT_LOG_STRINGIFY(x) #x
++#define KISS_FFT_LOG_TOSTRING(x) KISS_FFT_LOG_STRINGIFY(x)
+ 
+ #if defined(NDEBUG)
+ # define KISS_FFT_LOG_MSG(severity, ...) ((void)0)
+ #else
+ # define KISS_FFT_LOG_MSG(severity, ...) \
+-    fprintf(stderr, "[" #severity "] " __FILE__ ":" TOSTRING(__LINE__) " "); \
++    fprintf(stderr, "[" #severity "] " __FILE__ ":" KISS_FFT_LOG_TOSTRING(__LINE__) " "); \
+     fprintf(stderr, __VA_ARGS__); \
+     fprintf(stderr, "\n")
+ #endif

@@ -1,0 +1,45 @@
+[
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-DOFF_BITS=64",
+      "selected.c",
+      "-o",
+      "evidence/contract64.exe"
+    ],
+    "timeout_seconds": 30,
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\fat-reader-contract-v1\\evidence\\contract64.exe"
+    ],
+    "timeout_seconds": 15,
+    "returncode": 0,
+    "stdout": "PASS off64: FAT sizes 0..UINT32_MAX; exact SEEK_SET >2GiB; beyond EOF allowed; stat/fstat identity collision; errors preserved\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-DOFF_BITS=32",
+      "selected.c",
+      "-o",
+      "evidence/contract32.exe"
+    ],
+    "timeout_seconds": 30,
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "selected.c:143:14: error: 'fat_seek' defined but not used [-Werror=unused-function]\n  143 | static off_t fat_seek(FAR struct file *filep, off_t offset, int whence)\n      |              ^~~~~~~~\ncc1.exe: all warnings being treated as errors\n"
+  }
+]

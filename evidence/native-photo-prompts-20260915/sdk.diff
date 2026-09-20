@@ -1,0 +1,156 @@
+--- sdk/app/k7host/k7_photo.c
++++ app/k7host/k7_photo.c
+@@ -90,6 +90,11 @@
+   int rc=native_store?k7_photo_store_complete(native_store,epoch):-ENODEV;
+   pthread_mutex_unlock(&store_owner);return rc;
+ }
++int k7_photo_native_status(uint32_t *epoch,unsigned *done) {
++  pthread_mutex_lock(&store_owner);
++  int rc=native_store?k7_photo_store_status(native_store,epoch,done):-ENODEV;
++  pthread_mutex_unlock(&store_owner);return rc;
++}
+ static float overlap(struct k7_face_s a,struct k7_face_s b) {
+   float w=fmaxf(0,fminf(a.x+a.width,b.x+b.width)-fmaxf(a.x,b.x));
+   float h=fmaxf(0,fminf(a.y+a.height,b.y+b.height)-fmaxf(a.y,b.y));
+--- sdk/app/k7host/k7_photo.h
++++ app/k7host/k7_photo.h
+@@ -10,6 +10,7 @@
+ #include "k7_photo_store.h"
+ int k7_photo_native_copy(uint32_t,unsigned,struct k7_photo_record *,void *,size_t);
+ int k7_photo_native_complete(uint32_t);
++int k7_photo_native_status(uint32_t *,unsigned *);
+ void k7_photo_destroy(struct k7_photo_s *);
+ void k7_photo_process(struct k7_photo_s *,const uint8_t *,size_t,unsigned int,
+                       uint64_t,const struct k7_track_result_s *,unsigned int,bool);
+--- sdk/app/k7host/k7_photo_store.c
++++ app/k7host/k7_photo_store.c
+@@ -91,3 +91,10 @@
+   int rc=!s->epoch||epoch!=s->epoch?-ESTALE:s->count==3?1:0;
+   pthread_mutex_unlock(&s->lock);return rc;
+ }
++int k7_photo_store_status(struct k7_photo_store *s,uint32_t *epoch,unsigned *done)
++{
++  if(!s||!epoch||!done)return -EINVAL;
++  pthread_mutex_lock(&s->lock);
++  *epoch=s->epoch;*done=(1u<<s->count)-1;
++  pthread_mutex_unlock(&s->lock);return 0;
++}
+--- sdk/app/k7host/k7_photo_store.h
++++ app/k7host/k7_photo_store.h
+@@ -19,4 +19,5 @@
+ int k7_photo_store_copy(struct k7_photo_store *,uint32_t epoch,unsigned side,
+                        struct k7_photo_record *,void *,size_t capacity);
+ int k7_photo_store_complete(struct k7_photo_store *,uint32_t epoch);
++int k7_photo_store_status(struct k7_photo_store *,uint32_t *epoch,unsigned *done);
+ #endif
+--- sdk/app/k7agent/CMakeLists.txt
++++ app/k7agent/CMakeLists.txt
+@@ -22,6 +22,7 @@
+       cloud/src/capture_stream_probe.c
+       cloud/src/board_speech_bridge.c
+       cloud/src/device_voice_intent.c
++      cloud/src/device_photo_prompts.c
+       cloud/src/cloud_speech_mimo_adapter.c)
+     target_compile_definitions(apps_k7cloud PRIVATE
+       K7CLOUD_SPEECH_ORCHESTRATOR=1)
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -2,6 +2,7 @@
+ #include "capture_stream.h"
+ #include "stream_ring.h"
+ #include "device_voice_intent.h"
++#include "device_photo_prompts.h"
+ #include <arpa/inet.h>
+ #include <errno.h>
+ #include <fcntl.h>
+@@ -35,6 +36,7 @@
+ int k7_pipeline_voice_mode(unsigned int);
+ int k7_pipeline_voice_mode_status(unsigned int);
+ void k7_pipeline_halt(void);
++int k7_photo_native_status(uint32_t *,unsigned *);
+ #endif
+ static int playback_cancelled(void *arg) {(void)arg;return atomic_load(&tts_cancelled);}
+ int k7cloud_tts_control(int stop)
+@@ -330,18 +332,45 @@
+   if(atomic_load(&device_loop_busy))return -EBUSY;
+   return device_round(ip,atomic_load(&device_epoch));
+ }
++static int photo_prompts(const char *ip,unsigned epoch,struct k7_photo_prompt_state *state)
++{
++#if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
++  if(k7_pipeline_voice_mode_status(2))return 0;
++  uint32_t photo_epoch;unsigned done;
++  int rc=k7_photo_native_status(&photo_epoch,&done);
++  if(rc)return rc;
++  const char *keys[4];int n=k7_photo_prompt_plan(state,photo_epoch,done,keys);
++  if(n<0)return n;
++  for(int i=0;i<n;i++)
++    {
++      uint32_t current;unsigned mask;
++      rc=k7_photo_native_status(&current,&mask);
++      if(rc)return rc;
++      if(current!=photo_epoch)return 0; /* Rescan next round; do not announce old set. */
++      if(k7_pipeline_voice_mode_status(2))return 0;
++      rc=board_speech(keys[i],ip,&epoch);if(rc)return rc;
++    }
++  *state=(struct k7_photo_prompt_state){photo_epoch,done};
++#else
++  (void)ip;(void)epoch;(void)state;
++#endif
++  return 0;
++}
+ int k7cloud_device_loop(const char *ip,unsigned rounds)
+ {
+   if(!rounds || rounds>300)return -EINVAL;
+   bool expected=false;
+   if(!atomic_compare_exchange_strong(&device_loop_busy,&expected,true))return -EBUSY;
+   unsigned epoch=atomic_load(&device_epoch);int rc=0;
++  struct k7_photo_prompt_state photos={0};
+   for(unsigned round=0;round<rounds;round++)
+     {
+       if(epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;break;}
+       printf("K7CLOUD device round=%u\n",round+1);
+       rc=device_round(ip,epoch);
+       if(rc)break;
++      rc=photo_prompts(ip,epoch,&photos);
++      if(rc)break;
+       usleep(250000);
+     }
+   k7cloud_device_stop();
+--- sdk/app/k7agent/cloud/src/board_voice_prompts.inc
++++ app/k7agent/cloud/src/board_voice_prompts.inc
+@@ -25,5 +25,6 @@
+   {"chat_unavailable", "云台跟踪已停止，对话服务暂时不可用。"},
+   {"stop_failed", "停止状态尚未确认，请检查设备。"},
+   {"capture_saved_local", "三视图拍摄完成，照片已保存。"},
++  {"capture_retained", "三视图拍摄完成，照片已暂存在设备内存中。"},
+   {"task_failed", "本轮操作未完成，已停止云台跟踪。"},
+ };
+--- sdk/app/k7agent/cloud/src/device_photo_prompts.c
++++ app/k7agent/cloud/src/device_photo_prompts.c
+@@ -0,0 +1,15 @@
++#include "device_photo_prompts.h"
++#include <errno.h>
++int k7_photo_prompt_plan(const struct k7_photo_prompt_state *old,uint32_t epoch,unsigned done,const char *keys[4])
++{
++  if(!old||!epoch||!keys||(done!=0&&done!=1&&done!=3&&done!=7))return -EINVAL;
++  if(epoch<old->epoch)return -ESTALE;
++  if(epoch==old->epoch && (done&old->done)!=old->done)return -EIO;
++  unsigned before=epoch==old->epoch?old->done:0;
++  if(epoch==old->epoch && before==done)return 0;
++  const char *saved[]={"front_saved","left_saved","right_saved"};
++  int n=0;
++  for(unsigned i=0;i<3;i++)if((done&(1u<<i))&&!(before&(1u<<i)))keys[n++]=saved[i];
++  keys[n++]=done==7?"capture_retained":done==3?"right_aligning":done==1?"left_aligning":"front_aligning";
++  return n;
++}
+--- sdk/app/k7agent/cloud/include/device_photo_prompts.h
++++ app/k7agent/cloud/include/device_photo_prompts.h
+@@ -0,0 +1,7 @@
++#ifndef K7_DEVICE_PHOTO_PROMPTS_H
++#define K7_DEVICE_PHOTO_PROMPTS_H
++#include <stdint.h>
++struct k7_photo_prompt_state {uint32_t epoch;unsigned done;};
++/* At most four prompts. Caller commits state only after all were played. */
++int k7_photo_prompt_plan(const struct k7_photo_prompt_state *,uint32_t,unsigned,const char *keys[4]);
++#endif

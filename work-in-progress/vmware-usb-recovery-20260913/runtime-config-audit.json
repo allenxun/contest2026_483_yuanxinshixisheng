@@ -1,0 +1,32 @@
+{
+  "schema": "velavision.vmware-runtime-config-readonly-audit.v1",
+  "timestamp": "2026-09-13T21:34:00+08:00",
+  "vmware_workstation_version": "16.2.1",
+  "vmrun": {
+    "path": "D:\\software\\VM\\vmrun.exe",
+    "version": "1.17.0 build-18811642",
+    "running_vm_count": 1,
+    "vmx": "D:\\VMware\\Ubuntu 64 位\\Ubuntu 64 位.vmx",
+    "tools_state": "running",
+    "guest_ip": "192.168.152.131",
+    "runtime_config": {
+      "usb.autoConnect.device0": "",
+      "usb.autoConnect.device1": "",
+      "usb.autoConnect.device2": "",
+      "usb.restrictions.defaultAllow": "",
+      "usb.generic.allowHID": ""
+    }
+  },
+  "vmx_usb_lines": {
+    "usb.vbluetooth.startConnected": "TRUE",
+    "usb.present": "TRUE",
+    "ehci.present": "TRUE",
+    "usb_autoConnect_present": false
+  },
+  "operations": {
+    "readVariable_only": true,
+    "vmx_modified": false,
+    "device_connection_changed": false,
+    "vm_process_changed": false
+  }
+}

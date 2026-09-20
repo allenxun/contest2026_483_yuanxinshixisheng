@@ -1,0 +1,87 @@
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-Wall', '-Wextra', '-Werror', '-pedantic', '-Imock', 'test.c', '-o', 'test.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\storage-fat-probe-v1\\test.exe']
+usage: k7fat mount|list|unmount (fixed USB FAT readonly)
+K7FAT command=list result=-16 mounted=0 attempted=0 dir_uncertain=0
+K7FAT command=unmount result=-22 mounted=0 attempted=0 dir_uncertain=0
+K7FAT command=mount result=-5 mounted=0 attempted=1 dir_uncertain=0
+K7FAT command=mount result=-103 mounted=0 attempted=1 dir_uncertain=0
+K7FAT command=mount result=0 mounted=1 attempted=1 dir_uncertain=0
+K7FAT entry=1 name_hex=780a1b truncated=0
+K7FAT command=list result=0 mounted=1 attempted=1 dir_uncertain=0
+K7FAT command=unmount result=-16 mounted=1 attempted=1 dir_uncertain=0
+K7FAT command=list result=-5 mounted=1 attempted=1 dir_uncertain=0
+K7FAT command=list result=-5 mounted=1 attempted=1 dir_uncertain=0
+K7FAT command=list result=-42 mounted=1 attempted=1 dir_uncertain=0
+K7FAT entry=1 name_hex=780a1b truncated=0
+K7FAT entry=2 name_hex=780a1b truncated=0
+K7FAT entry=3 name_hex=780a1b truncated=0
+K7FAT entry=4 name_hex=780a1b truncated=0
+K7FAT entry=5 name_hex=780a1b truncated=0
+K7FAT entry=6 name_hex=780a1b truncated=0
+K7FAT entry=7 name_hex=780a1b truncated=0
+K7FAT entry=8 name_hex=780a1b truncated=0
+K7FAT entry=9 name_hex=780a1b truncated=0
+K7FAT entry=10 name_hex=780a1b truncated=0
+K7FAT entry=11 name_hex=780a1b truncated=0
+K7FAT entry=12 name_hex=780a1b truncated=0
+K7FAT entry=13 name_hex=780a1b truncated=0
+K7FAT entry=14 name_hex=780a1b truncated=0
+K7FAT entry=15 name_hex=780a1b truncated=0
+K7FAT entry=16 name_hex=780a1b truncated=0
+K7FAT entry=17 name_hex=780a1b truncated=0
+K7FAT entry=18 name_hex=780a1b truncated=0
+K7FAT entry=19 name_hex=780a1b truncated=0
+K7FAT entry=20 name_hex=780a1b truncated=0
+K7FAT entry=21 name_hex=780a1b truncated=0
+K7FAT entry=22 name_hex=780a1b truncated=0
+K7FAT entry=23 name_hex=780a1b truncated=0
+K7FAT entry=24 name_hex=780a1b truncated=0
+K7FAT entry=25 name_hex=780a1b truncated=0
+K7FAT entry=26 name_hex=780a1b truncated=0
+K7FAT entry=27 name_hex=780a1b truncated=0
+K7FAT entry=28 name_hex=780a1b truncated=0
+K7FAT entry=29 name_hex=780a1b truncated=0
+K7FAT entry=30 name_hex=780a1b truncated=0
+K7FAT entry=31 name_hex=780a1b truncated=0
+K7FAT entry=32 name_hex=780a1b truncated=0
+K7FAT entry=33 name_hex=780a1b truncated=0
+K7FAT entry=34 name_hex=780a1b truncated=0
+K7FAT entry=35 name_hex=780a1b truncated=0
+K7FAT entry=36 name_hex=780a1b truncated=0
+K7FAT entry=37 name_hex=780a1b truncated=0
+K7FAT entry=38 name_hex=780a1b truncated=0
+K7FAT entry=39 name_hex=780a1b truncated=0
+K7FAT entry=40 name_hex=780a1b truncated=0
+K7FAT entry=41 name_hex=780a1b truncated=0
+K7FAT entry=42 name_hex=780a1b truncated=0
+K7FAT entry=43 name_hex=780a1b truncated=0
+K7FAT entry=44 name_hex=780a1b truncated=0
+K7FAT entry=45 name_hex=780a1b truncated=0
+K7FAT entry=46 name_hex=780a1b truncated=0
+K7FAT entry=47 name_hex=780a1b truncated=0
+K7FAT entry=48 name_hex=780a1b truncated=0
+K7FAT entry=49 name_hex=780a1b truncated=0
+K7FAT entry=50 name_hex=780a1b truncated=0
+K7FAT entry=51 name_hex=780a1b truncated=0
+K7FAT entry=52 name_hex=780a1b truncated=0
+K7FAT entry=53 name_hex=780a1b truncated=0
+K7FAT entry=54 name_hex=780a1b truncated=0
+K7FAT entry=55 name_hex=780a1b truncated=0
+K7FAT entry=56 name_hex=780a1b truncated=0
+K7FAT entry=57 name_hex=780a1b truncated=0
+K7FAT entry=58 name_hex=780a1b truncated=0
+K7FAT entry=59 name_hex=780a1b truncated=0
+K7FAT entry=60 name_hex=780a1b truncated=0
+K7FAT entry=61 name_hex=780a1b truncated=0
+K7FAT entry=62 name_hex=780a1b truncated=0
+K7FAT entry=63 name_hex=780a1b truncated=0
+K7FAT entry=64 name_hex=780a1b truncated=0
+K7FAT command=list result=-7 mounted=1 attempted=1 dir_uncertain=0
+K7FAT entry=1 name_hex=780a1b truncated=0
+K7FAT command=list result=-5 mounted=1 attempted=1 dir_uncertain=1
+K7FAT command=list result=-16 mounted=1 attempted=1 dir_uncertain=1
+K7FAT command=unmount result=0 mounted=0 attempted=1 dir_uncertain=0
+K7FAT command=mount result=-103 mounted=0 attempted=1 dir_uncertain=0
+PASS mock: args/fixed paths/failed mount latch/bounded names+entries/errors/busy/no force
+EXIT 0

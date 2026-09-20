@@ -1,0 +1,48 @@
+[1/136] Building CXX object abseil/absl/base/CMakeFiles/absl_raw_logging_internal.dir/internal/raw_logging.cc.obj
+[2/136] Building CXX object abseil/absl/base/CMakeFiles/absl_log_severity.dir/log_severity.cc.obj
+[3/136] Linking CXX static library abseil/absl/base/libabsl_log_severity.a
+[4/136] Linking CXX static library abseil/absl/base/libabsl_raw_logging_internal.a
+[5/136] Building CXX object abseil/absl/base/CMakeFiles/absl_spinlock_wait.dir/internal/spinlock_wait.cc.obj
+[6/136] Linking CXX static library abseil/absl/base/libabsl_spinlock_wait.a
+[7/136] Building CXX object abseil/absl/base/CMakeFiles/absl_base.dir/internal/cycleclock.cc.obj
+[8/136] Building CXX object abseil/absl/base/CMakeFiles/absl_base.dir/internal/spinlock.cc.obj
+[9/136] Building CXX object abseil/absl/base/CMakeFiles/absl_base.dir/internal/sysinfo.cc.obj
+[10/136] Building CXX object abseil/absl/base/CMakeFiles/absl_base.dir/internal/unscaledcycleclock.cc.obj
+[11/136] Building CXX object abseil/absl/base/CMakeFiles/absl_base.dir/internal/thread_identity.cc.obj
+[12/136] Linking CXX static library abseil/absl/base/libabsl_base.a
+[13/136] Building CXX object abseil/absl/base/CMakeFiles/absl_throw_delegate.dir/internal/throw_delegate.cc.obj
+[14/136] Linking CXX static library abseil/absl/base/libabsl_throw_delegate.a
+[15/136] Building CXX object abseil/absl/numeric/CMakeFiles/absl_int128.dir/int128.cc.obj
+[16/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_string_view.dir/string_view.cc.obj
+[17/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings_internal.dir/internal/utf8.cc.obj
+[18/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings_internal.dir/internal/ostringstream.cc.obj
+[19/136] Linking CXX static library abseil/absl/numeric/libabsl_int128.a
+[20/136] Linking CXX static library abseil/absl/strings/libabsl_string_view.a
+[21/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings_internal.dir/internal/escaping.cc.obj
+[22/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/ascii.cc.obj
+[23/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/charconv.cc.obj
+[24/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/escaping.cc.obj
+[25/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/internal/charconv_bigint.cc.obj
+[26/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/internal/charconv_parse.cc.obj
+[27/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/internal/damerau_levenshtein_distance.cc.obj
+[28/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/internal/memutil.cc.obj
+[29/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/internal/stringify_sink.cc.obj
+[30/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/match.cc.obj
+[31/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/numbers.cc.obj
+[32/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/str_cat.cc.obj
+[33/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/str_replace.cc.obj
+[34/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/str_split.cc.obj
+[35/136] Linking CXX static library abseil/absl/strings/libabsl_strings_internal.a
+[36/136] Building CXX object abseil/absl/strings/CMakeFiles/absl_strings.dir/substitute.cc.obj
+[37/136] Building CXX object abseil/absl/time/CMakeFiles/absl_civil_time.dir/internal/cctz/src/civil_time_detail.cc.obj
+[38/136] Building CXX object abseil/absl/time/CMakeFiles/absl_time_zone.dir/internal/cctz/src/time_zone_fixed.cc.obj
+[39/136] Building CXX object abseil/absl/time/CMakeFiles/absl_time_zone.dir/internal/cctz/src/time_zone_format.cc.obj
+FAILED: abseil/absl/time/CMakeFiles/absl_time_zone.dir/internal/cctz/src/time_zone_format.cc.obj 
+/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-g++  -I/dev/shm/velavision-ort-env3-20260911/abseil_cpp -D__NuttX__ -I/home/swl/openvela/apps/include -I/dev/shm/velavision_audio_sound_20260910/apps/include -I/home/swl/openvela/apps/examples/voicelink/include -I/home/swl/openvela/apps/examples/voicelink/src -I/home/swl/openvela/apps/examples/voicelink/../k7radio -I/dev/shm/velavision_audio_sound_20260910/include/libcxx -I/dev/shm/velavision_audio_sound_20260910/include/libcxx_config -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/test/support -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/src -I/dev/shm/velavision_audio_sound_20260910/include/libcxxabi -I/home/swl/openvela/apps/frameworks/security/include -isystem /home/swl/openvela/nuttx/include -isystem /dev/shm/velavision_audio_sound_20260910/include -march=armv8-a -mcpu=cortex-a53 -Os -fno-strict-aliasing -fno-omit-frame-pointer -D_LDBL_EQ_DBL -fno-common -Wall -Wshadow -Wundef -Wno-attributes -Wno-unknown-pragmas -nostdinc++ -Wno-psabi -std=gnu++17 -ffunction-sections -fdata-sections -g3 -Wno-alloc-size-larger-than -Wno-stringop-overflow -fdiagnostics-color=always -fmacro-prefix-map=/home/swl/openvela/nuttx= -fmacro-prefix-map=/home/swl/openvela/apps= -fmacro-prefix-map=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7= -fmacro-prefix-map=/home/swl/openvela/nuttx/arch/arm64/src/rk3576= -std=c++17 -Wall -Wextra -Wcast-qual -Wconversion-null -Wformat-security -Wmissing-declarations -Woverlength-strings -Wpointer-arith -Wundef -Wunused-local-typedefs -Wunused-result -Wvarargs -Wvla -Wwrite-strings -DNOMINMAX -MD -MT abseil/absl/time/CMakeFiles/absl_time_zone.dir/internal/cctz/src/time_zone_format.cc.obj -MF abseil/absl/time/CMakeFiles/absl_time_zone.dir/internal/cctz/src/time_zone_format.cc.obj.d -o abseil/absl/time/CMakeFiles/absl_time_zone.dir/internal/cctz/src/time_zone_format.cc.obj -c /dev/shm/velavision-ort-env3-20260911/abseil_cpp/absl/time/internal/cctz/src/time_zone_format.cc
+/dev/shm/velavision-ort-env3-20260911/abseil_cpp/absl/time/internal/cctz/src/time_zone_format.cc: In function 'const char* absl::lts_20240116::time_internal::cctz::detail::{anonymous}::ParseTM(const char*, const char*, tm*)':
+/dev/shm/velavision-ort-env3-20260911/abseil_cpp/absl/time/internal/cctz/src/time_zone_format.cc:651:10: error: 'strptime' was not declared in this scope; did you mean 'strftime'?
+  651 |     dp = strptime(dp, fmt, tm);
+      |          ^~~~~~~~
+      |          strftime
+[40/136] Building CXX object abseil/absl/time/CMakeFiles/absl_time_zone.dir/internal/cctz/src/time_zone_if.cc.obj
+ninja: build stopped: subcommand failed.

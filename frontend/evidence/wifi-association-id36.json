@@ -1,0 +1,31 @@
+{
+  "source_log": "sdk-native-id36-association-01.log",
+  "source_sha256": "d8346b5904cf2cc072c791baff09b4c9d002973daaca290c1d8c03b8e788389b",
+  "association": {
+    "status": 0,
+    "aid": 3,
+    "cleanup_passed": true
+  },
+  "chip_info_private_flags": "0x100000c",
+  "firmware_pn_reuse": true,
+  "data_prefixes": [
+    {
+      "sdio_payload_length": 153,
+      "captured_prefix": "740000050000046a0000000081004a01000060489cb5171c04e795ac0a62888e",
+      "ethernet_offset_in_payload": 18,
+      "ethertype": "888e",
+      "full_eapol_body_captured": false
+    },
+    {
+      "sdio_payload_length": 153,
+      "captured_prefix": "740000050100046a0000000081004a01000060489cb5171c04e795ac0a62888e",
+      "ethernet_offset_in_payload": 18,
+      "ethertype": "888e",
+      "full_eapol_body_captured": false
+    }
+  ],
+  "wpa_handshake_completed": false,
+  "ip_acquired": false,
+  "interpretation": "Real successful association and EAPOL EtherType prefixes; no full EAPOL body/MIC/replay-counter capture or WPA success is claimed.",
+  "next_step": "Use full SDIO slot including its four-byte header in PN_REUSE mode; feed copied and validated EAPOL payloads to upstream WPA state machine."
+}

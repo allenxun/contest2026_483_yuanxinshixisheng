@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "delivery_id": "concurrent-probe-v1",
+  "created_at_utc": "2026-09-10T07:20:35.8944606Z",
+  "files": [
+    {
+      "path": "count.exe",
+      "bytes": 85435,
+      "sha256": "605b5e53e57bcbf5d6cf1dc0548b2f920d3a504be68cf2efbbce1747189f16bb"
+    },
+    {
+      "path": "fail0.exe",
+      "bytes": 83332,
+      "sha256": "eb17a14a1997f3abe9f68f658cfcd752f8c36717576f62a6a928912eadc33fa0"
+    },
+    {
+      "path": "fail1.exe",
+      "bytes": 84923,
+      "sha256": "67b56f6f21a005895a7783318eb5745faa624d513917de3b1f5d40792f4b07e7"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 6128,
+      "sha256": "e5f3961b3d8e655a9619492cf3379bb9c2847690c655768ef844cc4f3001f5eb"
+    },
+    {
+      "path": "host-results.json",
+      "bytes": 10846,
+      "sha256": "2a8cabffecc91ef596231d0e63e83ac2797b928933c765a90796d9a578c7965c"
+    },
+    {
+      "path": "k7eh_main.cxx",
+      "bytes": 7779,
+      "sha256": "667527d784ab9a80a7bc880a0c0d32818c051bc55c9949592edfec1bd6085536"
+    },
+    {
+      "path": "normal.exe",
+      "bytes": 85435,
+      "sha256": "2e41baf551b7f43ac3950b0c942f560ecf8511ddf011937c1cf92c22a6aea6f2"
+    },
+    {
+      "path": "run_host.py",
+      "bytes": 2181,
+      "sha256": "d86f9860d1aecf1d68a8d6260de6d0b43e0c554ef90bc508a0ae2a6e3c298c64"
+    },
+    {
+      "path": "slow.exe",
+      "bytes": 85947,
+      "sha256": "ded00f1c6eb853eb776a08156e8805c9dcab48e2037eda3433290e176625dd3d"
+    }
+  ],
+  "input_manifest": "host-results.json:input_sha256",
+  "target_compiled": false,
+  "hardware_tested": false,
+  "host_results": "host-results.json",
+  "limits": "Windows POSIX-thread SEH host logic tests cannot validate ARM64 single-thread libgcc concurrency. External watchdog needed for broken unwinder or blocking join."
+}

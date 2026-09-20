@@ -1,0 +1,86 @@
+{
+  "codec": {
+    "scope": "Executable codec engineering candidate; host mocks only, root target validation pending",
+    "files": [
+      {
+        "path": "codec_duplex.c",
+        "sha256": "82906169d9285611ce9b2de0361347cc518cfba0620de78cd8b63ca86e9c0bee"
+      },
+      {
+        "path": "codec_duplex.h",
+        "sha256": "02f085739c0e6dec064bad04a165c1b06a8e59baf5760ca6b298612278c1bac1"
+      },
+      {
+        "path": "frozen-inputs.json",
+        "sha256": "dd585576b4001e71fc0d7831a3c4484330efec254df6294dac2acdc924747e46"
+      },
+      {
+        "path": "HANDOFF.md",
+        "sha256": "18759c47138a1a292dd8bc8e745b0addb87cd98401acbe47d2346486aa3a942d"
+      },
+      {
+        "path": "input-codec_duplex.c",
+        "sha256": "6c5912ab7cd45f24bf9a8f410b1cc5a09071ab9dddd9725e231c2b7351218fb6"
+      },
+      {
+        "path": "input-codec_duplex.h",
+        "sha256": "02f085739c0e6dec064bad04a165c1b06a8e59baf5760ca6b298612278c1bac1"
+      },
+      {
+        "path": "inputs.json",
+        "sha256": "13afc1adf6230f4c2b05976c739b9fa675fb229bdb8e99285c3da60052bcbd61"
+      },
+      {
+        "path": "normal-power.patch",
+        "sha256": "a8bb008c1a7b844e4192919898041f3ff59414248b1b6ce30425599c13bef36b"
+      },
+      {
+        "path": "prepare.py",
+        "sha256": "2ea78f8688d2bf51bbb211218f81ef9d9d6443c2f83e5b0be0e9989916997cff"
+      },
+      {
+        "path": "results.json",
+        "sha256": "09d2b92cd3616b61f4cc396982674038c416285d4a8ae14b26f38392bd14d46e"
+      },
+      {
+        "path": "run_tests.py",
+        "sha256": "c1699cfa832aa7b350550d40f2cc280f5f222a00e795ebe60fce75bf0c134335"
+      },
+      {
+        "path": "seal_delivery.py",
+        "sha256": "fc8b4ad71d0428bd7aff51f4bbb6c7b4f11b0ba351fe50cb5a71691f4e17272a"
+      },
+      {
+        "path": "test_duplex.c",
+        "sha256": "fa94427c4050bd3d109d17b2ca45f01dfa6b61eb274cc1e6650adea82f4a0f64"
+      },
+      {
+        "path": "testO0.exe",
+        "sha256": "7217651eb121a87ba4fada37407a73bf67e3a08c44fdc80cb071427bd0b03200"
+      },
+      {
+        "path": "testO2.exe",
+        "sha256": "707ac1f8294917bc88933683fbfff17601a583af1893e54e4065cd1a380b8fe8"
+      }
+    ]
+  },
+  "pio": {
+    "buffer-play.patch": "24fa4f6e713eeb46dfad1f5db18ca093beb5107b504ce43945f7cf8ed5941490",
+    "HANDOFF.md": "7e4be821b8260c76f48f2b81d5409f0b4ebe708f580c6ab8f697d8d0ba7c623d",
+    "inputs.json": "dee9a5d03bb0cf71b77d137aab93779ad6236c52c244950d296aa23f8cccd45e",
+    "pio.c": "fead29c05a56986b95fb7fca55bfec5bc562ff6e932541eb1299c972f587fb4a",
+    "pio.h": "fc33200e739622a9e279efe5893c2ef77bfd6579510fb5319475fab04bf89b6d",
+    "run.py": "cdaf68fc1c63ea246b865ae6508c58eb2b550d1b55f6485d8278db283f8ac519",
+    "test-output.txt": "5f97515d93723866629558bc140b11e15a1a03141d74f419015ae00d0fcaa78d",
+    "test.c": "203c50276961d7049244bad0f0f60cc20ec3455231501c76e9446f94dded7907",
+    "testO0.exe": "0414163bef061ad3946fcc7bec8bcebfeeede7d12a4deb74ab1a0db759da9a5c",
+    "testO2.exe": "f48e521c5e2a88c521e9986f7d6d1aecc88b6aad5dbc053165c9f2051ea9384c",
+    "input\\00_pio.c": "e7608d58a48e852203be00d5316f7b9cabeae74ae5df927fdbefeb7cfa725458",
+    "input\\01_pio.h": "009c2bef0ad5166a52ba349d15a7c2a6cde04cd8147542688825ba5bf27d1560",
+    "input\\02_rockchip_sai.h": "0168c0a18f6abda7211af572f6778ff41b77e22602f6ad00f3ffee83e97884ed",
+    "input\\03_inputs.json": "790aa3029acad63ffb82b85e26cf9531178d9e99c8fa2237225b2084ecb2da83",
+    "input\\04_HANDOFF.md": "c87762d49232b36ca9b6322065e93d6d5350a5af7952e6a6ace54c855e5cfe78",
+    "input\\rockchip_sai.h": "0168c0a18f6abda7211af572f6778ff41b77e22602f6ad00f3ffee83e97884ed"
+  },
+  "hardware_tested": false
+}

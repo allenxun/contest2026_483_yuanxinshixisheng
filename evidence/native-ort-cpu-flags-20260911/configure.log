@@ -1,0 +1,152 @@
+loading initial cache file /dev/shm/velavision-ort-session-20260911/initial-cache.cmake
+CMake Deprecation Warning at CMakeLists.txt:14 (cmake_policy):
+  The OLD behavior for policy CMP0104 will be removed from a future version
+  of CMake.
+
+  The cmake-policies(7) manual explains that the OLD behaviors of all
+  policies are deprecated and that a policy should be set to OLD only under
+  specific short-term circumstances.  Projects should be ported to the NEW
+  behavior and not rely on setting a policy to OLD.
+
+
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+Your CMakeCache.txt file was copied to CopyOfCMakeCache.txt. Please post that file on discourse.cmake.org.
+CMake Warning (dev) at CMakeLists.txt:55 (include):
+  Policy CMP0145 is not set: The Dart and FindDart modules are removed.  Run
+  "cmake --help-policy CMP0145" for policy details.  Use the cmake_policy
+  command to set the policy and suppress this warning.
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /dev/shm/cmake-3.28.3-linux-x86_64/share/cmake-3.28/Modules/Dart.cmake:47 (message):
+  Policy CMP0145 is not set: The Dart and FindDart modules are removed.  Run
+  "cmake --help-policy CMP0145" for policy details.  Use the cmake_policy
+  command to set the policy and suppress this warning.
+Call Stack (most recent call first):
+  CMakeLists.txt:55 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /dev/shm/cmake-3.28.3-linux-x86_64/share/cmake-3.28/Modules/Dart.cmake:57 (find_package):
+  Policy CMP0144 is not set: find_package uses upper-case <PACKAGENAME>_ROOT
+  variables.  Run "cmake --help-policy CMP0144" for policy details.  Use the
+  cmake_policy command to set the policy and suppress this warning.
+
+  CMake variable DART_ROOT is set to:
+
+    DART_ROOT-NOTFOUND
+
+  For compatibility, find_package is ignoring the variable, but code in a
+  .cmake module might still use it.
+Call Stack (most recent call first):
+  CMakeLists.txt:55 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+F16C instruction set is not supported.
+FMA instruction set is not supported.
+AVX instruction set is not supported.
+One or more AVX/F16C instruction flags are not supported. 
+Building ONNX Runtime for aarch64 CPU ARCH
+Patch found: /usr/bin/patch
+Doing crosscompiling
+Loading Dependencies URLs ...
+Loading Dependencies ...
+-- Abseil source dir:/dev/shm/velavision-ort-session-20260911/sources/abseil_cpp
+CMake Deprecation Warning at /dev/shm/velavision-ort-session-20260911/sources/google_nsync/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+-- 
+-- 3.21.12.0
+-- Could NOT find ZLIB (missing: ZLIB_LIBRARY ZLIB_INCLUDE_DIR) 
+CMake Deprecation Warning at /dev/shm/velavision-ort-session-20260911/sources/json/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+-- Using the single-header code from /dev/shm/velavision-ort-session-20260911/sources/json/single_include/
+CMake Deprecation Warning at /dev/shm/velavision-ort-session-20260911/sources/flatbuffers/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+-- Using toolchain file: /dev/shm/velavision-ort-session-20260911/session-toolchain.cmake.
+fatal: 不是 git 仓库（或者直至挂载点 /dev 的任何父目录）
+停止在文件系统边界（未设置 GIT_DISCOVERY_ACROSS_FILESYSTEM）。
+CMake Deprecation Warning at /dev/shm/velavision-ort-session-20260911/sources/onnx/CMakeLists.txt:2 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+CMake Warning (dev) at /dev/shm/velavision-ort-session-20260911/sources/onnx/CMakeLists.txt:112 (find_package):
+  Policy CMP0148 is not set: The FindPythonInterp and FindPythonLibs modules
+  are removed.  Run "cmake --help-policy CMP0148" for policy details.  Use
+  the cmake_policy command to set the policy and suppress this warning.
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Using custom protoc executable
+Generated: /dev/shm/velavision-ort-session-20260911/build/_deps/onnx-build/onnx/onnx-ml.proto
+Generated: /dev/shm/velavision-ort-session-20260911/build/_deps/onnx-build/onnx/onnx-operators-ml.proto
+Generated: /dev/shm/velavision-ort-session-20260911/build/_deps/onnx-build/onnx/onnx-data.proto
+-- 
+-- ******** Summary ********
+--   CMake version                     : 3.28.3
+--   CMake command                     : /dev/shm/cmake-3.28.3-linux-x86_64/bin/cmake
+--   System                            : NuttX
+--   C++ compiler                      : /home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-g++
+--   C++ compiler version              : 13.4.0
+--   CXX flags                         : -D__NuttX__ -I/home/swl/openvela/apps/include -I/dev/shm/velavision_audio_sound_20260910/apps/include -I/home/swl/openvela/apps/examples/voicelink/include -I/home/swl/openvela/apps/examples/voicelink/src -I/home/swl/openvela/apps/examples/voicelink/../k7radio -I/dev/shm/velavision_audio_sound_20260910/include/libcxx -I/dev/shm/velavision_audio_sound_20260910/include/libcxx_config -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/test/support -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/src -I/dev/shm/velavision_audio_sound_20260910/include/libcxxabi -I/home/swl/openvela/apps/frameworks/security/include -isystem /home/swl/openvela/nuttx/include -isystem /dev/shm/velavision_audio_sound_20260910/include -march=armv8-a -mtune=cortex-a53 -Os -fno-strict-aliasing -fno-omit-frame-pointer -D_LDBL_EQ_DBL -fno-common -Wall -Wshadow -Wundef -Wno-attributes -Wno-unknown-pragmas -nostdinc++ -Wno-psabi -std=gnu++17 -ffunction-sections -fdata-sections -g3 -Wno-alloc-size-larger-than -Wno-stringop-overflow -fdiagnostics-color=always -fmacro-prefix-map=/home/swl/openvela/nuttx= -fmacro-prefix-map=/home/swl/openvela/apps= -fmacro-prefix-map=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7= -fmacro-prefix-map=/home/swl/openvela/nuttx/arch/arm64/src/rk3576= -DCONFIG_ALLOW_MIT_COMPONENTS=1 -ffunction-sections -fdata-sections -Wno-error=attributes -Wno-restrict  -Wnon-virtual-dtor
+--   Build type                        : MinSizeRel
+--   Compile definitions               : ORT_ENABLE_STREAM;REDUCED_OPS_BUILD;ORT_NO_RTTI;EIGEN_MPL2_ONLY;__STDC_FORMAT_MACROS
+--   CMAKE_PREFIX_PATH                 : 
+--   CMAKE_INSTALL_PREFIX              : /usr/local
+--   CMAKE_MODULE_PATH                 : /dev/shm/velavision-ort-session-20260911/ort/cmake/external
+-- 
+--   ONNX version                      : 1.15.0
+--   ONNX NAMESPACE                    : onnx
+--   ONNX_USE_LITE_PROTO               : ON
+--   USE_PROTOBUF_SHARED_LIBS          : OFF
+--   Protobuf_USE_STATIC_LIBS          : ON
+--   ONNX_DISABLE_EXCEPTIONS           : OFF
+--   ONNX_DISABLE_STATIC_REGISTRATION  : OFF
+--   ONNX_WERROR                       : OFF
+--   ONNX_BUILD_TESTS                  : OFF
+--   ONNX_BUILD_BENCHMARKS             : OFF
+--   ONNX_BUILD_SHARED_LIBS            : 
+--   BUILD_SHARED_LIBS                 : OFF
+-- 
+--   Protobuf compiler                 : 
+--   Protobuf includes                 : 
+--   Protobuf libraries                : 
+--   BUILD_ONNX_PYTHON                 : OFF
+Finished fetching external dependencies
+NVCC_ERROR = 
+NVCC_OUT = No such file or directory
+fatal: 不是 git 仓库（或者直至挂载点 /dev 的任何父目录）
+停止在文件系统边界（未设置 GIT_DISCOVERY_ACROSS_FILESYSTEM）。
+fatal: 不是 git 仓库（或者直至挂载点 /dev 的任何父目录）
+停止在文件系统边界（未设置 GIT_DISCOVERY_ACROSS_FILESYSTEM）。
+CMake Warning at CMakeLists.txt:1604 (message):
+  MPI and NCCL disabled on Win build.
+
+
+File '/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/contrib_ops/cpu/cpu_contrib_kernels.cc' substituted with reduced op version '/dev/shm/velavision-ort-session-20260911/build/op_reduction.generated/onnxruntime/contrib_ops/cpu/cpu_contrib_kernels.cc'.
+File '/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/providers/cpu/cpu_execution_provider.cc' substituted with reduced op version '/dev/shm/velavision-ort-session-20260911/build/op_reduction.generated/onnxruntime/core/providers/cpu/cpu_execution_provider.cc'.
+File '/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/providers/op_kernel_type_control_overrides.inc' substituted with reduced op version '/dev/shm/velavision-ort-session-20260911/build/op_reduction.generated/onnxruntime/core/providers/op_kernel_type_control_overrides.inc'.
+-- Configuring done (0.5s)
+-- Generating done (0.2s)
+-- Build files have been written to: /dev/shm/velavision-ort-session-20260911/build

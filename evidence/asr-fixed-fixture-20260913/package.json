@@ -1,0 +1,24 @@
+{
+  "sha256": "51e0c1e1f9a56514dd4d62734783c008b17c7e5fd1093573bf07ebd5387c2f3c",
+  "bytes": 15324528,
+  "crc32": "0325c3c8",
+  "download_address": "0x40c00800",
+  "stage_address": "0x46000000",
+  "boot_address": "0x40400000",
+  "flash_commands": false,
+  "elf_loads": [
+    {
+      "address": "0x40400000",
+      "memory_bytes": 11030528
+    },
+    {
+      "address": "0x40e85000",
+      "memory_bytes": 4251648
+    },
+    {
+      "address": "0x41293000",
+      "memory_bytes": 4837376
+    }
+  ],
+  "unwind_passed": true
+}

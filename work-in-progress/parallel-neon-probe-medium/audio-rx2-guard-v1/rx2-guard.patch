@@ -1,0 +1,93 @@
+--- a/app/k7sound/duplex.c
++++ b/app/k7sound/duplex.c
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: GPL-2.0-or-later */
+ #include "duplex.h"
+ #include <stddef.h>
++int rx2_pair_ready(uint32_t raw);
+ #include <string.h>
+ #define BIT(n) (UINT32_C(1)<<(n))
+ #define GENMASK(h,l) ((UINT32_MAX>>(31-(h))) & (UINT32_MAX<<(l)))
+@@ -67,12 +68,13 @@
+  return rc;
+ }
+ static int run_route(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+- uint32_t*capture,unsigned capacity,unsigned frames,int route,int numbered,unsigned rx_lanes,struct dl_result*r)
++ uint32_t*capture,unsigned capacity,unsigned frames,int route,int numbered,unsigned rx_lanes,int guarded,struct dl_result*r)
+ {
+  uint32_t v,t,x,mask,value,rxvalue,pathmask;unsigned i;uint64_t now;
+- int rc=-5,clocks_attempted=0,path_saved=0,rx_saved=0;
++ int rc=-5,clocks_attempted=0,path_saved=0,rx_saved=0,ready=0;
+  if(!r)return -22;
+  memset(r,0,sizeof(*r));
++ if(guarded&&rx_lanes!=2)return r->result=-22;
+  if(rx_lanes!=1&&rx_lanes!=2)return r->result=-22;
+  if(rx_lanes==2&&(!numbered||frames!=128||route!=DL_ROUTE_DEFAULT))return r->result=-22;
+  if(numbered&&(frames!=128||route!=DL_ROUTE_DEFAULT))return r->result=-22;
+@@ -134,6 +136,8 @@
+   if(rd(p,SAI_INTSR,&v))goto done;
+   if(v&(SAI_INTSR_TXUI_ACT|SAI_INTSR_RXOI_ACT)){rc=-75;goto done;}
+   if(rd(p,SAI_TXFIFOLR,&t)||rd(p,SAI_RXFIFOLR,&v))goto done;
++  ready=guarded?rx2_pair_ready(v):(count(v)>=2);
++  if(ready<0){rc=-71;goto done;}
+   t=count(t);v=count(v);
+   if(t>r->max_tx)r->max_tx=t;
+   if(v>r->max_rx)r->max_rx=v;
+@@ -141,7 +145,7 @@
+   if(t<=14){
+    if(r->tx_words>=2*(frames+16u)){rc=-71;goto done;}
+    for(i=0;i<2;i++){x=marker(r->tx_words,numbered);if(word(p,1,&x,r))goto done;r->tx_words++;}}
+-  if(v>=2){for(i=0;i<2;i++)if(word(p,0,&capture[2*r->frames+i],r))goto done;
++  if(ready){for(i=0;i<2;i++)if(word(p,0,&capture[2*r->frames+i],r))goto done;
+    if(++r->frames==frames){rc=0;goto done;}}
+  }
+  rc=-110;
+@@ -166,15 +170,19 @@
+ 
+ int dl_run(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+  uint32_t*capture,unsigned capacity,unsigned frames,struct dl_result*r)
+-{return run_route(p,prepared,common,mclk,capture,capacity,frames,DL_ROUTE_DEFAULT,0,1,r);}
++{return run_route(p,prepared,common,mclk,capture,capacity,frames,DL_ROUTE_DEFAULT,0,1,0,r);}
+ int dl_run_route(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+  uint32_t*capture,unsigned capacity,unsigned frames,int route,struct dl_result*r)
+-{return run_route(p,prepared,common,mclk,capture,capacity,frames,route,0,1,r);}
++{return run_route(p,prepared,common,mclk,capture,capacity,frames,route,0,1,0,r);}
+ 
+ int dl_run_numbered(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+  uint32_t*capture,unsigned capacity,struct dl_result*r)
+-{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,1,r);}
++{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,1,0,r);}
+ 
+ int dl_run_numbered_rx2(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+  uint32_t*capture,unsigned capacity,struct dl_result*r)
+-{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,2,r);}
++{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,2,0,r);}
++
++int dl_run_numbered_rx2_guard(const struct dl_port*p,int prepared,int common,uint32_t mclk,
++ uint32_t*capture,unsigned capacity,struct dl_result*r)
++{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,2,1,r);}
+--- a/app/k7sound/duplex.h
++++ b/app/k7sound/duplex.h
+@@ -47,4 +47,8 @@
+  * RX CSR restored after successful stop; rx_restore_rc failure retains held. */
+ int dl_run_numbered_rx2(const struct dl_port *,int,int,uint32_t,uint32_t *,unsigned,
+  struct dl_result *);
++/* Explicit guarded RX2: both observed banks0/1 must have>=2 entries;
++ * unexpected banks/depth reject. Other entry points keep original readiness. */
++int dl_run_numbered_rx2_guard(const struct dl_port *,int,int,uint32_t,uint32_t *,unsigned,
++ struct dl_result *);
+ #endif
+--- /dev/null
++++ b/app/k7sound/rx2_ready.c
+@@ -0,0 +1,11 @@
++#include <stdint.h>
++/* Pure candidate readiness predicate ONLY for explicit RX2 diagnostic.
++ * Observed bank0/1 layout is a hypothesis; unexpected banks reject the probe.
++ * Return1 pair may be attempted,0 keep polling,-1 unsupported/invalid state.
++ * Does not prove CPU bank cursor; caller must retain raw per-read trace. */
++int rx2_pair_ready(uint32_t raw)
++{
++ unsigned a=raw&63,b=(raw>>6)&63,c=(raw>>12)&63,d=(raw>>18)&63;
++ if(a>32||b>32||c||d)return -1;
++ return a>=2&&b>=2;
++}

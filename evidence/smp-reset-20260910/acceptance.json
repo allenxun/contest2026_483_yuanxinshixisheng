@@ -1,0 +1,29 @@
+{
+  "diagnostic": {
+    "passed": true,
+    "prompt_returned": true,
+    "lines": [
+      "k7smp",
+      "SMP cpu=0 observed=0 samples=10000 mismatch=0 sleep_errors=0 elapsed_ns=19173584",
+      "SMP cpu=1 observed=1 samples=10000 mismatch=0 sleep_errors=0 elapsed_ns=19158125",
+      "SMP result=PASS shared_counter=20000 expected=20000",
+      "nsh>"
+    ],
+    "storage_writes": false,
+    "scope": "two A53 pinned workers, shared atomic counter and timed sleeps; not eight-core or peripheral SMP acceptance"
+  },
+  "software_reset": {
+    "uboot_prompt": true,
+    "elapsed": 0.6560000000026776,
+    "storage_writes": false
+  },
+  "restored_revision": "emmc-vfs-20260910",
+  "restored_sha256": "06320f4b86326ea91d682fb6192dad5c64f7893279f9d73ed57490f80b9fe10b",
+  "wifi_connected": true,
+  "ip": "10.3.0.214",
+  "gateway_ping": "5/5",
+  "ble_client_intentionally_disconnected": true,
+  "amsdu_rejected": 2,
+  "emmc_written": false,
+  "note": "Two A53 diagnostic and restoration, not peripheral SMP acceptance"
+}

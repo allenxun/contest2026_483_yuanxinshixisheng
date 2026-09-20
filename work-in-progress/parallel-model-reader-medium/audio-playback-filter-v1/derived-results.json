@@ -1,0 +1,35 @@
+{
+  "command": [
+    "D:/software/mingw64/mingw64/bin/gcc.exe",
+    "-std=c11",
+    "-O2",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-shared",
+    "playback_filter.c",
+    "-o",
+    "filter-host.dll"
+  ],
+  "stdout": "",
+  "stderr": "",
+  "source": "E:\\openvela\\VelaVision\\evidence\\audio-gain-20260910\\voice-max-first\\capture-raw32.wav",
+  "source_sha256": "122e6fd4fafc052477fbd4806249d59e80d039e9ff7de2ced7f8344ebe7bf962",
+  "outputs": [
+    {
+      "mode": 1,
+      "path": "derived-c-ma4-stereo32-16000.wav",
+      "sha256": "1b6d20cf31f96341b9c671017031b758de36683752242f409b27e8053c967eb7",
+      "saturations": 0,
+      "frames": 48000
+    },
+    {
+      "mode": 2,
+      "path": "derived-c-ma4-hp80-stereo32-16000.wav",
+      "sha256": "163ec43e32de42fa3ee765920c85b1d95a404eff8b2e97a207e5cae4cc9bfe78",
+      "saturations": 0,
+      "frames": 48000
+    }
+  ],
+  "host_only": true
+}

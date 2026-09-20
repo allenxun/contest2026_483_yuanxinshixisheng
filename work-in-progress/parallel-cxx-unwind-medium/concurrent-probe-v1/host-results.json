@@ -1,0 +1,204 @@
+{
+  "commands": [
+    {
+      "command": [
+        "g++",
+        "-v"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "output": "Using built-in specs.\r\nCOLLECT_GCC=g++\r\nCOLLECT_LTO_WRAPPER=D:/software/mingw64/mingw64/bin/../libexec/gcc/x86_64-w64-mingw32/12.2.0/lto-wrapper.exe\r\nTarget: x86_64-w64-mingw32\r\nConfigured with: ../../../src/gcc-12.2.0/configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --target=x86_64-w64-mingw32 --prefix=/mingw64 --with-sysroot=/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64 --enable-host-shared --disable-multilib --enable-languages=c,c++,fortran,lto --enable-libstdcxx-time=yes --enable-threads=posix --enable-libgomp --enable-libatomic --enable-lto --enable-graphite --enable-checking=release --enable-fully-dynamic-string --enable-version-specific-runtime-libs --enable-libstdcxx-filesystem-ts=yes --disable-libstdcxx-pch --disable-libstdcxx-debug --enable-bootstrap --disable-rpath --disable-win32-registry --disable-nls --disable-werror --disable-symvers --with-gnu-as --with-gnu-ld --with-arch=nocona --with-tune=core2 --with-libiconv --with-system-zlib --with-gmp=/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static --with-mpfr=/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static --with-mpc=/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static --with-isl=/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static --with-pkgversion='x86_64-posix-seh-rev2, Built by MinGW-W64 project' --with-bugurl=https://sourceforge.net/projects/mingw-w64 CFLAGS='-O2 -pipe -fno-ident -I/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64/opt/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-zlib-static/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static/include' CXXFLAGS='-O2 -pipe -fno-ident -I/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64/opt/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-zlib-static/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static/include' CPPFLAGS=' -I/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64/opt/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-zlib-static/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static/include' LDFLAGS='-pipe -fno-ident -L/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64/opt/lib -L/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-zlib-static/lib -L/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static/lib ' LD_FOR_TARGET=/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64/bin/ld.exe --with-boot-ldflags=' -Wl,--disable-dynamicbase -static-libstdc++ -static-libgcc'\r\nThread model: posix\r\nSupported LTO compression algorithms: zlib\r\ngcc version 12.2.0 (x86_64-posix-seh-rev2, Built by MinGW-W64 project) \r\n"
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7EH_HOST_TEST",
+        "k7eh_main.cxx",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\normal.exe"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\normal.exe",
+        "cold"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "output": "K7EH begin mode=cold rounds=1 workers=2 main_prethrow=0\r\nK7EH worker=0 caught=1 cleaned=3 errors=0 cpu=-1 cpu_mismatch=0 first_begin=108055815241900 first_end=108055815323900\r\nK7EH worker=1 caught=1 cleaned=3 errors=0 cpu=-1 cpu_mismatch=0 first_begin=108055799180200 first_end=108055800328900\r\nK7EH result=PASS code=0 created=2 joined=2 mode=cold concurrency_proven=0\r\n"
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\normal.exe",
+        "warm"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "output": "K7EH begin mode=warm rounds=64 workers=2 main_prethrow=1\r\nK7EH worker=0 caught=64 cleaned=192 errors=0 cpu=-1 cpu_mismatch=0 first_begin=108055862901600 first_end=108055862948500\r\nK7EH worker=1 caught=64 cleaned=192 errors=0 cpu=-1 cpu_mismatch=0 first_begin=108055847219100 first_end=108055847273300\r\nK7EH result=PASS code=0 created=2 joined=2 mode=warm concurrency_proven=0\r\n"
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\normal.exe",
+        "repeat"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "passed": true,
+      "output": "K7EH begin mode=cold rounds=1 workers=2 main_prethrow=0\r\nK7EH worker=0 caught=1 cleaned=3 errors=0 cpu=-1 cpu_mismatch=0 first_begin=108057597896800 first_end=108057597905700\r\nK7EH worker=1 caught=1 cleaned=3 errors=0 cpu=-1 cpu_mismatch=0 first_begin=108057597789200 first_end=108057597889300\r\nK7EH result=PASS code=0 created=2 joined=2 mode=cold concurrency_proven=0\r\nK7EH already attempted; reboot required\r\n"
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\normal.exe",
+        "invalid"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "passed": true,
+      "output": "usage: k7eh cold|warm (each needs a fresh boot; target CPUs 4 and 5)\r\n"
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7EH_HOST_TEST",
+        "-DK7EH_FAIL_CREATE=0",
+        "k7eh_main.cxx",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\fail0.exe"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\fail0.exe",
+        "cold"
+      ],
+      "exit_code": 20,
+      "expected_exit_code": 20,
+      "passed": true,
+      "output": "K7EH begin mode=cold rounds=1 workers=2 main_prethrow=0\r\nK7EH create_failed index=0 rc=11\r\nK7EH result=FAIL code=20 created=0 joined=0 mode=cold concurrency_proven=0\r\n"
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7EH_HOST_TEST",
+        "-DK7EH_FAIL_CREATE=1",
+        "k7eh_main.cxx",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\fail1.exe"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\fail1.exe",
+        "cold"
+      ],
+      "exit_code": 20,
+      "expected_exit_code": 20,
+      "passed": true,
+      "output": "K7EH begin mode=cold rounds=1 workers=2 main_prethrow=0\r\nK7EH create_failed index=1 rc=11\r\nK7EH worker=0 caught=0 cleaned=0 errors=0 cpu=-1 cpu_mismatch=0 first_begin=0 first_end=0\r\nK7EH result=FAIL code=20 created=1 joined=1 mode=cold concurrency_proven=0\r\n"
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7EH_HOST_TEST",
+        "-DK7EH_SLOW_READY",
+        "k7eh_main.cxx",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\slow.exe"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\slow.exe",
+        "cold"
+      ],
+      "exit_code": 21,
+      "expected_exit_code": 21,
+      "passed": true,
+      "output": "K7EH begin mode=cold rounds=1 workers=2 main_prethrow=0\r\nK7EH worker=0 caught=0 cleaned=0 errors=0 cpu=-1 cpu_mismatch=0 first_begin=0 first_end=0\r\nK7EH worker=1 caught=0 cleaned=0 errors=0 cpu=-1 cpu_mismatch=0 first_begin=0 first_end=0\r\nK7EH result=FAIL code=21 created=2 joined=2 mode=cold concurrency_proven=0\r\n"
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7EH_HOST_TEST",
+        "-DK7EH_BAD_COUNT",
+        "k7eh_main.cxx",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\count.exe"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "passed": true,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\concurrent-probe-v1\\count.exe",
+        "cold"
+      ],
+      "exit_code": 22,
+      "expected_exit_code": 22,
+      "passed": true,
+      "output": "K7EH begin mode=cold rounds=1 workers=2 main_prethrow=0\r\nK7EH worker=0 caught=1 cleaned=3 errors=0 cpu=-1 cpu_mismatch=0 first_begin=108058932771000 first_end=108058932848900\r\nK7EH worker=1 caught=1 cleaned=4 errors=0 cpu=-1 cpu_mismatch=0 first_begin=108058932670700 first_end=108058932752700\r\nK7EH result=FAIL code=22 created=2 joined=2 mode=cold concurrency_proven=0\r\n"
+    }
+  ],
+  "all_expected": true,
+  "input_sha256": {
+    "app/k7cxx/k7cxx_main.cxx": "257aa044c8f9d7b9f978ae3059fa05bb351710b605a0a7f7af7dc2802b77dae5",
+    "app/k7smp/k7smp_main.c": "4ef05f39ec887b3b035441abbb2b51b81b487449cf23c91f1a7d29925d5273a4",
+    "work-in-progress/parallel-cxx-unwind-medium/THREADING-RISK.md": "29420290da1c6326b9935dfe2384ecc44c02e30a64b974a1311c1794721e4798"
+  },
+  "source_sha256": "667527d784ab9a80a7bc880a0c0d32818c051bc55c9949592edfec1bd6085536",
+  "scope": "Windows x86_64 MinGW POSIX-thread SEH runtime; logic checks only; not ARM64 libgcc single-thread validation",
+  "sdk_accessed": false,
+  "target_compiled": false,
+  "hardware_tested": false
+}

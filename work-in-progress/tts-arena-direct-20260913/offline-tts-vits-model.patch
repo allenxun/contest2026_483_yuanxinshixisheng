@@ -1,0 +1,32 @@
+--- a/sherpa-onnx/csrc/offline-tts-vits-model.cc
++++ b/sherpa-onnx/csrc/offline-tts-vits-model.cc
+@@
+ #include "sherpa-onnx/csrc/offline-tts-vits-model.h"
++#ifdef K7_TTS_NATIVE_STORAGE
++#include "native_tts_storage.hpp"
++#endif
+@@
+   explicit Impl(const OfflineTtsModelConfig &config)
+       : config_(config),
++#ifdef K7_TTS_NATIVE_STORAGE
++        native_storage_(),
++#endif
+         env_(ORT_LOGGING_LEVEL_ERROR),
+         sess_opts_(GetSessionOptions(config)),
+         allocator_{} {
++#ifdef K7_TTS_NATIVE_STORAGE
++    native_storage_.initialize(env_, sess_opts_);
++    Init(const_cast<void *>(native_storage_.model_data()),
++         native_storage_.model_size());
++#else
+     auto buf = ReadFile(config.vits.model);
+     Init(buf.data(), buf.size());
++#endif
+@@
+  private:
+   OfflineTtsModelConfig config_;
++#ifdef K7_TTS_NATIVE_STORAGE
++  // Must outlive Env and Session; declaration order is intentional.
++  k7_tts::ModelStorage native_storage_;
++#endif
+   Ort::Env env_;

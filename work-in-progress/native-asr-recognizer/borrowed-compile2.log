@@ -1,0 +1,333 @@
+In file included from E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/shared_runtime.hpp:3,
+                 from E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/test_borrowed_runtime.cpp:1:
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1852:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1852 |   ORT_CLASS_RELEASE(Env);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1852:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1852 |   ORT_CLASS_RELEASE(Env);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1856:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1856 |   ORT_CLASS_RELEASE(Status);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1856:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1856 |   ORT_CLASS_RELEASE(Status);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1860:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1860 |   ORT_CLASS_RELEASE(MemoryInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1860:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1860 |   ORT_CLASS_RELEASE(MemoryInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1864:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1864 |   ORT_CLASS_RELEASE(Session);  // Don't call ReleaseSession from Dllmain (because session owns a thread pool)
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1864:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1864 |   ORT_CLASS_RELEASE(Session);  // Don't call ReleaseSession from Dllmain (because session owns a thread pool)
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1868:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1868 |   ORT_CLASS_RELEASE(Value);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1868:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1868 |   ORT_CLASS_RELEASE(Value);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1872:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1872 |   ORT_CLASS_RELEASE(RunOptions);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1872:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1872 |   ORT_CLASS_RELEASE(RunOptions);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1876:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1876 |   ORT_CLASS_RELEASE(TypeInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1876:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1876 |   ORT_CLASS_RELEASE(TypeInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1880:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1880 |   ORT_CLASS_RELEASE(TensorTypeAndShapeInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1880:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1880 |   ORT_CLASS_RELEASE(TensorTypeAndShapeInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1884:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1884 |   ORT_CLASS_RELEASE(SessionOptions);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1884:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1884 |   ORT_CLASS_RELEASE(SessionOptions);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1888:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1888 |   ORT_CLASS_RELEASE(CustomOpDomain);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1888:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1888 |   ORT_CLASS_RELEASE(CustomOpDomain);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1986:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1986 |   ORT_CLASS_RELEASE(MapTypeInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1986:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1986 |   ORT_CLASS_RELEASE(MapTypeInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1990:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1990 |   ORT_CLASS_RELEASE(SequenceTypeInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:1990:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 1990 |   ORT_CLASS_RELEASE(SequenceTypeInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2087:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2087 |   ORT_CLASS_RELEASE(ModelMetadata);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2087:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2087 |   ORT_CLASS_RELEASE(ModelMetadata);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2135:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2135 |   ORT_CLASS_RELEASE(ThreadingOptions);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2135:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2135 |   ORT_CLASS_RELEASE(ThreadingOptions);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2269:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2269 |   ORT_CLASS_RELEASE(Allocator);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2269:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2269 |   ORT_CLASS_RELEASE(Allocator);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2306:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2306 |   ORT_CLASS_RELEASE(IoBinding);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2306:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2306 |   ORT_CLASS_RELEASE(IoBinding);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2629:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2629 |   ORT_CLASS_RELEASE(ArenaCfg);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2629:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2629 |   ORT_CLASS_RELEASE(ArenaCfg);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2827:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2827 |   ORT_CLASS_RELEASE(PrepackedWeightsContainer);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2827:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 2827 |   ORT_CLASS_RELEASE(PrepackedWeightsContainer);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2950:54: error: '_Frees_ptr_opt_' has not been declared
+ 2950 |   void(ORT_API_CALL* ReleaseTensorRTProviderOptions)(_Frees_ptr_opt_ OrtTensorRTProviderOptionsV2* input);
+      |                                                      ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:2950:98: error: expected ',' or '...' before '*' token
+ 2950 |   void(ORT_API_CALL* ReleaseTensorRTProviderOptions)(_Frees_ptr_opt_ OrtTensorRTProviderOptionsV2* input);
+      |                                                                                                  ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:3453:50: error: '_Frees_ptr_opt_' has not been declared
+ 3453 |   void(ORT_API_CALL* ReleaseCUDAProviderOptions)(_Frees_ptr_opt_ OrtCUDAProviderOptionsV2* input);
+      |                                                  ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:3453:90: error: expected ',' or '...' before '*' token
+ 3453 |   void(ORT_API_CALL* ReleaseCUDAProviderOptions)(_Frees_ptr_opt_ OrtCUDAProviderOptionsV2* input);
+      |                                                                                          ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:3519:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 3519 |   ORT_CLASS_RELEASE(OpAttr);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:3519:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 3519 |   ORT_CLASS_RELEASE(OpAttr);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:3578:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 3578 |   ORT_CLASS_RELEASE(Op);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:3578:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 3578 |   ORT_CLASS_RELEASE(Op);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:62: error: '_Frees_ptr_opt_' has not been declared
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                              ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:3664:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 3664 |   ORT_CLASS_RELEASE(KernelInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:157:85: error: expected ',' or '...' before '*' token
+  157 | #define ORT_CLASS_RELEASE(X) void(ORT_API_CALL * Release##X)(_Frees_ptr_opt_ Ort##X * input)
+      |                                                                                     ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:3664:3: note: in expansion of macro 'ORT_CLASS_RELEASE'
+ 3664 |   ORT_CLASS_RELEASE(KernelInfo);
+      |   ^~~~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:3748:50: error: '_Frees_ptr_opt_' has not been declared
+ 3748 |   void(ORT_API_CALL* ReleaseCANNProviderOptions)(_Frees_ptr_opt_ OrtCANNProviderOptions* input);
+      |                                                  ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:3748:88: error: expected ',' or '...' before '*' token
+ 3748 |   void(ORT_API_CALL* ReleaseCANNProviderOptions)(_Frees_ptr_opt_ OrtCANNProviderOptions* input);
+      |                                                                                        ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:4084:50: error: '_Frees_ptr_opt_' has not been declared
+ 4084 |   void(ORT_API_CALL* ReleaseDnnlProviderOptions)(_Frees_ptr_opt_ OrtDnnlProviderOptions* input);
+      |                                                  ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:4084:88: error: expected ',' or '...' before '*' token
+ 4084 |   void(ORT_API_CALL* ReleaseDnnlProviderOptions)(_Frees_ptr_opt_ OrtDnnlProviderOptions* input);
+      |                                                                                        ^
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:4333:50: error: '_Frees_ptr_opt_' has not been declared
+ 4333 |   void(ORT_API_CALL* ReleaseROCMProviderOptions)(_Frees_ptr_opt_ OrtROCMProviderOptions* input);
+      |                                                  ^~~~~~~~~~~~~~~
+E:/openvela/VelaVision/work-in-progress/native-voice-sources/onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d/include/onnxruntime/core/session/onnxruntime_c_api.h:4333:88: error: expected ',' or '...' before '*' token
+ 4333 |   void(ORT_API_CALL* ReleaseROCMProviderOptions)(_Frees_ptr_opt_ OrtROCMProviderOptions* input);
+      |                                                                                        ^
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/shared_runtime.hpp: In member function 'OrtStatus* sr::Runtime::init(OrtEnv*)':
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/shared_runtime.hpp:46:78: error: invalid conversion from 'OrtMemoryInfo*' to 'int' [-fpermissive]
+   46 |   s=api_->RegisterAllocator(env,&adapter_.api);if(s){api_->ReleaseMemoryInfo(info_);info_=nullptr;return s;}env_=env;return nullptr;
+      |                                                                              ^~~~~
+      |                                                                              |
+      |                                                                              OrtMemoryInfo*
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/shared_runtime.hpp: In member function 'bool sr::Runtime::close()':
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/shared_runtime.hpp:54:33: error: invalid conversion from 'OrtEnv*' to 'int' [-fpermissive]
+   54 |   if(own_env_){api_->ReleaseEnv(env_);}env_=nullptr;
+      |                                 ^~~~
+      |                                 |
+      |                                 OrtEnv*
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/shared_runtime.hpp:56:27: error: invalid conversion from 'OrtMemoryInfo*' to 'int' [-fpermissive]
+   56 |   api_->ReleaseMemoryInfo(info_);info_=nullptr;return true;
+      |                           ^~~~~
+      |                           |
+      |                           OrtMemoryInfo*
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/shared_runtime.hpp: In member function 'void sr::Lease::close()':
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/shared_runtime.hpp:76:52: error: invalid conversion from 'OrtSession*' to 'int' [-fpermissive]
+   76 |  void close(){if(session_){r_.api_->ReleaseSession(session_);session_=nullptr;}if(bytes_){r_.release(bytes_,true);bytes_=nullptr;size_=0;}}
+      |                                                    ^~~~~~~~
+      |                                                    |
+      |                                                    OrtSession*
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/test_borrowed_runtime.cpp: In function 'int main()':
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/test_borrowed_runtime.cpp:29:26: error: invalid conversion from 'OrtStatus* (*)(OrtAllocatorType, OrtMemType, OrtMemoryInfo**)' to 'OrtStatus* (*)(OrtAllocatorType, OrtMemType, OrtMemoryInfo**) noexcept' [-fpermissive]
+   29 |  api.CreateCpuMemoryInfo=memory;api.RegisterAllocator=reg;api.ReleaseEnv=env;api.ReleaseMemoryInfo=info;api.CreateStatus=status;
+      |                          ^~~~~~
+      |                          |
+      |                          OrtStatus* (*)(OrtAllocatorType, OrtMemType, OrtMemoryInfo**)
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/test_borrowed_runtime.cpp:29:55: error: invalid conversion from 'OrtStatus* (*)(OrtEnv*, OrtAllocator*)' to 'OrtStatus* (*)(OrtEnv*, OrtAllocator*) noexcept' [-fpermissive]
+   29 |  api.CreateCpuMemoryInfo=memory;api.RegisterAllocator=reg;api.ReleaseEnv=env;api.ReleaseMemoryInfo=info;api.CreateStatus=status;
+      |                                                       ^~~
+      |                                                       |
+      |                                                       OrtStatus* (*)(OrtEnv*, OrtAllocator*)
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/test_borrowed_runtime.cpp:29:74: error: invalid conversion from 'void (*)(OrtEnv*)' to 'void (*)(int)' [-fpermissive]
+   29 |  api.CreateCpuMemoryInfo=memory;api.RegisterAllocator=reg;api.ReleaseEnv=env;api.ReleaseMemoryInfo=info;api.CreateStatus=status;
+      |                                                                          ^~~
+      |                                                                          |
+      |                                                                          void (*)(OrtEnv*)
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/test_borrowed_runtime.cpp:29:100: error: invalid conversion from 'void (*)(OrtMemoryInfo*)' to 'void (*)(int)' [-fpermissive]
+   29 |  api.CreateCpuMemoryInfo=memory;api.RegisterAllocator=reg;api.ReleaseEnv=env;api.ReleaseMemoryInfo=info;api.CreateStatus=status;
+      |                                                                                                    ^~~~
+      |                                                                                                    |
+      |                                                                                                    void (*)(OrtMemoryInfo*)
+E:/openvela/VelaVision/work-in-progress/native-asr-recognizer/test_borrowed_runtime.cpp:29:122: error: invalid conversion from 'OrtStatus* (*)(OrtErrorCode, const char*)' to 'OrtStatus* (*)(OrtErrorCode, const char*) noexcept' [-fpermissive]
+   29 |  api.CreateCpuMemoryInfo=memory;api.RegisterAllocator=reg;api.ReleaseEnv=env;api.ReleaseMemoryInfo=info;api.CreateStatus=status;
+      |                                                                                                                          ^~~~~~
+      |                                                                                                                          |
+      |                                                                                                                          OrtStatus* (*)(OrtErrorCode, const char*)

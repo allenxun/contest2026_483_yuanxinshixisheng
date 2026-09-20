@@ -1,0 +1,19 @@
+{
+  "results": [
+    {
+      "stage": "service",
+      "command": "k7radio wifi-service-start",
+      "passed": true
+    },
+    {
+      "stage": "probe",
+      "command": "k7voice probe",
+      "passed": true
+    },
+    {
+      "stage": "scan",
+      "command": "k7voice scan",
+      "passed": true
+    }
+  ]
+}

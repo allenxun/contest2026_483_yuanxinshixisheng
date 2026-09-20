@@ -1,0 +1,20 @@
+{
+  "elf_sha256": "4b5ab4e9ec2000616e1fe7c25cb83a45b11501253c6469fc5c4c39de3fc93361",
+  "config_sha256": "80971b9ad0cae25a106ba0eaad1a46520afb0ead8a106a41325b027e3a949be2",
+  "reviewed_sdk": {
+    "arm64_arch.h": "a90ac6020fc6fa432b5076d6ad1d46d34d56c7efc565d22af188baef1eee6198",
+    "arm64_mmu.c": "051c5f0b8bd08980ffb7a4f357342ae4bd617bcd85676e440642e5ba354a7942",
+    "arm64_mmu.h": "bf1d8d10033f92ae4b1ee9fc93b8b0e237418af5961dbbbb3bc3c39aff263249",
+    "rk3576_boot.c": "a31741dfc79871670a0474fc2f02b2d10cf0e146f8ad13422cf22f5b5df2a822"
+  },
+  "xlat": {
+    "begin": "0x4066d000",
+    "end": "0x40681000"
+  },
+  "base": {
+    "begin": "0x40681000",
+    "end": "0x40682000"
+  },
+  "command": "k7sound mmu 0x4066d000 0x40681000",
+  "scope": "Structural ELF and supplied source binding; operator must match loaded ELF. Does not attest SDK compilation independently."
+}

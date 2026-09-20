@@ -1,0 +1,18 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-cpu.h:4,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/include/llama.h:5,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-grammar.h:3,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-grammar.cpp:1:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-grammar.cpp: In member function 'const char* llama_grammar_parser::parse_sequence(const char*, const std::__1::string&, llama_grammar_rule&, bool)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-grammar.cpp:493:34: warning: declaration of 'int_end' shadows a previous local [-Wshadow]
+  493 |                     const char * int_end = parse_int(pos);
+      |                                  ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-grammar.cpp:480:26: note: shadowed declaration is here
+  480 |             const char * int_end = parse_int(pos);
+      |                          ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-grammar.cpp: At global scope:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-grammar.cpp:202:13: warning: 'void print_rule_binary(FILE*, const llama_grammar_rule&)' defined but not used [-Wunused-function]
+  202 | static void print_rule_binary(FILE * file, const llama_grammar_rule & rule) {
+      |             ^~~~~~~~~~~~~~~~~

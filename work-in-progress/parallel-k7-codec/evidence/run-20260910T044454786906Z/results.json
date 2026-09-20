@@ -1,0 +1,110 @@
+[
+  {
+    "name": "compiler-version",
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "--version"
+    ],
+    "exit": 0,
+    "timeout": false,
+    "limit_seconds": 30
+  },
+  {
+    "name": "build-O0",
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O0",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wconversion",
+      "-Wshadow",
+      "-pedantic",
+      "-I",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\include",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\src\\codec_txn.c",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\tests\\test_codec.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\evidence\\run-20260910T044454786906Z\\test-O0.exe"
+    ],
+    "exit": 0,
+    "timeout": false,
+    "limit_seconds": 30
+  },
+  {
+    "name": "test-O0",
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\evidence\\run-20260910T044454786906Z\\test-O0.exe"
+    ],
+    "exit": 0,
+    "timeout": false,
+    "limit_seconds": 30
+  },
+  {
+    "name": "build-O2",
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wconversion",
+      "-Wshadow",
+      "-pedantic",
+      "-I",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\include",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\src\\codec_txn.c",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\tests\\test_codec.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\evidence\\run-20260910T044454786906Z\\test-O2.exe"
+    ],
+    "exit": 0,
+    "timeout": false,
+    "limit_seconds": 30
+  },
+  {
+    "name": "test-O2",
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\evidence\\run-20260910T044454786906Z\\test-O2.exe"
+    ],
+    "exit": 0,
+    "timeout": false,
+    "limit_seconds": 30
+  },
+  {
+    "name": "freestanding-object",
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O2",
+      "-ffreestanding",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-I",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\include",
+      "-c",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\src\\codec_txn.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\evidence\\run-20260910T044454786906Z\\codec_txn.o"
+    ],
+    "exit": 0,
+    "timeout": false,
+    "limit_seconds": 30
+  },
+  {
+    "name": "undefined-symbols",
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\nm.exe",
+      "-u",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\evidence\\run-20260910T044454786906Z\\codec_txn.o"
+    ],
+    "exit": 0,
+    "timeout": false,
+    "limit_seconds": 30
+  }
+]

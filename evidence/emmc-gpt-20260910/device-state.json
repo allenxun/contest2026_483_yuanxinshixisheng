@@ -1,0 +1,39 @@
+{
+  "updated_at": "2026-09-10T03:23:57.306971+00:00",
+  "running_revision": "emmc-gpt-20260910",
+  "firmware_sha256": "e6fe8084941e23c2a2f628e2e4228be42e5b6ffde409372c5f6816eaaeff7e1f",
+  "boot": "RAM",
+  "liveness_verified": true,
+  "wifi_connected": true,
+  "test_ip": "10.3.0.214",
+  "ble_service_running": true,
+  "ble_connected": false,
+  "test_client_intentionally_disconnected": true,
+  "real_ble_to_wifi_passed": true,
+  "test_client": "Windows Bleak",
+  "gateway_ping": {
+    "sent": 5,
+    "received": 5
+  },
+  "ble_wifi_hold_seconds": 30,
+  "emmc": {
+    "sectors": 61079552,
+    "sector_bytes": 512,
+    "mode": "400kHz 1-bit PIO",
+    "initialization_passed": true,
+    "gpt_primary_backup_and_entries_crc_passed": true,
+    "partitions": 15,
+    "inter_partition_gaps": 0,
+    "block_device_registered": false,
+    "filesystem_mounted": false
+  },
+  "model_arena": {
+    "mapped_bytes": 1073741824,
+    "retested_this_build": false
+  },
+  "smp_cpus": 1,
+  "emmc_written": false,
+  "production_stability_passed": false,
+  "wireless_note": "One A-MSDU rejected counter observed; not a zero-error stress test",
+  "evidence_directory": "evidence\\emmc-gpt-20260910"
+}

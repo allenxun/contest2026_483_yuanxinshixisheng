@@ -1,0 +1,124 @@
+{
+  "elf_sha256": "4b5ab4e9ec2000616e1fe7c25cb83a45b11501253c6469fc5c4c39de3fc93361",
+  "machine": "AArch64",
+  "capture": {
+    "name": "capture",
+    "value": 1084350524,
+    "size": 384000,
+    "section": 8
+  },
+  "regions": [
+    {
+      "va": "0x2a000000",
+      "pa": "0x2a000000",
+      "size": "0x2000000",
+      "name": "DEVICE_REGION",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x26040000",
+      "pa": "0x26040000",
+      "size": "0x10000",
+      "name": "RK3576_IOC",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x27200000",
+      "pa": "0x27200000",
+      "size": "0x10000",
+      "name": "RK3576_CRU",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x2601e000",
+      "pa": "0x2601e000",
+      "size": "0x1000",
+      "name": "RK3576_USB_GRF",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x23000000",
+      "pa": "0x23000000",
+      "size": "0x10000",
+      "name": "RK3576_USB_OTG",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x23400000",
+      "pa": "0x23400000",
+      "size": "0x10000",
+      "name": "RK3576_USB_HOST",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x27380000",
+      "pa": "0x27380000",
+      "size": "0x1000",
+      "name": "RK3576_PMU",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x2602a000",
+      "pa": "0x2602a000",
+      "size": "0x2000",
+      "name": "RK3576_COMBOPHY1_GRF",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x26020000",
+      "pa": "0x26020000",
+      "size": "0x1000",
+      "name": "RK3576_PHP_GRF",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x2602e000",
+      "pa": "0x2602e000",
+      "size": "0x4000",
+      "name": "RK3576_USB2PHY",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x27220000",
+      "pa": "0x27220000",
+      "size": "0x10000",
+      "name": "RK3576_PMU_CRU",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x27700000",
+      "pa": "0x27700000",
+      "size": "0x10000",
+      "name": "RK3576_NPU",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x50000000",
+      "pa": "0x50000000",
+      "size": "0x200000",
+      "name": "K7_RADIO_FW_INPUT",
+      "raw_attrs": "0x24"
+    },
+    {
+      "va": "0x60000000",
+      "pa": "0x60000000",
+      "size": "0x40000000",
+      "name": "K7_MODEL_ARENA",
+      "raw_attrs": "0xc"
+    },
+    {
+      "va": "0x2a330000",
+      "pa": "0x2a330000",
+      "size": "0x10000",
+      "name": "K7_EMMC",
+      "raw_attrs": "0x8"
+    },
+    {
+      "va": "0x40400000",
+      "pa": "0x40400000",
+      "size": "0x7e00000",
+      "name": "DRAM0_S0",
+      "raw_attrs": "0xc"
+    }
+  ]
+}

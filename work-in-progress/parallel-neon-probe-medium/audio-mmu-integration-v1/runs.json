@@ -1,0 +1,36 @@
+[
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-O0",
+      "command_core.c",
+      "mmu_probe.c",
+      "test.c",
+      "-o",
+      "test-O0.exe"
+    ],
+    "compile_rc": 0,
+    "test_rc": 0
+  },
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-O2",
+      "command_core.c",
+      "mmu_probe.c",
+      "test.c",
+      "-o",
+      "test-O2.exe"
+    ],
+    "compile_rc": 0,
+    "test_rc": 0
+  }
+]

@@ -1,0 +1,126 @@
+--- a/fs/fat/fs_fat32dirent.c
++++ b/fs/fat/fs_fat32dirent.c
+@@ -2697,6 +2697,11 @@
+ int fat_allocatedirentry(FAR struct fat_mountpt_s *fs,
+                          FAR struct fat_dirinfo_s *dirinfo)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)dirinfo; 
++  return -EROFS;
++#else
++
+   int32_t cluster;
+   int32_t prevcluster;
+   off_t   sector;
+@@ -2821,6 +2826,8 @@
+ 
+       cluster = prevcluster;
+     }
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -2835,6 +2842,11 @@
+ 
+ int fat_freedirentry(FAR struct fat_mountpt_s *fs, struct fat_dirseq_s *seq)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)seq; 
++  return -EROFS;
++#else
++
+ #ifdef CONFIG_FAT_LFN
+   struct fs_fatdir_s dir;
+   FAR uint8_t *direntry;
+@@ -2923,6 +2935,8 @@
+     }
+ 
+   return ret;
++#endif
++
+ #endif
+ }
+ 
+@@ -2989,6 +3003,11 @@
+ int fat_dirnamewrite(FAR struct fat_mountpt_s *fs,
+                      FAR struct fat_dirinfo_s *dirinfo)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)dirinfo; 
++  return -EROFS;
++#else
++
+ #ifdef CONFIG_FAT_LFN
+   int ret;
+ 
+@@ -3015,6 +3034,8 @@
+ #endif
+ 
+   return fat_putsfname(fs, dirinfo);
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -3035,6 +3056,11 @@
+                  FAR struct fat_dirinfo_s *dirinfo,
+                  uint8_t attributes, uint32_t fattime)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)dirinfo; (void)attributes; (void)fattime; 
++  return -EROFS;
++#else
++
+ #ifdef CONFIG_FAT_LFN
+   int ret;
+ 
+@@ -3063,6 +3089,8 @@
+   /* Put the short file name entry data */
+ 
+   return fat_putsfdirentry(fs, dirinfo, attributes, fattime);
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -3075,6 +3103,11 @@
+ int fat_dircreate(FAR struct fat_mountpt_s *fs,
+                   FAR struct fat_dirinfo_s *dirinfo)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)dirinfo; 
++  return -EROFS;
++#else
++
+   uint32_t fattime;
+   int ret;
+ 
+@@ -3096,6 +3129,8 @@
+ 
+   fattime = fat_systime2fattime();
+   return fat_dirwrite(fs, dirinfo, FATATTR_ARCHIVE, fattime);
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -3109,6 +3144,11 @@
+ int fat_remove(FAR struct fat_mountpt_s *fs, FAR const char *relpath,
+                bool directory)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)relpath; (void)directory; 
++  return -EROFS;
++#else
++
+   struct fat_dirinfo_s dirinfo;
+   uint32_t             dircluster;
+   FAR uint8_t         *direntry;
+@@ -3271,4 +3311,6 @@
+     }
+ 
+   return OK;
++
++#endif
+ }

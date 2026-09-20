@@ -1,0 +1,742 @@
+diff --git a/VelaVision/work-in-progress/parallel-voice-loop-sol/include\voice_loop.hpp b/VelaVision/work-in-progress/parallel-voice-loop-sol/include\voice_loop.hpp
+new file mode 100644
+--- /dev/null
++++ b/VelaVision/work-in-progress/parallel-voice-loop-sol/include\voice_loop.hpp
+@@ -0,0 +1,104 @@
++#pragma once
++
++#include "voicelink/controller.hpp"
++
++#include <cstddef>
++#include <cstdint>
++#include <string>
++
++namespace voice_loop {
++
++enum class CaptureStatus { Accepted, Recording, Complete, Busy, Timeout, Cancelled, Failed };
++
++struct CaptureResult {
++  CaptureStatus status{CaptureStatus::Failed};
++  std::uint64_t request_id{};
++  int error_code{};
++};
++
++class CapturePort {
++ public:
++  virtual ~CapturePort() = default;
++  // Starts one utterance recording for the supplied Controller grammar. IDs are
++  // unique for this port lifetime. Complete means an immutable capture exists.
++  virtual CaptureResult begin(voicelink::Grammar grammar) noexcept = 0;
++  virtual CaptureResult poll(std::uint64_t request_id) noexcept = 0;
++  virtual void cancel(std::uint64_t request_id) noexcept = 0;
++  // Idempotent. The capture remains owned by this port until release returns.
++  virtual void release(std::uint64_t request_id) noexcept = 0;
++};
++
++enum class AsrStatus { Accepted, Recognizing, Ready, Busy, Timeout, Cancelled, Failed };
++
++struct AsrResult {
++  AsrStatus status{AsrStatus::Failed};
++  std::uint64_t request_id{};
++  int error_code{};
++  std::string text;
++};
++
++class AsrPort {
++ public:
++  virtual ~AsrPort() = default;
++  // The implementation reads the immutable capture synchronously or retains a
++  // safe reference until its transaction terminates. For PasswordToken grammar
++  // it must never log text and must erase internal transcript copies on exit.
++  virtual AsrResult begin(std::uint64_t capture_id,
++                          voicelink::Grammar grammar) noexcept = 0;
++  virtual AsrResult poll(std::uint64_t request_id) noexcept = 0;
++  virtual void cancel(std::uint64_t request_id) noexcept = 0;
++};
++
++enum class Phase { Idle, WaitingPort, Recording, Recognizing, ControllerWork, Completed, Error };
++
++struct Config {
++  std::uint64_t capture_timeout_ms{15000};
++  std::uint64_t asr_timeout_ms{60000};
++  std::uint64_t retry_delay_ms{50};
++  std::size_t max_text_bytes{512};
++};
++
++class Loop {
++ public:
++  Loop(voicelink::Controller& controller, CapturePort& capture, AsrPort& asr,
++       voicelink::ClockPort& clock, Config config = {});
++  ~Loop();
++  Loop(const Loop&) = delete;
++  Loop& operator=(const Loop&) = delete;
++
++  bool start();
++  void tick();
++  void cancel();
++
++  Phase phase() const noexcept { return phase_; }
++  std::uint64_t turn() const noexcept { return turn_; }
++  int lastError() const noexcept { return last_error_; }
++
++ private:
++  bool speechState() const noexcept;
++  void scheduleInput() noexcept;
++  void beginCapture();
++  void applyCapture(CaptureResult result);
++  void applyAsr(AsrResult result);
++  void failInput(voicelink::IoStatus status, int error);
++  void releaseCapture() noexcept;
++  void cancelActive() noexcept;
++  void reconcileController() noexcept;
++
++  voicelink::Controller& controller_;
++  CapturePort& capture_;
++  AsrPort& asr_;
++  voicelink::ClockPort& clock_;
++  Config config_;
++  Phase phase_{Phase::Idle};
++  std::uint64_t capture_id_{};
++  std::uint64_t asr_id_{};
++  std::uint64_t stage_started_ms_{};
++  std::uint64_t retry_at_ms_{};
++  std::uint64_t last_now_ms_{};
++  std::uint64_t turn_{};
++  int last_error_{};
++  bool started_{};
++};
++
++}  // namespace voice_loop
+diff --git a/VelaVision/work-in-progress/parallel-voice-loop-sol/INTERFACES.md b/VelaVision/work-in-progress/parallel-voice-loop-sol/INTERFACES.md
+new file mode 100644
+--- /dev/null
++++ b/VelaVision/work-in-progress/parallel-voice-loop-sol/INTERFACES.md
+@@ -0,0 +1,30 @@
++# 接口与集成说明
++
++## 依赖的正式契约
++
++- `voicelink::Controller` 是唯一规则状态机。候选不解析唤醒词、SSID 编号、密码字符或确认语句。
++- `voicelink::ClockPort` 提供单调毫秒时间。Controller 自己裁决扫描和连接超时；候选只裁决录音和 ASR 阶段超时。
++- 正式 `SharedWifiPort` 继续连接 `k7radio` 的共享扫描服务和共享连接 dispatcher。候选从不直接调用无线驱动，也不构造成功 IP。
++- `k7_asr_microphone_text(char*, size_t)` 是现有“读取最后一次完整录音并识别”入口。板端 `AsrPort` 应在工作任务中调用它，不得把它的内部模型、线程局部存储或音频复制逻辑搬进本层。
++
++## CapturePort
++
++`begin(grammar)` 为一条语句启动录音，并返回生命周期内不复用的事务号。`Complete` 表示该事务对应的录音已停止且内容不可再变。`release(id)` 同步结束编排层对句柄的使用；失败和取消路径也必须可重复调用。真实适配器应复用 `k7sound` 的音频所有权和完整录音快照，不得把诊断录音当普通 ASR 输入。
++
++## AsrPort
++
++`begin(capture_id, grammar)` 消费一个完整录音句柄。实现可同步返回 `Ready`，也可返回 `Accepted/Recognizing` 后由 `poll()` 完成。事务号同样永久不复用。取消是针对单笔事务的幂等请求；ASR 结束后 Loop 才释放录音句柄。
++
++当 grammar 为 `PasswordToken` 时，适配器不得打印、追踪、持久化或发送识别文本，也不得把文本放进错误消息。`AsrResult::text` 交给 Loop 后视为转移所有权；Loop 在一次 `Controller::ingest()` 返回或异常展开时覆盖其字节。端口自己的临时副本也必须清零。
++
++## Loop 驱动规则
++
++单一协调任务创建一次 `Controller` 和一次 `Loop`，调用 `start()`，随后建议每 50 ms 以内调用 `tick()`。Loop 在 `WaitingWake`、`WaitingNetworkChoice`、`EnteringPassword`、`ConfirmingPassword` 四种 Controller 状态开始新录音；在 `ScanningWifi`、`CredentialsReceived`、`ConnectingWifi` 只轮询 Controller。
++
++端口忙时 Loop 延迟后重试，不伪造输入失败。事件事务号与当前录音/ASR 不相等时视为旧事务并丢弃。单调时钟回退进入错误。截止点与结果同时发生时，超时优先。调用 `cancel()` 会先取消 ASR、取消并释放录音，再调用 Controller 取消其当前扫描或连接事务。
++
++Controller 的结果决定后续动作：开放网络仍进入 `ConfirmingPassword`，只有“确认提交”才允许空密码连接；密码错误回到密码输入；不支持或找不到网络回到网络选择；有效 IPv4 才进入完成状态。
++
++## 固定提示与日志
++
++Loop 不实现 TTS。现有或后续固定提示播放器只需实现 Controller 的 `TtsPort`；播放失败仍由 Controller 进入 Error。Loop 没有日志回调或 transcript getter，外部状态观测只暴露 phase、轮次计数和数字错误码。不得在端口日志中加入密码、完整识别文本或连接凭据。
+diff --git a/VelaVision/work-in-progress/parallel-voice-loop-sol/README.md b/VelaVision/work-in-progress/parallel-voice-loop-sol/README.md
+new file mode 100644
+--- /dev/null
++++ b/VelaVision/work-in-progress/parallel-voice-loop-sol/README.md
+@@ -0,0 +1,19 @@
++# 多轮语音规则配网编排候选
++
++这是独立待集成候选，只增加录音、ASR 与正式 `voicelink::Controller` 之间的编排层。它不修改正式源码，不实现或复制 ASR runtime、固定提示播放、Wi-Fi 扫描或连接逻辑。
++
++完整顺序是：按 Controller 当前 grammar 开始一轮录音；录音端封存不可变句柄；ASR 端消费句柄并返回 UTF-8 文本；候选立即调用 `Controller::ingest()` 并清零本地文本；Controller 通过现有 `WifiPort` 执行扫描、SSID 选择、密码规则输入、显式确认和连接事务；扫描或连接进行时只调用 `Controller::poll()`，不抢录下一句；Controller 回到可听取状态后开始下一轮录音；成功、取消或错误后停止。
++
++`include/voice_loop.hpp` 是集成接口，`src/voice_loop.cpp` 是实现，`tests/test_voice_loop.cpp` 使用假录音、假 ASR、假共享 Wi-Fi 端口覆盖多轮流程。候选不记录识别文本；密码轮文本仅存在于 `AsrResult` 的局部对象，作用域退出时按字节覆盖。正式 Controller 仍只播报密码长度，不播报密码内容。
++
++在 PowerShell 中复现：
++
++```powershell
++cd E:\openvela
++& VelaVision\work-in-progress\parallel-voice-loop-sol\scripts\run_tests.ps1
++& VelaVision\work-in-progress\parallel-voice-loop-sol\scripts\package.ps1
++```
++
++测试以 MinGW g++ 的 `-O0` 和 `-O2`、C++17、`-Wall -Wextra -Werror -pedantic` 编译候选，并直接链接正式 `app/voicelink/src/core.cpp` 和 `parsers.cpp`。每次原始构建/测试输出及 `results.json` 保存到新的 `evidence/run-<UTC>/`，不会覆盖旧结果。
++
++当前只完成主机假端口验证。尚未完成真机连续录音入口、`k7_asr_microphone_text()` 的异步工作任务适配、板载固定提示播放、真实共享扫描/连接联合运行、开放网络真机连接、取消与超时真机清理、长期多轮和重密钥验证。音频质量与 ASR 准确率问题不由本候选修复。
+diff --git a/VelaVision/work-in-progress/parallel-voice-loop-sol/scripts\deliver.ps1 b/VelaVision/work-in-progress/parallel-voice-loop-sol/scripts\deliver.ps1
+new file mode 100644
+--- /dev/null
++++ b/VelaVision/work-in-progress/parallel-voice-loop-sol/scripts\deliver.ps1
+@@ -0,0 +1,41 @@
++param([string]$Run = "evidence/run-20260912T090603012Z")
++$ErrorActionPreference = "Stop"
++$candidate = Split-Path -Parent $PSScriptRoot
++$project = Split-Path -Parent (Split-Path -Parent $candidate)
++& (Join-Path $PSScriptRoot "package.ps1")
++$runPath = Join-Path $candidate $Run
++$inputs = @(
++  "app/voicelink/include/voicelink/controller.hpp",
++  "app/voicelink/include/voicelink/ports.hpp",
++  "app/voicelink/include/voicelink/types.hpp",
++  "app/voicelink/include/voicelink/asr_runtime.h",
++  "app/voicelink/src/core.cpp",
++  "app/voicelink/src/parsers.cpp",
++  "app/voicelink/src/voice_wifi_adapter.cpp"
++)
++$inputHashes = [ordered]@{}
++foreach ($input in $inputs) {
++  $inputHashes[$input] = (Get-FileHash -Algorithm SHA256 (Join-Path $project $input)).Hash.ToLower()
++}
++$delivery = [ordered]@{
++  generated_at_utc = (Get-Date).ToUniversalTime().ToString("o")
++  candidate = "VelaVision/work-in-progress/parallel-voice-loop-sol"
++  candidate_patch_sha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $candidate "candidate.patch")).Hash.ToLower()
++  manifest_sha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $candidate "MANIFEST.sha256")).Hash.ToLower()
++  accepted_run = $Run.Replace("\\", "/")
++  accepted_results_sha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $runPath "results.json")).Hash.ToLower()
++  input_contract_sha256 = $inputHashes
++  hardware_tested = $false
++  sdk_or_device_touched = $false
++  fixed_prompt_playback_implemented = $false
++  unfinished_hardware = @(
++    "continuous microphone capture adapter",
++    "asynchronous k7_asr_microphone_text worker adapter",
++    "board fixed-prompt TtsPort",
++    "real shared Wi-Fi scan/connect joint run",
++    "device cancellation, timeout, open-network, and stale-event cleanup",
++    "long multi-turn and rekey validation"
++  )
++}
++$delivery | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8 (Join-Path $candidate "evidence/delivery.json")
++$delivery | ConvertTo-Json -Depth 8
+diff --git a/VelaVision/work-in-progress/parallel-voice-loop-sol/scripts\package.ps1 b/VelaVision/work-in-progress/parallel-voice-loop-sol/scripts\package.ps1
+new file mode 100644
+--- /dev/null
++++ b/VelaVision/work-in-progress/parallel-voice-loop-sol/scripts\package.ps1
+@@ -0,0 +1,24 @@
++$ErrorActionPreference = "Stop"
++$candidate = Split-Path -Parent $PSScriptRoot
++$files = Get-ChildItem -Recurse -File $candidate | Where-Object {
++  $_.FullName -notmatch "\\evidence\\" -and $_.Name -notin @("MANIFEST.sha256", "candidate.patch")
++} | Sort-Object FullName
++$manifest = foreach ($file in $files) {
++  $relative = $file.FullName.Substring($candidate.Length + 1).Replace("\\", "/")
++  "{0}  {1}" -f (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(), $relative
++}
++$manifest | Set-Content -Encoding ascii (Join-Path $candidate "MANIFEST.sha256")
++$prefix = "VelaVision/work-in-progress/parallel-voice-loop-sol"
++$patch = [System.Collections.Generic.List[string]]::new()
++foreach ($file in $files) {
++  $relative = $file.FullName.Substring($candidate.Length + 1).Replace("\\", "/")
++  $target = "$prefix/$relative"
++  $lines = @(Get-Content -Encoding utf8 $file.FullName)
++  $patch.Add("diff --git a/$target b/$target")
++  $patch.Add("new file mode 100644")
++  $patch.Add("--- /dev/null")
++  $patch.Add("+++ b/$target")
++  $patch.Add("@@ -0,0 +1,$($lines.Count) @@")
++  foreach ($line in $lines) { $patch.Add("+$line") }
++}
++$patch | Set-Content -Encoding utf8 (Join-Path $candidate "candidate.patch")
+diff --git a/VelaVision/work-in-progress/parallel-voice-loop-sol/scripts\run_tests.ps1 b/VelaVision/work-in-progress/parallel-voice-loop-sol/scripts\run_tests.ps1
+new file mode 100644
+--- /dev/null
++++ b/VelaVision/work-in-progress/parallel-voice-loop-sol/scripts\run_tests.ps1
+@@ -0,0 +1,41 @@
++param([string]$Cxx = "g++")
++$ErrorActionPreference = "Stop"
++$root = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
++$candidate = Split-Path -Parent $PSScriptRoot
++$run = Join-Path $candidate ("evidence/run-" + (Get-Date).ToUniversalTime().ToString("yyyyMMddTHHmmssfffZ"))
++New-Item -ItemType Directory -Force $run | Out-Null
++$common = @(
++  "-std=c++17", "-Wall", "-Wextra", "-Werror", "-pedantic",
++  "-I$($candidate)\include", "-I$($root)\app\voicelink\include",
++  "$($candidate)\src\voice_loop.cpp",
++  "$($root)\app\voicelink\src\core.cpp",
++  "$($root)\app\voicelink\src\parsers.cpp",
++  "$($candidate)\tests\test_voice_loop.cpp"
++)
++$records = @()
++foreach ($opt in @("O0", "O2")) {
++  $exe = Join-Path $run ("voice-loop-$opt.exe")
++  $buildLog = Join-Path $run ("build-$opt.txt")
++  $testLog = Join-Path $run ("test-$opt.txt")
++  & $Cxx @common "-$opt" "-o" $exe 2>&1 | Tee-Object -FilePath $buildLog
++  if ($LASTEXITCODE -ne 0) { throw "build $opt failed: $LASTEXITCODE" }
++  if (-not (Test-Path $buildLog)) { New-Item -ItemType File $buildLog | Out-Null }
++  & $exe 2>&1 | Tee-Object -FilePath $testLog
++  if ($LASTEXITCODE -ne 0) { throw "test $opt failed: $LASTEXITCODE" }
++  $records += [ordered]@{
++    optimization = $opt
++    executable_sha256 = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLower()
++    build_log_sha256 = (Get-FileHash -Algorithm SHA256 $buildLog).Hash.ToLower()
++    test_log_sha256 = (Get-FileHash -Algorithm SHA256 $testLog).Hash.ToLower()
++    output = (Get-Content -Raw $testLog).Trim()
++  }
++}
++$result = [ordered]@{
++  generated_at_utc = (Get-Date).ToUniversalTime().ToString("o")
++  scope = "host fake ports only; no device, SDK, serial, VM, network, or fixed prompt playback"
++  source_contract = "VelaVision/app/voicelink Controller/ports/asr_runtime and app/k7radio shared transaction adapter"
++  password_logged = $false
++  records = $records
++}
++$result | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8 (Join-Path $run "results.json")
++Write-Output $run
+diff --git a/VelaVision/work-in-progress/parallel-voice-loop-sol/src\voice_loop.cpp b/VelaVision/work-in-progress/parallel-voice-loop-sol/src\voice_loop.cpp
+new file mode 100644
+--- /dev/null
++++ b/VelaVision/work-in-progress/parallel-voice-loop-sol/src\voice_loop.cpp
+@@ -0,0 +1,231 @@
++#include "voice_loop.hpp"
++
++#include <algorithm>
++#include <limits>
++#include <utility>
++
++namespace voice_loop {
++namespace {
++
++void wipe(std::string& value) noexcept {
++  volatile char* bytes = value.empty() ? nullptr : &value[0];
++  for (std::size_t i = 0; i < value.size(); ++i) bytes[i] = 0;
++  value.clear();
++}
++
++struct TextWiper {
++  std::string& text;
++  ~TextWiper() { wipe(text); }
++};
++
++bool validText(const std::string& text, std::size_t limit) noexcept {
++  if (text.empty() || text.size() > limit || text.find('\0') != std::string::npos)
++    return false;
++  const auto* p = reinterpret_cast<const unsigned char*>(text.data());
++  std::size_t i = 0;
++  while (i < text.size()) {
++    unsigned c = p[i++], count = 0, low = 0x80, high = 0xbf;
++    if (c < 0x80) { if (c < 0x20 && c != '\t' && c != '\n') return false; continue; }
++    if (c >= 0xc2 && c <= 0xdf) count = 1;
++    else if (c >= 0xe0 && c <= 0xef) { count = 2; if (c == 0xe0) low = 0xa0; if (c == 0xed) high = 0x9f; }
++    else if (c >= 0xf0 && c <= 0xf4) { count = 3; if (c == 0xf0) low = 0x90; if (c == 0xf4) high = 0x8f; }
++    else return false;
++    if (count > text.size() - i || p[i] < low || p[i] > high) return false;
++    ++i;
++    while (--count) { if (p[i] < 0x80 || p[i] > 0xbf) return false; ++i; }
++  }
++  return true;
++}
++
++bool elapsed(std::uint64_t now, std::uint64_t start, std::uint64_t timeout) noexcept {
++  return now >= start && now - start >= timeout;
++}
++
++}  // namespace
++
++Loop::Loop(voicelink::Controller& controller, CapturePort& capture, AsrPort& asr,
++           voicelink::ClockPort& clock, Config config)
++    : controller_(controller), capture_(capture), asr_(asr), clock_(clock),
++      config_(config) {
++  if (!config_.capture_timeout_ms) config_.capture_timeout_ms = 1;
++  if (!config_.asr_timeout_ms) config_.asr_timeout_ms = 1;
++  if (!config_.retry_delay_ms) config_.retry_delay_ms = 1;
++  if (!config_.max_text_bytes) config_.max_text_bytes = 1;
++}
++
++Loop::~Loop() { cancelActive(); }
++
++bool Loop::start() {
++  if (started_ || phase_ != Phase::Idle) return false;
++  started_ = true;
++  last_error_ = 0;
++  last_now_ms_ = clock_.nowMs();
++  controller_.start();
++  reconcileController();
++  return phase_ != Phase::Error;
++}
++
++bool Loop::speechState() const noexcept {
++  const auto state = controller_.context().state;
++  return state == voicelink::State::WaitingWake ||
++         state == voicelink::State::WaitingNetworkChoice ||
++         state == voicelink::State::EnteringPassword ||
++         state == voicelink::State::ConfirmingPassword;
++}
++
++void Loop::scheduleInput() noexcept {
++  if (!started_ || !speechState() || capture_id_ || asr_id_) return;
++  phase_ = Phase::WaitingPort;
++  retry_at_ms_ = clock_.nowMs();
++}
++
++void Loop::beginCapture() {
++  const auto now = clock_.nowMs();
++  auto result = capture_.begin(controller_.context().grammar);
++  if (result.status == CaptureStatus::Busy) {
++    retry_at_ms_ = now > std::numeric_limits<std::uint64_t>::max() - config_.retry_delay_ms
++                    ? std::numeric_limits<std::uint64_t>::max()
++                    : now + config_.retry_delay_ms;
++    return;
++  }
++  if (!result.request_id) { failInput(voicelink::IoStatus::FatalError, -1); return; }
++  capture_id_ = result.request_id;
++  stage_started_ms_ = now;
++  applyCapture(std::move(result));
++}
++
++void Loop::applyCapture(CaptureResult result) {
++  if (!capture_id_ || result.request_id != capture_id_) return;
++  switch (result.status) {
++    case CaptureStatus::Accepted:
++    case CaptureStatus::Recording: phase_ = Phase::Recording; return;
++    case CaptureStatus::Complete: {
++      auto asr = asr_.begin(capture_id_, controller_.context().grammar);
++      if (asr.status == AsrStatus::Busy) {
++        releaseCapture();
++        failInput(voicelink::IoStatus::RetryableError, asr.error_code);
++        return;
++      }
++      if (!asr.request_id) {
++        releaseCapture();
++        failInput(voicelink::IoStatus::FatalError, asr.error_code ? asr.error_code : -1);
++        return;
++      }
++      asr_id_ = asr.request_id;
++      stage_started_ms_ = clock_.nowMs();
++      phase_ = Phase::Recognizing;
++      applyAsr(std::move(asr));
++      return;
++    }
++    case CaptureStatus::Timeout: releaseCapture(); failInput(voicelink::IoStatus::Timeout, result.error_code); return;
++    case CaptureStatus::Cancelled: releaseCapture(); failInput(voicelink::IoStatus::EndOfInput, result.error_code); return;
++    case CaptureStatus::Busy: return;
++    case CaptureStatus::Failed: releaseCapture(); failInput(voicelink::IoStatus::RetryableError, result.error_code); return;
++  }
++}
++
++void Loop::applyAsr(AsrResult result) {
++  TextWiper text_wiper{result.text};
++  if (!asr_id_ || result.request_id != asr_id_) return;
++  switch (result.status) {
++    case AsrStatus::Accepted:
++    case AsrStatus::Recognizing: return;
++    case AsrStatus::Ready: {
++      const bool valid = validText(result.text, config_.max_text_bytes);
++      asr_id_ = 0;
++      releaseCapture();
++      if (!valid) {
++        failInput(voicelink::IoStatus::RetryableError, result.error_code ? result.error_code : -1);
++        return;
++      }
++      ++turn_;
++      controller_.ingest(result.text);
++      reconcileController();
++      return;
++    }
++    case AsrStatus::Timeout:
++      asr_id_ = 0; releaseCapture();
++      failInput(voicelink::IoStatus::Timeout, result.error_code); return;
++    case AsrStatus::Cancelled:
++      asr_id_ = 0; releaseCapture();
++      failInput(voicelink::IoStatus::EndOfInput, result.error_code); return;
++    case AsrStatus::Busy: return;
++    case AsrStatus::Failed:
++      asr_id_ = 0; releaseCapture();
++      failInput(voicelink::IoStatus::RetryableError, result.error_code); return;
++  }
++}
++
++void Loop::releaseCapture() noexcept {
++  const auto id = capture_id_;
++  capture_id_ = 0;
++  if (id) capture_.release(id);
++}
++
++void Loop::failInput(voicelink::IoStatus status, int error) {
++  last_error_ = error;
++  if (!controller_.handleInputStatus(status)) {
++    reconcileController();
++    return;
++  }
++  reconcileController();
++}
++
++void Loop::cancelActive() noexcept {
++  if (asr_id_) { asr_.cancel(asr_id_); asr_id_ = 0; }
++  if (capture_id_) { capture_.cancel(capture_id_); releaseCapture(); }
++}
++
++void Loop::cancel() {
++  if (!started_) return;
++  cancelActive();
++  controller_.cancel();
++  reconcileController();
++}
++
++void Loop::reconcileController() noexcept {
++  switch (controller_.context().state) {
++    case voicelink::State::Completed: phase_ = Phase::Completed; return;
++    case voicelink::State::Error: phase_ = Phase::Error; return;
++    case voicelink::State::Idle: phase_ = Phase::Idle; started_ = false; return;
++    case voicelink::State::ScanningWifi:
++    case voicelink::State::CredentialsReceived:
++    case voicelink::State::ConnectingWifi: phase_ = Phase::ControllerWork; return;
++    default: scheduleInput(); return;
++  }
++}
++
++void Loop::tick() {
++  if (!started_ || phase_ == Phase::Idle || phase_ == Phase::Completed || phase_ == Phase::Error) return;
++  const auto now = clock_.nowMs();
++  if (now < last_now_ms_) {
++    last_error_ = -2;
++    cancelActive();
++    controller_.handleInputStatus(voicelink::IoStatus::FatalError);
++    reconcileController();
++    return;
++  }
++  last_now_ms_ = now;
++  controller_.poll();
++  reconcileController();
++  if (phase_ == Phase::WaitingPort && now >= retry_at_ms_) { beginCapture(); return; }
++  if (phase_ == Phase::Recording) {
++    if (elapsed(now, stage_started_ms_, config_.capture_timeout_ms)) {
++      capture_.cancel(capture_id_); releaseCapture();
++      failInput(voicelink::IoStatus::Timeout, -3);
++      return;
++    }
++    applyCapture(capture_.poll(capture_id_));
++    return;
++  }
++  if (phase_ == Phase::Recognizing) {
++    if (elapsed(now, stage_started_ms_, config_.asr_timeout_ms)) {
++      asr_.cancel(asr_id_); asr_id_ = 0; releaseCapture();
++      failInput(voicelink::IoStatus::Timeout, -4);
++      return;
++    }
++    applyAsr(asr_.poll(asr_id_));
++  }
++}
++
++}  // namespace voice_loop
+diff --git a/VelaVision/work-in-progress/parallel-voice-loop-sol/tests\test_voice_loop.cpp b/VelaVision/work-in-progress/parallel-voice-loop-sol/tests\test_voice_loop.cpp
+new file mode 100644
+--- /dev/null
++++ b/VelaVision/work-in-progress/parallel-voice-loop-sol/tests\test_voice_loop.cpp
+@@ -0,0 +1,212 @@
++#include "voice_loop.hpp"
++
++#include <deque>
++#include <iostream>
++#include <stdexcept>
++#include <utility>
++#include <vector>
++
++using namespace voice_loop;
++using namespace voicelink;
++
++static unsigned checks;
++#define CHECK(x) do { ++checks; if (!(x)) throw std::runtime_error(#x); } while (0)
++
++struct Clock final : ClockPort {
++  std::uint64_t now{};
++  std::uint64_t nowMs() const noexcept override { return now; }
++};
++
++struct Tts final : TtsPort {
++  std::vector<std::string> prompts;
++  bool speak(const std::string& s) override { prompts.push_back(s); return true; }
++  void stop() override {}
++  bool contains(const std::string& secret) const {
++    for (const auto& p : prompts) if (p.find(secret) != std::string::npos) return true;
++    return false;
++  }
++};
++
++struct Capture final : CapturePort {
++  std::uint64_t next{1};
++  bool hold{};
++  unsigned cancels{}, releases{}, begins{};
++  std::vector<Grammar> grammars;
++  CaptureResult begin(Grammar grammar) noexcept override {
++    ++begins; grammars.push_back(grammar);
++    const auto id = next++;
++    return {hold ? CaptureStatus::Recording : CaptureStatus::Complete, id, 0};
++  }
++  CaptureResult poll(std::uint64_t id) noexcept override {
++    return {hold ? CaptureStatus::Recording : CaptureStatus::Complete, id, 0};
++  }
++  void cancel(std::uint64_t) noexcept override { ++cancels; }
++  void release(std::uint64_t) noexcept override { ++releases; }
++};
++
++struct Asr final : AsrPort {
++  std::uint64_t next{100};
++  std::deque<std::string> texts;
++  bool hold{}, stale_once{};
++  std::uint64_t active{};
++  unsigned cancels{}, begins{};
++  AsrResult begin(std::uint64_t, Grammar) noexcept override {
++    ++begins; active = next++;
++    if (hold) return {AsrStatus::Recognizing, active, 0, {}};
++    std::string text;
++    if (!texts.empty()) { text = std::move(texts.front()); texts.pop_front(); }
++    return {AsrStatus::Ready, active, 0, std::move(text)};
++  }
++  AsrResult poll(std::uint64_t id) noexcept override {
++    if (stale_once) { stale_once = false; return {AsrStatus::Ready, id + 999, 0, "旧事务"}; }
++    if (hold) return {AsrStatus::Recognizing, id, 0, {}};
++    std::string text;
++    if (!texts.empty()) { text = std::move(texts.front()); texts.pop_front(); }
++    return {AsrStatus::Ready, id, 0, std::move(text)};
++  }
++  void cancel(std::uint64_t) noexcept override { ++cancels; }
++};
++
++struct Wifi final : WifiPort {
++  std::vector<AccessPoint> aps{{"SecureNet", -20, true}, {"Guest", -30, false}};
++  ScanStatus scan_terminal{ScanStatus::Ready};
++  ConnectStatus connect_terminal{ConnectStatus::IpReady};
++  std::uint64_t scan_id{500}, connect_id{900};
++  unsigned scan_polls{}, connect_polls{}, connect_begins{}, scan_cancels{}, connect_cancels{};
++  std::string observed_password;
++  bool stale_connect_once{};
++  ScanResult beginScan() override { ++scan_id; scan_polls = 0; return {ScanStatus::Received, {}, 0, scan_id}; }
++  ScanResult pollScan(std::uint64_t id) override {
++    ++scan_polls;
++    return scan_terminal == ScanStatus::Ready ? ScanResult{ScanStatus::Ready, aps, 0, id}
++                                               : ScanResult{scan_terminal, {}, -10, id};
++  }
++  void cancelScan(std::uint64_t) noexcept override { ++scan_cancels; }
++  ConnectResult beginConnect(const std::string&, const char* p, std::size_t n) noexcept override {
++    ++connect_begins; ++connect_id; connect_polls = 0;
++    observed_password.assign(p ? p : "", n);
++    return {ConnectStatus::CredentialsReceived, 0, connect_id, {}};
++  }
++  ConnectResult pollConnect(std::uint64_t id) noexcept override {
++    if (stale_connect_once) { stale_connect_once = false; return {ConnectStatus::IpReady, 0, id + 7, "10.0.0.7"}; }
++    ++connect_polls;
++    if (connect_polls == 1) return {ConnectStatus::Connecting, 0, id, {}};
++    return {connect_terminal, -20, id, connect_terminal == ConnectStatus::IpReady ? "10.0.0.8" : ""};
++  }
++  void cancelConnect(std::uint64_t) noexcept override { ++connect_cancels; observed_password.clear(); }
++};
++
++struct Rig {
++  Clock clock; Tts tts; Wifi wifi; Capture capture; Asr asr;
++  Controller controller;
++  Loop loop;
++  Rig(voice_loop::Config loop_config = {}, voicelink::Config controller_config = {})
++      : controller(tts, wifi, clock, std::move(controller_config)),
++        loop(controller, capture, asr, clock, loop_config) {}
++  void tick(unsigned count = 1, std::uint64_t advance = 1) {
++    while (count--) { clock.now += advance; loop.tick(); }
++  }
++  void readyForSpeech() {
++    for (unsigned i = 0; i < 20 && loop.phase() != Phase::WaitingPort; ++i) tick();
++    CHECK(loop.phase() == Phase::WaitingPort);
++  }
++  void say(const std::string& text) {
++    const auto before = loop.turn(); asr.texts.push_back(text);
++    for (unsigned i = 0; i < 30 && loop.turn() == before; ++i) tick();
++    CHECK(loop.turn() == before + 1);
++  }
++};
++
++static void enterPassword(Rig& r) {
++  CHECK(r.loop.start()); r.say("你好 openvela"); r.say("网络一");
++  for (const char* token : {"a", "b", "c", "d", "一", "二", "三", "四"}) r.say(token);
++  CHECK(r.controller.context().password.size() == 8);
++  r.say("完成");
++  CHECK(r.controller.context().state == State::ConfirmingPassword);
++}
++
++static void securedSuccess() {
++  Rig r; enterPassword(r);
++  CHECK(r.wifi.connect_begins == 0); r.say("继续"); CHECK(r.wifi.connect_begins == 0);
++  r.say("确认提交"); CHECK(r.wifi.connect_begins == 1);
++  CHECK(r.wifi.observed_password == "abcd1234");
++  CHECK(r.controller.context().password.empty());
++  r.tick(3); CHECK(r.loop.phase() == Phase::Completed);
++  CHECK(!r.tts.contains("abcd1234"));
++}
++
++static void openNetwork() {
++  Rig r; r.wifi.aps = {{"Cafe", -10, false}};
++  CHECK(r.loop.start()); r.say("你好 openvela"); r.say("网络一");
++  CHECK(r.controller.context().state == State::ConfirmingPassword);
++  CHECK(r.wifi.connect_begins == 0); r.say("确认提交");
++  CHECK(r.wifi.connect_begins == 1 && r.wifi.observed_password.empty());
++  r.tick(3); CHECK(r.loop.phase() == Phase::Completed);
++}
++
++static void scanFailureAndCancel() {
++  Rig r; r.wifi.scan_terminal = ScanStatus::Failed;
++  CHECK(r.loop.start()); r.say("你好 openvela"); r.tick();
++  CHECK(r.loop.phase() == Phase::Error && r.wifi.scan_cancels == 1);
++  Rig c; CHECK(c.loop.start()); c.asr.hold = true; c.readyForSpeech(); c.tick();
++  CHECK(c.loop.phase() == Phase::Recognizing); c.loop.cancel();
++  CHECK(c.asr.cancels == 1 && c.capture.releases == 1 && c.loop.phase() == Phase::Idle);
++  Rig s; CHECK(s.loop.start()); s.say("你好 openvela"); CHECK(s.loop.phase() == Phase::ControllerWork);
++  s.loop.cancel(); CHECK(s.wifi.scan_cancels == 1 && s.loop.phase() == Phase::Idle);
++}
++
++static void timeoutsAndClock() {
++  Rig r({5, 7, 1, 512}); r.capture.hold = true;
++  CHECK(r.loop.start()); r.readyForSpeech(); r.tick(); CHECK(r.loop.phase() == Phase::Recording);
++  r.tick(1, 5); CHECK(r.capture.cancels == 1); CHECK(r.loop.phase() == Phase::WaitingPort);
++  Rig a({20, 5, 1, 512}); a.asr.hold = true;
++  CHECK(a.loop.start()); a.readyForSpeech(); a.tick(); CHECK(a.loop.phase() == Phase::Recognizing);
++  a.tick(1, 5); CHECK(a.asr.cancels == 1 && a.capture.releases == 1);
++  Rig c; c.capture.hold = true; CHECK(c.loop.start()); c.readyForSpeech(); c.tick(); c.clock.now = 0; c.loop.tick();
++  CHECK(c.loop.phase() == Phase::Error);
++}
++
++static void controllerTimeouts() {
++  voicelink::Config scan_config; scan_config.scan_timeout_ms = 5;
++  Rig scan({}, scan_config); CHECK(scan.loop.start()); scan.say("你好 openvela");
++  scan.tick(1, 5); CHECK(scan.wifi.scan_cancels == 1 && scan.loop.phase() == Phase::Idle);
++
++  voicelink::Config connect_config; connect_config.connect_timeout_ms = 5;
++  Rig connect({}, connect_config); enterPassword(connect); connect.say("确认提交");
++  connect.tick(1, 5);
++  CHECK(connect.wifi.connect_cancels == 1);
++  CHECK(connect.controller.context().state == State::EnteringPassword);
++  CHECK(connect.loop.phase() == Phase::WaitingPort);
++}
++
++static void staleAndConnectionFailure() {
++  Rig r; r.asr.hold = true; r.asr.stale_once = true;
++  CHECK(r.loop.start()); r.readyForSpeech(); r.tick(); CHECK(r.loop.phase() == Phase::Recognizing);
++  r.asr.texts.push_back("你好 openvela"); r.asr.hold = false;
++  r.tick(); CHECK(r.loop.turn() == 0); r.tick(); CHECK(r.loop.turn() == 1);
++  Rig f; enterPassword(f); f.wifi.connect_terminal = ConnectStatus::WrongPassword;
++  f.wifi.stale_connect_once = true; f.say("确认提交");
++  f.tick(); CHECK(f.controller.context().state == State::CredentialsReceived);
++  f.tick(); CHECK(f.controller.context().state == State::ConnectingWifi);
++  f.tick(); CHECK(f.controller.context().state == State::EnteringPassword);
++  CHECK(f.wifi.connect_cancels == 1 && f.controller.context().password.empty());
++}
++
++static void invalidTextAndEnd() {
++  Rig r({20, 20, 1, 8}); CHECK(r.loop.start()); r.asr.texts.push_back("文本内容超过限制");
++  r.readyForSpeech(); r.tick(); CHECK(r.loop.turn() == 0 && r.loop.phase() == Phase::WaitingPort);
++  CHECK(!r.tts.prompts.empty());
++}
++
++int main() {
++  try {
++    securedSuccess(); openNetwork(); scanFailureAndCancel(); timeoutsAndClock(); controllerTimeouts();
++    staleAndConnectionFailure(); invalidTextAndEnd();
++    std::cout << "voice_loop_checks=" << checks
++              << " scenarios=9 failures=0 secrets_in_output=0\n";
++    return 0;
++  } catch (const std::exception& e) {
++    std::cerr << "failure=" << e.what() << "\n";
++    return 1;
++  }
++}

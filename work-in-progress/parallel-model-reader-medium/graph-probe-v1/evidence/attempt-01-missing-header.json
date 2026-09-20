@@ -1,0 +1,37 @@
+{
+  "utc": "2026-09-10T07:32:45Z",
+  "hardware_tested": false,
+  "results": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "--version"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "gcc.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-fstack-usage",
+        "-Iinput/include",
+        "-c",
+        "graph_probe.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\graph_probe.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "In file included from input/include/ggml-cpu.h:4,\n                 from input/include/ggml-pool-safe.h:3,\n                 from graph_probe.h:3,\n                 from graph_probe.c:1:\ninput/include/ggml-backend.h:4:10: fatal error: ggml-alloc.h: No such file or directory\n    4 | #include \"ggml-alloc.h\"\n      |          ^~~~~~~~~~~~~~\ncompilation terminated.\n"
+    }
+  ]
+}

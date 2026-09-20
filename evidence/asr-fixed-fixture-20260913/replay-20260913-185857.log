@@ -1,0 +1,32 @@
+
+nsh> [Kk7sound replay-max
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDI0
+SOUND platform_result=0 version=23073576 repair=fdffffff ack=00000001 idle=00000001
+SOUND mclkout before=0000001f after=0000SOUND codec_prepare=0 state=2
+SOUND adc_variant=0 settle_ms=0
+SOUND playback_gain_db=24 dac_attenuation_db=0 maximum=1
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=00000000
+SOUND slot_mask offset=44 value=00000000
+SOUND slot_mask offset=48 value=00000000
+SOUND slot_mask offset=4c value=00000000
+SOUND slot_mask offset=50 value=00000000
+SOUND slot_mask offset=54 value=00000000
+SOUND slot_mask offset=58 value=00000000
+SOUND pio=0 frames=48000 polls=2617285 stop=0 held=0 max_fifo=16=00000018
+SOUND codec reg=00 value=36
+SOUND codec reg=01 value reg=07 value=7c
+SOUND codec reg=08 value=00
+SOUND codec reg=0c reg=0a value=f0
+SOUND codec reg=0b value=82
+SOUND codec reg=
+SOUND codec reg=17 value=20
+SOUND codec reg=18 value=02
+SOUNc reg=1b value=00
+SOUND codec reg=27 value=b8
+SOUND codec reg=gpio_high=50376 transitions=0 samples=50376
+SOUND pad ticks=480nnel=2 high=25205 changes=640
+SOUND pad channel=3 high=50376 chSOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [K

@@ -1,0 +1,61 @@
+{
+  "revision": "voice-flow-confirmation-20260912",
+  "recorded_at": "2026-09-12T16:38:00+08:00",
+  "ram_booted": true,
+  "firmware_sha256": "1b9c662535cad72f8f97993e65b7f5f7de56bc9c19240f5b15850fa9607a12ff",
+  "transfer": {
+    "transport": "USB OTG RAM download",
+    "package_bytes": 115983728,
+    "package_sha256": "b8afccaa8d8a542cbf0288435931689d841e51775a2d6fc672a9f31b3cb1cebc",
+    "package_crc32": "c642ddc7",
+    "ack": true,
+    "seconds": 13.28
+  },
+  "preserved_models": {
+    "decoder_crc32": "2af64aa7",
+    "encoder_tail_crc32": "b5f7ae2d",
+    "reconstructed_encoder_crc32": "b20f998f"
+  },
+  "asr_repeat": {
+    "passed": true,
+    "runs": 2,
+    "seconds": [42.198, 42.098],
+    "result_text_equal": true,
+    "peak_bytes": 468101988,
+    "live_bytes_after_each_run": 0,
+    "allocation_records": 1264,
+    "allocation_failures": 0
+  },
+  "radio_startup": {
+    "sdio_boot": 0,
+    "bluetooth_host": 0,
+    "wifi_shared_service": 0,
+    "ble_client_connected": false,
+    "wifi_connected": false
+  },
+  "controller_scan": {
+    "passed": true,
+    "real_radio": true,
+    "state": "WaitingNetworkChoice",
+    "grammar": "NetworkChoice",
+    "raw_reports": 363,
+    "bounded_backend_entries": 64,
+    "controller_candidates": 4,
+    "ssids": ["Lansee_vistor", "Lansee_auto", "Lansee", "REDMI K80"]
+  },
+  "scope": "Formal Controller wake-to-real-scan path and explicit password confirmation logic. Microphone ASR text is not yet fed into the Controller and prompts are console output, so end-to-end spoken provisioning is not yet accepted.",
+  "logs": {
+    "asr-model-1-20260912-155449.log": "e60def46a93c3395bdb7e53970e67b1b4771d9b70a938b5308ff384a6efe05b5",
+    "asr-model-2-20260912-155626.log": "f19091b2aac726d3d7d3aed119d7af81775aac5cc8fceb1e4cac954e1a43226f",
+    "voice-flow-enter-20260912-161323.log": "c87aa09642434a9a3b98c09f04db3a0cf7e6081fe097637ab06fb24ac73763bf",
+    "voice-flow-final-20260912-161516.log": "3f73807ddefc6f314052e7a4a024ad0c7edc726a95c7b9651d0db22a43648141",
+    "voice-flow-sdio-boot-20260912-163234.log": "afabcfc117253927dfe0b346006a5b55ad2d47d4ae107ab59e39bdddbc472ad8",
+    "voice-flow-bt-host2-20260912-163653.log": "eb91adfcb0a63958f9c57dba4990b3b0f7a771005d2331ee2b31a4df5d5a5b28",
+    "voice-flow-service2-20260912-163734.log": "aa5f200787f53793e4350c52c9e6218c9d3a62830922b49875aa17939a7862ec",
+    "voice-flow-controller-scan-20260912-163807.log": "09edf39e25bcaef1e53131b452e96571f9cfedc932e38a7a8081b629f91c28e1",
+    "voice-flow-usb-20260912.json": "93eefac2cdbd440d84765fb66d40a1fe412dc557f947a21955118304a74c36ef"
+  },
+  "emmc_written": false,
+  "stm32_written": false,
+  "gimbal_started": false
+}

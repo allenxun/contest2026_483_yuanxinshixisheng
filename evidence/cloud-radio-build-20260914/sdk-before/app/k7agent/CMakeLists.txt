@@ -1,0 +1,26 @@
+# Reviewed model_reader source is staged here; no local model Agent is enabled.
+
+if(CONFIG_EXAMPLES_K7CLOUD)
+  include_directories(cloud/include)
+  nuttx_add_application(NAME k7cloud
+    SRCS cloud/src/k7cloud_main.c
+         cloud/src/vv_dns_client.c
+         cloud/src/vv_dns_nuttx.c
+         cloud/src/vv_https_client.c
+         cloud/src/vv_https_mbedtls.c
+    STACKSIZE 32768 PRIORITY 100 MODULE ${CONFIG_EXAMPLES_K7CLOUD})
+  if(CONFIG_EXAMPLES_K7CLOUD_MIMO_V25)
+    target_sources(apps_k7cloud PRIVATE
+      cloud/src/mimo_cloud_client.c
+      cloud/src/mimo_v25_profile.c)
+    target_compile_definitions(apps_k7cloud PRIVATE K7CLOUD_MIMO_V25=1)
+  endif()
+  if(CONFIG_EXAMPLES_K7CLOUD_SPEECH_ORCHESTRATOR)
+    include_directories(../k7sound)
+    target_sources(apps_k7cloud PRIVATE
+      cloud/src/cloud_speech_orchestrator.c
+      cloud/src/cloud_speech_mimo_adapter.c)
+    target_compile_definitions(apps_k7cloud PRIVATE
+      K7CLOUD_SPEECH_ORCHESTRATOR=1)
+  endif()
+endif()

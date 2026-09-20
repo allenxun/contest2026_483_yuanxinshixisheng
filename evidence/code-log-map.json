@@ -1,0 +1,401 @@
+{
+  "source_set_sha256": "be9e652480287cfac8a55ce2b6d2e88ad44c10ba610f4c911b8a8df95c5c7975",
+  "modules": [
+    {
+      "module": "BSP / USB / 平台",
+      "source_locations": "board/kickpi_k7; port/new/nuttx; port/tracked/nuttx",
+      "search_terms": [
+        "rk3576_boot.c",
+        "usbhost_xhci_rk3576",
+        "rk3576_lowputc",
+        "kickpi_k7"
+      ],
+      "log_references": [
+        {
+          "session_id": "01a06679-4033-7993-b989-6269e03e0e70",
+          "file_path": "logs/maomaojiang01/2026-09-03/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+          "matching_events": 367,
+          "first_seq": 133,
+          "last_seq": 7152,
+          "example_anchors": [
+            {
+              "seq": 133,
+              "ts": "2026-09-03T09:06:56.647Z",
+              "source_line": 323
+            },
+            {
+              "seq": 134,
+              "ts": "2026-09-03T09:07:12.152Z",
+              "source_line": 327
+            },
+            {
+              "seq": 136,
+              "ts": "2026-09-03T09:07:13.735Z",
+              "source_line": 332
+            }
+          ]
+        },
+        {
+          "session_id": "01a07ed4-3f0d-7450-8bb1-bb756849cb4e",
+          "file_path": "logs/maomaojiang01/2026-09-08/codex__01a07ed4-3f0d-7450-8bb1-bb756849cb4e.jsonl",
+          "matching_events": 142,
+          "first_seq": 4,
+          "last_seq": 3552,
+          "example_anchors": [
+            {
+              "seq": 4,
+              "ts": "2026-09-08T02:24:07.800Z",
+              "source_line": 16
+            },
+            {
+              "seq": 10,
+              "ts": "2026-09-08T02:25:00.032Z",
+              "source_line": 28
+            },
+            {
+              "seq": 14,
+              "ts": "2026-09-08T02:25:31.511Z",
+              "source_line": 38
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "人脸 / 姿态 / 三视角拍照",
+      "source_locations": "app/k7host; host/vision",
+      "search_terms": [
+        "k7host",
+        "k7_pose",
+        "photo_controller",
+        "photo-direction"
+      ],
+      "log_references": [
+        {
+          "session_id": "01a06679-4033-7993-b989-6269e03e0e70",
+          "file_path": "logs/maomaojiang01/2026-09-03/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+          "matching_events": 709,
+          "first_seq": 1024,
+          "last_seq": 7155,
+          "example_anchors": [
+            {
+              "seq": 1024,
+              "ts": "2026-09-04T01:36:35.247Z",
+              "source_line": 2522
+            },
+            {
+              "seq": 1027,
+              "ts": "2026-09-04T01:38:38.385Z",
+              "source_line": 2531
+            },
+            {
+              "seq": 1030,
+              "ts": "2026-09-04T01:38:57.052Z",
+              "source_line": 2538
+            }
+          ]
+        },
+        {
+          "session_id": "01a07ed4-3f0d-7450-8bb1-bb756849cb4e",
+          "file_path": "logs/maomaojiang01/2026-09-08/codex__01a07ed4-3f0d-7450-8bb1-bb756849cb4e.jsonl",
+          "matching_events": 47,
+          "first_seq": 4,
+          "last_seq": 3566,
+          "example_anchors": [
+            {
+              "seq": 4,
+              "ts": "2026-09-08T02:24:07.800Z",
+              "source_line": 16
+            },
+            {
+              "seq": 10,
+              "ts": "2026-09-08T02:25:00.032Z",
+              "source_line": 28
+            },
+            {
+              "seq": 27,
+              "ts": "2026-09-08T02:29:07.900Z",
+              "source_line": 71
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "云台 / STM32",
+      "source_locations": "app/gimbal; mcu/stm32-v1.3",
+      "search_terms": [
+        "gimbal",
+        "stm32",
+        "user_bluetooth.c",
+        "bsp_pwm"
+      ],
+      "log_references": [
+        {
+          "session_id": "01a06679-4033-7993-b989-6269e03e0e70",
+          "file_path": "logs/maomaojiang01/2026-09-03/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+          "matching_events": 545,
+          "first_seq": 123,
+          "last_seq": 7155,
+          "example_anchors": [
+            {
+              "seq": 123,
+              "ts": "2026-09-03T09:06:09.983Z",
+              "source_line": 302
+            },
+            {
+              "seq": 363,
+              "ts": "2026-09-03T09:36:59.034Z",
+              "source_line": 892
+            },
+            {
+              "seq": 511,
+              "ts": "2026-09-03T09:55:29.565Z",
+              "source_line": 1244
+            }
+          ]
+        },
+        {
+          "session_id": "01a07ed4-3f0d-7450-8bb1-bb756849cb4e",
+          "file_path": "logs/maomaojiang01/2026-09-08/codex__01a07ed4-3f0d-7450-8bb1-bb756849cb4e.jsonl",
+          "matching_events": 91,
+          "first_seq": 4,
+          "last_seq": 3566,
+          "example_anchors": [
+            {
+              "seq": 4,
+              "ts": "2026-09-08T02:24:07.800Z",
+              "source_line": 16
+            },
+            {
+              "seq": 7,
+              "ts": "2026-09-08T02:24:26.896Z",
+              "source_line": 22
+            },
+            {
+              "seq": 10,
+              "ts": "2026-09-08T02:25:00.032Z",
+              "source_line": 28
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "NPU",
+      "source_locations": "app/k7npu",
+      "search_terms": [
+        "k7npu",
+        "rawrepeat",
+        "rk3576_npu"
+      ],
+      "log_references": [
+        {
+          "session_id": "01a06679-4033-7993-b989-6269e03e0e70",
+          "file_path": "logs/maomaojiang01/2026-09-03/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+          "matching_events": 141,
+          "first_seq": 146,
+          "last_seq": 7155,
+          "example_anchors": [
+            {
+              "seq": 146,
+              "ts": "2026-09-03T09:08:22.932Z",
+              "source_line": 358
+            },
+            {
+              "seq": 6499,
+              "ts": "2026-09-07T11:29:39.451Z",
+              "source_line": 16048
+            },
+            {
+              "seq": 6523,
+              "ts": "2026-09-07T11:34:37.147Z",
+              "source_line": 16110
+            }
+          ]
+        },
+        {
+          "session_id": "01a07ed4-3f0d-7450-8bb1-bb756849cb4e",
+          "file_path": "logs/maomaojiang01/2026-09-08/codex__01a07ed4-3f0d-7450-8bb1-bb756849cb4e.jsonl",
+          "matching_events": 82,
+          "first_seq": 4,
+          "last_seq": 3566,
+          "example_anchors": [
+            {
+              "seq": 4,
+              "ts": "2026-09-08T02:24:07.800Z",
+              "source_line": 16
+            },
+            {
+              "seq": 7,
+              "ts": "2026-09-08T02:24:26.896Z",
+              "source_line": 22
+            },
+            {
+              "seq": 10,
+              "ts": "2026-09-08T02:25:00.032Z",
+              "source_line": 28
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "Wi-Fi / BLE / 前端",
+      "source_locations": "app/k7radio; frontend; work-in-progress/wifi-link",
+      "search_terms": [
+        "k7radio",
+        "prov_service",
+        "vela-provision",
+        "skw_wifi"
+      ],
+      "log_references": [
+        {
+          "session_id": "01a07ed4-3f0d-7450-8bb1-bb756849cb4e",
+          "file_path": "logs/maomaojiang01/2026-09-08/codex__01a07ed4-3f0d-7450-8bb1-bb756849cb4e.jsonl",
+          "matching_events": 523,
+          "first_seq": 71,
+          "last_seq": 3566,
+          "example_anchors": [
+            {
+              "seq": 71,
+              "ts": "2026-09-08T02:37:07.184Z",
+              "source_line": 176
+            },
+            {
+              "seq": 77,
+              "ts": "2026-09-08T02:37:50.992Z",
+              "source_line": 191
+            },
+            {
+              "seq": 80,
+              "ts": "2026-09-08T02:38:20.632Z",
+              "source_line": 198
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "旧 PC / 仪器模型",
+      "source_locations": "legacy/pc-delivery",
+      "search_terms": [
+        "pc_demo",
+        "device_model",
+        "仪器",
+        "rknn"
+      ],
+      "log_references": [
+        {
+          "session_id": "01a06679-4033-7993-b989-6269e03e0e70",
+          "file_path": "logs/maomaojiang01/2026-09-03/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+          "matching_events": 201,
+          "first_seq": 529,
+          "last_seq": 7162,
+          "example_anchors": [
+            {
+              "seq": 529,
+              "ts": "2026-09-03T11:25:58.410Z",
+              "source_line": 1301
+            },
+            {
+              "seq": 530,
+              "ts": "2026-09-03T11:26:13.859Z",
+              "source_line": 1305
+            },
+            {
+              "seq": 532,
+              "ts": "2026-09-03T11:26:15.384Z",
+              "source_line": 1310
+            }
+          ]
+        },
+        {
+          "session_id": "01a07ed4-3f0d-7450-8bb1-bb756849cb4e",
+          "file_path": "logs/maomaojiang01/2026-09-08/codex__01a07ed4-3f0d-7450-8bb1-bb756849cb4e.jsonl",
+          "matching_events": 31,
+          "first_seq": 0,
+          "last_seq": 3552,
+          "example_anchors": [
+            {
+              "seq": 0,
+              "ts": "2026-09-08T02:23:59.633Z",
+              "source_line": 9
+            },
+            {
+              "seq": 4,
+              "ts": "2026-09-08T02:24:07.800Z",
+              "source_line": 16
+            },
+            {
+              "seq": 7,
+              "ts": "2026-09-08T02:24:26.896Z",
+              "source_line": 22
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "统一构建 / 日志",
+      "source_locations": "tools; logs/maomaojiang01",
+      "search_terms": [
+        "velavision_integrated",
+        "统一",
+        "validate-log.py",
+        "export_project_logs"
+      ],
+      "log_references": [
+        {
+          "session_id": "01a06679-4033-7993-b989-6269e03e0e70",
+          "file_path": "logs/maomaojiang01/2026-09-03/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+          "matching_events": 23,
+          "first_seq": 581,
+          "last_seq": 7148,
+          "example_anchors": [
+            {
+              "seq": 581,
+              "ts": "2026-09-03T11:44:25.490Z",
+              "source_line": 1442
+            },
+            {
+              "seq": 1793,
+              "ts": "2026-09-04T03:47:20.370Z",
+              "source_line": 4300
+            },
+            {
+              "seq": 2025,
+              "ts": "2026-09-04T06:12:25.211Z",
+              "source_line": 4877
+            }
+          ]
+        },
+        {
+          "session_id": "01a07ed4-3f0d-7450-8bb1-bb756849cb4e",
+          "file_path": "logs/maomaojiang01/2026-09-08/codex__01a07ed4-3f0d-7450-8bb1-bb756849cb4e.jsonl",
+          "matching_events": 54,
+          "first_seq": 4,
+          "last_seq": 3567,
+          "example_anchors": [
+            {
+              "seq": 4,
+              "ts": "2026-09-08T02:24:07.800Z",
+              "source_line": 16
+            },
+            {
+              "seq": 7,
+              "ts": "2026-09-08T02:24:26.896Z",
+              "source_line": 22
+            },
+            {
+              "seq": 515,
+              "ts": "2026-09-08T03:40:14.381Z",
+              "source_line": 1223
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "interpretation": "Actual text/path references and source snapshot hashes; not proof of per-event authorship or historical commits."
+}

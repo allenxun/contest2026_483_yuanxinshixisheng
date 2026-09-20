@@ -1,0 +1,271 @@
+{
+  "command": [
+    "/dev/shm/cmake-3.28.3-linux-x86_64/bin/cmake",
+    "-S",
+    "/dev/shm/velavision-sherpa-asr-20260911/sherpa",
+    "-B",
+    "/home/swl/openvela/work/native-sherpa-config2-20260911/build",
+    "-G",
+    "Ninja",
+    "-DK7_SHERPA_DEPS_ROOT=/dev/shm/velavision-sherpa-asr-20260911/sources",
+    "-C",
+    "/home/swl/openvela/work/native-sherpa-config2-20260911/driver/asr-initial-cache.cmake",
+    "-DFETCHCONTENT_SOURCE_DIR_KALDIFST=/home/swl/openvela/work/native-sherpa-config2-20260911/sources/kaldifst",
+    "-DFETCHCONTENT_SOURCE_DIR_OPENFST=/home/swl/openvela/work/native-sherpa-config2-20260911/sources/openfst",
+    "-C",
+    "/home/swl/openvela/work/native-sherpa-config2-20260911/driver/eigen-cache.cmake",
+    "-DCMAKE_TOOLCHAIN_FILE=/dev/shm/velavision-ort-session-20260911/session-toolchain.cmake",
+    "-DCMAKE_BUILD_TYPE=MinSizeRel",
+    "-DCMAKE_MAKE_PROGRAM=/home/swl/openvela/prebuilts/build-tools/linux-x86_64/bin/ninja",
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+    "-DK7_ORT_PUBLIC_INCLUDE_DIR=/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/session",
+    "-DK7_ORT_STATIC_LIBRARIES=/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_base.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_log_severity.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_malloc_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_raw_logging_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_spinlock_wait.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_throw_delegate.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/container/libabsl_hashtablez_sampler.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/container/libabsl_raw_hash_set.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc32c.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_cord_state.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_cpu_detect.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_debugging_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_demangle_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_stacktrace.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_symbolize.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_commandlineflag.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_commandlineflag_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_config.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_marshalling.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_private_handle_accessor.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_program_name.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_reflection.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_city.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_hash.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_low_level_hash.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/numeric/libabsl_int128.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/profiling/libabsl_exponential_biased.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cord.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cord_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_functions.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_handle.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_info.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_str_format_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_string_view.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_strings.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_strings_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_graphcycles_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_kernel_timeout_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_synchronization.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_civil_time.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_time.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_time_zone.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/types/libabsl_bad_optional_access.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/types/libabsl_bad_variant_access.a;/dev/shm/velavision-ort-session-20260911/build/_deps/flatbuffers-build/libflatbuffers.a;/dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/libnsync_cpp.a;/dev/shm/velavision-ort-session-20260911/build/_deps/onnx-build/libonnx.a;/dev/shm/velavision-ort-session-20260911/build/_deps/onnx-build/libonnx_proto.a;/dev/shm/velavision-ort-session-20260911/build/_deps/protobuf-build/libprotobuf-lite.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_common.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_flatbuffers.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_framework.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_graph.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_mlas.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_optimizer.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_providers.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_session.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_util.a"
+  ],
+  "archives": [
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_base.a",
+      "sha256": "59be88c15e9af5d3a4efbb89b3cc548faa244ce29fe6b8541afa044181cc3f88"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_log_severity.a",
+      "sha256": "c14efcf36444c79ecb37059f313c2b984a3de72c28f0cd82a3600cde50ec3766"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_malloc_internal.a",
+      "sha256": "fa796ff00f531e24db16afd35a62aa1f4e09560184168e3bf00c0799a5db5fac"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_raw_logging_internal.a",
+      "sha256": "d4909b305db62ad467f3d1823db063850a6f5905d20371bb3d9325cc3ac04bd1"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_spinlock_wait.a",
+      "sha256": "ac5f7ce7d20ff310b24de15ad045bbeafe93415da1cf8a6312c72370696f0efa"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_throw_delegate.a",
+      "sha256": "891cb8d1a3f6d2e83b3a119da5181a8dbf08bf26eaa351079de942967a576a65"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/container/libabsl_hashtablez_sampler.a",
+      "sha256": "b0337ad7bac0a1f348ed021e44c49034e4d1507c4639b4bcaff8d04e90f39697"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/container/libabsl_raw_hash_set.a",
+      "sha256": "bb50b77bcd55d09cb49c3ade9aec8ec0aaf2f4d06973656eae8cf8a84cc1d1e2"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc32c.a",
+      "sha256": "ebbf5670748dfb58302780566fdb447db5e597143fde2b78eda674526c9c10d4"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_cord_state.a",
+      "sha256": "6d8d16a37b968fac5bb354571cf146d5f6f14e95520c56f0c1c3fe9ec240aea0"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_cpu_detect.a",
+      "sha256": "26a83b95a031545549e7434e0768a3ea412eb969f71b43d3d3648106915d8c1c"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_internal.a",
+      "sha256": "0a7de80ae101d571b5002d94fe098cdaaed23a868a0160e8bebd36b7ad87bcb1"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_debugging_internal.a",
+      "sha256": "405f5070771c8862fdff53d98877b3e5104ce989ad8702d7a5fb9586cce2bfdf"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_demangle_internal.a",
+      "sha256": "330d5e8d5dda874984eb49da80eb5ebfc57c42855a59644624f4c8f2e63ff0ee"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_stacktrace.a",
+      "sha256": "e00c30ce7a4a8ba8664bb78a1ff1ea5f58680b071a4d8c53469d0136aa34e45b"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_symbolize.a",
+      "sha256": "a0e81d5601a5e72f459cd23e1b3236f73cff5f8972fc6257a43bb2cf9f732f82"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_commandlineflag.a",
+      "sha256": "79f189040e2d5bbdbfe84d75a11f9931bf29c9bda7ee7822d222d9b7ff31e480"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_commandlineflag_internal.a",
+      "sha256": "cb2c05370c34d3713a276933f300bcbd5ab7f3e5eca2429f3759f8c0018de55d"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_config.a",
+      "sha256": "989e899dc9e57a2f0bb01117bec157aedffe6bc09d0c2ec1219e3d588898cbd4"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_internal.a",
+      "sha256": "8840805cbbf7db2bf0245c7c1243b56e28633b455ab798d815173b7095da1cf7"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_marshalling.a",
+      "sha256": "2e1533710d8a49d1c944be0464070260a8e168e166cc4c0fa898de568b7e2834"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_private_handle_accessor.a",
+      "sha256": "b47ec65daf53ff9758e5398b9bbebe9a5eedec19f6457b8855d2ad41230bb53c"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_program_name.a",
+      "sha256": "bd3c83d68d2833c598a70b195659c20d34df268113f4b0610e24a4fc69fcf74e"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_reflection.a",
+      "sha256": "9b452fc295c9297976e1a74587d1feee774b9b8b809e51ee8a4cd01a4b13d31a"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_city.a",
+      "sha256": "d5947b70c9b4df8689bec8bb4a1d0fd360108924718dee8e9db7d7fc9ef9c28e"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_hash.a",
+      "sha256": "7184d16b2aa5fc908e18037ea37c10b49065960b8790ffdf554d2c8ebf6e2afe"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_low_level_hash.a",
+      "sha256": "e8cfb881891a492a0dd78e85ccc8888a1a3205cc743f6ef24e72a355fa29ae95"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/numeric/libabsl_int128.a",
+      "sha256": "6f0aa95b330f306a26328a1be052d7a7d4565ee42e4c4b991093d282d6d5ad60"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/profiling/libabsl_exponential_biased.a",
+      "sha256": "5b92c8edd2b870cd74bff48ce66a49bf1849d5b872b14e34ca522211666a5400"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cord.a",
+      "sha256": "4eea5a505539536dda66a4a0b5de39b9e4f4608f13001f4a24b8752f973c3292"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cord_internal.a",
+      "sha256": "ddf265519def5f4c2dc69c78e4ad8ecb95d459e54999c43155c7d8a0206a0008"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_functions.a",
+      "sha256": "5ef15bb49c0f896f97e5ca731776b33804d858ed71674a3f40c0a559ccc47038"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_handle.a",
+      "sha256": "c92145f485dac5a373015755ad5d8c93a991a40caf91448d7dd3f80afb3dcba0"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_info.a",
+      "sha256": "64315117b56b2394851338f76581c6f256d2131ba3e5996b09c2f64cdaa72715"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_str_format_internal.a",
+      "sha256": "aa32d6a3ece01617efd41cd6ada868f69f011889d2a40964389d5c339312967d"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_string_view.a",
+      "sha256": "35d7f34eca1ac44fc874c9f39245010b3d669c506b58142078486c5e08bc360e"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_strings.a",
+      "sha256": "8919f12d6b3f5699a2c41164fe21d0c030eda9242bcc41925d45fa4168a86bda"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_strings_internal.a",
+      "sha256": "1269dac1a11bbda7a2d1a93c56b3289eadb3e02138049a8fdf537094a1f6303b"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_graphcycles_internal.a",
+      "sha256": "dbe639d5bd215ae97466b8c435f5a0e7630ec06cd7213f02c4ca2c136961b715"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_kernel_timeout_internal.a",
+      "sha256": "011fc24223bce0b6a5a0f11e2698bd082845dcae69dd80a4d635b4890b657670"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_synchronization.a",
+      "sha256": "757997eee10afe9852e77a1d8e2dad1e4c8ab5a3021b42593a7fc2e6655b3db8"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_civil_time.a",
+      "sha256": "1b58d590820717e9176e5ae5d1b4fa7228b9e057a41e82bfd0af400147607434"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_time.a",
+      "sha256": "d0a4a1f26bb789e654333cd1b3c764209fe70384ad905045cc847a2d38384ed7"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_time_zone.a",
+      "sha256": "5b1d127ed869ab31c2cbf824e3108f634d66f60374e4a4fab8fa045936339c41"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/types/libabsl_bad_optional_access.a",
+      "sha256": "ef35933266cc67a6bd9e06ef67cca88d76193bc497c6b0306a787b14c30ea52b"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/types/libabsl_bad_variant_access.a",
+      "sha256": "b3600d99216e1a36c646c8a9859cba6b9e3fe89315d4fdcb07e24bfe5a6e9582"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/flatbuffers-build/libflatbuffers.a",
+      "sha256": "e4c931b38899bf1e0d55711aacf536bca58406df871abb1069734b95fdd02ad9"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/libnsync_cpp.a",
+      "sha256": "94b46451f5fa06579109f1d9d9e579a801ff93717e0e861d963c3a6a052635ff"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/onnx-build/libonnx.a",
+      "sha256": "4701ab0c2bc7199dc7d0f1cd98ef17f7acaa2eca684372c1c711a71f05318a58"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/onnx-build/libonnx_proto.a",
+      "sha256": "8d248af2229ca8e8b589e5fab4a35a1854193608c8abdc419ee30245bd3d703a"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/_deps/protobuf-build/libprotobuf-lite.a",
+      "sha256": "d6f8ebcc57d103afff54b5eb6296414e4eb01549c3e87cc9e6f293404324d27d"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_common.a",
+      "sha256": "db470c5b4bde2781cdaf19a86d15f55ef56a9ef2568ac5a49def1793bed55cd1"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_flatbuffers.a",
+      "sha256": "7fab2027960255d7c45734349bd6a97ceca646a8cc56b80137f9e42828a71c98"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_framework.a",
+      "sha256": "8335d5b45029e52271931e523bc569e542e508c163ec8df2e65deb35a7df5c37"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_graph.a",
+      "sha256": "0b901489b9b6162cc4addcd0570225294d8e89fe074fe76454616bffd7dc5d51"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_mlas.a",
+      "sha256": "d5a039f0795a7ca6860e54d39f94428324661038aec8eab0c33b559d0d1267f6"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_optimizer.a",
+      "sha256": "9e9e0bab1b5f3755c04a698cc6ab12e0444b5001167337ec35bf3b54fd0b8ac4"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_providers.a",
+      "sha256": "af3e5778bcc823c71f2c388737b4357bb2fdee0ed08a379df259823ef2d56a9e"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_session.a",
+      "sha256": "6ab774c758321edfd018b6bae8370ad289aa5753bab7830fe7ce94cb31f4ef24"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_util.a",
+      "sha256": "60eb67512a4f01ccd4fb72ccaad9168d56c40e3e46a5485e73da16e86e6d76ac"
+    }
+  ],
+  "toolchain_sha256": "ed97dbba38fd26f08a05533c30290826166f27065b751cdee60147c8c51c848d",
+  "ort_compile_result_sha256": "8810c04cdc9475e5ff0f4d8b3b7466aefae3ecd5631310efb129608e2d42c6fb",
+  "compiled": false,
+  "model_run": false,
+  "exit_code": 0
+}

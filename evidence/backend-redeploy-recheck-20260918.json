@@ -1,0 +1,24 @@
+{
+  "time": "2026-09-18T01:13:55.987054+00:00",
+  "base_url": "https://eveaisia.com/openvela",
+  "checks": [
+    {
+      "endpoint": "current-assessment",
+      "http": 200,
+      "error": null
+    },
+    {
+      "endpoint": "task",
+      "http": 404,
+      "error": {
+        "code": "RESOURCE_NOT_VISIBLE",
+        "message": "assessment not visible",
+        "retryable": false
+      }
+    }
+  ],
+  "login_http": 200,
+  "current_assessment": null,
+  "task_source": "historical_task_probe",
+  "task_status": null
+}

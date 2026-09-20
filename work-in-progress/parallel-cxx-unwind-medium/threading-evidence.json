@@ -1,0 +1,39 @@
+{
+  "command": [
+    "readelf",
+    "-sW",
+    "E:\\openvela\\VelaVision\\artifacts\\cxx-unwind-20260910\\nuttx"
+  ],
+  "exit_code": 0,
+  "filtered_output": [
+    "  2902: 00000000406496b0     8 OBJECT  LOCAL  DEFAULT    8 unseen_objects",
+    "  2903: 00000000406496b8     8 OBJECT  LOCAL  DEFAULT    8 seen_objects",
+    "  5866: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS cxa_exception_storage.cpp",
+    "  6132: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS pthread_setspecific.c",
+    "  6136: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS pthread_getspecific.c",
+    "  6185: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS pthread_once.c",
+    "  6999: 00000000404c040c    60 FUNC    GLOBAL DEFAULT    1 __cxa_get_globals_fast",
+    "  7655: 00000000404c82c8   168 FUNC    GLOBAL DEFAULT    1 pthread_setspecific",
+    "  8027: 00000000404c0448   104 FUNC    GLOBAL DEFAULT    1 __cxa_get_globals",
+    "  8732: 00000000404c8370   168 FUNC    GLOBAL DEFAULT    1 pthread_getspecific",
+    "  8765: 00000000404c9778   116 FUNC    GLOBAL DEFAULT    1 pthread_once"
+  ],
+  "output_filter_tokens": [
+    "unseen_objects",
+    "seen_objects",
+    "object_mutex",
+    "registered_frames",
+    "__cxa_get_globals",
+    "cxa_exception_storage",
+    "pthread_getspecific",
+    "pthread_setspecific",
+    "pthread_once"
+  ],
+  "elf_sha256": "493d3246afabf1734f28cc1c1dbf3b5cfe786235fa4cfbc3f154c1bed5e71da2",
+  "hardware_tested": false,
+  "files_sha256": {
+    "THREADING-RISK.md": "29420290da1c6326b9935dfe2384ecc44c02e30a64b974a1311c1794721e4798",
+    "integrated-audit.json": "773b2e2d08dc6cd75afd11d50d8a3c052e93e5e0091fe86dace436ffa96d47d2",
+    "collect_threading_evidence.py": "96c1222a964656653e67af7c50b3b81c85ab18f516cf77112e6522368afe60a6"
+  }
+}

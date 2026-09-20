@@ -1,0 +1,203 @@
+{
+  "generated_at": "2026-09-09T11:11:09.123564+08:00",
+  "board": "KICKPI K7 RK3576 / VS6621SR80, native openvela",
+  "image": "id36",
+  "image_sha256": "8d53a8cd62b09bea20c4d2d4905c31fe14a0277f0c600914f59a3d189839ab56",
+  "client": "Windows build 26100 / Realtek Bluetooth Adapter / Python 3.12 / Bleak 3.0.2",
+  "gatt_encrypted_business_test_passed": true,
+  "burst": {
+    "elapsed": 46.5,
+    "event": "burst_pass",
+    "roundtrips": 100,
+    "max_latency_ms": 484.0
+  },
+  "reconnect_cycles": [
+    {
+      "elapsed": 7.188,
+      "event": "reconnect_cycle_pass",
+      "cycle": 1,
+      "latency_ms": 94.0
+    },
+    {
+      "elapsed": 15.203,
+      "event": "reconnect_cycle_pass",
+      "cycle": 2,
+      "latency_ms": 94.0
+    },
+    {
+      "elapsed": 20.516,
+      "event": "reconnect_cycle_pass",
+      "cycle": 3,
+      "latency_ms": 94.0
+    },
+    {
+      "elapsed": 26.406,
+      "event": "reconnect_cycle_pass",
+      "cycle": 4,
+      "latency_ms": 93.0
+    },
+    {
+      "elapsed": 31.484,
+      "event": "reconnect_cycle_pass",
+      "cycle": 5,
+      "latency_ms": 93.0
+    },
+    {
+      "elapsed": 35.672,
+      "event": "reconnect_cycle_pass",
+      "cycle": 6,
+      "latency_ms": 94.0
+    },
+    {
+      "elapsed": 44.859,
+      "event": "reconnect_cycle_pass",
+      "cycle": 7,
+      "latency_ms": 93.0
+    },
+    {
+      "elapsed": 51.234,
+      "event": "reconnect_cycle_pass",
+      "cycle": 8,
+      "latency_ms": 93.0
+    },
+    {
+      "elapsed": 58.156,
+      "event": "reconnect_cycle_pass",
+      "cycle": 9,
+      "latency_ms": 93.0
+    },
+    {
+      "elapsed": 63.859,
+      "event": "reconnect_cycle_pass",
+      "cycle": 10,
+      "latency_ms": 93.0
+    }
+  ],
+  "recovery": [
+    {
+      "elapsed": 9.64,
+      "event": "recovery_pass",
+      "variant": "partial_command",
+      "latency_ms": 156.0
+    },
+    {
+      "elapsed": 20.39,
+      "event": "recovery_pass",
+      "variant": "active_scan",
+      "latency_ms": 156.0
+    }
+  ],
+  "endurance": {
+    "elapsed": 1813.969,
+    "event": "endurance_pass",
+    "seconds": 1801.2,
+    "roundtrips": 353,
+    "max_latency_ms": 204.0,
+    "notification_frames": 4123,
+    "rescans": 5
+  },
+  "endurance_scans": [
+    {
+      "elapsed": 12.657,
+      "event": "scan_pass",
+      "count": 64,
+      "lansee_present": true,
+      "truncated": true,
+      "notification_frames": 394
+    },
+    {
+      "elapsed": 319.844,
+      "event": "scan_pass",
+      "count": 64,
+      "lansee_present": true,
+      "truncated": true,
+      "notification_frames": 1091
+    },
+    {
+      "elapsed": 626.969,
+      "event": "scan_pass",
+      "count": 63,
+      "lansee_present": true,
+      "truncated": false,
+      "notification_frames": 1782
+    },
+    {
+      "elapsed": 934.141,
+      "event": "scan_pass",
+      "count": 64,
+      "lansee_present": true,
+      "truncated": true,
+      "notification_frames": 2479
+    },
+    {
+      "elapsed": 1241.453,
+      "event": "scan_pass",
+      "count": 64,
+      "lansee_present": true,
+      "truncated": false,
+      "notification_frames": 3176
+    },
+    {
+      "elapsed": 1548.407,
+      "event": "scan_pass",
+      "count": 61,
+      "lansee_present": true,
+      "truncated": false,
+      "notification_frames": 3855
+    }
+  ],
+  "unexpected_disconnects": 0,
+  "expected_end_of_test_disconnects": 1,
+  "heap_before": {
+    "total": 131526648,
+    "used": 38984,
+    "free": 131487664,
+    "maxused": 47792,
+    "maxfree": 131482960,
+    "nused": 42,
+    "nfree": 2
+  },
+  "heap_after": {
+    "total": 131526648,
+    "used": 38984,
+    "free": 131487664,
+    "maxused": 53888,
+    "maxfree": 131482960,
+    "nused": 42,
+    "nfree": 2
+  },
+  "final_driver": {
+    "fault": 0,
+    "tx": 6222,
+    "ack": 6222,
+    "rx": 13691
+  },
+  "android_ios_actual_device_tested": false,
+  "uni_app_adapter": "5 software tests passed; mobile device tests pending",
+  "wifi_connect_supported": false,
+  "wifi_ip_acquired": false,
+  "full_provisioning_deliverable": false,
+  "bond_persistence": false,
+  "scope": "One board, one Windows BLE client, foreground 30-minute communication and Wi-Fi scan coexistence",
+  "files": {
+    "evidence/ble-id36-client-burst-01.jsonl": "acb427d52d1c8f5defa7aa9642a6380fbd565e74341cb42666dd2ec5089b61fe",
+    "evidence/ble-id36-client-reconnect-01.jsonl": "0e31690636287ed64471de46f73fd96042973f0dbdb38cb4fe8120c01b0aee3b",
+    "evidence/ble-id36-client-recovery-01.jsonl": "c16f1c4167956ddc2dd02f9a1e1148eabf3b51e954eef632909638708e8da9a7",
+    "evidence/ble-id36-client-endurance-01.jsonl": "32a7213cd034b0e202661bda127ffb4a1b72ca30674325be8611aca1abb99c64",
+    "evidence/test-att-mtu-id35.log": "b83867cbc60c38f7b78eac0d4b65a432aeb40315edffdadfe26482706795332f",
+    "evidence/test-provision-protocol.log": "4b86965bd8ff7b5588ee31274294949ff1b7315462e98f71af7677b89db1fe99",
+    "evidence/test-frontend-adapter.log": "11fd6e23b98d27e1b1ed6ed79e2887fa043781c32c3f9fe186a9f53b49855007",
+    "evidence/image-id36.json": "54894e8f2bc93ba34065e2edb1bef64f870c2a38bfd215b982cd48962da31e27",
+    "evidence/sdk-native-id36-memory-before.log": "cc409a299e35ad06407f6eefefba6d593f0366daa965f5f04d2b4d9215c6d940",
+    "evidence/sdk-native-id36-memory-after.log": "21d0dcfef3f2d2f3587780c3358c65df813ccc51307ed1fc2427a5d1b8ed6ef8",
+    "evidence/sdk-native-id36-final-status.log": "63480680638154f0b791e3c30f20467f86a4f4890badcf7eba1f6fc446dbef8b",
+    "evidence/sdk-native-id36-final-host.log": "1a46d16c35cfb4a529ccfb93420f850619e82173cecad2b4449caf42c1b5b0a9",
+    "evidence/sdk-native-id36-final-ble.log": "dd94a98c9e9ceb62a96df95a9d1d5f8580610a0b69a912dc33ebfd2f76e76237",
+    "evidence/sdk-native-id36-final-tasks.log": "c374f283e4c1f22d925d347960deab5d5a5f84100b03c46837b635c05ef6a81f",
+    "evidence/wifi-association-id36.json": "266ca04841af73c625bd2a42bf5e8e67567dd2f4a37876a3dc7b202cbbe6f9d6",
+    "test-vela-provision.mjs": "b6c64dbe2334573e0698d2d288cef8614d238c3f944a2862373e3cad7221fc0d",
+    "vela-provision.mjs": "2857ffa5142e0eb7610de326ab236fde8654ab3b71b50b2fc0ef1b592d82c27a",
+    "接入示例.mjs": "915c7f015bcbaf435770c17e72940aabeb23f46de3df66c438db1edb64cb3cd7",
+    "前端对接说明.md": "b783487d02bbadd943d47e59e1e6b3cefaf874a8705ba798dc1a61766448c78f"
+  }
+}

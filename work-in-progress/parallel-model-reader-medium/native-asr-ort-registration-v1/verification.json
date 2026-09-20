@@ -1,0 +1,75 @@
+{
+  "models": [
+    {
+      "model": "encoder",
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\native-speech-ort-models1\\encoder.ort",
+      "sha256": "f81f9e656e21bc6c8350b7a04e3563bee3552dd0e047a44b5e9c978fd188c1af",
+      "bytes": 166189616,
+      "conversion_only": true
+    },
+    {
+      "model": "decoder",
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\native-speech-ort-models1\\decoder.ort",
+      "sha256": "0f58ca4bd77728d8e512b852eff58e9aeedd90cfa2016ae40379b4700a78da14",
+      "bytes": 72024848,
+      "conversion_only": true
+    }
+  ],
+  "rows": [
+    {
+      "domain": "ai.onnx",
+      "version": 10,
+      "ops": [
+        "MatMulInteger"
+      ]
+    },
+    {
+      "domain": "ai.onnx",
+      "version": 11,
+      "ops": [
+        "Conv",
+        "DynamicQuantizeLinear",
+        "Range"
+      ]
+    },
+    {
+      "domain": "ai.onnx",
+      "version": 13,
+      "ops": [
+        "ArgMax",
+        "Cast",
+        "Concat",
+        "Less",
+        "MatMul",
+        "Pad",
+        "Pow",
+        "ReduceMax",
+        "ReduceMean",
+        "Sigmoid",
+        "Slice",
+        "Softmax",
+        "Split",
+        "Sqrt",
+        "Squeeze",
+        "Transpose",
+        "Unsqueeze"
+      ]
+    },
+    {
+      "domain": "ai.onnx",
+      "version": 14,
+      "ops": [
+        "Add",
+        "Div",
+        "Identity",
+        "Mul",
+        "Relu",
+        "Reshape",
+        "Sub"
+      ]
+    }
+  ],
+  "operator_entries": 28,
+  "StringNormalizer": false,
+  "target_run": false
+}

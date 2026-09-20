@@ -1,0 +1,37 @@
+{
+  "records": [
+    {
+      "time": "2026-09-09T11:45:08.356332+00:00",
+      "line": "RADIO BLE name=VelaVision K7 connected=1 handle=17 ACL_RX=69 ACL_TX_queued=4760"
+    },
+    {
+      "time": "2026-09-09T11:45:08.356332+00:00",
+      "line": "RADIO BLE history connections=13 disconnections=12 last_reason=19 encrypt_status=0 encrypted=1"
+    },
+    {
+      "time": "2026-09-09T11:45:10.377775+00:00",
+      "line": "PROV registered=1 connected=1 subscribed=1 busy=0 session=25 commands=12 notify_queued=4680 errors=0 connects=13 disconnects=12 reads=0 input_bytes=0"
+    },
+    {
+      "time": "2026-09-09T11:45:12.396564+00:00",
+      "line": "WIFI status active=0 wifi_connected=0 ip=none gateway=none result=-125"
+    },
+    {
+      "time": "2026-09-09T11:45:12.396564+00:00",
+      "line": "WIFI netdev rx=6833 tx=3103 dropped=0"
+    },
+    {
+      "time": "2026-09-09T11:45:12.396564+00:00",
+      "line": "WIFI AMSDU complete=0 subframes=0 rejected=33"
+    },
+    {
+      "time": "2026-09-09T11:45:14.400371+00:00",
+      "line": "126877688      47624  126830064      98880  126821648     44      3 Umem"
+    }
+  ],
+  "checks": {
+    "connections_delta": 10,
+    "disconnections_delta": 10,
+    "ble_connected_encrypted": true
+  }
+}

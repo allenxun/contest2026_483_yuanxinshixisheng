@@ -1,0 +1,280 @@
+{
+  "commands": [
+    {
+      "command": [
+        "g++",
+        "-v"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "output": "Using built-in specs.\r\nCOLLECT_GCC=g++\r\nCOLLECT_LTO_WRAPPER=D:/software/mingw64/mingw64/bin/../libexec/gcc/x86_64-w64-mingw32/12.2.0/lto-wrapper.exe\r\nTarget: x86_64-w64-mingw32\r\nConfigured with: ../../../src/gcc-12.2.0/configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --target=x86_64-w64-mingw32 --prefix=/mingw64 --with-sysroot=/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64 --enable-host-shared --disable-multilib --enable-languages=c,c++,fortran,lto --enable-libstdcxx-time=yes --enable-threads=posix --enable-libgomp --enable-libatomic --enable-lto --enable-graphite --enable-checking=release --enable-fully-dynamic-string --enable-version-specific-runtime-libs --enable-libstdcxx-filesystem-ts=yes --disable-libstdcxx-pch --disable-libstdcxx-debug --enable-bootstrap --disable-rpath --disable-win32-registry --disable-nls --disable-werror --disable-symvers --with-gnu-as --with-gnu-ld --with-arch=nocona --with-tune=core2 --with-libiconv --with-system-zlib --with-gmp=/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static --with-mpfr=/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static --with-mpc=/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static --with-isl=/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static --with-pkgversion='x86_64-posix-seh-rev2, Built by MinGW-W64 project' --with-bugurl=https://sourceforge.net/projects/mingw-w64 CFLAGS='-O2 -pipe -fno-ident -I/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64/opt/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-zlib-static/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static/include' CXXFLAGS='-O2 -pipe -fno-ident -I/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64/opt/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-zlib-static/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static/include' CPPFLAGS=' -I/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64/opt/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-zlib-static/include -I/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static/include' LDFLAGS='-pipe -fno-ident -L/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64/opt/lib -L/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-zlib-static/lib -L/c/mingw-builds/msvcrt-seh-posix/prerequisites/x86_64-w64-mingw32-static/lib ' LD_FOR_TARGET=/c/mingw-builds/msvcrt-seh-posix/x86_64-1220-posix-seh-msvcrt-rt_v10-rev2/mingw64/bin/ld.exe --with-boot-ldflags=' -Wl,--disable-dynamicbase -static-libstdc++ -static-libgcc'\r\nThread model: posix\r\nSupported LTO compression algorithms: zlib\r\ngcc version 12.2.0 (x86_64-posix-seh-rev2, Built by MinGW-W64 project) \r\n",
+      "expected_text": [],
+      "absent_text": [],
+      "passed": true
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7EH_HOST_TEST",
+        "k7ehcontrol_main.cxx",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\normal.exe"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "output": "",
+      "expected_text": [],
+      "absent_text": [],
+      "passed": true
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\normal.exe",
+        "single"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "output": "K7EHCONTROL begin mode=single rounds=1 workers=1 main_prethrow=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856682211500 first_end=109856682293300\r\nK7EHCONTROL result=PASS code=0 created=1 joined=1 mode=single concurrency_proven=0\r\n",
+      "expected_text": [
+        "mode=single rounds=1 workers=1 main_prethrow=0",
+        "worker=0 caught=1 cleaned=3 errors=0",
+        "requested_cpu=5",
+        "created=1 joined=1"
+      ],
+      "absent_text": [
+        "PREHEAT_PASS",
+        "worker=1"
+      ],
+      "passed": true
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\normal.exe",
+        "warm1"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "output": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "expected_text": [
+        "mode=warm1 rounds=1 workers=2 main_prethrow=1",
+        "PREHEAT_PASS caught=1 cleaned=3 workers_created=0",
+        "worker=0 caught=1 cleaned=3 errors=0",
+        "worker=1 caught=1 cleaned=3 errors=0",
+        "requested_cpu=4",
+        "requested_cpu=5",
+        "created=2 joined=2"
+      ],
+      "absent_text": [],
+      "passed": true,
+      "preheat_before_worker_output": true
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\normal.exe",
+        "repeat"
+      ],
+      "exit_code": 2,
+      "expected": 2,
+      "output": "K7EHCONTROL begin mode=single rounds=1 workers=1 main_prethrow=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856778517400 first_end=109856778594500\r\nK7EHCONTROL result=PASS code=0 created=1 joined=1 mode=single concurrency_proven=0\r\nK7EHCONTROL already attempted; reboot required\r\n",
+      "expected_text": [
+        "already attempted; reboot required"
+      ],
+      "absent_text": [],
+      "passed": true
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\normal.exe",
+        "cold"
+      ],
+      "exit_code": 1,
+      "expected": 1,
+      "output": "usage: k7ehcontrol single|warm1 (fresh boot each; single CPU5, warm1 CPU4/5)\r\n",
+      "expected_text": [
+        "usage: k7ehcontrol"
+      ],
+      "absent_text": [],
+      "passed": true
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7EH_HOST_TEST",
+        "-DK7EH_FAIL_CREATE=0",
+        "k7ehcontrol_main.cxx",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\fail0.exe"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "output": "",
+      "expected_text": [],
+      "absent_text": [],
+      "passed": true
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\fail0.exe",
+        "single"
+      ],
+      "exit_code": 20,
+      "expected": 20,
+      "output": "K7EHCONTROL begin mode=single rounds=1 workers=1 main_prethrow=0\r\nK7EHCONTROL create_failed index=0 rc=11\r\nK7EHCONTROL result=FAIL code=20 created=0 joined=0 mode=single concurrency_proven=0\r\n",
+      "expected_text": [
+        "create_failed index=0",
+        "created=0 joined=0"
+      ],
+      "absent_text": [
+        "PREHEAT_PASS"
+      ],
+      "passed": true
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7EH_HOST_TEST",
+        "-DK7EH_FAIL_CREATE=1",
+        "k7ehcontrol_main.cxx",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\fail1.exe"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "output": "",
+      "expected_text": [],
+      "absent_text": [],
+      "passed": true
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\fail1.exe",
+        "single"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "output": "K7EHCONTROL begin mode=single rounds=1 workers=1 main_prethrow=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109857393879100 first_end=109857394022400\r\nK7EHCONTROL result=PASS code=0 created=1 joined=1 mode=single concurrency_proven=0\r\n",
+      "expected_text": [
+        "created=1 joined=1"
+      ],
+      "absent_text": [
+        "create_failed"
+      ],
+      "passed": true
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\fail1.exe",
+        "warm1"
+      ],
+      "exit_code": 20,
+      "expected": 20,
+      "output": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL create_failed index=1 rc=11\r\nK7EHCONTROL worker=0 caught=0 cleaned=0 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=0 first_end=0\r\nK7EHCONTROL result=FAIL code=20 created=1 joined=1 mode=warm1 concurrency_proven=0\r\n",
+      "expected_text": [
+        "PREHEAT_PASS",
+        "create_failed index=1",
+        "created=1 joined=1"
+      ],
+      "absent_text": [],
+      "passed": true
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7EH_HOST_TEST",
+        "-DK7EH_SLOW_READY",
+        "k7ehcontrol_main.cxx",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\slow.exe"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "output": "",
+      "expected_text": [],
+      "absent_text": [],
+      "passed": true
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\slow.exe",
+        "warm1"
+      ],
+      "exit_code": 21,
+      "expected": 21,
+      "output": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=0 cleaned=0 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=0 first_end=0\r\nK7EHCONTROL worker=1 caught=0 cleaned=0 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=0 first_end=0\r\nK7EHCONTROL result=FAIL code=21 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "expected_text": [
+        "PREHEAT_PASS",
+        "created=2 joined=2",
+        "result=FAIL"
+      ],
+      "absent_text": [],
+      "passed": true
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7EH_HOST_TEST",
+        "-DK7EH_BAD_COUNT",
+        "k7ehcontrol_main.cxx",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\count.exe"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "output": "",
+      "expected_text": [],
+      "absent_text": [],
+      "passed": true
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\count.exe",
+        "warm1"
+      ],
+      "exit_code": 22,
+      "expected": 22,
+      "output": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109858167745600 first_end=109858167854500\r\nK7EHCONTROL worker=1 caught=1 cleaned=4 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109858167729800 first_end=109858167862000\r\nK7EHCONTROL result=FAIL code=22 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "expected_text": [
+        "PREHEAT_PASS",
+        "worker=1 caught=1 cleaned=4",
+        "created=2 joined=2"
+      ],
+      "absent_text": [],
+      "passed": true
+    }
+  ],
+  "all_passed": true,
+  "source_sha256": "bdf264d28daa30fabfae810616975774123a91ae762e3c740eee8f3fdf6b9652",
+  "scope": "Windows GCC12.2 POSIX-thread SEH: control logic and stdout only; no target unwind safety proof",
+  "target_compiled": false,
+  "hardware_tested": false
+}

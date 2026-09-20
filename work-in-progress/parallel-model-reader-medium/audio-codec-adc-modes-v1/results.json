@@ -1,0 +1,62 @@
+[
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wconversion",
+      "-Wshadow",
+      "-pedantic",
+      "codec_duplex.c",
+      "test_duplex.c",
+      "-o",
+      "testO0.exe"
+    ],
+    "timeout_seconds": 30,
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\audio-codec-adc-modes-v1\\testO0.exe"
+    ],
+    "timeout_seconds": 15,
+    "returncode": 0,
+    "stdout": "PASS 1309 checks: prepare/activate/mute/stop,16/32-bit profiles,all prepare+activate callback faults,readback mismatch,delay/timeout,reentry,cleanup retry; MOCK ONLY\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wconversion",
+      "-Wshadow",
+      "-pedantic",
+      "codec_duplex.c",
+      "test_duplex.c",
+      "-o",
+      "testO2.exe"
+    ],
+    "timeout_seconds": 30,
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\audio-codec-adc-modes-v1\\testO2.exe"
+    ],
+    "timeout_seconds": 15,
+    "returncode": 0,
+    "stdout": "PASS 1309 checks: prepare/activate/mute/stop,16/32-bit profiles,all prepare+activate callback faults,readback mismatch,delay/timeout,reentry,cleanup retry; MOCK ONLY\n",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,28 @@
+--- sdk/app/k7agent/cloud/src/device_voice_intent.c
++++ app/k7agent/cloud/src/device_voice_intent.c
+@@ -23,9 +23,8 @@
+     }
+   normalized[used]=0;
+   if(!strcmp(normalized,"启动云台") || !strcmp(normalized,"开启云台"))return K7_VOICE_TRACK;
+-  /* Exact observed ASR homophone only; never substring/fuzzy matching. */
+-  if(!strcmp(normalized,"测肤") || !strcmp(normalized,"开始测肤") ||
+-     !strcmp(normalized,"开始侧敷"))return K7_VOICE_PHOTO;
++  if(!strcmp(normalized,"皮肤检测") || !strcmp(normalized,"开始皮肤检测") ||
++     !strcmp(normalized,"测肤") || !strcmp(normalized,"开始测肤"))return K7_VOICE_PHOTO;
+   if(!strcmp(normalized,"停止云台") || !strcmp(normalized,"停止测肤"))return K7_VOICE_STOP;
+   if(!strcmp(normalized,"停止播报"))return K7_VOICE_QUIET;
+   return K7_VOICE_NONE;
+--- sdk/app/k7agent/cloud/src/board_voice_prompts.inc
++++ app/k7agent/cloud/src/board_voice_prompts.inc
+@@ -2,9 +2,9 @@
+ struct k7_prompt_entry { const char *key; const char *text; };
+ static const struct k7_prompt_entry k7_voice_prompts[] = {
+   {"tracking_starting", "正在启动云台，请稍候。"},
+-  {"tracking_ready", "云台已启动。您可以说开始测肤。"},
++  {"tracking_ready", "云台已启动。您可以说皮肤检测。"},
+   {"tracking_failed", "云台启动失败，请检查设备连接。"},
+-  {"assessment_starting", "开始测肤，正在检测人脸和角度。"},
++  {"assessment_starting", "开始皮肤检测，请按照提示调整角度。"},
+   {"face_missing", "暂时没有检测到人脸，请面对摄像头。"},
+   {"front_aligning", "正在对准正面，请保持稳定。"},
+   {"front_ready", "正面角度已达标。"},

@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "host_only": true,
+  "hardware_tested": false,
+  "runs": [
+    {
+      "optimization": "O0",
+      "argv": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "-std=c++17",
+        "-O0",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-I",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-tool-executor-sol\\include",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-tool-executor-sol\\src\\tool_executor.cpp",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-tool-executor-sol\\tests\\test_tool_executor.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-tool-executor-sol\\evidence\\20260912T094730119077Z\\test-O0.exe"
+      ],
+      "build_exit_code": 0,
+      "run_exit_code": 0,
+      "elapsed_seconds": 0.765,
+      "executable_sha256": "2645c30025e48c2ee03064ab83f326bf831f5106ef1af32f462449784660b847"
+    },
+    {
+      "optimization": "O2",
+      "argv": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-I",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-tool-executor-sol\\include",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-tool-executor-sol\\src\\tool_executor.cpp",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-tool-executor-sol\\tests\\test_tool_executor.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-tool-executor-sol\\evidence\\20260912T094730119077Z\\test-O2.exe"
+      ],
+      "build_exit_code": 0,
+      "run_exit_code": 0,
+      "elapsed_seconds": 0.922,
+      "executable_sha256": "40c6347a8f00c58731fd7344dba85f5fc04f5305415c088ded72885e0ccfe262"
+    }
+  ],
+  "source_sha256": {
+    "include/tool_executor.hpp": "e66be87dbc2a1f937e3d5c36e740d38c12b0d442bdbc2ec387a6e98bdca314d6",
+    "src/tool_executor.cpp": "9350586fff770e2a32c4f00319503e1a4f448dee8b724f8982f612d74e5f8b0b",
+    "tests/test_tool_executor.cpp": "84724c6898d929acfaa9d2ca7464be9b864b569596c8dfbb4c05193c7cdef8ac"
+  },
+  "passed": true
+}

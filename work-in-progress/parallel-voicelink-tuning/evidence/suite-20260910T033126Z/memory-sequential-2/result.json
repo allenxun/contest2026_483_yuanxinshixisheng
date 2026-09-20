@@ -1,0 +1,25 @@
+{
+  "label": "memory-sequential-2",
+  "command": [
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-tuning\\probe.exe",
+    "sequential",
+    "E:/openvela/语音模块/openvela-voicelink/models",
+    "E:/openvela/语音模块/openvela-voicelink/models/sherpa-onnx-streaming-paraformer-bilingual-zh-en/test_wavs/0.wav",
+    "512",
+    "800",
+    "0",
+    "0",
+    "1024",
+    "normal"
+  ],
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "execution_passed": true,
+  "timeout": false,
+  "elapsed": 6.766006000005291,
+  "peak_working_set": 592265216,
+  "peak_private": 770392064,
+  "os_peak_working_set": 599011328,
+  "samples": 331,
+  "sample_interval": 0.02
+}

@@ -1,0 +1,39 @@
+{
+  "recorded_at": "2026-09-09T11:46:13.994270+00:00",
+  "checks": {
+    "wifi_connected": true,
+    "ping_5_of_5": false,
+    "ble_connected_encrypted": true
+  },
+  "records": [
+    {
+      "time": "2026-09-09T11:46:13.899406+00:00",
+      "line": "5 packets transmitted, 0 received, 100% packet loss, time 5005 ms"
+    },
+    {
+      "time": "2026-09-09T11:46:13.931272+00:00",
+      "line": "WIFI status active=1 wifi_connected=1 ip=10.3.0.214 gateway=10.3.0.1 result=0"
+    },
+    {
+      "time": "2026-09-09T11:46:13.931272+00:00",
+      "line": "WIFI netdev rx=26 tx=9 dropped=0"
+    },
+    {
+      "time": "2026-09-09T11:46:13.931272+00:00",
+      "line": "WIFI AMSDU complete=0 subframes=0 rejected=0"
+    },
+    {
+      "time": "2026-09-09T11:46:13.962864+00:00",
+      "line": "RADIO BLE name=VelaVision K7 connected=1 handle=17 ACL_RX=69 ACL_TX_queued=4760"
+    },
+    {
+      "time": "2026-09-09T11:46:13.962864+00:00",
+      "line": "RADIO BLE history connections=13 disconnections=12 last_reason=19 encrypt_status=0 encrypted=1"
+    },
+    {
+      "time": "2026-09-09T11:46:13.994270+00:00",
+      "line": "126877688      80840  126796848      99248  126779232     56      4 Umem"
+    }
+  ],
+  "scope": "Restoration check after completed hold and reconnect+scan; not another stability soak"
+}

@@ -1,0 +1,36 @@
+{
+  "runtime_sha256": "fc88e38f0011901241596d41d6e528fd931e79f5650264bcdf057c4c5e4cbe3b",
+  "inputs": {
+    "app/k7sound/k7sound_api.h": "b2996b647d76766d087dc2c5dd12499e719808ccae8ca8be983c6237ac12f77e",
+    "app/k7sound/k7sound_main.c": "486bfc63c877053f4ed505d979dc16b75efa14c7fb438900caaf882822642a2b",
+    "app/k7sound/pio.c": "1103bdbb5381528aab0a0b08c133c52aa28162bce85dfc3658b2272393278a2e",
+    "app/k7sound/pio.h": "9d88b701a76c60dac161f0fb21ada424f1f7679e89e97f0d099b6870f9173109",
+    "app/voicelink/CMakeLists.txt": "18daceb9c60bb7e7870b988bfa36ee0ff58587c7d77d0601e1a90e62b2b1ab67",
+    "app/voicelink/src/k7voice_main.cpp": "ca15536246723a25e2ef1006ee5c36d92876c0b96ad57c489a96723ed1b65018",
+    "app/voicelink/src/prompt_asset_output.hpp": "6c1f0fedcd97bc769dbcf933f1ad5a18072b724dd3bc7ee62dab8cc6fe923513",
+    "app/voicelink/src/generated/k7_prompt_assets_generated.hpp": "01ccb5aa2aba4df7b03bb2a42965d85c007f58ef594d37ced4a80dd3981633d0",
+    "app/voicelink/src/generated/k7_prompt_assets_manifest.json": "92cc72351ef8aa16a8c3dbbdef59e6db38f38ea6130de2868cbf9392f2f3cb0e"
+  },
+  "runtime_tts_enabled": false,
+  "prompt_assets": 20,
+  "prompt_speaker_id": 21,
+  "prompt_target_peak_ratio": 0.9,
+  "codec_dac_attenuation_db": 0,
+  "board_tested": false,
+  "configure_exit_code": 0,
+  "build_exit_code": 0,
+  "artifacts": {
+    "nuttx": {
+      "bytes": 46229904,
+      "sha256": "16ead49487f933c213fb7239991d092a1f9a2b58b6e638644314e51a87eae66b"
+    },
+    "nuttx.bin": {
+      "bytes": 16459624,
+      "sha256": "e9f48b37b769aa2ee6221ec344e37c242418ef2a35444a3252140afe9eef207f"
+    },
+    ".config": {
+      "bytes": 64694,
+      "sha256": "e7304e2eb5701287e534b7849e5ac15a5f3dcd315674c5f8f67c1a38e58ab79d"
+    }
+  }
+}

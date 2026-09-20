@@ -1,0 +1,21 @@
+{
+  "upstream_repo": "Fishwaldo/nuttx",
+  "upstream_commit": "25e387ffedc9f2b746df975f731ee4fdbb464a7a",
+  "review": "https://github.com/apache/nuttx/pull/19862",
+  "status": "experimental backport, not an upstream release",
+  "copied_files": {
+    "drivers/usbhost/usbhost_xhci.c": "drivers/usbhost/usbhost_xhci_rk3576.c",
+    "drivers/usbhost/usbhost_xhci.h": "drivers/usbhost/usbhost_xhci_rk3576.h",
+    "drivers/usbhost/usbhost_xhci_trace.c": "drivers/usbhost/usbhost_xhci_rk3576_trace.c",
+    "drivers/usbhost/usbhost_xhci_trace.h": "drivers/usbhost/usbhost_xhci_rk3576_trace.h",
+    "include/nuttx/usb/xhci.h": "include/nuttx/usb/xhci_rk3576.h"
+  },
+  "local_adjustments": [
+    "private filenames preserve PCI driver",
+    "debug header compatibility",
+    "4096-byte control buffers",
+    "retain DMA allocations on failed startup until reset",
+    "minimal hub metadata and disconnect lifetime fix"
+  ],
+  "backup": "/home/swl/openvela/work/rk3576-usbhost/pre-usbhost-20260904-093909.tgz"
+}

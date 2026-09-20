@@ -1,0 +1,70 @@
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1 -DCONFIG_EXAMPLES_K7RADIO_SHARED -c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\unused-before.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\unused-before.o
+E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\unused-before.c:1:21: error: 'g_prov_ap_count' defined but not used [-Werror=unused-variable]
+    1 | static unsigned int g_prov_ap_count;
+      |                     ^~~~~~~~~~~~~~~
+cc1.exe: all warnings being treated as errors
+exit=1
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1 -c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\unused-after.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\unused-after-False.o
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1 -DCONFIG_EXAMPLES_K7RADIO_SHARED -c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\unused-after.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\unused-after-True.o
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1 -O0 -DORIGINAL E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\test_review.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\radio_fence.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_broker.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_dispatch.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O0-True.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O0-True.exe
+PASS terminal queue interleave next_state=4 (original FAILED=4; fixed PENDING=0)
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O0-True.exe join
+PASS deterministic live-worker join-error ownership check
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1 -O0 E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\test_review.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\radio_fence.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_broker.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_dispatch.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O0-False.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O0-False.exe
+PASS terminal queue interleave next_state=0 (original FAILED=4; fixed PENDING=0)
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O0-False.exe join
+PASS deterministic live-worker join-error ownership check
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1 -O2 -DORIGINAL E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\test_review.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\radio_fence.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_broker.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_dispatch.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O2-True.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O2-True.exe
+PASS terminal queue interleave next_state=4 (original FAILED=4; fixed PENDING=0)
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O2-True.exe join
+PASS deterministic live-worker join-error ownership check
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1 -O2 E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\test_review.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\radio_fence.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_broker.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_dispatch.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O2-False.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O2-False.exe
+PASS terminal queue interleave next_state=0 (original FAILED=4; fixed PENDING=0)
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\review-O2-False.exe join
+PASS deterministic live-worker join-error ownership check
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1 -O0 E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\test_backend.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\radio_fence.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_broker.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_dispatch.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\backend-O0.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\backend-O0.exe 0
+PASS real target backend inc + pthread reaper/pump/RX mock; real hardware NOT exercised
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\backend-O0.exe 1
+PASS fault scenario remains held; no mock success release
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\backend-O0.exe 2
+PASS fault scenario remains held; no mock success release
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\backend-O0.exe 3
+PASS fault scenario remains held; no mock success release
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1 -O2 E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\test_backend.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\radio_fence.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_broker.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_dispatch.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\wifi_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\backend-O2.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\backend-O2.exe 0
+PASS real target backend inc + pthread reaper/pump/RX mock; real hardware NOT exercised
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\backend-O2.exe 1
+PASS fault scenario remains held; no mock success release
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\backend-O2.exe 2
+PASS fault scenario remains held; no mock success release
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v1\backend-O2.exe 3
+PASS fault scenario remains held; no mock success release
+exit=0

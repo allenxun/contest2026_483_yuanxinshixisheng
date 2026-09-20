@@ -1,0 +1,91 @@
+[  2%] Building C object llama/ggml/src/CMakeFiles/ggml-base.dir/ggml.c.obj
+[  4%] Building C object llama/ggml/src/CMakeFiles/ggml-base.dir/ggml-alloc.c.obj
+[  6%] Building CXX object llama/ggml/src/CMakeFiles/ggml-base.dir/ggml-backend.cpp.obj
+[  8%] Building CXX object llama/ggml/src/CMakeFiles/ggml-base.dir/ggml-opt.cpp.obj
+[ 11%] Building CXX object llama/ggml/src/CMakeFiles/ggml-base.dir/ggml-threading.cpp.obj
+[ 13%] Building C object llama/ggml/src/CMakeFiles/ggml-base.dir/ggml-quants.c.obj
+[ 15%] Building CXX object llama/ggml/src/CMakeFiles/ggml-base.dir/gguf.cpp.obj
+[ 17%] Linking CXX static library ggml-base.a
+[ 17%] Built target ggml-base
+[ 20%] Building C object llama/ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu.c.obj
+[ 22%] Building CXX object llama/ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu.cpp.obj
+[ 24%] Building CXX object llama/ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu-aarch64.cpp.obj
+[ 26%] Building CXX object llama/ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu-hbm.cpp.obj
+[ 28%] Building C object llama/ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu-quants.c.obj
+In function 'block_q4_0x4 make_block_q4_0x4(block_q4_0*, unsigned int)',
+    inlined from 'int repack_q4_0_to_q4_0_4_bl(ggml_tensor*, int, const void*, size_t)' at E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:5109:39:
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:4962:19: warning: writing 16 bytes into a region of size 0 [-Wstringop-overflow=]
+ 4962 |             memcpy(&out.qs[dst_offset], &elems, sizeof(uint64_t));
+      |             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp: In function 'int repack_q4_0_to_q4_0_4_bl(ggml_tensor*, int, const void*, size_t)':
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:5109:20: note: at offset 72 into destination object '<anonymous>' of size 72
+ 5109 |             *dst++ = make_block_q4_0x4(dst_tmp, interleave_block);
+      |             ~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In function 'block_q4_0x4 make_block_q4_0x4(block_q4_0*, unsigned int)',
+    inlined from 'int repack_q4_0_to_q4_0_4_bl(ggml_tensor*, int, const void*, size_t)' at E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:5109:39:
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:4962:19: warning: writing 16 bytes into a region of size 0 [-Wstringop-overflow=]
+ 4962 |             memcpy(&out.qs[dst_offset], &elems, sizeof(uint64_t));
+      |             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp: In function 'int repack_q4_0_to_q4_0_4_bl(ggml_tensor*, int, const void*, size_t)':
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:5109:20: note: at offset 88 into destination object '<anonymous>' of size 72
+ 5109 |             *dst++ = make_block_q4_0x4(dst_tmp, interleave_block);
+      |             ~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In function 'block_q4_0x4 make_block_q4_0x4(block_q4_0*, unsigned int)',
+    inlined from 'int repack_q4_0_to_q4_0_4_bl(ggml_tensor*, int, const void*, size_t)' at E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:5109:39:
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:4962:19: warning: writing 16 bytes into a region of size 0 [-Wstringop-overflow=]
+ 4962 |             memcpy(&out.qs[dst_offset], &elems, sizeof(uint64_t));
+      |             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp: In function 'int repack_q4_0_to_q4_0_4_bl(ggml_tensor*, int, const void*, size_t)':
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:5109:20: note: at offset 104 into destination object '<anonymous>' of size 72
+ 5109 |             *dst++ = make_block_q4_0x4(dst_tmp, interleave_block);
+      |             ~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In function 'block_q4_0x4 make_block_q4_0x4(block_q4_0*, unsigned int)',
+    inlined from 'int repack_q4_0_to_q4_0_4_bl(ggml_tensor*, int, const void*, size_t)' at E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:5109:39:
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:4962:19: warning: writing 16 bytes into a region of size 0 [-Wstringop-overflow=]
+ 4962 |             memcpy(&out.qs[dst_offset], &elems, sizeof(uint64_t));
+      |             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp: In function 'int repack_q4_0_to_q4_0_4_bl(ggml_tensor*, int, const void*, size_t)':
+E:\openvela\VelaVision\work-in-progress\parallel-llama-b0\vendor\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\ggml\src\ggml-cpu\ggml-cpu-aarch64.cpp:5109:20: note: at offset 120 into destination object '<anonymous>' of size 72
+ 5109 |             *dst++ = make_block_q4_0x4(dst_tmp, interleave_block);
+      |             ~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 31%] Building CXX object llama/ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu-traits.cpp.obj
+[ 33%] Building CXX object llama/ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/amx/amx.cpp.obj
+[ 35%] Building CXX object llama/ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/amx/mmq.cpp.obj
+[ 37%] Building CXX object llama/ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/binary-ops.cpp.obj
+[ 40%] Building CXX object llama/ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/unary-ops.cpp.obj
+[ 42%] Linking CXX static library ggml-cpu.a
+[ 42%] Built target ggml-cpu
+[ 44%] Building CXX object llama/ggml/src/CMakeFiles/ggml.dir/ggml-backend-reg.cpp.obj
+[ 46%] Linking CXX static library ggml.a
+[ 46%] Built target ggml
+[ 48%] Building CXX object llama/src/CMakeFiles/llama.dir/llama.cpp.obj
+[ 51%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-adapter.cpp.obj
+[ 53%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-arch.cpp.obj
+[ 55%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-batch.cpp.obj
+[ 57%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-chat.cpp.obj
+[ 60%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-context.cpp.obj
+[ 62%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-grammar.cpp.obj
+[ 64%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-graph.cpp.obj
+[ 66%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-hparams.cpp.obj
+[ 68%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-impl.cpp.obj
+[ 71%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-io.cpp.obj
+[ 73%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-kv-cache.cpp.obj
+[ 75%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-memory.cpp.obj
+[ 77%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-mmap.cpp.obj
+[ 80%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-model-loader.cpp.obj
+[ 82%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-model.cpp.obj
+[ 84%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-quant.cpp.obj
+[ 86%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-sampling.cpp.obj
+[ 88%] Building CXX object llama/src/CMakeFiles/llama.dir/llama-vocab.cpp.obj
+[ 91%] Building CXX object llama/src/CMakeFiles/llama.dir/unicode-data.cpp.obj
+[ 93%] Building CXX object llama/src/CMakeFiles/llama.dir/unicode.cpp.obj
+[ 95%] Linking CXX static library libllama.a
+[ 95%] Built target llama
+[ 97%] Building C object CMakeFiles/b0-probe.dir/probe/b0.c.obj
+[100%] Linking CXX executable b0-probe.exe
+D:/software/mingw64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles\b0-probe.dir/objects.a(b0.c.obj):b0.c:(.text+0xb2): undefined reference to `ggml_threadpool_get_n_threads'
+collect2.exe: error: ld returned 1 exit status
+mingw32-make[3]: *** [CMakeFiles\b0-probe.dir\build.make:107: b0-probe.exe] Error 1
+mingw32-make[2]: *** [CMakeFiles\Makefile2:200: CMakeFiles/b0-probe.dir/all] Error 2
+mingw32-make[1]: *** [CMakeFiles\Makefile2:207: CMakeFiles/b0-probe.dir/rule] Error 2
+mingw32-make: *** [Makefile:168: b0-probe] Error 2

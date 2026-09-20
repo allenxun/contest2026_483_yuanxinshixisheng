@@ -1,0 +1,62 @@
+--- a/kaldifst/csrc/kaldi-io.cc
++++ b/kaldifst/csrc/kaldi-io.cc
+@@ -253,6 +253,7 @@
+   bool is_open_;
+ };
+ 
++#if !defined(__NuttX__)
+ class PipeOutputImpl : public OutputImplBase {
+  public:
+   PipeOutputImpl() : f_(NULL), os_(NULL) {}
+@@ -338,6 +339,8 @@
+   std::ostream *os_;
+ };
+ 
++#endif  // !__NuttX__: no process pipes
++
+ Output::Output(const std::string &wxfilename, bool binary, bool write_header)
+     : impl_(NULL) {
+   if (!Open(wxfilename, binary, write_header)) {
+@@ -401,7 +404,12 @@
+   } else if (type == kStandardOutput) {
+     impl_ = new StandardOutputImpl();
+   } else if (type == kPipeOutput) {
++#if defined(__NuttX__)
++    KALDIFST_WARN << "Process pipe output is unsupported on NuttX";
++    return false;
++#else
+     impl_ = new PipeOutputImpl();
++#endif
+   } else {  // type == kNoOutput
+     KALDIFST_WARN << "Invalid output filename format "
+                   << PrintableWxfilename(wxfn);
+@@ -525,6 +533,7 @@
+   bool is_open_;
+ };
+ 
++#if !defined(__NuttX__)
+ class PipeInputImpl : public InputImplBase {
+  public:
+   PipeInputImpl() : f_(NULL), is_(NULL) {}
+@@ -608,6 +617,8 @@
+ #endif
+   std::istream *is_;
+ };
++
++#endif  // !__NuttX__: no process pipes
+ 
+ /*
+ #else
+@@ -786,7 +797,12 @@
+   } else if (type == kStandardInput) {
+     impl_ = new StandardInputImpl();
+   } else if (type == kPipeInput) {
++#if defined(__NuttX__)
++    KALDIFST_WARN << "Process pipe input is unsupported on NuttX";
++    return false;
++#else
+     impl_ = new PipeInputImpl();
++#endif
+   } else if (type == kOffsetFileInput) {
+     impl_ = new OffsetFileInputImpl();
+   } else {  // type == kNoInput

@@ -1,0 +1,50 @@
+[
+  {
+    "command": [
+      "D:/software/mingw64/mingw64/bin/g++.exe",
+      "-std=c++17",
+      "-O0",
+      "-D__NuttX__",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-sherpa-offline-stage-v3\\sources\\kaldifst",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-sherpa-offline-stage-v3\\sources\\openfst\\src\\include",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kaldifst-no-pipe-v1\\kaldi-io.cc",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kaldifst-no-pipe-v1\\test.cc",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-sherpa-offline-stage-v3\\sources\\kaldifst\\kaldifst\\csrc\\kaldi-table.cc",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-sherpa-offline-stage-v3\\sources\\kaldifst\\kaldifst\\csrc\\parse-options.cc",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-sherpa-offline-stage-v3\\sources\\kaldifst\\kaldifst\\csrc\\text-utils.cc",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kaldifst-no-pipe-v1\\O0.exe"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kaldifst-no-pipe-v1\\O0.exe"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "D:/software/mingw64/mingw64/bin/g++.exe",
+      "-std=c++17",
+      "-O2",
+      "-D__NuttX__",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-sherpa-offline-stage-v3\\sources\\kaldifst",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-sherpa-offline-stage-v3\\sources\\openfst\\src\\include",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kaldifst-no-pipe-v1\\kaldi-io.cc",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kaldifst-no-pipe-v1\\test.cc",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-sherpa-offline-stage-v3\\sources\\kaldifst\\kaldifst\\csrc\\kaldi-table.cc",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-sherpa-offline-stage-v3\\sources\\kaldifst\\kaldifst\\csrc\\parse-options.cc",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-sherpa-offline-stage-v3\\sources\\kaldifst\\kaldifst\\csrc\\text-utils.cc",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kaldifst-no-pipe-v1\\O2.exe"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kaldifst-no-pipe-v1\\O2.exe"
+    ],
+    "exit_code": 0
+  }
+]

@@ -1,0 +1,2008 @@
+{
+  "source": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\host-results.json",
+  "source_sha256": "8077e7fe5ad9a03319fa8e3e002480fbc141d80d77209d8de6b1f2590868fb88",
+  "cases": [
+    {
+      "name": "frozen-command-2",
+      "origin": "frozen-host-output",
+      "input": "K7EHCONTROL begin mode=single rounds=1 workers=1 main_prethrow=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856682211500 first_end=109856682293300\r\nK7EHCONTROL result=PASS code=0 created=1 joined=1 mode=single concurrency_proven=0\r\n",
+      "input_sha256": "8949d90feda5755aa375c145ad9aeabb1e7b34175571e54949db9a5529884a60",
+      "expected_accept": true,
+      "result": {
+        "passed": true,
+        "mode": "single",
+        "scope": "host",
+        "errors": [],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856682211500,
+            "first_end": 109856682293300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 0,
+          "workers": 1,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "frozen-command-3",
+      "origin": "frozen-host-output",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "4242fdf746b2e7369ae3211f5ab83879d1cec07ab550e7c81ccc5b24dfb049dd",
+      "expected_accept": true,
+      "result": {
+        "passed": true,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "frozen-command-4",
+      "origin": "frozen-host-output",
+      "input": "K7EHCONTROL begin mode=single rounds=1 workers=1 main_prethrow=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856778517400 first_end=109856778594500\r\nK7EHCONTROL result=PASS code=0 created=1 joined=1 mode=single concurrency_proven=0\r\nK7EHCONTROL already attempted; reboot required\r\n",
+      "input_sha256": "a6041aee47639dd509f76ae8ec2da708116a957a72e32d6330fd798d9a80cc45",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "single",
+        "scope": "host",
+        "errors": [
+          "line 4: failure or unknown probe record: already attempted; reboot required"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856778517400,
+            "first_end": 109856778594500
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 0,
+          "workers": 1,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "frozen-command-5",
+      "origin": "frozen-host-output",
+      "input": "usage: k7ehcontrol single|warm1 (fresh boot each; single CPU5, warm1 CPU4/5)\r\n",
+      "input_sha256": "10d2a2d1b5a3be501d4259fab5c9bf3371bc073d04a4684e8b8249a6ed31732a",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "single",
+        "scope": "host",
+        "errors": [
+          "expected exactly one begin",
+          "expected exactly one result",
+          "worker record count mismatch",
+          "duplicate or missing worker ids"
+        ],
+        "workers": [],
+        "record_counts": {
+          "begin": 0,
+          "preheat": 0,
+          "workers": 0,
+          "result": 0
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "frozen-command-7",
+      "origin": "frozen-host-output",
+      "input": "K7EHCONTROL begin mode=single rounds=1 workers=1 main_prethrow=0\r\nK7EHCONTROL create_failed index=0 rc=11\r\nK7EHCONTROL result=FAIL code=20 created=0 joined=0 mode=single concurrency_proven=0\r\n",
+      "input_sha256": "a206ab9d3994a6257bcb7950275b0757850fb3a0aa09bff95fcbd44fa5a81622",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "single",
+        "scope": "host",
+        "errors": [
+          "line 2: failure or unknown probe record: create_failed index=0 rc=11",
+          "worker record count mismatch",
+          "result/created/joined fields mismatch",
+          "duplicate or missing worker ids"
+        ],
+        "workers": [],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 0,
+          "workers": 0,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "frozen-command-9",
+      "origin": "frozen-host-output",
+      "input": "K7EHCONTROL begin mode=single rounds=1 workers=1 main_prethrow=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109857393879100 first_end=109857394022400\r\nK7EHCONTROL result=PASS code=0 created=1 joined=1 mode=single concurrency_proven=0\r\n",
+      "input_sha256": "dbd459b6283316e5e8c39e54a7a4c52e97770f25798d16233b8897c2fbc4d9c9",
+      "expected_accept": true,
+      "result": {
+        "passed": true,
+        "mode": "single",
+        "scope": "host",
+        "errors": [],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109857393879100,
+            "first_end": 109857394022400
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 0,
+          "workers": 1,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "frozen-command-10",
+      "origin": "frozen-host-output",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL create_failed index=1 rc=11\r\nK7EHCONTROL worker=0 caught=0 cleaned=0 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=0 first_end=0\r\nK7EHCONTROL result=FAIL code=20 created=1 joined=1 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "a420ceb5c382763081b083898bb73fb6332dc00f5f96b938b9918be3bcf8165d",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "line 3: failure or unknown probe record: create_failed index=1 rc=11",
+          "worker record count mismatch",
+          "result/created/joined fields mismatch",
+          "worker count/error mismatch",
+          "invalid first-call clock interval",
+          "duplicate or missing worker ids"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 0,
+            "cleaned": 0,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 0,
+            "first_end": 0
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 1,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "frozen-command-12",
+      "origin": "frozen-host-output",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=0 cleaned=0 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=0 first_end=0\r\nK7EHCONTROL worker=1 caught=0 cleaned=0 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=0 first_end=0\r\nK7EHCONTROL result=FAIL code=21 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "96f27d479ec412434a572d66f0470488ef33d809f81849543b8f733627679efd",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "result/created/joined fields mismatch",
+          "worker count/error mismatch",
+          "invalid first-call clock interval",
+          "worker count/error mismatch",
+          "invalid first-call clock interval"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 0,
+            "cleaned": 0,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 0,
+            "first_end": 0
+          },
+          {
+            "worker": 1,
+            "caught": 0,
+            "cleaned": 0,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 0,
+            "first_end": 0
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "frozen-command-14",
+      "origin": "frozen-host-output",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109858167745600 first_end=109858167854500\r\nK7EHCONTROL worker=1 caught=1 cleaned=4 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109858167729800 first_end=109858167862000\r\nK7EHCONTROL result=FAIL code=22 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "4de2930e257ef51e3aef6e8109bc56226525fda8b20a28b7aeca77a6398de1f5",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "result/created/joined fields mismatch",
+          "worker count/error mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109858167745600,
+            "first_end": 109858167854500
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 4,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109858167729800,
+            "first_end": 109858167862000
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": true,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "missing-preheat",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\n\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "07554893ef5af93f26e30736e828ada0097a49bcc28cb586fa66a66690e8ff54",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "preheat marker count mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 0,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "late-preheat",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\n\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "41dbee99df1829ad4baffbce5973bf91c175e4a610877f106b037d44cfdd1dd9",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "worker output precedes PREHEAT_PASS"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "missing-worker",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\n\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "4b98c96ccd59628bf78bb374ef96284c3ce448b5f3f27df7bd01a0eb68a6559e",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "worker record count mismatch",
+          "duplicate or missing worker ids"
+        ],
+        "workers": [
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 1,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "missing-final",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\n\r\n",
+      "input_sha256": "532f88508fab6c2a52f1404b00016b114aac80e35c1220d7cb082baf67b856f1",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "expected exactly one result"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 0
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "missing-begin",
+      "origin": "synthetic-mutation-of-host",
+      "input": "\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "aad5a08a715dc31eb9fc0311464100431a9802efeca0b4be851ac920c2e7b683",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "expected exactly one begin"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 0,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "duplicate-worker",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "28fd7743bfb23cd5a201b25df81158bac23608ae8bdd2f7fe78e832f256d3b0d",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "worker record count mismatch",
+          "duplicate or missing worker ids"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 3,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "duplicate-preheat",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "a855dc74684897af9377569b81156673a85bd79d8d718dac1be32e8fdcf9ae2b",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "preheat marker count mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 2,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "duplicate-begin",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\nK7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "479b037498706af6f969dba3f38d8fcb4f5e7f1133f109d7dc41997fde920f85",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "expected exactly one begin"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 2,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "duplicate-final",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0",
+      "input_sha256": "c43b4d50eaa99f79ed95a61e790e3c0f25a169b833f4405f0f9314ff1a4bf364",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "expected exactly one result"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 2
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "wrong-worker-id",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "c05099dd331bd13a825a29f40597183c607ebc2c738458434d01b1633efbcffa",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "requested CPU mismatch",
+          "duplicate or missing worker ids"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "wrong-caught",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=2 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=2 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=2 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "4723cf288b3c5c83b9f85f3c5c7986f098041cdbd79f1deca0c7288a1472570c",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "preheat fields mismatch",
+          "worker count/error mismatch",
+          "worker count/error mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 2,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 2,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "wrong-cleaned",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=2 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=2 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=2 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "514d0c4b5c21820197cedaf33499394781a454491b9c9861a2e5cecebc06418b",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "preheat fields mismatch",
+          "worker count/error mismatch",
+          "worker count/error mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 2,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 2,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "wrong-errors",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=1 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=1 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "bd80b18328b1146685e02ee130462eeade9de991322d89f43b52d8db256d870a",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "worker count/error mismatch",
+          "worker count/error mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 1,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 1,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "wrong-created",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=1 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "edfda4cf0070f67361f577a6782e665704a9adca0b6f1f739faf943c17bb89b3",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "result/created/joined fields mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "wrong-joined",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=1 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "024a8fc38753a261126e690e69f066c8b1ab3ed4a1a22cdc74ef1f8d2aa30c87",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "result/created/joined fields mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "wrong-requested-cpu",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "bac325b2f9769fd8374d9f1f3fa402b0ede4f250f3b9c45cdaf791578532848e",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "requested CPU mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "wrong-cpu-mismatch",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=1 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=1 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "1360df2c17f407860c52a63f93fe9ccfeabe2f75aa6dbeb4653542b0387d793d",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "worker count/error mismatch",
+          "worker count/error mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 1,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 1,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "fail-final",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=FAIL code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "5ff51383e9c35f4befb6a965a5e5a1c2c7f9be830e402556016b5536b1d03a9b",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "result/created/joined fields mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "crash-after-pass",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n\nCPU5 sched_dumpstack abort\n",
+      "input_sha256": "f6826a915777862a09c856210cc61502a1e472a5c90eb7e36d3a613e49152e41",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "line 7: crash diagnostic"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "duplicate-field",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "51d798ba63f08aae01b2763ba6328e617d3b477cb68341b0582dcfe8c897c040",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "line 3: malformed/duplicate fields",
+          "line 4: malformed/duplicate fields",
+          "worker record count mismatch",
+          "duplicate or missing worker ids"
+        ],
+        "workers": [],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 0,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "truncated-field",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned= workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned= errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned= errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "911d5a080c9a39826c5d33af430598fceac86d7fcf97d90f17a9505ee18d6612",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "line 2: malformed/duplicate fields",
+          "line 3: malformed/duplicate fields",
+          "line 4: malformed/duplicate fields",
+          "worker record count mismatch",
+          "preheat marker count mismatch",
+          "duplicate or missing worker ids"
+        ],
+        "workers": [],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 0,
+          "workers": 0,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "early-final",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\nK7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\n\r\n",
+      "input_sha256": "a8fc658fdb93ca7b7cc89abe2c91f282febf312a4a6541d5cb00942aa93215cc",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "result precedes begin",
+          "worker/preheat record outside invocation",
+          "worker/preheat record outside invocation",
+          "worker/preheat record outside invocation"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "interleaved",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nNSH> K7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "5a9610306b603a0595b9cbce7e8df8cd4b671a073e364df17e0d56cf2c966afa",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "line 3: malformed/interleaved probe record",
+          "worker record count mismatch",
+          "duplicate or missing worker ids"
+        ],
+        "workers": [
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 1,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "unexpected-record",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n\nK7EHCONTROL REBOOT_REQUIRED\n",
+      "input_sha256": "e584988571cb7b525639ce90948d6bd3433b856a27d65cd68e4ab113f76298e7",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "line 7: failure or unknown probe record: REBOOT_REQUIRED"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "wrong-mode",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=single rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=single concurrency_proven=0\r\n",
+      "input_sha256": "216030aec757349f21c8d9eaedf26a69a10088481cbe8cf8073e6a1bc7975956",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "begin fields mismatch",
+          "result/created/joined fields mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "single-unexpected-preheat",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=single rounds=1 workers=1 main_prethrow=0\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856682211500 first_end=109856682293300\r\nK7EHCONTROL result=PASS code=0 created=1 joined=1 mode=single concurrency_proven=0\r\n",
+      "input_sha256": "fdff68d722a05a92ff99b8d0d3c0dbac95f0947ce42284856cda0ed6b477aeb7",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "single",
+        "scope": "host",
+        "errors": [
+          "preheat marker count mismatch"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856682211500,
+            "first_end": 109856682293300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 1,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "host-not-target",
+      "origin": "frozen-host-output-wrong-scope",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "4242fdf746b2e7369ae3211f5ab83879d1cec07ab550e7c81ccc5b24dfb049dd",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "target",
+        "errors": [
+          "observed CPU does not match scope/affinity",
+          "observed CPU does not match scope/affinity"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "synthetic-target-good",
+      "origin": "synthetic-target-like-NOT-HARDWARE",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=4 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=5 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "d7c39eab8bd2d77c8ea4a779ae1553450f3d6b3a4f55a3e2bdcbbccbed863fa8",
+      "expected_accept": true,
+      "result": {
+        "passed": true,
+        "mode": "warm1",
+        "scope": "target",
+        "errors": [],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": 4,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": 5,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "synthetic-target-wrong-cpu",
+      "origin": "synthetic-target-like-NOT-HARDWARE",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=5 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=5 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "997ebc8363de3d13247e5990a3f102eb83fb6d50796812cfe8892fb712aa96f1",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "target",
+        "errors": [
+          "observed CPU does not match scope/affinity"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": 5,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": 5,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "target-not-host",
+      "origin": "synthetic-target-like-NOT-HARDWARE",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=4 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=5 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "d7c39eab8bd2d77c8ea4a779ae1553450f3d6b3a4f55a3e2bdcbbccbed863fa8",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "observed CPU does not match scope/affinity",
+          "observed CPU does not match scope/affinity"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": 4,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": 5,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "serial-background-and-crlf",
+      "origin": "synthetic-serial-envelope-host",
+      "input": "nsh> k7ehcontrol warm1\r\nK7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=109856729816100\r\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=109856729968300\r\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\r\nnsh>\r\n",
+      "input_sha256": "7c3e2fc0aedceff370464e06df6c5b583e49514090804af3c2fb098e367fd308",
+      "expected_accept": true,
+      "result": {
+        "passed": true,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 109856729816100
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 109856729968300
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    },
+    {
+      "name": "bad-clock",
+      "origin": "synthetic-mutation-of-host",
+      "input": "K7EHCONTROL begin mode=warm1 rounds=1 workers=2 main_prethrow=1\r\nK7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0\r\nK7EHCONTROL worker=0 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=4 cpu_mismatch=0 first_begin=109856729785500 first_end=0\r\nK7EHCONTROL worker=1 caught=1 cleaned=3 errors=0 cpu=-1 requested_cpu=5 cpu_mismatch=0 first_begin=109856729914900 first_end=0\r\nK7EHCONTROL result=PASS code=0 created=2 joined=2 mode=warm1 concurrency_proven=0\r\n",
+      "input_sha256": "c6a52b0b679a48589d6c45d22967e90759a7d34dd5b272d64c21563a2ce84ef5",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "host",
+        "errors": [
+          "invalid first-call clock interval",
+          "invalid first-call clock interval"
+        ],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729785500,
+            "first_end": 0
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": -1,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 109856729914900,
+            "first_end": 0
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": false,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true
+    }
+  ],
+  "cli": [
+    {
+      "command": [
+        "C:\\Program Files\\Python36\\python.exe",
+        "-B",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-output-v1\\accept_output.py",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-output-v1\\host-warm1.txt",
+        "--mode",
+        "warm1",
+        "--scope",
+        "host"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "output": "{\n  \"passed\": true,\n  \"mode\": \"warm1\",\n  \"scope\": \"host\",\n  \"errors\": [],\n  \"workers\": [\n    {\n      \"worker\": 0,\n      \"caught\": 1,\n      \"cleaned\": 3,\n      \"errors\": 0,\n      \"cpu\": -1,\n      \"requested_cpu\": 4,\n      \"cpu_mismatch\": 0,\n      \"first_begin\": 109856729785500,\n      \"first_end\": 109856729816100\n    },\n    {\n      \"worker\": 1,\n      \"caught\": 1,\n      \"cleaned\": 3,\n      \"errors\": 0,\n      \"cpu\": -1,\n      \"requested_cpu\": 5,\n      \"cpu_mismatch\": 0,\n      \"first_begin\": 109856729914900,\n      \"first_end\": 109856729968300\n    }\n  ],\n  \"record_counts\": {\n    \"begin\": 1,\n    \"preheat\": 1,\n    \"workers\": 2,\n    \"result\": 1\n  },\n  \"first_call_intervals_overlap\": false,\n  \"libgcc_thread_safety_proven\": false,\n  \"global_unwinder_cold_proven\": false,\n  \"hardware_provenance_verified\": false,\n  \"interpretation\": \"Text assertions only; scope is supplied by caller, not authenticated hardware origin\",\n  \"input_sha256\": \"2ab31b43980cdda4205dfaa8f8fd96e19ecc4e6c75b1bf81dc18ad8554ded5fa\",\n  \"input_bytes\": 500\n}\n",
+      "passed": true
+    },
+    {
+      "command": [
+        "C:\\Program Files\\Python36\\python.exe",
+        "-B",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-output-v1\\accept_output.py",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-output-v1\\host-warm1.txt",
+        "--mode",
+        "warm1",
+        "--scope",
+        "target"
+      ],
+      "exit_code": 1,
+      "expected": 1,
+      "output": "{\n  \"passed\": false,\n  \"mode\": \"warm1\",\n  \"scope\": \"target\",\n  \"errors\": [\n    \"observed CPU does not match scope/affinity\",\n    \"observed CPU does not match scope/affinity\"\n  ],\n  \"workers\": [\n    {\n      \"worker\": 0,\n      \"caught\": 1,\n      \"cleaned\": 3,\n      \"errors\": 0,\n      \"cpu\": -1,\n      \"requested_cpu\": 4,\n      \"cpu_mismatch\": 0,\n      \"first_begin\": 109856729785500,\n      \"first_end\": 109856729816100\n    },\n    {\n      \"worker\": 1,\n      \"caught\": 1,\n      \"cleaned\": 3,\n      \"errors\": 0,\n      \"cpu\": -1,\n      \"requested_cpu\": 5,\n      \"cpu_mismatch\": 0,\n      \"first_begin\": 109856729914900,\n      \"first_end\": 109856729968300\n    }\n  ],\n  \"record_counts\": {\n    \"begin\": 1,\n    \"preheat\": 1,\n    \"workers\": 2,\n    \"result\": 1\n  },\n  \"first_call_intervals_overlap\": false,\n  \"libgcc_thread_safety_proven\": false,\n  \"global_unwinder_cold_proven\": false,\n  \"hardware_provenance_verified\": false,\n  \"interpretation\": \"Text assertions only; scope is supplied by caller, not authenticated hardware origin\",\n  \"input_sha256\": \"2ab31b43980cdda4205dfaa8f8fd96e19ecc4e6c75b1bf81dc18ad8554ded5fa\",\n  \"input_bytes\": 500\n}\n",
+      "passed": true
+    }
+  ],
+  "case_count": 41,
+  "all_passed": true,
+  "hardware_tested": false
+}

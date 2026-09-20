@@ -1,0 +1,20 @@
+{
+  "input_sha256": "309c3957f6bf617be327d1b157e5ed73cf61a4223a2b97971842ae8a1735d972",
+  "channel": 0,
+  "transform": "deinterleave only; no gain, no deletion, no resampling",
+  "periodic_gaps_unresolved": true,
+  "hardware_acceptance": false,
+  "host_asr_only": true,
+  "command": [
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx.exe",
+    "--paraformer-encoder=E:\\openvela\\语音模块\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\encoder.int8.onnx",
+    "--paraformer-decoder=E:\\openvela\\语音模块\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\decoder.int8.onnx",
+    "--tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\tokens.txt",
+    "--num-threads=1",
+    "--provider=cpu",
+    "--decoding-method=greedy_search",
+    "E:\\openvela\\VelaVision\\evidence\\audio-mic-20260910\\voice-first\\host-asr-unmodified-left\\left-original-gaps.wav"
+  ],
+  "exit_code": 0,
+  "elapsed": 5.063000000009197
+}

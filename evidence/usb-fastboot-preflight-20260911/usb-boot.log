@@ -1,0 +1,79 @@
+crc32 50000000 2f2c8
+crc32 for 50000000 ... 5002f2c7 ==> 8d81864c
+=> crc32 50100000 57108
+crc32 for 50100000 ... 50157107 ==> 876828ce
+=> crc32 50180000 25
+crc32 for 50180000 ... 50180024 ==> f2b828eb
+=> crc32 50190000 944
+crc32 for 50190000 ... 50190943 ==> 2e852f87
+=> md.l 48300000 1
+48300000: edfe0dd0                               ....
+=> booti 40400000 - 48300000
+Fdt Ramdisk skip relocation
+## Flattened Device Tree blob at 0x48300000
+   Booting using the fdt blob at 0x48300000
+   Using Device Tree in place at 0000000048300000, end 0000000048326532
+No resource file: logo_kernel.bmp
+VP0 fail to load kernel logo
+## reserved-memory:
+  ramoops@40110000: addr=40110000 size=e0000
+Adding bank: 0x40200000 - 0x48400000 (size: 0x08200000)
+Adding bank: 0x49400000 - 0x100000000 (size: 0xb6c00000)
+Adding bank: 0x100000000 - 0x140000000 (size: 0x40000000)
+Total: 455239.802/455592.645 ms
+
+Starting kernel ...
+
+- Ready to Boot Primary CPU
+RK3576 HCR_EL2=0000000008000032
+RK3576 SCTLR_EL1=0000000030d00800
+- Boot from EL2
+- Boot from EL1
+- Boot to C runtime for OS Initialize
+[CPU0] arm64_chip_boot: RK3576: MMU enabled
+[CPU0] rk3576_uart6_initialize: UART6 M0: 115200 8N1, internal loopback PASS, IRQ114 ttyS1
+I/TC: Secondary CPU 1 initializing
+I/TC: Secondary CPU 1 switching to normal world boot
+
+NuIt/TC: Secondary CPU 4 initializing
+tIS/TC: Secondary CPU 4 switching to normal world boot
+- ReI/TC: Secondary CPU 2 initializing
+ady- t Ro eBaodI/TC: Secondary CPU 2 switching to normal world boot
+yot t So eI/TC: Secondary CPU 5 initializing
+Bc-o oRonte adI/TC: Secondary CPU 5 switching to normal world boot
+ SdeyCcPo Undto 
+R CBKPoU357
+o6R KI/TC: Secondary CPU 3 initializing
+3-tH 5C 7SRRI/TC: Secondary CPU 3 switching to normal world boot
+6e_e aEI/TC: Secondary CPU 6 initializing
+cHL-dC 2yoI/TC: Secondary CPU 6 switching to normal world boot
+ nRR=de_t0oE0 a LCdI/TC: Secondary CPU 7 initializing
+B2y-0P=0 Uo 0t0Roet
+00oa 00 RI/TC: Secondary CPU 7 switching to normal world boot
+0B0SKd3o0ey0o c00o05t0t070on R_d 
+0R
+e E0SRaKCL0eK2d3Pc5yU=o
+3n70 R56t
+Kd70o R63  K50C 7PS3B0H6UC5oC0Ro70 T_Lt
+S60 R0 RCETKL0_SH0Le3EC25R0=cLR1_0o706=E_0n0d0L0E0 0H1L0 0=002C2CP0R000=0
+0_U0E00R00
+000LK000R2300=00K5000033700050060d7030 S000060d 0000C00HT800
+C000L0R80RR0K00_03000E_5
+L0E0-
+722L0=6 10- 0
+0 B=So00R0B00C0KoooT0t30L005 t
+0R R0f7r6K0_0f0E 03ro0oL50SmmC17036 0 =T00dL0E ES0RLL002000_2C08E0T00
+LL001
+0R=_0
+00RE3K
+L003010d=50-0700600  80B0S0o00o30C0Tt00
+ Ld000-R_0 3fE80rBLoo0dm0o1=00t 0 E8f00
+L0-r00 o2
+Bm0o- 0
+E0 oL0Bt32o0o 
+ftd0r 0for80mo0m  EE
+L-L 22B
+
+oot from EL2
+hell (NSH)
+nsh> [K

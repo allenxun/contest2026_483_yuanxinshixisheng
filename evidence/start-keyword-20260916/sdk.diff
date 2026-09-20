@@ -1,0 +1,19 @@
+--- sdk/app/k7agent/cloud/src/device_voice_intent.c
++++ app/k7agent/cloud/src/device_voice_intent.c
+@@ -19,10 +19,14 @@
+           {i+=strlen(marks[k]);skip=1;break;}
+       if(skip)continue;
+       if(used==sizeof(normalized)-1)return K7_VOICE_NONE;
+-      normalized[used++]=text[i++];
++      normalized[used++]=(ch>='A' && ch<='Z')?(char)(ch-'A'+'a'):text[i];i++;
+     }
+   normalized[used]=0;
+-  if(!strcmp(normalized,"启动云台") || !strcmp(normalized,"开启云台"))return K7_VOICE_TRACK;
++  if(strstr(normalized,"停止云台") || strstr(normalized,"停止测肤"))return K7_VOICE_STOP;
++  if(strstr(normalized,"停止播报"))return K7_VOICE_QUIET;
++  if(strstr(normalized,"不要") || strstr(normalized,"别启动") || strstr(normalized,"取消启动"))return K7_VOICE_NONE;
++  if(strstr(normalized,"启动") || strstr(normalized,"openvela") ||
++     strstr(normalized,"openvlea") || !strcmp(normalized,"开启云台"))return K7_VOICE_TRACK;
+   if(!strcmp(normalized,"皮肤检测") || !strcmp(normalized,"开始皮肤检测") ||
+      !strcmp(normalized,"测肤") || !strcmp(normalized,"开始测肤"))return K7_VOICE_PHOTO;
+   if(!strcmp(normalized,"停止云台") || !strcmp(normalized,"停止测肤"))return K7_VOICE_STOP;

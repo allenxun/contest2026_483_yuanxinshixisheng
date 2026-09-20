@@ -1,0 +1,42 @@
+diff --git a/sherpa-onnx/csrc/offline-tts-vits-model.cc b/sherpa-onnx/csrc/offline-tts-vits-model.cc
+index 972c6ad..85f9b19 100644
+--- a/sherpa-onnx/csrc/offline-tts-vits-model.cc
++++ b/sherpa-onnx/csrc/offline-tts-vits-model.cc
+@@ -6,6 +6,10 @@
+ 
+ #include "sherpa-onnx/csrc/offline-tts-vits-model.h"
+ 
++#ifdef K7_TTS_NATIVE_STORAGE
++#include "native_tts_model_storage.hpp"
++#endif
++
+ #include <algorithm>
+ #include <string>
+ #include <utility>
+@@ -27,8 +31,14 @@ class OfflineTtsVitsModel::Impl {
+         env_(ORT_LOGGING_LEVEL_ERROR),
+         sess_opts_(GetSessionOptions(config)),
+         allocator_{} {
++#ifdef K7_TTS_NATIVE_STORAGE
++    native_storage_.initialize(env_, sess_opts_, config.vits.model);
++    Init(const_cast<void *>(native_storage_.model_data()),
++         native_storage_.kModelBytes);
++#else
+     auto buf = ReadFile(config.vits.model);
+     Init(buf.data(), buf.size());
++#endif
+   }
+ 
+   template <typename Manager>
+@@ -329,6 +339,11 @@ class OfflineTtsVitsModel::Impl {
+ 
+  private:
+   OfflineTtsModelConfig config_;
++  // Declaration order is intentional: Session, Env, then the registered
++  // allocator are destroyed in that order, including constructor unwind.
++#ifdef K7_TTS_NATIVE_STORAGE
++  k7_tts_storage::ModelStorage native_storage_;
++#endif
+   Ort::Env env_;
+   Ort::SessionOptions sess_opts_;
+   Ort::AllocatorWithDefaultOptions allocator_;

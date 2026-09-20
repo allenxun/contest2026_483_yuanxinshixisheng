@@ -1,0 +1,660 @@
+{
+  "version": "VelaVision-integrated-20260909.1",
+  "updated_at": "2026-09-14T19:31:11+08:00",
+  "source_set_sha256": "be9e652480287cfac8a55ce2b6d2e88ad44c10ba610f4c911b8a8df95c5c7975",
+  "source_file_count": 498,
+  "sdk": {
+    "nuttx": {
+      "head": "e987a81c32cab008d1a8521669e5488d00271322",
+      "status": " M arch/arm64/Kconfig\n M arch/arm64/src/common/arm64_head.S\n M boards/Kconfig\n M drivers/serial/uart_16550.c\n M drivers/usbhost/CMakeLists.txt\n M drivers/usbhost/Kconfig\n M drivers/usbhost/Make.defs\n M drivers/usbhost/usbhost_hub.c\n M include/nuttx/net/bluetooth.h\n M include/nuttx/usb/usbhost.h\n M wireless/bluetooth/Kconfig\n M wireless/bluetooth/bt_att.c\n M wireless/bluetooth/bt_buf.c\n M wireless/bluetooth/bt_hcicore.c\n M wireless/bluetooth/bt_l2cap.c\n?? arch/arm64/include/rk3576/\n?? arch/arm64/src/rk3576/\n?? boards/arm64/rk3576/\n?? drivers/usbhost/usbhost_xhci_rk3576.c\n?? drivers/usbhost/usbhost_xhci_rk3576.h\n?? drivers/usbhost/usbhost_xhci_rk3576_trace.c\n?? drivers/usbhost/usbhost_xhci_rk3576_trace.h\n?? include/nuttx/usb/rk3576_flow.h\n?? include/nuttx/usb/xhci_rk3576.h\n",
+      "tracked_patch_sha256": "d60e16c139c2ccbc77965cbda5cf4e830c56c5ad689bf89cb4def94fde7a72bb"
+    },
+    "apps": {
+      "head": "92cc8c56a4c9b780b38991401295179fa2461908",
+      "status": "?? examples/gimbal/\n?? examples/k7host/\n?? examples/k7npu/\n?? examples/k7radio/\n?? examples/k7usb/\n?? testing/drivers/nist-sts/.gitee/\n?? testing/drivers/nist-sts/.github/\n?? testing/drivers/nist-sts/sts/\n",
+      "tracked_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "integrated_build": {
+    "command": [
+      "bash",
+      "/home/swl/openvela/work/velavision-project/tools/build.sh",
+      "/home/swl/openvela"
+    ],
+    "exit_code": 0,
+    "build_directory": "/home/swl/openvela/cmake_out/velavision_integrated_20260909",
+    "device_started": false,
+    "hardware_tested": false,
+    "emmc_written": false,
+    "profile": "combined diagnostic; RAW NPU remains explicit-command-only",
+    "required_config": {
+      "CONFIG_EXAMPLES_GIMBAL": true,
+      "CONFIG_EXAMPLES_K7HOST": true,
+      "CONFIG_EXAMPLES_K7HOST_JPEG": true,
+      "CONFIG_EXAMPLES_K7HOST_YUNET": true,
+      "CONFIG_EXAMPLES_K7HOST_TRACK": true,
+      "CONFIG_RK3576_NPU_DIAG": true,
+      "CONFIG_EXAMPLES_K7NPU": true,
+      "CONFIG_K7NPU_MMU_TEST": true,
+      "CONFIG_K7NPU_RAW_TEST": true,
+      "CONFIG_EXAMPLES_K7RADIO": true,
+      "CONFIG_WIRELESS_BLUETOOTH_HOST": true,
+      "CONFIG_RK3576_USBHOST": true
+    },
+    "files": {
+      ".config": {
+        "bytes": 59456,
+        "sha256": "2ae3a990b60bfb025717d87e6766ae80a02899a64002a3b8f0fe7acb85717791"
+      },
+      "nuttx": {
+        "bytes": 9351688,
+        "sha256": "3f156975b338d09ff727f3bcac9bbdfaba57d858cb06baf1b8cea117d2059d99"
+      },
+      "nuttx.bin": {
+        "bytes": 1911800,
+        "sha256": "ea9e90b0fbe23201114a8cb692d1c0db5180ee42d47907752489f6b4195d8580"
+      }
+    },
+    "linked_application_symbols": {
+      "k7host_main": true,
+      "gimbal_main": true,
+      "k7npu_main": true,
+      "k7radio_main": true
+    },
+    "source_project": "/home/swl/openvela/work/velavision-project",
+    "sdk_sync_script": "tools/sync_sdk.py",
+    "base_binary_comparison": {
+      "rk3576_usb_photo_direction": "5d7730d830e92e7b38e1674521e0795ce76be961aace5fb14f2d922189ba1565",
+      "rk3576_npu_raw_vendor": "4eceb18e2b0c4445fd0e159986d3daabd81943235e150966e0b427139c5ca72e",
+      "rk3576_radio_id36": "8d53a8cd62b09bea20c4d2d4905c31fe14a0277f0c600914f59a3d189839ab56"
+    }
+  },
+  "official_format_validation": "evidence/official-log-validation.json",
+  "hardware_joint_validation": false,
+  "remote_submission": false,
+  "log_collection": {
+    "hook": "Stop",
+    "platform": "Windows Codex",
+    "configuration_installed": true,
+    "direct_invocation_test_passed": true,
+    "client_automatic_trigger_verified": true,
+    "guide": "docs/自动日志采集.md",
+    "hook_trusted": true,
+    "hook_active": true,
+    "verified_client": "Codex CLI 0.153.4",
+    "desktop_current_task_reload_required": true,
+    "acceptance_session_id": "01a084bd-4cd6-7910-a51e-2354fa1eee74",
+    "daily_sessions": {
+      "01a07ed4-3f0d-7450-8bb1-bb756849cb4e": "Asia/Shanghai; split by original event date, cumulative seq and manifest count",
+      "01a06679-4033-7993-b989-6269e03e0e70": "Asia/Shanghai; split by original event date, cumulative seq and manifest count"
+    }
+  },
+  "latest_development": {
+    "revision": "wifi-amsdu-index-20260909",
+    "hardware_tested": true,
+    "snapshot": "evidence/build/wifi-amsdu-index-20260909/verification.json",
+    "hardware_evidence": "evidence/stability-20260909/wifi-run-01/verified-summary.json",
+    "hardware_scope": "Native WPA2/DHCP/gateway and 30 minute Wi-Fi held; 1499/1500 replies, strict zero-loss not passed; BLE hold not covered; frontend connect false"
+  },
+  "current_device": {
+    "revision": "prompt-asr-direct-ssid-prefix+radio-refresh-20260914",
+    "state": "Old heartbeat reset the board into Fastboot at 18:57. Old loader PID 308144 was stopped after identity verification. Ubuntu last enumerated CH340 only; no fresh RAM boot after reset. Historical 17:58 BLE service snapshot is invalid.",
+    "ram_booted": false,
+    "flash_written": false,
+    "wifi_online": false,
+    "ble_online": false,
+    "ble_service_ready": false,
+    "radio_host_online": false,
+    "wifi_shared_service_online": false,
+    "native_network": false,
+    "decoder_staging_crc_verified": null,
+    "encoder_tail_crc_verified": null,
+    "local_speech_models_verified": false,
+    "local_asr_available": false,
+    "previous_manual_wifi_user_confirmed": true,
+    "previous_manual_wifi_revision": "voice-ui-connect-20260913",
+    "previous_prompt_playback_passed": true,
+    "previous_tts_cold_seconds": 9.043,
+    "previous_tts_warm_seconds": 3.022,
+    "combined_cached_tts_asr_passed": false,
+    "combined_failure": "NuttX system-heap allocation failed for 960 bytes in OrtApis::CreateSessionOptions while the separate 512 MiB model arena still had 529492464 bytes free",
+    "voice_wifi_provisioning_passed": false,
+    "ble_wifi_provisioning_available": false,
+    "cloud_speech_runtime_board_tested": false,
+    "evidence": "Ubuntu work-in-progress/asr-direct-cache-20260914/watch-direct-clean-tls-heartbeat-20260914.log"
+  },
+  "latest_wireless_checkpoint": {
+    "updated_at": "2026-09-09T18:02:18.65273+08:00",
+    "running_revision": "wifi-amsdu-index-20260909",
+    "boot": "RAM",
+    "firmware_sha256": "85fb84d34a7dbc74469b91c501b3e289791a1b99636829690d3cc6210e688dfe",
+    "wpa2_hardware_passed": true,
+    "dhcp_hardware_passed": true,
+    "test_ssid": "Lansee",
+    "tested_ip": "10.3.0.214",
+    "tested_gateway": "10.3.0.1",
+    "gateway_ping": {
+      "sent": 40,
+      "received": 40,
+      "loss_percent": 0.0
+    },
+    "amsdu": {
+      "complete": 1,
+      "subframes": 2,
+      "rejected": 2
+    },
+    "ble_connected_at_snapshot": true,
+    "ble_encrypted_at_snapshot": true,
+    "frontend_connect": false,
+    "long_duration_acceptance": false,
+    "emmc_written": false,
+    "stm32_written": false,
+    "gimbal_started": false,
+    "amsdu_hardware_passed": true,
+    "historical_wifi_auth_negative_test": "evidence/wifi-ip-rx-20260909/wrong-password-01.jsonl",
+    "ble_wifi_short_coexistence": {
+      "passed": true,
+      "duration_ms": 50050,
+      "ping_sent": 50,
+      "ping_received": 50,
+      "new_ble_disconnections": 0,
+      "encrypted_before_and_after": true,
+      "scope": "phone BLE connection held during Wi-Fi gateway traffic; not simultaneous BLE application throughput or long-duration acceptance"
+    },
+    "current_device_scope": "Lansee connected; phone BLE encrypted at snapshot; no persistent UART observer",
+    "evidence": {
+      "ble-after-coexist.bin": "0eb54cc40b9e25ec6485d243240ec25cba7b36dfb65f4e29985c6ea54dc966cc",
+      "ble-status.bin": "0eb54cc40b9e25ec6485d243240ec25cba7b36dfb65f4e29985c6ea54dc966cc",
+      "bt-host.bin": "16a403900e8402df2572289db886ac2b0e91c60510ecde38f6ffba30ad21522e",
+      "lansee-01.jsonl": "75d202fc88c33702bea8b23615401f163fb3073cf94eae6933bae6d088645a2a",
+      "phone-coexist-50.bin": "afd3dd5b6e340082754bbf260579409721f753d11d2c375da032cb2abb06fd1d",
+      "ping-first-40.bin": "62618f4ac0f80837638a7dbf7392da41046f688212e47ab592bad3ee99fa38c9",
+      "ramload-summary.json": "07da700256717699e20be49597ac94a7fdcea1e64a211a8a1358f6617f27bc8c",
+      "ramload.bin": "0dfcf47146123fdcd733d2159d33ff26e27361ec0f6e21cf97158397be7e1ff1",
+      "reboot.bin": "94fe769bfe5e7df5abc8449680fdf9c0e4a60523ce2d1e04d5d6bc31cba850e6",
+      "sdio-boot.bin": "2e21e63d25f6e685f5050ae2274fec73c54c1109ae9cb8b7f199082d12bc2c25",
+      "wifi-after-coexist.bin": "3a2c7bee9e7c0a6d0a0ec0a6f9858115f7b27ff2d4871885109514fe6cceda63",
+      "wifi-status.bin": "47759adc91e034b808a407df79c4e26e959bf965adbc551582be54387a191dc3"
+    }
+  },
+  "active_stability_test": {
+    "mode": "wifi-ble",
+    "state": "completed",
+    "directory": "evidence/stability-20260909/coexist-run-01",
+    "started_at": "2026-09-09T19:06:59.678477+08:00",
+    "target_seconds": 1800,
+    "scope": "encrypted phone BLE hold with native Wi-Fi gateway traffic; no online scan or app throughput acceptance",
+    "agent_deployment": "after wireless acceptance"
+  },
+  "latest_stability_checkpoint": {
+    "mode": "wifi-ble",
+    "passed": false,
+    "elapsed_s": 1800.11,
+    "sent": 1500,
+    "received": 1497,
+    "evidence": "evidence/stability-20260909/coexist-run-01",
+    "ble_hold_acceptance": true,
+    "production_acceptance": false,
+    "component_acceptance": {
+      "ble_hold": true,
+      "wifi_connection_hold": true,
+      "zero_ping_loss": false,
+      "scope": "Separate connection-hold observations from strict combined zero-loss result; no application throughput acceptance"
+    }
+  },
+  "historical_device_records": [
+    {
+      "revision": "phone-rpa-20260909",
+      "recorded_at": "2026-09-09T15:55:56.662691+08:00",
+      "firmware_sha256": "a615790446aba99a8ee1252e55de5ec83c9b5902772b94a103fff06e18118ae2",
+      "ram_booted": true,
+      "emmc_flashed": false,
+      "gimbal_started": false,
+      "hardware_joint_validation": false,
+      "bluetooth_name": "VelaVision K7",
+      "serial_port": "COM8",
+      "service_started": true,
+      "paired_record_capacity": 8,
+      "recycle_idle_records": true,
+      "max_simultaneous_connections": 1,
+      "receive_credentials": true,
+      "wifi_connect": false,
+      "wifi_connection_attempted": false,
+      "phone_repair_validation": "pending",
+      "phone_data_exchange": "pending",
+      "phone_long_connection_passed": false,
+      "scope": "RPA address correction: RAM boot and service startup passed; phone re-pairing and X test pending",
+      "evidence": {
+        "ramload.bin": "8e3cd64c8bbc7240c4cd7567e748076a79b4970e209fc8162f9bbb02497c2f5d",
+        "radio-start.bin": "ea83fc29ce6e90a1ae889d43efc996ce13978adb958cfeb018bb921a5778066f",
+        "bt-host.bin": "3fe1340a75f63448c63eb2c5cae3415f30ec60cfeb59772894bde70fdcde358a"
+      }
+    }
+  ],
+  "agent_deployment": {
+    "status": "cloud_transport_compiled_waiting_voice_wifi",
+    "runtime_deployed": false,
+    "preparation": "docs/Agent部署接续_20260909.md",
+    "configuration_template": "config/agent-model.example.json",
+    "cloud_transport_acceptance": "evidence/k7cloud-link-20260913/acceptance.json",
+    "cloud_transport_board_tested": false
+  },
+  "historical_log_snapshot": [
+    {
+      "session_id": "01a06679-4033-7993-b989-6269e03e0e70",
+      "file_path": "logs/maomaojiang01/2026-09-08/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+      "event_count": 7167,
+      "sha256": "5f8ae5f360b67d9181e218acbd09e44a41d970ec47b6245c6f1e08ded7e7530f",
+      "sha256_scope": "complete session stream",
+      "files": [
+        {
+          "file_path": "logs/maomaojiang01/2026-09-03/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+          "event_count": 909,
+          "sha256": "291398555bce0084e9a44fc2410d64dbb698eb53bb4e020a03c8534387907af5"
+        },
+        {
+          "file_path": "logs/maomaojiang01/2026-09-04/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+          "event_count": 2499,
+          "sha256": "8a83fe3fe5e9c9d19087107ed56d1a7aa262575c1d526eae9ff7bf02df2b9c7e"
+        },
+        {
+          "file_path": "logs/maomaojiang01/2026-09-05/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+          "event_count": 1316,
+          "sha256": "087235d41d6703ca232ce8cf6ce50d7a7891efe7e82287a2935dfc1e58ea58b8"
+        },
+        {
+          "file_path": "logs/maomaojiang01/2026-09-07/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+          "event_count": 2132,
+          "sha256": "0cf494ad2ac0cdd753729661d78065361423a4d13b2cf3f1f19c384218d190c5"
+        },
+        {
+          "file_path": "logs/maomaojiang01/2026-09-08/codex__01a06679-4033-7993-b989-6269e03e0e70.jsonl",
+          "event_count": 311,
+          "sha256": "81e37a84f889250934082149556a6ca65363bba9aaae49ebe6a675d938da27e7"
+        }
+      ]
+    },
+    {
+      "session_id": "01a07ed4-3f0d-7450-8bb1-bb756849cb4e",
+      "file_path": "logs/maomaojiang01/2026-09-09/codex__01a07ed4-3f0d-7450-8bb1-bb756849cb4e.jsonl",
+      "event_count": 4773,
+      "sha256": "b59be6badac88b77d53c560efc505019ac86cd9513531ac61a606a29704d1132",
+      "sha256_scope": "complete session stream",
+      "files": [
+        {
+          "file_path": "logs/maomaojiang01/2026-09-08/codex__01a07ed4-3f0d-7450-8bb1-bb756849cb4e.jsonl",
+          "event_count": 2714,
+          "sha256": "7a2a4fb1034be542a795760239fe07be50412fcc0d4605129d6cfebdd406f59b"
+        },
+        {
+          "file_path": "logs/maomaojiang01/2026-09-09/codex__01a07ed4-3f0d-7450-8bb1-bb756849cb4e.jsonl",
+          "event_count": 2059,
+          "sha256": "48f6281801335ce8420341eca7e6ce96a1da87665e656e08e9b52a975578ebb0"
+        }
+      ]
+    },
+    {
+      "session_id": "01a08456-0276-7772-b214-0a86086f5974",
+      "file_path": "logs/maomaojiang01/2026-09-09/codex__01a08456-0276-7772-b214-0a86086f5974.jsonl",
+      "event_count": 60,
+      "sha256": "93943b378d08cced4a93d9d73e7b2075b06c30309cfbbefb706ab3ba9e6fa81e"
+    },
+    {
+      "session_id": "01a084bd-4cd6-7910-a51e-2354fa1eee74",
+      "file_path": "logs/maomaojiang01/2026-09-09/codex__01a084bd-4cd6-7910-a51e-2354fa1eee74.jsonl",
+      "event_count": 3,
+      "sha256": "2ff537bbcc08c27f16d5f958c497a6b77e559ea4d25027fdd8f2c2a99f54ff0f"
+    },
+    {
+      "session_id": "01a084c1-0300-7f41-8d1d-825c2b186bb0",
+      "file_path": "logs/maomaojiang01/2026-09-09/codex__01a084c1-0300-7f41-8d1d-825c2b186bb0.jsonl",
+      "event_count": 4,
+      "sha256": "7aa740f78be4cc1c2fe1d4a68ffb871ee89ea086e14761508a11d9bbe481a21d"
+    }
+  ],
+  "log_manifest": "logs/maomaojiang01/manifest.json",
+  "snapshot_scope": "version, source_set_sha256, source_file_count, sdk, integrated_build and historical_log_snapshot describe the initial or explicitly recorded historical snapshots; latest firmware and stability have separate evidence",
+  "historical_development_records": [
+    {
+      "revision": "phone-rpa-20260909",
+      "hardware_tested": true,
+      "hardware_scope": "RPA address correction: RAM boot and service startup passed; phone re-pairing and X test pending",
+      "hardware_evidence": "evidence/phone-rpa-20260909/device-state.json",
+      "snapshot": "evidence/build/phone-rpa-20260909/verification.json",
+      "note": "Earlier phone initial-hold pass did not prove re-pairing stability"
+    }
+  ],
+  "contest_alignment": {
+    "checked_on": "2026-09-09",
+    "track": "new_hardware_porting",
+    "board_list_status": "KICKPI-K7 listed as pending adaptation",
+    "document": "docs/官方硬件赛道对齐与目标_20260909.md",
+    "clean_environment_reproduction_verified": false,
+    "public_repository_changes_submitted": false,
+    "runtime_agent_required_by_track_guide": false,
+    "robot_agent_retained_as_project_goal": true
+  },
+  "active_ble_reconnect_test": {
+    "state": "completed",
+    "directory": "evidence/stability-20260909/reconnect-scan-run-01",
+    "target_cycles": 10,
+    "probe": "X -> real scan -> scan_done",
+    "wifi_restore_required": false,
+    "user_confirmed_available": true,
+    "completed_cycles": 10,
+    "phone_receipt_verified": true,
+    "acceptance": "evidence/stability-20260909/reconnect-scan-run-01/acceptance.json",
+    "wifi_restoration_verified": "5/5 gateway after initial failure; root cause unresolved"
+  },
+  "post_test_anomalies": "evidence/stability-20260909/post-test-anomalies.json",
+  "pending_firmware": {
+    "revision": "cloud-radio-20260914",
+    "status": "Radio snapshot CLI enabled and ARM64 compiled after missing header fix. Cloud worker, audio WebSocket, TLS/runtime prerequisites and board acceptance remain pending.",
+    "source_only": false,
+    "batch_speech": true,
+    "streaming_speech": false,
+    "arm64_built": true,
+    "offline_cli_linked": true,
+    "radio_readiness_source_wired": true,
+    "radio_readiness_arm64_built": true,
+    "runtime_network_wired": false,
+    "firmware_sha256": "6efed4c48eaee8c51289f9d52a704203e7207799bd3aaf7f213dc790fa891a54",
+    "firmware_bytes": 2782928,
+    "hardware_tested": false,
+    "ram_boot_verified": false,
+    "flash_commands": false,
+    "emmc_written": false,
+    "evidence": "evidence/cloud-radio-build-20260914/arm64-result-final.json",
+    "radio_readiness_evidence": "evidence/k7cloud-radio-readiness-20260914/host-verification.json"
+  },
+  "hardware_resource_plan": {
+    "user_confirmed_ddr": "4GB",
+    "user_confirmed_emmc": "32GB",
+    "current_configured_ram_bytes": 132120576,
+    "document": "docs/DDR与eMMC资源接入_20260910.md",
+    "expanded_ddr_verified": "Dedicated 1GiB CPU arena; 384MiB sparse allocation test passed, not whole 4GB",
+    "native_emmc_storage_verified": false,
+    "latest_audit": "evidence/resource-audit-20260910/",
+    "emmc_readonly_development": {
+      "source": "app/k7emmc/",
+      "host_test": "evidence/emmc-source-review-20260910/host-test.json",
+      "scope": "Bounded legacy initialization, CMD17/R1 and single-sector PIO; built, pending board validation",
+      "command_host_test": "evidence/emmc-source-review-20260910/host-command-test.json",
+      "firmware_built": true,
+      "hardware_tested": true,
+      "hardware_scope": "Legacy init plus repeated LBA0/LBA1, not filesystem access"
+    }
+  },
+  "cpu_plan": {
+    "current_configured_cpus": 8,
+    "smp_verified": true,
+    "document": "docs/八核CPU接入与任务分配_20260910.md",
+    "verified_diagnostic_cpus": 8,
+    "peripheral_smp_verified": "bounded radio regression only, services pinned to CPU0"
+  },
+  "last_verified_device": {
+    "running_revision": "audio-preflight-20260910",
+    "boot": "RAM",
+    "firmware_sha256": "40cd635782e6a598c7b60464726d522c763c138c4c7779b07bbd4228988bd37b",
+    "smp_cpus": 8,
+    "audio_preflight_passed": true,
+    "audio_actual_rate_known": false,
+    "audio_recording_tested": false,
+    "audio_playback_tested": false,
+    "i2c_transactions": 0,
+    "wifi_connected": true,
+    "ip": "10.3.0.214",
+    "gateway_ping": "5/5",
+    "wireless_hold_seconds": 30,
+    "ble_service_running": true,
+    "ble_connected": false,
+    "ble_disconnect": "Test client intentionally disconnected",
+    "receive_rejects_before": 0,
+    "receive_rejects_after": 0,
+    "serial_observer_running": false,
+    "model_loaded": false,
+    "agent_deployed": false,
+    "usb_host_started_this_boot": false,
+    "filesystem_mounted": false,
+    "microphone_connection": "User explicitly confirmed MIC connector",
+    "emmc_written": false,
+    "evidence_directory": "evidence/audio-preflight-20260910",
+    "limits": [
+      "Clock/IOC reads only; no codec access, frequency proof, record or playback",
+      "Finite wireless recovery only, not long stability or internet acceptance",
+      "USB storage previous-version results retained, not repeated in this boot",
+      "Cold concurrent C++ exception behavior remains unresolved"
+    ]
+  },
+  "smp_diagnostics": {
+    "two_core": "evidence/smp-reset-20260910/acceptance.json",
+    "four_core": "evidence/smp-four-20260910/diagnostic.json",
+    "four_core_software_reset": "evidence/smp-four-20260910/software-reset.json",
+    "peripheral_smp_tested": false,
+    "five_core": "evidence/smp-cross-20260910/diagnostic.json",
+    "five_core_software_reset": "evidence/smp-cross-20260910/software-reset.json",
+    "eight_core": "evidence/smp-eight-20260910/cpu-acceptance.json",
+    "service_integration": "evidence/smp-service-20260910/acceptance.json",
+    "compute_radio_overlap": "evidence/smp-load-20260910/acceptance.json"
+  },
+  "agent_plan": {
+    "preferred": "Xiaomi MiMo cloud API with a lightweight validated tool executor; local rules remain for provisioning and fallback",
+    "deployed": false,
+    "document": "docs/DNS与HTTPS基础接入_20260913.md",
+    "mimo_v25_formal_sources": true,
+    "mimo_v25_default_enabled": false,
+    "mimo_v25_host_tests": "DNS 9 + HTTPS 9 + MiMo 12 groups passed in both O0 and O2",
+    "mimo_v25_arm_compile": "work-in-progress/mimo-cloud-client-20260913/arm-result.json",
+    "combined_profile_audit": "work-in-progress/spoken-cloud-profile-audit-20260913/verification.json",
+    "cloud_handoff_plan": "work-in-progress/cloud-handoff-review-20260913/acceptance-plan.json",
+    "next": "complete voice Wi-Fi provisioning, then DHCP option 6 plus lease generation, bounded DNS/HTTPS probes and MiMo tool-call integration"
+  },
+  "voice_provisioning_stage": {
+    "updated_at": "2026-09-13T21:43:22+08:00",
+    "priority": "Local voice provisioning first; cloud model after true network",
+    "test_report": "evidence/voicelink-core-integration-20260910/run-20260912T122301237955Z/result.json",
+    "test_report_sha256": "44d9f2e160ac0e9d250963a11e459912231381e8fa384334096b2b1c61f0fc59",
+    "source_hashes": {
+      "app/voicelink/src/parsers.cpp": "2f17045a8264a7aa77fcdba47a136faa6b17796d03ead67139a401093fbfc3af",
+      "app/voicelink/include/voicelink/parsers.hpp": "d6f4ebe01c9930c8a52b0f92eaa83313c8bfaa9af378fcc582ce35faafba42f7",
+      "app/voicelink/tests/test_flow.cpp": "3f6f0b45969079ce8bb8c576b590da279c67d080db2eb865033a7d142caeffbf",
+      "app/voicelink/src/native_tls_selftest.cpp": "4efa1789d0a468fcb2704e00646b419818cfe82a7f94348c94999db97d3f1186"
+    },
+    "deliveries": [
+      {
+        "directory": "parallel-cxx-unwind-medium/audio-i2c3-clock-v1",
+        "manifest_sha256": "878309b69f6fc3db45cc13ee7002c3b98c729ab9b1b5b288c6fc7f2f4607f93c",
+        "verified_files": 11
+      },
+      {
+        "directory": "parallel-model-reader-medium/audio-codec-capture-review-v1",
+        "manifest_sha256": "396f1d2d292288e68ee74266863ed108f9a5f0226b5cdd17bd6caeab988cc0ec",
+        "verified_files": 9
+      },
+      {
+        "directory": "parallel-neon-probe-medium/voice-wifi-scan-contract-v1",
+        "manifest_sha256": "3103314b36830d7a20d970b7cfabf353e92f2659edd29e7f7eeaf758583196e6",
+        "verified_files": 30
+      }
+    ],
+    "formal_core": true,
+    "asynchronous_scan_interface": true,
+    "radio_scan_backend_integrated": true,
+    "firmware_integrated": true,
+    "hardware_tested": false,
+    "local_llm_required": false,
+    "local_asr_tts_still_required": true,
+    "doc": "docs/本地语音配网优先实施_20260910.md",
+    "microphone_to_controller": true,
+    "audio_prompt_tone": true,
+    "dynamic_tts": false,
+    "complete": false,
+    "hardware_scope": "prior firmware microphone ASR reached Controller; new exact wake accommodation is built but not loaded",
+    "blocker": "Windows exposes the Fastboot gadget with problem code 28 while Ubuntu does not own 18d1:4d00; VMUSBArbService is running but this background process cannot use the VMware Removable Devices UI or restart the administrator service",
+    "acceptance": "evidence/voice-rule-wakepartial-20260912/acceptance.json",
+    "next": "connect USB download gadget to Ubuntu, transfer the single reviewed RAM-only package, run TTS-ASR-TTS acceptance, then complete wake, scan, selection, password, confirmation, WPA2/DHCP and IPv4"
+  },
+  "latest_audio_checkpoint": {
+    "revision": "audio-marker-20260910",
+    "report": "evidence/audio-marker-20260910/numbered-analysis.json",
+    "periodic_zero_samples_unresolved": true,
+    "valid_distinct_enqueue_indices": 62
+  },
+  "night_run": {
+    "deadline": "2026-09-11T09:00:00+08:00",
+    "automation_paused": true,
+    "continuous_overnight_execution_verified": false,
+    "interruption": "subagent usage limit reported after last 21:52 experiment",
+    "report": "docs/夜间工作交付_20260911.md",
+    "audio_quality_accepted": false,
+    "board_voice_provisioning_accepted": false
+  },
+  "development_split": {
+    "main": "dev-ai-contest-2026",
+    "priority": "native board ASR/TTS and VoiceLink Wi-Fi provisioning",
+    "audio_branch": "audio-noise-20260911",
+    "audio_worktree": "E:/openvela/worktrees/VelaVision-audio-noise",
+    "audio_device_access": false,
+    "committed": false
+  },
+  "voice_network_backend": {
+    "revision": "voice-owner-20260910",
+    "compiled": true,
+    "hardware_tested": true,
+    "scan_passed": true,
+    "connection_on_this_revision_tested": false,
+    "speech_tested": false
+  },
+  "last_runtime_checkpoint": {
+    "revision": "voice-cold-20260910",
+    "sha256": "c85cd27c7f3e726da7ff32057790f3a859ac5a0e9295186063db384407aafa59",
+    "ram_boot": true,
+    "radio_fault": false,
+    "wifi_online": false,
+    "shared_ready_pointer": true,
+    "shared_workers_present": false,
+    "native_scan_passed": false,
+    "asr_integrated": false,
+    "tts_integrated": false,
+    "evidence": "evidence\\voice-cold-20260910\\native-start-20260911-104110",
+    "task_evidence": "evidence\\voice-cold-20260910\\service-status-20260911-104256",
+    "detail": "scan accepted then 35-second timeout; task snapshot lacks service pthreads after launcher task exit"
+  },
+  "native_asr_runtime": {
+    "common_translation_units": 21,
+    "static_dependency_archives": 30,
+    "common_relocatable_link": true,
+    "common_external_symbols_found_in_sdk": true,
+    "full_session_configured": true,
+    "full_session_build": "passed",
+    "firmware_linked": true,
+    "asr_model_run": false,
+    "tts_model_run": false,
+    "evidence": [
+      "evidence/native-ort-session-build61-20260911",
+      "evidence/native-session-link2-20260911",
+      "evidence/build/voice-ort-add-20260911",
+      "evidence/native-sherpa-asr-config2-20260911",
+      "evidence/native-sherpa-asr-build2-20260911",
+      "evidence/native-sherpa-link1-20260911",
+      "evidence/native-ort-asr-config2-20260911",
+      "evidence/native-speech-link1-20260911",
+      "evidence/native-speech-registration1-20260911",
+      "evidence/native-vits-build1-20260911",
+      "evidence/native-ort-asr-build1-20260911"
+    ],
+    "add_model_run": false,
+    "sherpa_c_api_compiled": true,
+    "sherpa_abi": "native NuttX AArch64 libc++",
+    "sherpa_symbol_missing": [],
+    "asr_kernel_build": "passed",
+    "tts_lexicon_library_build": "passed",
+    "asr_tts_joint_symbol_missing_count": 0,
+    "add_model_attempt": "60-second timeout; no result",
+    "firmware_link_scope": "Add diagnostic only; joint ASR/TTS closure is relocatable, not final firmware"
+  },
+  "speech_provisioning_priority": {
+    "first_offline_setup": "local ASR + fixed prerecorded prompts + real Wi-Fi result",
+    "full_local_tts_required_for_first_test": false,
+    "cloud_audio_api_capabilities_verified": false,
+    "dynamic_ssid_speech_supported": false,
+    "note": "Cloud speech requires connectivity; prerecorded prompts replace fixed TTS phrases, not arbitrary dynamic speech.",
+    "ordered_gates": [
+      "board ASR runtime",
+      "microphone speech to rule parser",
+      "real Wi-Fi authentication and DHCP",
+      "DNS client",
+      "HTTPS with certificate verification",
+      "cloud API and lightweight tool execution"
+    ],
+    "dns_https_deferred_until_voice_wifi": true,
+    "prepared_components": {
+      "buffer_reader": {
+        "host_cases_per_build": 20,
+        "host_optimizations": [
+          "O0",
+          "O2"
+        ],
+        "native_compiled": true,
+        "board_verified": false
+      },
+      "fixed_prompts": {
+        "count": 22,
+        "rate": 16000,
+        "bytes": 2456108,
+        "board_played": false,
+        "dynamic_ssid_supported": false
+      }
+    },
+    "password_symbols": {
+      "backslash": true,
+      "forward_slash": true,
+      "host_flow_scenarios": 16,
+      "native_compiled": true,
+      "loaded_in_current_image": false
+    },
+    "dns_https_compile_link_prepared": true,
+    "dns_https_acceptance": "evidence/k7cloud-link-20260913/acceptance.json"
+  },
+  "handoff": {
+    "document": "docs/模型接力交接_20260914.md",
+    "created_at": "2026-09-14T18:10:00+08:00",
+    "next_priority": "Complete K7 microphone PCM WebSocket sender to the now live-tested speech-service streaming gateway; restore current BLE RAM firmware with verified OTG and test real provisioning. The gateway uses Alibaba, not MiMo; keep provider distinction explicit.",
+    "ai_log_manifest": "logs/maomaojiang01/manifest.json",
+    "ai_log_live_counts": true,
+    "remote_submission": false
+  },
+  "usb_ram_download": {
+    "small_download_bytes": 256,
+    "ram_crc32": "29058c73",
+    "small_ram_verified": true,
+    "full_download_passed": true,
+    "controller": 1,
+    "vid_pid": "18d1:4d00",
+    "host_serial": "Ubuntu /dev/ttyUSB0",
+    "emmc_written": false,
+    "full_bytes": 10514736,
+    "transfer_seconds": 1.1256797289970564,
+    "full_ram_crc32": "3dc5552d",
+    "firmware_started": true,
+    "repeated_reenumeration_stability_verified": false
+  },
+  "streaming_asr_gateway": {
+    "provider": "Alibaba Cloud Bailian",
+    "model": "paraformer-realtime-v2",
+    "route": "/asr/stream",
+    "server": "127.0.0.1:8000",
+    "server_pid": 34304,
+    "real_synthetic_test_passed": true,
+    "first_nonempty_partial_ms": 640,
+    "audio_duration_ms": 3920,
+    "final_ms": 4281,
+    "tts_ms": 1219,
+    "isolated_tests": 11,
+    "board_tested": false,
+    "mimo_streaming_tested": false,
+    "credentials_saved": false,
+    "evidence": "evidence/speech-stream-live-20260914/result.json",
+    "document": "docs/speech-service流式ASR接入_20260914.md"
+  }
+}

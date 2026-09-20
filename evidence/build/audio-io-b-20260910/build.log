@@ -1,0 +1,39 @@
+{"result": "PASS", "source_files": 1078, "changes": 1, "applied": true}
+-- NuttX Host Tools
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /dev/shm/velavision_audio_io_20260910/bin_host
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /dev/shm/velavision_audio_io_20260910
+[1/1] cd /home/swl/openvela/nuttx && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E copy /home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_audio_io_local/defconfig /dev/shm/velavision_audio_io_20260910/.config && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E env KCONFIG_CONFIG=/dev/shm/velavision_audio_io_20260910/.config EXTERNALDIR=dummy APPSDIR=/home/swl/openvela/apps DRIVERS_PLATFORM_DIR=dummy APPSBINDIR=/dev/shm/velavision_audio_io_20260910/apps BINDIR=/dev/shm/velavision_audio_io_20260910 olddefconfig && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E copy /dev/shm/velavision_audio_io_20260910/.config /dev/shm/velavision_audio_io_20260910/.config.orig && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E touch /home/swl/openvela/nuttx/CMakeLists.txt
+/dev/shm/velavision_audio_io_20260910/.config:2721: warning: USBHOST_MSC (defined at drivers/usbhost/Kconfig:126) set more than once. Old value "n", new value "y".
+/dev/shm/velavision_audio_io_20260910/.config:2724: warning: FS_FAT (defined at fs/fat/Kconfig:6) set more than once. Old value "n", new value "n".
+Loaded configuration '/dev/shm/velavision_audio_io_20260910/.config'
+Configuration saved to '/dev/shm/velavision_audio_io_20260910/.config'
+[0/1] Re-running CMake...
+-- NuttX Host Tools
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /dev/shm/velavision_audio_io_20260910/bin_host
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /dev/shm/velavision_audio_io_20260910
+[1/17] cd /dev/shm/velavision_audio_io_20260910/libs/libc/misc && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E touch /home/swl/openvela/nuttx/libs/libc/misc/lib_utsname.c
+[2/17] Generating bin output directories
+[3/17] cd /home/swl/openvela/nuttx && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -DKCONFIG_CONFIG=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_audio_io_local/defconfig -DNUTTX_DIR=/home/swl/openvela/nuttx -DCMAKE_BINARY_DIR=/dev/shm/velavision_audio_io_20260910 -P /home/swl/openvela/nuttx/cmake/nuttx_generate_dts.cmake
+[4/17] Building C object boards/CMakeFiles/board.dir/__/dummy.c.o
+[5/17] Building C object apps/CMakeFiles/apps.dir/dummy.c.o
+[6/17] Building C object apps/external/android/CMakeFiles/android.dir/dummy.c.o
+[7/17] Linking C static library boards/libboard.a
+[8/17] Building CXX object CMakeFiles/nuttx.dir/empty.cxx.o
+[9/17] Building C object CMakeFiles/nuttx.dir/empty.c.o
+[10/17] Linking C static library apps/external/android/libandroid.a
+[11/17] Building C object apps/examples/k7audiohw/CMakeFiles/apps_k7audiohw.dir/k7audiohw_main.c.o
+[12/17] Linking C static library apps/libapps.a
+[13/17] Linking C static library apps/examples/k7audiohw/libapps_k7audiohw.a
+[14/17] Linking CXX executable nuttx
+Memory region         Used Size  Region Size  %age Used
+            dram:       6360 KB       126 MB      4.93%
+[15/17] Generating nuttx.bin
+[16/17] Generating System.map

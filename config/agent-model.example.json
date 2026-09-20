@@ -1,0 +1,12 @@
+{
+  "status": "native_cpu_preferred_b0_pending_not_deployed",
+  "deployment_mode": "native_openvela_cpu",
+  "provider": null,
+  "model": "Qwen2.5-0.5B-Instruct Q4_K_M candidate",
+  "endpoint": null,
+  "api_format": null,
+  "credential_file": "E:/openvela/本地私密配置/agent-model.json",
+  "initial_acceptance_task": "报告机器人当前状态",
+  "motor_actions_enabled": false,
+  "note": "主线推荐离线CPU方案，详见agent-offline-probe.example.json；尚无固定运行库/模型哈希及板端推理。此模板不是已运行Agent，credential_file是旧在线方案保留字段，离线B0不读取该文件。"
+}

@@ -1,0 +1,97 @@
+=> crc32 40c00800 54b0310
+crc32 for 40c00800 ... 460b0b0f ==> 611d9c62
+=> crc32 41c00800 44b0310
+crc32 for 41c00800 ... 460b0b0f ==> 2af64aa7
+=> cp.b 41c00800 80000000 400000
+=> cp.b 42000800 80400000 400000
+=> cp.b 42400800 80800000 400000
+=> cp.b 42800800 80c00000 400000
+=> cp.b 42c00800 81000000 400000
+=> cp.b 43000800 81400000 400000
+=> cp.b 43400800 81800000 400000
+=> cp.b 43800800 81c00000 400000
+=> cp.b 43c00800 82000000 400000
+=> cp.b 44000800 82400000 400000
+=> cp.b 44400800 82800000 400000
+=> cp.b 44800800 82c00000 400000
+=> cp.b 44c00800 83000000 400000
+=> cp.b 45000800 83400000 400000
+=> cp.b 45400800 83800000 400000
+=> cp.b 45800800 83c00000 400000
+=> cp.b 45c00800 84000000 400000
+=> cp.b 46000800 84400000 b0310
+=> crc32 80000000 44b0310
+crc32 for 80000000 ... 844b030f ==> 2af64aa7
+=> crc32 40c00800 e01540
+crc32 for 40c00800 ... 41a01d3f ==> 605ed5e2
+=> cp.b 40c00800 40400000 400000
+=> cp.b 41000800 40800000 400000
+=> cp.b 41400800 40c00000 400000
+=> cp.b 41800800 41000000 201540
+=> crc32 40400000 e01540
+crc32 for 40400000 ... 4120153f ==> 605ed5e2
+=> md.l 48300000 1
+48300000: edfe0dd0                               ....
+=> booti 40400000 - 48300000
+Fdt Ramdisk skip relocation
+## Flattened Device Tree blob at 0x48300000
+   Booting using the fdt blob at 0x48300000
+   Using Device Tree in place at 0000000048300000, end 0000000048326532
+No resource file: logo_kernel.bmp
+VP0 fail to load kernel logo
+## reserved-memory:
+  ramoops@40110000: addr=40110000 size=e0000
+Adding bank: 0x40200000 - 0x48400000 (size: 0x08200000)
+Adding bank: 0x49400000 - 0x10000000Total: 209699.492/210052.555 ms
+
+Starting kernel ...
+
+- Ready to Boot Primary CPU
+RK3576 HCR_EL2=0000000008000032
+RK3576 SCTLR_EL1=0000000030d00800
+- Boot from EL2
+- Boot from EL1
+- Boot to C runtime for OS Initialize
+[CPU0] arm64_chip_boot: RK3576: MMU enabled
+[CPU0] rk3576_uart6_initialize: UART6 M0: 115200 8N1, internal loopback PASS, IRQ114 ttyS1
+I/TC: Secondary CPU 1 initializing
+I/TC: Secondary CPU 1 switching to normal world boot
+
+NutI/TC: Secondary CPU 4 initializing
+tSI/TC: Secondary CPU 4 switching to normal world boot
+- Ready I/TC: Secondary CPU 2 initializing
+to Boot -I/TC: Secondary CPU 2 switching to normal world boot
+S ReceoandI/TC: Secondary CPU 5 initializing
+yd--eo35c Ro7 6neI/TC: Secondary CPU 3 switching to normal world bo0tdo  7006 SCI/TC: Secondary CPU 7 initializing
+ eB0-PoH cUI/TCPU 7 switching to normal world boot
+oCoR0etRn0
+_da0 RKES0 de0C0e 205HctKo=7Co00R63 n0 0d_05BS070 oEC60oLC0PT0 0t2 HL0=UCS
+0R00T0L00
+0R
+0R0R0R_KE0_0K0003E3L35002L50=17d070=0
+66000R 00 HK0000rS10
+o=00C
+000TmR000-LK R00 E300LB_05E070o20L060o00t013
+ 021
+0 =-3S00
+
+ Cd-B0o0 T00o0BL0ot8R00 o_E00ft 0Lr3f1
+o=0-rm 00dBo0mo0 o8tE0L f20ro
+
+m-  EBoL2ot 
+from EL2
+hell (NSH)
+nsh- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot from E-L B1o
+ot from EL1
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C run-t imBeoo tf otr oO SC  Irunnittiiameli fzoer 
+OS Initialize

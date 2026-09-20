@@ -1,0 +1,11 @@
+[01m[K/home/swl/openvela/work/native-emutls-fix/emutls.c:21:8:[m[K [01;31m[Kerror: [m[Kredefinition of '[01m[Kstruct group[m[K'
+   21 | struct [01;31m[Kgroup[m[K {pthread_key_t key;};
+      |        [01;31m[K^~~~~[m[K
+In file included from [01m[K/home/swl/openvela/nuttx/include/nuttx/tls_task.h:36[m[K,
+                 from [01m[K/home/swl/openvela/work/native-emutls-fix/emutls.c:10[m[K:
+[01m[K/home/swl/openvela/nuttx/include/grp.h:43:8:[m[K [01;36m[Knote: [m[Koriginally defined here
+   43 | struct [01;36m[Kgroup[m[K
+      |        [01;36m[K^~~~~[m[K
+[01m[K/home/swl/openvela/work/native-emutls-fix/emutls.c:64:7:[m[K [01;35m[Kwarning: [m[Kconflicting types for built-in function '[01m[K__emutls_get_address[m[K'; expected '[01m[Kvoid *(void *)[m[K' [[01;35m[K-Wbuiltin-declaration-mismatch[m[K]
+   64 | void *[01;35m[K__emutls_get_address[m[K(struct control *control)
+      |       [01;35m[K^~~~~~~~~~~~~~~~~~~~[m[K

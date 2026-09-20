@@ -1,0 +1,51 @@
+{
+  "input_sha256": {
+    "evidence/llama-native-link-20260910/llama-link.elf": "1ec6625d7f36f76b90af390dbb30d118913d8306fb45fafd6cf0ce99f0b3e1dc",
+    "evidence/llama-native-link-20260910/result.json": "3ec3010cf43a94b9421dbdcf393f0503a0f0b3f9816c7fdd2323a8f354fc53ff",
+    "evidence/llama-native-link-20260910/unwind-audit.json": "bb0f46485888e8452e02c8211e81edd1ad13e0b2ccfb415298059d3109f14f81",
+    "board/kickpi_k7/scripts/dramboot.ld": "0bede22683d0e22a7553a67e91adad4145cfebfcf0d1496c5282cfb2c95aa29a",
+    "board/kickpi_k7/README.md": "b8c2f8208da0e387d900c748c4862d8d05224397a56266abd0a82566bdd73aee",
+    "port/new/nuttx/arch/arm64/src/rk3576/rk3576_boot.c": "a31741dfc79871670a0474fc2f02b2d10cf0e146f8ad13422cf22f5b5df2a822",
+    "port/new/nuttx/arch/arm64/src/rk3576/rk3576_model_arena.c": "644db1317290b98d06ca8bfb0de773a59325780931c648c335dc0bb09c58ce03",
+    "port/new/nuttx/include/nuttx/mm/k7_model_arena.h": "88b6d4f10b15afbdfd8289c1556cb51941902bdfa50470cf9045064cb4a761a8",
+    "artifacts/cxx-locale-20260910/.config": "95d1929109bb74d904a716dd77d08d301dc73c8d68072e79ab1e4cab83585f6e",
+    "tools/verify_neon_file64_image.py": "a185af899b961fe6e3d392bc7c935590ac4f4b5d7798d56a099082ab26a12de2",
+    "tools/uart_load_cxx_unwind.py": "e1a9a557d839ff516c5c59abc68be55a20d036f5a6502be7c67462ad77a97ca4",
+    "tools/audit_k7_resources.py": "552651fd19046052606c7778044b2cc3e2c3ffd7d8becf815704ca5d88c2858b",
+    "docs/DDR\u4e0eeMMC\u8d44\u6e90\u63a5\u5165_20260910.md": "5872f23ced626fc5926d0a18cb153ae396a4c0acfcd27e9d2e3751bf1a75c50c",
+    "docs/\u72ec\u7acbDDR\u6a21\u578b\u5185\u5b58\u6c60_20260910.md": "7fb52df4b8928688afb451a8bdb566d6ad64fd37f9b1b45b7941f59c5ef55b96"
+  },
+  "commands": [
+    {
+      "command": [
+        "C:\\Program Files\\Python36\\python.exe",
+        "-B",
+        "test_layout.py"
+      ],
+      "exit_code": 0,
+      "output": ".....\r\n----------------------------------------------------------------------\r\nRan 5 tests in 0.681s\r\n\r\nOK\r\n"
+    },
+    {
+      "command": [
+        "C:\\Program Files\\Python36\\python.exe",
+        "-B",
+        "audit_layout.py",
+        "E:\\openvela\\VelaVision\\evidence\\llama-native-link-20260910\\llama-link.elf"
+      ],
+      "exit_code": 0,
+      "output": "{\r\n  \"layout_passed\": true,\r\n  \"errors\": [],\r\n  \"entry\": \"0x40400000\",\r\n  \"memory_end\": \"0x40b40000\",\r\n  \"memory_bytes\": 7602176,\r\n  \"old_6MiB_gate_passed\": false,\r\n  \"proposed_8MiB_headroom\": 786432,\r\n  \"estimated_heap_gap\": 124518400,\r\n  \"heap_gap_is_not_runtime_free_heap\": true,\r\n  \"boot_authorized\": false,\r\n  \"raw_binary_verified\": false,\r\n  \"sha256\": \"1ec6625d7f36f76b90af390dbb30d118913d8306fb45fafd6cf0ce99f0b3e1dc\",\r\n  \"elf_file_bytes\": 50932224,\r\n  \"loads\": [\r\n    {\r\n      \"type\": 1,\r\n      \"flags\": 5,\r\n      \"offset\": 65536,\r\n      \"virtual\": 1077936128,\r\n      \"physical\": 1077936128,\r\n      \"filesz\": 2080768,\r\n      \"memsz\": 2080768,\r\n      \"align\": 65536\r\n    },\r\n    {\r\n      \"type\": 1,\r\n      \"flags\": 4,\r\n      \"offset\": 2146304,\r\n      \"virtual\": 1080016896,\r\n      \"physical\": 1080016896,\r\n      \"filesz\": 1691648,\r\n      \"memsz\": 1691648,\r\n      \"align\": 65536\r\n    },\r\n    {\r\n      \"type\": 1,\r\n      \"flags\": 6,\r\n      \"offset\": 3837952,\r\n      \"virtual\": 1081708544,\r\n      \"physical\": 1081708544,\r\n      \"filesz\": 9800,\r\n      \"memsz\": 3829760,\r\n      \"align\": 65536\r\n    }\r\n  ],\r\n  \"image_header\": {\r\n    \"text_offset\": 0,\r\n    \"image_size\": 7602176,\r\n    \"flags\": 10,\r\n    \"magic\": \"0x644d5241\"\r\n  },\r\n  \"symbols\": {\r\n    \"_e_initstack\": 1085538304,\r\n    \"_edata\": 1081718344,\r\n    \"_etext\": 1080016896,\r\n    \"_stext\": 1077936128,\r\n    \"_sdata\": 1081708544,\r\n    \"_sbss\": 1081720832,\r\n    \"g_idle_topstack\": 1085538304,\r\n    \"g_cpu_idlestackalloc\": 1085472768,\r\n    \"__start\": 1077936128,\r\n    \"_ebss\": 1085440000,\r\n    \"_srodata\": 1080016896,\r\n    \"_s_initstack\": 1085440000,\r\n    \"_erodata\": 1081708544\r\n  },\r\n  \"raw_span_from_loads\": 3782216,\r\n  \"reserved\": [\r\n    [\r\n      \"dtb_firmware_conservative\",\r\n      1210056704,\r\n      1228931072\r\n    ],\r\n    [\r\n      \"radio_staging\",\r\n      1342177280,\r\n      1344274432\r\n    ],\r\n    [\r\n      \"loader_snapshot\",\r\n      1358954496,\r\n      1363148800\r\n    ],\r\n    [\r\n      \"model_arena\",\r\n      1610612736,\r\n      2684354560\r\n    ]\r\n  ]\r\n}\r\n"
+    },
+    {
+      "command": [
+        "readelf",
+        "-lW",
+        "E:\\openvela\\VelaVision\\evidence\\llama-native-link-20260910\\llama-link.elf"
+      ],
+      "exit_code": 0,
+      "output": "\r\nElf file type is EXEC (Executable file)\r\nEntry point 0x40400000\r\nThere are 3 program headers, starting at offset 64\r\n\r\nProgram Headers:\r\n  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align\r\n  LOAD           0x010000 0x0000000040400000 0x0000000040400000 0x1fc000 0x1fc000 R E 0x10000\r\n  LOAD           0x20c000 0x00000000405fc000 0x00000000405fc000 0x19d000 0x19d000 R   0x10000\r\n  LOAD           0x3a9000 0x0000000040799000 0x0000000040799000 0x002648 0x3a7000 RW  0x10000\r\n\r\n Section to Segment mapping:\r\n  Segment Sections...\r\n   00     .text .init_section .vector \r\n   01     .rodata .eh_frame .gcc_except_table \r\n   02     .data .bss .initstack \r\n"
+    }
+  ],
+  "hardware_tested": false,
+  "sdk_accessed": false,
+  "formal_validator_modified": false
+}

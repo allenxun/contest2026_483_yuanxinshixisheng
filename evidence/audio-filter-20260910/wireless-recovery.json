@@ -1,0 +1,27 @@
+{
+  "wpa2_dhcp_passed": true,
+  "submission": "private echo-off serial console, not BLE",
+  "ip": "10.3.0.214",
+  "gateway_initial": "5/5",
+  "gateway_after_short_audio_capture": "5/5",
+  "ble_connect_passed": false,
+  "ble_failures": [
+    {
+      "file": "ble-wifi-connect.jsonl",
+      "errors": [
+        "BleakDeviceNotFoundError"
+      ]
+    },
+    {
+      "file": "ble-wifi-connect-fresh-bond.jsonl",
+      "errors": [
+        "BleakDeviceNotFoundError"
+      ]
+    }
+  ],
+  "phone_tested": false,
+  "audio_scope": "one 200ms capture while Wi-Fi online; gateway probe after capture",
+  "concurrent_ping_during_capture": false,
+  "long_stability_tested": false,
+  "voice_network_flow_tested": false
+}

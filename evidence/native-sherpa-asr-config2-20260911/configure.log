@@ -1,0 +1,322 @@
+loading initial cache file /home/swl/openvela/work/native-sherpa-config2-20260911/driver/asr-initial-cache.cmake
+loading initial cache file /home/swl/openvela/work/native-sherpa-config2-20260911/driver/eigen-cache.cmake
+-- The C compiler identification is GNU 13.4.0
+-- The CXX compiler identification is GNU 13.4.0
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Detecting C compiler ABI info
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- CMAKE_BUILD_TYPE: MinSizeRel
+-- CMAKE_INSTALL_PREFIX: /usr/local
+-- BUILD_SHARED_LIBS OFF
+-- SHERPA_ONNX_ENABLE_PYTHON OFF
+-- SHERPA_ONNX_ENABLE_TESTS OFF
+-- SHERPA_ONNX_ENABLE_CHECK OFF
+-- SHERPA_ONNX_ENABLE_PORTAUDIO OFF
+-- SHERPA_ONNX_ENABLE_JNI OFF
+-- SHERPA_ONNX_ENABLE_C_API ON
+-- SHERPA_ONNX_ENABLE_WEBSOCKET OFF
+-- SHERPA_ONNX_ENABLE_GPU OFF
+-- SHERPA_ONNX_ENABLE_WASM OFF
+-- SHERPA_ONNX_ENABLE_WASM_SPEAKER_DIARIZATION OFF
+-- SHERPA_ONNX_ENABLE_WASM_TTS OFF
+-- SHERPA_ONNX_ENABLE_WASM_ASR OFF
+-- SHERPA_ONNX_ENABLE_WASM_KWS OFF
+-- SHERPA_ONNX_ENABLE_WASM_VAD OFF
+-- SHERPA_ONNX_ENABLE_WASM_VAD_ASR OFF
+-- SHERPA_ONNX_ENABLE_WASM_NODEJS OFF
+-- SHERPA_ONNX_ENABLE_WASM_SPEECH_ENHANCEMENT OFF
+-- SHERPA_ONNX_ENABLE_BINARY OFF
+-- SHERPA_ONNX_ENABLE_TTS OFF
+-- SHERPA_ONNX_ENABLE_SPEAKER_DIARIZATION OFF
+-- SHERPA_ONNX_LINK_LIBSTDCPP_STATICALLY OFF
+-- SHERPA_ONNX_USE_PRE_INSTALLED_ONNXRUNTIME_IF_AVAILABLE ON
+-- SHERPA_ONNX_ENABLE_SANITIZER: OFF
+-- SHERPA_ONNX_BUILD_C_API_EXAMPLES: OFF
+-- SHERPA_ONNX_ENABLE_RKNN: OFF
+-- SHERPA_ONNX_LINK_D3D: OFF
+CMake Warning at CMakeLists.txt:209 (message):
+  TTS is disabled
+
+
+CMake Warning at CMakeLists.txt:217 (message):
+  speaker diarization is disabled
+
+
+-- DirectML is disabled
+-- C++ Standard version: 17
+-- Looking for C++ include cxxabi.h
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Looking for C++ include cxxabi.h - found
+-- Looking for C++ include execinfo.h
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Looking for C++ include execinfo.h - found
+-- CMAKE_SOURCE_DIR: /dev/shm/velavision-sherpa-asr-20260911/sherpa
+-- CMAKE_BINARY_DIR: /home/swl/openvela/work/native-sherpa-config2-20260911/build
+-- PROJECT_SOURCE_DIR: /dev/shm/velavision-sherpa-asr-20260911/sherpa
+-- PROJECT_BINARY_DIR: /home/swl/openvela/work/native-sherpa-config2-20260911/build
+-- CMake version: 3.28.3
+-- CMAKE_SYSTEM: NuttX
+-- CMAKE_SYSTEM_NAME: NuttX
+-- CMAKE_SYSTEM_VERSION: 
+-- CMAKE_SYSTEM_PROCESSOR: aarch64
+-- sherpa-onnx git sha1: 
+-- sherpa-onnx git date: 
+-- OS used to build sherpa-onnx: Unknown
+-- C++ compiler: /home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-g++
+-- C++ compiler ID: GNU
+-- C++ compiler version: 13.4.0
+-- C compiler: /home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-gcc
+-- C compiler ID: GNU
+-- C compiler version: 13.4.0
+-- Downloading kaldi-native-fbank from https://github.com/csukuangfj/kaldi-native-fbank/archive/refs/tags/v1.22.1.tar.gz
+-- kaldi-native-fbank is downloaded to /dev/shm/velavision-sherpa-asr-20260911/sources/kaldi-native-fbank
+-- kaldi-native-fbank's binary dir is /home/swl/openvela/work/native-sherpa-config2-20260911/build/_deps/kaldi_native_fbank-build
+-- CMAKE_BUILD_TYPE: MinSizeRel
+-- CMAKE_EXPORT_COMPILE_COMMANDS: ON
+-- BUILD_SHARED_LIBS: OFF
+-- KALDI_NATIVE_FBANK_BUILD_TESTS: OFF
+-- KALDI_NATIVE_FBANK_BUILD_PYTHON: OFF
+-- KALDI_NATIVE_FBANK_ENABLE_CHECK: OFF
+-- KALDI_NATIVE_FBANK_ENABLE_CHECK: OFF
+-- CMAKE_CXX_FLAGS: -D__NuttX__ -I/home/swl/openvela/apps/include -I/dev/shm/velavision_audio_sound_20260910/apps/include -I/home/swl/openvela/apps/examples/voicelink/include -I/home/swl/openvela/apps/examples/voicelink/src -I/home/swl/openvela/apps/examples/voicelink/../k7radio -I/dev/shm/velavision_audio_sound_20260910/include/libcxx -I/dev/shm/velavision_audio_sound_20260910/include/libcxx_config -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/test/support -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/src -I/dev/shm/velavision_audio_sound_20260910/include/libcxxabi -I/home/swl/openvela/apps/frameworks/security/include -isystem /home/swl/openvela/nuttx/include -isystem /dev/shm/velavision_audio_sound_20260910/include -march=armv8-a -mtune=cortex-a53 -Os -fno-strict-aliasing -fno-omit-frame-pointer -D_LDBL_EQ_DBL -fno-common -Wall -Wshadow -Wundef -Wno-attributes -Wno-unknown-pragmas -nostdinc++ -Wno-psabi -std=gnu++17 -ffunction-sections -fdata-sections -g3 -Wno-alloc-size-larger-than -Wno-stringop-overflow -fdiagnostics-color=always -fmacro-prefix-map=/home/swl/openvela/nuttx= -fmacro-prefix-map=/home/swl/openvela/apps= -fmacro-prefix-map=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7= -fmacro-prefix-map=/home/swl/openvela/nuttx/arch/arm64/src/rk3576= -DCONFIG_ALLOW_MIT_COMPONENTS=1
+-- CMAKE_INSTALL_PREFIX: /usr/local
+-- Looking for C++ include cxxabi.h
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Looking for C++ include cxxabi.h - found
+-- Looking for C++ include execinfo.h
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Looking for C++ include execinfo.h - found
+-- Downloading kissfft from https://github.com/mborgerding/kissfft/archive/febd4caeed32e33ad8b2e0bb5ea77542c40f18ec.zip
+-- kissfft is downloaded to /dev/shm/velavision-sherpa-asr-20260911/sources/kissfft
+-- kissfft's binary dir is /home/swl/openvela/work/native-sherpa-config2-20260911/build/_deps/kissfft-build
+-- Building KissFFT with datatype: float
+-- Building static library
+-- PKGINCLUDEDIR is /kissfft
+-- Disable building Python
+-- Downloading kaldi-decoder from https://github.com/k2-fsa/kaldi-decoder/archive/refs/tags/v0.2.10.tar.gz
+-- kaldi-decoder is downloaded to /dev/shm/velavision-sherpa-asr-20260911/sources/kaldi-decoder
+-- kaldi-decoder's binary dir is /home/swl/openvela/work/native-sherpa-config2-20260911/build/_deps/kaldi_decoder-build
+-- CMAKE_BUILD_TYPE: MinSizeRel
+-- Downloading kaldifst from https://github.com/k2-fsa/kaldifst/archive/refs/tags/v1.7.17.tar.gz
+-- kaldifst is downloaded to /home/swl/openvela/work/native-sherpa-config2-20260911/sources/kaldifst
+-- kaldifst's binary dir is /home/swl/openvela/work/native-sherpa-config2-20260911/build/_deps/kaldifst-build
+-- CMAKE_BUILD_TYPE: MinSizeRel
+-- CMAKE_BUILD_TYPE: MinSizeRel
+-- CMAKE_INSTALL_PREFIX: /usr/local
+-- BUILD_SHARED_LIBS OFF
+-- C++ Standard version: 17
+-- CMAKE_CXX_FLAGS: -D__NuttX__ -I/home/swl/openvela/apps/include -I/dev/shm/velavision_audio_sound_20260910/apps/include -I/home/swl/openvela/apps/examples/voicelink/include -I/home/swl/openvela/apps/examples/voicelink/src -I/home/swl/openvela/apps/examples/voicelink/../k7radio -I/dev/shm/velavision_audio_sound_20260910/include/libcxx -I/dev/shm/velavision_audio_sound_20260910/include/libcxx_config -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/test/support -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/src -I/dev/shm/velavision_audio_sound_20260910/include/libcxxabi -I/home/swl/openvela/apps/frameworks/security/include -isystem /home/swl/openvela/nuttx/include -isystem /dev/shm/velavision_audio_sound_20260910/include -march=armv8-a -mtune=cortex-a53 -Os -fno-strict-aliasing -fno-omit-frame-pointer -D_LDBL_EQ_DBL -fno-common -Wall -Wshadow -Wundef -Wno-attributes -Wno-unknown-pragmas -nostdinc++ -Wno-psabi -std=gnu++17 -ffunction-sections -fdata-sections -g3 -Wno-alloc-size-larger-than -Wno-stringop-overflow -fdiagnostics-color=always -fmacro-prefix-map=/home/swl/openvela/nuttx= -fmacro-prefix-map=/home/swl/openvela/apps= -fmacro-prefix-map=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7= -fmacro-prefix-map=/home/swl/openvela/nuttx/arch/arm64/src/rk3576= -DCONFIG_ALLOW_MIT_COMPONENTS=1
+-- Downloading openfst from https://github.com/csukuangfj/openfst/archive/refs/tags/sherpa-onnx-2024-06-19.tar.gz
+-- openfst is downloaded to /home/swl/openvela/work/native-sherpa-config2-20260911/sources/openfst
+CMake Deprecation Warning at /home/swl/openvela/work/native-sherpa-config2-20260911/sources/openfst/CMakeLists.txt:15 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+-- Downloading eigen from https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
+-- eigen is downloaded to /dev/shm/velavision-sherpa-asr-20260911/sources/eigen
+-- eigen's binary dir is /home/swl/openvela/work/native-sherpa-config2-20260911/build/_deps/eigen-build
+-- Performing Test EIGEN_COMPILER_SUPPORT_CPP11
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test EIGEN_COMPILER_SUPPORT_CPP11 - Success
+-- Performing Test standard_math_library_linked_to_automatically
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test standard_math_library_linked_to_automatically - Success
+-- Standard libraries to link to explicitly: none
+-- Performing Test COMPILER_SUPPORT_WERROR
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_WERROR - Success
+-- Performing Test COMPILER_SUPPORT_pedantic
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_pedantic - Success
+-- Performing Test COMPILER_SUPPORT_Wall
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wall - Success
+-- Performing Test COMPILER_SUPPORT_Wextra
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wextra - Success
+-- Performing Test COMPILER_SUPPORT_Wundef
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wundef - Success
+-- Performing Test COMPILER_SUPPORT_Wcastalign
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wcastalign - Success
+-- Performing Test COMPILER_SUPPORT_Wcharsubscripts
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wcharsubscripts - Success
+-- Performing Test COMPILER_SUPPORT_Wnonvirtualdtor
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wnonvirtualdtor - Success
+-- Performing Test COMPILER_SUPPORT_Wunusedlocaltypedefs
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wunusedlocaltypedefs - Success
+-- Performing Test COMPILER_SUPPORT_Wpointerarith
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wpointerarith - Success
+-- Performing Test COMPILER_SUPPORT_Wwritestrings
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wwritestrings - Success
+-- Performing Test COMPILER_SUPPORT_Wformatsecurity
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wformatsecurity - Success
+-- Performing Test COMPILER_SUPPORT_Wshorten64to32
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wshorten64to32 - Failed
+-- Performing Test COMPILER_SUPPORT_Wlogicalop
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wlogicalop - Success
+-- Performing Test COMPILER_SUPPORT_Wenumconversion
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wenumconversion - Success
+-- Performing Test COMPILER_SUPPORT_Wcpp11extensions
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wcpp11extensions - Success
+-- Performing Test COMPILER_SUPPORT_Wdoublepromotion
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wdoublepromotion - Success
+-- Performing Test COMPILER_SUPPORT_Wshadow
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wshadow - Success
+-- Performing Test COMPILER_SUPPORT_Wnopsabi
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wnopsabi - Success
+-- Performing Test COMPILER_SUPPORT_Wnovariadicmacros
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wnovariadicmacros - Success
+-- Performing Test COMPILER_SUPPORT_Wnolonglong
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Wnolonglong - Success
+-- Performing Test COMPILER_SUPPORT_fnochecknew
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_fnochecknew - Success
+-- Performing Test COMPILER_SUPPORT_fnocommon
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_fnocommon - Success
+-- Performing Test COMPILER_SUPPORT_fstrictaliasing
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_fstrictaliasing - Success
+-- Performing Test COMPILER_SUPPORT_wd981
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_wd981 - Failed
+-- Performing Test COMPILER_SUPPORT_wd2304
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_wd2304 - Failed
+-- Performing Test COMPILER_SUPPORT_STRICTANSI
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_STRICTANSI - Failed
+-- Performing Test COMPILER_SUPPORT_Qunusedarguments
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_Qunusedarguments - Failed
+-- Performing Test COMPILER_SUPPORT_ansi
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_ansi - Success
+-- Performing Test COMPILER_SUPPORT_OPENMP
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test COMPILER_SUPPORT_OPENMP - Failed
+-- Looking for a Fortran compiler
+-- Looking for a Fortran compiler - NOTFOUND
+-- Found unsuitable Qt version "" from NOTFOUND
+-- Qt4 not found, so disabling the mandelbrot and opengl demos
+-- Could NOT find CHOLMOD (missing: CHOLMOD_INCLUDES CHOLMOD_LIBRARIES) 
+-- Could NOT find UMFPACK (missing: UMFPACK_INCLUDES UMFPACK_LIBRARIES) 
+-- Could NOT find KLU (missing: KLU_INCLUDES KLU_LIBRARIES) 
+-- Could NOT find SuperLU (missing: SUPERLU_INCLUDES SUPERLU_LIBRARIES SUPERLU_VERSION_OK) (Required is at least version "4.0")
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- A version of Pastix has been found but pastix_nompi.h does not exist in the include directory. Because Eigen tests require a version without MPI, we disable the Pastix backend.
+-- 
+-- Configured Eigen 3.4.0
+-- 
+-- Available targets (use: cmake --build . --target TARGET):
+-- ---------+--------------------------------------------------------------
+-- Target   |   Description
+-- ---------+--------------------------------------------------------------
+-- install  | Install Eigen. Headers will be installed to:
+--          |     <CMAKE_INSTALL_PREFIX>/<INCLUDE_INSTALL_DIR>
+--          |   Using the following values:
+--          |     CMAKE_INSTALL_PREFIX: /usr/local
+--          |     INCLUDE_INSTALL_DIR:  include/eigen3
+--          |   Change the install location of Eigen headers using:
+--          |     cmake . -DCMAKE_INSTALL_PREFIX=yourprefix
+--          |   Or:
+--          |     cmake . -DINCLUDE_INSTALL_DIR=yourdir
+-- doc      | Generate the API documentation, requires Doxygen & LaTeX
+-- blas     | Build BLAS library (not the same thing as Eigen)
+-- uninstall| Remove files installed by the install target
+-- ---------+--------------------------------------------------------------
+-- 
+-- Downloading simple-sentencepiece https://github.com/pkufool/simple-sentencepiece/archive/refs/tags/v0.7.tar.gz
+-- simple-sentencepiece is downloaded to /dev/shm/velavision-sherpa-asr-20260911/sources/ssentencepiece
+-- Performing Test SBPE_COMPILER_SUPPORTS_CXX14
+System is unknown to cmake, create:
+Platform/NuttX to use this system, please post your config file on discourse.cmake.org so it can be added to cmake
+-- Performing Test SBPE_COMPILER_SUPPORTS_CXX14 - Success
+-- C++ Standard version: 17
+-- ONNXRUNTIME_DIR: 
+-- Downloading cppjieba https://github.com/csukuangfj/cppjieba/archive/refs/tags/sherpa-onnx-2024-04-19.tar.gz
+-- cppjieba is downloaded to /dev/shm/velavision-sherpa-asr-20260911/sources/cppjieba
+CMake Deprecation Warning at /dev/shm/velavision-sherpa-asr-20260911/sources/cppjieba/CMakeLists.txt:3 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+-- CMAKE_CXX_FLAGS: -D__NuttX__ -I/home/swl/openvela/apps/include -I/dev/shm/velavision_audio_sound_20260910/apps/include -I/home/swl/openvela/apps/examples/voicelink/include -I/home/swl/openvela/apps/examples/voicelink/src -I/home/swl/openvela/apps/examples/voicelink/../k7radio -I/dev/shm/velavision_audio_sound_20260910/include/libcxx -I/dev/shm/velavision_audio_sound_20260910/include/libcxx_config -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/test/support -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/src -I/dev/shm/velavision_audio_sound_20260910/include/libcxxabi -I/home/swl/openvela/apps/frameworks/security/include -isystem /home/swl/openvela/nuttx/include -isystem /dev/shm/velavision_audio_sound_20260910/include -march=armv8-a -mtune=cortex-a53 -Os -fno-strict-aliasing -fno-omit-frame-pointer -D_LDBL_EQ_DBL -fno-common -Wall -Wshadow -Wundef -Wno-attributes -Wno-unknown-pragmas -nostdinc++ -Wno-psabi -std=gnu++17 -ffunction-sections -fdata-sections -g3 -Wno-alloc-size-larger-than -Wno-stringop-overflow -fdiagnostics-color=always -fmacro-prefix-map=/home/swl/openvela/nuttx= -fmacro-prefix-map=/home/swl/openvela/apps= -fmacro-prefix-map=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7= -fmacro-prefix-map=/home/swl/openvela/nuttx/arch/arm64/src/rk3576= -DCONFIG_ALLOW_MIT_COMPONENTS=1
+-- CMAKE_CXX_FLAGS: -D__NuttX__ -I/home/swl/openvela/apps/include -I/dev/shm/velavision_audio_sound_20260910/apps/include -I/home/swl/openvela/apps/examples/voicelink/include -I/home/swl/openvela/apps/examples/voicelink/src -I/home/swl/openvela/apps/examples/voicelink/../k7radio -I/dev/shm/velavision_audio_sound_20260910/include/libcxx -I/dev/shm/velavision_audio_sound_20260910/include/libcxx_config -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/test/support -I/home/swl/openvela/nuttx/libs/libxx/libcxx/libcxx/src -I/dev/shm/velavision_audio_sound_20260910/include/libcxxabi -I/home/swl/openvela/apps/frameworks/security/include -isystem /home/swl/openvela/nuttx/include -isystem /dev/shm/velavision_audio_sound_20260910/include -march=armv8-a -mtune=cortex-a53 -Os -fno-strict-aliasing -fno-omit-frame-pointer -D_LDBL_EQ_DBL -fno-common -Wall -Wshadow -Wundef -Wno-attributes -Wno-unknown-pragmas -nostdinc++ -Wno-psabi -std=gnu++17 -ffunction-sections -fdata-sections -g3 -Wno-alloc-size-larger-than -Wno-stringop-overflow -fdiagnostics-color=always -fmacro-prefix-map=/home/swl/openvela/nuttx= -fmacro-prefix-map=/home/swl/openvela/apps= -fmacro-prefix-map=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7= -fmacro-prefix-map=/home/swl/openvela/nuttx/arch/arm64/src/rk3576= -DCONFIG_ALLOW_MIT_COMPONENTS=1
+-- Configuring done (4.1s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/swl/openvela/work/native-sherpa-config2-20260911/build

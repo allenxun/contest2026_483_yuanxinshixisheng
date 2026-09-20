@@ -1,0 +1,26 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-alloc.c:4:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:237:15: error: 'ggml_hash_insert' defined but not used [-Werror=unused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:232:13: error: 'ggml_hash_contains' defined but not used [-Werror=unused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:163:15: error: 'ggml_bitset_size' defined but not used [-Werror=unused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:132:13: error: 'ggml_set_op_params_f32' defined but not used [-Werror=unused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:127:13: error: 'ggml_set_op_params_i32' defined but not used [-Werror=unused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:122:14: error: 'ggml_get_op_params_f32' defined but not used [-Werror=unused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:117:16: error: 'ggml_get_op_params_i32' defined but not used [-Werror=unused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:111:13: error: 'ggml_set_op_params' defined but not used [-Werror=unused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors

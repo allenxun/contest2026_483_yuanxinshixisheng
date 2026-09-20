@@ -1,0 +1,73 @@
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/exceptions.h:13[m[K,
+                 from [01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/logging/logging.cc:9[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/common.h:88:6:[m[K [01;35m[Kwarning: [m[K"_MSC_VER" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   88 | #if ([01;35m[K_MSC_VER[m[K && !defined(__PRETTY_FUNCTION__))
+      |      [01;35m[K^~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_mu.h:20[m[K,
+                 from [01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync.h:18[m[K,
+                 from [01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/platform/ort_mutex.h:105[m[K,
+                 from [01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/logging/logging.cc:25[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_atomic.h:23:5:[m[K [01;35m[Kwarning: [m[K"NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   23 | #if [01;35m[KNSYNC_ATOMIC_TYPECHECK[m[K
+      |     [01;35m[K^~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_atomic.h:33:7:[m[K [01;35m[Kwarning: [m[K"NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   33 | #elif [01;35m[KNSYNC_ATOMIC_C11[m[K
+      |       [01;35m[K^~~~~~~~~~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_time.h:19[m[K,
+                 from [01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_mu_wait.h:67[m[K,
+                 from [01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync.h:19[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_time_internal.h:36:5:[m[K [01;35m[Kwarning: [m[K"NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   36 | #if [01;35m[KNSYNC_USE_GPR_TIMESPEC[m[K
+      |     [01;35m[K^~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_time_internal.h:67:7:[m[K [01;35m[Kwarning: [m[K"NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   67 | #elif [01;35m[KNSYNC_USE_DEBUG_TIME[m[K
+      |       [01;35m[K^~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_time_internal.h:80:8:[m[K [01;35m[Kwarning: [m[K"NSYNC_USE_CPP11_TIMEPOINT" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   80 |       ([01;35m[KNSYNC_USE_CPP11_TIMEPOINT[m[K || (__cplusplus >= 201103L) || (_MSC_VER >= 1700))
+      |        [01;35m[K^~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/logging/logging.cc:27:5:[m[K [01;35m[Kwarning: [m[K"__FreeBSD__" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   27 | #if [01;35m[K__FreeBSD__[m[K
+      |     [01;35m[K^~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/logging/logging.cc:224:7:[m[K [01;35m[Kwarning: [m[K"__FreeBSD__" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+  224 | #elif [01;35m[K__FreeBSD__[m[K
+      |       [01;35m[K^~~~~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/common.h:35[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/logging/logging.cc:[m[K In function '[01m[Kunsigned int onnxruntime::logging::[01;32m[KGetThreadId[m[K()[m[K':
+[01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/logging/logging.cc:231:44:[m[K [01;31m[Kerror: [m[K'[01m[KSYS_gettid[m[K' was not declared in this scope; did you mean '[01m[Kgettid[m[K'?
+  231 |   return static_cast<unsigned int>(syscall([01;31m[KSYS_gettid[m[K));
+      |                                            [01;31m[K^~~~~~~~~~[m[K
+      |                                            [32m[Kgettid[m[K
+[01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/logging/logging.cc:231:36:[m[K [01;31m[Kerror: [m[K'[01m[Ksyscall[m[K' was not declared in this scope; did you mean '[01m[Ksys_call1[m[K'?
+  231 |   return static_cast<unsigned int>([01;31m[Ksyscall[m[K(SYS_gettid));
+      |                                    [01;31m[K^~~~~~~[m[K
+      |                                    [32m[Ksys_call1[m[K
+[01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/logging/logging.cc:[m[K In function '[01m[Kunsigned int onnxruntime::logging::[01;32m[KGetProcessId[m[K()[m[K':
+[01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/logging/logging.cc:244:44:[m[K [01;31m[Kerror: [m[K'[01m[KSYS_getpid[m[K' was not declared in this scope; did you mean '[01m[Kgetpid[m[K'?
+  244 |   return static_cast<unsigned int>(syscall([01;31m[KSYS_getpid[m[K));
+      |                                            [01;31m[K^~~~~~~~~~[m[K
+      |                                            [32m[Kgetpid[m[K
+[01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/logging/logging.cc:244:36:[m[K [01;31m[Kerror: [m[K'[01m[Ksyscall[m[K' was not declared in this scope; did you mean '[01m[Ksys_call1[m[K'?
+  244 |   return static_cast<unsigned int>([01;31m[Ksyscall[m[K(SYS_getpid));
+      |                                    [01;31m[K^~~~~~~[m[K
+      |                                    [32m[Ksys_call1[m[K

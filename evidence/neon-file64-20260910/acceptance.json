@@ -1,0 +1,42 @@
+{
+  "state": {
+    "running_revision": "neon-file64-20260910",
+    "boot": "RAM",
+    "smp_cpus": 8,
+    "firmware_sha256": "7fa95ddfeeee2de9d832cbf7cf10a440c5fef158b0a11811deeee6b885cc2b75",
+    "cxx_runtime_probe_passed": true,
+    "off_t_bits": 64,
+    "pointer_bits": 64,
+    "neon_probe_passed": true,
+    "neon_scope": "CPU4/5 D8-D15 low64 across yielded peer progress, not all SIMD state or LLM",
+    "concurrent_exception_tested": false,
+    "model_loaded": false,
+    "agent_deployed": false,
+    "wifi_connected": true,
+    "ip": "10.3.0.214",
+    "gateway_ping": "5/5",
+    "ble_service_running": true,
+    "ble_connected": false,
+    "ble_disconnect": "test client intentionally disconnected",
+    "wireless_hold_seconds": 30,
+    "amsdu_rejected": 1,
+    "strict_zero_receive_anomalies": false,
+    "emmc_written": false,
+    "serial_port_present": true,
+    "evidence_directory": "evidence/neon-file64-20260910",
+    "limits": [
+      "off_t width verified; actual ordinary model file IO untested",
+      "Only CPU4/5 D8-D15 low64, not full SIMD or concurrent C++ unwind",
+      "A-MSDU rejected=1 before gateway test, unchanged after; cause unknown",
+      "No long-term, internet, model inference or locale-runtime board acceptance"
+    ]
+  },
+  "recorded_utc": "2026-09-10T07:24:37.815903+00:00",
+  "hashes": {
+    "ramload-resume-progress.txt": "71e15a83d4db8fd1172428160850cb6dc0fe6873f5a724fec7ecd97a4ae13e4e",
+    "runtime.json": "c55d5deee1694dd36c08f6a4ff6b8852132694062ec91d331260267dc6348f43",
+    "neon.json": "60c81edeab1b5a8c8e52e85483a6e1e919b91e7d2ca478ea28bd0a685b856048",
+    "ble-wireless.jsonl": "e988670a58472a78158f1ed7a9937c9e06dbf953de087347188c153a2c70a167",
+    "gateway.json": "bb2f46d2874ef68be9287a49f764374382a003f4bc43cadcfffee1b9143caf63"
+  }
+}

@@ -1,0 +1,38 @@
+/home/swl/openvela/work/llama-native-20260910T071713Z/candidate/ggml-cpu.c: In function 'ggml_compute_forward_mul_mat':
+/home/swl/openvela/work/llama-native-20260910T071713Z/candidate/ggml-cpu.c:6788:5: warning: "GGML_USE_LLAMAFILE" is not defined, evaluates to 0 [-Wundef]
+ 6788 | #if GGML_USE_LLAMAFILE
+      |     ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/candidate/ggml-cpu.c:6859:5: warning: "GGML_USE_LLAMAFILE" is not defined, evaluates to 0 [-Wundef]
+ 6859 | #if GGML_USE_LLAMAFILE
+      |     ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/candidate/ggml-cpu.c: At top level:
+/home/swl/openvela/work/llama-native-20260910T071713Z/candidate/ggml-cpu.c:13203:13: warning: 'ggml_thread_cpumask_next' defined but not used [-Wunused-function]
+13203 | static void ggml_thread_cpumask_next(const bool * global_mask, bool * local_mask, bool strict, int32_t* iter) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/candidate/ggml-cpu.c:2509:17: warning: 'ggml_get_numa_affinity' defined but not used [-Wunused-function]
+ 2509 | static uint32_t ggml_get_numa_affinity(void) {
+      |                 ^~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-cpu/ggml-cpu-impl.h:6,
+                 from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.h:3,
+                 from /home/swl/openvela/work/llama-native-20260910T071713Z/candidate/ggml-cpu.c:10:
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:258:15: warning: 'ggml_hash_find_or_insert' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:237:15: warning: 'ggml_hash_insert' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:232:13: warning: 'ggml_hash_contains' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:163:15: warning: 'ggml_bitset_size' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:132:13: warning: 'ggml_set_op_params_f32' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:127:13: warning: 'ggml_set_op_params_i32' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:111:13: warning: 'ggml_set_op_params' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~

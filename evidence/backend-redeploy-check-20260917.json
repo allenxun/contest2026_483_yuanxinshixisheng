@@ -1,0 +1,24 @@
+{
+  "base_url": "https://eveaisia.com/openvela",
+  "login_http": 200,
+  "checks": [
+    {
+      "status": 401,
+      "final_url": "https://eveaisia.com/openvela/api/v1/gimbals/917c17e5-1f99-4d00-befd-9a3d2fbc2a8b/current-assessment",
+      "error": {
+        "code": "AUTH_REQUIRED",
+        "message": "authenticated principal required",
+        "retryable": false
+      }
+    },
+    {
+      "status": 401,
+      "final_url": "https://eveaisia.com/openvela/api/v1/skin-assessment-tasks/2e48a703-9358-4768-909f-ac08e1658bc9",
+      "error": {
+        "code": "AUTH_REQUIRED",
+        "message": "authenticated principal required",
+        "retryable": false
+      }
+    }
+  ]
+}

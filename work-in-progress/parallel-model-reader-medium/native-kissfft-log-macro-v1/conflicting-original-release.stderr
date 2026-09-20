@@ -1,0 +1,14 @@
+In file included from E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\native-kissfft-log-macro-v1\conflicting-original-release.c:5:
+E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\native-kissfft-log-macro-v1\original/kiss_fft_log.h:17: error: "STRINGIFY" redefined [-Werror]
+   17 | #define STRINGIFY(x) #x
+      | 
+E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\native-kissfft-log-macro-v1\conflicting-original-release.c:2: note: this is the location of the previous definition
+    2 | #define STRINGIFY(x) STRINGIFY_(x)
+      | 
+E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\native-kissfft-log-macro-v1\original/kiss_fft_log.h:18: error: "TOSTRING" redefined [-Werror]
+   18 | #define TOSTRING(x) STRINGIFY(x)
+      | 
+E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\native-kissfft-log-macro-v1\conflicting-original-release.c:3: note: this is the location of the previous definition
+    3 | #define TOSTRING(x) "external-tostring"
+      | 
+cc1.exe: all warnings being treated as errors

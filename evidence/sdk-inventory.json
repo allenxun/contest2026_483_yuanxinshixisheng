@@ -1,0 +1,1403 @@
+{
+  "captured_from": "/home/swl/openvela",
+  "repositories": {
+    "nuttx": {
+      "head": "e987a81c32cab008d1a8521669e5488d00271322",
+      "status": " M arch/arm64/Kconfig\n M arch/arm64/src/common/arm64_head.S\n M boards/Kconfig\n M drivers/serial/uart_16550.c\n M drivers/usbhost/CMakeLists.txt\n M drivers/usbhost/Kconfig\n M drivers/usbhost/Make.defs\n M drivers/usbhost/usbhost_hub.c\n M include/nuttx/net/bluetooth.h\n M include/nuttx/usb/usbhost.h\n M wireless/bluetooth/Kconfig\n M wireless/bluetooth/bt_att.c\n M wireless/bluetooth/bt_buf.c\n M wireless/bluetooth/bt_hcicore.c\n M wireless/bluetooth/bt_l2cap.c\n?? arch/arm64/include/rk3576/\n?? arch/arm64/src/rk3576/\n?? boards/arm64/rk3576/\n?? drivers/usbhost/usbhost_xhci_rk3576.c\n?? drivers/usbhost/usbhost_xhci_rk3576.h\n?? drivers/usbhost/usbhost_xhci_rk3576_trace.c\n?? drivers/usbhost/usbhost_xhci_rk3576_trace.h\n?? include/nuttx/usb/rk3576_flow.h\n?? include/nuttx/usb/xhci_rk3576.h\n",
+      "tracked_patch_sha256": "d60e16c139c2ccbc77965cbda5cf4e830c56c5ad689bf89cb4def94fde7a72bb"
+    },
+    "apps": {
+      "head": "92cc8c56a4c9b780b38991401295179fa2461908",
+      "status": "?? examples/gimbal/\n?? examples/k7host/\n?? examples/k7npu/\n?? examples/k7radio/\n?? examples/k7usb/\n?? testing/drivers/nist-sts/.gitee/\n?? testing/drivers/nist-sts/.github/\n?? testing/drivers/nist-sts/sts/\n",
+      "tracked_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "files": [
+    {
+      "source": "work/velavision-integration-20260909/nuttx.patch",
+      "path": "patches/nuttx.patch",
+      "bytes": 18339,
+      "sha256": "d60e16c139c2ccbc77965cbda5cf4e830c56c5ad689bf89cb4def94fde7a72bb"
+    },
+    {
+      "source": "nuttx/arch/arm64/Kconfig",
+      "path": "port/tracked/nuttx/arch/arm64/Kconfig",
+      "bytes": 13586,
+      "sha256": "9e868a0236e0fd281ddbee017bf1c9592589f36e5947d6db6186e5f144440d42"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/common/arm64_head.S",
+      "path": "port/tracked/nuttx/arch/arm64/src/common/arm64_head.S",
+      "bytes": 11041,
+      "sha256": "f97222fc2d5d05f379e044d01c413852389ebc666a6fd4ffce533740cac7cb34"
+    },
+    {
+      "source": "nuttx/boards/Kconfig",
+      "path": "port/tracked/nuttx/boards/Kconfig",
+      "bytes": 169169,
+      "sha256": "6aae462be62726c2d08e68783f76cd032b1dbc96fbef1be390504021e6ee13ed"
+    },
+    {
+      "source": "nuttx/drivers/serial/uart_16550.c",
+      "path": "port/tracked/nuttx/drivers/serial/uart_16550.c",
+      "bytes": 53296,
+      "sha256": "560902284a40f5aa987db2516260644aa3264a9c91cf4f0f6983926720e4cb40"
+    },
+    {
+      "source": "nuttx/drivers/usbhost/CMakeLists.txt",
+      "path": "port/tracked/nuttx/drivers/usbhost/CMakeLists.txt",
+      "bytes": 2616,
+      "sha256": "8ac946e818c10d34dfbd980e68b7071af3e6bd412775c89615a77751549f8bd8"
+    },
+    {
+      "source": "nuttx/drivers/usbhost/Kconfig",
+      "path": "port/tracked/nuttx/drivers/usbhost/Kconfig",
+      "bytes": 23356,
+      "sha256": "839c6edf8e5518ddf9c0b6b626f4777f7cecde823e10c07b7a8186c859d6bf77"
+    },
+    {
+      "source": "nuttx/drivers/usbhost/Make.defs",
+      "path": "port/tracked/nuttx/drivers/usbhost/Make.defs",
+      "bytes": 2614,
+      "sha256": "4b55c38258766ccf901c1f513f803dff857213c770a02b304d1022b96a884577"
+    },
+    {
+      "source": "nuttx/drivers/usbhost/usbhost_hub.c",
+      "path": "port/tracked/nuttx/drivers/usbhost/usbhost_hub.c",
+      "bytes": 50669,
+      "sha256": "06c1713d6f02bfd6c397373afefce4bbab17035a9260e01e5a72b8a2c8cb53ee"
+    },
+    {
+      "source": "nuttx/include/nuttx/net/bluetooth.h",
+      "path": "port/tracked/nuttx/include/nuttx/net/bluetooth.h",
+      "bytes": 5578,
+      "sha256": "69527a239ac2629be545ddd8aadc60406611cf73c83ffc06f56055f8c85adda0"
+    },
+    {
+      "source": "nuttx/include/nuttx/usb/usbhost.h",
+      "path": "port/tracked/nuttx/include/nuttx/usb/usbhost.h",
+      "bytes": 51458,
+      "sha256": "ae995f52d236741aaebd6e1eb28587a87977bf4359dabf8f8b87826c30ac114b"
+    },
+    {
+      "source": "nuttx/wireless/bluetooth/Kconfig",
+      "path": "port/tracked/nuttx/wireless/bluetooth/Kconfig",
+      "bytes": 8146,
+      "sha256": "2d1fd8ad3fe993f1e013f5c887470677db4fdd29c2f5dc141ac8126cbf6bf75e"
+    },
+    {
+      "source": "nuttx/wireless/bluetooth/bt_att.c",
+      "path": "port/tracked/nuttx/wireless/bluetooth/bt_att.c",
+      "bytes": 51311,
+      "sha256": "6e5562e8fb6f29c937b208e2872ca18be934fcc8495dd8782206b01e55880f0d"
+    },
+    {
+      "source": "nuttx/wireless/bluetooth/bt_buf.c",
+      "path": "port/tracked/nuttx/wireless/bluetooth/bt_buf.c",
+      "bytes": 19675,
+      "sha256": "3b617b1a08bdc9bd248c268c5b3c12c4962d11f51a9b91354b745e494e74a486"
+    },
+    {
+      "source": "nuttx/wireless/bluetooth/bt_hcicore.c",
+      "path": "port/tracked/nuttx/wireless/bluetooth/bt_hcicore.c",
+      "bytes": 60577,
+      "sha256": "0f626046962a073b87db09667c4e3be5ac1c518f4bb5daf4c1e5e1ce84aad6ac"
+    },
+    {
+      "source": "nuttx/wireless/bluetooth/bt_l2cap.c",
+      "path": "port/tracked/nuttx/wireless/bluetooth/bt_l2cap.c",
+      "bytes": 12452,
+      "sha256": "45ae95ad28b0b7a469e09dcc01b7b45afd685808f21e4203813646738ede9742"
+    },
+    {
+      "source": "work/velavision-integration-20260909/apps.patch",
+      "path": "patches/apps.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "apps/examples/gimbal/CMakeLists.txt",
+      "path": "app/gimbal/CMakeLists.txt",
+      "bytes": 157,
+      "sha256": "b75d827e61afd074db8ffacb1903ac563c60331af9de309efcb4d079dd15dbb6"
+    },
+    {
+      "source": "apps/examples/gimbal/Kconfig",
+      "path": "app/gimbal/Kconfig",
+      "bytes": 111,
+      "sha256": "b91b076a0317dfa0227c3c5e38c66a6f500a581a3e3f72fb42b4d97a8f4255c1"
+    },
+    {
+      "source": "apps/examples/gimbal/Make.defs",
+      "path": "app/gimbal/Make.defs",
+      "bytes": 86,
+      "sha256": "83ad04062ae0ed245cc2e60c6d60ecc667b7dc545769ff96cc906233979b4c65"
+    },
+    {
+      "source": "apps/examples/gimbal/Makefile",
+      "path": "app/gimbal/Makefile",
+      "bytes": 170,
+      "sha256": "4e4662c3449b825d2f4572cb1c4d2f27acdd0032d1f1f54687e198a6e72b2d56"
+    },
+    {
+      "source": "apps/examples/gimbal/README.md",
+      "path": "app/gimbal/README.md",
+      "bytes": 5643,
+      "sha256": "5be0f9e19340541b9b76267e1ab96963a8b45b316a013aad969f27443fd680c5"
+    },
+    {
+      "source": "apps/examples/gimbal/gimbal_link.c",
+      "path": "app/gimbal/gimbal_link.c",
+      "bytes": 2756,
+      "sha256": "47b3c834ce8762d58ae0b2d6262f98132a3c73d47a93d60723536ee8468dd359"
+    },
+    {
+      "source": "apps/examples/gimbal/gimbal_link.h",
+      "path": "app/gimbal/gimbal_link.h",
+      "bytes": 409,
+      "sha256": "d22ac3b9c349b3803f7579d95396b0bf70d5b342e3690831b0ddace4c1c23540"
+    },
+    {
+      "source": "apps/examples/gimbal/gimbal_main.c",
+      "path": "app/gimbal/gimbal_main.c",
+      "bytes": 6033,
+      "sha256": "a94029b918b3bea908275582aacec359f5c0a55293fa34f52895cad5a4c5ec1d"
+    },
+    {
+      "source": "apps/examples/gimbal/test_gimbal.py",
+      "path": "app/gimbal/test_gimbal.py",
+      "bytes": 2508,
+      "sha256": "f826db99acaac1dfc0066a16845be051256fb71ea4cc8b95722aa36bc1a49df0"
+    },
+    {
+      "source": "apps/examples/k7host/CMakeLists.txt",
+      "path": "app/k7host/CMakeLists.txt",
+      "bytes": 893,
+      "sha256": "840145e53f7cc2423ce224c2878f5ecc58edefc4e605d18fee01c9a81617fb04"
+    },
+    {
+      "source": "apps/examples/k7host/Kconfig",
+      "path": "app/k7host/Kconfig",
+      "bytes": 735,
+      "sha256": "f03480ff1a8e66f1f1f7b179dcb92d7560c4e30fc8bc2161656c7b0c2903e867"
+    },
+    {
+      "source": "apps/examples/k7host/Make.defs",
+      "path": "app/k7host/Make.defs",
+      "bytes": 86,
+      "sha256": "c5ce45cf2b85305766205753705faf8f86262d19a36d0d8a2e1d987e8725a638"
+    },
+    {
+      "source": "apps/examples/k7host/Makefile",
+      "path": "app/k7host/Makefile",
+      "bytes": 170,
+      "sha256": "f2544aeae6abfdcbf612d9d0877500643a558332f3f963b206f66bee752596b1"
+    },
+    {
+      "source": "apps/examples/k7host/dwc3_transport_core.c",
+      "path": "app/k7host/dwc3_transport_core.c",
+      "bytes": 2011,
+      "sha256": "8aeb9f550579dbdd85eeb86af537dcc6e61e2e8a9c176e42de03feef0b4a9dd6"
+    },
+    {
+      "source": "apps/examples/k7host/dwc3_transport_core.h",
+      "path": "app/k7host/dwc3_transport_core.h",
+      "bytes": 1119,
+      "sha256": "848a8a5f04d7657999781dca9690b2bfb3ebb628377165f6d60a6fa5810fd95f"
+    },
+    {
+      "source": "apps/examples/k7host/fusion_core.c",
+      "path": "app/k7host/fusion_core.c",
+      "bytes": 3955,
+      "sha256": "afc15cc9e2b1437033d4b539ffef089a82ce0a14efff767b735966bbe9ab41d3"
+    },
+    {
+      "source": "apps/examples/k7host/fusion_core.h",
+      "path": "app/k7host/fusion_core.h",
+      "bytes": 1818,
+      "sha256": "a1886718b40d071b15e75850539c9a853abc22837b5b1d5bcf6f2780457b604a"
+    },
+    {
+      "source": "apps/examples/k7host/k7_jpeg.c",
+      "path": "app/k7host/k7_jpeg.c",
+      "bytes": 3954,
+      "sha256": "1a34578850def63b3583ccc7cc2524a35332419ec1ae3fe03bc4aa5b6146a7de"
+    },
+    {
+      "source": "apps/examples/k7host/k7_jpeg.h",
+      "path": "app/k7host/k7_jpeg.h",
+      "bytes": 545,
+      "sha256": "a5514f74efdee53fe9635ef77c311e78393a890493655ef91d478511b20bb5c6"
+    },
+    {
+      "source": "apps/examples/k7host/k7_link_probe.c",
+      "path": "app/k7host/k7_link_probe.c",
+      "bytes": 14910,
+      "sha256": "64e565845977fd8d882279894f61b303c1f3f0e2e06de56637880d24123a9667"
+    },
+    {
+      "source": "apps/examples/k7host/k7_photo.c",
+      "path": "app/k7host/k7_photo.c",
+      "bytes": 8601,
+      "sha256": "36a06625bcc810a951c57c2e3d78ecc62995b9948249477b704568965dfd3b19"
+    },
+    {
+      "source": "apps/examples/k7host/k7_photo.h",
+      "path": "app/k7host/k7_photo.h",
+      "bytes": 488,
+      "sha256": "524577690b1e2adfb90e226646856e5980ec996fb18685852a74f4f4f3d1b908"
+    },
+    {
+      "source": "apps/examples/k7host/k7_pipeline.c",
+      "path": "app/k7host/k7_pipeline.c",
+      "bytes": 15721,
+      "sha256": "1eb809adc854818353f8fd1c372767d68b37aa6093717f8a503c97f39a81cff6"
+    },
+    {
+      "source": "apps/examples/k7host/k7_pipeline.h",
+      "path": "app/k7host/k7_pipeline.h",
+      "bytes": 1609,
+      "sha256": "fb3aad49483614a628374f2e3961795c21b169dbdbcc21e1a360e2f9bf400621"
+    },
+    {
+      "source": "apps/examples/k7host/k7_pose.c",
+      "path": "app/k7host/k7_pose.c",
+      "bytes": 2802,
+      "sha256": "9e2011c3ebc0f0b14e720a1093273fc16e1c03a76b14549cfff7ea776a30a00a"
+    },
+    {
+      "source": "apps/examples/k7host/k7_pose.h",
+      "path": "app/k7host/k7_pose.h",
+      "bytes": 333,
+      "sha256": "d217086be9357ea39257e8b8a17fe1ceef3159316d484df9bcc878a63a4546e0"
+    },
+    {
+      "source": "apps/examples/k7host/k7_pose_model.inc",
+      "path": "app/k7host/k7_pose_model.inc",
+      "bytes": 5374185,
+      "sha256": "43a9b265c4784f2b0442d1cf5d6a3e3c9fd2533ee05de1df24c07d192118cf08"
+    },
+    {
+      "source": "apps/examples/k7host/k7_preview.c",
+      "path": "app/k7host/k7_preview.c",
+      "bytes": 3720,
+      "sha256": "fde941912266c61e15fffc192f8a21928fb0de8d2602970bd5d8689a387aaff2"
+    },
+    {
+      "source": "apps/examples/k7host/k7_preview.h",
+      "path": "app/k7host/k7_preview.h",
+      "bytes": 450,
+      "sha256": "2aa2ed4297bc27c30adae85fd773e39c5972ea8aa04c6794d3c2e4aa77f4ae0e"
+    },
+    {
+      "source": "apps/examples/k7host/k7_preview_queue.c",
+      "path": "app/k7host/k7_preview_queue.c",
+      "bytes": 3098,
+      "sha256": "46a9f753f4e5896b6bed6b91762f887339224623563f15157fc3a48db3bd586c"
+    },
+    {
+      "source": "apps/examples/k7host/k7_track.c",
+      "path": "app/k7host/k7_track.c",
+      "bytes": 9048,
+      "sha256": "9e9aa3323af797afd7e19b8de7fa33a0891cd13f6e715ed0459b518a20ab4087"
+    },
+    {
+      "source": "apps/examples/k7host/k7_track.h",
+      "path": "app/k7host/k7_track.h",
+      "bytes": 1376,
+      "sha256": "c675cdb8f0ce4008c8f8d8ac5b0f06a1c876e7500252fc389fbb5da7311c3b1d"
+    },
+    {
+      "source": "apps/examples/k7host/k7_video_frame.c",
+      "path": "app/k7host/k7_video_frame.c",
+      "bytes": 1129,
+      "sha256": "3b652aeec8fcea1c27ba3107e150d2026781d5e529cf5b5fa750435a648de9b4"
+    },
+    {
+      "source": "apps/examples/k7host/k7_video_frame.h",
+      "path": "app/k7host/k7_video_frame.h",
+      "bytes": 821,
+      "sha256": "381802b3e4a757613e87e87a926b55bc3e0ae8c3c762036d042719e7362ed7df"
+    },
+    {
+      "source": "apps/examples/k7host/k7_video_queue.c",
+      "path": "app/k7host/k7_video_queue.c",
+      "bytes": 2500,
+      "sha256": "9ce88c47b52f2c7528fca5d98624b2a2101bcaaa5a25ff496c220658c23fb0e6"
+    },
+    {
+      "source": "apps/examples/k7host/k7_video_queue.h",
+      "path": "app/k7host/k7_video_queue.h",
+      "bytes": 593,
+      "sha256": "b3dacf703620e8652d2a9042b9e383bf46464ec1cd1ecba726cf88a284f6a71e"
+    },
+    {
+      "source": "apps/examples/k7host/k7_yunet.c",
+      "path": "app/k7host/k7_yunet.c",
+      "bytes": 7705,
+      "sha256": "b6f5512d983094986b85f4939cc8368b6381a5927156f51098f7943d97c29001"
+    },
+    {
+      "source": "apps/examples/k7host/k7_yunet.h",
+      "path": "app/k7host/k7_yunet.h",
+      "bytes": 942,
+      "sha256": "7004740de29ac81a78e0bdc2ca8322efc25dec5286da3063261cf35a12532182"
+    },
+    {
+      "source": "apps/examples/k7host/k7_yunet_model.inc",
+      "path": "app/k7host/k7_yunet_model.inc",
+      "bytes": 1213908,
+      "sha256": "2b4b3477313596f41509c81000ff558854373514517630941ec88112f638c3a4"
+    },
+    {
+      "source": "apps/examples/k7host/k7host_main.c",
+      "path": "app/k7host/k7host_main.c",
+      "bytes": 41397,
+      "sha256": "acfcf81b47370c6a1e2b9f8941ba6d0c3a27cbe94f42ef8d5224b14941077291"
+    },
+    {
+      "source": "apps/examples/k7host/pose_kernels.inc",
+      "path": "app/k7host/pose_kernels.inc",
+      "bytes": 1038,
+      "sha256": "b0c6200a6d201cae096caf641e92bbed360ab4d857199bc8c190a37421a7f888"
+    },
+    {
+      "source": "apps/examples/k7npu/CMakeLists.txt",
+      "path": "app/k7npu/CMakeLists.txt",
+      "bytes": 392,
+      "sha256": "428ad0a2f5466c2215b41ea95d4a1cd6173e8435ffc7c4f2e36c187becda7b5f"
+    },
+    {
+      "source": "apps/examples/k7npu/Kconfig",
+      "path": "app/k7npu/Kconfig",
+      "bytes": 990,
+      "sha256": "72ab0ee3dd23189512dc46f6a7ffaed25d5d1d6c4ed9dc7d3faf10d6a475e9c4"
+    },
+    {
+      "source": "apps/examples/k7npu/Make.defs",
+      "path": "app/k7npu/Make.defs",
+      "bytes": 84,
+      "sha256": "12ab62b9e68c68061308f973fbd767797185ad53e6d9c71a211bb061d743aec4"
+    },
+    {
+      "source": "apps/examples/k7npu/Makefile",
+      "path": "app/k7npu/Makefile",
+      "bytes": 352,
+      "sha256": "a49a6a9b5df712a9087389c10e678e7cc57956dcbe0e5d685bc8ca697632a076"
+    },
+    {
+      "source": "apps/examples/k7npu/charsiu-LICENSE",
+      "path": "app/k7npu/charsiu-LICENSE",
+      "bytes": 18092,
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+    },
+    {
+      "source": "apps/examples/k7npu/k7npu_fixture.h",
+      "path": "app/k7npu/k7npu_fixture.h",
+      "bytes": 19956,
+      "sha256": "00f326489bc3f3e6233007cc53313fecb8a5bf1d13de4a82576cd1e8629054bd"
+    },
+    {
+      "source": "apps/examples/k7npu/k7npu_fixture_io.c",
+      "path": "app/k7npu/k7npu_fixture_io.c",
+      "bytes": 4112,
+      "sha256": "def20ddb0b283d5442f619c57374481e20157a21bba3d599c22bd94513db0091"
+    },
+    {
+      "source": "apps/examples/k7npu/k7npu_fixture_io.h",
+      "path": "app/k7npu/k7npu_fixture_io.h",
+      "bytes": 520,
+      "sha256": "1f8a434909c73c713f6a7120564e0a3f2fd0b8bb9cf71f8208c5dbea78e4089b"
+    },
+    {
+      "source": "apps/examples/k7npu/k7npu_main.c",
+      "path": "app/k7npu/k7npu_main.c",
+      "bytes": 5369,
+      "sha256": "d08384ee8e16976e3f699b46e81ccfa6400d7e6e55a58a25f4866b732be89bb3"
+    },
+    {
+      "source": "apps/examples/k7npu/k7npu_mmutest.c",
+      "path": "app/k7npu/k7npu_mmutest.c",
+      "bytes": 3582,
+      "sha256": "2956a335ca8a349b2fe8a017baf67bafbf50f0542b39f96727a7cacf1971f57f"
+    },
+    {
+      "source": "apps/examples/k7npu/k7npu_rawtest.c",
+      "path": "app/k7npu/k7npu_rawtest.c",
+      "bytes": 9449,
+      "sha256": "5183a3a59c1a92b296329884b4f8cc18948b185fe51300a74e338d0fb72d82e9"
+    },
+    {
+      "source": "apps/examples/k7npu/rk3576_npu_mmu.c",
+      "path": "app/k7npu/rk3576_npu_mmu.c",
+      "bytes": 3018,
+      "sha256": "eefd874eb540cfa5238d8bd0f6eed835972dd569d06b5ad86773879069eef5ed"
+    },
+    {
+      "source": "apps/examples/k7npu/rk3576_npu_mmu.h",
+      "path": "app/k7npu/rk3576_npu_mmu.h",
+      "bytes": 1338,
+      "sha256": "a627bb04662e38a4abe8953ed5c9d0755d803ad52e1c835d37e9b5ac14ae2e84"
+    },
+    {
+      "source": "apps/examples/k7npu/rk3576_npu_window.c",
+      "path": "app/k7npu/rk3576_npu_window.c",
+      "bytes": 1286,
+      "sha256": "e6ddf25a6dace66c72bacc897c4df976a263f56389ead74159fe2f738d604dd7"
+    },
+    {
+      "source": "apps/examples/k7npu/rk3576_npu_window.h",
+      "path": "app/k7npu/rk3576_npu_window.h",
+      "bytes": 721,
+      "sha256": "c09d99c3e5ddfb4b863af56ea35f7b0cd302f265d3b5b1cfaa1f62e97ce6a1af"
+    },
+    {
+      "source": "apps/examples/k7radio/CMakeLists.txt",
+      "path": "app/k7radio/CMakeLists.txt",
+      "bytes": 328,
+      "sha256": "d9f12f76e45b76b349eae0e10fdb34f8302bce518cc5be552e3e413c91e648e6"
+    },
+    {
+      "source": "apps/examples/k7radio/COPYING",
+      "path": "app/k7radio/COPYING",
+      "bytes": 18092,
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+    },
+    {
+      "source": "apps/examples/k7radio/Kconfig",
+      "path": "app/k7radio/Kconfig",
+      "bytes": 423,
+      "sha256": "ff10583c86c9a4ae02e7c37a8cef5fcc8205cf3c2e7772beb5f04fde2031e474"
+    },
+    {
+      "source": "apps/examples/k7radio/Make.defs",
+      "path": "app/k7radio/Make.defs",
+      "bytes": 88,
+      "sha256": "b19a78521a0ca8b132a4fb6301d09c2f06d9ef7cc51ecbd455ebe7f576ae1dba"
+    },
+    {
+      "source": "apps/examples/k7radio/Makefile",
+      "path": "app/k7radio/Makefile",
+      "bytes": 400,
+      "sha256": "26114c643bb583c61d5ac80f00b3fc32b613367b748d3f706a9637608a6f8b13"
+    },
+    {
+      "source": "apps/examples/k7radio/cJSON.c",
+      "path": "app/k7radio/cJSON.c",
+      "bytes": 78796,
+      "sha256": "cf9e08c8524c17406a0d430a47376080aebcdc8e851f7de24d277be61973eaeb"
+    },
+    {
+      "source": "apps/examples/k7radio/cJSON.h",
+      "path": "app/k7radio/cJSON.h",
+      "bytes": 16144,
+      "sha256": "dd689a2905ad7c4c1d15556f1c7b9ce5cfdf9c8a78e4224ffb4a04d01d050f5f"
+    },
+    {
+      "source": "apps/examples/k7radio/k7radio_main.c",
+      "path": "app/k7radio/k7radio_main.c",
+      "bytes": 59382,
+      "sha256": "4defc82710b8658f109183aea786a4b31836b960f205bc464ef727dc5b0a5bb3"
+    },
+    {
+      "source": "apps/examples/k7radio/prov_protocol.c",
+      "path": "app/k7radio/prov_protocol.c",
+      "bytes": 3744,
+      "sha256": "25efadcfd17cd58e2ccb42a0340da38a17a39cda62509f2818157768d3f8db09"
+    },
+    {
+      "source": "apps/examples/k7radio/prov_protocol.h",
+      "path": "app/k7radio/prov_protocol.h",
+      "bytes": 688,
+      "sha256": "bb5fef0bc52bad86e3601e603af39ce5d52716fcb88502be18179cde6e2a6b89"
+    },
+    {
+      "source": "apps/examples/k7radio/prov_service.inc",
+      "path": "app/k7radio/prov_service.inc",
+      "bytes": 14665,
+      "sha256": "c6f08ff06e1eabef85b8c9c1e690de28902ccfaca1e7d8bc3b82e465942600d9"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_bt.c",
+      "path": "app/k7radio/skw_bt.c",
+      "bytes": 6907,
+      "sha256": "c7746ad5b2e734ac66638cc240bf9bbde709499be6485827de06d69fe2fa1c48"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_bt.h",
+      "path": "app/k7radio/skw_bt.h",
+      "bytes": 1694,
+      "sha256": "dae6d9d4a57e8a579a0053343e153e14e3bfd763b7e7805b13d06e7972723e3c"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_bus.c",
+      "path": "app/k7radio/skw_bus.c",
+      "bytes": 5177,
+      "sha256": "1d22090f5d61a422c2eb5dfc68bb93ffaee37d99d544588b15f459d4f818bd10"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_dw.c",
+      "path": "app/k7radio/skw_dw.c",
+      "bytes": 8085,
+      "sha256": "9cb2b99c0d4c2908ebb41169e7c9a0083565baa4a5b724ec56fc27f62b595858"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_dw.h",
+      "path": "app/k7radio/skw_dw.h",
+      "bytes": 1178,
+      "sha256": "73f23020808ffc4f9b4668d7f5fa35e775710d12fa7f14b653c1d6a96ec3a6a7"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_native.h",
+      "path": "app/k7radio/skw_native.h",
+      "bytes": 3851,
+      "sha256": "28985b1fbb80f66441b845e7b509725808fcbb572798b6e214a562dabde43e40"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_packet.c",
+      "path": "app/k7radio/skw_packet.c",
+      "bytes": 5484,
+      "sha256": "893317055c054a75a0c37e8728646727758266a9d282e7e02c1187d2e8207643"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_rk3576.c",
+      "path": "app/k7radio/skw_rk3576.c",
+      "bytes": 3210,
+      "sha256": "c23de6076c091e4957a32ed8623cf15f56e8a28cf510da084704e4235b59d056"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_rk3576.h",
+      "path": "app/k7radio/skw_rk3576.h",
+      "bytes": 1013,
+      "sha256": "1751ad2ce2b68cae51ba9b68b39cc5531d5065e5411c1dbcedfe16aa4bf40a9d"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_wifi_bss.h",
+      "path": "app/k7radio/skw_wifi_bss.h",
+      "bytes": 2099,
+      "sha256": "b62a485c6bd2e196d2b48fd9dd83268011a0ecd6a7de7e346de8c6afea9f69a5"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_wifi_diag.h",
+      "path": "app/k7radio/skw_wifi_diag.h",
+      "bytes": 1427,
+      "sha256": "7c0d88bf3f136565a79963ae4e5d6d6c9c984a2697829192e6368f74d6dc6d35"
+    },
+    {
+      "source": "apps/examples/k7radio/skw_wifi_join.h",
+      "path": "app/k7radio/skw_wifi_join.h",
+      "bytes": 5753,
+      "sha256": "db3188786f03be33b50e88035620e81e1c52f62ff5387b95d1a89f0723a2b362"
+    },
+    {
+      "source": "apps/examples/k7radio/wifi_assoc_probe.inc",
+      "path": "app/k7radio/wifi_assoc_probe.inc",
+      "bytes": 5568,
+      "sha256": "d9d605e1cc881d2c288b370b0725c61d77d4b15f546f4c3ba486626b0babb784"
+    },
+    {
+      "source": "apps/examples/k7radio/wifi_join_probe.inc",
+      "path": "app/k7radio/wifi_join_probe.inc",
+      "bytes": 3497,
+      "sha256": "a58b96ad022ec00f599f856d2a12dd51dc7c937f141a5a27c87d116e5b22315d"
+    },
+    {
+      "source": "apps/examples/k7usb/CMakeLists.txt",
+      "path": "app/k7usb/CMakeLists.txt",
+      "bytes": 140,
+      "sha256": "0729738af8f0f4b264d266c91fc0db409a2f1be673b8fa349ac137c89a319684"
+    },
+    {
+      "source": "apps/examples/k7usb/Kconfig",
+      "path": "app/k7usb/Kconfig",
+      "bytes": 111,
+      "sha256": "0ecbf19a2ce000a5ade08cb0a47d35221b4bb7f577ac349b9e00a4a58f3ea8cb"
+    },
+    {
+      "source": "apps/examples/k7usb/Make.defs",
+      "path": "app/k7usb/Make.defs",
+      "bytes": 84,
+      "sha256": "60f728f6bd2968e92191e6660bed11cf2cd3ecab46c4ad55b7bde4219f3d9255"
+    },
+    {
+      "source": "apps/examples/k7usb/Makefile",
+      "path": "app/k7usb/Makefile",
+      "bytes": 167,
+      "sha256": "4646620f6d5f84bc4583dc7d0aee4ed42a5b5f51238b9d5fe482ad53d43c1817"
+    },
+    {
+      "source": "apps/examples/k7usb/k7usb_main.c",
+      "path": "app/k7usb/k7usb_main.c",
+      "bytes": 6899,
+      "sha256": "e426912a5e83e0acfa294743a09a099b0a8624cbe84891cbd47a29e3cc5bd962"
+    },
+    {
+      "source": "nuttx/arch/arm64/include/rk3576/chip.h",
+      "path": "port/new/nuttx/arch/arm64/include/rk3576/chip.h",
+      "bytes": 2287,
+      "sha256": "37031c3777009324d8cc26a7b048fccb443a1200a31044ac2cacf68c4f43492b"
+    },
+    {
+      "source": "nuttx/arch/arm64/include/rk3576/irq.h",
+      "path": "port/new/nuttx/arch/arm64/include/rk3576/irq.h",
+      "bytes": 2811,
+      "sha256": "8d34c9db954b4d40a3d6e069106cb0c94812ac23c60d3152ada1d48be8de6b06"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/rk3576/CMakeLists.txt",
+      "path": "port/new/nuttx/arch/arm64/src/rk3576/CMakeLists.txt",
+      "bytes": 1275,
+      "sha256": "35cfc05f5c9a087522409807c44bb1552c4fb7c659adac70668cd560ee593fda"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/rk3576/Kconfig",
+      "path": "port/new/nuttx/arch/arm64/src/rk3576/Kconfig",
+      "bytes": 1583,
+      "sha256": "f91774429a2397894f1e8d9d6df4c1193ce889bbba11019e7e0236cb8f2ac0be"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/rk3576/Make.defs",
+      "path": "port/new/nuttx/arch/arm64/src/rk3576/Make.defs",
+      "bytes": 1312,
+      "sha256": "8dff66b0bb37ebcfde6fb6f71e7dc94a3ebdfcac5262aa63225be710e19c382f"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/rk3576/chip.h",
+      "path": "port/new/nuttx/arch/arm64/src/rk3576/chip.h",
+      "bytes": 1371,
+      "sha256": "42da1956e627da103c5b347efc2785f963b6895c1dbc3c7cb0f2c6a64c8a4ba1"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/rk3576/hardware/rk3576_memorymap.h",
+      "path": "port/new/nuttx/arch/arm64/src/rk3576/hardware/rk3576_memorymap.h",
+      "bytes": 1908,
+      "sha256": "ecd930a3fdca9e1f8a101df960bd86bfb32e9f346aa59242994bfe9e262c8119"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/rk3576/rk3576_boot.c",
+      "path": "port/new/nuttx/arch/arm64/src/rk3576/rk3576_boot.c",
+      "bytes": 7149,
+      "sha256": "16c4ffe5d3dd3abbbbafb857fb88eac33bf1644d01dc48bee9a953dad2a6b360"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/rk3576/rk3576_boot.h",
+      "path": "port/new/nuttx/arch/arm64/src/rk3576/rk3576_boot.h",
+      "bytes": 1403,
+      "sha256": "4f467322e7116d2e83c23ee428f25a5674bd5d41d7c47888d412223be4b0109e"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/rk3576/rk3576_lowputc.S",
+      "path": "port/new/nuttx/arch/arm64/src/rk3576/rk3576_lowputc.S",
+      "bytes": 3264,
+      "sha256": "ab4933559e207dc3dcc1291b743c9b60977fa9792ef4d9c41abc6700ab9d0a00"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/rk3576/rk3576_serial.c",
+      "path": "port/new/nuttx/arch/arm64/src/rk3576/rk3576_serial.c",
+      "bytes": 2373,
+      "sha256": "04da2208b5e5a4be10255c4cdd197276d335eca3ba754f370bf69915ae1df3cf"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/rk3576/rk3576_uart6.c",
+      "path": "port/new/nuttx/arch/arm64/src/rk3576/rk3576_uart6.c",
+      "bytes": 3671,
+      "sha256": "052660c0888938eb9cedd1b780cdcb828516f5375860e8474e07cff7cbab47e5"
+    },
+    {
+      "source": "nuttx/arch/arm64/src/rk3576/rk3576_usbhost.c",
+      "path": "port/new/nuttx/arch/arm64/src/rk3576/rk3576_usbhost.c",
+      "bytes": 5985,
+      "sha256": "d96d8fb4bcb27fa7139fb94adf2062ac55ba30ca50cc600584453fa93e3b92a2"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/CMakeLists.txt",
+      "path": "board/kickpi_k7/CMakeLists.txt",
+      "bytes": 1129,
+      "sha256": "6a0238b8d7f65ec8dfc7ab716c89083268e490c2d4c8870d13e17913a60acb73"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/Kconfig",
+      "path": "board/kickpi_k7/Kconfig",
+      "bytes": 187,
+      "sha256": "9273fb74e749127d88567ed96d9e88ef7e86f873108f9c688fb26acca196cf66"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/README.md",
+      "path": "board/kickpi_k7/README.md",
+      "bytes": 5972,
+      "sha256": "b8c2f8208da0e387d900c748c4862d8d05224397a56266abd0a82566bdd73aee"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/configs/nsh/defconfig",
+      "path": "board/kickpi_k7/configs/nsh/defconfig",
+      "bytes": 2235,
+      "sha256": "d316f0c92c3a96c6ac182e4ae0f0772b3a4bff5926d19cdefbbfc4b650cb5162"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/configs/radiohost_acl_local/defconfig",
+      "path": "board/kickpi_k7/configs/radiohost_acl_local/defconfig",
+      "bytes": 59348,
+      "sha256": "e3d97d6656d57627adfade79f6fedbe4fd1cb778a320a362083d39be01007b57"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/configs/radiohost_local/defconfig",
+      "path": "board/kickpi_k7/configs/radiohost_local/defconfig",
+      "bytes": 53832,
+      "sha256": "e269d89d0ac55d06296e5acf8921fc68c6f9dcac033febdd09560158b8e05420"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/configs/radiohost_sdio_local/defconfig",
+      "path": "board/kickpi_k7/configs/radiohost_sdio_local/defconfig",
+      "bytes": 59337,
+      "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/configs/usbdiag/defconfig",
+      "path": "board/kickpi_k7/configs/usbdiag/defconfig",
+      "bytes": 2285,
+      "sha256": "ae46f9994916b49aef7756b0156df1d26e9d798a75a1ac86464632f3dc846cc6"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/configs/usbenum/defconfig",
+      "path": "board/kickpi_k7/configs/usbenum/defconfig",
+      "bytes": 3094,
+      "sha256": "463f9ba332f5e28bc1e25acce995f464fcf633e647733a2ce477b0e2803f4d1b"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/include/board.h",
+      "path": "board/kickpi_k7/include/board.h",
+      "bytes": 1926,
+      "sha256": "fc5b698e11ae919549df2e4faff3f15aa40c2ac1d0fb8f7c7458f93a32a50cc5"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/scripts/Make.defs",
+      "path": "board/kickpi_k7/scripts/Make.defs",
+      "bytes": 1835,
+      "sha256": "7167d39c4bd3efecdcf6dde7b4c07f1daf5aa1f2258258c16b7906ab0a8396c8"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/scripts/dramboot.ld",
+      "path": "board/kickpi_k7/scripts/dramboot.ld",
+      "bytes": 3684,
+      "sha256": "1da796a80b8b8052a756ec6e535a19c58a9e33d2b246b3ff5948d5b81ade1dc4"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/src/CMakeLists.txt",
+      "path": "board/kickpi_k7/src/CMakeLists.txt",
+      "bytes": 1068,
+      "sha256": "2d12d6c41cec67b80847aeb90320306acd5c47338999ef8836226eeac39be271"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/src/Makefile",
+      "path": "board/kickpi_k7/src/Makefile",
+      "bytes": 1106,
+      "sha256": "dade350b96af566684c49d124b00f8f51b631e34838b67764c22aaa8de26df18"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/src/kickpi_k7.h",
+      "path": "board/kickpi_k7/src/kickpi_k7.h",
+      "bytes": 1314,
+      "sha256": "9bfa5d2193c71d6f26361e0807d1732a15e8d60fe0d644f2015c80d9e55b6632"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/src/kickpi_k7_appinit.c",
+      "path": "board/kickpi_k7/src/kickpi_k7_appinit.c",
+      "bytes": 2530,
+      "sha256": "8ffd0b0cc06d3a186d1b7bccbafcbd13f8080a36eb37db20804bb7c74bb308c2"
+    },
+    {
+      "source": "nuttx/boards/arm64/rk3576/kickpi_k7/src/kickpi_k7_boardinit.c",
+      "path": "board/kickpi_k7/src/kickpi_k7_boardinit.c",
+      "bytes": 1608,
+      "sha256": "c80a8c3c7a18dfabf0ba7b2e912101d70998f2270f3d9bcbad0ce274afc958d1"
+    },
+    {
+      "source": "nuttx/drivers/usbhost/usbhost_xhci_rk3576.c",
+      "path": "port/new/nuttx/drivers/usbhost/usbhost_xhci_rk3576.c",
+      "bytes": 195603,
+      "sha256": "12241a277ac6a2b8616c392e2dc01808c39467f0fb8482ee31453319de981b71"
+    },
+    {
+      "source": "nuttx/drivers/usbhost/usbhost_xhci_rk3576.h",
+      "path": "port/new/nuttx/drivers/usbhost/usbhost_xhci_rk3576.h",
+      "bytes": 40917,
+      "sha256": "506c1baac81d5c96f0fb20a74a338193ea83cbef41371703cd8e59306f356516"
+    },
+    {
+      "source": "nuttx/drivers/usbhost/usbhost_xhci_rk3576_trace.c",
+      "path": "port/new/nuttx/drivers/usbhost/usbhost_xhci_rk3576_trace.c",
+      "bytes": 4768,
+      "sha256": "f7d848c693fb15abd3cfba7b65a53918c2f08c928f225de557a343c997cbeaf4"
+    },
+    {
+      "source": "nuttx/drivers/usbhost/usbhost_xhci_rk3576_trace.h",
+      "path": "port/new/nuttx/drivers/usbhost/usbhost_xhci_rk3576_trace.h",
+      "bytes": 3524,
+      "sha256": "457c90cbccbb6ebc58071efc609ac1c6675a12300bcb6d1fa0e8bdecc86bbf22"
+    },
+    {
+      "source": "nuttx/include/nuttx/usb/rk3576_flow.h",
+      "path": "port/new/nuttx/include/nuttx/usb/rk3576_flow.h",
+      "bytes": 471,
+      "sha256": "491fb749e7b2d6c8a2c357b17ad5f128f094fbda20ebd60bdaa3631c1755cdc8"
+    },
+    {
+      "source": "nuttx/include/nuttx/usb/xhci_rk3576.h",
+      "path": "port/new/nuttx/include/nuttx/usb/xhci_rk3576.h",
+      "bytes": 4291,
+      "sha256": "9966d183dc32e94514661c69350552c84ba4e49ceab3777cd7dbdd004158d58d"
+    },
+    {
+      "source": "cmake_out/rk3576_usb_photo_direction/.config",
+      "path": "baselines/rk3576_usb_photo_direction/.config",
+      "bytes": 53168,
+      "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+    },
+    {
+      "source": "cmake_out/rk3576_usb_photo_direction/nuttx.bin",
+      "path": "baselines/rk3576_usb_photo_direction/nuttx.bin",
+      "bytes": 1752192,
+      "sha256": "5d7730d830e92e7b38e1674521e0795ce76be961aace5fb14f2d922189ba1565"
+    },
+    {
+      "source": "cmake_out/rk3576_npu_raw_vendor/.config",
+      "path": "baselines/rk3576_npu_raw_vendor/.config",
+      "bytes": 53267,
+      "sha256": "20a221c5caa3c0617eb2e97d36887b6da11d1014e0b245ff5d61a87672c3db6b"
+    },
+    {
+      "source": "cmake_out/rk3576_npu_raw_vendor/nuttx.bin",
+      "path": "baselines/rk3576_npu_raw_vendor/nuttx.bin",
+      "bytes": 1772672,
+      "sha256": "4eceb18e2b0c4445fd0e159986d3daabd81943235e150966e0b427139c5ca72e"
+    },
+    {
+      "source": "cmake_out/rk3576_radio_id36/.config",
+      "path": "baselines/rk3576_radio_id36/.config",
+      "bytes": 59337,
+      "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+    },
+    {
+      "source": "cmake_out/rk3576_radio_id36/nuttx.bin",
+      "path": "baselines/rk3576_radio_id36/nuttx.bin",
+      "bytes": 400208,
+      "sha256": "8d53a8cd62b09bea20c4d2d4905c31fe14a0277f0c600914f59a3d189839ab56"
+    },
+    {
+      "source": "work/rk3576-fusion/photo_controller.py",
+      "path": "host/vision/photo_controller.py",
+      "bytes": 7741,
+      "sha256": "1f92895af4990d82c53201dfc82f4a3c73ed1e7b76c0485331bd747bf5aa5e6c"
+    },
+    {
+      "source": "work/rk3576-fusion/photo_preview.py",
+      "path": "host/vision/photo_preview.py",
+      "bytes": 13675,
+      "sha256": "2e264ca06d3b5ee4d48bd1e67ec534087693e94b5a0f64391a34eafea4a39190"
+    },
+    {
+      "source": "work/rk3576-fusion/photo_protocol.py",
+      "path": "host/vision/photo_protocol.py",
+      "bytes": 7437,
+      "sha256": "32ab15bffe8302c409debf25627e640bcbfe98ae9020533753789f735398be3a"
+    },
+    {
+      "source": "work/rk3576-fusion/k7_video_receiver.py",
+      "path": "host/vision/k7_video_receiver.py",
+      "bytes": 3363,
+      "sha256": "4e8af43392b798a38c7b4b8b58366d7fc388412a6a8ba5328487c780bde83a7f"
+    },
+    {
+      "source": "work/rk3576-fusion/track_overlay.py",
+      "path": "host/vision/track_overlay.py",
+      "bytes": 2226,
+      "sha256": "268bdfd63498dfbbe8dfa532c87e8c064da212436855fa142f9587610674ec20"
+    },
+    {
+      "source": "work/rk3576-fusion/test_photo_controller.py",
+      "path": "host/vision/test_photo_controller.py",
+      "bytes": 3430,
+      "sha256": "660201cd8dff2707c5a991fa320063b0ac8413f816e43792a9dc7e8f7d47ec8d"
+    },
+    {
+      "source": "work/rk3576-fusion/test_photo_protocol.py",
+      "path": "host/vision/test_photo_protocol.py",
+      "bytes": 4283,
+      "sha256": "f60e5a860e6d520a109fe90669c503b341e4737b8815333207ea7b213742cfd3"
+    },
+    {
+      "source": "work/rk3576-fusion/test_fusion.c",
+      "path": "host/vision/test_fusion.c",
+      "bytes": 2892,
+      "sha256": "d2bd21efa6e2d7359b1049980252fbcbd4f6dabbbc5694b09a50bdd2e6f2e0c3"
+    },
+    {
+      "source": "work/rk3576-fusion/generate_pose.py",
+      "path": "host/vision/generate_pose.py",
+      "bytes": 6254,
+      "sha256": "d47c29616c5201e36bf1f461aff78747ef8a9efcee544c66f2cd0a1c82b93270"
+    },
+    {
+      "source": "work/rk3576-fusion/test_pose_reference.py",
+      "path": "host/vision/test_pose_reference.py",
+      "bytes": 1560,
+      "sha256": "b27101aca0acfd9d696220ebe41b77efa46af91135ee421974fc94d7ca7165a7"
+    },
+    {
+      "source": "work/rk3576-fusion/HEAD_POSE_NOTICES.md",
+      "path": "host/vision/HEAD_POSE_NOTICES.md",
+      "bytes": 1109,
+      "sha256": "e43e44b666409b711985e294041488b97dde3a920024a042c10bed0dba283eb7"
+    },
+    {
+      "source": "work/rk3576-fusion/FSA_NET_PYTORCH_MIT.txt",
+      "path": "host/vision/FSA_NET_PYTORCH_MIT.txt",
+      "bytes": 1069,
+      "sha256": "11bc611e7e2e50561307c528cb98903e1c674a2f62b0412b589ca4d85dfa851c"
+    },
+    {
+      "source": "work/rk3576-fusion/calibration.json",
+      "path": "host/vision/calibration.json",
+      "bytes": 428,
+      "sha256": "d9dea51241cf8b3a946b58400f51fb0fb6c1eff161bb3f2a2b0a23b0765b3e84"
+    },
+    {
+      "source": "work/rk3576-fusion/NPU_ADAPTATION_PLAN.md",
+      "path": "host/vision/NPU_ADAPTATION_PLAN.md",
+      "bytes": 7024,
+      "sha256": "f3f8344b6a3f4999abb4914090169c7240ef7455161163b141596e4256deccb3"
+    },
+    {
+      "source": "work/rk3576-fusion/inspect_device_model.py",
+      "path": "host/vision/inspect_device_model.py",
+      "bytes": 2190,
+      "sha256": "3b311b3c8cf3416ffd8322975537e52c4977effacd80bbe8705daf48cecd98f5"
+    },
+    {
+      "source": "work/rk3576-fusion/prepare_device_rknn.py",
+      "path": "host/vision/prepare_device_rknn.py",
+      "bytes": 4898,
+      "sha256": "ac5e4a8a2dc7665a8c1bd012fb2ff5db607a582476733527e343aa4500c3c930"
+    },
+    {
+      "source": "work/rk3576-preview/analyze_async.py",
+      "path": "host/support/rk3576-preview/analyze_async.py",
+      "bytes": 1013,
+      "sha256": "41548c17483fa1a34fdbf2ab33c1d128039d1e47266bc7990e112ffcdfb07e43"
+    },
+    {
+      "source": "work/rk3576-preview/install.py",
+      "path": "host/support/rk3576-preview/install.py",
+      "bytes": 522,
+      "sha256": "4749b797eb3fd80252c77ab4621228cc59cd90d917ada755d7cb2c6bacfde4b8"
+    },
+    {
+      "source": "work/rk3576-preview/install_async.py",
+      "path": "host/support/rk3576-preview/install_async.py",
+      "bytes": 2285,
+      "sha256": "db171c40303f623645c3385543c4da6502a2fda2876acc49533bc807381684aa"
+    },
+    {
+      "source": "work/rk3576-preview/install_include_fix.py",
+      "path": "host/support/rk3576-preview/install_include_fix.py",
+      "bytes": 705,
+      "sha256": "183591d26b95c23518d57fa7837ac9fbdc66783cac94eb180db7159fa4663ef3"
+    },
+    {
+      "source": "work/rk3576-preview/install_pacing_fix.py",
+      "path": "host/support/rk3576-preview/install_pacing_fix.py",
+      "bytes": 772,
+      "sha256": "0ba927e85b3a95418d084303ed9f46e6a8a300bd20b09b956aab51cb91278cbc"
+    },
+    {
+      "source": "work/rk3576-preview/install_sleep_fix.py",
+      "path": "host/support/rk3576-preview/install_sleep_fix.py",
+      "bytes": 766,
+      "sha256": "8ae63bc6171a9a083f8b4750a7486569d2e6ba8d74a9c779bcd8a0c59cff2993"
+    },
+    {
+      "source": "work/rk3576-preview/install_thumbnail_fix.py",
+      "path": "host/support/rk3576-preview/install_thumbnail_fix.py",
+      "bytes": 879,
+      "sha256": "10d77dcbc7351dde687ec8e8511383217f41e979961db7c4560b66e3af81eb81"
+    },
+    {
+      "source": "work/rk3576-preview/live_preview.py",
+      "path": "host/support/rk3576-preview/live_preview.py",
+      "bytes": 4862,
+      "sha256": "080c4f395dd109817c66b5f9fb0980047030a762f16c0f344e550e597712ccca"
+    },
+    {
+      "source": "work/rk3576-preview/make_thumbnail_pipeline.py",
+      "path": "host/support/rk3576-preview/make_thumbnail_pipeline.py",
+      "bytes": 702,
+      "sha256": "3519f394d68bfaa8b848f5a994dcc567e9563ba57d20226d75cf92294bb6f709"
+    },
+    {
+      "source": "work/rk3576-preview/prepare_bench.py",
+      "path": "host/support/rk3576-preview/prepare_bench.py",
+      "bytes": 1203,
+      "sha256": "5d7501cf61e4864e5f82a3e94d15a1922eb0046513154c658adbfb065f2cc083"
+    },
+    {
+      "source": "work/rk3576-preview/prepare_v23.py",
+      "path": "host/support/rk3576-preview/prepare_v23.py",
+      "bytes": 3313,
+      "sha256": "013da85aebb1eae6fad7059929c799de1f2bc7b2a60f8b8de709c3cc13eb7d13"
+    },
+    {
+      "source": "work/rk3576-preview/run_bench.py",
+      "path": "host/support/rk3576-preview/run_bench.py",
+      "bytes": 1099,
+      "sha256": "015c2c460fb6f1088180d7605267395cd3454e9f3422cacb66fb54203c0b894a"
+    },
+    {
+      "source": "work/rk3576-preview/run_bench_mid.py",
+      "path": "host/support/rk3576-preview/run_bench_mid.py",
+      "bytes": 1133,
+      "sha256": "8d280702f361d896ee28006333339b47183edce703460f899d8450a103f3521c"
+    },
+    {
+      "source": "work/rk3576-preview/run_bench_repeat.py",
+      "path": "host/support/rk3576-preview/run_bench_repeat.py",
+      "bytes": 1131,
+      "sha256": "9b0fdb6cf7eb834bd56c652ac6df776df225895cb2b45c113b5500d7db895234"
+    },
+    {
+      "source": "work/rk3576-preview/run_tests_async.py",
+      "path": "host/support/rk3576-preview/run_tests_async.py",
+      "bytes": 1891,
+      "sha256": "cb173d18b3f50d8e9237861ff8665fe98ad74bdea186d057460731ef8ac7d5de"
+    },
+    {
+      "source": "work/rk3576-preview/run_tests_v23.py",
+      "path": "host/support/rk3576-preview/run_tests_v23.py",
+      "bytes": 1830,
+      "sha256": "3a6b116e5e288885e7b6012bc4cd6a0775a2f6f13911eef3f320c0532557f129"
+    },
+    {
+      "source": "work/rk3576-preview/test_preview.py",
+      "path": "host/support/rk3576-preview/test_preview.py",
+      "bytes": 830,
+      "sha256": "989473bb27f4a651fdf3d5d945533fe4c066afb1e3f61d426ec5f93cbe7ab21e"
+    },
+    {
+      "source": "work/rk3576-preview/visible_trial.py",
+      "path": "host/support/rk3576-preview/visible_trial.py",
+      "bytes": 4829,
+      "sha256": "81791e90a476c4bbec9fa53d2cef7096cf4d27550312a4feff8846a031a71461"
+    },
+    {
+      "source": "work/rk3576-preview/async-dry-analysis.json",
+      "path": "host/support/rk3576-preview/async-dry-analysis.json",
+      "bytes": 159,
+      "sha256": "d42cbae2f591d55101521cb610aec46c7dd283fe16bdbee080d92a5875b85376"
+    },
+    {
+      "source": "work/rk3576-preview/async-install.json",
+      "path": "host/support/rk3576-preview/async-install.json",
+      "bytes": 355,
+      "sha256": "ff6d14eabb884355519f400f16b9334de506055b80809cfd10c928db5fa9c3fe"
+    },
+    {
+      "source": "work/rk3576-preview/bench-mid-results.json",
+      "path": "host/support/rk3576-preview/bench-mid-results.json",
+      "bytes": 1443,
+      "sha256": "4b5589c2fc96b5f5e72f791cf00e0744698e42beb1b421c3f642eb4ee38753fc"
+    },
+    {
+      "source": "work/rk3576-preview/bench-repeat-results.json",
+      "path": "host/support/rk3576-preview/bench-repeat-results.json",
+      "bytes": 1582,
+      "sha256": "7b2aa0069eab33be3244fdd9b9bd0c3c10bf23aa880ae809af71a6fd359a226f"
+    },
+    {
+      "source": "work/rk3576-preview/bench-results.json",
+      "path": "host/support/rk3576-preview/bench-results.json",
+      "bytes": 1831,
+      "sha256": "eab5034d3c35429f2a2d690267ea86cf56f2e62e690864128917a1c319745c10"
+    },
+    {
+      "source": "work/rk3576-preview/bench-source.json",
+      "path": "host/support/rk3576-preview/bench-source.json",
+      "bytes": 230,
+      "sha256": "5e96a920e15be8590b8347a37a12ed4eca59e79a68b729dca2237a7be97de2cd"
+    },
+    {
+      "source": "work/rk3576-preview/install-plan.json",
+      "path": "host/support/rk3576-preview/install-plan.json",
+      "bytes": 1454,
+      "sha256": "53e94ff8fb4f9eced4ecfbfff0ba3360940bc8963f7e4de524a368da1c650457"
+    },
+    {
+      "source": "work/rk3576-preview/static-async.json",
+      "path": "host/support/rk3576-preview/static-async.json",
+      "bytes": 707,
+      "sha256": "6ffef7147dec8174b3ddd2f6c3351f02619047b48003906b3d1a486188ba9b41"
+    },
+    {
+      "source": "work/rk3576-preview/static-paced.json",
+      "path": "host/support/rk3576-preview/static-paced.json",
+      "bytes": 707,
+      "sha256": "8e027765da5028678a2ad6a284c9024abbcd00519e067f0f0e053f33c07fd222"
+    },
+    {
+      "source": "work/rk3576-preview/static-thumb.json",
+      "path": "host/support/rk3576-preview/static-thumb.json",
+      "bytes": 707,
+      "sha256": "0b37d516780e991f3bc4e68267cea897fbf013dcfeac771adf0306426fa0a8e9"
+    },
+    {
+      "source": "work/rk3576-preview/static.json",
+      "path": "host/support/rk3576-preview/static.json",
+      "bytes": 707,
+      "sha256": "d758d8ee078209df2776a4586a9c2f4d24e07192c7dc1396ea8882137c3fe25f"
+    },
+    {
+      "source": "work/rk3576-preview/visible-mounted-20260905-160351.json",
+      "path": "host/support/rk3576-preview/visible-mounted-20260905-160351.json",
+      "bytes": 165,
+      "sha256": "29f6b9ba7b4f857529d2faaab42c6f9e8023304fbd2f086dda7a83d65163f2fb"
+    },
+    {
+      "source": "work/rk3576-xcenter-follow/follow_calibrated.py",
+      "path": "host/support/rk3576-xcenter-follow/follow_calibrated.py",
+      "bytes": 6333,
+      "sha256": "db64a1d13ae91d09b711ec2da88f833546fb4a355b7b71c6c821037febbd9d6a"
+    },
+    {
+      "source": "work/rk3576-xcenter-follow/follow_soak.py",
+      "path": "host/support/rk3576-xcenter-follow/follow_soak.py",
+      "bytes": 5859,
+      "sha256": "1fcbcef950022e94888e39b38ec1a1d4c4c860063c411919625edbe76bd28e64"
+    },
+    {
+      "source": "work/rk3576-xcenter-follow/k7_video_receiver.py",
+      "path": "host/support/rk3576-xcenter-follow/k7_video_receiver.py",
+      "bytes": 3165,
+      "sha256": "575a81f334e0f0b18c808b375508bc3142d1bef04f3c1c70652b50f48a1a0c04"
+    },
+    {
+      "source": "work/rk3576-xcenter-follow/manual_model.py",
+      "path": "host/support/rk3576-xcenter-follow/manual_model.py",
+      "bytes": 2997,
+      "sha256": "efe7dbf1d84b99952c2198c712dd2f8ded532d8a5739c6ca96b7e0665c086da0"
+    },
+    {
+      "source": "work/rk3576-xcenter-follow/preview_calibrated.py",
+      "path": "host/support/rk3576-xcenter-follow/preview_calibrated.py",
+      "bytes": 9107,
+      "sha256": "4abe1c26d5d88767bcedb928201f8c5124244f31e0c492239b39947e72e89fb3"
+    },
+    {
+      "source": "work/rk3576-xcenter-follow/track_overlay.py",
+      "path": "host/support/rk3576-xcenter-follow/track_overlay.py",
+      "bytes": 2179,
+      "sha256": "5fcab117edd574b9c34f965fb33707f405d897546958bcdc82282b422d9c0a4e"
+    },
+    {
+      "source": "work/rk3576-xcenter-follow/calibration.json",
+      "path": "host/support/rk3576-xcenter-follow/calibration.json",
+      "bytes": 428,
+      "sha256": "d9dea51241cf8b3a946b58400f51fb0fb6c1eff161bb3f2a2b0a23b0765b3e84"
+    },
+    {
+      "source": "work/rk3576-usbhost/compare_uboot_usb.py",
+      "path": "host/support/rk3576-usbhost/compare_uboot_usb.py",
+      "bytes": 2093,
+      "sha256": "fd43a2b53a4b779a5a449956926797c7f433bb73b2ae980d0a4bd4e146da749c"
+    },
+    {
+      "source": "work/rk3576-usbhost/export_nsh_frame.py",
+      "path": "host/support/rk3576-usbhost/export_nsh_frame.py",
+      "bytes": 2603,
+      "sha256": "a817fc71f83298ea96519ff3d840035e105e8a375c7151f4b12acf65878df1d9"
+    },
+    {
+      "source": "work/rk3576-usbhost/fix_usbhost_link.py",
+      "path": "host/support/rk3576-usbhost/fix_usbhost_link.py",
+      "bytes": 2447,
+      "sha256": "d0838ee997e03c5d68384e205bd29f03749e16d741d731e418bf1602c694d271"
+    },
+    {
+      "source": "work/rk3576-usbhost/fix_uvc_control.py",
+      "path": "host/support/rk3576-usbhost/fix_uvc_control.py",
+      "bytes": 1861,
+      "sha256": "31ad56db61754448b68abd3ab598cf0ac9b1a362fc42b85f7a93a5cdbefc7e55"
+    },
+    {
+      "source": "work/rk3576-usbhost/install_usbhost.py",
+      "path": "host/support/rk3576-usbhost/install_usbhost.py",
+      "bytes": 9548,
+      "sha256": "5eceea761f93d517063fa7e2e86b236c98f4f5ccb8a276ce33dc6ea4cf86b0dc"
+    },
+    {
+      "source": "work/rk3576-usbhost/package_first_frame.py",
+      "path": "host/support/rk3576-usbhost/package_first_frame.py",
+      "bytes": 4504,
+      "sha256": "85e5f6579b348a590dbb7b89264c8f03eae11095af2e9000596d578f27fe22ce"
+    },
+    {
+      "source": "work/rk3576-usbhost/package_usb_checkpoint.py",
+      "path": "host/support/rk3576-usbhost/package_usb_checkpoint.py",
+      "bytes": 3034,
+      "sha256": "28a9e2b2e4b0e44b0529a4f120c5ebecdba302c5f2710bb4e85c00388337c823"
+    },
+    {
+      "source": "work/rk3576-usbhost/prepare_combo_usb_mode.py",
+      "path": "host/support/rk3576-usbhost/prepare_combo_usb_mode.py",
+      "bytes": 1767,
+      "sha256": "bba3e07a2cb224abb5acb307937483f397ddf380f937a894e18e56d92a8eb926"
+    },
+    {
+      "source": "work/rk3576-usbhost/prepare_dma_probe.py",
+      "path": "host/support/rk3576-usbhost/prepare_dma_probe.py",
+      "bytes": 1966,
+      "sha256": "89e5724293a37e3197ca12c315055292847bac4dc065805fe2d134feefe29619"
+    },
+    {
+      "source": "work/rk3576-usbhost/prepare_usb2_pipe.py",
+      "path": "host/support/rk3576-usbhost/prepare_usb2_pipe.py",
+      "bytes": 3194,
+      "sha256": "c48b8839394b9f77d8d43af5b2519bb0408fdeec417bc930ff3d6b8d4141f546"
+    },
+    {
+      "source": "work/rk3576-usbhost/prepare_usb_diagnostics.py",
+      "path": "host/support/rk3576-usbhost/prepare_usb_diagnostics.py",
+      "bytes": 1544,
+      "sha256": "b5da5dfe57d164d46580060fb41d27badc220d3477c1f9620e248860d92a5165"
+    },
+    {
+      "source": "work/rk3576-usbhost/prepare_uvc_batch.py",
+      "path": "host/support/rk3576-usbhost/prepare_uvc_batch.py",
+      "bytes": 7691,
+      "sha256": "96d2b6ae0c5a5abe40fdc570f38ada9313d130c79445db2b3464ec1ed6d307fa"
+    },
+    {
+      "source": "work/rk3576-usbhost/prepare_uvc_packets.py",
+      "path": "host/support/rk3576-usbhost/prepare_uvc_packets.py",
+      "bytes": 8651,
+      "sha256": "98579d45e154e742ce841496bef1a04241426781a420868b06145d45f7d3e2fd"
+    },
+    {
+      "source": "work/rk3576-usbhost/prepare_uvc_probe.py",
+      "path": "host/support/rk3576-usbhost/prepare_uvc_probe.py",
+      "bytes": 7370,
+      "sha256": "927046a703c1990e6e0a3e3d24799708cd42bbdee58949b65f8579ebb7789599"
+    },
+    {
+      "source": "work/rk3576-usbhost/prepare_uvc_warmup.py",
+      "path": "host/support/rk3576-usbhost/prepare_uvc_warmup.py",
+      "bytes": 1575,
+      "sha256": "1aca3f408e75fd137d0d14d87c17cb9ce768d7bba7305f1faf89653dcff888da"
+    },
+    {
+      "source": "work/rk3576-usbhost/prepare_xhci_mmio.py",
+      "path": "host/support/rk3576-usbhost/prepare_xhci_mmio.py",
+      "bytes": 3204,
+      "sha256": "49951b576d34b894446955839d8d1ee0169324f2a8af97515e326ab3c2268ab7"
+    },
+    {
+      "source": "work/rk3576-usbhost/probe_with_recovery.py",
+      "path": "host/support/rk3576-usbhost/probe_with_recovery.py",
+      "bytes": 1496,
+      "sha256": "2f1a1ee3f4d7688fbf3a41f41ec9b0be21f303d6daa298dc9ad41d338a9e3c0c"
+    },
+    {
+      "source": "work/rk3576-usbhost/uart_ramboot.py",
+      "path": "host/support/rk3576-usbhost/uart_ramboot.py",
+      "bytes": 4382,
+      "sha256": "0fec923046d0c6fcc07f95c4cf9ac81dcc2fd431ccd12dcf9ec30e2f07f1d01a"
+    },
+    {
+      "source": "work/rk3576-usbhost/checkpoint-v13.json",
+      "path": "host/support/rk3576-usbhost/checkpoint-v13.json",
+      "bytes": 8100,
+      "sha256": "315dd62e07a0028165c3efbf3fe7c8252d87614986b0fbe88e3d4e9da1a822ae"
+    },
+    {
+      "source": "work/rk3576-usbhost/checkpoint-v7.json",
+      "path": "host/support/rk3576-usbhost/checkpoint-v7.json",
+      "bytes": 799,
+      "sha256": "2e989dc80b252cd5a9b6e3161ed8453d1b527ee2526829646c037950d0199a45"
+    },
+    {
+      "source": "work/rk3576-usbhost/decode-v13.json",
+      "path": "host/support/rk3576-usbhost/decode-v13.json",
+      "bytes": 113,
+      "sha256": "629f2ef9aa48a5164c3108a6ad26dc626c63caae84ab0f1dc3fa43e733797349"
+    },
+    {
+      "source": "work/rk3576-usbhost/host-start-v2.json",
+      "path": "host/support/rk3576-usbhost/host-start-v2.json",
+      "bytes": 1649,
+      "sha256": "dc61986819c6528c0634a4332833cc9edf66de827eb35d3374e00bf830bff225"
+    },
+    {
+      "source": "work/rk3576-usbhost/host-start-v3.json",
+      "path": "host/support/rk3576-usbhost/host-start-v3.json",
+      "bytes": 3604,
+      "sha256": "f88d4b9a38c8d28a2fb59ba3a38842bd9e702eeb843b5f7a2476f7a9b8329234"
+    },
+    {
+      "source": "work/rk3576-usbhost/k7-first-frame-v11.json",
+      "path": "host/support/rk3576-usbhost/k7-first-frame-v11.json",
+      "bytes": 151,
+      "sha256": "4a876532d38226da58642d14f23da36d2f733b7fb037fcbfb026b684fbfa3360"
+    },
+    {
+      "source": "work/rk3576-usbhost/k7-first-frame-v13.json",
+      "path": "host/support/rk3576-usbhost/k7-first-frame-v13.json",
+      "bytes": 151,
+      "sha256": "a2f7722c98e2c882c1d76fa5dbbdc66252edcd64fb6ed37948c0538f3e413251"
+    },
+    {
+      "source": "work/rk3576-usbhost/provenance.json",
+      "path": "host/support/rk3576-usbhost/provenance.json",
+      "bytes": 1000,
+      "sha256": "d24eb8184179f63e68ca8519af29a3338c68c62679d56fd0e7916b021df705ad"
+    },
+    {
+      "source": "work/rk3576-usbhost/uboot-platform-after.json",
+      "path": "host/support/rk3576-usbhost/uboot-platform-after.json",
+      "bytes": 886,
+      "sha256": "941ca8328685b6ab587b30abc779b0f6e80e97c3273e08e84762e072b43ea3ff"
+    },
+    {
+      "source": "work/rk3576-usbhost/uboot-platform-before.json",
+      "path": "host/support/rk3576-usbhost/uboot-platform-before.json",
+      "bytes": 886,
+      "sha256": "f50ee104eeca83a1065be759d41903dbcaecd6168834aadaa9b4ba1b9f3fd828"
+    },
+    {
+      "source": "work/rk3576-usbhost/uboot-platform-diff.json",
+      "path": "host/support/rk3576-usbhost/uboot-platform-diff.json",
+      "bytes": 314,
+      "sha256": "dd3b10c53b0426ffcbd21c72d109b0a258d59ed1e57bdf9450d3e04cebf6c8b2"
+    },
+    {
+      "source": "work/rk3576-usbhost/verify-v2.json",
+      "path": "host/support/rk3576-usbhost/verify-v2.json",
+      "bytes": 705,
+      "sha256": "ee493b9eb949146305d197b343985c28ff9719b26652ddb867c02e98c6295a76"
+    },
+    {
+      "source": "work/rk3576-usbhost/verify-v3.json",
+      "path": "host/support/rk3576-usbhost/verify-v3.json",
+      "bytes": 705,
+      "sha256": "15c61414b522a8544e97b91290112fee43368330562627d147b9bfa045046bfa"
+    },
+    {
+      "source": "work/rk3576-usbhost/verify-v4.json",
+      "path": "host/support/rk3576-usbhost/verify-v4.json",
+      "bytes": 705,
+      "sha256": "4ecf35e3ef0b7a81417c68fa584dbad2479ee30cec90529ea5b9f3eec4924961"
+    },
+    {
+      "source": "work/rk3576-usbhost/verify-v7.json",
+      "path": "host/support/rk3576-usbhost/verify-v7.json",
+      "bytes": 705,
+      "sha256": "19622fa68b5230c6520c811bbfabd2d45feb81a9a7c93d548ebdcf2541020c00"
+    }
+  ]
+}

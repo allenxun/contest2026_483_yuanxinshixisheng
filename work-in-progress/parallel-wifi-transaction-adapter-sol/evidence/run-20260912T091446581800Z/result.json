@@ -1,0 +1,71 @@
+{
+  "scope": "host fake backend only; no SDK, VM, serial, device, radio or central log access",
+  "scenario_groups": 10,
+  "passed": true,
+  "builds": [
+    {
+      "optimization": "O0",
+      "command": [
+        "g++",
+        "-O0",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-I",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-transaction-adapter-sol\\include",
+        "-I",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\include",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-transaction-adapter-sol\\src\\wifi_transaction_adapter.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\core.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\parsers.cpp",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-transaction-adapter-sol\\tests\\test_wifi_transaction_adapter.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-transaction-adapter-sol\\evidence\\run-20260912T091446581800Z\\test-O0.exe"
+      ],
+      "build_exit_code": 0,
+      "build_output": "",
+      "test_exit_code": 0,
+      "test_output": "wifi transaction adapter: 10 scenario groups passed; fake backend only\n",
+      "executable_sha256": "6635934816735810c0c3159e2191afa3885364085046f6c7a7da2ae84c1e7a05"
+    },
+    {
+      "optimization": "O2",
+      "command": [
+        "g++",
+        "-O2",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-I",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-transaction-adapter-sol\\include",
+        "-I",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\include",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-transaction-adapter-sol\\src\\wifi_transaction_adapter.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\core.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\parsers.cpp",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-transaction-adapter-sol\\tests\\test_wifi_transaction_adapter.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-transaction-adapter-sol\\evidence\\run-20260912T091446581800Z\\test-O2.exe"
+      ],
+      "build_exit_code": 0,
+      "build_output": "",
+      "test_exit_code": 0,
+      "test_output": "wifi transaction adapter: 10 scenario groups passed; fake backend only\n",
+      "executable_sha256": "6dc4c0db33fe47388f655f0b6df22e0d8858229667ceaec826a41b0f19a9faed"
+    }
+  ],
+  "source_sha256": {
+    "include/wifi_transaction_adapter.hpp": "515285815993304790d7934b62e3d22edb53dd33db89759fb78fa6e1f34911ea",
+    "src/wifi_transaction_adapter.cpp": "acce795dd2958833e46fb8cb10e66af6cd4ed310051aa5e0837dedb659225869",
+    "tests/test_wifi_transaction_adapter.cpp": "a01bf370438fd158247f4fc8a858211a6717920b441924739796b8053768aa11",
+    "INTEGRATION.md": "a20a29c28b4a95baa4b28553434fe4fedbd493ad25977feeb6d811d8175a034d",
+    "HANDOFF.md": "9d1eb9dd19cf60244777bf58a79074260d0cc077eec3867f36e2fcc5c63d0bdf",
+    "README.md": "7516972eb8899fc2c6abb58520a9c93d43ffe8c623077263cffce46c19048af3",
+    "run_tests.py": "0d1559ee17e6b79fc1406f64b64aa19dfd3a8aecda161a9163ffa756ff220eeb",
+    "evidence/inputs.json": "74f5be56063c908b7d517c3468c070e5b650eaf5d138a3fdce0afbdec1467d87"
+  }
+}

@@ -1,0 +1,33 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-cpu.h:4,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/include/llama.h:5,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.h:3,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.cpp:1:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.cpp: In member function 'void llama_sbatch::add_seq_to_ubatch(llama_ubatch&, llama_sbatch_seq&, size_t)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.cpp:38:80: warning: declaration of 'seq' shadows a member of 'llama_sbatch' [-Wshadow]
+   38 | void llama_sbatch::add_seq_to_ubatch(llama_ubatch & ubatch, llama_sbatch_seq & seq, size_t length) {
+      |                                                             ~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.h:48:35: note: shadowed declaration is here
+   48 |     std::vector<llama_sbatch_seq> seq;
+      |                                   ^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.cpp: In member function 'void llama_sbatch::from_batch(const llama_batch&, size_t, bool, bool)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.cpp:192:97: warning: declaration of 'logits_all' shadows a member of 'llama_sbatch' [-Wshadow]
+  192 | void llama_sbatch::from_batch(const llama_batch & batch, size_t n_embd, bool simple_split, bool logits_all) {
+      |                                                                                            ~~~~~^~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.h:42:10: note: shadowed declaration is here
+   42 |     bool logits_all; // TODO: remove once lctx.logits_all is removed too
+      |          ^~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.cpp:192:65: warning: declaration of 'n_embd' shadows a member of 'llama_sbatch' [-Wshadow]
+  192 | void llama_sbatch::from_batch(const llama_batch & batch, size_t n_embd, bool simple_split, bool logits_all) {
+      |                                                          ~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.h:40:12: note: shadowed declaration is here
+   40 |     size_t n_embd;
+      |            ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.cpp:192:51: warning: declaration of 'batch' shadows a member of 'llama_sbatch' [-Wshadow]
+  192 | void llama_sbatch::from_batch(const llama_batch & batch, size_t n_embd, bool simple_split, bool logits_all) {
+      |                               ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-batch.h:50:25: note: shadowed declaration is here
+   50 |     const llama_batch * batch = nullptr;
+      |                         ^~~~~

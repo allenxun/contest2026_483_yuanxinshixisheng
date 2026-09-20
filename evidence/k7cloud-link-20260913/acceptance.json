@@ -1,0 +1,44 @@
+{
+  "revision": "k7cloud-link-20260913",
+  "accepted_at": "2026-09-13T15:24:00+08:00",
+  "scope": "host tests plus independent ARM64 compile/link; no board or network operation",
+  "host_tests": {
+    "command": "powershell -File tests/k7cloud/run_host_tests.ps1",
+    "exit_code": 0,
+    "optimizations": ["O0", "O2"],
+    "dns_cases_per_optimization": 9,
+    "https_groups_per_optimization": 9,
+    "runner_sha256": "885e60e0f5d5b5cd995d9501dbaa21435d1b51f68631a90de3e6798a11e51093",
+    "artifacts": {
+      "dns_O0.exe": "844bc2b0cf44d361e31bc5e7ee5f0ebddfaa44580ecfbfb34a786b0b4711f33d",
+      "dns_O2.exe": "406bc69c74ad07877f03eceaf556d17a06c64799bff8dd7e7ce6fa6b0bfb3642",
+      "https_O0.exe": "fa7c2b0ce2fe6314283c960d67980358923e417b0f8af69a6908bc9972010482",
+      "https_O2.exe": "7f6fa92cc5fd9cf294cffe46b7a157d7617e1c6faf247118171d68e57d572a91"
+    }
+  },
+  "arm64_build": {
+    "report": "attempt5-result.json",
+    "report_sha256": "92e1c05366eb8706545118b57e93e479b95c85eac4c37e7273fd6879efd2f368",
+    "configure_log_sha256": "e1c00b2c99b9a3be767ab5069d922ba09933f4dd592ac8043c05d9dc4377a75f",
+    "build_log_sha256": "bbbe36cf86d41b176599e84c65ecc525b07dceaac0f7684ca27176bdeade3407",
+    "configure_exit_code": 0,
+    "build_exit_code": 0,
+    "required_symbols_present": 5,
+    "nuttx_sha256": "b7c9de65a3712bbaf54e1ddc2ed38706c821835648b6208ab15f943ef666567c",
+    "nuttx_bin_sha256": "73512fa86a1184fe04c78ebfbba3db7c80ba159a2b0c97e6f9d40ac870fa476a",
+    "config_sha256": "fd40f628f4abf13e4ac836e38909ac4fe037294b071549bfc491028f8e00d7df"
+  },
+  "security_gates": [
+    "TLS peer certificate and verify flags required",
+    "SNI required",
+    "bounded headers, body, chunks and total deadline",
+    "cancellation and secure staging cleanup",
+    "runtime DNS supplied later by DHCP; no fixed DNS address"
+  ],
+  "board_tested": false,
+  "dns_runtime_tested": false,
+  "https_runtime_tested": false,
+  "credentials_used": false,
+  "flash_written": false,
+  "next": "finish voice Wi-Fi provisioning, then register DHCP DNS and run a bounded public DNS probe before HTTPS"
+}

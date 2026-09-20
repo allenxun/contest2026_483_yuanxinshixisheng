@@ -1,0 +1,112 @@
+{"result": "PASS", "source_files": 459, "changes": 2, "applied": true}
+-- NuttX Host Tools
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/swl/openvela/cmake_out/velavision_emmc_block_20260910/bin_host
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/swl/openvela/cmake_out/velavision_emmc_block_20260910
+[1/102] cd /home/swl/openvela/cmake_out/velavision_emmc_block_20260910/libs/libc/misc && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E touch /home/swl/openvela/nuttx/libs/libc/misc/lib_utsname.c
+[2/102] Generating bin output directories
+[3/102] cd /home/swl/openvela/nuttx && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -DKCONFIG_CONFIG=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_emmc_block_local/defconfig -DNUTTX_DIR=/home/swl/openvela/nuttx -DCMAKE_BINARY_DIR=/home/swl/openvela/cmake_out/velavision_emmc_block_20260910 -P /home/swl/openvela/nuttx/cmake/nuttx_generate_dts.cmake
+[4/102] Building C object boards/CMakeFiles/board.dir/__/dummy.c.o
+[5/102] Building C object apps/CMakeFiles/apps.dir/dummy.c.o
+[6/102] Building C object apps/examples/k7emmc/CMakeFiles/apps_k7emmc.dir/emmc_init.c.o
+[7/102] Building C object apps/examples/k7emmc/CMakeFiles/apps_k7emmc.dir/sdhci_control.c.o
+[8/102] Building C object apps/examples/k7emmc/CMakeFiles/apps_k7emmc.dir/gpt_readonly.c.o
+[9/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_jpeg.c.o
+[10/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_pipeline.c.o
+[11/102] Building C object apps/examples/k7emmc/CMakeFiles/apps_k7emmc.dir/k7emmc_main.c.o
+[12/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_photo.c.o
+[13/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/fusion_core.c.o
+[14/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_track.c.o
+[15/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_preview.c.o
+[16/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_preview_queue.c.o
+[17/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/dwc3_transport_core.c.o
+[18/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_video_frame.c.o
+[19/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_video_queue.c.o
+[20/102] Building C object apps/examples/k7mem/CMakeFiles/apps_k7mem.dir/k7mem_main.c.o
+[21/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7host_main.c.o
+[22/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_link_probe.c.o
+[23/102] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_main.c.o
+[24/102] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/rk3576_npu_window.c.o
+[25/102] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_mmutest.c.o
+[26/102] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/rk3576_npu_mmu.c.o
+[27/102] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_rawtest.c.o
+[28/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_bus.c.o
+[29/102] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_fixture_io.c.o
+[30/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_packet.c.o
+[31/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_dw.c.o
+[32/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_rk3576.c.o
+[33/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_wpa_transport.c.o
+[34/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/prov_protocol.c.o
+[35/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_bt.c.o
+[36/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_supplicant.c.o
+[37/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_supplicant_os.c.o
+[38/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/rsn_supp/wpa_ie.c.o
+[39/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/cJSON.c.o
+[40/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/rsn_supp/pmksa_cache.c.o
+[41/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/common/wpa_common.c.o
+[42/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/rsn_supp/wpa.c.o
+[43/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/utils/wpabuf.c.o
+[44/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/utils/common.c.o
+[45/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/utils/bitfield.c.o
+[46/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-internal.c.o
+[47/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/common/ieee802_11_common.c.o
+[48/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-unwrap.c.o
+[49/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-internal-enc.c.o
+[50/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-internal-dec.c.o
+[51/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-wrap.c.o
+[52/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-omac1.c.o
+[53/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1.c.o
+[54/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1-prf.c.o
+[55/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1-pbkdf2.c.o
+[56/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/k7radio_main.c.o
+[57/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha256.c.o
+[58/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha256-internal.c.o
+[59/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1-internal.c.o
+[60/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha256-prf.c.o
+[61/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/md5.c.o
+[62/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/rc4.c.o
+[63/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_random.c.o
+[64/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_yunet.c.o
+[65/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/md5-internal.c.o
+[66/102] Building C object apps/external/android/CMakeFiles/android.dir/dummy.c.o
+[67/102] Building ASM object CMakeFiles/nuttx.dir/arch/arm64/src/common/arm64_head.S.o
+[68/102] Building C object apps/builtin/CMakeFiles/apps_builtin.dir/builtin_list.c.o
+[69/102] Building C object apps/examples/k7usb/CMakeFiles/apps_k7usb.dir/k7usb_main.c.o
+[70/102] Building C object CMakeFiles/nuttx.dir/empty.c.o
+[71/102] Linking C static library binfmt/libbinfmt.a
+[72/102] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_netdev.c.o
+[73/102] Linking C static library arch/libarch.a
+[74/102] Linking C static library drivers/libdrivers.a
+[75/102] Linking C static library apps/external/libjpeg-turbo/libturbojpeg-static.a
+[76/102] Linking C static library mm/libmm.a
+[77/102] Linking C static library wireless/libwireless.a
+[78/102] Linking C static library boards/libboard.a
+[79/102] Linking C static library fs/libfs.a
+[80/102] Linking C static library apps/system/nsh/libapps_nsh.a
+[81/102] Linking C static library apps/system/nsh/libapps_sh.a
+[82/102] Linking C static library apps/system/ping/libapps_ping.a
+[83/102] Linking C static library apps/wireless/bluetooth/btsak/libapps_bt.a
+[84/102] Linking C static library apps/examples/gimbal/libapps_gimbal.a
+[85/102] Linking C static library apps/examples/hello/libapps_hello.a
+[86/102] Linking C static library apps/examples/k7emmc/libapps_k7emmc.a
+[87/102] Linking C static library apps/examples/k7mem/libapps_k7mem.a
+[88/102] Linking C static library apps/examples/k7npu/libapps_k7npu.a
+[89/102] Linking C static library apps/libapps.a
+[90/102] Linking C static library apps/examples/k7usb/libapps_k7usb.a
+[91/102] Linking C static library apps/external/android/libandroid.a
+[92/102] Linking C static library apps/examples/k7radio/libapps_k7radio.a
+[93/102] Linking C static library apps/builtin/libapps_builtin.a
+[94/102] Building C object arch/arm64/src/common/CMakeFiles/STARTUP_OBJS.dir/crt0.c.o
+[95/102] Linking C static library net/libnet.a
+[96/102] Linking C static library sched/libsched.a
+[97/102] Linking C static library libs/libc/libc.a
+[98/102] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_pose.c.o
+[99/102] Linking C static library apps/examples/k7host/libapps_k7host.a
+[100/102] Linking C executable nuttx
+Memory region         Used Size  Region Size  %age Used
+            dram:       5152 KB       126 MB      3.99%
+[101/102] Generating nuttx.bin
+[102/102] Generating System.map

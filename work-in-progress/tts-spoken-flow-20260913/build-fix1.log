@@ -1,0 +1,55 @@
+[1/53] cd /home/swl/openvela/cmake_out/velavision_spoken_tts_20260913/libs/libc/misc && /usr/bin/cmake -E touch /home/swl/openvela/nuttx/libs/libc/misc/lib_utsname.c
+[2/53] Generating bin output directories
+[3/53] cd /home/swl/openvela/nuttx && /usr/bin/cmake -DKCONFIG_CONFIG=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_spoken_tts_local/defconfig -DNUTTX_DIR=/home/swl/openvela/nuttx -DCMAKE_BINARY_DIR=/home/swl/openvela/cmake_out/velavision_spoken_tts_20260913 -P /home/swl/openvela/nuttx/cmake/nuttx_generate_dts.cmake
+[4/53] Building C object apps/external/android/CMakeFiles/android.dir/dummy.c.o
+[5/53] Building C object apps/builtin/CMakeFiles/apps_builtin.dir/builtin_list.c.o
+[6/53] Building ASM object CMakeFiles/nuttx.dir/arch/arm64/src/common/arm64_head.S.o
+[7/53] Building CXX object CMakeFiles/nuttx.dir/empty.cxx.o
+[8/53] Building C object CMakeFiles/nuttx.dir/empty.c.o
+[9/53] Linking C static library apps/external/libjpeg-turbo/libturbojpeg-static.a
+[10/53] Linking C static library binfmt/libbinfmt.a
+[11/53] Linking C static library arch/libarch.a
+[12/53] Linking C static library drivers/libdrivers.a
+[13/53] Linking C static library fs/libfs.a
+[14/53] Linking CXX static library libs/libxx/libcxx/liblibcxx.a
+[15/53] Linking CXX static library libs/libxx/libcxxabi/liblibcxxabi.a
+[16/53] Linking C static library mm/libmm.a
+[17/53] Building CXX object apps/examples/voicelink/CMakeFiles/apps_k7voice.dir/src/voice_loop.cpp.o
+[18/53] Linking C static library net/libnet.a
+[19/53] Linking C static library wireless/libwireless.a
+[20/53] Building CXX object apps/examples/voicelink/CMakeFiles/apps_k7voice.dir/src/k7voice_main.cpp.o
+[21/53] Linking C static library boards/libboard.a
+[22/53] Linking C static library apps/system/nsh/libapps_nsh.a
+[23/53] Linking C static library apps/system/nsh/libapps_sh.a
+[24/53] Linking C static library apps/system/ping/libapps_ping.a
+[25/53] Linking C static library apps/wireless/bluetooth/btsak/libapps_bt.a
+[26/53] Linking C static library apps/examples/gimbal/libapps_gimbal.a
+[27/53] Linking C static library apps/examples/hello/libapps_hello.a
+[28/53] Linking C static library apps/libapps.a
+[29/53] Linking CXX static library apps/examples/k7arena/libapps_k7arena.a
+[30/53] Linking C static library apps/examples/k7audio/libapps_k7audio.a
+[31/53] Linking CXX static library apps/examples/k7cxx/libapps_k7cxx.a
+[32/53] Linking CXX static library apps/examples/k7eh/libapps_k7eh.a
+[33/53] Linking C static library apps/examples/k7emmc/libapps_k7emmc.a
+[34/53] Linking C static library libs/libc/libc.a
+[35/53] Linking C static library apps/examples/k7load/libapps_k7load.a
+[36/53] Linking C static library apps/examples/k7mem/libapps_k7mem.a
+[37/53] Linking C static library apps/examples/k7host/libapps_k7host.a
+[38/53] Linking C static library apps/examples/k7neon/libapps_k7neon.a
+[39/53] Linking C static library apps/examples/k7npu/libapps_k7npu.a
+[40/53] Linking C static library apps/examples/k7smp/libapps_k7smp.a
+[41/53] Linking CXX static library apps/examples/k7graph/libapps_k7graph.a
+[42/53] Linking C static library apps/examples/k7sound/libapps_k7sound.a
+[43/53] Linking C static library apps/examples/k7storage/libapps_k7storage.a
+[44/53] Linking C static library apps/examples/k7usb/libapps_k7usb.a
+[45/53] Linking C static library apps/external/android/libandroid.a
+[46/53] Linking C static library sched/libsched.a
+[47/53] Linking C static library apps/builtin/libapps_builtin.a
+[48/53] Linking C static library apps/examples/k7radio/libapps_k7radio.a
+[49/53] Building C object arch/arm64/src/common/CMakeFiles/STARTUP_OBJS.dir/crt0.c.o
+[50/53] Linking CXX static library apps/examples/voicelink/libapps_k7voice.a
+[51/53] Linking CXX executable nuttx
+Memory region         Used Size  Region Size  %age Used
+            dram:      19772 KB       126 MB     15.32%
+[52/53] Generating nuttx.bin
+[53/53] Generating System.map

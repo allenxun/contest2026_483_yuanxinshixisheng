@@ -1,0 +1,34 @@
+{
+  "updated_at": "2026-09-10T02:21:35.921959+00:00",
+  "running_revision": "model-arena-20260910",
+  "firmware_sha256": "8ed6d36770de6fa251065f6ee4a30b5d44d4efe8581d43f22932b97423c6b969",
+  "boot": "RAM",
+  "liveness_verified": true,
+  "wifi_connected": true,
+  "test_ip": "10.3.0.214",
+  "ble_service_running": true,
+  "ble_connected": false,
+  "test_client_intentionally_disconnected": true,
+  "real_ble_to_wifi_passed": true,
+  "test_client": "Windows Bleak",
+  "gateway_ping": {
+    "sent": 5,
+    "received": 5,
+    "summary_rtt_truncated": true
+  },
+  "model_arena": {
+    "bytes": 1073741824,
+    "free_after_test": 1073741104,
+    "test_allocation_bytes": 402653184,
+    "sampled_pages": 98304,
+    "passes": 2,
+    "sparse_test_passed": true,
+    "all_byte_coverage": false
+  },
+  "ble_wifi_hold_seconds": 30,
+  "ordinary_heap_expanded": false,
+  "smp_cpus": 1,
+  "emmc_written": false,
+  "production_stability_passed": false,
+  "evidence_directory": "evidence/model-arena-20260910"
+}

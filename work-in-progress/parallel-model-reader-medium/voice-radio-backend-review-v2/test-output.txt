@@ -1,0 +1,16 @@
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O0 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2 E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\test_stop.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\radio_fence.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\wifi_broker.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\wifi_dispatch.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\wifi_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\stop-O0.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\stop-O0.exe scan
+PASS scan stop paused after match/unlock: 100 competing pumps BUSY; next job starts only after stop return; new cancel=false
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\stop-O0.exe connect
+PASS connect stop paused after match/unlock: 100 competing pumps BUSY; next job starts only after stop return; new cancel=false
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O2 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2 E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\test_stop.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\radio_fence.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\wifi_broker.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\wifi_dispatch.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\wifi_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\stop-O2.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\stop-O2.exe scan
+PASS scan stop paused after match/unlock: 100 competing pumps BUSY; next job starts only after stop return; new cancel=false
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-review-v2\stop-O2.exe connect
+PASS connect stop paused after match/unlock: 100 competing pumps BUSY; next job starts only after stop return; new cancel=false
+exit=0

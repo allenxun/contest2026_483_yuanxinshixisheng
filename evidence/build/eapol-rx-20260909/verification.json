@@ -1,0 +1,89 @@
+{
+  "hardware_tested": false,
+  "wpa_completed": false,
+  "ip_acquired": false,
+  "tests": [
+    {
+      "name": "codec",
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-g",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "-I/home/swl/openvela/work/velavision-project/app/k7radio",
+        "/home/swl/openvela/work/velavision-project/tests/wifi/test_eapol_codec.c",
+        "-o",
+        "/home/swl/openvela/work/velavision-eapol-rx-20260909/test_eapol_codec"
+      ],
+      "exit_code": 0,
+      "output": "PASS: EAPOL RX/TX codec; captured descriptor prefix + synthetic body; every truncation, 8 malformed cases, foreign peer, capacity bounds, 20000 malformed frames; no WPA handshake claimed\n"
+    },
+    {
+      "name": "queue",
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-g",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "-I/home/swl/openvela/work/velavision-project/app/k7radio",
+        "/home/swl/openvela/work/velavision-project/tests/wifi/test_eapol_queue.c",
+        "-o",
+        "/home/swl/openvela/work/velavision-eapol-rx-20260909/test_eapol_queue"
+      ],
+      "exit_code": 0,
+      "output": "PASS: EAPOL copied RX queue; capacity, FIFO wrap, slot reuse, all truncations, peer binding, disconnect wipe; synthetic only\n"
+    }
+  ],
+  "build_exit_code": 0,
+  "artifacts": {
+    "nuttx.bin": {
+      "bytes": 1915896,
+      "sha256": "97f4accb36cae6cab6a171ee8e6f2d91fb02c03d7e46588a12f65cae2099eb48"
+    },
+    "nuttx": {
+      "bytes": 9363848,
+      "sha256": "67fbed95613cbcf80e572eec04da4c866aa3abb84a593ea6f6d64debe574a787"
+    },
+    ".config": {
+      "bytes": 59456,
+      "sha256": "2ae3a990b60bfb025717d87e6766ae80a02899a64002a3b8f0fe7acb85717791"
+    }
+  },
+  "sources": {
+    "app/k7radio/CMakeLists.txt": "d9f12f76e45b76b349eae0e10fdb34f8302bce518cc5be552e3e413c91e648e6",
+    "app/k7radio/COPYING": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+    "app/k7radio/Kconfig": "ff10583c86c9a4ae02e7c37a8cef5fcc8205cf3c2e7772beb5f04fde2031e474",
+    "app/k7radio/Make.defs": "b19a78521a0ca8b132a4fb6301d09c2f06d9ef7cc51ecbd455ebe7f576ae1dba",
+    "app/k7radio/Makefile": "26114c643bb583c61d5ac80f00b3fc32b613367b748d3f706a9637608a6f8b13",
+    "app/k7radio/cJSON.c": "cf9e08c8524c17406a0d430a47376080aebcdc8e851f7de24d277be61973eaeb",
+    "app/k7radio/cJSON.h": "dd689a2905ad7c4c1d15556f1c7b9ce5cfdf9c8a78e4224ffb4a04d01d050f5f",
+    "app/k7radio/k7radio_main.c": "4d9d1c5eddc424c117842e41a357dd35207a81cfd3faa6e715f70d2e06674a57",
+    "app/k7radio/prov_protocol.c": "25efadcfd17cd58e2ccb42a0340da38a17a39cda62509f2818157768d3f8db09",
+    "app/k7radio/prov_protocol.h": "bb5fef0bc52bad86e3601e603af39ce5d52716fcb88502be18179cde6e2a6b89",
+    "app/k7radio/prov_service.inc": "c6f08ff06e1eabef85b8c9c1e690de28902ccfaca1e7d8bc3b82e465942600d9",
+    "app/k7radio/skw_bt.c": "c7746ad5b2e734ac66638cc240bf9bbde709499be6485827de06d69fe2fa1c48",
+    "app/k7radio/skw_bt.h": "dae6d9d4a57e8a579a0053343e153e14e3bfd763b7e7805b13d06e7972723e3c",
+    "app/k7radio/skw_bus.c": "1d22090f5d61a422c2eb5dfc68bb93ffaee37d99d544588b15f459d4f818bd10",
+    "app/k7radio/skw_dw.c": "9cb2b99c0d4c2908ebb41169e7c9a0083565baa4a5b724ec56fc27f62b595858",
+    "app/k7radio/skw_dw.h": "73f23020808ffc4f9b4668d7f5fa35e775710d12fa7f14b653c1d6a96ec3a6a7",
+    "app/k7radio/skw_eapol_queue.h": "c7a48eef2e802b46bfce15dae97431f51a663552ce34e8f78320db6af8b62726",
+    "app/k7radio/skw_native.h": "28985b1fbb80f66441b845e7b509725808fcbb572798b6e214a562dabde43e40",
+    "app/k7radio/skw_packet.c": "893317055c054a75a0c37e8728646727758266a9d282e7e02c1187d2e8207643",
+    "app/k7radio/skw_rk3576.c": "c23de6076c091e4957a32ed8623cf15f56e8a28cf510da084704e4235b59d056",
+    "app/k7radio/skw_rk3576.h": "1751ad2ce2b68cae51ba9b68b39cc5531d5065e5411c1dbcedfe16aa4bf40a9d",
+    "app/k7radio/skw_wifi_bss.h": "b62a485c6bd2e196d2b48fd9dd83268011a0ecd6a7de7e346de8c6afea9f69a5",
+    "app/k7radio/skw_wifi_diag.h": "7c0d88bf3f136565a79963ae4e5d6d6c9c984a2697829192e6368f74d6dc6d35",
+    "app/k7radio/skw_wifi_eapol.h": "a47dd63ad16302ca04c66a63dfcc0a898c491e508acbaced10d67fcfcb78e22a",
+    "app/k7radio/skw_wifi_join.h": "db3188786f03be33b50e88035620e81e1c52f62ff5387b95d1a89f0723a2b362",
+    "app/k7radio/wifi_assoc_probe.inc": "775a450f4f544894a379cbb2c78b868d44c536805ae30f6223695e019829e32b",
+    "app/k7radio/wifi_join_probe.inc": "a58b96ad022ec00f599f856d2a12dd51dc7c937f141a5a27c87d116e5b22315d"
+  }
+}

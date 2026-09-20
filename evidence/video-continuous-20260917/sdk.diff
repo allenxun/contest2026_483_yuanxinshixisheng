@@ -1,0 +1,20 @@
+--- sdk/app/k7host/k7_link_probe.c
++++ app/k7host/k7_link_probe.c
+@@ -320,11 +320,13 @@
+  if(!fault)
+   {
+    wr(NULL,0xc720,3);wr(NULL,0xc704,rd(NULL,0xc704)|(1u<<31));
+-   unsigned int lifetime = video_mode ? 3600 : 600;
+-   printf("LINK running %us mode=%s, private VID/PID 1209:0001\n",
+-          lifetime, video_mode?"JPEG video":"Bulk test");
++   /* Product preview remains available while the board is running. Only the
++    * explicit bulk diagnostic has a time/block limit. Faults still stop DMA. */
++   printf("LINK running %s mode=%s, private VID/PID 1209:0001\n",
++          video_mode?"continuous":"600s", video_mode?"JPEG video":"Bulk test");
+    uint64_t start=now(NULL);
+-   while(!fault && now(NULL)-start<(uint64_t)lifetime*1000000 && (video_mode || bulk_count<1024))
++   while(!fault && (video_mode ||
++          (now(NULL)-start<UINT64_C(600000000) && bulk_count<1024)))
+     {
+      size_t bytes=0;fault=k7_dwc3_event_bytes(rd(NULL,0xc40c),sizeof(events),&bytes);
+      if(fault)break;

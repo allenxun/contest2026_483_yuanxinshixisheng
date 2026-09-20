@@ -1,0 +1,53 @@
+{
+  "state": "failed",
+  "started_at": "2026-09-09T10:13:17.085038+00:00",
+  "updated_at": "2026-09-09T10:43:17.183461+00:00",
+  "elapsed_s": 1800.11,
+  "target_s": 1800,
+  "completed_rounds": 30,
+  "sent": 1500,
+  "received": 1499,
+  "failures": [
+    {
+      "round": 29,
+      "reason": "ping_loss",
+      "sent": 50,
+      "received": 49
+    }
+  ],
+  "last_snapshot": {
+    "ble": {
+      "connected": 0,
+      "handle": 17,
+      "acl_rx": 22,
+      "acl_tx": 22,
+      "connections": 2,
+      "disconnections": 2,
+      "last_reason": 19,
+      "encrypt_status": 0,
+      "encrypted": 0
+    },
+    "wifi": {
+      "active": 1,
+      "connected": 1,
+      "ip": "10.3.0.214",
+      "gateway": "10.3.0.1",
+      "result": 0,
+      "rx": 3912,
+      "tx": 1599,
+      "dropped": 0,
+      "amsdu_complete": 3,
+      "amsdu_subframes": 6,
+      "rx_rejected": 17
+    },
+    "memory": {
+      "total": 126877688,
+      "used": 72248,
+      "free": 126805440,
+      "maxused": 98880,
+      "maxfree": 126788432,
+      "nused": 54,
+      "nfree": 3
+    }
+  }
+}

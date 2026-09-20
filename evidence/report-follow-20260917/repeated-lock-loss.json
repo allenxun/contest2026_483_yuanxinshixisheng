@@ -1,0 +1,44 @@
+{
+  "state": {
+    "sample_wall_time": 1789633368.591536,
+    "network_age_s": 12.162385643998277,
+    "status": "云台已停止",
+    "wifi": true,
+    "camera": true,
+    "busy": false,
+    "held": true,
+    "voice_enabled": true,
+    "video_fresh": true,
+    "video_error": "",
+    "serial_error": "",
+    "frames": 5871,
+    "done": 1,
+    "upload": "尚未上传"
+  },
+  "log": "console-161619.log",
+  "loss": [
+    [
+      "RADIO Wi-Fi RX type=1 id=15 seq=2931 len=10",
+      "RADIO Wi-Fi cmd=15 seq=2931 ack=1 status=0 response=0 ret=0",
+      "RADIO Wi-Fi RX type=1 id=15 seq=2932 len=10",
+      "RADIO Wi-Fi cmd=15 seq=2932 ack=1 status=0 response=0 ret=0",
+      "RADIO Wi-Fi RX type=1 id=15 seq=2933 len=10",
+      "RADIO Wi-Fi cmd=15 seq=2933 ack=1 status=0 response=0 ret=0",
+      "TRACK BOX q=3717 x=29.7 y=16.2 w=69.5 h=82.8 edge=0",
+      "TRACK q=3717 s=2 dx=-15.6 dy=-2.4 x=14 y=17 tx=203 age=107074",
+      "PHOTO LOCK_LOST q=3717 e=2 reason=1 faces=2 has_face=1 gap_ms=0 done=1",
+      "RADIO Wi-Fi RX type=1 id=15 seq=2934 len=10",
+      "RADIO Wi-Fi cmd=15 seq=2934 ack=1 status=0 response=0 ret=0",
+      "POSE q=3717 e=2 y=0.00 p=0.00 r=0.00 v=0 st=6 next=2 done=1",
+      "POSEQ q=3717 sy=0.00 sharp=0.0 settle=0 lost=1 age=109"
+    ]
+  ],
+  "events": [
+    "VOICE MODE applied=1 result=0",
+    "VOICE MODE applied=2 result=0",
+    "PHOTO RAM q=3060 e=2 s=1 bytes=26893 result=0 complete=0 durable=0",
+    "nsh> \u001b[KVOICE MODE applied=0 result=0",
+    "VOICE MODE applied=0 result=0",
+    "VOICE MODE applied=0 result=0"
+  ]
+}

@@ -1,0 +1,418 @@
+[
+  {
+    "source": "cmake-snapshots\\kaldi-decoder-0.2.10\\cmake\\eigen.cmake",
+    "sha256": "679d4c5f617ba736c05d512ef26212cf699fe15eaac9a6375c9c624727a555a0",
+    "settings": [
+      {
+        "line": 4,
+        "text": "set(eigen_URL  \"https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(eigen_URL2 \"https://huggingface.co/csukuangfj/kaldi-hmm-gmm-cmake-deps/resolve/main/eigen-3.4.0.tar.gz\")"
+      },
+      {
+        "line": 6,
+        "text": "set(eigen_HASH \"SHA256=8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72\")"
+      },
+      {
+        "line": 20,
+        "text": "set(eigen_URL  \"${f}\")"
+      },
+      {
+        "line": 22,
+        "text": "set(eigen_URL2)"
+      },
+      {
+        "line": 30,
+        "text": "FetchContent_Declare(eigen"
+      }
+    ]
+  },
+  {
+    "source": "cmake-snapshots\\kaldi-decoder-0.2.10\\cmake\\googletest.cmake",
+    "sha256": "c2e427882f294140bccf98b4c0be3a508f4670e89357d8c8ee1c76f2970a9d8e",
+    "settings": [
+      {
+        "line": 4,
+        "text": "set(googletest_URL  \"https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(googletest_URL2 \"https://huggingface.co/csukuangfj/sherpa-cmake-deps/resolve/main/googletest-1.13.0.tar.gz\")"
+      },
+      {
+        "line": 6,
+        "text": "set(googletest_HASH \"SHA256=ad7fdba11ea011c1d925b3289cf4af2c66a352e18d4c7264392fead75e919363\")"
+      },
+      {
+        "line": 20,
+        "text": "set(googletest_URL  \"${f}\")"
+      },
+      {
+        "line": 22,
+        "text": "set(googletest_URL2)"
+      },
+      {
+        "line": 32,
+        "text": "FetchContent_Declare(googletest"
+      }
+    ]
+  },
+  {
+    "source": "cmake-snapshots\\kaldi-decoder-0.2.10\\cmake\\kaldifst.cmake",
+    "sha256": "68c03175aa8fcb7808d11ba7c624c383b54637db667819d89d39cda50e998cfa",
+    "settings": [
+      {
+        "line": 4,
+        "text": "set(kaldifst_URL  \"https://github.com/k2-fsa/kaldifst/archive/refs/tags/v1.7.16.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(kaldifst_HASH \"SHA256=f338135a3d137b7a8c287e2ca2e0918e1394e1c08bad53b26e7be03a5d4a1066\")"
+      },
+      {
+        "line": 19,
+        "text": "set(kaldifst_URL  \"${f}\")"
+      },
+      {
+        "line": 29,
+        "text": "FetchContent_Declare(kaldifst"
+      }
+    ]
+  },
+  {
+    "source": "cmake-snapshots\\kaldi-decoder-0.2.10\\cmake\\openfst.cmake",
+    "sha256": "d7899a4f9de50dd69aab75cc10e01b83c102de709b13b3085c7129eabf96bd44",
+    "settings": [
+      {
+        "line": 6,
+        "text": "set(openfst_URL  \"https://github.com/csukuangfj/openfst/archive/refs/tags/sherpa-onnx-2024-06-19.tar.gz\")"
+      },
+      {
+        "line": 7,
+        "text": "set(openfst_URL2 \"https://hub.nuaa.cf/csukuangfj/openfst/archive/refs/tags/sherpa-onnx-2024-06-19.tar.gz\")"
+      },
+      {
+        "line": 8,
+        "text": "set(openfst_HASH \"SHA256=5c98e82cc509c5618502dde4860b8ea04d843850ed57e6d6b590b644b268853d\")"
+      },
+      {
+        "line": 22,
+        "text": "set(openfst_URL  \"${f}\")"
+      },
+      {
+        "line": 24,
+        "text": "set(openfst_URL2)"
+      },
+      {
+        "line": 45,
+        "text": "FetchContent_Declare(openfst"
+      },
+      {
+        "line": 58,
+        "text": "FetchContent_Declare(openfst"
+      }
+    ]
+  },
+  {
+    "source": "cmake-snapshots\\kaldi-decoder-0.2.10\\cmake\\pybind11.cmake",
+    "sha256": "3a5c4ac2ef41cedc302ab961d6f5dda98d9a9099d740312f3aebd84349354f42",
+    "settings": [
+      {
+        "line": 4,
+        "text": "set(pybind11_URL  \"https://github.com/pybind/pybind11/archive/refs/tags/v3.0.0.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(pybind11_URL2 \"https://hf-mirror.com/csukuangfj/sherpa-onnx-cmake-deps/resolve/main/pybind11-3.0.0.tar.gz\")"
+      },
+      {
+        "line": 6,
+        "text": "set(pybind11_HASH \"SHA256=453b1a3e2b266c3ae9da872411cadb6d693ac18063bd73226d96cfb7015a200c\")"
+      },
+      {
+        "line": 20,
+        "text": "set(pybind11_URL  \"${f}\")"
+      },
+      {
+        "line": 22,
+        "text": "set(pybind11_URL2)"
+      },
+      {
+        "line": 27,
+        "text": "FetchContent_Declare(pybind11"
+      }
+    ]
+  },
+  {
+    "source": "cmake-snapshots\\kaldi-native-fbank-1.22.1\\cmake\\googletest.cmake",
+    "sha256": "0e0e5923bac9cdc649088f39c0d39c1b1531eef0298ca842b370db2d265ee9a3",
+    "settings": [
+      {
+        "line": 8,
+        "text": "set(googletest_URL  \"https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz\")"
+      },
+      {
+        "line": 9,
+        "text": "set(googletest_URL2 \"https://huggingface.co/csukuangfj/k2-cmake-deps/resolve/main/googletest-1.13.0.tar.gz\")"
+      },
+      {
+        "line": 10,
+        "text": "set(googletest_HASH \"SHA256=ad7fdba11ea011c1d925b3289cf4af2c66a352e18d4c7264392fead75e919363\")"
+      },
+      {
+        "line": 24,
+        "text": "set(googletest_URL  \"${f}\")"
+      },
+      {
+        "line": 26,
+        "text": "set(googletest_URL2)"
+      },
+      {
+        "line": 36,
+        "text": "FetchContent_Declare(googletest"
+      }
+    ]
+  },
+  {
+    "source": "cmake-snapshots\\kaldi-native-fbank-1.22.1\\cmake\\kissfft.cmake",
+    "sha256": "f6038500a227a48df0e309b9490bd9c8cec8ee376008d7211e3fc96f0c689580",
+    "settings": [
+      {
+        "line": 9,
+        "text": "set(kissfft_URL  \"https://github.com/mborgerding/kissfft/archive/febd4caeed32e33ad8b2e0bb5ea77542c40f18ec.zip\")"
+      },
+      {
+        "line": 10,
+        "text": "set(kissfft_URL2 \"\")"
+      },
+      {
+        "line": 11,
+        "text": "set(kissfft_HASH \"SHA256=497103e664168ebe39580b757adbe616f6cf85a16572af581ca7bc42d0ab13fd\")"
+      },
+      {
+        "line": 25,
+        "text": "set(kissfft_URL  \"${f}\")"
+      },
+      {
+        "line": 27,
+        "text": "set(kissfft_URL2)"
+      },
+      {
+        "line": 37,
+        "text": "FetchContent_Declare(kissfft"
+      }
+    ]
+  },
+  {
+    "source": "cmake-snapshots\\kaldi-native-fbank-1.22.1\\cmake\\pybind11.cmake",
+    "sha256": "91938f463d8030274c90502710dc4fa71c0272300750143362da8153702c11a0",
+    "settings": [
+      {
+        "line": 8,
+        "text": "set(pybind11_URL  \"https://github.com/pybind/pybind11/archive/refs/tags/v3.0.0.tar.gz\")"
+      },
+      {
+        "line": 9,
+        "text": "set(pybind11_URL2 \"https://hf-mirror.com/csukuangfj/sherpa-onnx-cmake-deps/resolve/main/pybind11-3.0.0.tar.gz\")"
+      },
+      {
+        "line": 10,
+        "text": "set(pybind11_HASH \"SHA256=453b1a3e2b266c3ae9da872411cadb6d693ac18063bd73226d96cfb7015a200c\")"
+      },
+      {
+        "line": 24,
+        "text": "set(pybind11_URL  \"${f}\")"
+      },
+      {
+        "line": 26,
+        "text": "set(pybind11_URL2)"
+      },
+      {
+        "line": 31,
+        "text": "FetchContent_Declare(pybind11"
+      }
+    ]
+  },
+  {
+    "source": "cmake-snapshots\\kaldi-native-fbank-1.22.1\\cmake\\Modules\\FetchContent.cmake",
+    "sha256": "3e2d42a00457a6ec2da59fadb96a0d327167c08a64d583d0db73b076e6f963a5",
+    "settings": [
+      {
+        "line": 29,
+        "text": "FetchContent_Declare("
+      },
+      {
+        "line": 63,
+        "text": ".. command:: FetchContent_Declare"
+      },
+      {
+        "line": 67,
+        "text": "FetchContent_Declare(<name> <contentOptions>...)"
+      },
+      {
+        "line": 69,
+        "text": "The ``FetchContent_Declare()`` function records the options that describe"
+      },
+      {
+        "line": 95,
+        "text": "FetchContent_Declare("
+      },
+      {
+        "line": 101,
+        "text": "FetchContent_Declare("
+      },
+      {
+        "line": 107,
+        "text": "FetchContent_Declare("
+      },
+      {
+        "line": 124,
+        "text": "been recorded by an earlier call to :command:`FetchContent_Declare`.  The"
+      },
+      {
+        "line": 163,
+        "text": "performed using details saved from a :command:`FetchContent_Declare` call:"
+      },
+      {
+        "line": 266,
+        "text": "for :command:`FetchContent_Declare()`.  Those few options shown just"
+      },
+      {
+        "line": 374,
+        "text": "FetchContent_Declare("
+      },
+      {
+        "line": 379,
+        "text": "FetchContent_Declare("
+      },
+      {
+        "line": 384,
+        "text": "FetchContent_Declare("
+      },
+      {
+        "line": 407,
+        "text": "FetchContent_Declare("
+      },
+      {
+        "line": 425,
+        "text": "FetchContent_Declare("
+      },
+      {
+        "line": 497,
+        "text": "# intended for use by FetchContent_Declare() only."
+      },
+      {
+        "line": 525,
+        "text": "# intended for use by the FetchContent_Declare() function."
+      },
+      {
+        "line": 545,
+        "text": "function(FetchContent_Declare contentName)"
+      },
+      {
+        "line": 810,
+        "text": "# an earlier call to FetchContent_Declare()."
+      },
+      {
+        "line": 843,
+        "text": "# to FetchContent_Declare(). Do a check that we haven't already"
+      }
+    ]
+  },
+  {
+    "source": "cmake-snapshots\\kaldifst-1.7.16\\cmake\\googletest.cmake",
+    "sha256": "c2e427882f294140bccf98b4c0be3a508f4670e89357d8c8ee1c76f2970a9d8e",
+    "settings": [
+      {
+        "line": 4,
+        "text": "set(googletest_URL  \"https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(googletest_URL2 \"https://huggingface.co/csukuangfj/sherpa-cmake-deps/resolve/main/googletest-1.13.0.tar.gz\")"
+      },
+      {
+        "line": 6,
+        "text": "set(googletest_HASH \"SHA256=ad7fdba11ea011c1d925b3289cf4af2c66a352e18d4c7264392fead75e919363\")"
+      },
+      {
+        "line": 20,
+        "text": "set(googletest_URL  \"${f}\")"
+      },
+      {
+        "line": 22,
+        "text": "set(googletest_URL2)"
+      },
+      {
+        "line": 32,
+        "text": "FetchContent_Declare(googletest"
+      }
+    ]
+  },
+  {
+    "source": "cmake-snapshots\\kaldifst-1.7.16\\cmake\\openfst.cmake",
+    "sha256": "39d2cf649635b600f400fc6be4b86bf19cf8460d85f4ddb307a1ff178c0a9b69",
+    "settings": [
+      {
+        "line": 6,
+        "text": "set(openfst_URL  \"https://github.com/csukuangfj/openfst/archive/refs/tags/sherpa-onnx-2024-06-13.tar.gz\")"
+      },
+      {
+        "line": 7,
+        "text": "set(openfst_URL2 \"https://hub.nuaa.cf/csukuangfj/openfst/archive/refs/tags/sherpa-onnx-2024-06-13.tar.gz\")"
+      },
+      {
+        "line": 8,
+        "text": "set(openfst_HASH \"SHA256=f10a71c6b64d89eabdc316d372b956c30c825c7c298e2f20c780320e8181ffb6\")"
+      },
+      {
+        "line": 22,
+        "text": "set(openfst_URL  \"${f}\")"
+      },
+      {
+        "line": 24,
+        "text": "set(openfst_URL2)"
+      },
+      {
+        "line": 45,
+        "text": "FetchContent_Declare(openfst"
+      },
+      {
+        "line": 58,
+        "text": "FetchContent_Declare(openfst"
+      }
+    ]
+  },
+  {
+    "source": "cmake-snapshots\\kaldifst-1.7.16\\cmake\\pybind11.cmake",
+    "sha256": "3a5c4ac2ef41cedc302ab961d6f5dda98d9a9099d740312f3aebd84349354f42",
+    "settings": [
+      {
+        "line": 4,
+        "text": "set(pybind11_URL  \"https://github.com/pybind/pybind11/archive/refs/tags/v3.0.0.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(pybind11_URL2 \"https://hf-mirror.com/csukuangfj/sherpa-onnx-cmake-deps/resolve/main/pybind11-3.0.0.tar.gz\")"
+      },
+      {
+        "line": 6,
+        "text": "set(pybind11_HASH \"SHA256=453b1a3e2b266c3ae9da872411cadb6d693ac18063bd73226d96cfb7015a200c\")"
+      },
+      {
+        "line": 20,
+        "text": "set(pybind11_URL  \"${f}\")"
+      },
+      {
+        "line": 22,
+        "text": "set(pybind11_URL2)"
+      },
+      {
+        "line": 27,
+        "text": "FetchContent_Declare(pybind11"
+      }
+    ]
+  }
+]

@@ -1,0 +1,5 @@
+{
+  "exit_code": 0,
+  "command": "source build/envsetup.sh && cmake -S nuttx -B /home/swl/openvela/cmake_out/velavision_audio_s16_20260911 -G Ninja -DBOARD_CONFIG=kickpi_k7:velavision_audio_sound_local -DK7VOICE_NATIVE_ORT_ADD=ON -DK7VOICE_NATIVE_ASR_MODEL=ON -DK7VOICE_NATIVE_ASR_MIC=ON -DK7VOICE_ORT_OBJECT=/home/swl/openvela/work/native-emutls-fix/runtime.o -DK7VOICE_ORT_OBJECT_SHA256=953dd51e573cb78daaf7f21f457e7f695585f66c7c5803ec2a109efa03256f17 && cmake --build /home/swl/openvela/cmake_out/velavision_audio_s16_20260911 -j4",
+  "sha256": "34972feb5a1b5f16c73efdeeec7c8ef2dc39a204dcaafec8d6027ed17cca270e"
+}

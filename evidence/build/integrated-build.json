@@ -1,0 +1,54 @@
+{
+  "command": [
+    "bash",
+    "/home/swl/openvela/work/velavision-project/tools/build.sh",
+    "/home/swl/openvela"
+  ],
+  "exit_code": 0,
+  "build_directory": "/home/swl/openvela/cmake_out/velavision_integrated_20260909",
+  "device_started": false,
+  "hardware_tested": false,
+  "emmc_written": false,
+  "profile": "combined diagnostic; RAW NPU remains explicit-command-only",
+  "required_config": {
+    "CONFIG_EXAMPLES_GIMBAL": true,
+    "CONFIG_EXAMPLES_K7HOST": true,
+    "CONFIG_EXAMPLES_K7HOST_JPEG": true,
+    "CONFIG_EXAMPLES_K7HOST_YUNET": true,
+    "CONFIG_EXAMPLES_K7HOST_TRACK": true,
+    "CONFIG_RK3576_NPU_DIAG": true,
+    "CONFIG_EXAMPLES_K7NPU": true,
+    "CONFIG_K7NPU_MMU_TEST": true,
+    "CONFIG_K7NPU_RAW_TEST": true,
+    "CONFIG_EXAMPLES_K7RADIO": true,
+    "CONFIG_WIRELESS_BLUETOOTH_HOST": true,
+    "CONFIG_RK3576_USBHOST": true
+  },
+  "files": {
+    ".config": {
+      "bytes": 59456,
+      "sha256": "2ae3a990b60bfb025717d87e6766ae80a02899a64002a3b8f0fe7acb85717791"
+    },
+    "nuttx": {
+      "bytes": 9351688,
+      "sha256": "3f156975b338d09ff727f3bcac9bbdfaba57d858cb06baf1b8cea117d2059d99"
+    },
+    "nuttx.bin": {
+      "bytes": 1911800,
+      "sha256": "ea9e90b0fbe23201114a8cb692d1c0db5180ee42d47907752489f6b4195d8580"
+    }
+  },
+  "linked_application_symbols": {
+    "k7host_main": true,
+    "gimbal_main": true,
+    "k7npu_main": true,
+    "k7radio_main": true
+  },
+  "source_project": "/home/swl/openvela/work/velavision-project",
+  "sdk_sync_script": "tools/sync_sdk.py",
+  "base_binary_comparison": {
+    "rk3576_usb_photo_direction": "5d7730d830e92e7b38e1674521e0795ce76be961aace5fb14f2d922189ba1565",
+    "rk3576_npu_raw_vendor": "4eceb18e2b0c4445fd0e159986d3daabd81943235e150966e0b427139c5ca72e",
+    "rk3576_radio_id36": "8d53a8cd62b09bea20c4d2d4905c31fe14a0277f0c600914f59a3d189839ab56"
+  }
+}

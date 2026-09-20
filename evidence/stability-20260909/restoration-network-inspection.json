@@ -1,0 +1,17 @@
+[
+  {
+    "time": "2026-09-09T11:47:23.146008+00:00",
+    "command": "arp -a",
+    "output": "arp -a\r\nnsh: arp: missing required argument(s)\r\nnsh> \u001b[K"
+  },
+  {
+    "time": "2026-09-09T11:47:23.193190+00:00",
+    "command": "ifconfig wlan0",
+    "output": "ifconfig wlan0\r\nwlan0\tLink encap:Ethernet HWaddr 60:48:9c:b5:17:1c at RUNNING mtu 1000\r\n\tinet addr:10.3.0.214 DRaddr:10.3.0.1 Mask:255.255.252.0\r\n\r\nnsh> \u001b[K"
+  },
+  {
+    "time": "2026-09-09T11:47:23.239406+00:00",
+    "command": "k7radio wifi-status",
+    "output": "k7radio wifi-status\r\nWIFI status active=1 wifi_connected=1 ip=10.3.0.214 gateway=10.3.0.1 result=0\r\nWIFI netdev rx=65 tx=9 dropped=0\r\nWIFI AMSDU complete=0 subframes=0 rejected=0\r\nnsh> \u001b[K"
+  }
+]

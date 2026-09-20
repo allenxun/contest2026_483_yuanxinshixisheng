@@ -1,0 +1,35 @@
+{
+  "speech_tested": false,
+  "stages": [
+    {
+      "stage": "sdio",
+      "prompt": true,
+      "expected_marker": "nsh>",
+      "passed": true
+    },
+    {
+      "stage": "bluetooth",
+      "prompt": true,
+      "expected_marker": "connect=true advertise=0",
+      "passed": true
+    },
+    {
+      "stage": "shared",
+      "prompt": true,
+      "expected_marker": "WIFI shared start ret=0",
+      "passed": true
+    },
+    {
+      "stage": "probe",
+      "prompt": true,
+      "expected_marker": "VOICE native_network=1 asr=0 tts=0 speech_provisioning=0",
+      "passed": true
+    },
+    {
+      "stage": "scan",
+      "prompt": true,
+      "expected_marker": "VOICE scan_done",
+      "passed": false
+    }
+  ]
+}

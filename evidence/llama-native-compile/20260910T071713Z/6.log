@@ -1,0 +1,138 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:2:
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, T)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:130:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  130 |     gguf_kv(const std::string & key, const T value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::vector<T>&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:138:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  138 |     gguf_kv(const std::string & key, const std::vector<T> & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::string&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:148:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  148 |     gguf_kv(const std::string & key, const std::string & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::string&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:148:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  148 |     gguf_kv(const std::string & key, const std::string & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::string&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:148:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  148 |     gguf_kv(const std::string & key, const std::string & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::vector<std::__1::basic_string<char> >&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:154:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  154 |     gguf_kv(const std::string & key, const std::vector<std::string> & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::vector<std::__1::basic_string<char> >&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:154:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  154 |     gguf_kv(const std::string & key, const std::vector<std::string> & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_kv::gguf_kv(const std::__1::string&, const std::__1::vector<std::__1::basic_string<char> >&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:154:33: warning: declaration of 'key' shadows a member of 'gguf_kv' [-Wshadow]
+  154 |     gguf_kv(const std::string & key, const std::vector<std::string> & value)
+      |             ~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:121:17: note: shadowed declaration is here
+  121 |     std::string key;
+      |                 ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_reader::gguf_reader(FILE*)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:222:24: warning: declaration of 'file' shadows a member of 'gguf_reader' [-Wshadow]
+  222 |     gguf_reader(FILE * file) : file(file) {}
+      |                 ~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:220:12: note: shadowed declaration is here
+  220 |     FILE * file;
+      |            ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_reader::gguf_reader(FILE*)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:222:24: warning: declaration of 'file' shadows a member of 'gguf_reader' [-Wshadow]
+  222 |     gguf_reader(FILE * file) : file(file) {}
+      |                 ~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:220:12: note: shadowed declaration is here
+  220 |     FILE * file;
+      |            ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_reader::gguf_reader(FILE*)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:222:24: warning: declaration of 'file' shadows a member of 'gguf_reader' [-Wshadow]
+  222 |     gguf_reader(FILE * file) : file(file) {}
+      |                 ~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:220:12: note: shadowed declaration is here
+  220 |     FILE * file;
+      |            ^~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In function 'gguf_context* gguf_init_from_file_impl(FILE*, gguf_init_params)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:366:29: warning: format '%zu' expects argument of type 'size_t', but argument 5 has type 'long long unsigned int' [-Wformat=]
+  366 |             fprintf(stderr, "%s: number of tensors is %" PRIi64 " but must be in [0, %zu]\n",
+      |                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:377:29: warning: format '%zu' expects argument of type 'size_t', but argument 5 has type 'long long unsigned int' [-Wformat=]
+  377 |             fprintf(stderr, "%s: number of key value pairs is %" PRIi64 " but must be in [0, %zu]\n",
+      |                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_writer::gguf_writer(std::__1::vector<signed char>&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:1144:39: warning: declaration of 'buf' shadows a member of 'gguf_writer' [-Wshadow]
+ 1144 |     gguf_writer(std::vector<int8_t> & buf) : buf(buf) {}
+      |                 ~~~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:1142:27: note: shadowed declaration is here
+ 1142 |     std::vector<int8_t> & buf;
+      |                           ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_writer::gguf_writer(std::__1::vector<signed char>&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:1144:39: warning: declaration of 'buf' shadows a member of 'gguf_writer' [-Wshadow]
+ 1144 |     gguf_writer(std::vector<int8_t> & buf) : buf(buf) {}
+      |                 ~~~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:1142:27: note: shadowed declaration is here
+ 1142 |     std::vector<int8_t> & buf;
+      |                           ^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp: In constructor 'gguf_writer::gguf_writer(std::__1::vector<signed char>&)':
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:1144:39: warning: declaration of 'buf' shadows a member of 'gguf_writer' [-Wshadow]
+ 1144 |     gguf_writer(std::vector<int8_t> & buf) : buf(buf) {}
+      |                 ~~~~~~~~~~~~~~~~~~~~~~^~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:1142:27: note: shadowed declaration is here
+ 1142 |     std::vector<int8_t> & buf;
+      |                           ^~~
+In file included from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/gguf.cpp:3:
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h: At global scope:
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~

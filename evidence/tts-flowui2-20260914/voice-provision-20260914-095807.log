@@ -1,0 +1,101 @@
+k7voice flow-mic-provision
+VOICE_PROVISION ready
+TTS_STORAGE peak=31780500 live=0 records=1515 failures=0 failed_bytes=0 reason=0 available=536870144
+AUDIO_IO reset12=00000000 0000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=
+SOUND mclkout before=0000001f after=0000001d
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=24 settle_ms=1000
+SOUND playback_gain_db=24 dac_attenuation_db=0 maximum=1
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=000000000
+SOUND slot_mask offset=4c value=00000000
+SOUND slot_mask offset=50 value=00000000
+SOUND slot_mask offset=54 value=00000000
+SOUND slot_mask offset=58 value=00000000
+SOUND cue frames=50152 stop=0 held=0 end_us=367956800 capture_start_us=367989493
+S8000 mismatches=0
+SOUND fifo first=00000000 last=00000000 TXCR=OUND trace start=367989493 end=370989549 started=1 count=32
+SOU000000 rc=0
+SOUND trace_init index=1 value=00000002 rc=0
+SOUND trace_init index=2 value=00700fff rc=0
+SOUND trace_init index=3 value=000000e4 rc=0
+SOUND trace_init index=4 value=00000000 rc=0
+SOUND trace_init index=5 vatrace_word index=1 us=367989577 before=00041040 word=00000000 aface_word index=2 us=367989579 before=00041040 word=fffb6600 afte989580 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SO0 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=85 before=00040000 word=fffb6600 after=00000000 rc=0,0,0
+SOUND 00000000 rc=0,0,0
+SOUND trace_word index=8 us=367989605 before==367989607 before=00041040 word=00000000 after=00041040 rc=0,0,0=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=12 us=367989612 before=00041000 word=00046400 after=0004000 after=00040000 rc=0,0,0
+SOUND trace_word index=14 us=367989,0
+SOUND trace_word index=15 us=367989617 before=00000000 word=89639 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=18 us=367989640 before=00041040 word=fffb7e00 after=00041000 rc=0,0,0
+SOUND trace_word index=19 us=367989642 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=20 us=367989644 before=00041000 word=fffb7e00 after=00040000 rc=0,0,0
+SOUND trace_word index=21 us=367989645 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=22 us=367989647 before=00040000 word=fffb7e00 after=00000000 rc=0,0,0
+SOUND trace_word index=23 us=367989649 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=24 us=367989668 before=00041041 word=00038d00 after=00041040 rc=0,0,0
+SOUND trace_word index=25 us=367989670 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=26 us=367989672 before=00041040 word=00038d00 after=00041000 rc=0,0,0
+SOUND trace_word index=27 us=367989673 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=28 us=367989675 before=00041000 word=00038d00 after=00040000 rc=0,0,0
+SOUND trace_word index=29 us=367989677 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=30 us=367989678 before=00040000 word=00038d00 after=00000000 rc=0,0,0
+SOUND trace_word index=31 us=367989680 before=00000000 word=00,0
+SOUND codec reg=00 value=36
+SOUND codec reg=01 value=60
+Sue=00
+SOUND codec reg=07 value=7c
+SOUND codec reg=08 value=00UND codec reg=09 value=88
+SOUND codec reg=0a value=f0
+SOUND coD codec reg=0f value=20
+SOUND codec reg=17 value=20
+SOUND codeodec reg=1a value=00
+SOUND codec reg=1b value=00
+SOUND codec rue=21
+SOUND codec reg=31 value=21
+SOUND input pull=00005515 sc transitions=2742 samples=50124
+SOUND pad ticks=480011 max_gap=pad channel=0 high=24958 changes=36785
+SOUND pad channel=1 high767488 left_max=103819520 left_nonzero=47999 right_min=-1024133125472 right_nonzero=47998
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+TLS_CHECK PASS workers=2 destructors=2 main_value=123
+ASR_INFER BEGIN recognizer
+SR_ALLOC_FAIL reason=1 request=24 live=3906649717277208846 count=0 peak=0 records=65 quota=33
+[CPU0] dump_assert_info: Current Version: NuttX  0.0.0 e987a81c32c-dirty Sep 14 2026 09:49:05 arm64
+[CPU0] dump_assert_info: Assertion failed (((node)->size & 0x1) != 0): at file: /mm/mm_heap/mm_malloc_size.c:78 task(CPU0): k7voice process: k7voice 0x40e0f108
+[CPU0] up_dump_register: stack = 0x4133c1e0
+[CPU0] up_dump_register: x0:   0x4133c1e0          x1:   0x0
+[CPU0] up_dump_register: x2:   0x0                 x3:   0x0
+[CPU0] up_dump_register: x4:   0x3c0               x5:   0x40eaa5f7
+[CPU0] up_dump_register: x6:   0x4e                x7:   0x40ea5d82
+[CPU0] up_dump_register: x8:   0x417d6ff0          x9:   0x56000000
+[CPU0] up_dump_register: x10:  0x15                x11:  0x0
+[CPU0] up_dump_register: x12:  0x42938a4d          x13:  0xf4649082b1dab7d1
+[CPU0] up_dump_register: x14:  0x42377470          x15:  0x0
+[CPU0] up_dump_register: x16:  0x7fffffff          x17:  0x0
+[CPU0] up_dump_register: x18:  0x6c65732f322e7372  x19:  0x4133c1e0
+[CPU0] up_dump_register: x20:  0x422b1620          x21:  0x340
+[CPU0] up_dump_register: x22:  0x40ea5d82          x23:  0x40eaa5f7
+[CPU0] up_dump_register: x24:  0x423209b0          x25:  0x41339000
+[CPU0] up_dump_register: x26:  0x0                 x27:  0x4e
+[CPU0] up_dump_register: x28:  0x6                 x29:  0x4179be80
+[CPU0] up_dump_register: x30:  0x4040bab4        
+[CPU0] up_dump_register: 
+[CPU0] up_dump_register: STATUS Registers:
+[CPU0] up_dump_register: PC:        0x4040bab4        
+[CPU0] up_dump_register: SPSR:      0x20000045        
+[CPU0] up_dump_register: ELR:       0x4040bab4        
+[CPU0] up_dump_register: SP_EL0:    0x0               
+[CPU0] up_dump_register: SP:        0x4179be70        
+[CPU0] up_dump_register: EXE_DEPTH: 0x0               
+[CPU0] sched_dumpstack: backtrace|51: 0x000000004040a23c 0x000000004040bd90 0x0000000040401a30 0x000000004040109c 0x0000000040407c2c 0x000000004040b074 0x000000004040a73c 0x0000000040b10528
+[CPU0] sched_dumpstack: backtrace|51: 0x0000000040b10540 0x00000000405264b4 0x000000004056e2b4 0x00000000405a07ec 0x00000000405a13fc 0x000000004050ca74 0x00000000406b2530 0x000000004075725c
+[CPU0] sched_dumpstack: backtrace|51: 0x0000000040757f04 0x0000000040758238 0x00000000406cf91c 0x00000000406cff38 0x00000000405f24ac 0x00000000405e5770 0x00000000404dec7c 0x00000000404defb0
+[CPU0] sched_dumpstack: backtrace|51: 0x00000000404df390 0x0000000040e0e57c 0x0000000040e1cef4 0x0000000040e1d0dc 0x0000000040e0fcf4 0x0000000040431114 0x0000000040416380
+[CPU0] sched_dumpstack: backtrace|51: 0x000000004040a23c 0x0000000040408664 0x0000000040407c10 0x000000004040b074 0x000000004040a73c 0x0000000040b10528 0x0000000040b10540 0x00000000405264b4
+[CPU0] sched_dumpstack: backtrace|51: 0x000000004056e2b4 0x00000000405a07ec 0x00000000405a13fc 0x000000004050ca74 0x00000000406b2530 0x000000004075725c 0x0000000040757f04 0x0000000040758238
+[CPU0] sched_dumpstack: backtrace|51: 0x00000000406cf91c 0x00000000406cff38 0x00000000405f24ac 0x00000000405e5770 0x00000000404dec7c 0x00000000404defb0 0x00000000404df390 0x0000000040e0e57c
+[CPU0] sched_dumpstack: backtrace|51: 0x0000000040e1cef4 0x0000000040e1d0dc 0x0000000040e0fcf4 0x0000000040431114 0x0000000040416380
+nsh> [K

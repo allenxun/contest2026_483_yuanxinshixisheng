@@ -1,0 +1,20 @@
+{
+  "command": [
+    ".\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx.exe",
+    "--paraformer-encoder=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\encoder.int8.onnx",
+    "--paraformer-decoder=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\decoder.int8.onnx",
+    "--tokens=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\tokens.txt",
+    "--num-threads=1",
+    "E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\test_wavs\\0.wav"
+  ],
+  "cwd": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime",
+  "exit_code": 0,
+  "timed_out": false,
+  "elapsed_seconds": 3.2737621999986004,
+  "sample_interval_seconds": 0.02,
+  "samples": 160,
+  "sampled_peak_rss_bytes": 550662144,
+  "sampled_peak_private_bytes": 792666112,
+  "observed_os_peak_working_set_bytes": 598032384,
+  "method": "psutil Windows process memory_info polled every 20ms; single child process, not device/model-only memory; transient peaks may be missed"
+}

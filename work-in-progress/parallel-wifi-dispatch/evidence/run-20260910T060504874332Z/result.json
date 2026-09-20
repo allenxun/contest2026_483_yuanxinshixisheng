@@ -1,0 +1,120 @@
+{
+  "host_only": true,
+  "simulated_clock": true,
+  "process_timeout_seconds": 30,
+  "commands": [
+    {
+      "name": "compiler",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "--version"
+      ],
+      "returncode": 0,
+      "seconds": 0.01600000000325963,
+      "log": "compiler.log",
+      "log_sha256": "5314d84cfc088f9269b3c6cb9128ff00c0992586e79c81127fbd631a629e7fdc"
+    },
+    {
+      "name": "compile-O0",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-O0",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wshadow",
+        "-pedantic",
+        "-pthread",
+        "-I",
+        "include",
+        "src/wifi_broker.c",
+        "src/wifi_dispatch.c",
+        "tests/test_dispatch.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-dispatch\\evidence\\run-20260910T060504874332Z\\test-O0.exe"
+      ],
+      "returncode": 0,
+      "seconds": 0.21799999999348074,
+      "log": "compile-O0.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "test-O0",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-dispatch\\evidence\\run-20260910T060504874332Z\\test-O0.exe"
+      ],
+      "returncode": 0,
+      "seconds": 0.11000000000058208,
+      "log": "test-O0.log",
+      "log_sha256": "35a7dc4736f9c77495f9a1d7e21f8b3f4bd729fd169bc3210514ef71fd8a10b6"
+    },
+    {
+      "name": "compile-O2",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wshadow",
+        "-pedantic",
+        "-pthread",
+        "-I",
+        "include",
+        "src/wifi_broker.c",
+        "src/wifi_dispatch.c",
+        "tests/test_dispatch.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-dispatch\\evidence\\run-20260910T060504874332Z\\test-O2.exe"
+      ],
+      "returncode": 0,
+      "seconds": 0.4370000000053551,
+      "log": "compile-O2.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "test-O2",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-dispatch\\evidence\\run-20260910T060504874332Z\\test-O2.exe"
+      ],
+      "returncode": 0,
+      "seconds": 0.09399999999732245,
+      "log": "test-O2.log",
+      "log_sha256": "35a7dc4736f9c77495f9a1d7e21f8b3f4bd729fd169bc3210514ef71fd8a10b6"
+    }
+  ],
+  "files": [
+    {
+      "path": "include\\wifi_broker.h",
+      "sha256": "f0ff97135098ea02fedcc9c759445ded1b10b0c991e3fe42af89214473f54178"
+    },
+    {
+      "path": "include\\wifi_dispatch.h",
+      "sha256": "4540fed3572874665a2992f52ea753131348224bb1fe67f030478116f3f437e3"
+    },
+    {
+      "path": "src\\wifi_broker.c",
+      "sha256": "70ac3eb2c9c8f1f87ee430d02cfbdff8483ac8a3d3f95b28a2e85716c39e01b6"
+    },
+    {
+      "path": "src\\wifi_dispatch.c",
+      "sha256": "961fb22218a1ce83f152e5c76ddca7bdcae23aa96f53d8c387c0e418f435abcb"
+    },
+    {
+      "path": "tests\\test_dispatch.c",
+      "sha256": "28d0106f6d5e1071e9bbca46d91e98936f748f3588b8710f7b0a8cd63743f74c"
+    },
+    {
+      "path": "scripts\\snapshot.py",
+      "sha256": "3c59fa628aa0fb152040e0dcdd3fb31cfa284dbbb5679623e0796603ab6d0e37"
+    },
+    {
+      "path": "scripts\\test.py",
+      "sha256": "eab7766dc282e86c156b60424d57a42afd9851c4276d32050665074f27ef10ae"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+--- a/port/tracked/nuttx/drivers/usbhost/usbhost_storage.c
++++ b/port/tracked/nuttx/drivers/usbhost/usbhost_storage.c
+@@ -706,6 +706,8 @@
+       return usbhost_bot_failed(priv);
+     }
+ 
++  usbhost_dumpcsw((FAR struct usbmsc_csw_s *)priv->tbuffer);
++
+   return OK;
+ }
+ 

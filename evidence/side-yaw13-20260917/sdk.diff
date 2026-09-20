@@ -1,0 +1,56 @@
+--- sdk/app/k7host/fusion_core.h
++++ app/k7host/fusion_core.h
+@@ -13,6 +13,7 @@
+   float min_face_px, min_sharpness;
+   uint32_t stable_ms, max_gap_ms, max_age_ms, object_period_ms;
+   int left_yaw_sign;
++  float side_tolerance; /* Side-view yaw window, independent of front tolerance. */
+ };
+ /* All image/pose/quality fields MUST describe this exact frame and lock epoch.
+  * An epoch is a spatial lock generation, never a person's identity.
+--- sdk/app/k7host/fusion_core.c
++++ app/k7host/fusion_core.c
+@@ -12,17 +12,18 @@
+   if(!finite_pose(p) || fabsf(p.pitch)>c->tilt_limit || fabsf(p.roll)>c->tilt_limit)
+     return VF_NONE;
+   if(fabsf(p.yaw)<=c->tolerance) return VF_FRONT;
+-  if(fabsf(fabsf(p.yaw)-c->side_angle)>c->tolerance) return VF_NONE;
++  if(fabsf(fabsf(p.yaw)-c->side_angle)>c->side_tolerance) return VF_NONE;
+   return p.yaw*c->left_yaw_sign>0 ? VF_LEFT : VF_RIGHT;
+ }
+ int vf_init(struct vf_state *s,const struct vf_config *c,uint64_t epoch)
+ {
+   if(!s || !c || !epoch || !isfinite(c->side_angle) || !isfinite(c->tolerance) ||
+-     !isfinite(c->tilt_limit) || !isfinite(c->yaw_jitter) ||
++     !isfinite(c->tilt_limit) || !isfinite(c->yaw_jitter) || !isfinite(c->side_tolerance) ||
+      !isfinite(c->min_face_px) || !isfinite(c->min_sharpness) ||
+      c->side_angle<5 || c->side_angle>80 || c->tolerance<1 ||
+-     c->tolerance>20 || c->side_angle<=2*c->tolerance ||
+-     c->side_angle+c->tolerance>89 || c->tilt_limit<5 || c->tilt_limit>45 ||
++     c->tolerance>20 || c->side_tolerance<1 || c->side_tolerance>20 ||
++     c->side_angle<=c->tolerance+c->side_tolerance ||
++     c->side_angle+c->side_tolerance>89 || c->tilt_limit<5 || c->tilt_limit>45 ||
+      c->yaw_jitter<=0 || c->min_face_px<=0 || c->min_sharpness<=0 ||
+      c->stable_ms<300 || c->stable_ms>3000 || !c->max_gap_ms ||
+      !c->max_age_ms || !c->object_period_ms ||
+--- sdk/app/k7host/k7_photo.c
++++ app/k7host/k7_photo.c
+@@ -19,7 +19,7 @@
+ static atomic_bool reset_requested;
+ static unsigned epoch_counter;
+ /* Operator confirmed: own-left head turn produces positive native yaw. */
+-static const struct vf_config config={45,7,12,3,80,60,500,350,700,500,1};
++static const struct vf_config config={45,7,12,3,80,60,500,350,700,500,1,13};
+ struct k7_photo_s {
+   struct k7_photo_store *store;
+   struct k7_pose_s *pose;
+@@ -204,7 +204,8 @@
+   /* Enforce front -> left -> right, based on observed yaw, never servo angle. */
+   float desired=next==VF_FRONT?0:
+     config.side_angle*config.left_yaw_sign*(next==VF_LEFT?1:-1);
+-  if(next && (!f.raw_pose.valid||fabsf(f.raw_pose.yaw-desired)>config.tolerance))f.filtered_pose.valid=false;
++  float tolerance=next==VF_FRONT?config.tolerance:config.side_tolerance;
++  if(next && (!f.raw_pose.valid||fabsf(f.raw_pose.yaw-desired)>tolerance))f.filtered_pose.valid=false;
+   struct vf_result result=vf_step(&p->gate,&f);
+   pace();printf("POSE q=%u e=%u y=%.2f p=%.2f r=%.2f v=%u st=%u next=%u done=%u\n",
+     q,p->epoch,f.raw_pose.yaw,f.raw_pose.pitch,f.raw_pose.roll,

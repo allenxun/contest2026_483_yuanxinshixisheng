@@ -1,0 +1,9 @@
+{
+  "backendBaseUrl": "https://eveaisia.com/openvela",
+  "testedAt": "2026-09-18",
+  "photoUpload": {"httpAccepted": true, "status": "queued", "taskIdPresent": true},
+  "taskPolling": {"terminalStatus": "report_ready", "reportIdPresent": true, "briefView": true},
+  "reportPlayback": {"mode": "real-sse-with-brief-fallback", "completed": true, "segmentsPlayed": 3, "mockNarration": false},
+  "narrationEndpoint": {"httpStatus": 422, "errorCode": "UNSUPPORTED_CONTRACT", "missingGroups": ["pores", "spots", "surface_gloss"], "fallback": "brief"},
+  "notes": "The deployed backend currently returns a valid brief report but cannot produce narration until the persisted report contains the three score groups. The device speaks only the returned brief fields while retaining the SSE path for reports that satisfy the contract."
+}

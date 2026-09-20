@@ -1,0 +1,31 @@
+{
+  "elf": "/home/swl/openvela/cmake_out/velavision_voice_ui_connect_20260913/nuttx",
+  "sha256": "d35723e53f8935a85cc8c077ddd45dc27554e547f6f9202543cb530075c20829",
+  "checks": {
+    "eh_frame_present": true,
+    "lsda_consolidated_nonempty": true,
+    "no_orphan_lsda": true,
+    "valid_records_terminal_zero_no_hidden_records": true,
+    ".eh_frame_readonly_file_load": true,
+    ".eh_frame_inside_rodata_mmu_range": true,
+    ".gcc_except_table_readonly_file_load": true,
+    ".gcc_except_table_inside_rodata_mmu_range": true,
+    "registration_symbol": true,
+    "first_initializer_is_unwind_registration": true,
+    "start_symbol_exact": true,
+    "end_symbol_exact": true
+  },
+  "records": {
+    "cie": 2,
+    "fde": 26754
+  },
+  "first_initializer": "0x4044c9fc",
+  "passed": true,
+  "hardware_tested": false,
+  "limitations": [
+    "No startup call-order proof",
+    "No full DWARF/FDE PC coverage proof",
+    "No registration call disassembly proof",
+    "No runtime exception proof"
+  ]
+}

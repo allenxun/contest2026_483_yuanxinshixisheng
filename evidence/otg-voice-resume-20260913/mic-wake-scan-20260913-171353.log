@@ -1,0 +1,93 @@
+
+nsh> [Kk7sound tone
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=00060300 ien=00000000 gpio_vem_result=0 version=23073576 repair=fdffffff ack=00000001 idle=00
+SOUND mclkout before=0000001f after=0000001d
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=0 settle_ms=0
+SOUND playback_gain_db=0 dac_attenuation_db=24 maximum=0
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=000000mask offset=44 value=00000000
+SOUND slot_mask offset=48 value=0set=58 value=00000000
+SOUND pio=0 frames=3200 polls=85797 stop=e=36
+SOUND codec reg=01 value=60
+SOUND codec reg=02 value=00
+4 value=0c
+SOUND codec reg=05 value=00
+SOUND codec reg=06 valu
+SOUND codec reg=08 value=00
+SOUND codec reg=09 value=44
+SOUNDND codec reg=17 value=20
+SOUND codec reg=18 value=02
+SOUND codeg=1a value=30
+SOUND codec reg=1b value=30
+SOUND codec reg=27 OUND codec reg=2b value=80
+SOUND codec reg=30 value=14
+SOUND c80011 max_gap=35 counter_hz=24000000 complete=1
+SOUND pad chann804
+SOUND pad channel=1 high=25275 changes=40919
+SOUND pad chahigh=50377 changes=0
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [Kk7sound capture-pga24-grouped 48000
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=000603gpio_version=010219c8 gpio_input=034d3050
+SOUND platform_result000001 idle=00000001
+SOUND mclkout before=0000001f after=000000SOUND codec_prepare=0 state=2
+SOUND adc_variant=24 settle_ms=1000
+SOUND playback_gain_db=0 dac_attenuation_db=24 maximum=0
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=000000et=48 value=00000000
+SOUND slot_mask offset=4c value=00000000
+58 value=00000000
+SOUND pio=0 frames=48000 polls=2290098 stop=0ouped words=768000 mismatches=0
+SOUND fifo first=00000000 last= trace start=399688767 end=402688866 started=1 count=32
+SOUND te=00000002 rc=0
+SOUND trace_init index=2 value=00700fff rc=0
+Sx=0 us=399688892 before=00041041 word=ffffffff after=00041040 rcd=ffffffff after=00041000 rc=0,0,0
+SOUND trace_word index=3 us=0 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=
+SOUND trace_word index=5 us=399688901 before=00040000 word=000efore=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND tracffffff after=00041040 rc=0,0,0
+SOUND trace_word index=9 us=399688925 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUc=0,0,0
+SOUND trace_word index=11 us=399688929 before=00041000 41000 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word infff after=00000000 rc=0,0,0
+SOUND trace_word index=15 us=399688d index=17 us=399688957 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=18 us=399688958 before=00000041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_wordfffffff after=00040000 rc=0,0,0
+SOUND trace_word index=21 us=39r=00040000 rc=0,0,0
+SOUND trace_word index=22 us=399688965 befoace_word index=24 us=399688986 before=00041041 word=ffffffff aftc=0,0,0
+SOUND trace_word index=25 us=399688988 before=00041040 99688990 before=00041040 word=ffffffff after=00041000 rc=0,0,0
+after=00041000 rc=0,0,0
+SOUND trace_word index=28 us=399688993 UND trace_word index=30 us=399688996 before=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND trace_word index=31 us=3996889
+SOUND codec reg=01 value=60
+SOUND codec reg=02 value=00
+SOUN=04 value=0c
+SOUND codec reg=05 value=00
+SOUND codec reg=06 vacodec reg=08 value=00
+SOUND codec reg=09 value=88
+SOUND codec g=17 value=20
+SOUND codec reg=18 value=02
+SOUND codec reg=19 vc reg=1a value=30
+SOUND codec reg=1b value=30
+SOUND codec reg=alue=80
+SOUND codec reg=30 value=14
+SOUND codec reg=31 value=1itions=0 samples=50370
+SOUND pad ticks=480004 max_gap=35 countel=2 high=25248 changes=640
+SOUND pad channel=3 high=50370 changes=0
+SOUND pcm left_min=-279364352 left_max=372006144 left_nonzro=48000
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [Kk7voice flow-mic-wake
+TLS_CHECK PASS workers=2 destructors=2 main_value=123
+ASR_INFER BEGIN recognizer
+ASR_INFER chunk=1 elapsed=21.549
+ASR_INFER chunk=2 elapsed=22.696
+ASR_INFER chunk=3 elapsed=23.844
+ASR_INFER chunk=4 elapsed=24.991
+ASR_INFER chunk=5 elapsed=26.141
+ASR_STORAGE peak=467093776 live=0 records=1225 failures=0 reason=0
+VOICE_FLOW asr_error=-61
+nsh> [K

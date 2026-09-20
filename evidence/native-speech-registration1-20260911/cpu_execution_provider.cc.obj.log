@@ -1,0 +1,322 @@
+In file included from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/logging/logging.h:14[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/execution_provider.h:11[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/providers/cpu/cpu_execution_provider.h:6[m[K,
+                 from [01m[K/home/swl/openvela/work/native-speech-registration-20260911/generated-build/op_reduction.generated/onnxruntime/core/providers/cpu/cpu_execution_provider.cc:4[m[K:
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/common.h:88:6:[m[K [01;35m[Kwarning: [m[K"_MSC_VER" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   88 | #if ([01;35m[K_MSC_VER[m[K && !defined(__PRETTY_FUNCTION__))
+      |      [01;35m[K^~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/parse_context.h:47[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/extension_set.h:53[m[K,
+                 from [01m[K/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/onnx-build/onnx/onnx-ml.pb.h:30[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/sources/onnx/onnx/onnx_pb.h:65[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/sources/onnx/onnx/defs/data_type_utils.h:14[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/sources/onnx/onnx/defs/shape_inference.h:13[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/sources/onnx/onnx/defs/schema.h:26[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/onnx_protobuf.h:22[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/data_types.h:18[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/tensor.h:18[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/execution_provider.h:14[m[K:
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/inlined_string_field.h:430:5:[m[K [01;35m[Kwarning: [m[K"GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+  430 | #if [01;35m[KGOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE[m[K
+      |     [01;35m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/platform/ort_mutex.h:105[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/tuning_context.h:10[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/execution_provider.h:34[m[K:
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5:[m[K [01;35m[Kwarning: [m[K"NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   23 | #if [01;35m[KNSYNC_ATOMIC_TYPECHECK[m[K
+      |     [01;35m[K^~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7:[m[K [01;35m[Kwarning: [m[K"NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   33 | #elif [01;35m[KNSYNC_ATOMIC_C11[m[K
+      |       [01;35m[K^~~~~~~~~~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19[m[K:
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5:[m[K [01;35m[Kwarning: [m[K"NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   36 | #if [01;35m[KNSYNC_USE_GPR_TIMESPEC[m[K
+      |     [01;35m[K^~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7:[m[K [01;35m[Kwarning: [m[K"NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   67 | #elif [01;35m[KNSYNC_USE_DEBUG_TIME[m[K
+      |       [01;35m[K^~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:80:8:[m[K [01;35m[Kwarning: [m[K"NSYNC_USE_CPP11_TIMEPOINT" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   80 |       ([01;35m[KNSYNC_USE_CPP11_TIMEPOINT[m[K || (__cplusplus >= 201103L) || (_MSC_VER >= 1700))
+      |        [01;35m[K^~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+In file included from [01m[K/home/swl/openvela/work/native-speech-registration-20260911/generated-build/op_reduction.generated/onnxruntime/core/providers/cpu/cpu_execution_provider.cc:7[m[K:
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/mlas/inc/mlas.h:28:6:[m[K [01;35m[Kwarning: [m[K"_MSC_VER" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   28 | #if ([01;35m[K_MSC_VER[m[K >= 800) || defined(_STDCALL_SUPPORTED)
+      |      [01;35m[K^~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/common.h:35[m[K:
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/tensor.h:14[m[K:
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:[m[K In constructor '[01m[KOrtArenaCfg::[01;32m[KOrtArenaCfg[m[K(size_t, int, int, int, int, int64_t)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:26:23:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kmax_power_of_two_extend_bytes[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   26 |               [01;35m[Kint64_t max_power_of_two_extend_bytes[m[K)
+      |               [01;35m[K~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:39:11:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   39 |   int64_t [01;36m[Kmax_power_of_two_extend_bytes[m[K;  // use -1 to allow ORT to choose the default
+      |           [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:49:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kinitial_growth_chunk_size_bytes[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   25 |               int max_dead_bytes_per_chunk, [01;35m[Kint initial_growth_chunk_size_bytes[m[K,
+      |                                             [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:38:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   38 |   int [01;36m[Kinitial_growth_chunk_size_bytes[m[K;    // use -1 to allow ORT to choose the default
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:19:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kmax_dead_bytes_per_chunk[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   25 |               [01;35m[Kint max_dead_bytes_per_chunk[m[K, int initial_growth_chunk_size_bytes,
+      |               [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:37:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   37 |   int [01;36m[Kmax_dead_bytes_per_chunk[m[K;           // use -1 to allow ORT to choose the default
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:62:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kinitial_chunk_size_bytes[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, [01;35m[Kint initial_chunk_size_bytes[m[K,
+      |                                                          [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:36:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   36 |   int [01;36m[Kinitial_chunk_size_bytes[m[K;           // use -1 to allow ORT to choose the default
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:35:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Karena_extend_strategy[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   24 |   OrtArenaCfg(size_t max_mem, [01;35m[Kint arena_extend_strategy[m[K, int initial_chunk_size_bytes,
+      |                               [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:35:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   35 |   int [01;36m[Karena_extend_strategy[m[K;              // use -1 to allow ORT to choose the default, 0 = kNextPowerOfTwo, 1 = kSameAsRequested
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:22:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kmax_mem[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   24 |   OrtArenaCfg([01;35m[Ksize_t max_mem[m[K, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |               [01;35m[K~~~~~~~^~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:34:10:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   34 |   size_t [01;36m[Kmax_mem[m[K;                         // use 0 to allow ORT to choose the default
+      |          [01;36m[K^~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:[m[K In constructor '[01m[KOrtArenaCfg::[01;32m[KOrtArenaCfg[m[K(size_t, int, int, int, int, int64_t)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:26:23:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kmax_power_of_two_extend_bytes[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   26 |               [01;35m[Kint64_t max_power_of_two_extend_bytes[m[K)
+      |               [01;35m[K~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:39:11:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   39 |   int64_t [01;36m[Kmax_power_of_two_extend_bytes[m[K;  // use -1 to allow ORT to choose the default
+      |           [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:49:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kinitial_growth_chunk_size_bytes[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   25 |               int max_dead_bytes_per_chunk, [01;35m[Kint initial_growth_chunk_size_bytes[m[K,
+      |                                             [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:38:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   38 |   int [01;36m[Kinitial_growth_chunk_size_bytes[m[K;    // use -1 to allow ORT to choose the default
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:19:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kmax_dead_bytes_per_chunk[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   25 |               [01;35m[Kint max_dead_bytes_per_chunk[m[K, int initial_growth_chunk_size_bytes,
+      |               [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:37:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   37 |   int [01;36m[Kmax_dead_bytes_per_chunk[m[K;           // use -1 to allow ORT to choose the default
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:62:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kinitial_chunk_size_bytes[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, [01;35m[Kint initial_chunk_size_bytes[m[K,
+      |                                                          [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:36:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   36 |   int [01;36m[Kinitial_chunk_size_bytes[m[K;           // use -1 to allow ORT to choose the default
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:35:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Karena_extend_strategy[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   24 |   OrtArenaCfg(size_t max_mem, [01;35m[Kint arena_extend_strategy[m[K, int initial_chunk_size_bytes,
+      |                               [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:35:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   35 |   int [01;36m[Karena_extend_strategy[m[K;              // use -1 to allow ORT to choose the default, 0 = kNextPowerOfTwo, 1 = kSameAsRequested
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:22:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kmax_mem[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   24 |   OrtArenaCfg([01;35m[Ksize_t max_mem[m[K, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |               [01;35m[K~~~~~~~^~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:34:10:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   34 |   size_t [01;36m[Kmax_mem[m[K;                         // use 0 to allow ORT to choose the default
+      |          [01;36m[K^~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:[m[K In constructor '[01m[KOrtArenaCfg::[01;32m[KOrtArenaCfg[m[K(size_t, int, int, int, int, int64_t)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:26:23:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kmax_power_of_two_extend_bytes[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   26 |               [01;35m[Kint64_t max_power_of_two_extend_bytes[m[K)
+      |               [01;35m[K~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:39:11:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   39 |   int64_t [01;36m[Kmax_power_of_two_extend_bytes[m[K;  // use -1 to allow ORT to choose the default
+      |           [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:49:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kinitial_growth_chunk_size_bytes[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   25 |               int max_dead_bytes_per_chunk, [01;35m[Kint initial_growth_chunk_size_bytes[m[K,
+      |                                             [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:38:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   38 |   int [01;36m[Kinitial_growth_chunk_size_bytes[m[K;    // use -1 to allow ORT to choose the default
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:19:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kmax_dead_bytes_per_chunk[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   25 |               [01;35m[Kint max_dead_bytes_per_chunk[m[K, int initial_growth_chunk_size_bytes,
+      |               [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:37:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   37 |   int [01;36m[Kmax_dead_bytes_per_chunk[m[K;           // use -1 to allow ORT to choose the default
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:62:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kinitial_chunk_size_bytes[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, [01;35m[Kint initial_chunk_size_bytes[m[K,
+      |                                                          [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:36:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   36 |   int [01;36m[Kinitial_chunk_size_bytes[m[K;           // use -1 to allow ORT to choose the default
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:35:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Karena_extend_strategy[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   24 |   OrtArenaCfg(size_t max_mem, [01;35m[Kint arena_extend_strategy[m[K, int initial_chunk_size_bytes,
+      |                               [01;35m[K~~~~^~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:35:7:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   35 |   int [01;36m[Karena_extend_strategy[m[K;              // use -1 to allow ORT to choose the default, 0 = kNextPowerOfTwo, 1 = kSameAsRequested
+      |       [01;36m[K^~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:22:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kmax_mem[m[K' shadows a member of '[01m[KOrtArenaCfg[m[K' [[01;35m[K-Wshadow[m[K]
+   24 |   OrtArenaCfg([01;35m[Ksize_t max_mem[m[K, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |               [01;35m[K~~~~~~~^~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:34:10:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   34 |   size_t [01;36m[Kmax_mem[m[K;                         // use 0 to allow ORT to choose the default
+      |          [01;36m[K^~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:[m[K In lambda function:
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:185:73:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kp[m[K' shadows a previous local [[01;35m[K-Wshadow[m[K]
+  185 |                                   [allocator = std::move(allocator)]([01;35m[KT* p[m[K) {
+      |                                                                      [01;35m[K~~~^[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:181:8:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+  181 |     T* [01;36m[Kp[m[K = static_cast<T*>(AllocateBufferWithOptions(*allocator, alloc_size, use_reserve, stream, std::move(wait_fn)));
+      |        [01;36m[K^[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:[m[K In lambda function:
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:213:54:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kp[m[K' shadows a previous local [[01;35m[K-Wshadow[m[K]
+  213 |                                   [ort_allocator]([01;35m[KT* p[m[K) {
+      |                                                   [01;35m[K~~~^[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:209:8:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+  209 |     T* [01;36m[Kp[m[K = static_cast<T*>(ort_allocator->Alloc(ort_allocator, alloc_size));
+      |        [01;36m[K^[m[K
+In file included from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/float16.h:18[m[K,
+                 from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/data_types.h:17[m[K:
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/session/onnxruntime_float16.h:[m[K In lambda function:
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/session/onnxruntime_float16.h:493:16:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kresult[m[K' shadows a previous local [[01;35m[K-Wshadow[m[K]
+  493 |       uint16_t [01;35m[Kresult[m[K;
+      |                [01;35m[K^~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/session/onnxruntime_float16.h:488:12:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+  488 |   uint16_t [01;36m[Kresult[m[K;
+      |            [01;36m[K^~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena.h:52[m[K,
+                 from [01m[K/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/onnx-build/onnx/onnx-ml.pb.h:24[m[K:
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:[m[K In constructor '[01m[Kgoogle::protobuf::internal::SerialArena::Block::[01;32m[KBlock[m[K(google::protobuf::internal::SerialArena::Block*, size_t)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:31:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Ksize[m[K' shadows a member of '[01m[Kgoogle::protobuf::internal::SerialArena::Block[m[K' [[01;35m[K-Wshadow[m[K]
+  384 |     Block(Block* next, [01;35m[Ksize_t size[m[K) : next(next), size(size), start(nullptr) {}
+      |                        [01;35m[K~~~~~~~^~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:392:18:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+  392 |     const size_t [01;36m[Ksize[m[K;
+      |                  [01;36m[K^~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:18:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Knext[m[K' shadows a member of '[01m[Kgoogle::protobuf::internal::SerialArena::Block[m[K' [[01;35m[K-Wshadow[m[K]
+  384 |     Block([01;35m[KBlock* next[m[K, size_t size) : next(next), size(size), start(nullptr) {}
+      |           [01;35m[K~~~~~~~^~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:391:18:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+  391 |     Block* const [01;36m[Knext[m[K;
+      |                  [01;36m[K^~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:[m[K In constructor '[01m[Kgoogle::protobuf::internal::SerialArena::Block::[01;32m[KBlock[m[K(google::protobuf::internal::SerialArena::Block*, size_t)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:31:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Ksize[m[K' shadows a member of '[01m[Kgoogle::protobuf::internal::SerialArena::Block[m[K' [[01;35m[K-Wshadow[m[K]
+  384 |     Block(Block* next, [01;35m[Ksize_t size[m[K) : next(next), size(size), start(nullptr) {}
+      |                        [01;35m[K~~~~~~~^~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:392:18:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+  392 |     const size_t [01;36m[Ksize[m[K;
+      |                  [01;36m[K^~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:18:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Knext[m[K' shadows a member of '[01m[Kgoogle::protobuf::internal::SerialArena::Block[m[K' [[01;35m[K-Wshadow[m[K]
+  384 |     Block([01;35m[KBlock* next[m[K, size_t size) : next(next), size(size), start(nullptr) {}
+      |           [01;35m[K~~~~~~~^~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:391:18:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+  391 |     Block* const [01;36m[Knext[m[K;
+      |                  [01;36m[K^~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:[m[K In constructor '[01m[Kgoogle::protobuf::internal::SerialArena::Block::[01;32m[KBlock[m[K(google::protobuf::internal::SerialArena::Block*, size_t)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:31:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Ksize[m[K' shadows a member of '[01m[Kgoogle::protobuf::internal::SerialArena::Block[m[K' [[01;35m[K-Wshadow[m[K]
+  384 |     Block(Block* next, [01;35m[Ksize_t size[m[K) : next(next), size(size), start(nullptr) {}
+      |                        [01;35m[K~~~~~~~^~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:392:18:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+  392 |     const size_t [01;36m[Ksize[m[K;
+      |                  [01;36m[K^~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:18:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Knext[m[K' shadows a member of '[01m[Kgoogle::protobuf::internal::SerialArena::Block[m[K' [[01;35m[K-Wshadow[m[K]
+  384 |     Block([01;35m[KBlock* next[m[K, size_t size) : next(next), size(size), start(nullptr) {}
+      |           [01;35m[K~~~~~~~^~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:391:18:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+  391 |     Block* const [01;36m[Knext[m[K;
+      |                  [01;36m[K^~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/execution_provider.h:29[m[K:
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:[m[K In constructor '[01m[Konnxruntime::AllocatorCreationInfo::[01;32m[KAllocatorCreationInfo[m[K(onnxruntime::AllocatorFactory, OrtDevice::DeviceId, bool, OrtArenaCfg, bool, bool)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:21:37:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Karena_cfg[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   21 |                         [01;35m[KOrtArenaCfg arena_cfg = {0, -1, -1, -1, -1, -1L}[m[K,
+      |                         [01;35m[K~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:35:15:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   35 |   OrtArenaCfg [01;36m[Karena_cfg[m[K;
+      |               [01;36m[K^~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:20:30:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kuse_arena[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   20 |                         [01;35m[Kbool use_arena = true[m[K,
+      |                         [01;35m[K~~~~~^~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:34:8:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   34 |   bool [01;36m[Kuse_arena[m[K;
+      |        [01;36m[K^~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:19:45:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kdevice_id[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   19 |                         [01;35m[KOrtDevice::DeviceId device_id = 0[m[K,
+      |                         [01;35m[K~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:33:23:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   33 |   OrtDevice::DeviceId [01;36m[Kdevice_id[m[K;
+      |                       [01;36m[K^~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:18:42:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kdevice_alloc_factory[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   18 |   AllocatorCreationInfo([01;35m[KAllocatorFactory device_alloc_factory[m[K,
+      |                         [01;35m[K~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:32:20:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   32 |   AllocatorFactory [01;36m[Kdevice_alloc_factory[m[K;
+      |                    [01;36m[K^~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:[m[K In constructor '[01m[Konnxruntime::AllocatorCreationInfo::[01;32m[KAllocatorCreationInfo[m[K(onnxruntime::AllocatorFactory, OrtDevice::DeviceId, bool, OrtArenaCfg, bool, bool)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:21:37:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Karena_cfg[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   21 |                         [01;35m[KOrtArenaCfg arena_cfg = {0, -1, -1, -1, -1, -1L}[m[K,
+      |                         [01;35m[K~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:35:15:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   35 |   OrtArenaCfg [01;36m[Karena_cfg[m[K;
+      |               [01;36m[K^~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:20:30:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kuse_arena[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   20 |                         [01;35m[Kbool use_arena = true[m[K,
+      |                         [01;35m[K~~~~~^~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:34:8:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   34 |   bool [01;36m[Kuse_arena[m[K;
+      |        [01;36m[K^~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:19:45:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kdevice_id[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   19 |                         [01;35m[KOrtDevice::DeviceId device_id = 0[m[K,
+      |                         [01;35m[K~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:33:23:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   33 |   OrtDevice::DeviceId [01;36m[Kdevice_id[m[K;
+      |                       [01;36m[K^~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:18:42:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kdevice_alloc_factory[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   18 |   AllocatorCreationInfo([01;35m[KAllocatorFactory device_alloc_factory[m[K,
+      |                         [01;35m[K~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:32:20:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   32 |   AllocatorFactory [01;36m[Kdevice_alloc_factory[m[K;
+      |                    [01;36m[K^~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:[m[K In constructor '[01m[Konnxruntime::AllocatorCreationInfo::[01;32m[KAllocatorCreationInfo[m[K(onnxruntime::AllocatorFactory, OrtDevice::DeviceId, bool, OrtArenaCfg, bool, bool)[m[K':
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:21:37:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Karena_cfg[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   21 |                         [01;35m[KOrtArenaCfg arena_cfg = {0, -1, -1, -1, -1, -1L}[m[K,
+      |                         [01;35m[K~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:35:15:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   35 |   OrtArenaCfg [01;36m[Karena_cfg[m[K;
+      |               [01;36m[K^~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:20:30:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kuse_arena[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   20 |                         [01;35m[Kbool use_arena = true[m[K,
+      |                         [01;35m[K~~~~~^~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:34:8:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   34 |   bool [01;36m[Kuse_arena[m[K;
+      |        [01;36m[K^~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:19:45:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kdevice_id[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   19 |                         [01;35m[KOrtDevice::DeviceId device_id = 0[m[K,
+      |                         [01;35m[K~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:33:23:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   33 |   OrtDevice::DeviceId [01;36m[Kdevice_id[m[K;
+      |                       [01;36m[K^~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:18:42:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kdevice_alloc_factory[m[K' shadows a member of '[01m[Konnxruntime::AllocatorCreationInfo[m[K' [[01;35m[K-Wshadow[m[K]
+   18 |   AllocatorCreationInfo([01;35m[KAllocatorFactory device_alloc_factory[m[K,
+      |                         [01;35m[K~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:32:20:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   32 |   AllocatorFactory [01;36m[Kdevice_alloc_factory[m[K;
+      |                    [01;36m[K^~~~~~~~~~~~~~~~~~~~[m[K

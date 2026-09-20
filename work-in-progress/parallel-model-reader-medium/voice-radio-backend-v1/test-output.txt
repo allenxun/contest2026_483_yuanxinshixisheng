@@ -1,0 +1,74 @@
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O0 -Wall -Wextra -Werror -Wpedantic E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\test_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\radio_fence.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\test-O0.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\test-O0.exe
+RADIO Wi-Fi passive scan reports=0 unique=0 done=1 ret=0 stop=0 close=0; network_connected=0
+RADIO Wi-Fi passive scan reports=0 unique=0 done=0 ret=-5 stop=0 close=0; network_connected=0
+RADIO Wi-Fi passive scan reports=0 unique=0 done=0 ret=-138 stop=0 close=0; network_connected=0
+RADIO Wi-Fi passive scan reports=0 unique=0 done=1 ret=0 stop=0 close=-5; network_connected=0
+RADIO Wi-Fi passive scan reports=0 unique=0 done=0 ret=-5 stop=-138 close=0; network_connected=0
+PASS 18 checks real frozen fw_wifi_scan with mocked commands/locks only; no radio acceptance
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O2 -Wall -Wextra -Werror -Wpedantic E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\test_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\radio_fence.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\test-O2.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\test-O2.exe
+RADIO Wi-Fi passive scan reports=0 unique=0 done=1 ret=0 stop=0 close=0; network_connected=0
+RADIO Wi-Fi passive scan reports=0 unique=0 done=0 ret=-5 stop=0 close=0; network_connected=0
+RADIO Wi-Fi passive scan reports=0 unique=0 done=0 ret=-138 stop=0 close=0; network_connected=0
+RADIO Wi-Fi passive scan reports=0 unique=0 done=1 ret=0 stop=0 close=-5; network_connected=0
+RADIO Wi-Fi passive scan reports=0 unique=0 done=0 ret=-5 stop=-138 close=0; network_connected=0
+PASS 18 checks real frozen fw_wifi_scan with mocked commands/locks only; no radio acceptance
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O0 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1 E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\test_backend.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\radio_fence.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_broker.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_dispatch.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\backend-O0.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\backend-O0.exe
+PASS real target backend inc + pthread reaper/pump/RX mock; real hardware NOT exercised
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\backend-O0.exe 1
+PASS fault scenario remains held; no mock success release
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\backend-O0.exe 2
+PASS fault scenario remains held; no mock success release
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\backend-O0.exe 3
+PASS fault scenario remains held; no mock success release
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O2 -Wall -Wextra -Werror -Wpedantic -pthread -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1 E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\test_backend.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\radio_fence.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_broker.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_dispatch.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_scan.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\backend-O2.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\backend-O2.exe
+PASS real target backend inc + pthread reaper/pump/RX mock; real hardware NOT exercised
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\backend-O2.exe 1
+PASS fault scenario remains held; no mock success release
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\backend-O2.exe 2
+PASS fault scenario remains held; no mock success release
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\backend-O2.exe 3
+PASS fault scenario remains held; no mock success release
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O0 -Wall -Wextra -Werror -Wpedantic -c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_broker.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_broker-O0.o
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O0 -Wall -Wextra -Werror -Wpedantic -c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_dispatch.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_dispatch-O0.o
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O0 -Wall -Wextra -Werror -Wpedantic -c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_scan.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_scan-O0.o
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O0 -Wall -Wextra -Werror -Wpedantic -c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\scan_collector-O0.o
+exit=0
+$ D:/software/mingw64/mingw64/bin/g++.exe -std=c++17 -O0 -Wall -Wextra -Werror -Wpedantic -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1 E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\test_adapter.cpp E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\voice_wifi_adapter.cpp E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_broker-O0.o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_dispatch-O0.o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_scan-O0.o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\scan_collector-O0.o -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\adapter-O0.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\adapter-O0.exe
+PASS checks=4308; real candidate functions, injected mock hardware only; no radio/IP acceptance
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O2 -Wall -Wextra -Werror -Wpedantic -c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_broker.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_broker-O2.o
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O2 -Wall -Wextra -Werror -Wpedantic -c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_dispatch.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_dispatch-O2.o
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O2 -Wall -Wextra -Werror -Wpedantic -c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_scan.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_scan-O2.o
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O2 -Wall -Wextra -Werror -Wpedantic -c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\scan_collector.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\scan_collector-O2.o
+exit=0
+$ D:/software/mingw64/mingw64/bin/g++.exe -std=c++17 -O2 -Wall -Wextra -Werror -Wpedantic -I E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1 E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\test_adapter.cpp E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\voice_wifi_adapter.cpp E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_broker-O2.o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_dispatch-O2.o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\wifi_scan-O2.o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\scan_collector-O2.o -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\adapter-O2.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\voice-radio-backend-v1\adapter-O2.exe
+PASS checks=4308; real candidate functions, injected mock hardware only; no radio/IP acceptance
+exit=0

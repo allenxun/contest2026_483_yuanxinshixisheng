@@ -1,0 +1,341 @@
+[
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\abseil-cpp.cmake",
+    "declarations": [
+      {
+        "name": "abseil_cpp",
+        "line": 25,
+        "block": "\n    abseil_cpp\n    URL ${DEP_URL_abseil_cpp}\n    URL_HASH SHA1=${DEP_SHA1_abseil_cpp}\n    PATCH_COMMAND ${ABSL_PATCH_COMMAND}\n    FIND_PACKAGE_ARGS NAMES absl\n"
+      }
+    ],
+    "patch_lines": [
+      {
+        "line": 13,
+        "text": "  set(ABSL_PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/abseil/absl_windows.patch)"
+      },
+      {
+        "line": 15,
+        "text": "  set(ABSL_PATCH_COMMAND \"\")"
+      },
+      {
+        "line": 29,
+        "text": "    PATCH_COMMAND ${ABSL_PATCH_COMMAND}"
+      }
+    ]
+  },
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\composable_kernel.cmake",
+    "declarations": [
+      {
+        "name": "composable_kernel",
+        "line": 4,
+        "block": "composable_kernel\n  URL ${DEP_URL_composable_kernel}\n  URL_HASH SHA1=${DEP_SHA1_composable_kernel}\n  PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PATCH}\n"
+      }
+    ],
+    "patch_lines": [
+      {
+        "line": 7,
+        "text": "  PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PATCH}"
+      }
+    ]
+  },
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\cutlass.cmake",
+    "declarations": [
+      {
+        "name": "cutlass",
+        "line": 2,
+        "block": "\n  cutlass\n  URL ${DEP_URL_cutlass}\n  URL_HASH SHA1=${DEP_SHA1_cutlass}\n"
+      }
+    ],
+    "patch_lines": []
+  },
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\dnnl.cmake",
+    "declarations": [],
+    "patch_lines": [
+      {
+        "line": 49,
+        "text": "  # set(DNNL_PATCH_COMMAND git apply ${CMAKE_SOURCE_DIR}/patches/mkldnn/constexpr.patch)"
+      },
+      {
+        "line": 62,
+        "text": "    # PATCH_COMMAND ${MKLDNN_PATCH_DISCARD_COMMAND} COMMAND ${DNNL_PATCH_COMMAND}"
+      }
+    ]
+  },
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\eigen.cmake",
+    "declarations": [
+      {
+        "name": "eigen",
+        "line": 6,
+        "block": "\n        eigen\n        URL ${DEP_URL_eigen}\n        URL_HASH SHA1=${DEP_SHA1_eigen}\n    "
+      }
+    ],
+    "patch_lines": []
+  },
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\extensions.cmake",
+    "declarations": [
+      {
+        "name": "extensions",
+        "line": 41,
+        "block": "\n    extensions\n    URL ${DEP_URL_extensions}\n    URL_HASH SHA1=${DEP_SHA1_extensions}\n  "
+      }
+    ],
+    "patch_lines": []
+  },
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\neural_speed.cmake",
+    "declarations": [
+      {
+        "name": "neural_speed",
+        "line": 8,
+        "block": "\n      neural_speed\n      URL ${DEP_URL_neural_speed}\n      URL_HASH SHA1=${DEP_SHA1_neural_speed}\n  "
+      }
+    ],
+    "patch_lines": []
+  },
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\onnxruntime_external_deps.cmake",
+    "declarations": [
+      {
+        "name": "re2",
+        "line": 26,
+        "block": "\n    re2\n    URL ${DEP_URL_re2}\n    URL_HASH SHA1=${DEP_SHA1_re2}\n    FIND_PACKAGE_ARGS NAMES re2\n"
+      },
+      {
+        "name": "googletest",
+        "line": 47,
+        "block": "\n    googletest\n    URL ${DEP_URL_googletest}\n    URL_HASH SHA1=${DEP_SHA1_googletest}\n    FIND_PACKAGE_ARGS 1.14.0...<2.0.0 NAMES GTest\n  "
+      },
+      {
+        "name": "google_benchmark",
+        "line": 61,
+        "block": "\n    google_benchmark\n    URL ${DEP_URL_google_benchmark}\n    URL_HASH SHA1=${DEP_SHA1_google_benchmark}\n  "
+      },
+      {
+        "name": "google_nsync",
+        "line": 69,
+        "block": "\n    google_nsync\n    URL ${DEP_URL_google_nsync}\n    URL_HASH SHA1=${DEP_SHA1_google_nsync}\n    FIND_PACKAGE_ARGS NAMES nsync\n    "
+      },
+      {
+        "name": "mimalloc",
+        "line": 78,
+        "block": "\n      mimalloc\n      URL ${DEP_URL_mimalloc}\n      URL_HASH SHA1=${DEP_SHA1_mimalloc}\n"
+      },
+      {
+        "name": "flatbuffers",
+        "line": 102,
+        "block": "\n    flatbuffers\n    URL ${DEP_URL_flatbuffers}\n    URL_HASH SHA1=${DEP_SHA1_flatbuffers}\n    PATCH_COMMAND ${ONNXRUNTIME_FLATBUFFERS_PATCH_COMMAND}\n    FIND_PACKAGE_ARGS 1.12.0...<2.0.0 NAMES Flatbuffers\n"
+      },
+      {
+        "name": "protoc_binary",
+        "line": 118,
+        "block": "protoc_binary URL ${DEP_URL_protoc_win64} URL_HASH SHA1=${DEP_SHA1_protoc_win64}"
+      },
+      {
+        "name": "protoc_binary",
+        "line": 121,
+        "block": "protoc_binary URL ${DEP_URL_protoc_win32} URL_HASH SHA1=${DEP_SHA1_protoc_win32}"
+      },
+      {
+        "name": "protoc_binary",
+        "line": 131,
+        "block": "protoc_binary URL ${DEP_URL_protoc_linux_x64} URL_HASH SHA1=${DEP_SHA1_protoc_linux_x64}"
+      },
+      {
+        "name": "protoc_binary",
+        "line": 134,
+        "block": "protoc_binary URL ${DEP_URL_protoc_linux_x86} URL_HASH SHA1=${DEP_SHA1_protoc_linux_x86}"
+      },
+      {
+        "name": "protoc_binary",
+        "line": 137,
+        "block": "protoc_binary URL ${DEP_URL_protoc_linux_aarch64} URL_HASH SHA1=${DEP_SHA1_protoc_linux_aarch64}"
+      },
+      {
+        "name": "protoc_binary",
+        "line": 146,
+        "block": "protoc_binary URL ${DEP_URL_protoc_mac_universal} URL_HASH SHA1=${DEP_SHA1_protoc_mac_universal}"
+      },
+      {
+        "name": "utf8_range",
+        "line": 166,
+        "block": "\n    utf8_range\n    URL ${DEP_URL_utf8_range}\n    URL_HASH SHA1=${DEP_SHA1_utf8_range}\n    FIND_PACKAGE_ARGS NAMES utf8_range\n"
+      },
+      {
+        "name": "Protobuf",
+        "line": 178,
+        "block": "\n  Protobuf\n  URL ${DEP_URL_protobuf}\n  URL_HASH SHA1=${DEP_SHA1_protobuf}\n  PATCH_COMMAND ${ONNXRUNTIME_PROTOBUF_PATCH_COMMAND}\n  FIND_PACKAGE_ARGS 3.21.12 NAMES Protobuf\n"
+      },
+      {
+        "name": "date",
+        "line": 208,
+        "block": "\n  date\n  URL ${DEP_URL_date}\n  URL_HASH SHA1=${DEP_SHA1_date}\n  FIND_PACKAGE_ARGS 3...<4 NAMES date\n"
+      },
+      {
+        "name": "mp11",
+        "line": 216,
+        "block": "\n  mp11\n  URL ${DEP_URL_mp11}\n  URL_HASH SHA1=${DEP_SHA1_mp11}\n"
+      },
+      {
+        "name": "nlohmann_json",
+        "line": 227,
+        "block": "\n    nlohmann_json\n    URL ${DEP_URL_json}\n    URL_HASH SHA1=${DEP_SHA1_json}\n    FIND_PACKAGE_ARGS 3.10 NAMES nlohmann_json\n"
+      },
+      {
+        "name": "pytorch_clog",
+        "line": 280,
+        "block": "\n    pytorch_clog\n    URL ${DEP_URL_pytorch_cpuinfo}\n    URL_HASH SHA1=${DEP_SHA1_pytorch_cpuinfo}\n    SOURCE_SUBDIR deps/clog\n  "
+      },
+      {
+        "name": "pytorch_cpuinfo",
+        "line": 308,
+        "block": "\n    pytorch_cpuinfo\n    URL ${DEP_URL_pytorch_cpuinfo}\n    URL_HASH SHA1=${DEP_SHA1_pytorch_cpuinfo}\n    FIND_PACKAGE_ARGS NAMES cpuinfo\n  "
+      },
+      {
+        "name": "GSL",
+        "line": 333,
+        "block": "\n    GSL\n    URL ${DEP_URL_microsoft_gsl}\n    URL_HASH SHA1=${DEP_SHA1_microsoft_gsl}\n    PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/gsl/1064.patch\n    FIND_PACKAGE_ARGS 4.0 NAMES Microsoft.GSL\n  "
+      },
+      {
+        "name": "GSL",
+        "line": 341,
+        "block": "\n    GSL\n    URL ${DEP_URL_microsoft_gsl}\n    URL_HASH SHA1=${DEP_SHA1_microsoft_gsl}\n    FIND_PACKAGE_ARGS 4.0 NAMES Microsoft.GSL\n  "
+      },
+      {
+        "name": "safeint",
+        "line": 349,
+        "block": "\n    safeint\n    URL ${DEP_URL_safeint}\n    URL_HASH SHA1=${DEP_SHA1_safeint}\n"
+      },
+      {
+        "name": "onnx",
+        "line": 450,
+        "block": "\n  onnx\n  URL ${DEP_URL_onnx}\n  URL_HASH SHA1=${DEP_SHA1_onnx}\n  PATCH_COMMAND ${ONNXRUNTIME_ONNX_PATCH_COMMAND}\n"
+      },
+      {
+        "name": "dlpack",
+        "line": 516,
+        "block": "\n    dlpack\n    URL ${DEP_URL_dlpack}\n    URL_HASH SHA1=${DEP_SHA1_dlpack}\n  "
+      },
+      {
+        "name": "cxxopts",
+        "line": 529,
+        "block": "\n    cxxopts\n    URL ${DEP_URL_cxxopts}\n    URL_HASH SHA1=${DEP_SHA1_cxxopts}\n  "
+      }
+    ],
+    "patch_lines": [
+      {
+        "line": 96,
+        "text": "  set(ONNXRUNTIME_FLATBUFFERS_PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/flatbuffers/flatbuffers.patch)"
+      },
+      {
+        "line": 98,
+        "text": " set(ONNXRUNTIME_FLATBUFFERS_PATCH_COMMAND \"\")"
+      },
+      {
+        "line": 106,
+        "text": "    PATCH_COMMAND ${ONNXRUNTIME_FLATBUFFERS_PATCH_COMMAND}"
+      },
+      {
+        "line": 161,
+        "text": "  set(ONNXRUNTIME_PROTOBUF_PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/protobuf/protobuf_cmake.patch)"
+      },
+      {
+        "line": 163,
+        "text": " set(ONNXRUNTIME_PROTOBUF_PATCH_COMMAND \"\")"
+      },
+      {
+        "line": 182,
+        "text": "  PATCH_COMMAND ${ONNXRUNTIME_PROTOBUF_PATCH_COMMAND}"
+      },
+      {
+        "line": 337,
+        "text": "    PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/gsl/1064.patch"
+      },
+      {
+        "line": 445,
+        "text": "  set(ONNXRUNTIME_ONNX_PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/onnx/onnx.patch)"
+      },
+      {
+        "line": 447,
+        "text": "  set(ONNXRUNTIME_ONNX_PATCH_COMMAND \"\")"
+      },
+      {
+        "line": 454,
+        "text": "  PATCH_COMMAND ${ONNXRUNTIME_ONNX_PATCH_COMMAND}"
+      }
+    ]
+  },
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\pybind11.cmake",
+    "declarations": [
+      {
+        "name": "pybind11_project",
+        "line": 1,
+        "block": "\n    pybind11_project\n    URL ${DEP_URL_pybind11}\n\tURL_HASH SHA1=${DEP_SHA1_pybind11}\n\tFIND_PACKAGE_ARGS 2.6 NAMES pybind11\n"
+      }
+    ],
+    "patch_lines": []
+  },
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\tvm.cmake",
+    "declarations": [
+      {
+        "name": "tvm",
+        "line": 4,
+        "block": "\n    tvm\n    GIT_REPOSITORY https://github.com/apache/tvm.git\n    GIT_TAG        2379917985919ed3918dc12cad47f469f245be7a\n  "
+      }
+    ],
+    "patch_lines": []
+  },
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\wil.cmake",
+    "declarations": [
+      {
+        "name": "microsoft_wil",
+        "line": 6,
+        "block": "\n  microsoft_wil\n  URL ${DEP_URL_microsoft_wil}\n  URL_HASH SHA1=${DEP_SHA1_microsoft_wil}\n  FIND_PACKAGE_ARGS NAMES wil\n"
+      }
+    ],
+    "patch_lines": []
+  },
+  {
+    "file": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\cmake\\external\\xnnpack.cmake",
+    "declarations": [
+      {
+        "name": "psimd",
+        "line": 15,
+        "block": "psimd URL ${DEP_URL_psimd} URL_HASH SHA1=${DEP_SHA1_psimd}"
+      },
+      {
+        "name": "fp16",
+        "line": 18,
+        "block": "fp16 URL ${DEP_URL_fp16} URL_HASH SHA1=${DEP_SHA1_fp16}"
+      },
+      {
+        "name": "fxdiv",
+        "line": 22,
+        "block": "fxdiv URL ${DEP_URL_fxdiv} URL_HASH SHA1=${DEP_SHA1_fxdiv}"
+      },
+      {
+        "name": "pthreadpool",
+        "line": 26,
+        "block": "pthreadpool URL ${DEP_URL_pthreadpool} URL_HASH SHA1=${DEP_SHA1_pthreadpool}"
+      },
+      {
+        "name": "googlexnnpack",
+        "line": 29,
+        "block": "googlexnnpack URL ${DEP_URL_googlexnnpack} URL_HASH SHA1=${DEP_SHA1_googlexnnpack}\n                     PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/xnnpack/AddEmscriptenAndIosSupport.patch\n                    "
+      }
+    ],
+    "patch_lines": [
+      {
+        "line": 30,
+        "text": "                     PATCH_COMMAND ${Patch_EXECUTABLE} --binary --ignore-whitespace -p1 < ${PROJECT_SOURCE_DIR}/patches/xnnpack/AddEmscriptenAndIosSupport.patch"
+      }
+    ]
+  }
+]

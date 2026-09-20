@@ -1,0 +1,67 @@
+{
+  "files": [
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\HANDOFF.md",
+      "sha256": "d1e68b9abbdecab184dcfad5f6a221c44ca4760f96f1cb2615e06abdc7d729da",
+      "bytes": 9094
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\msc-readonly.patch",
+      "sha256": "0c2adae22703505cab0f681282e491974316c242c1ba7c2f3caa69a3e3478adf",
+      "bytes": 1598
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\msc_read_checks.h",
+      "sha256": "3e487ce1c8c031ef0769a3033bd58a92e79e9cd486609eb97cde0a4b32a29c07",
+      "bytes": 1789
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\patch-inputs.json",
+      "sha256": "2b1e3ce523a88cdd98634514af3269a382e2083a411527f6a3efe4218ea70b27",
+      "bytes": 461
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\prepare_patch.py",
+      "sha256": "3c8be5edc28af5c201a1329c43479fa6aff6c98d7fb16eccfd9234fc5539954a",
+      "bytes": 2110
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\read_gate.py",
+      "sha256": "0996e77b0d5401b0fa617e5df5f40bbcd518dd36b3b005fa5e0f1b4f1a224849",
+      "bytes": 1858
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\run-evidence.json",
+      "sha256": "2a6bcf99a3c9dab681281c01603035a796edeae39bb775724de6ba1eb16d49f8",
+      "bytes": 17014
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\test-results.json",
+      "sha256": "2358793e9cba0feb97c6401e9ab3d1523a7eba502b9502f6bb48d28ae91d9545",
+      "bytes": 11148
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\test_checks.c",
+      "sha256": "10bd1fb909e75c4cfcd06cf6a4659e301ebf059e0bd790be75d62e12890c7a4d",
+      "bytes": 1184
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\test_checks.exe",
+      "sha256": "1c2c21e7810d037d3c6cbc0905372933f99c0f164a8e3aa09592bad812410bad",
+      "bytes": 46058
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\test_read_gate.py",
+      "sha256": "d6c3eb64a8e3f558aff3692dc68015d12273b14acf083d26bc6d83da65650b2b",
+      "bytes": 1822
+    },
+    {
+      "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-storage-readonly-v1\\verify.py",
+      "sha256": "33e9e13f5c4c3647d04aaeb8cb306f88e5c72d173d4d302fdb84f425803d4703",
+      "bytes": 2932
+    }
+  ],
+  "tests": "20 Python + 20 C synthetic checks; strict C compilation; patch apply --check",
+  "patch_applied": false,
+  "device_tested": false
+}

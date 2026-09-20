@@ -1,0 +1,17 @@
+[
+  {
+    "time": "2026-09-09T11:47:55.805393+00:00",
+    "command": "arp -i wlan0 -a 10.3.0.1",
+    "output": "arp -i wlan0 -a 10.3.0.1\r\nnsh: arp: no such ARP entry: 10.3.0.1\r\nnsh> \u001b[K"
+  },
+  {
+    "time": "2026-09-09T11:48:00.847927+00:00",
+    "command": "ping -c 5 -I wlan0 10.3.0.1",
+    "output": "ping -c 5 -I wlan0 10.3.0.1\r\nPING 10.3.0.1 56 bytes of data\r\nRADIO Wi-Fi RX type=1 id=15 seq=3184 len=10\r\nRADIO Wi-Fi cmd=15 seq=3184 ack=1 status=0 response=0 ret=0\r\nRADIO Wi-Fi RX type=1 id=15 seq=3185 len=10\r\nRADIO Wi-Fi cmd=15 seq=3185 ack=1 status=0 response=0 ret=0\r\nRADIO Wi-Fi RX type=1 id=15 seq=3186 len=10\r\nRADIO Wi-Fi cmd=15 seq=3186 ack=1 status=0 response=0 ret=0\r\nRADIO Wi-Fi RX type=1 id=15 seq=3187 len=10\r\nRADIO Wi-Fi cmd=15 seq=3187 ack=1 status=0 response=0 ret=0\r\nERROR: sendto failed at seqno 0: 101\r\nRADIO Wi-Fi RX type=2 id=13 seq=4788 len=20\r\nRADIO Wi-Fi RX type=2 id=13 seq=4789 len=20\r\nRADIO Wi-Fi RX type=2 id=13 seq=4790 len=20\r\nERROR: sendto failed at seqno 1: 101\r\nERROR: sendto failed at seqno 2: 101\r\nERROR: sendto failed at seqno 3: 101\r\nERROR: sendto failed at seqno 4: 101\r\n5 packets transmitted, 0 received, 100% packet loss, time 5005 ms\r\nnsh> \u001b[K"
+  },
+  {
+    "time": "2026-09-09T11:48:00.895116+00:00",
+    "command": "k7radio wifi-status",
+    "output": "k7radio wifi-status\r\nWIFI status active=1 wifi_connected=1 ip=10.3.0.214 gateway=10.3.0.1 result=0\r\nWIFI netdev rx=78 tx=13 dropped=0\r\nWIFI AMSDU complete=0 subframes=0 rejected=0\r\nnsh> \u001b[K"
+  }
+]

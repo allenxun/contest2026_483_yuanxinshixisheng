@@ -1,0 +1,46 @@
+[
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-I.",
+      "-Ivendor",
+      "test_loader.c",
+      "model_buffer_loader.c",
+      "sha256_vendor.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\native-model-buffer-loader\\evidence\\test-O0.exe"
+    ],
+    "exit_code": 0
+  },
+  {
+    "test": "-O0",
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-I.",
+      "-Ivendor",
+      "test_loader.c",
+      "model_buffer_loader.c",
+      "sha256_vendor.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\native-model-buffer-loader\\evidence\\test-O2.exe"
+    ],
+    "exit_code": 0
+  },
+  {
+    "test": "-O2",
+    "exit_code": 0
+  }
+]

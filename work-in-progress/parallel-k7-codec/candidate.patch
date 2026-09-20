@@ -1,0 +1,524 @@
+--- /dev/null
++++ b/include/codec_txn.h
+@@ -0,0 +1,85 @@
++#ifndef CODEC_TXN_H
++#define CODEC_TXN_H
++#include <stdbool.h>
++#include <stddef.h>
++#include <stdint.h>
++
++#define KC_MAX_STEPS 64u
++#define KC_MAX_READ_RULES 16u
++enum kc_status { KC_OK, KC_PENDING, KC_BUSY, KC_NOT_READY, KC_INVALID,
++ KC_IO, KC_SHORT, KC_TIMEOUT, KC_CANCELLED, KC_READBACK, KC_CLOCK,
++ KC_STALE, KC_EXHAUSTED, KC_DELAY_ERROR };
++enum kc_state { KC_OFF, KC_POWERING, KC_INITIALIZING, KC_PREPARING,
++ KC_READY, KC_STOPPING, KC_ERROR };
++enum kc_mode { KC_HARDWARE, KC_SIMULATION };
++enum kc_evidence { KC_UNREVIEWED, KC_REFERENCE_ONLY, KC_TARGET_REVIEWED, KC_SIM_ONLY };
++enum kc_kind { KC_WRITE, KC_READ_VERIFY, KC_DELAY };
++enum kc_stage { KC_INIT, KC_CAPTURE };
++enum kc_phase { KC_PHASE_NONE, KC_PHASE_POWER, KC_PHASE_CLOCK,
++ KC_PHASE_STEP, KC_PHASE_CAPTURE, KC_PHASE_READY };
++enum kc_control { KC_POWER_PREPARE, KC_CAPTURE_PREPARE, KC_QUIESCE };
++enum { KC_REVIEW_IDENTITY=1u, KC_REVIEW_RAILS=2u, KC_REVIEW_CLOCK=4u,
++ KC_REVIEW_FORMAT=8u, KC_REVIEW_ANALOG=16u, KC_REVIEW_STOP=32u,
++ KC_REVIEW_ALL=63u };
++struct kc_step {
++ enum kc_kind kind; enum kc_stage stage; enum kc_evidence evidence;
++ uint16_t source_id; /* local provenance table, nonzero; not a security boundary */
++ uint8_t reg,value,mask; uint32_t delay_ms;
++};
++struct kc_read_rule { uint8_t reg,allowed_mask; enum kc_evidence evidence; uint16_t source_id; };
++struct kc_plan {
++ enum kc_mode mode; unsigned reviews;
++ uint8_t address; uint32_t sample_rate,mclk,bclk;
++ uint8_t slots,slot_bits;
++ size_t count,read_count;
++ struct kc_step steps[KC_MAX_STEPS];
++ struct kc_read_rule reads[KC_MAX_READ_RULES];
++};
++struct kc_io_result { int error; size_t tx_done,rx_done; };
++/* Serialized service task only. No callback may retain stack buffers after return.
++ * No callbacks may longjmp. Bus exceptions/OS errors must be translated.
++ * Bus reports actual byte counts separately: write(reg,value) TX=2/RX=0;
++ * combined read TX register=1/RX value=1. A sum of two bytes is insufficient.
++ * The adapter checks messages, STOP/restart and lengths.
++ * Absolute deadline uses the SAME monotonic clock as now_ms. Lower layer must
++ * enforce it; this layer can only reject a result AFTER a blocking call returns.
++ * control(KC_QUIESCE)==0 means all old I/O/DMA exited, capture disabled and
++ * amplifier kept off. Nonzero retains lease. It is never merely cancel sent.
++ */
++struct kc_port {
++ void *ctx;
++ uint64_t (*now_ms)(void *);
++ struct kc_io_result (*write)(void *,uint8_t,const uint8_t *,size_t,uint64_t);
++ struct kc_io_result (*read)(void *,uint8_t,uint8_t,uint8_t *,uint64_t);
++ int (*delay_ms)(void *,uint32_t,uint64_t);
++ int (*clock_ready)(void *,uint32_t,uint32_t,uint32_t,uint64_t);
++ int (*control)(void *,enum kc_control,uint64_t,uint64_t);
++ enum kc_mode mode; /* must match plan; fake plans cannot use a hardware port */
++};
++/* Fixed storage, no malloc. Do not copy after start or re-init a live context.
++ * All calls serialized; only cancel may be called reentrantly from a callback.
++ * For cross-thread cancellation, post a message to this owner task. Not an SMP
++ * lock or a shared I2C bus arbiter; all codec clients must use this one owner.
++ */
++struct kc_context {
++ struct kc_port port;struct kc_plan plan;
++ enum kc_state state;enum kc_status result,cleanup_result;
++ enum kc_phase phase,failed_phase;
++ uint64_t id,next_id,deadline,last_time;
++ size_t index,failed_step,tx_done,rx_done;
++ int port_error,cleanup_port_error;
++ bool in_call,cancel,clock_checked,clock_fault;
++};
++enum kc_status kc_init(struct kc_context *,const struct kc_port *);
++enum kc_status kc_start(struct kc_context *,const struct kc_plan *,uint64_t absolute_deadline,uint64_t *id);
++enum kc_status kc_poll(struct kc_context *);
++enum kc_status kc_cancel(struct kc_context *,uint64_t id);
++enum kc_status kc_stop(struct kc_context *,uint64_t id);
++/* One bounded cleanup attempt per call; a new deadline can be supplied even
++ * after transaction timeout. Success is actual quiescence, not elapsed time. */
++enum kc_status kc_cleanup(struct kc_context *,uint64_t id,uint64_t absolute_deadline);
++enum kc_status kc_reset_error(struct kc_context *);
++/* Source reference only; incomplete clock/format/analog/stop review. start
++ * MUST return KC_NOT_READY without any bus or control access. */
++void kc_es8388_reference(struct kc_plan *);
++#endif
+--- /dev/null
++++ b/src/codec_txn.c
+@@ -0,0 +1,184 @@
++#include "codec_txn.h"
++#include <string.h>
++#include <limits.h>
++
++static bool evidence_ok(enum kc_mode mode,enum kc_evidence e)
++{return mode==KC_SIMULATION?e==KC_SIM_ONLY:e==KC_TARGET_REVIEWED;}
++static enum kc_status validate(const struct kc_plan *p)
++{
++ size_t i,j;bool capture=false,init=false;
++ if(!p || (p->mode!=KC_HARDWARE && p->mode!=KC_SIMULATION) ||
++    p->count==0 || p->count>KC_MAX_STEPS || p->read_count>KC_MAX_READ_RULES ||
++    p->address!=0x10 || p->sample_rate!=16000 || p->mclk!=4096000 ||
++    p->bclk!=512000 || p->slots!=2 || p->slot_bits!=16)return KC_INVALID;
++ if(p->reviews!=KC_REVIEW_ALL)return KC_NOT_READY;
++ for(i=0;i<p->read_count;i++) {
++  if(!p->reads[i].source_id || !p->reads[i].allowed_mask ||
++     !evidence_ok(p->mode,p->reads[i].evidence))return KC_NOT_READY;
++  for(j=0;j<i;j++)if(p->reads[j].reg==p->reads[i].reg)return KC_INVALID;
++ }
++ for(i=0;i<p->count;i++) {
++  const struct kc_step *s=&p->steps[i];bool allowed=false;
++  if(!s->source_id || !evidence_ok(p->mode,s->evidence))return KC_NOT_READY;
++  if(s->stage==KC_CAPTURE)capture=true;
++  else if(s->stage==KC_INIT && !capture)init=true;
++  else return KC_INVALID;
++  switch(s->kind) {
++   case KC_WRITE:if(s->mask || s->delay_ms)return KC_INVALID;break;
++   case KC_READ_VERIFY:
++    if(!s->mask || (s->value & (uint8_t)~s->mask) || s->delay_ms)return KC_INVALID;
++    for(j=0;j<p->read_count;j++)if(p->reads[j].reg==s->reg &&
++       (s->mask & (uint8_t)~p->reads[j].allowed_mask)==0)allowed=true;
++    if(!allowed)return KC_NOT_READY;
++    break;
++   case KC_DELAY:if(!s->delay_ms || s->delay_ms>1000 || s->reg || s->value || s->mask)return KC_INVALID;break;
++   default:return KC_INVALID;
++  }
++ }
++ return init && capture?KC_OK:KC_NOT_READY;
++}
++static enum kc_status fail(struct kc_context *c,enum kc_status status)
++{c->result=status;c->failed_step=c->index;c->failed_phase=c->phase;c->state=KC_STOPPING;return status;}
++static enum kc_status checkpoint(struct kc_context *c)
++{
++ uint64_t now=c->port.now_ms(c->port.ctx);
++ if(now<c->last_time){c->clock_fault=true;return fail(c,KC_CLOCK);}
++ c->last_time=now;
++ if(c->cancel)return fail(c,KC_CANCELLED);
++ if(now>=c->deadline)return fail(c,KC_TIMEOUT);
++ return KC_OK;
++}
++enum kc_status kc_init(struct kc_context *c,const struct kc_port *port)
++{
++ if(!c || !port || !port->now_ms || !port->write || !port->read ||
++    !port->delay_ms || !port->clock_ready || !port->control ||
++    (port->mode!=KC_HARDWARE && port->mode!=KC_SIMULATION))return KC_INVALID;
++ memset(c,0,sizeof(*c));c->port=*port;c->next_id=1;c->failed_step=SIZE_MAX;
++ return KC_OK;
++}
++enum kc_status kc_start(struct kc_context *c,const struct kc_plan *plan,uint64_t deadline,uint64_t *id)
++{
++ enum kc_status s;uint64_t now;
++ if(!c || !id)return KC_INVALID;
++ if(c->in_call || c->state!=KC_OFF)return KC_BUSY;
++ s=validate(plan);if(s!=KC_OK)return s;
++ if(plan->mode!=c->port.mode)return KC_INVALID;
++ if(!c->next_id)return KC_EXHAUSTED;
++ c->in_call=true;now=c->port.now_ms(c->port.ctx);c->in_call=false;
++ if(deadline<=now)return KC_TIMEOUT;
++ c->plan=*plan; /* immutable owned snapshot */
++ c->id=c->next_id;c->next_id=c->next_id==UINT64_MAX?0:c->next_id+1;
++ c->deadline=deadline;c->last_time=now;c->index=0;c->failed_step=SIZE_MAX;
++ c->port_error=0;c->tx_done=0;c->rx_done=0;c->cancel=false;c->clock_checked=false;c->result=KC_PENDING;
++ c->cleanup_port_error=0;c->phase=KC_PHASE_NONE;c->failed_phase=KC_PHASE_NONE;
++ c->cleanup_result=KC_PENDING;c->state=KC_POWERING;*id=c->id;return KC_PENDING;
++}
++enum kc_status kc_cancel(struct kc_context *c,uint64_t id)
++{
++ if(!c || !id || id!=c->id)return KC_STALE;
++ if(c->state==KC_OFF || c->state==KC_ERROR)return KC_STALE;
++ c->cancel=true;return KC_OK;
++}
++enum kc_status kc_stop(struct kc_context *c,uint64_t id)
++{
++ if(!c || !id || id!=c->id)return KC_STALE;
++ if(c->in_call)return KC_BUSY;
++ if(c->state==KC_OFF || c->state==KC_ERROR)return KC_STALE;
++ if(c->state!=KC_STOPPING){c->result=KC_CANCELLED;c->state=KC_STOPPING;}
++ return KC_PENDING;
++}
++enum kc_status kc_poll(struct kc_context *c)
++{
++ enum kc_status status;struct kc_io_result io={0,0,0};int ret=0;
++ uint8_t value=0,bytes[2];const struct kc_step *s;uint64_t delay_begin=0;
++ if(!c)return KC_INVALID;
++ if(c->in_call)return KC_BUSY;
++ if(c->state==KC_STOPPING)return c->result;
++ if(c->state==KC_OFF || c->state==KC_ERROR)return KC_NOT_READY;
++ c->in_call=true;
++ c->phase=c->state==KC_POWERING?KC_PHASE_POWER:c->state==KC_READY?KC_PHASE_READY:
++          !c->clock_checked?KC_PHASE_CLOCK:c->index==c->plan.count?KC_PHASE_CAPTURE:KC_PHASE_STEP;
++ status=checkpoint(c);if(status!=KC_OK)goto out;
++ if(c->state==KC_READY){status=KC_OK;goto out;}
++ if(c->state==KC_POWERING) {
++  ret=c->port.control(c->port.ctx,KC_POWER_PREPARE,c->id,c->deadline);
++  c->port_error=ret;
++  status=checkpoint(c);if(status!=KC_OK)goto out;
++  if(ret){c->port_error=ret;status=fail(c,KC_IO);goto out;}
++  c->state=KC_INITIALIZING;status=KC_PENDING;goto out;
++ }
++ if(!c->clock_checked) {
++  ret=c->port.clock_ready(c->port.ctx,c->plan.sample_rate,c->plan.mclk,c->plan.bclk,c->deadline);
++  c->port_error=ret;
++  status=checkpoint(c);if(status!=KC_OK)goto out;
++  if(ret){c->port_error=ret;status=fail(c,KC_CLOCK);goto out;}
++  c->clock_checked=true;status=KC_PENDING;goto out;
++ }
++ if(c->index==c->plan.count) {
++  ret=c->port.control(c->port.ctx,KC_CAPTURE_PREPARE,c->id,c->deadline);
++  c->port_error=ret;
++  status=checkpoint(c);if(status!=KC_OK)goto out;
++  if(ret){c->port_error=ret;status=fail(c,KC_IO);goto out;}
++  c->state=KC_READY;c->result=KC_OK;status=KC_OK;goto out;
++ }
++ s=&c->plan.steps[c->index];
++ if(s->stage==KC_CAPTURE)c->state=KC_PREPARING;
++ switch(s->kind) {
++  case KC_WRITE:
++   bytes[0]=s->reg;bytes[1]=s->value;
++   io=c->port.write(c->port.ctx,c->plan.address,bytes,2,c->deadline);break;
++  case KC_READ_VERIFY:
++   io=c->port.read(c->port.ctx,c->plan.address,s->reg,&value,c->deadline);break;
++  case KC_DELAY:
++   if(s->delay_ms>c->deadline-c->last_time){status=fail(c,KC_TIMEOUT);goto out;}
++   delay_begin=c->last_time;
++   ret=c->port.delay_ms(c->port.ctx,s->delay_ms,c->deadline);break;
++ }
++ c->port_error=ret?ret:io.error;c->tx_done=io.tx_done;c->rx_done=io.rx_done;
++ status=checkpoint(c);if(status!=KC_OK)goto out;
++ if(ret || io.error){c->port_error=ret?ret:io.error;status=fail(c,KC_IO);goto out;}
++ if((s->kind==KC_WRITE && (io.tx_done!=2 || io.rx_done!=0)) ||
++    (s->kind==KC_READ_VERIFY && (io.tx_done!=1 || io.rx_done!=1)))
++  {status=fail(c,KC_SHORT);goto out;}
++ if(s->kind==KC_DELAY && c->last_time-delay_begin<s->delay_ms){status=fail(c,KC_DELAY_ERROR);goto out;}
++ if(s->kind==KC_READ_VERIFY && (value&s->mask)!=s->value){status=fail(c,KC_READBACK);goto out;}
++ ++c->index;status=KC_PENDING;
++out:c->in_call=false;return status;
++}
++enum kc_status kc_cleanup(struct kc_context *c,uint64_t id,uint64_t deadline)
++{
++ uint64_t before,after;int ret;enum kc_status status;
++ if(!c || !id || id!=c->id)return KC_STALE;
++ if(c->in_call)return KC_BUSY;
++ if(c->state!=KC_STOPPING)return KC_NOT_READY;
++ c->in_call=true;before=c->port.now_ms(c->port.ctx);
++ if(before<c->last_time)c->clock_fault=true;
++ if(deadline<=before){status=KC_TIMEOUT;goto out;}
++ ret=c->port.control(c->port.ctx,KC_QUIESCE,c->id,deadline);
++ after=c->port.now_ms(c->port.ctx);
++ c->cleanup_port_error=ret;
++ if(ret){status=KC_IO;goto out;}
++ /* Reject a late or clock-inconsistent acknowledgement conservatively. */
++ if(after<before){c->clock_fault=true;status=KC_CLOCK;goto out;}
++ if(after>=deadline){status=KC_TIMEOUT;goto out;}
++ c->state=(c->result==KC_CANCELLED && !c->clock_fault)?KC_OFF:KC_ERROR;
++ status=KC_OK;
++out:c->cleanup_result=status;c->in_call=false;return status;
++}
++enum kc_status kc_reset_error(struct kc_context *c)
++{
++ if(!c)return KC_INVALID;
++ if(c->in_call)return KC_BUSY;
++ if(c->state!=KC_ERROR || c->clock_fault)return KC_NOT_READY;
++ c->state=KC_OFF;return KC_OK;
++}
++void kc_es8388_reference(struct kc_plan *p)
++{
++ if(!p)return;
++ memset(p,0,sizeof(*p));p->mode=KC_HARDWARE;p->address=0x10;
++ p->sample_rate=16000;p->mclk=4096000;p->bclk=512000;p->slots=2;p->slot_bits=16;
++ p->reviews=KC_REVIEW_IDENTITY;p->count=2;
++ /* Official es8323.c:98-102; es8323.h:15. Reference != target validation. */
++ p->steps[0]=(struct kc_step){KC_WRITE,KC_INIT,KC_REFERENCE_ONLY,1,0x00,0x80,0,0};
++ p->steps[1]=(struct kc_step){KC_WRITE,KC_INIT,KC_REFERENCE_ONLY,1,0x00,0x00,0,0};
++}
+--- /dev/null
++++ b/tests/test_codec.c
+@@ -0,0 +1,178 @@
++#include "codec_txn.h"
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <limits.h>
++static unsigned checks;
++#define CHECK(x) do {++checks;if(!(x)){fprintf(stderr,"line %d: %s\n",__LINE__,#x);exit(1);}}while(0)
++enum fault { NONE,IOERR,SHORT0,SHORT1,LONG3,WRONG_COUNTS,TIMEOUT,CANCEL,READBAD,EARLY_DELAY,REENTER,BACKWARD };
++struct fake {
++ struct kc_context *codec;uint64_t now;
++ unsigned calls,target,reads,writes,delays,clocks,powers,prepares,cleanup_calls;
++ enum fault fault;int cleanup_error;bool cleanup_late,cleanup_back;
++ uint8_t regs[256];
++};
++static uint64_t now(void *ctx){return ((struct fake *)ctx)->now;}
++static bool hit(struct fake *f){
++ ++f->calls;
++ if(f->calls!=f->target)return false;
++ if(f->fault==TIMEOUT)f->now=f->codec->deadline;
++ if(f->fault==BACKWARD)f->now=0;
++ if(f->fault==CANCEL)CHECK(kc_cancel(f->codec,f->codec->id)==KC_OK);
++ if(f->fault==REENTER){
++  uint64_t id=0;
++  CHECK(kc_poll(f->codec)==KC_BUSY);
++  CHECK(kc_start(f->codec,&f->codec->plan,f->now+100,&id)==KC_BUSY);
++  CHECK(kc_stop(f->codec,f->codec->id)==KC_BUSY);
++  CHECK(kc_cleanup(f->codec,f->codec->id,f->now+100)==KC_BUSY);
++ }
++ return true;
++}
++static struct kc_io_result io_result(struct fake *f,bool inject,bool read){
++ if(inject){
++  if(f->fault==IOERR)return (struct kc_io_result){-5,0,0};
++  if(f->fault==SHORT0)return (struct kc_io_result){0,0,0};
++  if(f->fault==SHORT1)return (struct kc_io_result){0,1,0};
++  if(f->fault==LONG3)return read?(struct kc_io_result){0,1,2}:(struct kc_io_result){0,3,0};
++  if(f->fault==WRONG_COUNTS)return read?(struct kc_io_result){0,2,0}:(struct kc_io_result){0,1,1};
++ }
++ return read?(struct kc_io_result){0,1,1}:(struct kc_io_result){0,2,0};
++}
++static struct kc_io_result write_bus(void *ctx,uint8_t addr,const uint8_t *data,size_t n,uint64_t deadline){
++ struct fake *f=ctx;bool inject;CHECK(addr==0x10 && n==2 && deadline==f->codec->deadline);
++ ++f->writes;inject=hit(f);f->regs[data[0]]=data[1]; /* partial mutation even on failure */
++ return io_result(f,inject,false);
++}
++static struct kc_io_result read_bus(void *ctx,uint8_t addr,uint8_t reg,uint8_t *value,uint64_t deadline){
++ struct fake *f=ctx;bool inject;CHECK(addr==0x10 && deadline==f->codec->deadline);
++ ++f->reads;inject=hit(f);*value=f->regs[reg];if(inject && f->fault==READBAD)*value^=1;
++ return io_result(f,inject,true);
++}
++static int delay(void *ctx,uint32_t ms,uint64_t deadline){
++ struct fake *f=ctx;bool inject;CHECK(ms && deadline==f->codec->deadline);++f->delays;
++ inject=hit(f);if(!(inject && (f->fault==EARLY_DELAY || f->fault==BACKWARD)))f->now+=ms;
++ return inject && f->fault==IOERR?-110:0;
++}
++static int clock_ready(void *ctx,uint32_t rate,uint32_t mclk,uint32_t bclk,uint64_t deadline){
++ struct fake *f=ctx;CHECK(rate==16000 && mclk==4096000 && bclk==512000 && deadline==f->codec->deadline);
++ ++f->clocks;return hit(f) && f->fault==IOERR?-5:0;
++}
++static int control(void *ctx,enum kc_control op,uint64_t id,uint64_t deadline){
++ struct fake *f=ctx;CHECK(id==f->codec->id);
++ if(op==KC_QUIESCE){++f->cleanup_calls;if(f->cleanup_late)f->now=deadline;
++  if(f->cleanup_back)f->now=0;
++  return f->cleanup_error;
++ }
++ if(op==KC_POWER_PREPARE)++f->powers;else if(op==KC_CAPTURE_PREPARE)++f->prepares;else CHECK(false);
++ return hit(f) && f->fault==IOERR?-5:0;
++}
++static struct kc_plan plan(void){
++ struct kc_plan p;kc_es8388_reference(&p);p.mode=KC_SIMULATION;p.reviews=KC_REVIEW_ALL;
++ p.count=6;p.read_count=1;
++ /* Synthetic register model, NOT codec configuration or readable-bit proof. */
++ p.steps[0]=(struct kc_step){KC_WRITE,KC_INIT,KC_SIM_ONLY,900,0x20,0x11,0,0};
++ p.steps[1]=(struct kc_step){KC_READ_VERIFY,KC_INIT,KC_SIM_ONLY,900,0x20,0x11,0x1f,0};
++ p.steps[2]=(struct kc_step){KC_DELAY,KC_INIT,KC_SIM_ONLY,900,0,0,0,2};
++ p.steps[3]=(struct kc_step){KC_WRITE,KC_CAPTURE,KC_SIM_ONLY,900,0x20,0x02,0,0};
++ p.steps[4]=(struct kc_step){KC_READ_VERIFY,KC_CAPTURE,KC_SIM_ONLY,900,0x20,0x02,0x1f,0};
++ p.steps[5]=(struct kc_step){KC_DELAY,KC_CAPTURE,KC_SIM_ONLY,900,0,0,0,3};
++ p.reads[0]=(struct kc_read_rule){0x20,0x1f,KC_SIM_ONLY,900};return p;
++}
++static void init(struct kc_context *c,struct fake *f){
++ struct kc_port port={f,now,write_bus,read_bus,delay,clock_ready,control,KC_SIMULATION};
++ memset(f,0,sizeof(*f));f->codec=c;f->now=10;CHECK(kc_init(c,&port)==KC_OK);
++}
++static enum kc_status run(struct kc_context *c){
++ enum kc_status s=KC_PENDING;unsigned limit=20;
++ while(s==KC_PENDING && limit--)s=kc_poll(c);
++ CHECK(limit>0);return s;
++}
++static void start(struct kc_context *c,struct kc_plan *p){uint64_t id=0;CHECK(kc_start(c,p,c->port.now_ms(c->port.ctx)+90,&id)==KC_PENDING);CHECK(id==c->id);}
++int main(void){
++ struct kc_context c;struct fake f;struct kc_plan p;uint64_t id;
++ init(&c,&f);kc_es8388_reference(&p);id=777;
++ CHECK(kc_start(&c,&p,100,&id)==KC_NOT_READY);CHECK(id==777 && f.calls==0 && c.state==KC_OFF);
++ p=plan();start(&c,&p);p.steps[0].value=0xff; /* owned snapshot unaffected */
++ CHECK(run(&c)==KC_OK && c.state==KC_READY);CHECK(f.calls==9 && f.writes==2 && f.reads==2);
++ CHECK(kc_start(&c,&p,100,&id)==KC_BUSY);CHECK(kc_stop(&c,c.id)==KC_PENDING);
++ f.cleanup_error=-16;CHECK(kc_cleanup(&c,c.id,200)==KC_IO && c.state==KC_STOPPING);
++ CHECK(kc_start(&c,&p,200,&id)==KC_BUSY);CHECK(kc_cleanup(&c,c.id+1,200)==KC_STALE);
++ f.cleanup_error=0;CHECK(kc_cleanup(&c,c.id,200)==KC_OK && c.state==KC_OFF);
++ p=plan();start(&c,&p);CHECK(c.id==2);CHECK(kc_cancel(&c,1)==KC_STALE);
++ CHECK(kc_cancel(&c,2)==KC_OK);CHECK(kc_poll(&c)==KC_CANCELLED);
++ CHECK(kc_cleanup(&c,2,200)==KC_OK);
++ /* Every control/clock/read/write/delay call: failure, late return, cancellation,
++  * backwards clock, reentrant invocation. Each run contains nine accesses. */
++ for(unsigned target=1;target<=9;target++)for(unsigned fault=IOERR;fault<=BACKWARD;fault++){
++  bool bus=target==3 || target==4 || target==6 || target==7;
++  bool read=target==4 || target==7,wait=target==5 || target==8;
++  enum kc_status got;
++  if((fault==SHORT0 || fault==SHORT1 || fault==LONG3 || fault==WRONG_COUNTS) && !bus)continue;
++  if(fault==READBAD && !read)continue;
++  if(fault==EARLY_DELAY && !wait)continue;
++  init(&c,&f);p=plan();f.target=target;f.fault=(enum fault)fault;start(&c,&p);got=run(&c);
++  if(fault==REENTER){CHECK(got==KC_OK);CHECK(kc_stop(&c,c.id)==KC_PENDING);}
++  else {
++   CHECK(got!=KC_OK && c.state==KC_STOPPING);CHECK(f.calls==target);
++   CHECK(kc_poll(&c)==got && f.calls==target);
++   if(fault==TIMEOUT)CHECK(got==KC_TIMEOUT);
++   if(fault==CANCEL)CHECK(got==KC_CANCELLED);
++   if(fault==SHORT0 || fault==SHORT1 || fault==LONG3 || fault==WRONG_COUNTS)CHECK(got==KC_SHORT);
++   if(fault==READBAD)CHECK(got==KC_READBACK);
++   if(fault==EARLY_DELAY)CHECK(got==KC_DELAY_ERROR);
++   if(fault==BACKWARD)CHECK(got==KC_CLOCK);
++   if(fault==IOERR)CHECK(c.port_error!=0 && c.failed_phase!=KC_PHASE_NONE);
++  }
++  f.fault=NONE;CHECK(kc_cleanup(&c,c.id,f.now+100)==KC_OK);
++  if(fault==IOERR)CHECK(c.port_error!=0 && c.cleanup_port_error==0);
++  if(c.state==KC_ERROR){
++   if(c.clock_fault){CHECK(kc_reset_error(&c)==KC_NOT_READY);continue;}
++   CHECK(kc_reset_error(&c)==KC_OK);
++  }
++  start(&c,&p);CHECK(run(&c)==KC_OK);CHECK(kc_stop(&c,c.id)==KC_PENDING);
++  CHECK(kc_cleanup(&c,c.id,f.now+100)==KC_OK);
++ }
++ /* Configuration/readback gates reject before side effects. */
++ for(unsigned variant=0;variant<16;variant++){
++  enum kc_status s;init(&c,&f);p=plan();
++  switch(variant){
++   case 0:p.address=0x11;break;case 1:p.sample_rate=8000;break;
++   case 2:p.count=KC_MAX_STEPS+1;break;case 3:p.read_count=KC_MAX_READ_RULES+1;break;
++   case 4:p.reviews=0;break;case 5:p.steps[0].evidence=KC_REFERENCE_ONLY;break;
++   case 6:p.reads[0].evidence=KC_REFERENCE_ONLY;break;case 7:p.read_count=0;break;
++   case 8:p.steps[1].mask=0xff;break;case 9:p.steps[1].value=0x80;break;
++   case 10:p.steps[0].source_id=0;break;case 11:p.steps[0].stage=KC_CAPTURE;break;
++   case 12:p.steps[2].delay_ms=1001;break;case 13:p.mode=KC_HARDWARE;break;
++   case 14:p.reads[1]=p.reads[0];p.read_count=2;break;
++   case 15:c.port.mode=KC_HARDWARE;break;
++  }
++  id=999;s=kc_start(&c,&p,100,&id);CHECK(s==KC_INVALID || s==KC_NOT_READY);
++  CHECK(f.calls==0 && id==999 && c.state==KC_OFF);
++ }
++ /* Expiration before every access issues no additional callback. */
++ for(unsigned before=0;before<9;before++){
++  init(&c,&f);p=plan();start(&c,&p);
++  for(unsigned i=0;i<before;i++)CHECK(kc_poll(&c)==KC_PENDING);
++  f.now=c.deadline;CHECK(kc_poll(&c)==KC_TIMEOUT);CHECK(f.calls==before);
++  CHECK(kc_cleanup(&c,c.id,f.now)==KC_TIMEOUT && f.cleanup_calls==0);
++  CHECK(kc_cleanup(&c,c.id,f.now+100)==KC_OK);CHECK(kc_reset_error(&c)==KC_OK);
++ }
++ /* Exhausted budget before a requested delay: do not call delay backend. */
++ init(&c,&f);p=plan();start(&c,&p);
++ for(unsigned i=0;i<4;i++)CHECK(kc_poll(&c)==KC_PENDING);
++ f.now=c.deadline-1;CHECK(kc_poll(&c)==KC_TIMEOUT && f.delays==0);
++ init(&c,&f);p=plan();CHECK(kc_start(&c,&p,10,&id)==KC_TIMEOUT && f.calls==0);
++ c.next_id=UINT64_MAX;start(&c,&p);CHECK(kc_cancel(&c,c.id)==KC_OK);CHECK(kc_poll(&c)==KC_CANCELLED);
++ CHECK(kc_cleanup(&c,c.id,200)==KC_OK);CHECK(kc_start(&c,&p,100,&id)==KC_EXHAUSTED);
++ /* Cleanup late/failure/backwards acknowledgements never release ownership. */
++ for(unsigned kind=0;kind<3;kind++){
++  init(&c,&f);p=plan();start(&c,&p);CHECK(kc_stop(&c,c.id)==KC_PENDING);
++  if(kind==0)f.cleanup_error=-110;
++  if(kind==1)f.cleanup_late=true;
++  if(kind==2)f.cleanup_back=true;
++  CHECK(kc_cleanup(&c,c.id,20)!=KC_OK && c.state==KC_STOPPING);
++  CHECK(kc_start(&c,&p,100,&id)==KC_BUSY);
++ }
++ printf("candidate_c_checks=%u failures=0; simulation only; hardware plan NOT_READY\n",checks);
++ return 0;
++}
+--- /dev/null
++++ b/scripts/package.py
+@@ -0,0 +1,16 @@
++from pathlib import Path
++import hashlib,json,difflib
++R=Path(__file__).resolve().parents[1]
++sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
++rows=json.loads((R/'input/sources.json').read_text(encoding='utf8'))
++for row in rows:row['unchanged']=sha(Path(row['source']))==row['sha256']
++diff=[]
++for directory in ['include','src','tests','scripts']:
++ for p in sorted((R/directory).glob('*')):
++  if p.is_file():diff.extend(difflib.unified_diff([],p.read_text(encoding='utf8').splitlines(True),fromfile='/dev/null',tofile='b/'+p.relative_to(R).as_posix()))
++(R/'candidate.patch').write_text(''.join(diff),encoding='utf8')
++d=dict(session_id='01a0892e-2964-7ec3-bd76-9ab4937980cb',cwd=r'E:\openvela',
++ input_sources=rows,default_hardware_plan='KC_NOT_READY; no I/O',board_validated=False,
++ files={str(p.relative_to(R)):sha(p) for p in sorted(R.rglob('*')) if p.is_file() and p.name!='delivery.json' and '__pycache__' not in p.parts})
++(R/'evidence/delivery.json').write_text(json.dumps(d,ensure_ascii=False,indent=2),encoding='utf8')
++print('inputs_unchanged',all(x['unchanged'] for x in rows),'files',len(d['files']))
+--- /dev/null
++++ b/scripts/run_tests.py
+@@ -0,0 +1,27 @@
++from pathlib import Path
++import subprocess,datetime,json,hashlib,sys
++R=Path(__file__).resolve().parents[1]
++run=R/'evidence'/('run-'+datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ'));run.mkdir()
++gcc=Path(r'D:\software\mingw64\mingw64\bin\gcc.exe')
++rows=[]
++def execute(name,args,limit=30):
++ try:
++  p=subprocess.run([str(x) for x in args],cwd=R,capture_output=True,timeout=limit)
++  out,err,code,timeout=p.stdout,p.stderr,p.returncode,False
++ except subprocess.TimeoutExpired as ex:
++  out,err,code,timeout=ex.stdout or b'',ex.stderr or b'',None,True
++ (run/(name+'.stdout.raw')).write_bytes(out);(run/(name+'.stderr.raw')).write_bytes(err)
++ row=dict(name=name,command=[str(x) for x in args],exit=code,timeout=timeout,limit_seconds=limit)
++ rows.append(row);(run/'results.json').write_text(json.dumps(rows,indent=2),encoding='utf8')
++ print(name,code,timeout,out.decode('utf8',errors='replace'),err.decode('utf8',errors='replace'),flush=True)
++ if code!=0 or timeout:raise RuntimeError('failed; evidence preserved')
++execute('compiler-version',[gcc,'--version'])
++for opt in ['O0','O2']:
++ execute('build-'+opt,[gcc,'-std=c11','-'+opt,'-g','-Wall','-Wextra','-Werror','-Wconversion','-Wshadow','-pedantic','-I',R/'include',R/'src/codec_txn.c',R/'tests/test_codec.c','-o',run/('test-'+opt+'.exe')])
++ execute('test-'+opt,[run/('test-'+opt+'.exe')])
++execute('freestanding-object',[gcc,'-std=c11','-O2','-ffreestanding','-Wall','-Wextra','-Werror','-I',R/'include','-c',R/'src/codec_txn.c','-o',run/'codec_txn.o'])
++execute('undefined-symbols',[gcc.parent/'nm.exe','-u',run/'codec_txn.o'])
++symbols=(run/'undefined-symbols.stdout.raw').read_text(encoding='utf8')
++assert not any(x in symbols for x in ['malloc','calloc','realloc','free'])
++(run/'source-hashes.json').write_text(json.dumps({str(p.relative_to(R)):hashlib.sha256(p.read_bytes()).hexdigest() for d in ['include','src','tests','scripts'] for p in (R/d).glob('*') if p.is_file()},indent=2),encoding='utf8')
++print('EVIDENCE='+str(run))
+--- /dev/null
++++ b/scripts/snapshot.py
+@@ -0,0 +1,16 @@
++from pathlib import Path
++import json,hashlib
++R=Path(__file__).resolve().parents[1];old=R.parent/'parallel-k7-audio'
++manifest=json.loads((old/'evidence/linux-inputs.json').read_text(encoding='utf8'))
++for row in manifest:
++ p=old/'sources'/row['path'];assert hashlib.sha256(p.read_bytes()).hexdigest()==row['sha256']
++ p2=R/'input'/row['path'];p2.parent.mkdir(parents=True,exist_ok=True)
++ # 14 small selected blobs only (557790 bytes), no models or SDK workspace.
++ with p2.open('xb') as f:f.write(p.read_bytes())
++ row['source']=str(p)
++for name in ['HARDWARE.md','PLAN.md','HANDOFF.md']:
++ p=old/name;data=p.read_bytes()
++ with (R/'input'/name).open('xb') as f:f.write(data)
++ manifest.append({'source':str(p),'path':name,'sha256':hashlib.sha256(data).hexdigest()})
++(R/'input/sources.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf8')
++print('source_snapshot_count',len(manifest),'all_fixed_blob_hashes_verified')

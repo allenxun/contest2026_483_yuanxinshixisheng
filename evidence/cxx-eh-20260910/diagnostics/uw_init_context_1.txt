@@ -1,0 +1,141 @@
+
+/home/swl/openvela/cmake_out/velavision_cxx_eh_20260910/nuttx:     file format elf64-littleaarch64
+
+
+Disassembly of section .text:
+
+00000000404dadb0 <uw_init_context_1>:
+    404dadb0:	d11043ff 	sub	sp, sp, #0x410
+    404dadb4:	a9007bfd 	stp	x29, x30, [sp]
+    404dadb8:	910003fd 	mov	x29, sp
+    404dadbc:	d50320ff 	xpaclri
+    404dadc0:	a90153f3 	stp	x19, x20, [sp, #16]
+    404dadc4:	aa0003f3 	mov	x19, x0
+    404dadc8:	aa0203f4 	mov	x20, x2
+    404dadcc:	d2807802 	mov	x2, #0x3c0                 	// #960
+    404dadd0:	a9025bf5 	stp	x21, x22, [sp, #32]
+    404dadd4:	aa1e03f6 	mov	x22, x30
+    404dadd8:	aa0103f5 	mov	x21, x1
+    404daddc:	52800001 	mov	w1, #0x0                   	// #0
+    404dade0:	97fd4fa6 	bl	4042ec78 <memset>
+    404dade4:	f9018e76 	str	x22, [x19, #792]
+    404dade8:	d2e80000 	mov	x0, #0x4000000000000000    	// #4611686018427387904
+    404dadec:	f901a260 	str	x0, [x19, #832]
+    404dadf0:	910103e1 	add	x1, sp, #0x40
+    404dadf4:	aa1303e0 	mov	x0, x19
+    404dadf8:	97fffed3 	bl	404da944 <uw_frame_state_for>
+    404dadfc:	35000e00 	cbnz	w0, 404dafbc <uw_init_context_1+0x20c>
+    404dae00:	90002280 	adrp	x0, 4092a000 <_ZGVZNSt3__116generic_categoryEvE1s>
+    404dae04:	9132c003 	add	x3, x0, #0xcb0
+    404dae08:	3972c001 	ldrb	w1, [x0, #3248]
+    404dae0c:	34000301 	cbz	w1, 404dae6c <uw_init_context_1+0xbc>
+    404dae10:	39407c60 	ldrb	w0, [x3, #31]
+    404dae14:	7100201f 	cmp	w0, #0x8
+    404dae18:	54000d21 	b.ne	404dafbc <uw_init_context_1+0x20c>  // b.any
+    404dae1c:	f941a260 	ldr	x0, [x19, #832]
+    404dae20:	f9001ff5 	str	x21, [sp, #56]
+    404dae24:	b6f00040 	tbz	x0, #62, 404dae2c <uw_init_context_1+0x7c>
+    404dae28:	390dde7f 	strb	wzr, [x19, #887]
+    404dae2c:	9100e3e0 	add	x0, sp, #0x38
+    404dae30:	d28003e2 	mov	x2, #0x1f                  	// #31
+    404dae34:	52800023 	mov	w3, #0x1                   	// #1
+    404dae38:	f9007e60 	str	x0, [x19, #248]
+    404dae3c:	910103e1 	add	x1, sp, #0x40
+    404dae40:	aa1303e0 	mov	x0, x19
+    404dae44:	390ecbe3 	strb	w3, [sp, #946]
+    404dae48:	f901e3ff 	str	xzr, [sp, #960]
+    404dae4c:	f901e7e2 	str	x2, [sp, #968]
+    404dae50:	97fff9d4 	bl	404d95a0 <uw_update_context_1>
+    404dae54:	a9407bfd 	ldp	x29, x30, [sp]
+    404dae58:	a9425bf5 	ldp	x21, x22, [sp, #32]
+    404dae5c:	f9018e74 	str	x20, [x19, #792]
+    404dae60:	a94153f3 	ldp	x19, x20, [sp, #16]
+    404dae64:	911043ff 	add	sp, sp, #0x410
+    404dae68:	d65f03c0 	ret
+    404dae6c:	52800104 	mov	w4, #0x8                   	// #8
+    404dae70:	3932c004 	strb	w4, [x0, #3248]
+    404dae74:	39000464 	strb	w4, [x3, #1]
+    404dae78:	39000864 	strb	w4, [x3, #2]
+    404dae7c:	39000c64 	strb	w4, [x3, #3]
+    404dae80:	39001064 	strb	w4, [x3, #4]
+    404dae84:	39001464 	strb	w4, [x3, #5]
+    404dae88:	39001864 	strb	w4, [x3, #6]
+    404dae8c:	39001c64 	strb	w4, [x3, #7]
+    404dae90:	39002064 	strb	w4, [x3, #8]
+    404dae94:	39002464 	strb	w4, [x3, #9]
+    404dae98:	39002864 	strb	w4, [x3, #10]
+    404dae9c:	39002c64 	strb	w4, [x3, #11]
+    404daea0:	39003064 	strb	w4, [x3, #12]
+    404daea4:	39003464 	strb	w4, [x3, #13]
+    404daea8:	39003864 	strb	w4, [x3, #14]
+    404daeac:	39003c64 	strb	w4, [x3, #15]
+    404daeb0:	39004064 	strb	w4, [x3, #16]
+    404daeb4:	39004464 	strb	w4, [x3, #17]
+    404daeb8:	39004864 	strb	w4, [x3, #18]
+    404daebc:	39004c64 	strb	w4, [x3, #19]
+    404daec0:	39005064 	strb	w4, [x3, #20]
+    404daec4:	39005464 	strb	w4, [x3, #21]
+    404daec8:	39005864 	strb	w4, [x3, #22]
+    404daecc:	39005c64 	strb	w4, [x3, #23]
+    404daed0:	39006064 	strb	w4, [x3, #24]
+    404daed4:	39006464 	strb	w4, [x3, #25]
+    404daed8:	39006864 	strb	w4, [x3, #26]
+    404daedc:	39006c64 	strb	w4, [x3, #27]
+    404daee0:	39007064 	strb	w4, [x3, #28]
+    404daee4:	39007464 	strb	w4, [x3, #29]
+    404daee8:	39007864 	strb	w4, [x3, #30]
+    404daeec:	39007c64 	strb	w4, [x3, #31]
+    404daef0:	3901007f 	strb	wzr, [x3, #64]
+    404daef4:	3900b864 	strb	w4, [x3, #46]
+    404daef8:	3901047f 	strb	wzr, [x3, #65]
+    404daefc:	3901087f 	strb	wzr, [x3, #66]
+    404daf00:	39010c7f 	strb	wzr, [x3, #67]
+    404daf04:	3901107f 	strb	wzr, [x3, #68]
+    404daf08:	3901147f 	strb	wzr, [x3, #69]
+    404daf0c:	3901187f 	strb	wzr, [x3, #70]
+    404daf10:	39011c7f 	strb	wzr, [x3, #71]
+    404daf14:	39012064 	strb	w4, [x3, #72]
+    404daf18:	39012464 	strb	w4, [x3, #73]
+    404daf1c:	39012864 	strb	w4, [x3, #74]
+    404daf20:	39012c64 	strb	w4, [x3, #75]
+    404daf24:	39013064 	strb	w4, [x3, #76]
+    404daf28:	39013464 	strb	w4, [x3, #77]
+    404daf2c:	39013864 	strb	w4, [x3, #78]
+    404daf30:	39013c64 	strb	w4, [x3, #79]
+    404daf34:	3901407f 	strb	wzr, [x3, #80]
+    404daf38:	3901447f 	strb	wzr, [x3, #81]
+    404daf3c:	3901487f 	strb	wzr, [x3, #82]
+    404daf40:	39014c7f 	strb	wzr, [x3, #83]
+    404daf44:	3901507f 	strb	wzr, [x3, #84]
+    404daf48:	3901547f 	strb	wzr, [x3, #85]
+    404daf4c:	3901587f 	strb	wzr, [x3, #86]
+    404daf50:	39015c7f 	strb	wzr, [x3, #87]
+    404daf54:	3901607f 	strb	wzr, [x3, #88]
+    404daf58:	3901647f 	strb	wzr, [x3, #89]
+    404daf5c:	3901687f 	strb	wzr, [x3, #90]
+    404daf60:	39016c7f 	strb	wzr, [x3, #91]
+    404daf64:	3901707f 	strb	wzr, [x3, #92]
+    404daf68:	3901747f 	strb	wzr, [x3, #93]
+    404daf6c:	3901787f 	strb	wzr, [x3, #94]
+    404daf70:	39017c7f 	strb	wzr, [x3, #95]
+    404daf74:	3900c07f 	strb	wzr, [x3, #48]
+    404daf78:	3900c47f 	strb	wzr, [x3, #49]
+    404daf7c:	3900c87f 	strb	wzr, [x3, #50]
+    404daf80:	3900cc7f 	strb	wzr, [x3, #51]
+    404daf84:	3900d07f 	strb	wzr, [x3, #52]
+    404daf88:	3900d47f 	strb	wzr, [x3, #53]
+    404daf8c:	3900d87f 	strb	wzr, [x3, #54]
+    404daf90:	3900dc7f 	strb	wzr, [x3, #55]
+    404daf94:	3900e07f 	strb	wzr, [x3, #56]
+    404daf98:	3900e47f 	strb	wzr, [x3, #57]
+    404daf9c:	3900e87f 	strb	wzr, [x3, #58]
+    404dafa0:	3900ec7f 	strb	wzr, [x3, #59]
+    404dafa4:	3900f07f 	strb	wzr, [x3, #60]
+    404dafa8:	3900f47f 	strb	wzr, [x3, #61]
+    404dafac:	3900f87f 	strb	wzr, [x3, #62]
+    404dafb0:	3900fc7f 	strb	wzr, [x3, #63]
+    404dafb4:	39018064 	strb	w4, [x3, #96]
+    404dafb8:	17ffff96 	b	404dae10 <uw_init_context_1+0x60>
+    404dafbc:	97fcb57a 	bl	404085a4 <abort>
+
+Disassembly of section .vector:

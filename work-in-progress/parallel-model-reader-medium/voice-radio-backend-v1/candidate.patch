@@ -1,0 +1,1164 @@
+--- a/app/k7radio/k7radio_main.c
++++ b/app/k7radio/k7radio_main.c
+@@ -723,16 +723,25 @@
+ static sem_t g_wifi_authsem=SEM_INITIALIZER(0);
+ #ifdef CONFIG_EXAMPLES_K7RADIO_IP
+ static bool g_wifi_network_active,g_wifi_network_stop,g_wifi_link_lost;
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++#include "radio_backend_state.inc"
++#endif
+ static void fw_wifi_net_slot(const uint8_t *,size_t);
+ #endif
+ static void fw_wifi_mgmt_event(uint8_t instance,const uint8_t *p,size_t n);
+ static int prov_start(void);
++#ifndef CONFIG_EXAMPLES_K7RADIO_SHARED
+ static void prov_scan_report(const uint8_t *p,size_t n);
++#endif
+ 
+ static void fw_wifi_scan_report(const uint8_t *payload, size_t length)
+ {
+   struct skw_scan_record rec;
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++  rb_rx_report(payload,length);
++#else
+   prov_scan_report(payload,length);
++#endif
+   int ret = skw_diag_scan(payload, length, &rec);
+   if (ret) { printf("RADIO malformed Wi-Fi scan report ret=%d\n", ret); return; }
+   if (nxmutex_lock(&g_wifi_state)) return;
+@@ -831,7 +840,12 @@
+       if ((ret = fw_f0(false, 5, &pending))) return ret;
+       if ((ret = fw_f0(false, 0x181, &fifo_ind))) return ret;
+       if (!(pending & 2) && !g_pending && fifo_ind == g_fifo_ind)
+-        { if (g_bt_host_mode) usleep(1000); else up_mdelay(10); continue; }
++        {
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++          rb_rx_idle();
++#endif
++          if (g_bt_host_mode) usleep(1000); else up_mdelay(10); continue;
++        }
+       if (!g_bt_host_mode) printf("RADIO notify cccr05=%02x fifo=%02x->%02x GPIO=%08" PRIx32 "\n",
+              pending, g_fifo_ind, fifo_ind, rd(GPIO1 + 0x70));
+       g_fifo_ind = fifo_ind;
+@@ -902,6 +916,9 @@
+                   if (msg[1] == 0)
+                     {
+                       if ((ret = nxmutex_lock(&g_wifi_state))) return ret;
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++                      rb_rx_done();
++#endif
+                       g_wifi_scan_done = true;
+                       nxsem_post(&g_wifi_scansem);
+                       nxmutex_unlock(&g_wifi_state);
+@@ -1117,6 +1134,9 @@
+   return ret ? ret : stop;
+ }
+ 
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++#define fw_wifi_command fw_wifi_command_raw
++#endif
+ static int fw_wifi_command(uint8_t id, const void *params, size_t length)
+ {
+   static uint8_t msg[1100], frame[1536];
+@@ -1158,6 +1178,11 @@
+   return fw_wifi_command(id,p,n);
+ }
+ 
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++#undef fw_wifi_command
++static int fw_wifi_command(uint8_t id,const void *params,size_t length)
++{int rc=fw_wifi_command_raw(id,params,length);rb_note(id,rc);return rc;}
++#endif
+ static int fw_wifi_info(void)
+ {
+   uint8_t timestamp[8] = {0};
+@@ -1220,7 +1245,7 @@
+     }
+   memcpy(open + 4, g_wifi_mac, 6);
+   ret = fw_wifi_command(3, open, sizeof(open));
+-  if (ret) return ret;
++  if (ret) goto scan_close;
+   /* Passive scan: no SSID probe requests and no association. */
+   scan[8] = 22; scan[12] = 32;
+   for (unsigned int i = 0; i < 22; i++)
+@@ -1229,14 +1254,18 @@
+       scan[33 + i * 3] = i < 13 ? 0 : 1;
+       scan[34 + i * 3] = 0x80;
+     }
+-  if ((ret = nxmutex_lock(&g_wifi_state))) return ret;
++  if ((ret = nxmutex_lock(&g_wifi_state))) goto scan_close;
+   while (nxsem_trywait(&g_wifi_scansem) == 0) {}
+   g_wifi_scan_done = false; g_wifi_reports = 0; g_wifi_unique = 0;
+   nxmutex_unlock(&g_wifi_state);
+   ret = fw_wifi_command(5, scan, sizeof(scan));
+   if (!ret)
+     ret = g_bt_host_mode ? nxsem_tickwait_uninterruptible(&g_wifi_scansem, MSEC2TICK(8000)) : fw_receive(8000);
++  int check=nxmutex_lock(&g_wifi_state);
++  if(!check){if(!ret&&!g_wifi_scan_done)ret=-ETIMEDOUT;nxmutex_unlock(&g_wifi_state);}
++  else if(!ret)ret=check;
+   if (ret) stop = fw_wifi_command(6, NULL, 0);
++scan_close:
+   close = fw_wifi_command(4, NULL, 0);
+   int locked = nxmutex_lock(&g_wifi_state);
+   if (locked) return locked;
+@@ -1391,6 +1420,9 @@
+ #endif
+ #include "wifi_auth_console.inc"
+ 
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++#include "radio_backend.inc"
++#endif
+ #include "prov_service.inc"
+ 
+ static int fw_ble_advertise(void)
+@@ -1441,6 +1473,11 @@
+ int main(int argc, char **argv)
+ {
+   int ret;
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++  if(argc==2&&!strcmp(argv[1],"wifi-service-start"))return rb_start()?1:0;
++  if(argc>1&&!strncmp(argv[1],"wifi-",5)&&strcmp(argv[1],"wifi-status"))
++    {puts("WIFI shared service: legacy RF CLI disabled; use owner transaction API");return 1;}
++#endif
+ #ifdef CONFIG_EXAMPLES_K7RADIO_IP
+   if(argc==2 && !strcmp(argv[1],"wifi-status")){fw_wifi_ip_status();return 0;}
+   if(argc==2 && !strcmp(argv[1],"wifi-disconnect"))
+--- a/app/k7radio/Kconfig
++++ b/app/k7radio/Kconfig
+@@ -13,3 +13,12 @@
+ 	---help---
+ 		Native Ethernet data and DHCP after WPA2 authentication. Initial
+ 		20 MHz non-aggregated STA mode, MTU 1000, explicit startup only.
++
++config EXAMPLES_K7RADIO_SHARED
++ bool "Experimental shared BLE/voice Wi-Fi service"
++ depends on EXAMPLES_K7RADIO_IP
++ default n
++ help
++   Requires joinable pthread support and a live single native RX task.
++   Disables legacy mutating wifi CLI entries. Start wifi-service-start
++   explicitly before provisioning. Backend is not target validated.
+--- a/app/k7radio/Makefile
++++ b/app/k7radio/Makefile
+@@ -10,3 +10,7 @@
+ # Flat-build native Bluetooth API adapter and bounded JSON parser
+ CSRCS += prov_protocol.c cJSON.c
+ CFLAGS += -DCJSON_NESTING_LIMIT=4 -I$(TOPDIR)/wireless/bluetooth
++
++ifeq ($(CONFIG_EXAMPLES_K7RADIO_SHARED),y)
++CSRCS += wifi_broker.c wifi_dispatch.c wifi_scan.c scan_collector.c radio_fence.c
++endif
+--- a/app/k7radio/prov_service.inc
++++ b/app/k7radio/prov_service.inc
+@@ -27,7 +27,9 @@
+ static unsigned int g_prov_last_command,g_prov_last_id,g_prov_last_session;
+ static int g_prov_last_result,g_prov_last_notify;
+ struct prov_ap { struct skw_scan_record scan; uint8_t security; };
++#ifndef CONFIG_EXAMPLES_K7RADIO_SHARED
+ static struct prov_ap g_prov_aps[64];
++#endif
+ static unsigned int g_prov_ap_count;
+ static bool g_prov_truncated;
+ static struct { struct work_s work; unsigned int epoch; size_t len; uint8_t data[20]; int ret; bool terminal; } g_prov_notify;
+@@ -186,6 +188,7 @@
+    }
+  return 0; /* Queued notifications; only client receipt proves delivery. */
+ }
++#ifndef CONFIG_EXAMPLES_K7RADIO_SHARED
+ static void prov_scan_report(const uint8_t *payload,size_t length)
+ {
+  struct skw_bss b;
+@@ -201,6 +204,7 @@
+      ap->security=b.rsn?2:(b.wpa?1:((b.capability&16)?3:0)); }
+  nxmutex_unlock(&g_prov_lock);
+ }
++#endif
+ static int prov_worker(int argc,char **argv)
+ {
+  char command[PROV_MAX_CMD+1],line[240];
+@@ -249,6 +253,27 @@
+       {
+        snprintf(line,sizeof(line),"{\"v\":1,\"id\":%u,\"event\":\"scan_started\"}\n",req.id);
+        ret=prov_send(epoch,line,false);
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++       struct vs_snapshot snapshot;memset(&snapshot,0,sizeof(snapshot));
++       uint64_t ticket=0;
++       if(!ret&&!__atomic_load_n(&rb_ready,__ATOMIC_ACQUIRE))ret=-ENODEV;
++       if(!ret){enum wd_rc rc=ws_ble_begin(&rb_scan,30000,&ticket);if(rc!=WD_OK)ret=rc==WD_BUSY?-EBUSY:-EIO;}
++       uint64_t until=now_us()+31000000;
++       while(!ret){
++        if(ws_ble_poll(&rb_scan,ticket,&snapshot)!=WD_OK){ret=-EIO;break;}
++        if(snapshot.state==VS_DONE)break;
++        if(snapshot.state!=VS_PENDING){ret=snapshot.error?snapshot.error:(snapshot.state==VS_BUSY?-EBUSY:snapshot.state==VS_UNSUPPORTED?-ENOTSUP:-EIO);break;}
++        if(now_us()>=until){ws_ble_cancel(&rb_scan,ticket);ret=-ETIMEDOUT;break;}usleep(5000);
++       }
++       unsigned int sent=0;
++       for(unsigned int i=0;!ret&&i<snapshot.count;i++){
++        const struct vs_ap *ap=&snapshot.ap[i];char b64[45];prov_base64(ap->ssid,ap->ssid_len,b64);
++        snprintf(line,sizeof(line),"{\"v\":1,\"id\":%u,\"event\":\"ap\",\"ssid_b64\":\"%s\",\"rssi\":%d,\"security\":\"%s\",\"band\":\"%s\",\"channel\":%u}\n",req.id,b64,ap->rssi,
++         ap->security==2?"rsn":ap->security==1?"wpa":ap->security==3?"protected":"open",ap->band?"5G":"2.4G",ap->channel);
++        ret=prov_send(epoch,line,false);if(!ret)sent++;
++       }
++       g_prov_truncated=snapshot.truncated;
++#else
+        if(!ret)
+          {
+           ret=nxmutex_lock(&g_wifi_operation);
+@@ -269,6 +294,7 @@
+            ap->security==2?"rsn":(ap->security==1?"wpa":(ap->security==3?"protected":"open")),ap->scan.band?"5G":"2.4G",ap->scan.channel);
+           ret=prov_send(epoch,line,false);if(!ret) sent++;
+          }
++#endif
+        if(ret) snprintf(line,sizeof(line),"{\"v\":1,\"id\":%u,\"event\":\"error\",\"code\":\"scan_failed\",\"detail\":%d}\n",req.id,ret);
+        else snprintf(line,sizeof(line),"{\"v\":1,\"id\":%u,\"event\":\"scan_done\",\"count\":%u,\"truncated\":%s}\n",req.id,sent,g_prov_truncated?"true":"false");
+       }
+--- a/app/k7radio/prov_wifi.inc
++++ b/app/k7radio/prov_wifi.inc
+@@ -11,8 +11,20 @@
+  memcpy(ip,g_wifi_ip,16);if(!online)ip[0]=0;
+  nxmutex_unlock(&g_wifi_ip_state);return online;
+ }
+-static int prov_wifi_connect(const struct prov_request *req)
++static int prov_wifi_connect(struct prov_request *req)
+ {
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++ if(!__atomic_load_n(&rb_ready,__ATOMIC_ACQUIRE))return -ENODEV;
++ uint64_t id;enum wd_rc rc=wd_ble_begin(&rb_dispatch,(const char*)req->ssid,req->ssid_len,req->password,strnlen(req->password,sizeof(req->password)),60000,&id);
++ prov_zero(req->password,sizeof(req->password));
++ if(rc!=WD_OK)return rc==WD_FULL||rc==WD_BUSY?-EBUSY:-EINVAL;
++ uint64_t until=now_us()+61000000;
++ for(;;){struct wd_view v;if(wd_ble_poll(&rb_dispatch,id,&v)!=WD_OK)return -EIO;
++  if(v.status==WB_IP_READY)return 0;
++  if(v.status!=WB_RECEIVED&&v.status!=WB_CONNECTING)return v.status==WB_BUSY?-EBUSY:v.status==WB_TIMEOUT?-ETIMEDOUT:-EIO;
++  if(now_us()>=until){wd_ble_cancel(&rb_dispatch,id);return -ETIMEDOUT;}usleep(5000);}
++#else
++
+  int ret=nxmutex_trylock(&g_wifi_operation);
+  if(ret)return -EBUSY;
+  if(__atomic_load_n(&g_wifi_network_active,__ATOMIC_ACQUIRE))
+@@ -32,11 +44,12 @@
+  memcpy(g_wifi_target_ssid,"Lansee",6);g_wifi_target_ssid_len=6;
+  nxmutex_unlock(&g_wifi_state);
+  nxmutex_unlock(&g_wifi_operation);return ret;
++#endif
+ }
+ #else
+ #define PROV_CONNECT_CAP "false"
+ static bool prov_wifi_snapshot(char ip[16]){ip[0]=0;return false;}
+-static int prov_wifi_connect(const struct prov_request *req){(void)req;return -ENOSYS;}
++static int prov_wifi_connect(struct prov_request *req){(void)req;return -ENOSYS;}
+ #endif
+ static const char *prov_wifi_error(int ret)
+ {
+--- a/app/k7radio/wifi_assoc_probe.inc
++++ b/app/k7radio/wifi_assoc_probe.inc
+@@ -170,6 +170,9 @@
+ #ifdef CONFIG_EXAMPLES_K7RADIO_IP
+           /* Ownership of supplicant/keys/interface transfers to IP worker,
+            * which performs all cleanup on failure, disconnect or shutdown. */
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++          rb_authenticated(wpa_ok&&!ret);
++#endif
+           if(!ret && wpa_ok)return fw_wifi_ip_session(supp);
+ #endif
+         }
+@@ -195,6 +198,9 @@
+     }
+   if (opened) close_ret=fw_wifi_command(4,NULL,0);
+   if (opened && !close_ret) skw_wpa_closed(&g_wifi_wpa);
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++  rb_keys(key_cleanup,unjoin);
++#endif
+   if (!ret && key_cleanup) ret=key_cleanup;
+   printf("RADIO Wi-Fi JOIN/AUTH result auth_response_ok=%u assoc_response_ok=%u ret=%d unjoin=%d close=%d; WPA_completed=%u IP_acquired=0\n",
+     auth_ok,assoc_ok,ret,unjoin,close_ret,wpa_ok);
+--- a/app/k7radio/wifi_ip_service.inc
++++ b/app/k7radio/wifi_ip_service.inc
+@@ -45,6 +45,9 @@
+   if(!unjoin)unjoin=fw_wifi_command(17,params,sizeof(params));
+   int close=fw_wifi_command(4,NULL,0);if(!close)skw_wpa_closed(&g_wifi_wpa);
+   nxmutex_lock(&g_wifi_ip_state);memset(g_wifi_ip,0,sizeof(g_wifi_ip));memset(g_wifi_gateway,0,sizeof(g_wifi_gateway));nxmutex_unlock(&g_wifi_ip_state);
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++  rb_keys(keys,unjoin);
++#endif
+   printf("WIFI link cleanup keys=%d unjoin=%d close=%d\n",keys,unjoin,close);
+ }
+ static int fw_wifi_ip_worker(int argc,char **argv)
+@@ -83,12 +86,19 @@
+   nxsem_post(&g_wifi_ip_done);
+   __atomic_store_n(&g_wifi_network_active,false,__ATOMIC_RELEASE);return ret;
+ }
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++static void *rb_ip_entry(void*p){(void)p;fw_wifi_ip_worker(0,NULL);return NULL;}
++static int rb_thread(pthread_t*,void*(*)(void*));
++#endif
+ static int fw_wifi_ip_session(struct skw_supplicant *supp)
+ {
+   g_wifi_supplicant=supp;g_wifi_ip_rejects=0;
+   while(nxsem_trywait(&g_wifi_ip_ready)==0){}while(nxsem_trywait(&g_wifi_ip_done)==0){}
+   nxmutex_lock(&g_wifi_ip_state);g_wifi_ip_result=-EINPROGRESS;nxmutex_unlock(&g_wifi_ip_state);
+   __atomic_store_n(&g_wifi_network_stop,false,__ATOMIC_RELEASE);
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++  if(rb_stopping())__atomic_store_n(&g_wifi_network_stop,true,__ATOMIC_RELEASE);
++#endif
+   __atomic_store_n(&g_wifi_link_lost,false,__ATOMIC_RELEASE);
+   __atomic_store_n(&g_wifi_network_active,true,__ATOMIC_RELEASE);
+   unsigned group=1;while(group<5 && !(g_wifi_wpa.installed&(1u<<group)))group++;
+@@ -102,7 +112,12 @@
+     }
+   if(!ret)
+     {
++#ifdef CONFIG_EXAMPLES_K7RADIO_SHARED
++      int pid=rb_thread(&rb_ip_thread,rb_ip_entry);
++      rb_ip_created=pid==0;
++#else
+       int pid=kthread_create("skw_wifi_ip",100,16384,fw_wifi_ip_worker,NULL);
++#endif
+       if(pid<0)ret=pid;
+       else
+         {
+--- /dev/null
++++ b/app/k7radio/radio_backend.inc
+@@ -0,0 +1,116 @@
++/* Target integration candidate. Requires joinable POSIX threads in flat NuttX.
++ * All RF work has one lease. Persistent reaper may block in pthread_join, never
++ * service pump/LPWORK; a stuck worker leaves the lease held, without forced kill. */
++static void rb_dlock(void*p){(void)p;nxmutex_lock(&rb_lock);}
++static void rb_dunlock(void*p){(void)p;nxmutex_unlock(&rb_lock);}
++static uint64_t rb_now(void*p){(void)p;return now_us()/1000;}
++static int rb_enqueue(const struct wb_job*j,uint64_t ticket,bool scan)
++{
++ nxmutex_lock(&rb_lock);
++ if(rb_queued){nxmutex_unlock(&rb_lock);return -EBUSY;}
++ rf_init(&rb_facts);rb_facts.keys_clean=rb_facts.unjoined=true;
++ rb_job=*j;rb_ticket=ticket;rb_is_scan=scan;rb_queued=true;rb_ip_created=false;
++ __atomic_store_n(&rb_cancelled,false,__ATOMIC_RELEASE);
++ nxmutex_unlock(&rb_lock);nxsem_post(&rb_jobs);return 0;
++}
++static int rb_submit(void*p,const struct wb_job*j){(void)p;return rb_enqueue(j,0,false);}
++static int rb_submit_scan(void*p,uint64_t id){struct wb_job j;memset(&j,0,sizeof(j));(void)p;return rb_enqueue(&j,id,true);}
++static int rb_stop(void*p,uint64_t owner,uint64_t id)
++{(void)p;nxmutex_lock(&rb_lock);bool match=rb_queued&&rb_job.owner==owner&&rb_job.id==id;nxmutex_unlock(&rb_lock);if(!match)return -ENOENT;__atomic_store_n(&rb_cancelled,true,__ATOMIC_RELEASE);__atomic_store_n(&g_wifi_network_stop,true,__ATOMIC_RELEASE);return 0;}
++static int rb_stop_scan(void*p,uint64_t id)
++{(void)p;nxmutex_lock(&rb_lock);bool match=rb_queued&&rb_is_scan&&rb_ticket==id;nxmutex_unlock(&rb_lock);if(!match)return -ENOENT;__atomic_store_n(&rb_cancelled,true,__ATOMIC_RELEASE);return 0;}
++static void*rb_operation(void*p)
++{
++ (void)p;int ret=nxmutex_lock(&g_wifi_operation);
++ if(!ret){
++  if(rb_stopping())ret=-ECANCELED;
++  else if(rb_is_scan){ret=g_wifi_info_valid?0:fw_wifi_info();if(!ret)ret=fw_wifi_scan();}
++  else {
++   ret=nxmutex_lock(&g_wifi_state);
++   if(!ret){memcpy(g_wifi_target_ssid,rb_job.ssid,rb_job.ssid_len);g_wifi_target_ssid_len=rb_job.ssid_len;nxmutex_unlock(&g_wifi_state);
++    ret=fw_wifi_join_run(true,rb_job.password);
++    nxmutex_lock(&g_wifi_state);memset(g_wifi_target_ssid,0,sizeof(g_wifi_target_ssid));memcpy(g_wifi_target_ssid,"Lansee",6);g_wifi_target_ssid_len=6;nxmutex_unlock(&g_wifi_state);}
++  }
++  nxmutex_unlock(&g_wifi_operation);
++ }
++ rb_result=ret;return NULL;
++}
++static int rb_thread(pthread_t*t,void*(*fn)(void*))
++{pthread_attr_t a;int rc=pthread_attr_init(&a);if(rc)return -rc;rc=pthread_attr_setstacksize(&a,16384);if(!rc)rc=pthread_create(t,&a,fn,NULL);pthread_attr_destroy(&a);return -rc;}
++static struct rf_facts rb_snapshot(void)
++{struct rf_facts f;nxmutex_lock(&rb_lock);f=rb_facts;nxmutex_unlock(&rb_lock);return f;}
++static bool rb_wait_rx(bool connect)
++{
++ uint64_t until=now_us()+2000000;
++ do{struct rf_facts f=rb_snapshot();if(connect?rf_connect_releasable(&f):rf_scan_releasable(&f))return true;usleep(1000);}while(now_us()<until);
++ return false;
++}
++static void rb_post_connect(uint64_t seq,bool success,bool exited,bool up,const uint8_t ip[4])
++{
++ struct wd_event e;memset(&e,0,sizeof(e));struct rf_facts f=rb_snapshot();
++ e.kind=WD_COMPLETION;e.done.owner=rb_job.owner;e.done.id=rb_job.id;e.done.sequence=seq;
++ e.done.success=success;e.done.authenticated=f.authenticated;e.done.dhcp=success;
++ e.done.worker_exited=exited;e.done.link_up=up;if(ip)memcpy(e.done.ip,ip,4);
++ while(wd_post(&rb_dispatch,&e)==WD_FULL)usleep(1000);
++}
++static void*rb_reaper(void*p)
++{
++ (void)p;
++ for(;;){
++  nxsem_wait_uninterruptible(&rb_jobs);pthread_t thread;int rc=rb_thread(&thread,rb_operation);
++  bool created=rc==0;
++  if(created)rc=-pthread_join(thread,NULL);
++  if(rc&&created){/* A create failure has no operation; a join failure may still be live. */
++   nxmutex_lock(&rb_lock);rb_result=rc;nxmutex_unlock(&rb_lock);
++   /* Conservative held: no invented task-exit proof on ambiguous pthread errors. */
++   continue;
++  }
++  if(!created)rb_result=rc;
++  nxmutex_lock(&rb_lock);rb_facts.worker_joined=true;
++  uint64_t owner=rb_job.owner,job_id=rb_job.id;wb_job_clear(&rb_job);rb_job.owner=owner;rb_job.id=job_id;nxmutex_unlock(&rb_lock);
++  if(rb_is_scan){
++   bool clean=rb_wait_rx(false);struct rf_facts f=rb_snapshot();struct ws_done e;
++   memset(&e,0,sizeof(e));e.ticket=rb_ticket;e.sequence=1;e.success=rb_result==0;e.error=rb_result;e.scan_done=f.scan_done;
++   e.stop_ok=!f.touched||f.stop_ok||f.scan_done;e.close_ok=!f.touched||f.close_ok;e.worker_exited=f.worker_joined;
++   e.rx_quiescent=clean;e.offline=clean;
++   while(ws_post(&rb_scan,&e)==WD_FULL)usleep(1000);
++   if(!clean)continue;
++  }else {
++   uint8_t ip[4]={0};bool ready=false;
++   nxmutex_lock(&g_wifi_ip_state);
++   unsigned a,b,c,d;char tail;
++   if(!rb_result&&g_wifi_ip_result==0&&sscanf(g_wifi_ip,"%u.%u.%u.%u%c",&a,&b,&c,&d,&tail)==4&&a<256&&b<256&&c<256&&d<256){ip[0]=a;ip[1]=b;ip[2]=c;ip[3]=d;ready=__atomic_load_n(&g_wifi_network_active,__ATOMIC_ACQUIRE);}
++   nxmutex_unlock(&g_wifi_ip_state);
++   if(ready)rb_post_connect(1,true,true,true,ip);
++   if(rb_ip_created){if(rb_stopping())__atomic_store_n(&g_wifi_network_stop,true,__ATOMIC_RELEASE);if(pthread_join(rb_ip_thread,NULL))continue;}
++   nxmutex_lock(&rb_lock);rb_facts.maintenance_joined=true;nxmutex_unlock(&rb_lock);
++   bool clean=rb_wait_rx(true);rb_post_connect(2,false,clean,!clean,NULL);if(!clean)continue;
++  }
++  nxmutex_lock(&rb_lock);wb_job_clear(&rb_job);rb_queued=false;rb_is_scan=false;rb_ticket=0;nxmutex_unlock(&rb_lock);
++ }
++ return NULL;
++}
++static void*rb_pump(void*p){(void)p;for(;;){wd_pump(&rb_dispatch);usleep(5000);}return NULL;}
++/* Explicit startup only while cold, offline native host owns RX. Legacy CLI is
++ * gated before this can race; failed initialization stays gated, not bypassable. */
++static int rb_start(void)
++{
++ if(__atomic_load_n(&rb_enabled,__ATOMIC_ACQUIRE))return -EBUSY;
++ if(!g_bt_host_mode||__atomic_load_n(&g_bt_worker_fault,__ATOMIC_ACQUIRE)||__atomic_load_n(&g_wifi_network_active,__ATOMIC_ACQUIRE)||g_wifi_wpa.active)return -EBUSY;
++ bool expected=false;if(!__atomic_compare_exchange_n(&rb_enabled,&expected,true,false,__ATOMIC_ACQ_REL,__ATOMIC_ACQUIRE))return -EBUSY;
++ nxmutex_lock(&rb_lock);rf_init(&rb_facts);rb_facts.touched=true;nxmutex_unlock(&rb_lock);
++ int stop=fw_wifi_command(6,NULL,0),close=fw_wifi_command(4,NULL,0);
++ if(stop||close)return stop?stop:close;
++ nxmutex_lock(&rb_lock);rb_facts.worker_joined=true;nxmutex_unlock(&rb_lock);
++ if(!rb_wait_rx(false))return -ETIMEDOUT;
++ struct wd_port dp={NULL,rb_dlock,rb_dunlock,rb_now,rb_submit,rb_stop};struct ws_port sp={NULL,rb_submit_scan,rb_stop_scan};
++ int rc=wd_init(&rb_dispatch,&dp,true);if(!rc)rc=ws_attach(&rb_scan,&rb_dispatch,&sp);if(rc)return rc;
++ pthread_t reaper,pump;rc=rb_thread(&reaper,rb_reaper);if(rc)return rc;
++ rc=rb_thread(&pump,rb_pump);if(rc)return rc;
++ __atomic_store_n(&rb_ready,true,__ATOMIC_RELEASE);
++ /* Process-lifetime service; persistent thread handles retained, no shutdown API. */
++ return 0;
++}
++
++struct wd_dispatch *k7_wifi_dispatch(void){return __atomic_load_n(&rb_ready,__ATOMIC_ACQUIRE)?&rb_dispatch:NULL;}
++struct ws_service *k7_wifi_scans(void){return __atomic_load_n(&rb_ready,__ATOMIC_ACQUIRE)?&rb_scan:NULL;}
+--- /dev/null
++++ b/app/k7radio/radio_backend_state.inc
+@@ -0,0 +1,38 @@
++/* Included once, only CONFIG_EXAMPLES_K7RADIO_SHARED. */
++#include <pthread.h>
++#include "wifi_scan.h"
++#include "radio_fence.h"
++static mutex_t rb_lock=NXMUTEX_INITIALIZER;
++static sem_t rb_jobs=SEM_INITIALIZER(0);
++static struct wd_dispatch rb_dispatch;
++static struct ws_service rb_scan;
++static struct rf_facts rb_facts;
++static struct wb_job rb_job;
++static uint64_t rb_ticket,rb_epoch;
++static bool rb_ready,rb_enabled,rb_queued,rb_is_scan,rb_cancelled,rb_ip_created;
++static pthread_t rb_ip_thread;
++static int rb_result;
++static void rb_note(unsigned command,int rc)
++{nxmutex_lock(&rb_lock);if(__atomic_load_n(&rb_enabled,__ATOMIC_ACQUIRE))rf_command(&rb_facts,command,rc,rb_epoch);nxmutex_unlock(&rb_lock);}
++/* Called only by the sole actual RX task, outside g_wifi_state, between packets.
++ * All report callbacks in the previous packet have synchronously returned. */
++static void rb_rx_idle(void)
++{nxmutex_lock(&rb_lock);if(rb_epoch!=UINT64_MAX)++rb_epoch;else{rb_facts.callbacks_exited=false;nxmutex_unlock(&rb_lock);return;}if(__atomic_load_n(&rb_enabled,__ATOMIC_ACQUIRE)&&rb_facts.close_ok){rb_facts.rx_empty=true;rb_facts.empty_epoch=rb_epoch;rb_facts.callbacks_exited=true;}nxmutex_unlock(&rb_lock);}
++static void rb_rx_done(void)
++{nxmutex_lock(&rb_lock);if(__atomic_load_n(&rb_enabled,__ATOMIC_ACQUIRE))rb_facts.scan_done=true;nxmutex_unlock(&rb_lock);}
++static void rb_rx_report(const uint8_t*p,size_t n)
++{
++ struct skw_bss b;struct sc_record r;uint64_t id=0;
++ if(skw_bss_decode(p,n,&b))return;
++ nxmutex_lock(&rb_lock);if(__atomic_load_n(&rb_enabled,__ATOMIC_ACQUIRE)&&rb_is_scan)id=rb_ticket;nxmutex_unlock(&rb_lock);
++ if(!id)return;
++ memset(&r,0,sizeof(r));memcpy(r.ssid,b.scan.ssid,32);r.ssid_len=b.scan.ssid_len;
++ memcpy(r.bssid,b.scan.bssid,6);r.rssi=b.scan.rssi;r.channel=b.scan.channel;r.band=b.scan.band;
++ r.security=b.rsn?2:(b.wpa?1:((b.capability&16)?3:0));(void)ws_record(&rb_scan,id,&r);
++}
++static void rb_keys(int keys,int unjoin)
++{nxmutex_lock(&rb_lock);if(__atomic_load_n(&rb_enabled,__ATOMIC_ACQUIRE)){rb_facts.keys_clean=keys==0;rb_facts.unjoined=unjoin==0;}nxmutex_unlock(&rb_lock);}
++static void rb_authenticated(bool ok)
++{nxmutex_lock(&rb_lock);if(__atomic_load_n(&rb_enabled,__ATOMIC_ACQUIRE))rb_facts.authenticated=ok;nxmutex_unlock(&rb_lock);}
++static bool rb_stopping(void){return __atomic_load_n(&rb_cancelled,__ATOMIC_ACQUIRE);}
++static int rb_start(void);
+--- /dev/null
++++ b/app/k7radio/radio_fence.c
+@@ -0,0 +1,18 @@
++#include "radio_fence.h"
++#include <string.h>
++void rf_init(struct rf_facts*f){memset(f,0,sizeof(*f));}
++void rf_command(struct rf_facts*f,unsigned cmd,int rc,uint64_t epoch){
++ if(cmd==3){f->touched=true;f->stop_ok=true;f->close_ok=false;f->rx_empty=false;f->callbacks_exited=false;}
++ if(cmd==5){f->stop_ok=false;f->scan_done=false;}
++ if(cmd==6)f->stop_ok=rc==0;
++ if(cmd==4){f->close_ok=rc==0;f->close_epoch=epoch;f->rx_empty=false;f->callbacks_exited=false;}
++ if(cmd==9){f->unjoined=false;f->keys_clean=false;}
++ if(cmd==17)f->unjoined=rc==0;
++}
++bool rf_scan_releasable(const struct rf_facts*f){
++ return f->worker_joined && (!f->touched || (f->close_ok && (f->stop_ok||f->scan_done)
++   && f->rx_empty && f->empty_epoch>f->close_epoch && f->callbacks_exited));
++}
++bool rf_connect_releasable(const struct rf_facts*f){
++ return rf_scan_releasable(f) && f->maintenance_joined && f->keys_clean && f->unjoined;
++}
+--- /dev/null
++++ b/app/k7radio/radio_fence.h
+@@ -0,0 +1,18 @@
++#ifndef RADIO_FENCE_H
++#define RADIO_FENCE_H
++#include <stdbool.h>
++#include <stdint.h>
++/* Owner-serialized command outcomes. An attempted OPEN may have executed even
++ * if its ACK timed out. A local FIFO-empty observation alone is not firmware
++ * proof against firmware bugs. This version follows the frozen official
++ * STOP/DONE ordering contract plus a post-CLOSE local RX fence. */
++struct rf_facts {
++ bool touched,close_ok,stop_ok,scan_done,worker_joined,rx_empty,callbacks_exited;
++ bool authenticated,dhcp,maintenance_joined,keys_clean,unjoined;
++ uint64_t close_epoch,empty_epoch;
++};
++void rf_init(struct rf_facts*);
++void rf_command(struct rf_facts*,unsigned command,int result,uint64_t rx_epoch);
++bool rf_scan_releasable(const struct rf_facts*);
++bool rf_connect_releasable(const struct rf_facts*);
++#endif
+--- /dev/null
++++ b/app/k7radio/k7_radio_service.h
+@@ -0,0 +1,8 @@
++#ifndef K7_RADIO_SERVICE_H
++#define K7_RADIO_SERVICE_H
++#include "wifi_scan.h"
++/* Returned after explicit wifi-service-start succeeds; no backend fallback.
++ * Returned service lives for the process lifetime. Never mutate its fields. */
++struct wd_dispatch *k7_wifi_dispatch(void);
++struct ws_service *k7_wifi_scans(void);
++#endif
+--- /dev/null
++++ b/app/k7radio/wifi_broker.c
+@@ -0,0 +1,116 @@
++#include "wifi_broker.h"
++#include <string.h>
++
++static void zero(void* p, size_t n) {
++  volatile unsigned char* q = (volatile unsigned char*)p;
++  while(n--) *q++ = 0;
++}
++void wb_job_clear(struct wb_job* job) { zero(job, sizeof(*job)); }
++static struct wb_result result(uint64_t owner, uint64_t id, enum wb_status status) {
++  struct wb_result r; memset(&r, 0, sizeof(r)); r.owner=owner; r.id=id; r.status=status; return r;
++}
++static int match(const struct wb_broker* b, uint64_t owner, uint64_t id) {
++  return id && owner && b->active.id==id && b->active.owner==owner;
++}
++static void remember(struct wb_broker* b, struct wb_result r) {
++  b->history[b->history_next]=r; b->history_next=(b->history_next+1)%8;
++}
++static void free_radio(struct wb_broker* b) {
++  remember(b,b->active); memset(&b->active,0,sizeof(b->active));
++  wb_job_clear(&b->pending); b->radio=WB_FREE;
++}
++static void terminate(struct wb_broker* b, enum wb_status s) {
++  b->active.status=s; memset(b->active.ip,0,4); wb_job_clear(&b->pending);
++  if(b->radio==WB_QUEUED) free_radio(b); else b->radio=WB_DRAINING;
++}
++void wb_init(struct wb_broker* b, uint64_t now, int proven_offline) {
++  memset(b,0,sizeof(*b)); b->next_id=1; b->last_time=now;
++  b->radio=proven_offline?WB_FREE:WB_EXTERNAL;
++}
++void wb_external_idle(struct wb_broker* b) { if(b->radio==WB_EXTERNAL) b->radio=WB_FREE; }
++void wb_tick(struct wb_broker* b, uint64_t now) {
++  if(now<b->last_time) {
++    b->clock_fault=1;
++    if(b->radio==WB_QUEUED || b->radio==WB_RUNNING) terminate(b,WB_CLOCK_ERROR);
++  }
++  if(!b->clock_fault) {
++    b->last_time=now;
++    if((b->radio==WB_QUEUED || b->radio==WB_RUNNING) && now-b->started>=b->timeout)
++      terminate(b,WB_TIMEOUT);
++  }
++}
++struct wb_result wb_begin(struct wb_broker* b, uint64_t owner, const char* ssid,
++  size_t slen, const char* password, size_t plen, uint64_t now, uint64_t timeout) {
++  struct wb_result r; uint64_t id;
++  wb_tick(b,now);
++  if(!b->next_id) return result(owner,0,WB_EXHAUSTED);
++  id=b->next_id; b->next_id=(id==UINT64_MAX)?0:id+1;
++  r=result(owner,id,WB_RECEIVED);
++  if(b->clock_fault) r.status=WB_CLOCK_ERROR;
++  else if(!owner || !ssid || slen==0 || slen>32 || !timeout ||
++          (plen && !password) || plen>63) r.status=WB_INVALID;
++  else if(b->radio!=WB_FREE) r.status=WB_BUSY;
++  else if(!plen) r.status=WB_UNSUPPORTED;
++  else if(plen<8 || memchr(password,0,plen)) r.status=WB_INVALID;
++  if(r.status!=WB_RECEIVED) { remember(b,r); return r; }
++  wb_job_clear(&b->pending);
++  b->pending.owner=owner; b->pending.id=id;
++  b->pending.ssid_len=slen; b->pending.password_len=plen;
++  memcpy(b->pending.ssid,ssid,slen); memcpy(b->pending.password,password,plen);
++  b->active=r; b->started=now; b->timeout=timeout; b->event_sequence=0; b->radio=WB_QUEUED;
++  return r;
++}
++struct wb_result wb_poll(const struct wb_broker* b, uint64_t owner, uint64_t id) {
++  unsigned i;
++  if(match(b,owner,id)) return b->active;
++  for(i=0;i<8;i++) if(id && owner && b->history[i].id==id && b->history[i].owner==owner) return b->history[i];
++  return result(owner,id,WB_UNKNOWN);
++}
++int wb_take_job(struct wb_broker* b, struct wb_job* job, uint64_t now) {
++  wb_tick(b,now);
++  if(b->radio!=WB_QUEUED) return 0; /* output untouched on failure */
++  *job=b->pending; wb_job_clear(&b->pending);
++  b->active.status=WB_CONNECTING; b->radio=WB_RUNNING; return 1;
++}
++void wb_start_failed(struct wb_broker* b, uint64_t owner, uint64_t id, uint64_t now) {
++  wb_tick(b,now);
++  if(match(b,owner,id) && b->radio==WB_QUEUED) terminate(b,WB_FAILED);
++}
++void wb_cancel(struct wb_broker* b, uint64_t owner, uint64_t id, uint64_t now) {
++  wb_tick(b,now);
++  if(match(b,owner,id) && (b->radio==WB_RUNNING || b->radio==WB_QUEUED)) terminate(b,WB_CANCELLED);
++}
++int wb_release(struct wb_broker* b, uint64_t owner, uint64_t id, uint64_t now) {
++  wb_tick(b,now);
++  if(!match(b,owner,id) || b->radio!=WB_OWNED) return 0;
++  terminate(b,WB_CANCELLED); return 1;
++}
++int wb_stop_requested(const struct wb_broker* b, uint64_t owner, uint64_t id) {
++  return match(b,owner,id) && b->radio==WB_DRAINING;
++}
++static int valid_ip(const uint8_t ip[4]) {
++  return ip[0] && ip[0]!=127 && ip[0]<224 && !(ip[0]==169 && ip[1]==254);
++}
++void wb_complete(struct wb_broker* b, const struct wb_done* d, uint64_t now) {
++  wb_tick(b,now);
++  if(!match(b,d->owner,d->id)) return;
++  if(b->radio==WB_QUEUED || !d->sequence || d->sequence<=b->event_sequence) return;
++  b->event_sequence=d->sequence;
++  if(b->radio==WB_DRAINING) {
++    if(d->worker_exited && !d->link_up) free_radio(b);
++    return;
++  }
++  if(b->radio==WB_OWNED) {
++    if(!d->link_up) {
++      terminate(b,WB_FAILED);
++      if(d->worker_exited) free_radio(b);
++    }
++    return;
++  }
++  if(b->radio!=WB_RUNNING) return;
++  if(d->success && d->authenticated && d->dhcp && d->worker_exited && d->link_up && valid_ip(d->ip)) {
++    b->active.status=WB_IP_READY; memcpy(b->active.ip,d->ip,4); b->radio=WB_OWNED; return;
++  }
++  terminate(b,WB_FAILED);
++  if(d->worker_exited && !d->link_up) free_radio(b);
++}
+--- /dev/null
++++ b/app/k7radio/wifi_broker.h
+@@ -0,0 +1,40 @@
++#ifndef WIFI_BROKER_H
++#define WIFI_BROKER_H
++#include <stddef.h>
++#include <stdint.h>
++#ifdef __cplusplus
++extern "C" {
++#endif
++enum wb_status { WB_RECEIVED, WB_CONNECTING, WB_IP_READY, WB_FAILED,
++  WB_CANCELLED, WB_TIMEOUT, WB_BUSY, WB_UNSUPPORTED, WB_INVALID,
++  WB_EXHAUSTED, WB_CLOCK_ERROR, WB_UNKNOWN };
++enum wb_radio { WB_EXTERNAL, WB_FREE, WB_QUEUED, WB_RUNNING, WB_DRAINING, WB_OWNED, WB_SCAN };
++struct wb_result { uint64_t owner, id; enum wb_status status; uint8_t ip[4]; };
++struct wb_job { uint64_t owner, id; size_t ssid_len, password_len; char ssid[33], password[64]; };
++struct wb_done { uint64_t owner, id, sequence; int success, authenticated, dhcp, worker_exited, link_up; uint8_t ip[4]; };
++struct wb_broker {
++  enum wb_radio radio;
++  uint64_t next_id, last_time, started, timeout, event_sequence;
++  int clock_fault;
++  struct wb_result active, history[8];
++  unsigned history_next;
++  struct wb_job pending;
++};
++/* Serialized service-task calls only. No backend calls, malloc or logging. */
++void wb_init(struct wb_broker*, uint64_t now, int proven_offline);
++void wb_external_idle(struct wb_broker*); /* trusted supervisor only */
++struct wb_result wb_begin(struct wb_broker*, uint64_t owner, const char* ssid,
++  size_t ssid_len, const char* password, size_t password_len, uint64_t now, uint64_t timeout);
++struct wb_result wb_poll(const struct wb_broker*, uint64_t owner, uint64_t id);
++void wb_tick(struct wb_broker*, uint64_t now);
++int wb_take_job(struct wb_broker*, struct wb_job*, uint64_t now);
++void wb_start_failed(struct wb_broker*, uint64_t owner, uint64_t id, uint64_t now);
++void wb_cancel(struct wb_broker*, uint64_t owner, uint64_t id, uint64_t now);
++int wb_release(struct wb_broker*, uint64_t owner, uint64_t id, uint64_t now);
++int wb_stop_requested(const struct wb_broker*, uint64_t owner, uint64_t id);
++void wb_complete(struct wb_broker*, const struct wb_done*, uint64_t now);
++void wb_job_clear(struct wb_job*);
++#ifdef __cplusplus
++}
++#endif
++#endif
+--- /dev/null
++++ b/app/k7radio/wifi_dispatch.c
+@@ -0,0 +1,134 @@
++#include "wifi_dispatch.h"
++#include "wifi_scan.h"
++#include <string.h>
++#define BLE_OWNER UINT64_C(1)
++#define VOICE_OWNER UINT64_C(2)
++static void lock(struct wd_dispatch *d){d->port.lock(d->port.ctx);}
++static void unlock(struct wd_dispatch *d){d->port.unlock(d->port.ctx);}
++static void wipe(void *p,size_t n){volatile unsigned char *b=p;while(n--)*b++=0;}
++static struct wd_slot *find(struct wd_dispatch *d,uint64_t id){
++ unsigned i;for(i=0;i<WD_RESULTS;i++)if(id && d->slots[i].view.ticket==id)return &d->slots[i];return NULL;
++}
++int wd_init(struct wd_dispatch *d,const struct wd_port *p,bool offline){
++ if(!d || !p || !p->lock || !p->unlock || !p->now_ms || !p->submit || !p->stop)return -1;
++ memset(d,0,sizeof(*d));d->port=*p;d->next_ticket=1;wb_init(&d->broker,p->now_ms(p->ctx),offline);return 0;
++}
++static enum wd_rc begin(struct wd_dispatch *d,uint64_t owner,const char *ssid,size_t slen,
++                       const char *password,size_t plen,uint64_t timeout,uint64_t *id){
++ struct wd_slot *slot=NULL;struct wd_command *cmd;unsigned i;uint64_t submitted;
++ if(!id)return WD_INVALID;
++ *id=0;if(!d)return WD_INVALID;
++ submitted=d->port.now_ms(d->port.ctx);lock(d);
++ if(!d->next_ticket){unlock(d);return WD_EXHAUSTED;}
++ *id=d->next_ticket;d->next_ticket=d->next_ticket==UINT64_MAX?0:d->next_ticket+1;
++ if(!ssid || !slen || slen>32 || !password || plen<8 || plen>63 ||
++    !timeout || memchr(password,0,plen)){unlock(d);return WD_INVALID;}
++ if(d->rq_count==WD_REQUESTS){++d->request_full;unlock(d);return WD_FULL;}
++ for(i=0;i<WD_RESULTS;i++)if(!d->slots[i].live &&
++   (!slot || d->slots[i].view.ticket<slot->view.ticket))slot=&d->slots[i];
++ if(!slot){++d->request_full;unlock(d);return WD_FULL;}
++ memset(slot,0,sizeof(*slot));slot->owner=owner;slot->live=true;
++ slot->view.ticket=*id;
++ slot->view.phase=WD_QUEUED;slot->view.status=WB_RECEIVED;slot->view.held=true;
++ cmd=&d->requests[(d->rq_head+d->rq_count)%WD_REQUESTS];memset(cmd,0,sizeof(*cmd));
++ cmd->ticket=slot->view.ticket;cmd->owner=owner;cmd->submitted=submitted;cmd->timeout=timeout;
++ cmd->credentials.ssid_len=slen;cmd->credentials.password_len=plen;
++ memcpy(cmd->credentials.ssid,ssid,slen);memcpy(cmd->credentials.password,password,plen);
++ ++d->rq_count;*id=slot->view.ticket;unlock(d);return WD_OK;
++}
++enum wd_rc wd_ble_begin(struct wd_dispatch *d,const char *s,size_t n,const char *p,size_t m,uint64_t t,uint64_t *id){return begin(d,BLE_OWNER,s,n,p,m,t,id);}
++enum wd_rc wd_voice_begin(struct wd_dispatch *d,const char *s,size_t n,const char *p,size_t m,uint64_t t,uint64_t *id){return begin(d,VOICE_OWNER,s,n,p,m,t,id);}
++static enum wd_rc poll(struct wd_dispatch *d,uint64_t owner,uint64_t id,struct wd_view *out){
++ struct wd_slot *s;if(!d || !out)return WD_INVALID;lock(d);s=find(d,id);
++ if(!s){unlock(d);return WD_UNKNOWN;}if(s->owner!=owner){unlock(d);return WD_FORBIDDEN;}
++ *out=s->view;unlock(d);return WD_OK;
++}
++enum wd_rc wd_ble_poll(struct wd_dispatch *d,uint64_t id,struct wd_view *v){return poll(d,BLE_OWNER,id,v);}
++enum wd_rc wd_voice_poll(struct wd_dispatch *d,uint64_t id,struct wd_view *v){return poll(d,VOICE_OWNER,id,v);}
++static enum wd_rc flag(struct wd_dispatch *d,uint64_t owner,uint64_t id,bool release){
++ struct wd_slot *s;unsigned i;if(!d)return WD_INVALID;lock(d);s=find(d,id);
++ if(!s){unlock(d);return WD_UNKNOWN;}if(s->owner!=owner){unlock(d);return WD_FORBIDDEN;}
++ if(release)s->release=true;else s->cancel=true;
++ /* Queue cancellation never needs a free command slot. Wipe credentials still
++  * owned by the queue; an already dequeued job belongs to the owner/worker. */
++ if(!release)for(i=0;i<d->rq_count;i++){
++  struct wd_command *c=&d->requests[(d->rq_head+i)%WD_REQUESTS];
++  if(c->ticket==id)wb_job_clear(&c->credentials);
++ }
++ unlock(d);return WD_OK;
++}
++enum wd_rc wd_ble_cancel(struct wd_dispatch *d,uint64_t id){return flag(d,BLE_OWNER,id,false);}
++enum wd_rc wd_voice_cancel(struct wd_dispatch *d,uint64_t id){return flag(d,VOICE_OWNER,id,false);}
++enum wd_rc wd_ble_release(struct wd_dispatch *d,uint64_t id){return flag(d,BLE_OWNER,id,true);}
++enum wd_rc wd_voice_release(struct wd_dispatch *d,uint64_t id){return flag(d,VOICE_OWNER,id,true);}
++enum wd_rc wd_post(struct wd_dispatch *d,const struct wd_event *e){
++ if(!d || !e || (e->kind!=WD_PROGRESS && e->kind!=WD_COMPLETION) ||
++    !e->done.owner || !e->done.id || !e->done.sequence)return WD_INVALID;
++ lock(d);if(d->ev_count==WD_EVENTS){++d->event_full;unlock(d);return WD_FULL;}
++ d->events[(d->ev_head+d->ev_count)%WD_EVENTS]=*e;++d->ev_count;unlock(d);return WD_OK;
++}
++static void publish(struct wd_dispatch *d,uint64_t ticket,struct wb_result r,bool held){
++ struct wd_slot *s;lock(d);s=find(d,ticket);
++ if(s){s->view.phase=WD_BROKER;s->view.status=r.status;s->view.held=held;
++  memcpy(s->view.ip,r.ip,4);s->live=held;}
++ unlock(d);
++}
++static bool cancelled(struct wd_dispatch *d,uint64_t ticket,bool *release){
++ struct wd_slot *s;bool cancel=false;*release=false;lock(d);s=find(d,ticket);
++ if(s){cancel=s->cancel;*release=s->release;}unlock(d);return cancel;
++}
++enum wd_rc wd_pump(struct wd_dispatch *d){
++ struct wd_command cmd;struct wd_event event;struct wb_job job;
++ bool have_cmd=false,have_event=false,release=false;uint64_t now,old_id=0,old_owner=0;
++ if(!d)return WD_INVALID;
++ memset(&cmd,0,sizeof(cmd));memset(&event,0,sizeof(event));memset(&job,0,sizeof(job));
++ lock(d);if(d->pumping){unlock(d);return WD_BUSY;}d->pumping=true;
++ if(d->rq_count){cmd=d->requests[d->rq_head];wipe(&d->requests[d->rq_head],sizeof(cmd));
++  d->rq_head=(d->rq_head+1)%WD_REQUESTS;--d->rq_count;have_cmd=true;}
++ if(d->ev_count){event=d->events[d->ev_head];memset(&d->events[d->ev_head],0,sizeof(event));
++  d->ev_head=(d->ev_head+1)%WD_EVENTS;--d->ev_count;have_event=true;}
++ unlock(d);
++ now=d->port.now_ms(d->port.ctx);wb_tick(&d->broker,now);
++ if(d->active_ticket){
++  old_id=d->broker.active.id;old_owner=d->broker.active.owner;
++  if(cancelled(d,d->active_ticket,&release))wb_cancel(&d->broker,old_owner,old_id,now);
++  if(release)wb_release(&d->broker,old_owner,old_id,now);
++ }
++ if(have_event && event.done.owner==d->broker.active.owner && event.done.id==d->broker.active.id &&
++    event.done.sequence>d->sequence){
++  d->sequence=event.done.sequence;
++  if(event.kind==WD_COMPLETION)wb_complete(&d->broker,&event.done,now);
++ }
++ if(d->active_ticket){
++  const bool held=d->broker.radio!=WB_FREE;
++  publish(d,d->active_ticket,wb_poll(&d->broker,old_owner,old_id),held);
++  if(!held){d->active_ticket=0;d->stop_sent=false;}
++ }
++ if(d->scan)ws_pump(d->scan,now); /* same pump owner as connection broker */
++ if(have_cmd){
++  struct wb_result r;memset(&r,0,sizeof(r));r.owner=cmd.owner;
++  if(cancelled(d,cmd.ticket,&release))r.status=WB_CANCELLED;
++  else if(now<cmd.submitted)r.status=WB_CLOCK_ERROR;
++  else if(now-cmd.submitted>=cmd.timeout)r.status=WB_TIMEOUT;
++  else r=wb_begin(&d->broker,cmd.owner,cmd.credentials.ssid,cmd.credentials.ssid_len,
++                  cmd.credentials.password,cmd.credentials.password_len,now,cmd.timeout-(now-cmd.submitted));
++  wb_job_clear(&cmd.credentials);
++  if(r.status==WB_RECEIVED){
++   d->active_ticket=cmd.ticket;d->sequence=0;d->stop_sent=false;
++   if(wb_take_job(&d->broker,&job,now)){
++    int rc=d->port.submit(d->port.ctx,&job);
++    if(rc){struct wb_done failed;memset(&failed,0,sizeof(failed));
++     failed.owner=job.owner;failed.id=job.id;failed.sequence=1;failed.worker_exited=1;
++     wb_complete(&d->broker,&failed,d->port.now_ms(d->port.ctx));}
++    wb_job_clear(&job);
++   }
++   r=wb_poll(&d->broker,cmd.owner,r.id);
++   publish(d,cmd.ticket,r,d->broker.radio!=WB_FREE);
++   if(d->broker.radio==WB_FREE)d->active_ticket=0;
++  }else publish(d,cmd.ticket,r,false);
++ }
++ if(d->broker.radio==WB_DRAINING && !d->stop_sent)
++  d->stop_sent=d->port.stop(d->port.ctx,d->broker.active.owner,d->broker.active.id)==0;
++ wipe(&cmd,sizeof(cmd));wb_job_clear(&job);
++ lock(d);d->pumping=false;unlock(d);return WD_OK;
++}
+--- /dev/null
++++ b/app/k7radio/wifi_dispatch.h
+@@ -0,0 +1,61 @@
++#ifndef WIFI_DISPATCH_H
++#define WIFI_DISPATCH_H
++#include "wifi_broker.h"
++#include <stdbool.h>
++#define WD_REQUESTS 8u
++#define WD_EVENTS 16u
++#define WD_RESULTS 16u
++enum wd_rc { WD_OK,WD_FULL,WD_INVALID,WD_UNKNOWN,WD_FORBIDDEN,WD_BUSY,WD_EXHAUSTED };
++enum wd_phase { WD_QUEUED,WD_BROKER };
++enum wd_event_kind { WD_PROGRESS,WD_COMPLETION };
++struct wd_view { uint64_t ticket;enum wd_phase phase;enum wb_status status;bool held;uint8_t ip[4]; };
++struct wd_event { enum wd_event_kind kind;struct wb_done done; };
++struct wd_port {
++ void *ctx;
++ void (*lock)(void *);void (*unlock)(void *);
++ uint64_t (*now_ms)(void *); /* thread-safe, monotonic, nonblocking */
++ /* Outside queue lock, nonblocking. Copy job before return=0; nonzero MUST
++  * prove no worker or link was started. Backend clears its own copy.
++  * Stop return=0 only acknowledges receipt; it is NOT a quiescence fence. */
++ int (*submit)(void *,const struct wb_job *);
++ int (*stop)(void *,uint64_t owner,uint64_t broker_id);
++};
++struct wd_command {uint64_t ticket,owner,submitted,timeout;struct wb_job credentials;};
++struct wd_slot {uint64_t owner;struct wd_view view;bool live,cancel,release;};
++struct wd_dispatch {
++ struct ws_service *scan; /* Optional attached shared scan extension, before publication. */
++ struct wd_port port;
++ /* Only pump touches broker/active/sequence/stop_sent outside queue lock. */
++ struct wb_broker broker;uint64_t active_ticket,sequence;bool stop_sent;
++ struct wd_command requests[WD_REQUESTS];unsigned rq_head,rq_count;
++ struct wd_event events[WD_EVENTS];unsigned ev_head,ev_count;
++ struct wd_slot slots[WD_RESULTS];uint64_t next_ticket;
++ bool pumping;
++ uint64_t request_full,event_full; /* queue lock protected */
++};
++/* Call before threads start. proven_offline requires supervisor proof that all
++ * legacy join/maintenance workers exited AND link offline. No takeover API. */
++int wd_init(struct wd_dispatch *,const struct wd_port *,bool proven_offline);
++/* Trusted entry points: never accept owner IDs from BLE JSON or speech text.
++ * On WD_OK credentials are copied; caller must wipe its own input afterwards.
++ * All valid-context attempts consume a unique ticket, including rejection.
++ * Rejections are returned inline, not retained in query history. Only exhausted
++ * IDs / invalid API pointers produce ticket 0. No alias to another request. */
++enum wd_rc wd_ble_begin(struct wd_dispatch *,const char *,size_t,const char *,size_t,uint64_t,uint64_t *);
++enum wd_rc wd_voice_begin(struct wd_dispatch *,const char *,size_t,const char *,size_t,uint64_t,uint64_t *);
++enum wd_rc wd_ble_poll(struct wd_dispatch *,uint64_t,struct wd_view *);
++enum wd_rc wd_voice_poll(struct wd_dispatch *,uint64_t,struct wd_view *);
++enum wd_rc wd_ble_cancel(struct wd_dispatch *,uint64_t);
++enum wd_rc wd_voice_cancel(struct wd_dispatch *,uint64_t);
++enum wd_rc wd_ble_release(struct wd_dispatch *,uint64_t);
++enum wd_rc wd_voice_release(struct wd_dispatch *,uint64_t);
++/* Trusted backend publisher, strictly increasing per-job sequence. On FULL
++ * retain/retry the exact completion until accepted; never lose an exit fence.
++ * PROGRESS never calls wb_complete or promotes status to IP_READY.
++ * COMPLETION carries a complete authoritative snapshot, not accumulated bits.
++ */
++enum wd_rc wd_post(struct wd_dispatch *,const struct wd_event *);
++/* One owner invocation processes at most one request and one event. Overlap
++ * or callback reentry returns BUSY. Does not wait for worker or network. */
++enum wd_rc wd_pump(struct wd_dispatch *);
++#endif
+--- /dev/null
++++ b/app/k7radio/wifi_scan.c
+@@ -0,0 +1,102 @@
++#include "wifi_scan.h"
++#include <string.h>
++static void lock(struct ws_service*s){s->d->port.lock(s->d->port.ctx);}
++static void unlock(struct ws_service*s){s->d->port.unlock(s->d->port.ctx);}
++int ws_attach(struct ws_service*s,struct wd_dispatch*d,const struct ws_port*p){
++ if(!s||!d||!p||!p->submit||!p->stop||d->scan)return -1;
++ memset(s,0,sizeof(*s));s->d=d;s->port=*p;s->view.state=VS_NOT_READY;
++ sc_init(&s->collector);d->scan=s;return 0;
++}
++static enum wd_rc begin(struct ws_service*s,uint64_t owner,uint64_t timeout,uint64_t*id){
++ uint64_t now;if(!s||!id)return WD_INVALID;*id=0;now=s->d->port.now_ms(s->d->port.ctx);lock(s);
++ if(!s->d->next_ticket){unlock(s);return WD_EXHAUSTED;}
++ *id=s->d->next_ticket;s->d->next_ticket=*id==UINT64_MAX?0:*id+1;
++ if(!timeout){unlock(s);return WD_INVALID;}
++ if(s->pending||s->view.held){unlock(s);return WD_BUSY;}
++ memset(&s->view,0,sizeof(s->view));s->view.ticket=s->view.generation=*id;
++ s->view.state=VS_PENDING;s->owner=owner;s->submitted=s->last_time=now;s->timeout=timeout;
++ s->pending=true;s->cancel=s->stop_sent=s->event_pending=false;s->sequence=0;
++ unlock(s);return WD_OK;
++}
++static enum wd_rc poll(struct ws_service*s,uint64_t owner,uint64_t id,struct vs_snapshot*out){
++ if(!s||!out||!id)return WD_INVALID;
++ lock(s);
++ if(s->view.ticket!=id){unlock(s);return WD_UNKNOWN;}
++ if(s->owner!=owner){unlock(s);return WD_FORBIDDEN;}
++ *out=s->view;unlock(s);return WD_OK;
++}
++static enum wd_rc cancel(struct ws_service*s,uint64_t owner,uint64_t id){
++ if(!s||!id)return WD_INVALID;
++ lock(s);
++ if(s->view.ticket!=id){unlock(s);return WD_UNKNOWN;}
++ if(s->owner!=owner){unlock(s);return WD_FORBIDDEN;}
++ if(s->view.state==VS_PENDING){s->cancel=true;s->view.state=VS_CANCELLED;
++  if(s->collector.state==SC_COLLECTING)(void)sc_cancel(&s->collector,id);}
++ unlock(s);return WD_OK;
++}
++enum wd_rc ws_voice_begin(struct ws_service*s,uint64_t t,uint64_t*i){return begin(s,2,t,i);}
++enum wd_rc ws_ble_begin(struct ws_service*s,uint64_t t,uint64_t*i){return begin(s,1,t,i);}
++enum wd_rc ws_voice_poll(struct ws_service*s,uint64_t i,struct vs_snapshot*v){return poll(s,2,i,v);}
++enum wd_rc ws_ble_poll(struct ws_service*s,uint64_t i,struct vs_snapshot*v){return poll(s,1,i,v);}
++enum wd_rc ws_voice_cancel(struct ws_service*s,uint64_t i){return cancel(s,2,i);}
++enum wd_rc ws_ble_cancel(struct ws_service*s,uint64_t i){return cancel(s,1,i);}
++enum sc_rc ws_record(struct ws_service*s,uint64_t id,const struct sc_record*r){
++ enum sc_rc rc;if(!s)return SC_INVALID;lock(s);
++ rc=s->view.held&&s->view.state==VS_PENDING&&s->view.ticket==id?sc_accept(&s->collector,id,r):SC_STALE;
++ unlock(s);return rc;
++}
++enum wd_rc ws_post(struct ws_service*s,const struct ws_done*e){
++ if(!s||!e||!e->ticket||!e->sequence)return WD_INVALID;
++ lock(s);
++ if(e->ticket!=s->view.ticket||!s->view.held||e->sequence<=s->sequence){unlock(s);return WD_UNKNOWN;}
++ if(s->event_pending){unlock(s);return WD_FULL;}
++ s->event=*e;s->event_pending=true;unlock(s);return WD_OK;
++}
++void ws_pump(struct ws_service*s,uint64_t now){
++ bool submit=false,stop_req=false;uint64_t id;struct wb_broker*b=&s->d->broker;
++ lock(s);id=s->view.ticket;
++ if((s->pending||s->view.held)&&s->view.state==VS_PENDING &&
++    (now<s->last_time||now-s->submitted>=s->timeout)){
++  s->view.state=now<s->last_time?VS_FAILED:VS_TIMEOUT;s->view.error=now<s->last_time?-5:-110;s->cancel=true;
++  if(s->collector.state==SC_COLLECTING)(void)sc_cancel(&s->collector,id);
++ }
++ s->last_time=now;
++ if(s->pending){
++  s->pending=false;
++  if(s->view.state==VS_PENDING){
++   if(b->radio==WB_OWNED)s->view.state=VS_UNSUPPORTED;
++   else if(b->radio!=WB_FREE || b->clock_fault)s->view.state=VS_BUSY;
++   else if(sc_begin(&s->collector,id)!=SC_OK)s->view.state=VS_FAILED;
++   else {b->radio=WB_SCAN;s->view.held=1;submit=true;}
++  }
++ }
++ if(s->event_pending){
++  struct ws_done e=s->event;s->event_pending=false;
++  if(e.ticket==id&&e.sequence>s->sequence&&s->view.held){
++   s->sequence=e.sequence;
++   if(!e.success && s->view.state==VS_PENDING)s->view.error=e.error?e.error:-5;
++   if(e.stop_ok&&e.close_ok&&e.worker_exited&&e.rx_quiescent&&e.offline){
++    if(s->view.state==VS_PENDING){
++     if(e.success&&e.scan_done&&sc_freeze(&s->collector,id)==SC_OK){
++      s->view.state=VS_DONE;s->view.count=s->collector.count;s->view.truncated=s->collector.truncated;
++      for(unsigned i=0;i<s->view.count;i++){
++       const struct sc_record*r=&s->collector.records[i];struct vs_ap*a=&s->view.ap[i];
++       memcpy(a->ssid,r->ssid,32);a->ssid_len=r->ssid_len;memcpy(a->bssid,r->bssid,6);
++       a->rssi=r->rssi;a->security=r->security;a->channel=r->channel;a->band=r->band;
++      }
++     }else {s->view.state=VS_FAILED;if(!s->view.error)s->view.error=e.error?e.error:-5;}
++    }
++    if(s->collector.state==SC_COLLECTING)(void)sc_cancel(&s->collector,id);
++    s->view.held=0;if(b->radio==WB_SCAN)b->radio=WB_FREE;
++   }else if(!e.success){s->view.state=s->view.state==VS_PENDING?VS_FAILED:s->view.state;s->cancel=true;}
++  }
++ }
++ if(s->view.held&&s->cancel&&!s->stop_sent)stop_req=true;
++ unlock(s);
++ if(submit && s->port.submit(s->port.ctx,id)){
++  /* Contract: rejected submit created no worker/interface, therefore no fence owed. */
++  lock(s);if(s->view.state==VS_PENDING){s->view.state=VS_FAILED;s->view.error=-5;}
++  (void)sc_cancel(&s->collector,id);s->view.held=0;if(b->radio==WB_SCAN)b->radio=WB_FREE;unlock(s);
++ }
++ if(stop_req){int rc=s->port.stop(s->port.ctx,id);lock(s);if(!rc)s->stop_sent=true;unlock(s);}
++}
+--- /dev/null
++++ b/app/k7radio/wifi_scan.h
+@@ -0,0 +1,31 @@
++#ifndef WIFI_SCAN_H
++#define WIFI_SCAN_H
++#include "wifi_dispatch.h"
++#include "scan_contract.h"
++#include "scan_collector.h"
++/* No hardware backend is supplied. submit nonzero MUST mean nothing started;
++ * accepted submit copies ticket before return. stop only requests cancellation.
++ * Completion is supervisor-authored after actual worker/RX fences, not worker
++ * return-soon flags. No producer may relabel old firmware reports as new IDs. */
++struct ws_port {void *ctx;int (*submit)(void*,uint64_t);int (*stop)(void*,uint64_t);};
++struct ws_done {uint64_t ticket,sequence;int error;bool success,scan_done,stop_ok,close_ok,worker_exited,rx_quiescent,offline;};
++struct ws_service {
++ struct wd_dispatch*d;struct ws_port port;struct sc_collector collector;
++ struct vs_snapshot view;uint64_t owner,submitted,timeout,last_time,sequence;
++ bool pending,cancel,stop_sent,event_pending;struct ws_done event;
++};
++/* Before threads: d initialized and not attached. Never attach around a live pump. */
++int ws_attach(struct ws_service*,struct wd_dispatch*,const struct ws_port*);
++enum wd_rc ws_voice_begin(struct ws_service*,uint64_t timeout,uint64_t*ticket);
++enum wd_rc ws_ble_begin(struct ws_service*,uint64_t timeout,uint64_t*ticket);
++enum wd_rc ws_voice_poll(struct ws_service*,uint64_t,struct vs_snapshot*);
++enum wd_rc ws_ble_poll(struct ws_service*,uint64_t,struct vs_snapshot*);
++enum wd_rc ws_voice_cancel(struct ws_service*,uint64_t);
++enum wd_rc ws_ble_cancel(struct ws_service*,uint64_t);
++/* Fixed-capacity publishers under same dispatcher lock; FULL requires retry
++ * exact completion until accepted, never drop a cleanup fence. */
++enum sc_rc ws_record(struct ws_service*,uint64_t,const struct sc_record*);
++enum wd_rc ws_post(struct ws_service*,const struct ws_done*);
++/* Internal only: called by wd_pump's single-owner path, not clients. */
++void ws_pump(struct ws_service*,uint64_t now);
++#endif
+--- /dev/null
++++ b/app/k7radio/scan_collector.c
+@@ -0,0 +1,57 @@
++/* SPDX-License-Identifier: Apache-2.0 */
++#include "scan_collector.h"
++#include <string.h>
++void sc_init(struct sc_collector *c) { if (c) memset(c, 0, sizeof *c); }
++static enum sc_rc active(struct sc_collector *c, uint64_t generation)
++{
++  if (!c || !generation) return SC_INVALID;
++  if (generation != c->generation) return SC_STALE;
++  return c->state == SC_COLLECTING ? SC_OK : SC_STATE;
++}
++enum sc_rc sc_begin(struct sc_collector *c, uint64_t generation)
++{
++  if (!c || !generation) return SC_INVALID;
++  if (c->state == SC_COLLECTING) return SC_STATE;
++  if (generation <= c->generation) return SC_STALE;
++  memset(c, 0, sizeof *c);
++  c->generation = generation; c->state = SC_COLLECTING;
++  return SC_OK;
++}
++enum sc_rc sc_accept(struct sc_collector *c, uint64_t generation,
++                     const struct sc_record *r)
++{
++  unsigned i;
++  struct sc_record clean = {0};
++  enum sc_rc rc = active(c, generation);
++  if (rc != SC_OK) return rc;
++  if (!r || r->ssid_len > 32 || r->security > 3 || r->band > 1 || !r->channel)
++    return SC_INVALID;
++  /* Normalize unused SSID bytes; copying fields avoids caller padding leaks.
++   * Construct before writing so a caller alias into records remains safe. */
++  memcpy(clean.ssid, r->ssid, r->ssid_len); clean.ssid_len = r->ssid_len;
++  memcpy(clean.bssid, r->bssid, 6); clean.rssi = r->rssi;
++  clean.security = r->security; clean.channel = r->channel; clean.band = r->band;
++  for (i = 0; i < c->count; ++i) {
++    if (!memcmp(c->records[i].bssid, clean.bssid, 6)) {
++      if (clean.rssi <= c->records[i].rssi) return SC_IGNORED;
++      c->records[i] = clean; return SC_OK;
++    }
++  }
++  if (c->count == SC_CAPACITY) { c->truncated = 1; return SC_FULL; }
++  c->records[c->count++] = clean;
++  return SC_OK;
++}
++enum sc_rc sc_freeze(struct sc_collector *c, uint64_t generation)
++{
++  enum sc_rc rc = active(c, generation);
++  if (rc == SC_OK) c->state = SC_FROZEN;
++  return rc;
++}
++enum sc_rc sc_cancel(struct sc_collector *c, uint64_t generation)
++{
++  enum sc_rc rc = active(c, generation);
++  if (rc != SC_OK) return rc;
++  memset(c->records, 0, sizeof c->records);
++  c->count = c->truncated = 0; c->state = SC_CANCELLED;
++  return SC_OK;
++}
+--- /dev/null
++++ b/app/k7radio/scan_collector.h
+@@ -0,0 +1,36 @@
++/* SPDX-License-Identifier: Apache-2.0 */
++#ifndef K7_SCAN_COLLECTOR_H
++#define K7_SCAN_COLLECTOR_H
++#include <stdint.h>
++#define SC_CAPACITY 64u
++enum sc_state { SC_IDLE, SC_COLLECTING, SC_FROZEN, SC_CANCELLED };
++enum sc_rc { SC_OK, SC_IGNORED, SC_FULL, SC_INVALID, SC_STATE, SC_STALE };
++struct sc_record {
++  uint8_t ssid[32], ssid_len, bssid[6];
++  int16_t rssi;
++  uint8_t security, channel, band;
++};
++struct sc_collector {
++  uint64_t generation;
++  enum sc_state state;
++  uint8_t count, truncated;
++  struct sc_record records[SC_CAPACITY];
++};
++/* Initialize once before publication. All calls and reads require external
++ * serialization. The caller must not mutate fields. No internal locks/heap.
++ * generation strictly increases, nonzero; exhaustion requires a new lifetime.
++ * It binds a LOCAL slot only: caller must prove firmware report provenance.
++ * init must not be used to bypass active ownership or erase a published slot. */
++void sc_init(struct sc_collector *c);
++enum sc_rc sc_begin(struct sc_collector *c, uint64_t generation);
++/* Fully decoded record required. security 0=open 1=WPA 2=RSN 3=protected;
++ * band 0=2.4G 1=5G; channel 1..255. No string interpretation. */
++enum sc_rc sc_accept(struct sc_collector *c, uint64_t generation,
++                     const struct sc_record *record);
++/* freeze is one-way for this generation; consume under same external lock.
++ * cancel only accepts COLLECTING, wipes records, retains generation tombstone.
++ * A higher-generation begin can reuse FROZEN/CANCELLED only after the caller
++ * has released snapshot readers and proven the old worker/RX quiescent. */
++enum sc_rc sc_freeze(struct sc_collector *c, uint64_t generation);
++enum sc_rc sc_cancel(struct sc_collector *c, uint64_t generation);
++#endif
+--- /dev/null
++++ b/app/k7radio/scan_contract.h
+@@ -0,0 +1,28 @@
++/* Interface proposal only: intentionally NO implementation or hardware calls. */
++#ifndef VOICE_WIFI_SCAN_CONTRACT_H
++#define VOICE_WIFI_SCAN_CONTRACT_H
++#include <stdint.h>
++enum vs_state { VS_PENDING, VS_DONE, VS_BUSY, VS_UNSUPPORTED,
++                VS_FAILED, VS_CANCELLED, VS_TIMEOUT, VS_NOT_READY };
++struct vs_ap {
++  uint8_t ssid[32], ssid_len, bssid[6], security, band, channel;
++  int16_t rssi;
++};
++struct vs_snapshot {
++  uint64_t ticket, generation;
++  enum vs_state state;
++  int error;
++  uint8_t count, truncated, held;
++  struct vs_ap ap[64];
++};
++/* Future service-owned API. Trusted entry chooses VOICE identity internally.
++ * No password, owner argument, SSID text parsing or DeviceEvent input.
++ * begin is nonblocking; backend runs on dedicated worker after atomic lease.
++ * poll copies one immutable complete snapshot, never shared RX memory.
++ * ticket identity and generation come only from trusted service.
++ * held means radio cleanup still unproven, even after timeout/cancellation.
++ * These declarations must NOT be wired until shared SCAN arbitration exists. */
++int voice_scan_begin(uint64_t *ticket);
++int voice_scan_poll(uint64_t ticket, struct vs_snapshot *out);
++int voice_scan_cancel(uint64_t ticket);
++#endif

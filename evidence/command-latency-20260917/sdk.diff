@@ -1,0 +1,165 @@
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -3,6 +3,7 @@
+ #include "stream_ring.h"
+ #include "device_voice_intent.h"
+ #include "device_photo_prompts.h"
++#include "command_endpoint.h"
+ #include <arpa/inet.h>
+ #include <errno.h>
+ #include <fcntl.h>
+@@ -34,6 +35,7 @@
+ static atomic_bool device_busy;
+ static atomic_bool device_loop_busy;
+ static atomic_uint device_epoch;
++static atomic_bool photo_prompt_pending;
+ #if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
+ int k7_pipeline_voice_mode(unsigned int);
+ int k7_pipeline_voice_mode_status(unsigned int);
+@@ -122,14 +124,31 @@
+   int fd,done,capture_rc,receive_rc,completed,chat;
+   uint64_t completed_us;
+   struct k7_voice_result result;
++  struct k7_command_endpoint endpoint;
++  int capture_reason,stage_priority;
+ };
++
++static int command_sample(void *arg,uint32_t left,uint32_t right)
++{
++  struct live *p=arg;
++  int rc=k7_stream_ring_sample(&p->ring,left,right);
++  if(rc)return rc;
++  if(p->chat)return 0;
++  k7_endpoint_sample(&p->endpoint,(int16_t)(left>>16));
++  if(p->ring.partial_samples)return 0;
++  int ended=k7_endpoint_frame(&p->endpoint);
++  if(p->stage_priority && atomic_load(&photo_prompt_pending))
++    {p->capture_reason=2;return 1;}
++  if(ended){p->capture_reason=1;return 1;}
++  return 0;
++}
+ 
+ static void *record(void *arg)
+ {
+   struct live *p=arg;
+   /* Both real commands and chat use the established cue/ADC handoff.
+    * The chat flag only selects the wire protocol, never microphone timing. */
+-  p->capture_rc=k7sound_capture_stream_cued(48000,k7_stream_ring_sample,&p->ring);
++  p->capture_rc=k7sound_capture_stream_cued(48000,command_sample,p);
+   __atomic_store_n(&p->done,1,__ATOMIC_RELEASE);return NULL;
+ }
+ 
+@@ -163,6 +182,7 @@
+   uint32_t seq=0,count=0;int rc,have_rx=0,have_capture=0;
+   if(!p)return -ENOMEM;
+   p->fd=fd;p->chat=chat;
++  p->stage_priority=!chat && atomic_load(&device_loop_busy);
+   rc=transfer(fd,(void *)(chat?"K7S1B":"K7S1A"),5,1);
+   if(!rc)rc=json_event(fd,ready,sizeof(ready));
+   if(!rc && !strstr(ready,"\"type\": \"ready\""))rc=-EIO;
+@@ -202,7 +222,8 @@
+   if(rc)k7_stream_ring_cancel(&p->ring);
+   if(have_capture)pthread_join(capture,NULL);
+   if(!rc)rc=p->capture_rc;
+-  if(!rc && count!=150)rc=-EIO;
++  if(!rc && p->capture_reason==2)rc=-EINTR;
++  if(!rc && (count>150 || !count || (!p->capture_reason && count!=150)))rc=-EIO;
+   if(!rc)rc=send_packet(fd,'E',NULL,0);
+   if(rc)shutdown(fd,SHUT_RDWR);
+   if(have_rx)pthread_join(receiver,NULL);
+@@ -213,6 +234,8 @@
+          (unsigned long)p->ring.consumed,K7_STREAM_SLOTS,p->receive_rc);
+   printf("K7CLOUD asr result=%d frames_sent=%lu completed=%d\n",rc,(unsigned long)count,p->completed);
+   printf("K7CLOUD timing asr_completed_us=%" PRIu64 " result=%d\n",p->completed_us,rc);
++  printf("K7CLOUD endpoint reason=%d captured_ms=%u last_active_ms=%u voiced_ms=%u\n",
++         p->capture_reason,count*20,p->endpoint.last_active*20,p->endpoint.voiced*20);
+   if(!rc && intent)*intent=k7_voice_result_intent(&p->result);
+   free(p);return rc;
+ }
+@@ -261,7 +284,7 @@
+     {pthread_mutex_unlock(&tts_lock);pthread_mutex_unlock(&audio_owner);return -ECANCELED;}
+   if(tts_busy){pthread_mutex_unlock(&tts_lock);pthread_mutex_unlock(&audio_owner);puts("K7CLOUD prompt_done result=-16");return -EBUSY;}
+   tts_busy=1;tts_result=0;atomic_store(&tts_cancelled,0);
+-  puts("K7CLOUD prompt_started busy=1");
++  printf("K7CLOUD prompt_started busy=1 started_us=%" PRIu64 "\n",k7sound_clock_us());
+   pthread_mutex_unlock(&tts_lock);
+   const struct k7_fixed_prompt *fixed=NULL;
+   for(unsigned i=0;i<sizeof(k7_fixed_prompts)/sizeof(k7_fixed_prompts[0]);i++)
+@@ -324,6 +347,7 @@
+   int fd=connect_server(ip);rc=fd;
+   if(fd>=0){rc=asr(fd,&intent,0);close(fd);}
+   pthread_mutex_unlock(&audio_owner);
++  if(rc==-EINTR && atomic_load(&photo_prompt_pending)){rc=0;goto done;}
+   if(rc)goto done;
+   if(epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;goto done;}
+   printf("K7CLOUD device intent=%u\n",(unsigned)intent);
+@@ -569,6 +593,7 @@
+       if(rc==-ENODEV)rc=0;
+ #endif
+       atomic_store(&w->pending,pending);
++      atomic_store(&photo_prompt_pending,pending);
+       /* Do not steal audio between a command's applied-mode ACK and reply. */
+       if(!rc && pending)
+         rc=atomic_load(&device_busy)?-EBUSY:photo_prompts(w->ip,w->epoch,&w->state);
+@@ -578,10 +603,11 @@
+           k7cloud_device_stop();
+           break;
+         }
+-      if(!rc)atomic_store(&w->pending,false);
++      if(!rc){atomic_store(&w->pending,false);atomic_store(&photo_prompt_pending,false);}
+       usleep(50000);
+     }
+   atomic_store(&w->pending,false);
++  atomic_store(&photo_prompt_pending,false);
+   return NULL;
+ }
+ int k7cloud_device_loop(const char *ip,unsigned rounds)
+--- sdk/app/k7agent/cloud/src/command_endpoint.h
++++ app/k7agent/cloud/src/command_endpoint.h
+@@ -0,0 +1,23 @@
++/* Bounded conservative speech endpoint; operates on complete 20ms PCM frames. */
++#ifndef K7_COMMAND_ENDPOINT_H
++#define K7_COMMAND_ENDPOINT_H
++#include <stdint.h>
++struct k7_command_endpoint {
++  unsigned frames, voiced, quiet, last_active;
++  uint32_t absolute_sum;
++};
++static inline int k7_endpoint_sample(struct k7_command_endpoint *s,int16_t sample)
++{
++  s->absolute_sum+=(uint32_t)(sample<0?-(int32_t)sample:sample);
++  return 0;
++}
++static inline int k7_endpoint_frame(struct k7_command_endpoint *s)
++{
++  unsigned mean=s->absolute_sum/320u;s->absolute_sum=0;s->frames++;
++  if(mean>=350)s->voiced++;
++  if(mean>=200){s->quiet=0;s->last_active=s->frames;}
++  else s->quiet++;
++  /* Keep all leading audio; weak/uncertain speech falls back to the 3s cap. */
++  return s->frames>=40 && s->voiced>=8 && s->quiet>=20;
++}
++#endif
+--- sdk/app/k7sound/pio.c
++++ app/k7sound/pio.c
+@@ -279,7 +279,8 @@
+         int sink_rc;
+         if(out->grouped_mismatches){rc=-5;goto done;}
+         sink_rc=sink(sink_arg,capture[2*out->frames],capture[2*out->frames+1]);
+-        if(sink_rc){rc=sink_rc;goto done;}
++        if(sink_rc>0){out->frames++;rc=0;goto done;}
++        if(sink_rc<0){rc=sink_rc;goto done;}
+       }
+       out->frames++;
+     }
+--- sdk/app/k7sound/pio.h
++++ app/k7sound/pio.h
+@@ -7,6 +7,8 @@
+ #define PIO_MAX_AMPLITUDE (UINT32_C(1)<<27)
+ /* Called on the capture task for each real stereo frame. Must be nonblocking:
+  * no socket, allocation or log calls. Nonzero aborts capture and runs cleanup. */
++/* 0 continues, positive ends capture successfully after this sample,
++ * negative aborts. All exits retain normal SAI/amp cleanup. */
+ typedef int (*pio_sample_sink)(void *, uint32_t left, uint32_t right);
+ struct pio_port;
+ struct pio_result;

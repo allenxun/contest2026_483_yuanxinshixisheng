@@ -1,0 +1,26 @@
+--- v1.2/BSP/bsp_servo.c
++++ v1.3/BSP/bsp_servo.c
+@@ -15,10 +15,10 @@
+ 
+ 
+ ServTypdef Xserv = {
+-    .pwm = 712,
++    .pwm = 1492,
+ 	.MAXPWM = 2500,
+ 	.MINPWM = 500,
+-	.MIDPWM = 712//712�м��
++	.MIDPWM = 1492 /* Midpoint of selected X endpoints: (2452 + 532) / 2. */
+ };
+ 
+ /* y???? - */
+--- v1.2/USER/main.c
++++ v1.3/USER/main.c
+@@ -2,7 +2,7 @@
+ #include "control.h"
+ 
+ u8 grop = 0;
+-float version = 1.2;
++float version = 1.3;
+ 
+ int main(void)
+ {

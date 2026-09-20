@@ -1,0 +1,19 @@
+--- a/app/k7sound/k7sound_main.c
++++ b/app/k7sound/k7sound_main.c
+@@ -10,6 +10,7 @@
+ #include "start_clear.h"
+ #include "playback_filter.h"
+ #include "duplex.h"
++#include "mmu_command.h"
+ #define BIT(n) (UINT32_C(1) << (n))
+ #define GENMASK(h,l) ((UINT32_MAX >> (31-(h))) & (UINT32_MAX << (l)))
+ #include "input/rockchip_sai.h"
+@@ -203,6 +204,8 @@
+ 
+ int main(int argc, char **argv)
+ {
++  if (argc > 1 && !strcmp(argv[1], "mmu"))
++    return k7sound_mmu_command(argc, argv, &owner);
+   if (argc < 2 || argc > 3) { puts("usage: k7sound probe|capture [frames]|dump|tone [gain_db]|replay [gain_db]; gain_db=0,6,12,18,24"); return 1; }
+   if (pthread_mutex_trylock(&owner)) return 1;
+   if (!strcmp(argv[1], "dump"))

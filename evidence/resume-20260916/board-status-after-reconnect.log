@@ -1,0 +1,35 @@
+
+nsh> [Kk7cloud radio-status
+K7CLOUD radio_generation=1 wifi=1 ipv4_ready=1
+K7CLOUD ipv4=10.3.0.214
+K7CLOUD platform_gates=unverified cloud_ready=0 network_request=disabled
+nsh> [K
+
+nsh> [Kk7host camera
+camera connected=1 committed=1 descriptor_bytes=613
+IF 0 alt=0 class=0e subclass=01 endpoints=1
+ UVC version=0100
+ video EP=81 transfer=3 packet=16 transactions=1 interval=6
+IF 1 alt=0 class=0e subclass=02 endpoints=0
+ frame subtype=7 index=1 width=1920 heig frame subtype=7 index=3 width=800 height=600
+ frame subtype=7 F 1 alt=1 class=0e subclass=02 endpoints=1
+ video EP=82 transfevideo EP=82 transfer=1 packet=880 transactions=3 interval=1
+IF  endpoints=1
+ video EP=82 transfer=1 packet=800 transactions=2 interval=1
+IF 1 alt=5 class=0e ts=1
+ video EP=82 transfer=1 packet=512 transactions=1 intervalndpoints=0
+IF 3 alt=0 class=01 subclass=02 endpoints=0
+IF 3 alobe, then snapshot, burst or stream (one capture attempt per boo
+
+nsh> [Kps
+  PID GROUP CPU(AFFINITY)   PRI POLICY   TYPE    NPX STATE    EVENT     SIGMASK            STACK    USED FILLED CO    Kthread   - Assigned           0000000000000000 0007952 00010 0007952 0000096   1.2%  CPU1 IDLE
+    2     0 002(0x00000001)        0000000000000000 0007952 0000848  10.6%  CPU2 IDLE
+      0000000000000000 0007952 0000096   1.2%  CPU4 IDLE
+    5     0 0007952 0000096   1.2%  CPU5 IDLE
+    6     0 006(0x00000001)unning            0000000000000000 0007952 0000096   1.2%  CPU7 000001) 100 RR       Kthread   - Waiting  Semaphore 0000000000004  31.2%  lpwork 0x406aaa00 0x406aaa88
+   10    10 000(0x000000 nsh_main
+   13     0 ---(0x00000001)  95 RR       Kthread   - 76  35.9%  skw_bt_tx
+   14     0 ---(0x00000001)  90 RR       K0000000000 0003824 0002640  69.0%  skw_radio_rx
+   15     0 ---ting  Semaphore 0000000000000000 0007920 0005984  75.5%  k7_prov29    29 ---(0x00000001)  90 RR       Task      - Waiting  Semap0001)  90 RR       pthread   - Waiting  Semaphore 00000000000000    29 ---(0x00000001)  90 RR       pthread   - Waiting  Signal 160  27.3%  usbhost 0x40b3e030
+   55    29 ---(0x00000001)  90    - Waiting  Signal    0000000000000000 0007952 0001856  23.3% c 0x40423078 0x40b64090
+nsh> [K

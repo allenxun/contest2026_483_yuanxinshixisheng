@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "delivery_id": "llama-layout-v1",
+  "files": [
+    {
+      "path": "audit_layout.py",
+      "bytes": 5788,
+      "sha256": "5cf2c18b994c97d3842bf3e912ff4e487838d3885061bdbf3e1aa1a17ec73872"
+    },
+    {
+      "path": "collect_evidence.py",
+      "bytes": 1657,
+      "sha256": "683e2bbb0a45808ef8f811848bcbd28e2628d4b5b45a910c15ad4bc4861e4f7d"
+    },
+    {
+      "path": "evidence.json",
+      "bytes": 5674,
+      "sha256": "6fa7f15e7f1ae1d50710addf8e6af251f683dd3d0e23a89c4efb0d8d07b89804"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 7071,
+      "sha256": "515bc0a694e62953b6796cbe0db8b3c8f4c19c574ac015d1fcdcce2f9054696e"
+    },
+    {
+      "path": "layout-result.json",
+      "bytes": 2014,
+      "sha256": "df971c38a01d6379bd899ebce25de5b88d3a0843472952aaa4de3ead7bc9a2e5"
+    },
+    {
+      "path": "test_layout.py",
+      "bytes": 1854,
+      "sha256": "13ecbf1e79ef8aa0d835595e104f2fca1c63146e706db8fcd45a6b89ab51b898"
+    }
+  ],
+  "inputs": "evidence.json:input_sha256",
+  "hardware_tested": false,
+  "sdk_accessed": false,
+  "boot_authorized": false,
+  "scope": "Offline fixed-layout audit, proposed 8MiB candidate cap, original raw evidence and boundary tests"
+}

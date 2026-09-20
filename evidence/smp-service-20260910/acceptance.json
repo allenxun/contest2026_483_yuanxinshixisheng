@@ -1,0 +1,32 @@
+{
+  "running_revision": "smp-service-20260910",
+  "boot": "RAM",
+  "smp_cpus": 8,
+  "firmware_sha256": "231a918af35da359305099689ed1a3d2a2ed40ca2b9c8cac1a788d1706c45569",
+  "wifi_connected": true,
+  "ip": "10.3.0.214",
+  "gateway_ping": "5/5 during encrypted BLE connection",
+  "ble_service_running": true,
+  "ble_connected": false,
+  "ble_disconnect": "test client intentionally disconnected after successful 60-second hold",
+  "default_service_affinity": "0x1; actual radio and network tasks verified on CPU0",
+  "diagnostic_shared_counter": 80000,
+  "diagnostic_cpu_mismatches": 0,
+  "hold_seconds": 60,
+  "amsdu_rejected": 0,
+  "emmc_written": false,
+  "emmc_reregistered_this_boot": false,
+  "evidence_directory": "evidence/smp-service-20260910",
+  "provisioning_stack_peak": {
+    "used": 6688,
+    "allocated": 8112,
+    "percent": 82.4
+  },
+  "limits": [
+    "No sustained compute load concurrent with radio",
+    "No Android/iOS or internet acceptance in this round",
+    "Not long-term acceptance",
+    "USB, NPU, audio, eMMC and model arena not retested in this SMP boot",
+    "Provisioning stack headroom needs review before adding shared voice service"
+  ]
+}

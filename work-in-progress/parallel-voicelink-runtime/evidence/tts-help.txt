@@ -1,0 +1,81 @@
+D:\a\sherpa-onnx\sherpa-onnx\sherpa-onnx\csrc\parse-options.cc:PrintUsage:413 
+
+Offline/Non-streaming text-to-speech with sherpa-onnx
+
+Usage example:
+
+wget https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-amy-low.tar.bz2
+tar xf vits-piper-en_US-amy-low.tar.bz2
+
+./bin/sherpa-onnx-offline-tts \
+ --vits-model=./vits-piper-en_US-amy-low/en_US-amy-low.onnx \
+ --vits-tokens=./vits-piper-en_US-amy-low/tokens.txt \
+ --vits-data-dir=./vits-piper-en_US-amy-low/espeak-ng-data \
+ --output-filename=./generated.wav \
+ "Today as always, men fall into two groups: slaves and free men. Whoever does not have two-thirds of his day for himself, is a slave, whatever he may be: a statesman, a businessman, an official, or a scholar."
+
+It will generate a file ./generated.wav as specified by --output-filename.
+
+You can find more models at
+https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models
+
+Please see
+https://k2-fsa.github.io/sherpa/onnx/tts/index.html
+or details.
+
+Options:
+  --sid                       : Speaker ID. Used only for multi-speaker models, e.g., models trained using the VCTK dataset. Not used for single-speaker models, e.g., models trained using the LJSpeech dataset (int, default = 0)
+  --vits-tokens               : Path to tokens.txt for VITS models (string, default = "")
+  --kokoro-model              : Path to Kokoro model (string, default = "")
+  --matcha-data-dir           : Path to the directory containing dict for espeak-ng. If it is given, --matcha-lexicon is ignored. (string, default = "")
+  --vits-dict-dir             : Path to the directory containing dict for jieba. Used only for Chinese TTS models using jieba (string, default = "")
+  --output-filename           : Path to save the generated audio (string, default = "./generated.wav")
+  --vits-model                : Path to VITS model (string, default = "")
+  --vits-lexicon              : Path to lexicon.txt for VITS models (string, default = "")
+  --zipvoice-t-shift          : Shift t to smaller ones if t_shift < 1.0 (default: 0.5) (float, default = 0.5)
+  --vits-data-dir             : Path to the directory containing dict for espeak-ng. If it is given, --vits-lexicon is ignored. (string, default = "")
+  --vits-noise-scale          : noise_scale for VITS models (float, default = 0.667)
+  --matcha-noise-scale        : noise_scale for Matcha models (float, default = 1)
+  --vits-noise-scale-w        : noise_scale_w for VITS models (float, default = 0.8)
+  --vits-length-scale         : Speech speed. Larger->Slower; Smaller->faster. (float, default = 1)
+  --kokoro-data-dir           : Path to the directory containing dict for espeak-ng. (string, default = "")
+  --matcha-acoustic-model     : Path to matcha acoustic model (string, default = "")
+  --matcha-vocoder            : Path to matcha vocoder (string, default = "")
+  --matcha-lexicon            : Path to lexicon.txt for Matcha models (string, default = "")
+  --zipvoice-text-model       : Path to zipvoice text model (string, default = "")
+  --kokoro-length-scale       : Speech speed. Larger->Slower; Smaller->faster. (float, default = 1)
+  --matcha-tokens             : Path to tokens.txt for Matcha models (string, default = "")
+  --kitten-model              : Path to kitten model (string, default = "")
+  --matcha-dict-dir           : Path to the directory containing dict for jieba. Used only for Chinese TTS models using jieba (string, default = "")
+  --tts-silence-scale         : Duration of the pause is scaled by this number. So a smaller value leads to a shorter pause. (float, default = 0.2)
+  --tts-max-num-sentences     : Maximum number of sentences that we process at a time. This is to avoid OOM for very long input text. If you set it to -1, then we process all sentences in a single batch. (int, default = 1)
+  --matcha-length-scale       : Speech speed. Larger->Slower; Smaller->faster. (float, default = 1)
+  --kitten-length-scale       : Inverse of speech speed. Larger->Slower; Smaller->faster. (float, default = 1)
+  --kokoro-voices             : Path to voices.bin for Kokoro models (string, default = "")
+  --kokoro-dict-dir           : Path to the directory containing dict for jieba. Used only for Kokoro >= v1.0 (string, default = "")
+  --kokoro-tokens             : Path to tokens.txt for Kokoro models (string, default = "")
+  --kokoro-lang               : Used only by kokoro >= 1.0. Example values: en (English), es (Spanish), fr (French), hi (hindi), it (Italian), pt-br (Brazilian Portuguese).You can leave it empty, in which case you need to provide --kokoro-lexicon. (string, default = "")
+  --kokoro-lexicon            : Path to lexicon.txt for Kokoro models. Used only for Kokoro >= v1.0You can pass multiple files, separated by ','. Example: ./lexicon-us-en.txt,./lexicon-zh.txt (string, default = "")
+  --kitten-tokens             : Path to tokens.txt for kitten models (string, default = "")
+  --zipvoice-tokens           : Path to tokens.txt for ZipVoice models (string, default = "")
+  --kitten-data-dir           : Path to the directory containing dict for espeak-ng. (string, default = "")
+  --zipvoice-data-dir         : Path to the directory containing dict for espeak-ng. (string, default = "")
+  --zipvoice-pinyin-dict      : Path to the pinyin dictionary for cppinyin (i.e converting Chinese into phones). (string, default = "")
+  --zipvoice-flow-matching-model : Path to zipvoice flow-matching model (string, default = "")
+  --zipvoice-vocoder          : Path to zipvoice vocoder (string, default = "")
+  --zipvoice-feat-scale       : Feature scale for ZipVoice (default: 0.1) (float, default = 0.1)
+  --zipvoice-target-rms       : Target speech normalization rms value for ZipVoice (default: 0.1) (float, default = 0.1)
+  --zipvoice-guidance-scale   : The scale of classifier-free guidance during inference for ZipVoice (default: 1.0) (float, default = 1)
+  --kitten-voices             : Path to voices.bin for kitten models (string, default = "")
+  --num-threads               : Number of threads to run the neural network (int, default = 1)
+  --debug                     : true to print model information while loading it. (bool, default = false)
+  --provider                  : Specify a provider to use: cpu, cuda, coreml (string, default = "cpu")
+  --tts-rule-fsts             : It not empty, it contains a list of rule FST filenames.Multiple filenames are separated by a comma and they are applied from left to right. An example value: rule1.fst,rule2.fst,rule3.fst (string, default = "")
+  --tts-rule-fars             : It not empty, it contains a list of rule FST archive filenames.Multiple filenames are separated by a comma and they are applied from left to right. An example value: rule1.far,rule2.far,rule3.far. Note that an *.far can contain multiple *.fst files (string, default = "")
+
+Standard options:
+  --config                    : Configuration file to read (this option may be repeated) (string, default = "")
+  --help                      : Print out usage message (bool, default = false)
+  --print-args                : Print the command line arguments (to stderr) (bool, default = true)
+
+

@@ -1,0 +1,10 @@
+prefix=C:/Program Files (x86)/velavision_llama_b0
+exec_prefix=C:/Program Files (x86)/velavision_llama_b0
+libdir=C:/Program Files (x86)/velavision_llama_b0/lib
+includedir=C:/Program Files (x86)/velavision_llama_b0/include
+
+Name: llama
+Description: Port of Facebook's LLaMA model in C/C++
+Version: 0.0.0
+Libs: -L${libdir} -lggml -lggml-base -lllama
+Cflags: -I${includedir}

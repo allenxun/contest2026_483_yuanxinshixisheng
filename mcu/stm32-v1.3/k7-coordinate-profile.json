@@ -1,0 +1,15 @@
+{
+  "schema": "velavision-coordinate-reference-v1",
+  "mcu": "STM32F103RCT6-v1.3-xcenter",
+  "deployment_status": "reference_only_not_loaded",
+  "units": "legacy MCU command units, not degrees",
+  "reset_command": [0, 0],
+  "reset_pwm_us": [1492, 700],
+  "x_bounds": [-800, 800],
+  "y_bounds": [-120, 975],
+  "old_front_reference_in_new_coordinates": [680, 25],
+  "sign_x": 1,
+  "sign_y": -1,
+  "position_feedback": false,
+  "note": "Do not feed this into the old calibration loader. Update MCU version validation, X pulse base and command bounds together after flashing. Y behavior is unchanged."
+}

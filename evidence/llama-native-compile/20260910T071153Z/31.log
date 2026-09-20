@@ -1,0 +1,13 @@
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-mmap.cpp: In member function 'bool llama_mlock::impl::raw_lock(const void*, size_t) const':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-mmap.cpp:463:45: warning: declaration of 'size' shadows a member of 'llama_mlock::impl' [-Wshadow]
+  463 |     bool raw_lock(const void * addr, size_t size) const {
+      |                                      ~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-mmap.cpp:581:12: note: shadowed declaration is here
+  581 |     size_t size;
+      |            ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-mmap.cpp:463:32: warning: declaration of 'addr' shadows a member of 'llama_mlock::impl' [-Wshadow]
+  463 |     bool raw_lock(const void * addr, size_t size) const {
+      |                   ~~~~~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-mmap.cpp:580:12: note: shadowed declaration is here
+  580 |     void * addr;
+      |            ^~~~

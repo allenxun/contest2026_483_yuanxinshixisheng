@@ -1,0 +1,73 @@
+{
+  "revision": "audio-input-20260910",
+  "firmware_sha256": "1fc817adff940075f82a1076dd5d92c58a71cbc4f57592ad1ba124176cb3a04f",
+  "observations": [
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6914048,
+        "sha256": "1fc817adff940075f82a1076dd5d92c58a71cbc4f57592ad1ba124176cb3a04f"
+      },
+      "command": "k7sound capture-pga24 48000",
+      "prompt": true,
+      "elapsed_seconds": 4.203000000008615,
+      "raw_sha256": "8fe9697320b03cc0a3a5e70357f45f370ea126bc3e311f288c6a05f398822e20",
+      "raw": "k7sound-capture-pga24-48000-20260910-204030.bin"
+    },
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6914048,
+        "sha256": "1fc817adff940075f82a1076dd5d92c58a71cbc4f57592ad1ba124176cb3a04f"
+      },
+      "command": "k7sound replay-max",
+      "prompt": true,
+      "elapsed_seconds": 3.2190000000118744,
+      "raw_sha256": "b43bc50656ed31112f889453136aaeebdd3ef3ce681ecb262e852b546737a376",
+      "raw": "k7sound-replay-max-20260910-204045.bin"
+    },
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6914048,
+        "sha256": "1fc817adff940075f82a1076dd5d92c58a71cbc4f57592ad1ba124176cb3a04f"
+      },
+      "command": "k7sound replay-max",
+      "prompt": true,
+      "elapsed_seconds": 3.202999999994063,
+      "raw_sha256": "6b2ed45835146fbeeb564adfd030b5f974d011acf287507c374cc6c6f8a53dc0",
+      "raw": "k7sound-replay-max-20260910-204119.bin"
+    },
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6914048,
+        "sha256": "1fc817adff940075f82a1076dd5d92c58a71cbc4f57592ad1ba124176cb3a04f"
+      },
+      "command": "k7sound dump",
+      "prompt": true,
+      "elapsed_seconds": 7.5939999999973224,
+      "raw_sha256": "e55e07e3bb90bc7998951d3854747b7594890f6127c91479dd280fbe1c39e1cf",
+      "raw": "k7sound-dump-20260910-204101.bin"
+    }
+  ],
+  "adc09_verified": "88",
+  "adc_gain_db": 24,
+  "raw_peak_left": 240145664,
+  "peak_is_not_acoustic_spl": true,
+  "slot_masks_all_zero": true,
+  "rx_request_enabled": false,
+  "periodic_zero_samples_unresolved": true,
+  "human_feedback": "人声更大，但杂声仍明显",
+  "microphone_audio_passed": false,
+  "voice_playback_passed": false,
+  "extraction": "voice-pga24-first/extraction.json",
+  "board_state": {
+    "console": "NSH",
+    "audio_stopped": true,
+    "amp_low": true,
+    "radio_started": false,
+    "serial_observer_running": false
+  },
+  "clear_voice_accepted": false
+}

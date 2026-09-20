@@ -1,0 +1,4 @@
+config EXAMPLES_K7SOUND
+	bool "KICKPI K7 bounded analog capture and playback"
+	default n
+	depends on ARCH_BOARD_KICKPI_K7

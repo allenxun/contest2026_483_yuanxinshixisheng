@@ -1,0 +1,48 @@
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c:53: error: "UNUSED" redefined [-Werror]
+   53 | #define UNUSED GGML_UNUSED
+      | 
+In file included from /home/swl/openvela/nuttx/include/stdbool.h:56,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml.h:207,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-backend.h:3,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c:4:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c: In function 'ggml_aligned_malloc':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c:259:9: error: "TARGET_OS_OSX" is not defined, evaluates to 0 [-Werror=undef]
+  259 |   #elif TARGET_OS_OSX
+      |         ^~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c: In function 'ggml_aligned_free':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c:302:7: error: "GGML_USE_CPU_HBM" is not defined, evaluates to 0 [-Werror=undef]
+  302 | #elif GGML_USE_CPU_HBM
+      |       ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c:306:7: error: "TARGET_OS_OSX" is not defined, evaluates to 0 [-Werror=undef]
+  306 | #elif TARGET_OS_OSX
+      |       ^~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c: At top level:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c:568:13: error: 'ggml_vec_dot_f32' declared 'static' but never defined [-Werror=unused-function]
+  568 | static void ggml_vec_dot_f32(int n, float * GGML_RESTRICT s, size_t bs, const float * GGML_RESTRICT x, size_t bx, const float * GGML_RESTRICT y, size_t by, int nrc);
+      |             ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c:569:13: error: 'ggml_vec_dot_f16' declared 'static' but never defined [-Werror=unused-function]
+  569 | static void ggml_vec_dot_f16(int n, float * GGML_RESTRICT s, size_t bs, ggml_fp16_t * GGML_RESTRICT x, size_t bx, ggml_fp16_t * GGML_RESTRICT y, size_t by, int nrc);
+      |             ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c:570:13: error: 'ggml_vec_dot_bf16' declared 'static' but never defined [-Werror=unused-function]
+  570 | static void ggml_vec_dot_bf16(int n, float * GGML_RESTRICT s, size_t bs, ggml_bf16_t * GGML_RESTRICT x, size_t bx, ggml_bf16_t * GGML_RESTRICT y, size_t by, int nrc);
+      |             ^~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c:5285:13: error: 'ggml_hash_map_free' defined but not used [-Werror=unused-function]
+ 5285 | static void ggml_hash_map_free(struct hash_map * map) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c:5278:26: error: 'ggml_new_hash_map' defined but not used [-Werror=unused-function]
+ 5278 | static struct hash_map * ggml_new_hash_map(size_t size) {
+      |                          ^~~~~~~~~~~~~~~~~
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml.c:5:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:258:15: error: 'ggml_hash_find_or_insert' defined but not used [-Werror=unused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:232:13: error: 'ggml_hash_contains' defined but not used [-Werror=unused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:122:14: error: 'ggml_get_op_params_f32' defined but not used [-Werror=unused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors

@@ -1,0 +1,10 @@
+[
+  {
+    "command": "uname -a",
+    "output": "uname -a\r\nNuttX 0.0.0 e987a81c32c-dirty Sep  4 2026 10:14:04 arm64 kickpi_k7\r\nnsh> \u001b[K"
+  },
+  {
+    "command": "help",
+    "output": "help\r\nhelp usage:  help [-v] [<cmd>]\r\n\r\n    .           cp          exit        ls          reboot      truncate    \r\n    [           cmp         expr        mkdir       rm          uname       \r\n    ?           dirname     false       mkrd        rmdir       umount      \r\n    alias       dd          fdinfo      mount       set         unset       \r\n    unalias     df          free        mv          sleep       uptime      \r\n    basename    dmesg       help        pidof       source      usleep      \r\n    break       echo        hexdump     printf      test        watch       \r\n    cat         env         kill        ps          time        xd          \r\n    cd          exec        pkill       pwd         true        wait        \r\n\r\nBuiltin Apps:\r\n    nsh       sh        gimbal    hello     k7host    k7usb     \r\nnsh> \u001b[K"
+  }
+]

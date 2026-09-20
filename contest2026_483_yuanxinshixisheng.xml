@@ -9,8 +9,11 @@
   <include name="openvela.xml"/>
 
   <project path="contest2026_483_yuanxinshixisheng" name="contest2026_483_yuanxinshixisheng">
-    <linkfile src="app/hello_app" dest="packages/demos/contest2026_483_hello_app"/>
-    <linkfile src="quickapp/hello_quickapp" dest="packages/apps/contest2026_483_hello_quickapp"/>
-    <linkfile src="board/contest_board" dest="vendor/openvela/boards/contest2026_483_board"/>
+    <linkfile src="app/k7host" dest="apps/examples/k7host"/>
+    <linkfile src="app/gimbal" dest="apps/examples/gimbal"/>
+    <linkfile src="app/k7npu" dest="apps/examples/k7npu"/>
+    <linkfile src="app/k7radio" dest="apps/examples/k7radio"/>
+    <linkfile src="app/k7usb" dest="apps/examples/k7usb"/>
+    <linkfile src="board/kickpi_k7" dest="nuttx/boards/arm64/rk3576/kickpi_k7"/>
   </project>
 </manifest>

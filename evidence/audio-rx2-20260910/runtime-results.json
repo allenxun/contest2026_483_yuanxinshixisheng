@@ -1,0 +1,37 @@
+{
+  "revision": "audio-rx2-20260910",
+  "sha256": "df6b8aa677fdc79596deba77ecbc07262b59aa5c46fbf232e53e2814bb582e2f",
+  "tests": [
+    {
+      "raw": "k7sound-loopback-numbered-20260911-094328.bin",
+      "sha256": "3932e7c02f665a00df4c9c2f95eeff5ca5dfa4d52f3fdc3106c2ae82cb216c67",
+      "duration_us": 8062,
+      "zero_words": 194,
+      "unique_enqueue_indices": 62
+    },
+    {
+      "raw": "k7sound-loopback-rx2-20260911-094337.bin",
+      "sha256": "55ab48a6d3a3489cc825f431119909e6f9b79ac7c79820c4cab7ccaa02956a4a",
+      "duration_us": 4061,
+      "zero_words": 131,
+      "unique_enqueue_indices": 125
+    }
+  ],
+  "rxcr_before": "00400fff",
+  "rxcr_active": "00500fff",
+  "rxcr_restored": "00400fff",
+  "restore_rc": 0,
+  "amp_low": true,
+  "audio_quality_accepted": false,
+  "wifi": {
+    "wpa2": true,
+    "dhcp": "10.3.0.214",
+    "gateway_sent": 5,
+    "gateway_received": 5
+  },
+  "ble": {
+    "service_registered": true,
+    "connected": false,
+    "gatt_tested": false
+  }
+}

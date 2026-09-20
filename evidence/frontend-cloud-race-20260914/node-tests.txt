@@ -1,0 +1,40 @@
+✔ device session is public and remembered only in memory (19.3377ms)
+✔ heartbeat and status add device bearer and preserve bigint strings (0.7399ms)
+✔ binding sends pairing proof and idempotency headers (0.8398ms)
+✔ assessment create and retake enforce exact image sets (1.7001ms)
+✔ task, report, current assessment and media use frozen paths (1.038ms)
+✔ structured backend errors are exposed without leaking authorization (0.4839ms)
+✔ input and response guards reject unsafe or ambiguous values (0.3999ms)
+✔ reuses BLE scan/connect and reports layered readiness without retaining password (2.6185ms)
+✔ DHCP success remains visible when internet probe fails and cloud calls stay disabled (0.4961ms)
+✔ only a network from the current scan can be selected (0.1857ms)
+✔ disconnect while internet probe is pending cannot resurrect readiness or report online (3.1708ms)
+✔ dispose while cloud probe is pending immediately closes gates and ignores late success (0.4742ms)
+✔ late older probe cannot override newer failed connectivity check (0.3489ms)
+✔ board status loss revokes previously ready cloud state (0.2314ms)
+✔ late report success after BLE disconnect cannot mark online or call cloud probe (0.4365ms)
+✔ health, ASR and TTS use the bridge contract without an authorization header (2.5862ms)
+✔ audio format, response schema and HTTP errors are stable (0.7699ms)
+✔ request timeout aborts the fetch and does not expose response content (18.7285ms)
+✔ whole-device example requires K7 internet evidence before bridge health (0.6724ms)
+✔ App bridge availability alone never proves K7 internet connectivity (0.1763ms)
+✔ UTF-8 JSONL handles every fragment width and combined messages (2.6012ms)
+✔ decoder reset removes disconnected partial frame and bounds malformed input (1.2651ms)
+✔ uni adapter discovers, subscribes, reads encryption, scans, and bounds writes (2.0703ms)
+✔ disconnection cancels partial command; late old error cannot reject new request (0.6777ms)
+✔ incomplete scan response is not presented as success (0.5254ms)
+✔ scan page keeps passwords disabled with advertised connect=false (0.8831ms)
+✔ scan page keeps passwords disabled with advertised connect=true (0.4574ms)
+✔ connect capability submits fragmented credentials, ignores stale session and resolves only real IP (1.1453ms)
+✔ online scan is rejected before X and the list page retains the BLE connection (0.4147ms)
+✔ credential receipt uses explicit capability, preserves password and does not imply connection (1.3277ms)
+✔ receipt-capable device enables send-details UI but never enables connectWifi (0.4071ms)
+✔ submit example clears password input and stale receipt state after failure (0.2086ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 97.0695

@@ -1,0 +1,38 @@
+{
+  "artifact_checks": {
+    "nuttx.bin": true,
+    "nuttx": true,
+    ".config": true
+  },
+  "source_hash": "bdf264d28daa30fabfae810616975774123a91ae762e3c740eee8f3fdf6b9652",
+  "frozen_source_matches": true,
+  "load_bytes_match_bin": true,
+  "entry_symbol": [
+    1078290652,
+    1220
+  ],
+  "builtin_records_interpreted_QiiQ": [
+    {
+      "record_address": "0x404fa108",
+      "name_bytes": "6b376568636f6e74726f6c00",
+      "priority": 100,
+      "stack": 16384,
+      "entry": "0x404568dc"
+    }
+  ],
+  "allocated_strings": {
+    "single": true,
+    "warm1": true,
+    "K7EHCONTROL PREHEAT_PASS caught=1 cleaned=3 workers_created=0": true,
+    "usage: k7ehcontrol single|warm1 (fresh boot each; single CPU5, warm1 CPU4/5)": true
+  },
+  "host_main_symbol_present": false,
+  "macro_exclusion_proven_by_symbols_alone": false,
+  "input_sha256": {
+    "evidence\\build\\eh-control-20260910\\verification.json": "0de8e505035d9ad400ea1ed8c198af90a4336e0c2b44fd1e4b017cdbdbf8c24c",
+    "app\\k7ehcontrol\\k7ehcontrol_main.cxx": "bdf264d28daa30fabfae810616975774123a91ae762e3c740eee8f3fdf6b9652",
+    "work-in-progress\\parallel-cxx-unwind-medium\\eh-control-v1\\k7ehcontrol_main.cxx": "bdf264d28daa30fabfae810616975774123a91ae762e3c740eee8f3fdf6b9652"
+  },
+  "elf_sha256": "a83ae79abbebb02ebf21c46c76d07577f6a48b535727ec99b1ce185b83206180",
+  "hardware_tested": false
+}

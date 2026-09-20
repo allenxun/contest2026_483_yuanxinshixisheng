@@ -1,0 +1,16 @@
+ping -c 3 -I wlan0 10.3.0.1
+PING 10.3.0.1 56 bytes of data
+RADIO Wi-Fi RX type=1 id=15 seq=24 len=10
+RADIO Wi-Fi cmd=15 seq=24 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=25 len=10
+RADIO Wi-Fi cmd=15 seq=25 ack=1 status=0 response=0 ret=0
+56 bytes from 10.3.0.1: icmp_seq=0 time=26.0 ms
+RADIO Wi-Fi RX type=1 id=15 seq=26 len=10
+RADIO Wi-Fi cmd=15 seq=26 ack=1 status=0 response=0 ret=0
+56 bytes from 10.3.0.1: icmp_seq=1 time=107.0 ms
+RADIO Wi-Fi RX type=1 id=15 seq=27 len=10
+RADIO Wi-Fi cmd=15 seq=27 ack=1 status=0 response=0 ret=0
+56 bytes from 10.3.0.1: icmp_seq=2 time=26.0 ms
+3 packets transmitted, 3 received, 0% packet loss, time 3003 ms
+rtt min/avg/max/mdev = 26.000/53.000/107.000/38.183 ms
+nsh> [K

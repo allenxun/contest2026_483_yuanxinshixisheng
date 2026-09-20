@@ -1,0 +1,70 @@
+{
+  "tests": [
+    {
+      "label": "original",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-O0",
+        "-fno-builtin",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "E:\\openvela\\VelaVision\\work-in-progress\\memset-byte-fix\\original-test.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\memset-byte-fix\\original-O0.exe"
+      ],
+      "exit_code": 1,
+      "stdout": "cases=6208 failures=2736\n"
+    },
+    {
+      "label": "original",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-O2",
+        "-fno-builtin",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "E:\\openvela\\VelaVision\\work-in-progress\\memset-byte-fix\\original-test.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\memset-byte-fix\\original-O2.exe"
+      ],
+      "exit_code": 1,
+      "stdout": "cases=6208 failures=2736\n"
+    },
+    {
+      "label": "fixed",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-O0",
+        "-fno-builtin",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "E:\\openvela\\VelaVision\\work-in-progress\\memset-byte-fix\\fixed-test.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\memset-byte-fix\\fixed-O0.exe"
+      ],
+      "exit_code": 0,
+      "stdout": "cases=6208 failures=0\n"
+    },
+    {
+      "label": "fixed",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-O2",
+        "-fno-builtin",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "E:\\openvela\\VelaVision\\work-in-progress\\memset-byte-fix\\fixed-test.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\memset-byte-fix\\fixed-O2.exe"
+      ],
+      "exit_code": 0,
+      "stdout": "cases=6208 failures=0\n"
+    }
+  ],
+  "board_tested": false,
+  "shim": "stdint uint64_t word and 8-byte alignment; original function body unchanged"
+}

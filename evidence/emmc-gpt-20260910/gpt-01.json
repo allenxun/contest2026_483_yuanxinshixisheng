@@ -1,0 +1,27 @@
+{
+  "command": "k7emmc gpt",
+  "prompt_returned": true,
+  "lines": [
+    "EMMC status version=0005 present=03f700f0 int=00000000 clock=0007 host=24 power=0b host2=001f cru89=00004407 ready=0 recovery=0",
+    "EMMC init rc=0 cmd=13 status=00000001 state=03f700f0 ocr=c0ff8080 sectors=61079552 revision=8 partition=0 bus=0 timing=0",
+    "EMMC GPT rc=0 primary_backup_crc=PASS partitions=15 entries_crc=bab65c38",
+    "EMMC partition name=security first=8192 last=16383 sectors=8192",
+    "EMMC partition name=uboot first=16384 last=24575 sectors=8192",
+    "EMMC partition name=trust first=24576 last=32767 sectors=8192",
+    "EMMC partition name=misc first=32768 last=40959 sectors=8192",
+    "EMMC partition name=dtbo first=40960 last=49151 sectors=8192",
+    "EMMC partition name=vbmeta first=49152 last=51199 sectors=2048",
+    "EMMC partition name=boot first=51200 last=182271 sectors=131072",
+    "EMMC partition name=recovery first=182272 last=378879 sectors=196608",
+    "EMMC partition name=backup first=378880 last=1165311 sectors=786432",
+    "EMMC partition name=cache first=1165312 last=1951743 sectors=786432",
+    "EMMC partition name=metadata first=1951744 last=2082815 sectors=131072",
+    "EMMC partition name=frp first=2082816 last=2083839 sectors=1024",
+    "EMMC partition name=baseparameter first=2083840 last=2085887 sectors=2048",
+    "EMMC partition name=super first=2085888 last=8459263 sectors=6373376",
+    "EMMC partition name=userdata first=8459264 last=61079487 sectors=52620224",
+    "EMMC status version=0005 present=03f700f0 int=00000000 clock=1e07 host=00 power=0b host2=0018 cru89=00008007 ready=1 recovery=0",
+    "EMMC probe result=0 storage_writes=0"
+  ],
+  "storage_writes": false
+}

@@ -1,0 +1,43 @@
+USB_STORAGE command=start result=0 mount_attempted=0
+USB_STORAGE command=start result=-5 mount_attempted=0
+usage: k7storage start|list|read /dev/sdX (USB read-only, no mount)
+usage: k7storage start|list|read /dev/sdX (USB read-only, no mount)
+USB_STORAGE command=read result=-22 mount_attempted=0
+USB_STORAGE command=read result=-22 mount_attempted=0
+USB_STORAGE busy
+USB_STORAGE nodes=0
+USB_STORAGE command=list result=0 mount_attempted=0
+USB_STORAGE node=/dev/sda
+USB_STORAGE nodes=1
+USB_STORAGE command=list result=0 mount_attempted=0
+USB_STORAGE command=list result=-5 mount_attempted=0
+USB_STORAGE nodes=0
+USB_STORAGE command=list result=-5 mount_attempted=0
+USB_STORAGE nodes=0
+USB_STORAGE command=list result=-5 mount_attempted=0
+USB_STORAGE node=/dev/sda
+USB_STORAGE nodes=1
+USB_STORAGE command=list result=-7 mount_attempted=0
+USB_STORAGE read node=/dev/sda sector_size=512 sectors=2048 readonly=1 lba=0 reads=2 crc32=cc6b99f0 repeated=1 boot_signature=1 exfat_oem=0
+USB_STORAGE command=read result=0 mount_attempted=0
+USB_STORAGE read node=/dev/sda sector_size=1024 sectors=2048 readonly=1 lba=0 reads=2 crc32=16ba80b9 repeated=1 boot_signature=1 exfat_oem=0
+USB_STORAGE command=read result=0 mount_attempted=0
+USB_STORAGE read node=/dev/sda sector_size=2048 sectors=2048 readonly=1 lba=0 reads=2 crc32=a41b70e9 repeated=1 boot_signature=1 exfat_oem=0
+USB_STORAGE command=read result=0 mount_attempted=0
+USB_STORAGE read node=/dev/sda sector_size=4096 sectors=2048 readonly=1 lba=0 reads=2 crc32=12673e47 repeated=1 boot_signature=1 exfat_oem=0
+USB_STORAGE command=read result=0 mount_attempted=0
+USB_STORAGE command=read result=-2 mount_attempted=0
+USB_STORAGE command=read result=-40 mount_attempted=0
+USB_STORAGE command=read result=-5 mount_attempted=0
+USB_STORAGE command=read result=-5 mount_attempted=0
+USB_STORAGE command=read result=-5 mount_attempted=0
+USB_STORAGE command=read result=-5 mount_attempted=0
+USB_STORAGE command=read result=-5 mount_attempted=0
+USB_STORAGE command=read result=-5 mount_attempted=0
+USB_STORAGE command=read result=-5 mount_attempted=0
+USB_STORAGE command=read result=-5 mount_attempted=0
+USB_STORAGE command=read result=-5 mount_attempted=0
+USB_STORAGE command=read result=-42 mount_attempted=0
+USB_STORAGE read node=/dev/sda sector_size=512 sectors=2048 readonly=1 lba=0 reads=2 crc32=cc6b99f0 repeated=1 boot_signature=1 exfat_oem=0
+USB_STORAGE command=read result=-5 mount_attempted=0
+MOCK PASS parameters/start/list/read/geometry/short-read/mismatch/close; no target/device calls

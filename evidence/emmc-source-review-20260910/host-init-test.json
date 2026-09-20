@@ -1,0 +1,33 @@
+{
+  "command": [
+    "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-O2",
+    "E:\\openvela\\VelaVision\\app\\k7emmc\\emmc_init.c",
+    "E:\\openvela\\VelaVision\\app\\k7emmc\\test_emmc_init.c",
+    "-o",
+    "E:\\openvela\\VelaVision\\evidence\\emmc-source-review-20260910\\test_emmc_init.exe"
+  ],
+  "stdout": "PASS: init sequence, OCR timeout, command error, byte-address rejection, partition/sector/bus/timing/capacity guards, final TRAN check\n",
+  "returncode": 0,
+  "hardware_tested": false,
+  "firmware_built": false,
+  "sha256": {
+    "app\\k7emmc\\emmc_init.h": "3614c5ddd53548570dc89d36e3d1b902d3e1d8de39f10b1d74b80e38e08b5509",
+    "app\\k7emmc\\sdhci_command.h": "4d0535a96bbfc900af780ecdd9d22f08b2d13af23eb683526b571a51c39f376c",
+    "app\\k7emmc\\sdhci_control.h": "8e449f6d09fbc7b1a22bbe4936e9db029065e9a26811d7243861896d4cd761b3",
+    "app\\k7emmc\\sdhci_read.h": "7d64ae0b074ffbb34ad2c586bfbe1403ddcc81b65585627b593ba88ead11042b",
+    "app\\k7emmc\\emmc_init.c": "338e790c030db5254b10e835db2ecdb655ac7fb9f3764c3c529d2e70489fac43",
+    "app\\k7emmc\\k7emmc_main.c": "e93117aa9baf365952341288c9beddbe59d6f8b644b80c9c26a05279c7d48503",
+    "app\\k7emmc\\sdhci_command.c": "739b264d5db1b21a2a3efc6e3d3c7cdcff1fe8fdb1a064e44c14179b2c4a260f",
+    "app\\k7emmc\\sdhci_control.c": "1524d329fac04be48ed410b722b7d181100c401eb7df4dcfe1972f7ab73eed7d",
+    "app\\k7emmc\\sdhci_read.c": "89929fc6cde828b8909871225d1fbf75802cda5d4f8179c07bdef7af125652c4",
+    "app\\k7emmc\\test_emmc_init.c": "973754fb27726760288c4743ce5d831fe3269869792318308343dd6ba0412cbc",
+    "app\\k7emmc\\test_sdhci_command.c": "05d1b58411f65f1ccde140a32f8f4f5553bcaceb019e349725bd7a319dccfb46",
+    "app\\k7emmc\\test_sdhci_control.c": "588967a5ab0a94d5679b263ee6fa828ab4056bb25af532679ffcc03c480b791b",
+    "app\\k7emmc\\test_sdhci_read.c": "1eeda01964d140c77b53c41f5852c6fee6fb9f0c0f12d21765b20e6d1bcaad78"
+  }
+}

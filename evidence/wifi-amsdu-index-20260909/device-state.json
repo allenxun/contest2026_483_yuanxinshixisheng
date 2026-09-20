@@ -1,0 +1,54 @@
+{
+  "updated_at": "2026-09-09T10:02:18.652730+00:00",
+  "running_revision": "wifi-amsdu-index-20260909",
+  "boot": "RAM",
+  "firmware_sha256": "85fb84d34a7dbc74469b91c501b3e289791a1b99636829690d3cc6210e688dfe",
+  "wpa2_hardware_passed": true,
+  "dhcp_hardware_passed": true,
+  "test_ssid": "Lansee",
+  "tested_ip": "10.3.0.214",
+  "tested_gateway": "10.3.0.1",
+  "gateway_ping": {
+    "sent": 40,
+    "received": 40,
+    "loss_percent": 0.0
+  },
+  "amsdu": {
+    "complete": 1,
+    "subframes": 2,
+    "rejected": 2
+  },
+  "ble_connected_at_snapshot": true,
+  "ble_encrypted_at_snapshot": true,
+  "frontend_connect": false,
+  "long_duration_acceptance": false,
+  "emmc_written": false,
+  "stm32_written": false,
+  "gimbal_started": false,
+  "amsdu_hardware_passed": true,
+  "historical_wifi_auth_negative_test": "evidence/wifi-ip-rx-20260909/wrong-password-01.jsonl",
+  "ble_wifi_short_coexistence": {
+    "passed": true,
+    "duration_ms": 50050,
+    "ping_sent": 50,
+    "ping_received": 50,
+    "new_ble_disconnections": 0,
+    "encrypted_before_and_after": true,
+    "scope": "phone BLE connection held during Wi-Fi gateway traffic; not simultaneous BLE application throughput or long-duration acceptance"
+  },
+  "current_device_scope": "Lansee connected; phone BLE encrypted at snapshot; no persistent UART observer",
+  "evidence": {
+    "ble-after-coexist.bin": "0eb54cc40b9e25ec6485d243240ec25cba7b36dfb65f4e29985c6ea54dc966cc",
+    "ble-status.bin": "0eb54cc40b9e25ec6485d243240ec25cba7b36dfb65f4e29985c6ea54dc966cc",
+    "bt-host.bin": "16a403900e8402df2572289db886ac2b0e91c60510ecde38f6ffba30ad21522e",
+    "lansee-01.jsonl": "75d202fc88c33702bea8b23615401f163fb3073cf94eae6933bae6d088645a2a",
+    "phone-coexist-50.bin": "afd3dd5b6e340082754bbf260579409721f753d11d2c375da032cb2abb06fd1d",
+    "ping-first-40.bin": "62618f4ac0f80837638a7dbf7392da41046f688212e47ab592bad3ee99fa38c9",
+    "ramload-summary.json": "07da700256717699e20be49597ac94a7fdcea1e64a211a8a1358f6617f27bc8c",
+    "ramload.bin": "0dfcf47146123fdcd733d2159d33ff26e27361ec0f6e21cf97158397be7e1ff1",
+    "reboot.bin": "94fe769bfe5e7df5abc8449680fdf9c0e4a60523ce2d1e04d5d6bc31cba850e6",
+    "sdio-boot.bin": "2e21e63d25f6e685f5050ae2274fec73c54c1109ae9cb8b7f199082d12bc2c25",
+    "wifi-after-coexist.bin": "3a2c7bee9e7c0a6d0a0ec0a6f9858115f7b27ff2d4871885109514fe6cceda63",
+    "wifi-status.bin": "47759adc91e034b808a407df79c4e26e959bf965adbc551582be54387a191dc3"
+  }
+}

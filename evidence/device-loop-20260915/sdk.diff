@@ -1,0 +1,176 @@
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -29,6 +29,8 @@
+ static int tts_busy,tts_fd=-1,tts_result;
+ static pthread_mutex_t audio_owner=PTHREAD_MUTEX_INITIALIZER;
+ static atomic_bool device_busy;
++static atomic_bool device_loop_busy;
++static atomic_uint device_epoch;
+ #if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
+ int k7_pipeline_voice_mode(unsigned int);
+ int k7_pipeline_voice_mode_status(unsigned int);
+@@ -209,7 +211,7 @@
+   free(pcm);return rc;
+ }
+ 
+-int k7cloud_board_speech(const char *mode,const char *ip)
++static int board_speech(const char *mode,const char *ip,const unsigned *epoch)
+ {
+   const char *phrase = NULL;
+   if (!strcmp(mode,"tts-test")) phrase="联网成功";
+@@ -221,6 +223,7 @@
+     }
+   if(!strcmp(mode,"asr-live"))
+     {
++      if(atomic_load(&device_busy))return -EBUSY;
+       if(pthread_mutex_trylock(&audio_owner))return -EBUSY;
+       int fd=connect_server(ip),rc=fd;
+       if(fd>=0){rc=asr(fd,NULL);close(fd);}
+@@ -228,6 +231,8 @@
+     }
+   if(pthread_mutex_trylock(&audio_owner))return -EBUSY;
+   pthread_mutex_lock(&tts_lock);
++  if(epoch && *epoch!=atomic_load(&device_epoch))
++    {pthread_mutex_unlock(&tts_lock);pthread_mutex_unlock(&audio_owner);return -ECANCELED;}
+   if(tts_busy){pthread_mutex_unlock(&tts_lock);pthread_mutex_unlock(&audio_owner);puts("K7CLOUD prompt_done result=-16");return -EBUSY;}
+   tts_busy=1;tts_result=0;atomic_store(&tts_cancelled,0);
+   puts("K7CLOUD prompt_started busy=1");
+@@ -249,36 +254,57 @@
+   pthread_mutex_unlock(&audio_owner);
+   return rc;
+ }
++int k7cloud_board_speech(const char *mode,const char *ip)
++{return board_speech(mode,ip,NULL);}
++
++int k7cloud_device_stop(void)
++{
++  /* Shared with mode dispatch and prompt admission: a late final or prompt
++   * cannot undo a stop. An in-flight capture exits before releasing its buffers. */
++  pthread_mutex_lock(&tts_lock);
++  atomic_fetch_add(&device_epoch,1);
++  atomic_store(&tts_cancelled,true);
++  if(tts_fd>=0)shutdown(tts_fd,SHUT_RDWR);
++#if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
++  k7_pipeline_halt();
++#endif
++  pthread_mutex_unlock(&tts_lock);
++  puts("K7CLOUD device stop_requested=1");return 0;
++}
+ 
+ /* One explicit recording round. Camera must already be in the held voicecam
+  * session; this entry never opens UVC or assumes a calibrated MCU position. */
+-int k7cloud_device_once(const char *ip)
++static int device_round(const char *ip,unsigned epoch)
+ {
+ #if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
+   bool expected=false;
+   if(!atomic_compare_exchange_strong(&device_busy,&expected,true))return -EBUSY;
+   enum k7_voice_intent intent=K7_VOICE_NONE;
+   int rc=-EBUSY;
++  if(epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;goto done;}
+   if(pthread_mutex_trylock(&audio_owner))goto done;
+   int fd=connect_server(ip);rc=fd;
+   if(fd>=0){rc=asr(fd,&intent);close(fd);}
+   pthread_mutex_unlock(&audio_owner);
+   if(rc)goto done;
++  if(epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;goto done;}
+   printf("K7CLOUD device intent=%u\n",(unsigned)intent);
+   if(intent==K7_VOICE_NONE){rc=0;goto done;}
+   if(intent==K7_VOICE_QUIET){rc=k7cloud_tts_control(1);goto done;}
+   if(intent==K7_VOICE_STOP)
+     {
+       k7_pipeline_halt(); /* Software hold, not motor disable/physical ACK. */
+-      rc=k7cloud_board_speech("tracking_stopped",ip);goto done;
++      rc=board_speech("tracking_stopped",ip,&epoch);goto done;
+     }
+   unsigned mode=intent==K7_VOICE_TRACK?1:2;
+-  rc=k7_pipeline_voice_mode(mode);
++  pthread_mutex_lock(&tts_lock);
++  rc=epoch!=atomic_load(&device_epoch)?-ECANCELED:k7_pipeline_voice_mode(mode);
++  pthread_mutex_unlock(&tts_lock);
+   if(!rc)
+     {
+       for(unsigned i=0;i<300;i++)
+         {
+-          rc=k7_pipeline_voice_mode_status(mode);
++          rc=epoch!=atomic_load(&device_epoch)?-ECANCELED:k7_pipeline_voice_mode_status(mode);
+           if(rc!=-EAGAIN)break;
+           usleep(10000);
+         }
+@@ -287,15 +313,38 @@
+   if(rc)
+     {
+       k7_pipeline_halt();
+-      k7cloud_board_speech("tracking_failed",ip);
++      board_speech("tracking_failed",ip,&epoch);
+       goto done;
+     }
+-  rc=k7cloud_board_speech(mode==1?"tracking_ready":"assessment_starting",ip);
++  rc=board_speech(mode==1?"tracking_ready":"assessment_starting",ip,&epoch);
+   if(rc)k7_pipeline_halt();
+ done:
+   atomic_store(&device_busy,false);
+   printf("K7CLOUD device result=%d\n",rc);return rc;
+ #else
+-  (void)ip;return -ENOSYS;
+-#endif
+-}
++  (void)ip;(void)epoch;return -ENOSYS;
++#endif
++}
++int k7cloud_device_once(const char *ip)
++{
++  if(atomic_load(&device_loop_busy))return -EBUSY;
++  return device_round(ip,atomic_load(&device_epoch));
++}
++int k7cloud_device_loop(const char *ip,unsigned rounds)
++{
++  if(!rounds || rounds>300)return -EINVAL;
++  bool expected=false;
++  if(!atomic_compare_exchange_strong(&device_loop_busy,&expected,true))return -EBUSY;
++  unsigned epoch=atomic_load(&device_epoch);int rc=0;
++  for(unsigned round=0;round<rounds;round++)
++    {
++      if(epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;break;}
++      printf("K7CLOUD device round=%u\n",round+1);
++      rc=device_round(ip,epoch);
++      if(rc)break;
++      usleep(250000);
++    }
++  k7cloud_device_stop();
++  atomic_store(&device_loop_busy,false);
++  printf("K7CLOUD device loop_done=%d\n",rc);return rc;
++}
+--- sdk/app/k7agent/cloud/src/k7cloud_main.c
++++ app/k7agent/cloud/src/k7cloud_main.c
+@@ -4,6 +4,7 @@
+ #include <inttypes.h>
+ #include <stdio.h>
+ #include <string.h>
++#include <stdlib.h>
+ 
+ #include "vv_dns_client.h"
+ #include "vv_dns_nuttx.h"
+@@ -20,6 +21,8 @@
+ int k7cloud_board_speech(const char *mode, const char *ip);
+ int k7cloud_tts_control(int stop);
+ int k7cloud_device_once(const char *ip);
++int k7cloud_device_loop(const char *ip,unsigned rounds);
++int k7cloud_device_stop(void);
+ #endif
+ 
+ #ifdef K7CLOUD_RADIO_READINESS
+@@ -155,6 +158,13 @@
+ int main(int argc, char **argv)
+ {
+ #ifdef K7CLOUD_SPEECH_ORCHESTRATOR
++  if(argc==2 && !strcmp(argv[1],"device-stop"))return k7cloud_device_stop()?1:0;
++  if(argc==4 && !strcmp(argv[1],"device-loop"))
++    {
++      char *end;errno=0;unsigned long rounds=strtoul(argv[3],&end,10);
++      if(errno||!argv[3][0]||*end||rounds<1||rounds>300)return 1;
++      return k7cloud_device_loop(argv[2],(unsigned)rounds)?1:0;
++    }
+   if(argc==3 && !strcmp(argv[1],"device-once"))
+     return k7cloud_device_once(argv[2]) ? 1 : 0;
+   if (argc == 2 && !strcmp(argv[1], "tts-stop")) return k7cloud_tts_control(1);

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "command": "source build/envsetup.sh && cmake -S nuttx -B /home/swl/openvela/cmake_out/velavision_voice_asr_microphone_20260911 -G Ninja -DBOARD_CONFIG=kickpi_k7:velavision_audio_sound_local -DK7VOICE_NATIVE_ORT_ADD=ON -DK7VOICE_NATIVE_ASR_MODEL=ON -DK7VOICE_NATIVE_ASR_MIC=ON -DK7VOICE_ORT_OBJECT=/home/swl/openvela/work/native-asr-microphone/runtime.o -DK7VOICE_ORT_OBJECT_SHA256=851821564007a17e45cae8f129cbaa7b24fb007e17512edff6a4f92e061cca9a && cmake --build /home/swl/openvela/cmake_out/velavision_voice_asr_microphone_20260911 -j4",
+  "board_tested": false,
+  "sha256": "2ac0ebef89c5bb21dfe57a29a1efa3a6b199e3fea4c8e13c1d8769f603ec61fa"
+}

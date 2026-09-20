@@ -1,0 +1,64 @@
+{
+  "temporary_arp": false,
+  "status_only": false,
+  "records": [
+    {
+      "time": "2026-09-09T12:16:49.422733+00:00",
+      "command": "k7radio wifi-status",
+      "lines": [
+        "WIFI status active=1 wifi_connected=1 ip=10.3.0.214 gateway=10.3.0.1 result=0",
+        "WIFI netdev rx=10 tx=4 dropped=0",
+        "WIFI AMSDU complete=0 subframes=0 rejected=0"
+      ]
+    },
+    {
+      "time": "2026-09-09T12:16:49.469822+00:00",
+      "command": "arp -i wlan0 -a 10.3.0.1",
+      "lines": [
+        "nsh: arp: no such ARP entry: 10.3.0.1"
+      ]
+    },
+    {
+      "time": "2026-09-09T12:16:54.522486+00:00",
+      "command": "ping -c 5 -I wlan0 10.3.0.1",
+      "lines": [
+        "ERROR: sendto failed at seqno 0: 101",
+        "56 bytes from 10.3.0.1: icmp_seq=1 time=111.0 ms",
+        "56 bytes from 10.3.0.1: icmp_seq=2 time=36.0 ms",
+        "56 bytes from 10.3.0.1: icmp_seq=3 time=57.0 ms",
+        "56 bytes from 10.3.0.1: icmp_seq=4 time=78.0 ms",
+        "5 packets transmitted, 4 received, 20% packet loss, time 5005 ms",
+        "rtt min/avg/max/mdev = 36.000/70.500/111.000/27.699 ms"
+      ]
+    },
+    {
+      "time": "2026-09-09T12:16:54.570128+00:00",
+      "command": "arp -i wlan0 -a 10.3.0.1",
+      "lines": []
+    },
+    {
+      "time": "2026-09-09T12:16:54.616933+00:00",
+      "command": "k7radio wifi-status",
+      "lines": [
+        "WIFI status active=1 wifi_connected=1 ip=10.3.0.214 gateway=10.3.0.1 result=0",
+        "WIFI netdev rx=23 tx=12 dropped=0",
+        "WIFI AMSDU complete=1 subframes=3 rejected=0"
+      ]
+    },
+    {
+      "time": "2026-09-09T12:16:54.662898+00:00",
+      "command": "k7radio ble-status",
+      "lines": [
+        "RADIO BLE name=VelaVision K7 connected=0 handle=17 ACL_RX=42 ACL_TX_queued=61",
+        "RADIO BLE history connections=1 disconnections=1 last_reason=19 encrypt_status=0 encrypted=0"
+      ]
+    },
+    {
+      "time": "2026-09-09T12:16:54.709539+00:00",
+      "command": "free",
+      "lines": [
+        "126873592      72312  126801280      90288  126792944     55      4 Umem"
+      ]
+    }
+  ]
+}

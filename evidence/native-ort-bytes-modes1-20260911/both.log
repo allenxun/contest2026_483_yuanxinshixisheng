@@ -1,0 +1,10 @@
+E:\openvela\VelaVision\work-in-progress\native-ort-host-converter-python\onnxruntime\capi\onnxruntime_validation.py:26: UserWarning: Unsupported Windows version (11). ONNX Runtime supports Windows 10 and above, only.
+  warnings.warn(
+BEFORE_SESSION both
+Windows fatal exception: access violation
+
+Current thread 0x00002cb8 (most recent call first):
+  File "E:\openvela\VelaVision\work-in-progress\native-ort-host-converter-python\onnxruntime\capi\onnxruntime_inference_collection.py", line 483 in _create_inference_session
+  File "E:\openvela\VelaVision\work-in-progress\native-ort-host-converter-python\onnxruntime\capi\onnxruntime_inference_collection.py", line 419 in __init__
+  File "E:\openvela\VelaVision\tools\check_native_ort_bytes_modes.py", line 33 in child
+  File "E:\openvela\VelaVision\tools\check_native_ort_bytes_modes.py", line 48 in <module>

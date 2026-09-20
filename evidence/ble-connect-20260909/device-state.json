@@ -1,0 +1,31 @@
+{
+  "updated_at": "2026-09-09T12:18:56.440906+00:00",
+  "running_revision": "ble-connect-20260909",
+  "firmware_sha256": "1ed2ebc7516acf0c1a81bfaa409a537fa97380154066d305dbc9585f7802c28d",
+  "boot": "RAM",
+  "real_ble_to_wifi_passed": true,
+  "test_client": "Windows Bleak, not Android/iOS",
+  "test_ip": "10.3.0.214",
+  "invalid_password_format_rejected": true,
+  "status_matches_network": true,
+  "gateway_ping": {
+    "sent": 5,
+    "received": 4,
+    "first_send_errno": 101
+  },
+  "frontend_connect": true,
+  "wifi_intentionally_stopped_for_frontend_scan": true,
+  "ble_service_running": true,
+  "emmc_written": false,
+  "stm32_written": false,
+  "gimbal_started": false,
+  "production_stability_passed": false,
+  "evidence": [
+    "ble-connect-01.jsonl",
+    "gateway-after-ble-connect.json",
+    "frontend-ready.json"
+  ],
+  "startup_note": "bt-host auto-started provisioning successfully; redundant prov-start was rejected, provision-start was an already-registered no-op; startup helper corrected",
+  "local_rebuild_sha256": "73c73e2c60165a0e0f19ab760625d3ed8a7dad24eecf61693e9551428f3ff0f3",
+  "provenance_correction": "evidence/ble-connect-20260909/build-provenance-correction.json"
+}

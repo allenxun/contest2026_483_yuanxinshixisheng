@@ -1,0 +1,29 @@
+command: powershell -File run_host_tests.ps1
+host compiler: D:\software\mingw64\mingw64\bin\gcc.exe
+scope: fake verified-TLS transport; no DNS, network, VM, SDK or board access
+
+O0 (-std=c11 -O0 -g -Wall -Wextra -Werror)
+PASS content_length_and_request
+PASS chunked
+PASS protocol_rejections
+PASS limits
+PASS tls_gate
+PASS cancel_and_timeout
+PASS sink_cleanup
+PASS header_injection
+PASS eof_body
+PASS all 9 groups
+
+O2 (-std=c11 -O2 -Wall -Wextra -Werror)
+PASS content_length_and_request
+PASS chunked
+PASS protocol_rejections
+PASS limits
+PASS tls_gate
+PASS cancel_and_timeout
+PASS sink_cleanup
+PASS header_injection
+PASS eof_body
+PASS all 9 groups
+
+exit_code: 0

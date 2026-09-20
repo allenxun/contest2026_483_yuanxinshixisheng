@@ -1,0 +1,68 @@
+{
+  "date": "2026-09-13",
+  "scope": "candidate-only; no formal source, SDK, firmware, or device mutation",
+  "diagnosis": "VITS model bytes and ORT session allocate from ordinary NuttX heap; the 512 MiB K7 arena was not initialized or used at failure",
+  "board_evidence": {
+    "before": "MODEL DDR base=60000000 bytes=536870912 free=0 initialized=0",
+    "exception": "std::bad_alloc",
+    "wrapper_result": -5,
+    "after_arena_free_bytes": 536870144,
+    "asr_lifecycle_present": false,
+    "low_ram_config_bytes": 132120576
+  },
+  "model": {
+    "path": "work-in-progress/native-speech-ort-models1/vits.ort",
+    "bytes": 31190816,
+    "sha256": "97084af57de4135fc9217851386b1f6d511ae22eba01d9c5d9edf04f0e2adc63"
+  },
+  "host_tts_process_evidence": {
+    "sampled_peak_rss_bytes": 311459840,
+    "sampled_peak_private_bytes": 303878144,
+    "observed_os_peak_working_set_bytes": 311676928,
+    "limitation": "whole Windows process, 20 ms sampling; not board allocator-only"
+  },
+  "arena": {
+    "capacity_bytes": 536870912,
+    "previous_asr_peak_bytes": 468101988,
+    "previous_asr_peak_records": 1264,
+    "margin_after_previous_asr_peak_bytes": 68768924,
+    "candidate_record_capacity": 2048
+  },
+  "candidate": {
+    "allocator": "k7_model_alloc/k7_model_free registered on VITS OrtEnv",
+    "preferred_model_loading": "persistent verified bytes directly at ROMFS image address 0x96000730; no model copy",
+    "fallback_model_loading": "ROMFS file read into arena lease; costs 31190816 additional arena bytes",
+    "session_graph_optimization": "ORT_DISABLE_ALL",
+    "session_threads": {"intra": 1, "inter": 1, "mode": "sequential"},
+    "config_entries": [
+      "session.use_env_allocators=1",
+      "session.load_model_format=ORT",
+      "session.use_ort_model_bytes_directly=1",
+      "session.use_ort_model_bytes_for_initializers=1"
+    ],
+    "files": [
+      "shared_runtime.hpp",
+      "native_tts_model_storage.hpp",
+      "offline-tts-vits-model.cc",
+      "native_asr_model_storage.quota-fixed.hpp"
+    ],
+    "native_tts_model_storage_sha256": "d6b8744cee43c5f53be4f4e138ab939325206a6626f9d46d57c90ee4106bfa39",
+    "offline_tts_vits_model_sha256": "603fcd1967911fb0bbb0a4c31a2be4d2f37e4073677c66860d6382ea3124d929"
+  },
+  "direct_romfs_candidate_audit": {
+    "path": "work-in-progress/tts-arena-direct-20260913/native_tts_storage.hpp",
+    "model_address": "0x96000730",
+    "alignment_bytes": 16,
+    "allocator_window": ["0x60000000", "0x80000000"],
+    "model_source_outside_allocator": true,
+    "session_env_storage_destruction_order": "pass",
+    "exact_model_sha_gate": true,
+    "blocking_issue_found": false
+  },
+  "compatibility_issue": "ASR runtime hardcoded 768 MiB quota is invalid with a 512 MiB arena; use K7_MODEL_ARENA_SIZE",
+  "verification": {
+    "earlier_candidate_arm64_compile": "pass",
+    "final_candidate_arm64_compile": "open: guest SSH unreachable after deterministic cleanup edit",
+    "board_run": "not performed"
+  }
+}

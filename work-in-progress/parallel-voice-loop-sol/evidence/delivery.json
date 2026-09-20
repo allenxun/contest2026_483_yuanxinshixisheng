@@ -1,0 +1,28 @@
+{
+  "generated_at_utc": "2026-09-12T09:07:31.7308021Z",
+  "candidate": "VelaVision/work-in-progress/parallel-voice-loop-sol",
+  "candidate_patch_sha256": "c32dcd8a8d225eaec8ec516b7cdcef16c552e8ddc920ccf99f89a719078a3659",
+  "manifest_sha256": "806f2702934cdfcc25a401bd121575e3b43e4ca729e3d7c81a3a38b709b41091",
+  "accepted_run": "evidence/run-20260912T090603012Z",
+  "accepted_results_sha256": "2777a829acc5da459627724e9d752c96297e6af35f885302cdf1825ff6ef3fb7",
+  "input_contract_sha256": {
+    "app/voicelink/include/voicelink/controller.hpp": "f56383abee6ac0df2a64adff8d2fe48aa7df5af8d03fad71d0af56b71040127c",
+    "app/voicelink/include/voicelink/ports.hpp": "5bbd12bd9565b9971fe4610a7a0339a1c6081c31a776cc590241c3b57f8b5bd8",
+    "app/voicelink/include/voicelink/types.hpp": "e7c164d7b123f673eb91ce2371c7a73de2552f9db7f4d6c2851b61f4bd9fc7bf",
+    "app/voicelink/include/voicelink/asr_runtime.h": "24cadcd0e13e4a563ded63064a266b8e6c91cbdf06c7dae981fd9a39e80142b1",
+    "app/voicelink/src/core.cpp": "fa6a9a35f8b18bfc6bda6c72b2e1836c79e02f183a985cc9496597682cd35a61",
+    "app/voicelink/src/parsers.cpp": "6cf11624b7420eb286e294e6ff758ebae3cf989cc071705d034cf70caf7aa3df",
+    "app/voicelink/src/voice_wifi_adapter.cpp": "04031a8e96ee93833190c4a46c0f714fd64cacaf9e724b357b2e4461ce8c6887"
+  },
+  "hardware_tested": false,
+  "sdk_or_device_touched": false,
+  "fixed_prompt_playback_implemented": false,
+  "unfinished_hardware": [
+    "continuous microphone capture adapter",
+    "asynchronous k7_asr_microphone_text worker adapter",
+    "board fixed-prompt TtsPort",
+    "real shared Wi-Fi scan/connect joint run",
+    "device cancellation, timeout, open-network, and stale-event cleanup",
+    "long multi-turn and rekey validation"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "board": "KICKPI-K7/RK3576",
+  "version": "usbenum-v7",
+  "image_sha256": "6be693f9f3126961e9192027e09506e46dcf7608c85355128daea8f0e0fa34bd",
+  "hardware_verified": [
+    "RAM CRC and real NSH boot",
+    "USB2 root port 480Mbps",
+    "4-port Hub address 1",
+    "camera 32e6:9221 address 2, 613-byte configuration",
+    "software reboot"
+  ],
+  "required_precondition": "U-Boot usb start, halt controllers, then RAM boot openvela",
+  "not_verified_or_implemented": [
+    "independent USB initialization without U-Boot usb start",
+    "UVC streaming/frame capture",
+    "NPU runtime"
+  ],
+  "data_cache_enabled": true,
+  "flashed_to_emmc": false,
+  "source_scope": "Incremental sources; requires the existing K7 BSP and matching openvela tree",
+  "runtime_log": "evidence/final-enumeration.log"
+}

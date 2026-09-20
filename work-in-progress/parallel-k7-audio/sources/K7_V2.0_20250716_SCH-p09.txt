@@ -1,0 +1,427 @@
+5
+5
+4
+4
+3
+3
+2
+2
+1
+1
+D D
+C C
+B B
+A A
+RK3576_E
+(PMUIO0/1)
+RK3576_R
+(SARADC)
+Caps of between dashed red lines and U1000
+should be placed under the U1000 package.
+Other caps should be placed close to the U1000 package
+Note:
+Note:This cap should be placed 
+close to RK3576
+Note: Closed to Pin W28
+Reserved for USB/VAD 
+wake-up
+Only for test
+TVSS needs to be directly 
+grounded in actual projects
+Note: 
+Closed to RK3576
+Stay away from strong 
+interference signals
+Config11 EMMC->USB
+14.7K 2437
+10K
+Rup
+FSPI0->UFS->USB
+Config4
+FSPI0->USB
+Rdown
+10K
+4.3K
+BOOT MODE CONFIG
+416
+6.8K
+1.13K
+1658
+RFU
+NC
+10K
+1231
+Boot Mode
+USB (Maskrom mode)
+40.2K
+Config6
+10K
+FSPI1_M0->UFS->USB
+Config8
+FSPI1_M1->EMMC->USB
+Config10 3680
+Config5
+2.49K
+NC
+2048
+Config Table for SARADC_VIN0_BOOT
+10K
+10K
+UFS->USB
+816
+3279
+FSPI1_M0->EMMC->USB
+Config9
+10K
+Config1
+10K
+Item
+10K 4095
+Config3
+EMMC->SDMMC0->USB
+23.2K
+Config2
+ADC Value
+10K
+88.7K
+Config7
+UFS->SDMMC0->USB
+10K
+10K
+0
+2862
+Must be mounted
+Note:
+NPOR
+TVSS
+GPIO0_A0_d
+TSADC_CTRL_M0
+GPIO0_A2_d
+GPIO0_A3_d
+GPIO0_A4_d
+GPIO0_A5_d
+GPIO0_A6_u
+GPIO0_A7_u
+GPIO0_B0_z
+GPIO0_B1_z
+GPIO0_B2_z
+GPIO0_B3_z
+GPIO0_B4_d
+GPIO0_B7_d
+GPIO0_C0_d
+GPIO0_C3_d
+GPIO0_C7_d
+GPIO0_D1_d
+GPIO0_D3_d
+XOUT_24M
+PLL_DVDD0V75
+XIN_24M
+SARADC_VIN0_BOOT
+SARADC_VIN1_KEY/RECOVERY
+SARADC_VIN2_HW_ID
+SARADC_VIN3_HP_HOOK
+SARADC_VIN4
+SARADC_VIN5
+SARADC_VIN6
+SARADC_VIN7_LCD_ID
+SARADC_VIN0_BOOT
+I2C1_SDA_M0_RK806
+I2C1_SCL_M0_RK806
+I2C0_SCL_M1_TP
+I2C0_SDA_M1_TP
+RESET_L
+SDMMC0_DET_L
+I2C2_SCL_M0_CC_RTC
+I2C2_SDA_M0_CC_RTC
+SARADC_VIN1_KEY/RECOVERY
+VCC_3V3_S3
+VCCA_1V8_S0
+VCCA_1V8_S0
+VDD_0V75_S3
+VDDA_0V75_S0
+VDDA_0V75_S0
+VCC_1V8_S3
+VCC_3V3_S3
+VCC_1V8_S3
+VCC_1V8_S3
+VCC_1V8_S3
+VCC_3V3_S3
+VCCA1V8_PLDO2_S0
+VCCA1V8_PLDO2_S0
+VCCA1V8_PLDO2_S0
+PCIE_PWREN_H [39]
+BT_WAKE_HOST_H [34]
+I2C1_SDA_M0_RK806 [21]
+I2C1_SCL_M0_RK806 [21]
+PMIC_PWR_CTRL1 [21]
+PMIC_PWR_CTRL2 [21]
+PMIC_INT_L [21]
+SDMMC0_DET_L [27]
+RTC_INT_L [22]
+TP_INT_L [31]
+GPIO0_A5_d [42]
+LCD_PWREN_H [31]
+LCD_BL_PWM1_CH1_M0 [31]
+I2C0_SCL_M1_TP [31]
+I2C0_SDA_M1_TP [31]
+TP_RST_L [31]
+UART0_RX_M0_DEBUG [42]
+UART0_TX_M0_DEBUG [42]
+SARADC_VIN7_LCD_ID [31]
+SARADC_VIN1_KEY/RECOVERY [41]
+SARADC_VIN0_BOOT [41]
+SARADC_VIN2_HW_ID [30]
+SARADC_VIN3_HP_HOOK [37]
+SDMMC0_PWREN_H [27]
+PWM1_CH0_M0_LED [40]
+MIPI_DPHY_CSI3_PDN_H [29]
+MIPI_DPHY_CSI0_PDN_H [29]
+I2C2_SCL_M0_CC_RTC [22,23]
+I2C2_SDA_M0_CC_RTC [22,23]
+LCD_RESET_L [31]
+RESET_L [21,41]
+SARADC_VIN4 [42]
+SARADC_VIN5 [42]
+SARADC_VIN6 [42]
+PWM0_CH0_M0_IR [40]
+HP_DET_L [37]
+PCIE1_PERSTn [33]
+GPIO0_C3_d [42]
+Page Title
+Page Size
+Document Title
+Date: Sheet o f
+PCB NO.
+Sch Designer Pcb Designer Project Stage
+K7(RK3576+LPDDR4)
+RK3576-OSC/PLL
+A3
+9 39Wednesday, July 16, 2025
+K7_V1.1
+TIM TIM DR4
+Page Title
+Page Size
+Document Title
+Date: Sheet o f
+PCB NO.
+Sch Designer Pcb Designer Project Stage
+K7(RK3576+LPDDR4)
+RK3576-OSC/PLL
+A3
+9 39Wednesday, July 16, 2025
+K7_V1.1
+TIM TIM DR4
+Page Title
+Page Size
+Document Title
+Date: Sheet o f
+PCB NO.
+Sch Designer Pcb Designer Project Stage
+K7(RK3576+LPDDR4)
+RK3576-OSC/PLL
+A3
+9 39Wednesday, July 16, 2025
+K7_V1.1
+TIM TIM DR4
+R1104
+10K
+R0201
+1%
+C1112 1nF C0201X5R 25V1 2
+C1116
+100nF
+C0201
+X5R
+6.3V
+12
+C1118
+100nF
+C0201
+X5R
+6.3V
+12
+R1139
+2.2K
+R0201
+R1103
+88.7K
+R0201
+1%
+C1115 1nF C0201X5R 25V1 2
+R1127
+2.2K
+R0201
+R1101
+510K
+R0402
+C1108 1nF C0201X5R 25V1 2
+C1103
+100nF
+C0201
+X5R
+6.3V
+12
+C1102
+100nF
+C0201
+X5R
+6.3V
+12
+C1107
+100nF
+C0201
+X5R
+6.3V
+12
+R1105
+10K
+R0201
+R1138
+2.2K
+R0201
+C1100
+18pF
+C0201
+C0G
+50V
+12
+C1106
+100nF
+C0201
+X5R
+6.3V
+12
+R1106 0R R0201
+Y1100
+24MHz
+CRY4_3R20X2R50X0R80
+X11
+GND2 X2 3
+GND 4
+R1121
+100K
+R0201
+C1114 1nF C0201X5R 25V1 2
+R1135
+2.2K
+R0201
+OSC PMUIO0 Domain
+Operating Voltage=1.8V
+PLL PMUIO1 Domain
+Operating Voltage=1.8V/3.3V
+PMUIO0/PMUIO1/VCCIO7 Domain Logic Power
+Operating Voltage=0.75V
+RK3576
+U1000E
+BGA698_16R1X17R2X1R08
+PLL_AVSS2G12
+PLL_AVDD1V82H12
+PLL_DVDD0V752G11
+OSC_AVDD1V82J10
+OSC_XINU28
+OSC_XOUTU29
+NPOR W28
+TVSS 2H10
+--          | --             | --            | AUPLL_CLK_IN_M0 | REF_CLK0_OUT | GPIO0_A0_d V29
+--          | TSADC_CTRL_ORG | TSADC_CTRL_M0 | --              | --           | GPIO0_A1_z 1R24
+I2C6_SCL_M0 | CLK0_32K_OUT   | CLK_32K_IN    | --              | --           | GPIO0_A2_d 1U23
+--          | TSADC_CTRL_M1  | PWR_CTRL1     | --              | --           | GPIO0_A3_d Y28
+--          | --             | PWR_CTRL2     | --              | --           | GPIO0_A4_d 1T24
+I2C6_SDA_M0 | --             | PWR_CTRL3     | --              | --           | GPIO0_A5_d Y29
+--          | --             | PMIC_INT      | --              | --           | GPIO0_A6_u 1T21
+--          | --             | SPI2_CSN1_M0  | --              | SDMMC0_DETN  | GPIO0_A7_u 1U21
+I2C0_SCL_M0 | --             | SPI2_CSN0_M0  | AUPLL_CLK_IN_M1 | --           | GPIO0_B0_z 1U22
+I2C0_SDA_M0 | --             | SPI2_MISO_M0  | --              | --           | GPIO0_B1_z 1P23
+I2C1_SCL_M0 | --             | SPI2_CLK_M0   | --              | --           | GPIO0_B2_z 1T22
+I2C1_SDA_M0 | --             | SPI2_MOSI_M0  | --              | --           | GPIO0_B3_z 1T23
+PMUIO0_VCC1V8 2K11
+--            | PWM1_CH0_M0 | --             | UART4_TX_M2     | I2C1_SCL_M1      | --           | --             | REF_CLK1_OUT | GPIO0_B4_d AD28
+--            | PWM1_CH1_M0 | --             | UART4_RX_M2     | I2C1_SDA_M1      | --           | --             | REF_CLK2_OUT | GPIO0_B5_d AD29
+--            | PWM1_CH2_M0 | --             | EDP_TX_HPDIN_M1 | HDMI_TX_HPDIN_M1 | --           | SDMMC1_DETN_M2 | SDMMC0_PWREN | GPIO0_B6_d 1Y24
+--            | PWM1_CH4_M0 | NPU_AVS        | UART1_TX_M0     | I2C2_SCL_M0      | --           | --             | --           | GPIO0_B7_d 1W24
+--            | PWM1_CH3_M0 | CPULIT_AVS     | UART1_RX_M0     | I2C2_SDA_M0      | --           | --             | --           | GPIO0_C0_d AB29
+--            | --          | I3C0_SCL_M0    | UART8_TX_M2     | I2C0_SCL_M1      | --           | --             | --           | GPIO0_C1_d AB28
+--            | --          | I3C0_SDA_M0    | UART8_RX_M2     | I2C0_SDA_M1      | --           | --             | --           | GPIO0_C2_d 1V24
+--            | PWM0_CH1_M0 | SPI0_CSN1_M0   | --              | HDMI_TX_CEC_M1   | PDM0_CLK1_M0 | --             | --           | GPIO0_C3_d 1W21
+--            | PWM0_CH0_M0 | --             | UART10_TX_M2    | --               | PDM0_CLK0_M0 | --             | SAI0_MCLK_M1 | GPIO0_C4_d 1W22
+--            | --          | I3C0_SDA_PU_M0 | UART10_RX_M2    | DP_HPDIN_M1      | --           | --             | SAI0_SDO0_M1 | GPIO0_C5_d 1AA22
+--            | --          | SPI0_CSN0_M0   | --              | I2C3_SCL_M1      | --           | --             | SAI0_SCLK_M1 | GPIO0_C6_d 1Y21
+--            | --          | SPI0_CLK_M0    | --              | I2C3_SDA_M1      | --           | --             | SAI0_LRCK_M1 | GPIO0_C7_d 1Y23
+--            | --          | SPI0_MOSI_M0   | --              | --               | PDM0_SDI0_M0 | --             | SAI0_SDI0_M1 | GPIO0_D0_d 1W23
+--            | --          | SPI0_MISO_M0   | --              | --               | PDM0_SDI1_M0 | SAI0_SDO3_M1   | SAI0_SDI1_M1 | GPIO0_D1_d AC28
+UART1_CTSN_M0 | PWM1_CH5_M0 | CPUBIG_AVS     | --              | I2C4_SCL_M0      | PDM0_SDI2_M0 | SAI0_SDO2_M1   | SAI0_SDI2_M1 | GPIO0_D2_d 1Y22
+UART1_RTSN_M0 | PWM2_CH0_M0 | GPU_AVS        | --              | I2C4_SDA_M0      | PDM0_SDI3_M0 | SAI0_SDO1_M1   | SAI0_SDI3_M1 | GPIO0_D3_d 1AA23
+--            | --          | --             | JTAG_TCK_M1     | UART0_TX_M0      | --           | --             | --           | GPIO0_D4_u 1U24
+--            | --          | --             | JTAG_TMS_M1     | UART0_RX_M0      | --           | --             | --           | GPIO0_D5_u AA28
+PMUIO1_VCC 1U20
+PMU_LOGIC_DVDD0V75_0 2L2
+PMU_LOGIC_DVDD0V75_1 2L10
+C1109 1nF C0201X5R 25V1 2
+C1105
+100nF
+C0201
+X5R
+6.3V
+12
+R1128
+2.2K
+R0201
+C1120 1nF
+C0201
+X5R 25V1 2
+C1117
+100nF
+C0201
+X5R
+6.3V
+12
+R1102
+10K
+R0201
+1%
+C1119
+100nF
+C0201
+X5R
+6.3V
+12
+C1101
+18pF
+C0201
+C0G
+50V
+12
+C1104
+100nF
+C0201
+X5R
+6.3V
+12
+C1111 1nF C0201X5R 25V1 2
+C1113 1nF C0201X5R 25V1 2
+SARADC
+12-bit 1MS/s
+Recovery/
+TSADC
+OTP
+RK3576
+U1000R
+BGA698_16R1X17R2X1R08
+SARADC_IN0_BOOT A25
+SARADC_IN1 1A22
+SARADC_IN2 1B19
+SARADC_IN3 1C19
+SARADC_IN4 1E18
+SARADC_IN5 1D19
+SARADC_IN6 1D21
+SARADC_IN7 1E19
+TSADC_TEST_OUT_TS 2F10
+OTP_DVDD0V75 2H11
+SARADC_AVDD1V8 2A10
+R1100 22R R0201
+R1108 0R R0201
+C1110 1nF C0201X5R 25V1 2
+R1134
+2.2K
+R0201
+R1107 0R R0201

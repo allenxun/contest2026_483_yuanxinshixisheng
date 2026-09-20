@@ -1,0 +1,32 @@
+{
+  "bytes": 88802064,
+  "sha256": "25c23c987977d1a5a6956a57f2c40c6931c2af5d36b201ec27267f7e45de98a9",
+  "crc32": "611d9c62",
+  "download_base": "0x40c00800",
+  "download_limit": "0x47c00800",
+  "copy_order": [
+    "decoder",
+    "firmware"
+  ],
+  "board_tested": false,
+  "parts": [
+    {
+      "name": "decoder",
+      "bytes": 72024848,
+      "offset": 16777216,
+      "source": "0x41c00800",
+      "target": "0x80000000",
+      "sha256": "0f58ca4bd77728d8e512b852eff58e9aeedd90cfa2016ae40379b4700a78da14",
+      "crc32": "2af64aa7"
+    },
+    {
+      "name": "firmware",
+      "bytes": 14685504,
+      "offset": 0,
+      "source": "0x40c00800",
+      "target": "0x40400000",
+      "sha256": "c8f58b202842032ea155d877fb91003df70c2480039b93851a2e10c98c9da9ca",
+      "crc32": "605ed5e2"
+    }
+  ]
+}

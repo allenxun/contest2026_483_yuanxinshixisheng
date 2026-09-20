@@ -1,0 +1,60 @@
+{
+  "host_only": true,
+  "real_board_recording": true,
+  "board_asr_deployed": false,
+  "audio_quality_accepted": false,
+  "nominal_rate_not_validated": true,
+  "cases": [
+    {
+      "source": "E:\\openvela\\VelaVision\\evidence\\audio-input-20260910\\voice-pga24-first\\capture-raw32.wav",
+      "sha256": "0f176ee9294277215820006b2a0f164947747929bc2cd74bdadd6f4f33b6b993",
+      "transform": "left channel and arithmetic upper16 only; all frames retained",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx.exe",
+        "--paraformer-encoder=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\encoder.int8.onnx",
+        "--paraformer-decoder=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\decoder.int8.onnx",
+        "--tokens=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\tokens.txt",
+        "--num-threads=1",
+        "--provider=cpu",
+        "--decoding-method=greedy_search",
+        "E:\\openvela\\VelaVision\\evidence\\audio-filter-20260910\\pga24-host-asr\\input-0-left.wav"
+      ],
+      "exit_code": 0,
+      "elapsed": 2.422000000005937
+    },
+    {
+      "source": "E:\\openvela\\VelaVision\\evidence\\audio-filter-20260910\\pga24-host-comparison\\ma4.wav",
+      "sha256": "5a88ddd97277fcb5d122ebf0b9c53a45f40c53e7da20dabe0dc1e49c55a38a96",
+      "transform": "left channel and arithmetic upper16 only; all frames retained",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx.exe",
+        "--paraformer-encoder=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\encoder.int8.onnx",
+        "--paraformer-decoder=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\decoder.int8.onnx",
+        "--tokens=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\tokens.txt",
+        "--num-threads=1",
+        "--provider=cpu",
+        "--decoding-method=greedy_search",
+        "E:\\openvela\\VelaVision\\evidence\\audio-filter-20260910\\pga24-host-asr\\input-1-left.wav"
+      ],
+      "exit_code": 0,
+      "elapsed": 2.422000000005937
+    },
+    {
+      "source": "E:\\openvela\\VelaVision\\evidence\\audio-filter-20260910\\pga24-host-comparison\\ma4-hp80.wav",
+      "sha256": "9868413e61cc83a5d5d47d71eba04192c74c137e9e01ba0485bce2f5c50cef23",
+      "transform": "left channel and arithmetic upper16 only; all frames retained",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx.exe",
+        "--paraformer-encoder=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\encoder.int8.onnx",
+        "--paraformer-decoder=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\decoder.int8.onnx",
+        "--tokens=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\tokens.txt",
+        "--num-threads=1",
+        "--provider=cpu",
+        "--decoding-method=greedy_search",
+        "E:\\openvela\\VelaVision\\evidence\\audio-filter-20260910\\pga24-host-asr\\input-2-left.wav"
+      ],
+      "exit_code": 0,
+      "elapsed": 2.3590000000112923
+    }
+  ]
+}

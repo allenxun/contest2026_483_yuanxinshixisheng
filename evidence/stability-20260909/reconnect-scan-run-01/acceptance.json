@@ -1,0 +1,31 @@
+{
+  "recorded_at": "2026-09-09T11:58:56.185496+00:00",
+  "board_acceptance_passed": true,
+  "phone_receipt_verified": true,
+  "reconnect_scan_acceptance_passed": true,
+  "cycles": 10,
+  "total_successful_scan_commands": 12,
+  "transaction_ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    12
+  ],
+  "board_counter_crosscheck": {
+    "connections_delta": 10,
+    "disconnections_delta": 10,
+    "ble_connected_encrypted": true
+  },
+  "raw_result": "result.json",
+  "phone_evidence": "phone-confirmation.json",
+  "raw_observer_result_unchanged": true,
+  "scope": "10 intentional disconnect/reconnect cycles with encryption and phone-confirmed real Wi-Fi lists plus scan_done; Wi-Fi network intentionally offline for scans",
+  "production_stability_passed": false,
+  "post_test_anomalies": "../post-test-anomalies.json"
+}

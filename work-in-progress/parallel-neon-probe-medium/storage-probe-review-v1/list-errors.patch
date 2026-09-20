@@ -1,0 +1,40 @@
+--- a/app/k7storage/k7storage_main.c
++++ b/app/k7storage/k7storage_main.c
+@@ -38,17 +38,27 @@
+   struct dirent *entry;
+   unsigned count = 0;
+   if (!dir) return -errno;
+-  while ((entry = readdir(dir)) != NULL)
+-    if (strlen(entry->d_name) == 3 && entry->d_name[0] == 's' &&
+-        entry->d_name[1] == 'd' && entry->d_name[2] >= 'a' &&
+-        entry->d_name[2] <= 'z')
+-      {
+-        printf("USB_STORAGE node=/dev/%s\n", entry->d_name);
+-        ++count;
+-      }
+-  closedir(dir);
++  int rc = 0;
++  unsigned visited = 0;
++  for (;;)
++    {
++      /* Conservative bound: reaching 256 entries fails, even if EOF is next. */
++      if (visited == 256) { rc = -E2BIG; break; }
++      errno = 0;
++      entry = readdir(dir);
++      if (!entry) { if (errno) rc = -errno; break; }
++      ++visited;
++      if (strlen(entry->d_name) == 3 && entry->d_name[0] == 's' &&
++          entry->d_name[1] == 'd' && entry->d_name[2] >= 'a' &&
++          entry->d_name[2] <= 'z')
++        {
++          printf("USB_STORAGE node=/dev/%s\n", entry->d_name);
++          ++count;
++        }
++    }
++  if (closedir(dir) < 0 && rc == 0) rc = errno ? -errno : -EIO;
+   printf("USB_STORAGE nodes=%u\n", count);
+-  return 0;
++  return rc;
+ }
+ 
+ static int read_first_sector(const char *path)

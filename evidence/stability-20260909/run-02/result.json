@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-09-09T10:07:34.011041+00:00",
+  "finished_at": "2026-09-09T10:12:36.005382+00:00",
+  "elapsed_s": 300.828,
+  "target_s": 1800,
+  "passed": false,
+  "revision": "wifi-amsdu-index-20260909",
+  "firmware_sha256": "85fb84d34a7dbc74469b91c501b3e289791a1b99636829690d3cc6210e688dfe",
+  "rounds_completed": 0,
+  "sent": 0,
+  "received": 0,
+  "failures": [
+    {
+      "reason": "RuntimeError",
+      "detail": "Baseline not ready within 5 minutes; soak did not start"
+    }
+  ],
+  "initial": {
+    "ble": {
+      "connected": 0,
+      "handle": 17,
+      "acl_rx": 22,
+      "acl_tx": 22,
+      "connections": 2,
+      "disconnections": 2,
+      "last_reason": 19,
+      "encrypt_status": 0,
+      "encrypted": 0
+    },
+    "wifi": {
+      "active": 1,
+      "connected": 1,
+      "ip": "10.3.0.214",
+      "gateway": "10.3.0.1",
+      "result": 0,
+      "rx": 1191,
+      "tx": 93,
+      "dropped": 0,
+      "amsdu_complete": 1,
+      "amsdu_subframes": 2,
+      "rx_rejected": 2
+    },
+    "memory": {
+      "total": 126877688,
+      "used": 72312,
+      "free": 126805376,
+      "maxused": 98880,
+      "maxfree": 126788432,
+      "nused": 55,
+      "nfree": 4
+    }
+  },
+  "final": null,
+  "scope": "30 minute phone encrypted BLE connection hold with native Wi-Fi gateway ping; no BLE application throughput, reconnect, internet or guaranteed rekey coverage"
+}

@@ -1,0 +1,13 @@
+--- a/native_model_storage.hpp
++++ b/native_model_storage.hpp
+@@
+-#include "k7_model_arena.h"
++#include <nuttx/mm/k7_model_arena.h>
+@@
+-    768u*1024u*1024u),encoder(runtime),decoder(runtime) {}
++    K7_MODEL_ARENA_SIZE),encoder(runtime),decoder(runtime) {
++    static_assert(K7_MODEL_ARENA_BASE == UINT64_C(0x60000000),
++                  "re-audit ASR arena base");
++    static_assert(K7_MODEL_ARENA_SIZE == UINT64_C(0x20000000),
++                  "staged ASR/TTS build must compile against 512 MiB arena");
++  }

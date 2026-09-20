@@ -1,0 +1,28 @@
+parallel-sai-stream-sink-sol host test record
+Scope: host only; no formal source, SDK, VM, serial, device, central log, or hardware action
+
+Initial compile (O0/O2): FAIL
+test_sai_stream_sink.cpp:35:84: error: 'abort' is not a member of 'std'
+Correction: include <cstdlib>.
+
+First corrected O0/O2 run: FAIL
+FAIL test_sai_stream_sink.cpp:46 a>0 && a<40
+Correction: freeze fake FIFO consumption for the first call so it exercises a real capacity-limited short write, then resume consumption.
+
+Final O0:
+PASS 10/10: continuous short-write, short drain, capture busy, cancel cleanup, mid-write cancel, start cleanup, amp cleanup, drain timeout, cleanup hold, prepare cleanup
+
+Final O2:
+PASS 10/10: continuous short-write, short drain, capture busy, cancel cleanup, mid-write cancel, start cleanup, amp cleanup, drain timeout, cleanup hold, prepare cleanup
+
+Sanitizer attempt 1: PowerShell parser rejected the unquoted comma in -fsanitize=address,undefined.
+Sanitizer attempt 2: compiler completed but linker failed because this MinGW installation has no libasan/libubsan (-lasan and -lubsan not found).
+This is a toolchain limitation, not a sanitizer pass.
+
+Final reproduction commands:
+gcc -std=c11 -Wall -Wextra -Werror -pedantic -O0 -c sai_stream_sink.c -o sai_stream_sink_O0.o
+g++ -std=c++17 -Wall -Wextra -Werror -pedantic -O0 test_sai_stream_sink.cpp sai_stream_sink_O0.o -o sai_stream_sink_test_O0.exe
+.\sai_stream_sink_test_O0.exe
+gcc -std=c11 -Wall -Wextra -Werror -pedantic -O2 -c sai_stream_sink.c -o sai_stream_sink_O2.o
+g++ -std=c++17 -Wall -Wextra -Werror -pedantic -O2 test_sai_stream_sink.cpp sai_stream_sink_O2.o -o sai_stream_sink_test_O2.exe
+.\sai_stream_sink_test_O2.exe

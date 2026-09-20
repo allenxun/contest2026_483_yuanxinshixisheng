@@ -1,0 +1,100 @@
+{
+  "started_at": "2026-09-09T11:38:09.241718+00:00",
+  "finished_at": "2026-09-09T11:44:37.624402+00:00",
+  "elapsed_s": 388.39,
+  "baseline": {
+    "connections": 3,
+    "disconnections": 2,
+    "encrypted": 1
+  },
+  "target_cycles": 10,
+  "cycles": [
+    {
+      "connected_at": "2026-09-09T11:38:50.616077+00:00",
+      "handle": 17,
+      "encrypted": true,
+      "command": 1,
+      "transaction_id": 1,
+      "response_queued_at": "2026-09-09T11:39:13.556123+00:00"
+    },
+    {
+      "connected_at": "2026-09-09T11:39:31.039590+00:00",
+      "handle": 17,
+      "encrypted": true,
+      "command": 1,
+      "transaction_id": 2,
+      "response_queued_at": "2026-09-09T11:39:45.491372+00:00"
+    },
+    {
+      "connected_at": "2026-09-09T11:40:05.304787+00:00",
+      "handle": 17,
+      "encrypted": true,
+      "command": 1,
+      "transaction_id": 3,
+      "response_queued_at": "2026-09-09T11:40:19.371673+00:00"
+    },
+    {
+      "connected_at": "2026-09-09T11:40:31.194843+00:00",
+      "handle": 17,
+      "encrypted": true,
+      "command": 1,
+      "transaction_id": 4,
+      "response_queued_at": "2026-09-09T11:40:45.120139+00:00"
+    },
+    {
+      "connected_at": "2026-09-09T11:40:53.551327+00:00",
+      "handle": 17,
+      "encrypted": true,
+      "command": 1,
+      "transaction_id": 5,
+      "response_queued_at": "2026-09-09T11:41:08.576112+00:00"
+    },
+    {
+      "connected_at": "2026-09-09T11:41:17.893889+00:00",
+      "handle": 17,
+      "encrypted": true,
+      "command": 1,
+      "transaction_id": 6,
+      "response_queued_at": "2026-09-09T11:41:31.615875+00:00"
+    },
+    {
+      "connected_at": "2026-09-09T11:41:38.650984+00:00",
+      "handle": 17,
+      "encrypted": true,
+      "command": 1,
+      "transaction_id": 7,
+      "response_queued_at": "2026-09-09T11:41:52.194432+00:00"
+    },
+    {
+      "connected_at": "2026-09-09T11:41:59.696421+00:00",
+      "handle": 17,
+      "encrypted": true,
+      "command": 1,
+      "transaction_id": 8,
+      "response_queued_at": "2026-09-09T11:42:13.488579+00:00"
+    },
+    {
+      "connected_at": "2026-09-09T11:42:17.789020+00:00",
+      "handle": 17,
+      "encrypted": true,
+      "command": 1,
+      "transaction_id": 9,
+      "response_queued_at": "2026-09-09T11:42:36.568396+00:00"
+    },
+    {
+      "connected_at": "2026-09-09T11:44:24.074833+00:00",
+      "handle": 17,
+      "encrypted": true,
+      "command": 1,
+      "transaction_id": 12,
+      "response_queued_at": "2026-09-09T11:44:37.622995+00:00"
+    }
+  ],
+  "failures": [],
+  "collection_error": null,
+  "incomplete_cycle": null,
+  "board_acceptance_passed": true,
+  "phone_receipt_verified": false,
+  "full_acceptance_passed": false,
+  "scope": "User-triggered disconnect and encrypted reconnect plus provisioning notification queuing; phone receipt requires separate evidence"
+}

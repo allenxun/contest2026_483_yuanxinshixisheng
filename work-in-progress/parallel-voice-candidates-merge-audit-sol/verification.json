@@ -1,0 +1,100 @@
+﻿{
+    "recorded_at":  "2026-09-12T17:29:27.0736054+08:00",
+    "scope":  "read-only formal/candidate audit; writes confined to work-in-progress/parallel-voice-candidates-merge-audit-sol",
+    "branch":  "dev-ai-contest-2026",
+    "formal_source_modified":  false,
+    "sdk_vm_device_serial_central_logs_touched":  false,
+    "combined_patch_generated":  false,
+    "combined_patch_reason":  "four candidates require missing ownership, sample-ASR, continuous-SAI, prompt, and k7radio snapshot contracts; a directly applicable combined patch would be unsafe",
+    "formal_asr_matches_candidate":  true,
+    "formal_asr_sha256":  "a1e7138ecb538a61ea08585d5fecd59e1f7c0a3d134d6fa4d2f3e12cb02fcb41",
+    "input_file_count":  105,
+    "tests":  {
+                  "asr-current-formal":  {
+                                             "O0":  {
+                                                        "passed":  true,
+                                                        "output":  "ASR_MIC frames=4 rate=16000 channel=left\r\nASR_INFER BEGIN recognizer\r\nASR_INFER RESULT seconds=0.000 text=hello openvela\r\nASR_MIC frames=4 rate=16000 channel=left\r\nASR_INFER BEGIN recognizer\r\nASR_MIC frames=4 rate=16000 channel=left\r\nASR_INFER BEGIN recognizer\r\nASR_INFER busy\r\nASR_INFER RESULT seconds=0.000 text=hello openvela\r\nPASS candidate_host_fake",
+                                                        "sha256":  "f54106add0433a7887346989acfcb548ed1ec3f3744143ea69b78d5ec34d057e"
+                                                    },
+                                             "O2":  {
+                                                        "passed":  true,
+                                                        "output":  "ASR_MIC frames=4 rate=16000 channel=left\r\nASR_INFER BEGIN recognizer\r\nASR_INFER RESULT seconds=0.000 text=hello openvela\r\nASR_MIC frames=4 rate=16000 channel=left\r\nASR_INFER BEGIN recognizer\r\nASR_MIC frames=4 rate=16000 channel=left\r\nASR_INFER BEGIN recognizer\r\nASR_INFER busy\r\nASR_INFER RESULT seconds=0.000 text=hello openvela\r\nPASS candidate_host_fake",
+                                                        "sha256":  "f54106add0433a7887346989acfcb548ed1ec3f3744143ea69b78d5ec34d057e"
+                                                    }
+                                         },
+                  "voice-prompt":  {
+                                       "O0":  {
+                                                  "passed":  true,
+                                                  "output":  "PASS 6/6: short I/O, cancel, busy, write cleanup, cleanup failure, missing resource",
+                                                  "sha256":  "b88751ca571b49a540fcc7eab51f185f755b2d02927545ae8772ee4145dfe409"
+                                              },
+                                       "O2":  {
+                                                  "passed":  true,
+                                                  "output":  "PASS 6/6: short I/O, cancel, busy, write cleanup, cleanup failure, missing resource",
+                                                  "sha256":  "b88751ca571b49a540fcc7eab51f185f755b2d02927545ae8772ee4145dfe409"
+                                              }
+                                   },
+                  "voice-loop":  {
+                                     "O0":  {
+                                                "passed":  true,
+                                                "output":  "voice_loop_checks=103 scenarios=9 failures=0 secrets_in_output=0",
+                                                "sha256":  "34ada58a5ce577494f324f5b10047dd2272c39214b58c4cbc8bbd4b974e0837d"
+                                            },
+                                     "O2":  {
+                                                "passed":  true,
+                                                "output":  "voice_loop_checks=103 scenarios=9 failures=0 secrets_in_output=0",
+                                                "sha256":  "34ada58a5ce577494f324f5b10047dd2272c39214b58c4cbc8bbd4b974e0837d"
+                                            }
+                                 },
+                  "wifi-transaction":  {
+                                           "O0":  {
+                                                      "passed":  true,
+                                                      "output":  "wifi transaction adapter: 10 scenario groups passed; fake backend only",
+                                                      "sha256":  "c25b9df14f5d0786d66168154c4769e034f6ef169c642445c94f07ec52f22572"
+                                                  },
+                                           "O2":  {
+                                                      "passed":  true,
+                                                      "output":  "wifi transaction adapter: 10 scenario groups passed; fake backend only",
+                                                      "sha256":  "c25b9df14f5d0786d66168154c4769e034f6ef169c642445c94f07ec52f22572"
+                                                  }
+                                       },
+                  "capture-asr-worker":  {
+                                             "O0":  {
+                                                        "passed":  true,
+                                                        "output":  "snapshot_ownership_nonblocking=PASS\r\nsingle_pending_busy_supersession=PASS\r\ncooperative_cancel_timeout=PASS\r\nk7_contract_adapters=PASS\r\nbackend_exception_containment=PASS",
+                                                        "sha256":  "e6c5f24a309261b31d7e00dedd002ce40663e529189a711e01c3aad5b783935a"
+                                                    },
+                                             "O2":  {
+                                                        "passed":  true,
+                                                        "output":  "snapshot_ownership_nonblocking=PASS\r\nsingle_pending_busy_supersession=PASS\r\ncooperative_cancel_timeout=PASS\r\nk7_contract_adapters=PASS\r\nbackend_exception_containment=PASS",
+                                                        "sha256":  "e6c5f24a309261b31d7e00dedd002ce40663e529189a711e01c3aad5b783935a"
+                                                    }
+                                         }
+              },
+    "artifacts":  {
+                      "REVIEW.md":  {
+                                        "bytes":  11859,
+                                        "sha256":  "b31b3413393419dd885fd3b5b82299f12b43b57e46dc71ed595e2a53b74a3b73"
+                                    },
+                      "required-interfaces.md":  {
+                                                     "bytes":  3553,
+                                                     "sha256":  "22075c0cd743df0c8101a2d9b878a734139e6eda86eb6af87f2f8e640c024d4f"
+                                                 },
+                      "conflict-matrix.csv":  {
+                                                  "bytes":  1177,
+                                                  "sha256":  "8c197bfc379e26b2f47d431ce7301d26d0cf2e517bb654592d2ba346ae7746a8"
+                                              },
+                      "reproduce.ps1":  {
+                                            "bytes":  5098,
+                                            "sha256":  "62406eb0e21fc76a29c5753da7557eb1c97b09b1a0d229a44367e0a0e01fa6fe"
+                                        },
+                      "input-manifest.json":  {
+                                                  "bytes":  23152,
+                                                  "sha256":  "3feb9e662ac406ae802f424c137f4440048b062a8413e6a038e94c5a9382188a"
+                                              },
+                      "raw-manifest.json":  {
+                                                "bytes":  5221,
+                                                "sha256":  "3c69afdc75fc85694ea173bdc3ce61398280c90f4bc6bd68c112084c52428abf"
+                                            }
+                  }
+}

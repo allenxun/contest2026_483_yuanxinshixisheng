@@ -1,0 +1,8 @@
+E:\openvela\VelaVision\work-in-progress\parallel-mcu-contract\evidence-20260910T065830828583Z\pack_oracle.c: In function 'main':
+E:\openvela\VelaVision\work-in-progress\parallel-mcu-contract\evidence-20260910T065830828583Z\pack_oracle.c:23:5: error: this 'for' clause does not guard... [-Werror=misleading-indentation]
+   23 |     for(int i=0;i<14;i++)printf("%02x",data[i]); puts("");}
+      |     ^~~
+E:\openvela\VelaVision\work-in-progress\parallel-mcu-contract\evidence-20260910T065830828583Z\pack_oracle.c:23:50: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'for'
+   23 |     for(int i=0;i<14;i++)printf("%02x",data[i]); puts("");}
+      |                                                  ^~~~
+cc1.exe: all warnings being treated as errors

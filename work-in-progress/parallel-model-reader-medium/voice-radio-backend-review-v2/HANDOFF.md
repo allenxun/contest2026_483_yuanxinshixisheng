@@ -1,0 +1,29 @@
+# review-v2：stop并发反证及CMake必要接线
+
+这里不修改旧冻结代码。radio_backend/core副本与review-v1输入逐字一致，没有stop逻辑修复补丁，因为给定交错在当前实际唯一pump调用链中不可达。另新增必需的cmake-shared.patch，针对正式app/k7radio/CMakeLists.txt，补齐此前仅Makefile接线的缺口。
+
+## 确定性 stop 反证
+
+rb_stop/rb_stop_scan只被wd_pump同步调用。wd_pump在进入时持锁设置pumping=true，直到全部stop回调返回之后才清除。ws_pump也只在此owner内部执行。rb_enqueue只有rb_submit/rb_submit_scan两个调用者，均是同一个pump的同步submit回调。
+
+测试在实际stop匹配旧job后的rb_lock解锁处暂停该线程；此时模拟reaper完成旧job清理、清backend槽、投终态，另一个客户排入新连接。连续100次竞争wd_pump全部返回WD_BUSY，backend槽仍空，新job不能submit。恢复旧stop后，取消位被写入；下一pump才能消费终态并enqueue新job，将rb_cancelled重置false。scan/connect两种stop，O0/O2均通过。真实编译未改的backend/core，仅锁解开后插入测试阻塞点；完成凭据是明确注入的mock，不宣称真实硬件已清理。
+
+因此“旧stop暂停→新rb_enqueue reset→旧stop恢复”的中间步骤违反当前单pump约束，不能作为已存在bug。直接跨线程调用static rb_enqueue或ws_pump可以绕过约束，但不是现有调用路径，也没有用这种人工旁路证明缺陷。如果未来暴露后台submit、直接stop API或移除pumping互斥，需要重新审查，届时锁内完成匹配和取消发布更稳妥。
+
+g_wifi_network_stop是维护线程状态位，rb_enqueue只重置rb_cancelled。旧连接stop写出的network_stop=true可以短暂保留到新连接开始，不能据此判断新连接被取消：正式fw_wifi_ip_session先置false，再依据当前rb_stopping设置取消。本测试核对了这段既有重置顺序的接缝，当前owner约束确保旧stop在新session前完成。它不声称测试了真实DHCP/IP线程。
+
+## 旧RX/cleanup跨代核对
+
+- operation和维护线程的rb_note/rb_keys写入发生在对应线程join之前，reaper不会在它们退出前发布clean终态。review-v1已保证发布可见前完成backend槽交接，发布后不再清新job。
+- rb_rx_report先在锁下取ticket，再用ws_record(ticket)提交；若延迟到下一代，collector按旧ticket返回STALE，不重新贴当前id。此判断依赖原冻结core。
+- rb_rx_done本身没有固件generation，不能识别违反关闭顺序的旧固件report。当前契约仍是锁定官方DONE/STOP、CLOSE ACK与单RX同步回调/后续空队列屏障；并非提供了空口tag。
+- 同一RX任务的旧report/done回调尚未返回时，它不能先进入后续idle屏障，因此正常约束下不会被reaper视为本机RX清理完成。idle写facts在rb_lock下，只在当前facts.close_ok时记录；新OPEN清除close/empty标记。
+- 未发现遵守上述线程/固件契约时明显的旧软件cleanup越代覆盖。若固件在已完成CLOSE及空队列之后重新发旧事件，则仍是v1已记录的平台假设边界，应通过目标迟到事件记录验证，不能靠本地票据宣称已排除。
+
+## 必须补齐的CMake入口
+
+正式app/k7radio/CMakeLists.txt已逐字冻结及哈希。当前真正SDK入口是CMake，原v1的Makefile追加不足；应用栈明确为STACKSIZE16384/PRIORITY100，不能沿用Makefile4096作为当前构建栈结论。主会话报告目标DISABLE_PTHREAD未启用、STACK_MIN8192；本代理未访问SDK配置，仅明确记录其已核查信息，不把主机mock当目标配置证据。
+
+cmake-shared.patch仅新增空SKW_SHARED_SOURCES，并在CONFIG_EXAMPLES_K7RADIO_SHARED为真时追加wifi_broker.c、wifi_dispatch.c、wifi_scan.c、scan_collector.c、radio_fence.c，传给现有nuttx_add_application。默认关闭时扩展为空；原supplicant/IP/主源与栈优先级均保留。应在v1+review-v1基础上应用此CMake补丁，仍需同批重编所有core头/对象及调用方。
+
+主机未找到cmake可执行程序，未运行CMake configure或SDK构建。cmake-structural-check.json仅证明补丁五源各一次、条件包围和原内容保持，不冒充真实CMake构建结果。run_tests.py每进程15秒，O0/O2两类stop确定性阻塞测试原始命令/输出在test-output.txt。没有设备/SDK/正式源码/中央日志修改。

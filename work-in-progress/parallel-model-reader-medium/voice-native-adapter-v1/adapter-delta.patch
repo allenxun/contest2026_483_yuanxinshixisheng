@@ -1,0 +1,91 @@
+--- old/voice_wifi_adapter.cpp
++++ candidate/voice_wifi_adapter.cpp
+@@ -1,6 +1,12 @@
+ #include "voice_wifi_adapter.hpp"
+ #include <cstdio>
+ namespace voicelink {
++std::optional<SharedWifiPort> nativeWifiPort(std::uint64_t timeout_ms) noexcept {
++ auto *d=k7_wifi_dispatch(); auto *s=k7_wifi_scans();
++ if(!timeout_ms || !d || !s || s->d!=d || d->scan!=s) return std::nullopt;
++ return std::optional<SharedWifiPort>(std::in_place,*d,*s,timeout_ms);
++}
++
+ // Validate UTF-8 without rewriting original SSID bytes.
+ static bool text_ssid(const uint8_t* p,unsigned n) {
+  for(unsigned i=0;i<n;) {
+@@ -15,7 +21,7 @@
+  }
+  return true;
+ }
+-static bool busy(wd_rc r) { return r==WD_BUSY || r==WD_FULL; }
++static bool busy(k7wd_rc r) { return r==WD_BUSY || r==WD_FULL; }
+ ScanResult SharedWifiPort::beginScan() {
+  ScanResult r; if(s_.d!=&d_) {r.error_code=-22;return r;}
+  auto rc=ws_voice_begin(&s_,timeout_,&r.request_id);
+@@ -52,20 +58,26 @@
+ }
+ void SharedWifiPort::cancelScan(std::uint64_t id) noexcept {(void)ws_voice_cancel(&s_,id);}
+ ConnectResult SharedWifiPort::beginConnect(const std::string& ssid,const char* p,std::size_t n) noexcept {
+- ConnectResult r; auto rc=wd_voice_begin(&d_,ssid.data(),ssid.size(),p,n,timeout_,&r.request_id);
++ ConnectResult r; auto rc=k7wd_voice_begin(&d_,ssid.data(),ssid.size(),p,n,timeout_,&r.request_id);
+  r.status=rc==WD_OK?ConnectStatus::CredentialsReceived:busy(rc)?ConnectStatus::Busy:ConnectStatus::Failed;
+  r.error_code=rc==WD_OK?0:-int(rc);return r;
+ }
+ ConnectResult SharedWifiPort::pollConnect(std::uint64_t id) noexcept {
+- ConnectResult r; r.request_id=id; wd_view v{};
+- auto rc=wd_voice_poll(&d_,id,&v); if(rc!=WD_OK) {r.error_code=-int(rc);return r;}
++ ConnectResult r; r.request_id=id; k7wd_view v{};
++ auto rc=k7wd_voice_poll(&d_,id,&v); if(rc!=WD_OK) {r.error_code=-int(rc);return r;}
+  switch(v.status) {
+  case WB_RECEIVED:r.status=ConnectStatus::CredentialsReceived;break;
+  case WB_CONNECTING:r.status=ConnectStatus::Connecting;break;
+  case WB_IP_READY:
+   if(!v.held || !v.ip[0] || v.ip[0]==127 || v.ip[0]>=224 || (v.ip[0]==169&&v.ip[1]==254)) {r.error_code=-22;break;}
+-  try {char ip[16];std::snprintf(ip,sizeof(ip),"%u.%u.%u.%u",v.ip[0],v.ip[1],v.ip[2],v.ip[3]);
+-   r.ipv4=ip;r.status=ConnectStatus::IpReady;} catch(...) {r.error_code=-12;}
++#if defined(__cpp_exceptions)
++  try {
++#endif
++   char ip[16];std::snprintf(ip,sizeof(ip),"%u.%u.%u.%u",v.ip[0],v.ip[1],v.ip[2],v.ip[3]);
++   r.ipv4=ip;r.status=ConnectStatus::IpReady;
++#if defined(__cpp_exceptions)
++  } catch(...) {r.error_code=-12;}
++#endif
+   break;
+  case WB_CANCELLED:r.status=ConnectStatus::Cancelled;break;
+  case WB_TIMEOUT:r.status=ConnectStatus::Timeout;break;
+@@ -75,5 +87,5 @@
+  }
+  return r;
+ }
+-void SharedWifiPort::cancelConnect(std::uint64_t id) noexcept {(void)wd_voice_cancel(&d_,id);}
++void SharedWifiPort::cancelConnect(std::uint64_t id) noexcept {(void)k7wd_voice_cancel(&d_,id);}
+ }
+--- old/voice_wifi_adapter.hpp
++++ candidate/voice_wifi_adapter.hpp
+@@ -2,12 +2,13 @@
+ #include "voicelink/ports.hpp"
+ extern "C" {
+ #include "wifi_scan.h"
++#include "k7_radio_service.h"
+ }
+ namespace voicelink {
+ // Service and dispatcher outlive this object. No pump, hardware or global BLE access.
+ class SharedWifiPort final : public WifiPort {
+  public:
+-  SharedWifiPort(wd_dispatch& d, ws_service& s, std::uint64_t timeout_ms=30000)
++  SharedWifiPort(k7wd_dispatch& d, ws_service& s, std::uint64_t timeout_ms=30000) noexcept
+     : d_(d), s_(s), timeout_(timeout_ms) {}
+   ScanResult beginScan() override;
+   ScanResult pollScan(std::uint64_t) override;
+@@ -16,6 +17,9 @@
+   ConnectResult pollConnect(std::uint64_t) noexcept override;
+   void cancelConnect(std::uint64_t) noexcept override;
+  private:
+-  wd_dispatch& d_; ws_service& s_; std::uint64_t timeout_;
++  k7wd_dispatch& d_; ws_service& s_; std::uint64_t timeout_;
+ };
++// Nullopt until the real process-lifetime radio service is published.
++// Caller owns this optional; create once on the serial Controller task.
++std::optional<SharedWifiPort> nativeWifiPort(std::uint64_t timeout_ms=30000) noexcept;
+ }

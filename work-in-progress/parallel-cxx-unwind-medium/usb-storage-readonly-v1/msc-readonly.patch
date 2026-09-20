@@ -1,0 +1,46 @@
+--- a/drivers/usbhost/Kconfig
++++ b/drivers/usbhost/Kconfig
+@@ -129,6 +129,16 @@
+ 	depends on !BULK_DISABLE
+ 	---help---
+ 		Enable support for the mass storage class driver.
++
++config USBHOST_MSC_READONLY
++	bool "Read-only USB mass storage block devices"
++	default n
++	depends on USBHOST_MSC
++	---help---
++		Reject all block write requests before submitting any USB transfer and
++		report the device geometry as not write-enabled. This applies to all
++		devices handled by the USB mass storage class. Filesystems must support
++		mounting genuinely read-only block devices.
+ 
+ config USBHOST_MSC_NOTIFIER
+ 	bool "Support USB Mass Storage notifications"
+--- a/drivers/usbhost/usbhost_storage.c
++++ b/drivers/usbhost/usbhost_storage.c
+@@ -2101,6 +2101,12 @@
+                              FAR const unsigned char *buffer,
+                              blkcnt_t startsector, unsigned int nsectors)
+ {
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  /* Reject before touching the class state or sending a WRITE10 CBW. */
++
++  return -EROFS;
++#endif
++
+   FAR struct usbhost_state_s *priv;
+   FAR struct usbhost_hubport_s *hport;
+   ssize_t nbytes;
+@@ -2230,7 +2236,11 @@
+ 
+           geometry->geo_available     = true;
+           geometry->geo_mediachanged  = false;
++#ifdef CONFIG_USBHOST_MSC_READONLY
++          geometry->geo_writeenabled  = false;
++#else
+           geometry->geo_writeenabled  = true;
++#endif
+           geometry->geo_nsectors      = priv->nblocks;
+           geometry->geo_sectorsize    = priv->blocksize;
+           nxmutex_unlock(&priv->lock);

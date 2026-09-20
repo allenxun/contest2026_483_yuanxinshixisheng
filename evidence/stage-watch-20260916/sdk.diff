@@ -1,0 +1,87 @@
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -435,24 +435,80 @@
+ #endif
+   return 0;
+ }
++/* Stage checks continue independently of cloud ASR completion. The existing
++ * audio owner serializes ADC/DAC; pending prompts take priority between rounds.
++ * A worker never outlives its loop context, including on stop or failure. */
++struct photo_worker {
++  const char *ip;
++  unsigned epoch;
++  atomic_bool stop,pending;
++  atomic_int result;
++  struct k7_photo_prompt_state state;
++};
++static void *photo_watch(void *arg)
++{
++  struct photo_worker *w=arg;
++  while(!atomic_load(&w->stop) && w->epoch==atomic_load(&device_epoch))
++    {
++      int rc=0;bool pending=false;
++#if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
++      uint32_t epoch;unsigned done;
++      rc=k7_photo_native_status(&epoch,&done);
++      if(!rc && (!k7_pipeline_voice_mode_status(2) ||
++                 (done==7 && !k7_pipeline_voice_mode_status(0))))
++        pending=epoch!=w->state.epoch || done!=w->state.done;
++      /* No photo session yet is normal while listening for the first command. */
++      if(rc==-ENODEV)rc=0;
++#endif
++      atomic_store(&w->pending,pending);
++      /* Do not steal audio between a command's applied-mode ACK and reply. */
++      if(!rc && pending)
++        rc=atomic_load(&device_busy)?-EBUSY:photo_prompts(w->ip,w->epoch,&w->state);
++      if(rc && rc!=-EBUSY)
++        {
++          atomic_store(&w->result,rc);
++          k7cloud_device_stop();
++          break;
++        }
++      if(!rc)atomic_store(&w->pending,false);
++      usleep(50000);
++    }
++  atomic_store(&w->pending,false);
++  return NULL;
++}
+ int k7cloud_device_loop(const char *ip,unsigned rounds)
+ {
+   if(!rounds || rounds>300)return -EINVAL;
+   bool expected=false;
+   if(!atomic_compare_exchange_strong(&device_loop_busy,&expected,true))return -EBUSY;
+   unsigned epoch=atomic_load(&device_epoch);int rc=0;
+-  struct k7_photo_prompt_state photos={0};
+-  for(unsigned round=0;round<rounds;round++)
++  struct photo_worker worker={.ip=ip,.epoch=epoch};pthread_t watcher;
++  atomic_init(&worker.stop,false);atomic_init(&worker.pending,false);
++  atomic_init(&worker.result,0);
++  pthread_attr_t attr;
++  rc=pthread_attr_init(&attr);
++  if(!rc)
++    {
++      rc=pthread_attr_setstacksize(&attr,32768);
++      if(!rc)rc=pthread_create(&watcher,&attr,photo_watch,&worker);
++      pthread_attr_destroy(&attr);
++    }
++  if(rc){atomic_store(&device_loop_busy,false);return -rc;}
++  for(unsigned round=0;round<rounds;)
+     {
+       if(epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;break;}
++      if(atomic_load(&worker.pending)){usleep(50000);continue;}
+       printf("K7CLOUD device round=%u\n",round+1);
+       rc=device_round(ip,epoch);
++      if(rc==-EBUSY){usleep(50000);continue;}
+       if(rc)break;
+-      rc=photo_prompts(ip,epoch,&photos);
+-      if(rc)break;
++      round++;
+       usleep(250000);
+     }
++  atomic_store(&worker.stop,true);
+   k7cloud_device_stop();
++  pthread_join(watcher,NULL);
++  if(atomic_load(&worker.result))rc=atomic_load(&worker.result);
+   atomic_store(&device_loop_busy,false);
+   printf("K7CLOUD device loop_done=%d\n",rc);return rc;
+ }

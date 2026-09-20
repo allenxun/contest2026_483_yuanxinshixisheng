@@ -1,0 +1,22 @@
+{
+  "command": [
+    ".\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+    "--vits-model=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+    "--vits-tokens=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+    "--vits-lexicon=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+    "--tts-rule-fars=E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+    "--num-threads=1",
+    "--output-filename=evidence/tts-cli.wav",
+    "\u4f60\u597d\uff0c\u6b22\u8fce\u4f7f\u7528\u8bed\u97f3\u52a9\u624b\u3002"
+  ],
+  "cwd": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime",
+  "exit_code": 0,
+  "timed_out": false,
+  "elapsed_seconds": 3.473187199997483,
+  "sample_interval_seconds": 0.02,
+  "samples": 170,
+  "sampled_peak_rss_bytes": 311459840,
+  "sampled_peak_private_bytes": 303878144,
+  "observed_os_peak_working_set_bytes": 311676928,
+  "method": "psutil Windows process memory_info polled every 20ms; single child process, not device/model-only memory; transient peaks may be missed"
+}

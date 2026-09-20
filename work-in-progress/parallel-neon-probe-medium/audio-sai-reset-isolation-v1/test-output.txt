@@ -1,0 +1,10 @@
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-pedantic', 'reset_probe.c', 'test.c', '-o', 'testO0.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-sai-reset-isolation-v1\\testO0.exe']
+PASS controlled reset: H+/H-/M+/M- delays, active reject, fail-held, no access while asserted
+EXIT 0
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-pedantic', 'reset_probe.c', 'test.c', '-o', 'testO2.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-sai-reset-isolation-v1\\testO2.exe']
+PASS controlled reset: H+/H-/M+/M- delays, active reject, fail-held, no access while asserted
+EXIT 0

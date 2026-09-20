@@ -1,0 +1,114 @@
+{
+  "revision": "audio-reset-20260910",
+  "firmware_sha256": "4b4ee06366ff7cb9d3959ec6f16dc206bf7474cf4466e596f891547261aa925b",
+  "clear": {
+    "report": "k7sound-capture-clear-20260910-195958.json",
+    "raw_sha256": "5c6bbe0a486f7ab672f571b86d1440698b863129f40c4a58acb850f250afa11c",
+    "prompt": true,
+    "result_lines": [
+      "SOUND start_clear result=-110 completed=0 held=1 reapply=1 us=1002 polls=1123",
+      "SOUND result=-110 codec_stop=-16 platform_restore=-16 i2c_restore=-16 amp_low=1"
+    ]
+  },
+  "reset": {
+    "report": "k7sound-capture-reset-20260910-200121.json",
+    "raw_sha256": "c4a7d14887dff8d23d3b95af56bd42295267f5fce7b571a32de2bf7e103a422e",
+    "prompt": true,
+    "result_lines": [
+      "SOUND reset result=0 steps=4 completed=1 held=0 reapply=1",
+      "SOUND experiment clear=0 reset=1 clockwait20=0",
+      "SOUND pio=0 frames=3200 polls=174526 stop=0 held=0 max_fifo=2",
+      "SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1"
+    ]
+  },
+  "clockwait": {
+    "report": "k7sound-capture-clockwait-20260910-200129.json",
+    "raw_sha256": "2b2a48bae7655787b46d8d9fe82c2c1c4b3d6af3e48d9cae92827472e334ccaa",
+    "prompt": true,
+    "result_lines": [
+      "SOUND experiment clear=0 reset=0 clockwait20=1",
+      "SOUND pio=0 frames=3200 polls=174537 stop=0 held=0 max_fifo=2",
+      "SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1"
+    ]
+  },
+  "capture": {
+    "report": "k7sound-capture-48000-20260910-200557.json",
+    "raw_sha256": "fca33a3522e525963aeaccf2d1ca410a0660b8bd2970aa04a0c3a7e8cd6a78dd",
+    "prompt": true,
+    "result_lines": [
+      "SOUND experiment clear=0 reset=0 clockwait20=0",
+      "SOUND pio=0 frames=48000 polls=2617842 stop=0 held=0 max_fifo=2",
+      "SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1"
+    ]
+  },
+  "replay": {
+    "report": "k7sound-replay-20260910-200608.json",
+    "raw_sha256": "9a8e4d2ee288b36acba7ad8e569a9d81dfbd26c964c544ffee2646003876524f",
+    "prompt": true,
+    "result_lines": [
+      "SOUND experiment clear=0 reset=0 clockwait20=0",
+      "SOUND pio=0 frames=48000 polls=2618105 stop=0 held=0 max_fifo=16",
+      "SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1"
+    ]
+  },
+  "dump": {
+    "report": "k7sound-dump-20260910-200625.json",
+    "raw_sha256": "cb63f66e495cc1205550d38b7bd8965b715754d01235f5715210f6f4253c253a",
+    "prompt": true,
+    "result_lines": []
+  },
+  "tones": [
+    {
+      "report": "k7sound-tone-20260910-200719.json",
+      "raw_sha256": "1180783538e995349f436528bb2a6b8b5308c6315a2f8329ebdc7e310f099298",
+      "prompt": true,
+      "result_lines": [
+        "SOUND experiment clear=0 reset=0 clockwait20=0",
+        "SOUND pio=0 frames=3200 polls=174590 stop=0 held=0 max_fifo=16",
+        "SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1"
+      ]
+    },
+    {
+      "report": "k7sound-tone-20260910-200721.json",
+      "raw_sha256": "4b53edc5c99d1a5b399ac1fc3bf6403ad0e25d3ed017cea50e09537484edc8bf",
+      "prompt": true,
+      "result_lines": [
+        "SOUND experiment clear=0 reset=0 clockwait20=0",
+        "SOUND pio=0 frames=3200 polls=174589 stop=0 held=0 max_fifo=16",
+        "SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1"
+      ]
+    },
+    {
+      "report": "k7sound-tone-20260910-200722.json",
+      "raw_sha256": "538a8cd2eeebce2ece7b8f24e18a8f5db3b08acda6f374ff17510dbbfdb433e0",
+      "prompt": true,
+      "result_lines": [
+        "SOUND experiment clear=0 reset=0 clockwait20=0",
+        "SOUND pio=0 frames=3200 polls=174591 stop=0 held=0 max_fifo=16",
+        "SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1"
+      ]
+    }
+  ],
+  "human_feedback": {
+    "voice_replay": "没有听到声音",
+    "tone": "三声都听到了",
+    "source": "Actual user replies in current primary task"
+  },
+  "extraction": "voice-replay-first/extraction.json",
+  "findings": [
+    "CLK/FS-off start clear timed out; held fault recovered by verified same-image RAM reboot.",
+    "H/M reset and 20us clock wait completed but did not remove periodic zero samples.",
+    "48000-pair capture and raw board-speaker replay completed; user heard no voice.",
+    "Three same-image short tones completed and user heard all three."
+  ],
+  "microphone_audio_passed": false,
+  "voice_playback_passed": false,
+  "current_device": {
+    "firmware": "audio-reset-20260910",
+    "console": "NSH",
+    "audio_stopped": true,
+    "amp_low": true,
+    "wireless_started": false,
+    "serial_observer_running": false
+  }
+}

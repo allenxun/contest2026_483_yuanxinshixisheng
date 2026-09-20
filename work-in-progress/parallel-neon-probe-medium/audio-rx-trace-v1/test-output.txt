@@ -1,0 +1,12 @@
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-pedantic', 'pio.c', 'test.c', '-o', 'testO0.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-rx-trace-v1\\testO0.exe']
+TRACE simulated count=32 start=30020 end=30350 first_word=ffffffff third_word=00000000
+PASS trace:32-entry cap,all words including zero retained,registers/time,error validity,existing regressions
+EXIT 0
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-pedantic', 'pio.c', 'test.c', '-o', 'testO2.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-rx-trace-v1\\testO2.exe']
+TRACE simulated count=32 start=30020 end=30350 first_word=ffffffff third_word=00000000
+PASS trace:32-entry cap,all words including zero retained,registers/time,error validity,existing regressions
+EXIT 0

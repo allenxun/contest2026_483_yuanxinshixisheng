@@ -1,0 +1,19 @@
+{
+  "firmware_sha256": "d802b88da7c984ea4e69b05d2f9a37c6bb22cd9441100aaa100ee586e7a81582",
+  "raw_log": "pause-20260911-191526.log",
+  "log_sha256": "6ffd40796c3ed8bb9935d5311b59ba6f1660f135f8b3e0b162ef68ecb565ee52",
+  "pause_us": 252,
+  "fifo_before": "00000000",
+  "fifo_after": "00082082",
+  "fifo_counts_after": [
+    2,
+    2,
+    2,
+    2
+  ],
+  "capture_and_cleanup_passed": true,
+  "interpretation": "Multiple FIFO banks accumulated data without RXDR reads; excludes simple read-only advancement hypothesis",
+  "audio_fixed": false,
+  "voice_wifi_passed": false,
+  "serial_log_missing_some_later_lines": true
+}

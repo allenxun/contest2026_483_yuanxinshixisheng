@@ -1,0 +1,29 @@
+{
+  "hardware_tested": false,
+  "commands": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "E:\\openvela\\VelaVision\\work-in-progress\\rk3576-smp-preparation\\test_topology.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\evidence\\smp-preparation-20260910\\test_topology.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\evidence\\smp-preparation-20260910\\test_topology.exe"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "sources": {
+    "work-in-progress\\rk3576-smp-preparation\\test_topology.c": "cecc4a84d06bb166771d779ea563471aa05c2f1636cc71d18dee9fa911da2c22",
+    "work-in-progress\\rk3576-smp-preparation\\topology.h": "30ee080c811e80c68b03f153f27751a27acd3720eee0ead3d1d390b84fd6a054"
+  }
+}

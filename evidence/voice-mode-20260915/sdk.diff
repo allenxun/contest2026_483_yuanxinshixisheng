@@ -1,0 +1,229 @@
+--- sdk/app/k7host/k7host_main.c
++++ app/k7host/k7host_main.c
+@@ -824,14 +824,25 @@
+   /* Keep this preset below NSH's argument limit, including the background &.
+    * v1.3-xcenter only: an operator-confirmed MCU reset establishes 0/0.
+    */
+-  if (argc==3 && !strcmp(argv[1],"photos")) {
++  if (argc==3 && (!strcmp(argv[1],"photos") || !strcmp(argv[1],"voicecam"))) {
+       char *end;errno=0;long seconds=strtol(argv[2],&end,10);
+-      if(errno||!argv[2][0]||*end||seconds<1||seconds>300)goto usage;
++      bool voice = !strcmp(argv[1],"voicecam");
++      if(errno||!argv[2][0]||*end||seconds<1||seconds>(voice?1800:300))goto usage;
+       struct k7_track_config_s config={.transmit=true,.axes=TRACK_XY,
+-        .calibrated=true,.photo=true,.min_x=-800,.max_x=800,
++        .calibrated=true,.photo=true,.voice_control=voice,.min_x=-800,.max_x=800,
+         .min_y=-120,.max_y=975,.center_x=0,.center_y=0,.sign_x=1,.sign_y=-1};
+       puts("PHOTO PRESET v1.3-xcenter; X=-800..800 Y=-120..975; native pose");
+       return camera_capture(K7_BURST_FRAMES,seconds,4,0,true,&config)<0 ? 1:0;
++    }
++  if (argc==3 && !strcmp(argv[1],"voicemode")) {
++      unsigned int mode;
++      if (!strcmp(argv[2],"hold")) mode=0;
++      else if (!strcmp(argv[2],"track")) mode=1;
++      else if (!strcmp(argv[2],"photo")) mode=2;
++      else goto usage;
++      ret=k7_pipeline_voice_mode(mode);
++      printf("VOICE MODE requested=%u result=%d\n",mode,ret);
++      return ret<0?1:0;
+     }
+   if (argc >= 2 && (!strcmp(argv[1], "trackcal") || !strcmp(argv[1], "photocal")))
+     {
+@@ -1033,7 +1044,8 @@
+   puts("TRACK: k7host track dry|run [1..60 seconds] [1..150 limit] [-1|1 X] [-1|1 Y] [xy|x|y]");
+   puts("CAL: k7host trackcal dry|run SECONDS XMIN XMAX YMIN YMAX CX CY SX SY (1..300s)");
+   puts("VIEW: k7host preview dry|run [1..60 seconds] [1..150 limit] [-1|1 X] [-1|1 Y] [xy|x|y]");
+-  puts("TRACK: k7host halt (hold; not disable); limits are MCU units, NOT degrees.");
++  puts("TRACK: k7host halt (hold; not disable); limits are MCU units, NOT degrees.");
++  puts("VOICE: k7host voicecam 1..1800 (v1.3-xcenter reset required); voicemode hold|track|photo");
+ #endif
+ #ifdef CONFIG_EXAMPLES_K7HOST_YUNET
+   puts("FACE: k7host faces [1..60 seconds] | detect (retained RGB160)");
+--- sdk/app/k7host/k7_pipeline.c
++++ app/k7host/k7_pipeline.c
+@@ -19,8 +19,35 @@
+ #include "../gimbal/gimbal_link.h"
+ #include "k7_preview.h"
+ #include "k7_photo.h"
+-static atomic_bool g_track_halt;
+-void k7_pipeline_halt(void) { atomic_store(&g_track_halt, true); }
++static atomic_bool g_track_halt;
++static pthread_mutex_t g_voice_lock = PTHREAD_MUTEX_INITIALIZER;
++static bool g_voice_active;
++static atomic_uint g_voice_mode;
++static unsigned int g_voice_revision;
++void k7_pipeline_halt(void)
++{
++  pthread_mutex_lock(&g_voice_lock);
++  atomic_store(&g_track_halt, true);
++  atomic_store(&g_voice_mode, 0);
++  g_voice_revision++;
++  pthread_mutex_unlock(&g_voice_lock);
++}
++int k7_pipeline_voice_mode(unsigned int mode)
++{
++  if (mode > 2) return -EINVAL;
++  pthread_mutex_lock(&g_voice_lock);
++  int ret = g_voice_active ? 0 : -ENODEV;
++  if (!ret)
++    {
++      if (mode != atomic_load(&g_voice_mode) ||
++          (mode && atomic_load(&g_track_halt))) g_voice_revision++;
++      atomic_store(&g_voice_mode, mode);
++      /* Worker alone releases hold after resetting stale filter history. */
++      if (!mode) atomic_store(&g_track_halt, true);
++    }
++  pthread_mutex_unlock(&g_voice_lock);
++  return ret;
++}
+ #endif
+ 
+ #define K7_PIPE_SLOTS 8
+@@ -45,7 +72,10 @@
+   unsigned int scale, delay_ms, pending;
+   bool stopping;
+ #ifdef CONFIG_EXAMPLES_K7HOST_TRACK
+-  bool tracking;
++  bool tracking;
++  bool voice_control;
++  unsigned int applied_mode;
++  unsigned int applied_revision;
+   struct k7_photo_s *photo;
+   struct k7_preview_queue_s *preview;
+   atomic_bool motion_done;
+@@ -66,8 +96,29 @@
+   return (uint64_t)ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+ }
+ 
+-#ifdef CONFIG_EXAMPLES_K7HOST_TRACK
+-static void track_observation(struct k7_pipeline_s *p,
++#ifdef CONFIG_EXAMPLES_K7HOST_TRACK
++static void voice_mode_apply(struct k7_pipeline_s *p)
++{
++  if (!p->voice_control) return;
++  pthread_mutex_lock(&g_voice_lock);
++  unsigned int mode = atomic_load(&g_voice_mode);
++  if (g_voice_revision != p->applied_revision)
++    {
++      struct k7_track_config_s config = p->controller.config;
++      int ret = p->stats.track_error;
++      if (!ret) ret = k7_track_init(&p->controller, &config,
++                                    p->controller.sent_x, p->controller.sent_y);
++      if (ret < 0) { p->stats.track_error = ret; mode = 0; }
++      if (mode == 2) k7_photo_reset();
++      atomic_store(&g_track_halt, mode == 0 || p->stats.track_error != 0);
++      p->applied_mode = mode;
++      p->applied_revision = g_voice_revision;
++      printf("VOICE MODE applied=%u result=%d\n", mode, ret);
++    }
++  pthread_mutex_unlock(&g_voice_lock);
++}
++
++static void track_observation(struct k7_pipeline_s *p,
+                               const struct k7_faces_s *faces,
+                               unsigned int sequence, uint64_t sample, struct k7_track_result_s *saved)
+ {
+@@ -183,12 +234,14 @@
+         face_ret = k7_yunet_detect(p->yunet, p->rgb, result.bytes, &faces);
+ #endif
+ #ifdef CONFIG_EXAMPLES_K7HOST_TRACK
+-      if (p->tracking)
+-        {
++      if (p->tracking)
++        {
++          voice_mode_apply(p);
+           struct k7_track_result_s observed;
+           track_observation(p, ret == 0 && face_ret == 0 ? &faces : NULL,
+                             slot->sequence, slot->published_us, &observed);
+-          if(p->photo)k7_photo_process(p->photo,slot->data,slot->bytes,slot->sequence,
++          if(p->photo && (!p->voice_control || atomic_load(&g_voice_mode)==2))
++            k7_photo_process(p->photo,slot->data,slot->bytes,slot->sequence,
+              slot->published_us,&observed,faces.count,atomic_load(&g_track_halt)||atomic_load(&p->motion_done));
+           /* Submit a private RGB copy; output never runs in this worker. */
+           if (p->preview && ret == 0)
+@@ -285,9 +338,11 @@
+   if (track)
+     {
+       int x=0, y=0;
+-      p->tracking=true;
+-      if(track->photo) {p->photo=k7_photo_create();if(!p->photo){ret=ENOMEM;goto free_storage;}}
+-      atomic_store(&g_track_halt, false);
++      p->tracking=true;
++      p->voice_control=track->voice_control;
++      if(track->photo || track->voice_control) {p->photo=k7_photo_create();if(!p->photo){ret=ENOMEM;goto free_storage;}}
++      atomic_store(&g_track_halt, track->voice_control);
++      if (track->voice_control) atomic_store(&g_voice_mode, 0);
+       if (track->transmit)
+         {
+           p->gimbal_fd=gimbal_link_open(&x, &y);
+@@ -358,8 +413,17 @@
+ #endif
+       goto destroy_cond;
+     }
+-  *out = p;
+-  return 0;
++  *out = p;
++#ifdef CONFIG_EXAMPLES_K7HOST_TRACK
++  if (p->voice_control)
++    {
++      pthread_mutex_lock(&g_voice_lock);
++      g_voice_active = true;
++      pthread_mutex_unlock(&g_voice_lock);
++      puts("VOICE SESSION ready mode=0; awaiting explicit command");
++    }
++#endif
++  return 0;
+ 
+ destroy_attr:
+   pthread_attr_destroy(&attr);
+@@ -429,9 +493,19 @@
+   pthread_mutex_unlock(&p->lock);
+ }
+ 
+-int k7_pipeline_finish(struct k7_pipeline_s *p,
+-                       struct k7_pipeline_stats_s *stats)
+-{
++int k7_pipeline_finish(struct k7_pipeline_s *p,
++                       struct k7_pipeline_stats_s *stats)
++{
++#ifdef CONFIG_EXAMPLES_K7HOST_TRACK
++  if (p->voice_control)
++    {
++      pthread_mutex_lock(&g_voice_lock);
++      g_voice_active = false;
++      atomic_store(&g_voice_mode, 0);
++      atomic_store(&g_track_halt, true);
++      pthread_mutex_unlock(&g_voice_lock);
++    }
++#endif
+   pthread_mutex_lock(&p->lock);
+   p->stopping = true;
+ #ifdef CONFIG_EXAMPLES_K7HOST_TRACK
+--- sdk/app/k7host/k7_pipeline.h
++++ app/k7host/k7_pipeline.h
+@@ -33,9 +33,12 @@
+                       const struct k7_track_config_s *track);
+ /* Halt stops future visual target updates, not MCU PWM or already queued bytes. */
+ void k7_pipeline_halt(void);
++/* Voice session modes: 0 hold, 1 tracking, 2 photo. Does not reopen UVC.
++ * Return 0 means accepted; VOICE MODE applied is emitted by the worker.
++ */
++int k7_pipeline_voice_mode(unsigned int mode);
+ void k7_pipeline_publish(struct k7_pipeline_s *p,
+                          const uint8_t *jpeg, size_t bytes);
+ int k7_pipeline_finish(struct k7_pipeline_s *p,
+                        struct k7_pipeline_stats_s *stats);
+ #endif
+-
+--- sdk/app/k7host/k7_track.h
++++ app/k7host/k7_track.h
+@@ -7,7 +7,8 @@
+ enum k7_track_axes_e { TRACK_X = 1, TRACK_Y = 2, TRACK_XY = 3 };
+ struct k7_track_config_s {
+   bool transmit; int limit, sign_x, sign_y; unsigned int axes; bool preview;
+-  bool calibrated; bool photo;
++  bool calibrated; bool photo;
++  bool voice_control; /* Keep one capture session; start with motion held. */
+   int min_x, max_x, min_y, max_y, center_x, center_y;
+ };
+ enum k7_track_state_e { TRACK_LOST, TRACK_CONFIRM, TRACK_ACTIVE, TRACK_STALE, TRACK_HALTED, TRACK_CLIPPED, TRACK_STATE_COUNT };

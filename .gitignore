@@ -1,5 +1,28 @@
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+artifacts/
+project-sources.tar.gz
+baselines/**/nuttx.bin
+*.zip
+*.tar.gz
+private/
+运行输出/
+# AI logs are intentional deliverables and must not be ignored.
 
-# Local isolated MVP worktrees and runtime supervision state
-/.worktrees/
-/.coordination/
-/.cortexkit/
+# Oversized model/firmware intermediates exceed GitHub per-file limit; hashes are recorded in docs and evidence json.
+work-in-progress/**/*.bin
+work-in-progress/**/*.ort
+*.ort
+
+# Extracted upstream trees and pip environments are not project source; hashes recorded in work-in-progress/*.json and docs.
+work-in-progress/native-ort-host-converter-python/
+work-in-progress/native-model-parser-python/
+work-in-progress/native-voice-sources/onnxruntime-*/
+work-in-progress/native-voice-sources/sherpa-onnx-*/
+
+# Nested upstream git checkouts cannot be committed as plain files; referenced by docs hashes.
+work-in-progress/otg-fastboot-reentry-20260913/reference/
+work-in-progress/parallel-model-reader-medium/eigen-source-check-v1/git-proof/
+

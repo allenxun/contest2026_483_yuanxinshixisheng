@@ -1,0 +1,65 @@
+{
+  "model": "encoder",
+  "source": "E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\encoder.int8.onnx",
+  "source_sha256": "81a70226a8934e6ed92aa1d4fc486b428b5398e2f2619ed4897b7294cab90e9a",
+  "source_unchanged": true,
+  "output": "E:\\openvela\\VelaVision\\work-in-progress\\native-speech-ort-models1\\encoder.ort",
+  "output_bytes": 166189616,
+  "output_sha256": "f81f9e656e21bc6c8350b7a04e3563bee3552dd0e047a44b5e9c978fd188c1af",
+  "ort_version": "1.17.1",
+  "optimization": "ORT_DISABLE_ALL",
+  "providers": [
+    "CPUExecutionProvider"
+  ],
+  "seconds": 3.5,
+  "io": {
+    "inputs": [
+      {
+        "name": "speech",
+        "shape": [
+          "batch_size",
+          "feats_length",
+          560
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "speech_lengths",
+        "shape": [
+          "batch_size"
+        ],
+        "type": "tensor(int32)"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "enc",
+        "shape": [
+          "batch_size",
+          "feats_length",
+          512
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "enc_len",
+        "shape": [
+          "batch_size"
+        ],
+        "type": "tensor(int32)"
+      },
+      {
+        "name": "alphas",
+        "shape": [
+          "batch_size",
+          "feats_length"
+        ],
+        "type": "tensor(float)"
+      }
+    ]
+  },
+  "host_conversion": true,
+  "numerical_comparison": false,
+  "board_loaded": false,
+  "board_inference": false
+}

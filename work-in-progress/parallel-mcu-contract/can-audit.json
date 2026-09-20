@@ -1,0 +1,6 @@
+{
+  "command": "rg -n CAN_Init/CAN_Transmit/CAN_Receive USER BSP app/gimbal host/vision",
+  "exit_code": 1,
+  "output": [],
+  "meaning": "exit 1 means no matching business CAN call; vendor FWLib excluded explicitly"
+}

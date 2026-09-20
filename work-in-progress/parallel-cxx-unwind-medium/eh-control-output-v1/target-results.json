@@ -1,0 +1,127 @@
+{
+  "cases": [
+    {
+      "path": "evidence/eh-control-20260910/single/runtime.bin",
+      "bytes": 313,
+      "sha256": "62ccfcee52b76b649bee74dc19bdc6d46325199197bff9a188b27a4d09f55d04",
+      "expected_accept": true,
+      "result": {
+        "passed": true,
+        "mode": "single",
+        "scope": "target",
+        "errors": [],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": 5,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 317976004582,
+            "first_end": 317976071957
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 0,
+          "workers": 1,
+          "result": 1
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true,
+      "origin": "parent-captured serial file; no independent hardware provenance verification"
+    },
+    {
+      "path": "evidence/eh-control-20260910/warm1/runtime.bin",
+      "bytes": 504,
+      "sha256": "d5f45b1100e5dbfeb691c2a59e5c67c543c60367252c62ba8ec0b94c4da89581",
+      "expected_accept": true,
+      "result": {
+        "passed": true,
+        "mode": "warm1",
+        "scope": "target",
+        "errors": [],
+        "workers": [
+          {
+            "worker": 0,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": 4,
+            "requested_cpu": 4,
+            "cpu_mismatch": 0,
+            "first_begin": 38529006416,
+            "first_end": 38529046374
+          },
+          {
+            "worker": 1,
+            "caught": 1,
+            "cleaned": 3,
+            "errors": 0,
+            "cpu": 5,
+            "requested_cpu": 5,
+            "cpu_mismatch": 0,
+            "first_begin": 38529007874,
+            "first_end": 38529046957
+          }
+        ],
+        "record_counts": {
+          "begin": 1,
+          "preheat": 1,
+          "workers": 2,
+          "result": 1
+        },
+        "first_call_intervals_overlap": true,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true,
+      "origin": "parent-captured serial file; no independent hardware provenance verification"
+    },
+    {
+      "path": "evidence/cxx-eh-20260910/cold/runtime.bin",
+      "bytes": 382,
+      "sha256": "9992b2a38ec2551687142233e966eac88aeffc5fb450a5000073c77e0a401d3a",
+      "expected_accept": false,
+      "result": {
+        "passed": false,
+        "mode": "warm1",
+        "scope": "target",
+        "errors": [
+          "line 3: crash diagnostic",
+          "line 4: crash diagnostic",
+          "expected exactly one begin",
+          "expected exactly one result",
+          "worker record count mismatch",
+          "preheat marker count mismatch",
+          "duplicate or missing worker ids"
+        ],
+        "workers": [],
+        "record_counts": {
+          "begin": 0,
+          "preheat": 0,
+          "workers": 0,
+          "result": 0
+        },
+        "first_call_intervals_overlap": null,
+        "libgcc_thread_safety_proven": false,
+        "global_unwinder_cold_proven": false,
+        "hardware_provenance_verified": false,
+        "interpretation": "Text assertions only; scope is supplied by caller, not authenticated hardware origin"
+      },
+      "passed": true,
+      "origin": "parent-captured serial file; no independent hardware provenance verification"
+    }
+  ],
+  "all_passed": true,
+  "note": "Original cxx-eh cold is an older protocol and crash rejection example, not an eh-control invocation. No files modified, no device access."
+}

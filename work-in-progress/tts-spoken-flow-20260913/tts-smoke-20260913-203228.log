@@ -1,0 +1,9 @@
+
+nsh> [Kk7mem status
+MODEL DDR base=60000000 bytes=536870912 free=0 initialized=0 cpu_only=1
+nsh> [Kk7voice tts-smoke
+[1;31m1970-01-01 00:07:50.326701 [E:onnxruntime:, inference_session.cc:1980 operator()] Exception during initialization: std::bad_alloc[m
+/home/swl/openvela/work/native-vits-lexicon-20260911/sherpa/sherpa-onnx/c-api/c-api.cc:SherpaOnnxCreateOfflineTts:1275 VITS lexiICE_TTS result=-5
+nsh> [Kk7mem status
+MODEL DDR base=60000000 bytes=536870912 free=536870144 initialized=1 cpu_only=1
+nsh> [K

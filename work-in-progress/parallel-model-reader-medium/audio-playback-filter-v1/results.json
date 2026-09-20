@@ -1,0 +1,64 @@
+[
+  {
+    "command": [
+      "D:/software/mingw64/mingw64/bin/gcc.exe",
+      "-std=c11",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wconversion",
+      "-Wshadow",
+      "-pedantic",
+      "playback_filter.c",
+      "test_filter.c",
+      "-lm",
+      "-o",
+      "test-O0.exe"
+    ],
+    "timeout_seconds": 30,
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\audio-playback-filter-v1\\test-O0.exe"
+    ],
+    "timeout_seconds": 15,
+    "returncode": 0,
+    "stdout": "extreme step saturations=1916\nhz=50 mode=1 measured=0.999759054 expected=0.999759059\nhz=50 mode=2 measured=0.521591481 expected=0.521591627\nhz=1000 mode=1 measured=0.906127442 expected=0.906127446\nhz=1000 mode=2 measured=0.889127592 expected=0.889127600\nhz=4000 mode=1 measured=0.000000000 expected=0.000000000\nhz=4000 mode=2 measured=0.000000000 expected=0.000000000\nPASS 480061 checks; pure host DSP, no hardware claims\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "D:/software/mingw64/mingw64/bin/gcc.exe",
+      "-std=c11",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wconversion",
+      "-Wshadow",
+      "-pedantic",
+      "playback_filter.c",
+      "test_filter.c",
+      "-lm",
+      "-o",
+      "test-O2.exe"
+    ],
+    "timeout_seconds": 30,
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\audio-playback-filter-v1\\test-O2.exe"
+    ],
+    "timeout_seconds": 15,
+    "returncode": 0,
+    "stdout": "extreme step saturations=1916\nhz=50 mode=1 measured=0.999759054 expected=0.999759059\nhz=50 mode=2 measured=0.521591481 expected=0.521591627\nhz=1000 mode=1 measured=0.906127442 expected=0.906127446\nhz=1000 mode=2 measured=0.889127592 expected=0.889127600\nhz=4000 mode=1 measured=0.000000000 expected=0.000000000\nhz=4000 mode=2 measured=0.000000000 expected=0.000000000\nPASS 480061 checks; pure host DSP, no hardware claims\n",
+    "stderr": ""
+  }
+]

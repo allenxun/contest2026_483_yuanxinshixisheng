@@ -1,0 +1,128 @@
+{
+  "input_sha256": {
+    "before": "ebbb2b64bfcf395fc644f659aa56035b029fc75258665ed2867553cc71ef9dd7",
+    "after": "0e9172df44a6f8f702f0e8188f7e03624dacb3e1e9c099191f350c1322553c66"
+  },
+  "before": {
+    "ACL_QUEUED": 4294967294,
+    "ACL_SEND_OK": 0,
+    "ACL_SEND_FAIL": 0,
+    "ACL_ACK_MATCH": 0,
+    "ACL_ACK_OTHER": 0,
+    "ACL_ACK_WAIT_FAIL": 0,
+    "PORT5_SLOT": 0,
+    "SLOT_DECODE_FAIL": 0,
+    "PORT5_SLOT_DECODE_FAIL": 0,
+    "HCI_DECODE_FAIL": 0,
+    "PORT5_HCI_DECODE_FAIL": 0,
+    "READY_REJECT": 0,
+    "RX_LOCK_FAIL": 0,
+    "H4_ACL": 0,
+    "H4_EVENT": 0,
+    "H4_SCO": 0,
+    "H4_VENDOR": 0,
+    "H4_OTHER": 0,
+    "LINK_ACK": 0,
+    "FLOW_COMPLETE": 0,
+    "last_send": 0,
+    "last_decode": 0,
+    "last_ready": 0,
+    "last_wait": 0,
+    "flow_status": 0
+  },
+  "after": {
+    "ACL_QUEUED": 1,
+    "ACL_SEND_OK": 0,
+    "ACL_SEND_FAIL": 1,
+    "ACL_ACK_MATCH": 0,
+    "ACL_ACK_OTHER": 0,
+    "ACL_ACK_WAIT_FAIL": 0,
+    "PORT5_SLOT": 0,
+    "SLOT_DECODE_FAIL": 0,
+    "PORT5_SLOT_DECODE_FAIL": 0,
+    "HCI_DECODE_FAIL": 0,
+    "PORT5_HCI_DECODE_FAIL": 0,
+    "READY_REJECT": 0,
+    "RX_LOCK_FAIL": 0,
+    "H4_ACL": 0,
+    "H4_EVENT": 0,
+    "H4_SCO": 0,
+    "H4_VENDOR": 0,
+    "H4_OTHER": 0,
+    "LINK_ACK": 0,
+    "FLOW_COMPLETE": 0,
+    "last_send": -5,
+    "last_decode": 0,
+    "last_ready": 0,
+    "last_wait": 0,
+    "flow_status": 0
+  },
+  "uint32_modulo_delta": {
+    "ACL_QUEUED": 3,
+    "ACL_SEND_OK": 0,
+    "ACL_SEND_FAIL": 1,
+    "ACL_ACK_MATCH": 0,
+    "ACL_ACK_OTHER": 0,
+    "ACL_ACK_WAIT_FAIL": 0,
+    "PORT5_SLOT": 0,
+    "SLOT_DECODE_FAIL": 0,
+    "PORT5_SLOT_DECODE_FAIL": 0,
+    "HCI_DECODE_FAIL": 0,
+    "PORT5_HCI_DECODE_FAIL": 0,
+    "READY_REJECT": 0,
+    "RX_LOCK_FAIL": 0,
+    "H4_ACL": 0,
+    "H4_EVENT": 0,
+    "H4_SCO": 0,
+    "H4_VENDOR": 0,
+    "H4_OTHER": 0,
+    "LINK_ACK": 0,
+    "FLOW_COMPLETE": 0
+  },
+  "counter_decreases": [
+    "ACL_QUEUED"
+  ],
+  "last_error_before_after": {
+    "last_send": {
+      "before": 0,
+      "after": -5
+    },
+    "last_decode": {
+      "before": 0,
+      "after": 0
+    },
+    "last_ready": {
+      "before": 0,
+      "after": 0
+    },
+    "last_wait": {
+      "before": 0,
+      "after": 0
+    }
+  },
+  "flow_complete": {
+    "before": {
+      "count": 0,
+      "status": null,
+      "meaning": "no completion evidence; stored zero is not success"
+    },
+    "after": {
+      "count": 0,
+      "status": null,
+      "meaning": "no completion evidence; stored zero is not success"
+    }
+  },
+  "evidence": [
+    "Software ACL queue insertions observed; this does not prove transport submission.",
+    "Transport send returned failure during the interval; inspect last_send and worker status.",
+    "No port-5 count increase in these snapshots; this alone does not prove controller silence."
+  ],
+  "limitations": [
+    "Requires same process/counter lifetime and chronological inputs; these metadata cannot verify either. Restart/reset and wrap cannot be distinguished.",
+    "Modulo differences are not absolute event counts if one or more full 2^32 wraps occurred.",
+    "Each status field is atomic but six lines are not a coherent snapshot. Do not subtract stages to infer lost packets or impose queued >= send >= ACK.",
+    "Last errors persist across successful operations and may race counts; changed errors cannot be assigned to a specific packet.",
+    "FLOW_COMPLETE count/status are separately read; a positive count does not make status a coherent pair or prove current flow configuration.",
+    "Queued, send return, link ACK, H4 category and GAP connection do not prove GATT, pairing, remote receipt or application success."
+  ]
+}

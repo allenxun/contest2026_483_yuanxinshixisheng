@@ -1,0 +1,12 @@
+{
+  "time": "2026-09-09T08:55:56.465751+00:00",
+  "scope": "Host-only data-frame decoder/encoder test; not a device networking result",
+  "command": "gcc -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer; execute test_wifi_data_extended",
+  "exit_code": 0,
+  "sources": {
+    "tests/wifi/test_wifi_data.c": "5b0d067d7f7405ca09aa24adcc8fa3907441d42f2dbdf31eac1da82fdc6463f7",
+    "app/k7radio/skw_wifi_data.h": "9e9bb79a62118f53e9cfbf860030bfbecd0dc1f2c88b6c40465f517850bab8ee",
+    "app/k7radio/skw_wifi_eapol.h": "a47dd63ad16302ca04c66a63dfcc0a898c491e508acbaced10d67fcfcb78e22a"
+  },
+  "output": "PASS: Ethernet descriptor bounds, peer/destination, per-TID unicast/multicast PN replay, RSC overflow and encrypted TX layout"
+}

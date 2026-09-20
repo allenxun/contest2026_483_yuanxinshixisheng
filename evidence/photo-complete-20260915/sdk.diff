@@ -1,0 +1,127 @@
+--- sdk/app/k7sound/k7sound_main.c
++++ app/k7sound/k7sound_main.c
+@@ -89,6 +89,7 @@
+   if (!platform.ready || offset > 0x68 || (offset & 3)) return -EINVAL;
+   return abs_write(ctx, SAI + offset, value);
+ }
++uint64_t k7sound_clock_us(void) { return now_us(NULL); }
+ static uint64_t now_ms(void *ctx) { return now_us(ctx) / 1000; }
+ static int codec_write(void *ctx, uint8_t address, uint8_t reg,
+                        uint8_t value, uint64_t deadline)
+@@ -470,6 +471,8 @@
+                     replay ? pio_play_buffer(&pio, 1, 4096000, playback_source, 2 * captured_frames, frames, &result) :
+                     clockwait ? pio_run_clockwait(&pio, 1, 4096000, playing, capture, 96000, frames, &result) :
+                     pio_run(&pio, 1, 4096000, playing, capture, 96000, frames, &result);
++      printf("SOUND timing direction=%s stream_start_us=%" PRIu64 " result=%d\n",
++             (speech && !cued) || replay || playing ? "tx" : "rx", result.stream_start_us, rc);
+       printf("SOUND experiment clear=%u reset=%u clockwait20=%u\n", clearing, resetting, clockwait);
+       for (unsigned i = 0; i < 8; i++) printf("SOUND slot_mask offset=%02x value=%08" PRIx32 "\n", SAI_TX_SLOT_MASK0 + 4 * i, input_slot_masks[i]);
+       data_held = data_held || result.held;
+--- sdk/app/k7sound/pio.c
++++ app/k7sound/pio.c
+@@ -205,6 +205,7 @@
+   if(out->start_result){rc=-5;goto done;}
+   if(now<start||now-start>=100){rc=-110;goto done;}
+   start=now;
++  out->stream_start_us=start;
+   if(!tx)trace_begin(p,&out->rx_trace,start);
+   for(out->polls=0;out->polls<frames*4096u;out->polls++) {
+     if(tx && p->cancelled && p->cancelled(p->cancel_arg))
+--- sdk/app/k7sound/pio.h
++++ app/k7sound/pio.h
+@@ -49,6 +49,7 @@
+  struct pio_rx_trace_entry entry[PIO_RX_TRACE_MAX];
+ };
+ struct pio_result {
++ uint64_t stream_start_us; /* TX/RX enabled and amplifier hook completed; not acoustic onset. */
+  uint64_t pause_start_us,pause_end_us;
+  uint32_t pause_before,pause_after;
+  unsigned frames,polls,prefill_words,max_fifo;
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -9,6 +9,7 @@
+ #include <poll.h>
+ #include <pthread.h>
+ #include <stdint.h>
++#include <inttypes.h>
+ #include <stdbool.h>
+ #include <stdatomic.h>
+ #include <stdio.h>
+@@ -38,6 +39,7 @@
+ void k7_pipeline_halt(void);
+ int k7_photo_native_status(uint32_t *,unsigned *);
+ #endif
++extern uint64_t k7sound_clock_us(void);
+ static int playback_cancelled(void *arg) {(void)arg;return atomic_load(&tts_cancelled);}
+ int k7cloud_tts_control(int stop)
+ {
+@@ -108,6 +110,7 @@
+ struct live {
+   struct k7_stream_ring ring;
+   int fd,done,capture_rc,receive_rc,completed,chat;
++  uint64_t completed_us;
+   struct k7_voice_result result;
+ };
+ 
+@@ -135,7 +138,7 @@
+     {
+       rc=k7_voice_event(&p->result,text,strlen(text));
+       if(rc)break;
+-      if(p->result.completed){p->completed=1;break;}
++      if(p->result.completed){p->completed_us=k7sound_clock_us();p->completed=1;break;}
+     }
+   p->receive_rc=rc;
+   if(rc){k7_stream_ring_cancel(&p->ring);shutdown(p->fd,SHUT_RDWR);}
+@@ -195,6 +198,7 @@
+   if(!rc)rc=p->receive_rc;
+   if(!rc && !p->completed)rc=-EIO;
+   printf("K7CLOUD asr result=%d frames_sent=%lu completed=%d\n",rc,(unsigned long)count,p->completed);
++  printf("K7CLOUD timing asr_completed_us=%" PRIu64 " result=%d\n",p->completed_us,rc);
+   if(!rc && intent)*intent=k7_voice_result_intent(&p->result);
+   free(p);return rc;
+ }
+@@ -341,10 +345,10 @@
+ static int photo_prompts(const char *ip,unsigned epoch,struct k7_photo_prompt_state *state)
+ {
+ #if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
+-  if(k7_pipeline_voice_mode_status(2))return 0;
+   uint32_t photo_epoch;unsigned done;
+   int rc=k7_photo_native_status(&photo_epoch,&done);
+   if(rc)return rc;
++  if(k7_pipeline_voice_mode_status(2) && !(done==7 && !k7_pipeline_voice_mode_status(0)))return 0;
+   const char *keys[4];int n=k7_photo_prompt_plan(state,photo_epoch,done,keys);
+   if(n<0)return n;
+   for(int i=0;i<n;i++)
+@@ -353,7 +357,8 @@
+       rc=k7_photo_native_status(&current,&mask);
+       if(rc)return rc;
+       if(current!=photo_epoch)return 0; /* Rescan next round; do not announce old set. */
+-      if(k7_pipeline_voice_mode_status(2))return 0;
++      if(mask!=done)return 0; /* Do not announce alignment for a view already captured. */
++      if(k7_pipeline_voice_mode_status(2) && !(done==7 && !k7_pipeline_voice_mode_status(0)))return 0;
+       rc=board_speech(keys[i],ip,&epoch);if(rc)return rc;
+     }
+   *state=(struct k7_photo_prompt_state){photo_epoch,done};
+--- sdk/app/k7host/k7_pipeline.c
++++ app/k7host/k7_pipeline.c
+@@ -258,8 +258,18 @@
+           track_observation(p, ret == 0 && face_ret == 0 ? &faces : NULL,
+                             slot->sequence, slot->published_us, &observed);
+           if(p->photo && (!p->voice_control || atomic_load(&g_voice_mode)==2))
+-            k7_photo_process(p->photo,slot->data,slot->bytes,slot->sequence,
+-             slot->published_us,&observed,faces.count,atomic_load(&g_track_halt)||atomic_load(&p->motion_done));
++            {
++              k7_photo_process(p->photo,slot->data,slot->bytes,slot->sequence,
++                slot->published_us,&observed,faces.count,atomic_load(&g_track_halt)||atomic_load(&p->motion_done));
++              uint32_t completed_epoch=0;unsigned completed_views=0;
++              if(p->voice_control && !k7_photo_native_status(&completed_epoch,&completed_views) && completed_views==7)
++                {
++                  /* Preserve the immutable RAM set; prevent future pose/target work.
++                   * Applied hold is confirmed separately before upload admission. */
++                  k7_pipeline_halt();
++                  printf("PHOTO complete e=%u views=7 hold_requested=1 upload_started=0\n",completed_epoch);
++                }
++            }
+           /* Submit a private RGB copy; output never runs in this worker. */
+           if (p->preview && ret == 0)
+             k7_preview_queue_submit(p->preview,p->rgb,result.bytes,slot->sequence);

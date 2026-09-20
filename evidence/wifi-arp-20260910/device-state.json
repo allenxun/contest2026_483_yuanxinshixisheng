@@ -1,0 +1,31 @@
+{
+  "updated_at": "2026-09-10T01:28:55.313092+00:00",
+  "running_revision": "wifi-arp-20260909",
+  "firmware_sha256": "9dc19c97c2d2aa5f49bc3bca36d04f026c25c096ec3894605ba7ac4d7dc4ce5d",
+  "boot": "RAM",
+  "liveness_verified": true,
+  "real_ble_to_wifi_passed": true,
+  "test_client": "Windows Bleak; Android/iOS not verified this run",
+  "test_ip": "10.3.0.214",
+  "wifi_connected": true,
+  "ble_connected": false,
+  "ble_service_running": true,
+  "test_client_intentionally_disconnected": true,
+  "frontend_connect": true,
+  "gateway_ping": {
+    "sent": 5,
+    "received": 5,
+    "first_packet_passed": true,
+    "initial_arp_entry": false
+  },
+  "ble_wifi_hold_seconds": 60,
+  "production_stability_passed": false,
+  "emmc_written": false,
+  "stm32_written": false,
+  "gimbal_started": false,
+  "evidence": [
+    "ble-connect-04.jsonl",
+    "gateway-cold-01.json",
+    "final-status.json"
+  ]
+}

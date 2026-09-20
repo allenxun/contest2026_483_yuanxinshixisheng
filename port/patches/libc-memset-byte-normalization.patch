@@ -1,0 +1,12 @@
+--- a/nuttx/libs/libc/string/lib_bsdmemset.c
++++ b/nuttx/libs/libc/string/lib_bsdmemset.c
+@@ -67,7 +67,8 @@
+       /* If we get this far, we know that n is large and s is word-aligned. */
+ 
+       aligned_addr = (FAR libc_data_t *)s;
+-      buffer = ((unsigned int)c << 8) | c;
++      buffer = (unsigned char)c;
++      buffer |= buffer << 8;
+       buffer |= (buffer << 16);
+       for (i = 32; i < LITTLEBLOCKSIZE * 8; i <<= 1)
+         {

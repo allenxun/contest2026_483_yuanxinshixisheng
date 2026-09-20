@@ -1,0 +1,12 @@
+
+nsh> [K
+k7radio wifi-service-start
+WIFI shared start ret=0
+nsh> [K
+k7radio host-status
+RADIO host_mode=1 fault=0 tx=19 ACK=19 RX=38
+RADIO empty_slots=0
+nsh> [K
+k7radio provision-status
+PROV registered=1 connected=0 subscribed=0 busy=0 session=0 commands=0 notify_queued=0 errors=0 connects=0 disconnects=0 readsd=0 id=0 session=0 ret=0 notify_ret=0
+nsh> [K

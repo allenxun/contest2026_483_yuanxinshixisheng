@@ -1,0 +1,119 @@
+{
+  "frames": 128,
+  "raw_words": 256,
+  "initial_zero_words": 8,
+  "nonzero_by_frame_mod4": [
+    [
+      31,
+      0,
+      0,
+      0
+    ],
+    [
+      31,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tx_prefill": [
+    {
+      "index": 0,
+      "bank": 0,
+      "word": "0x1012300"
+    },
+    {
+      "index": 1,
+      "bank": 0,
+      "word": "0x2024500"
+    },
+    {
+      "index": 2,
+      "bank": 1,
+      "word": "0x3036700"
+    },
+    {
+      "index": 3,
+      "bank": 1,
+      "word": "0x4048900"
+    },
+    {
+      "index": 4,
+      "bank": 2,
+      "word": "0x505ab00"
+    },
+    {
+      "index": 5,
+      "bank": 2,
+      "word": "0x606cd00"
+    },
+    {
+      "index": 6,
+      "bank": 3,
+      "word": "0x707ef00"
+    },
+    {
+      "index": 7,
+      "bank": 3,
+      "word": "0x8081100"
+    },
+    {
+      "index": 8,
+      "bank": 0,
+      "word": "0x1012300"
+    },
+    {
+      "index": 9,
+      "bank": 0,
+      "word": "0x2024500"
+    },
+    {
+      "index": 10,
+      "bank": 1,
+      "word": "0x3036700"
+    },
+    {
+      "index": 11,
+      "bank": 1,
+      "word": "0x4048900"
+    },
+    {
+      "index": 12,
+      "bank": 2,
+      "word": "0x505ab00"
+    },
+    {
+      "index": 13,
+      "bank": 2,
+      "word": "0x606cd00"
+    },
+    {
+      "index": 14,
+      "bank": 3,
+      "word": "0x707ef00"
+    },
+    {
+      "index": 15,
+      "bank": 3,
+      "word": "0x8081100"
+    }
+  ],
+  "rx_trace_words": 64,
+  "tx_prefill_total": [
+    4,
+    4,
+    4,
+    4
+  ],
+  "steady_pattern": [
+    "0707ef00",
+    "08081100",
+    "00000000",
+    "00000000",
+    "00000000",
+    "00000000",
+    "00000000",
+    "00000000"
+  ],
+  "conclusion": "Internal loopback reproduces sparse phases; codec ADC/external SDI not necessary. FIFO-bank to serial-path mapping unresolved."
+}

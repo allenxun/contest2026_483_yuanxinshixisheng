@@ -1,0 +1,8 @@
+tests/test_async.cpp: In function 'void {anonymous}::cleanup()':
+tests/test_async.cpp:115:5: error: this 'for' clause does not guard... [-Werror=misleading-indentation]
+  115 |     for (int i = 0; i < 8; ++i) c.ingest("a"); c.ingest("完成"); }
+      |     ^~~
+tests/test_async.cpp:115:48: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'for'
+  115 |     for (int i = 0; i < 8; ++i) c.ingest("a"); c.ingest("完成"); }
+      |                                                ^
+cc1plus.exe: all warnings being treated as errors

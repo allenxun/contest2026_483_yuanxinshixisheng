@@ -1,0 +1,50 @@
+k7host start
+K7 Combo mode before=00000110
+K7 Combo mode after=00000104
+K7 host: DWC3=5533300a GCTL=30c11004 xHCI=01100020 PHY=00008a00
+K7 PHY: USB2=00101408 PIPE=010c0002 PHP=00000189
+K7 host start result=0; run 'k7host camera' after enumeration.
+K7 root port 0: reg=23400420 PORTSC=000006e1
+nsh> [K
+[CPU0] k7-usb-a: port 1: device attached at high speed, 480Mbps
+[CPU0] K7 HUB: addr=1 ports=4 speed=3
+K7 CAMERA ENUMERATED: 32e6:9221 address=2 speed=3 config_bytes=613
+
+k7host camera
+camera connected=1 committed=0 descriptor_bytes=613
+IF 0 alt=0 class=0e subclass=01 endpoints=1
+ UVC version=0100
+ video EP=81 transfer=3 packet=16 transactions=1 interval=6
+IF 1 alt=0 class=0e subclass=02 endpoints=0
+ frame subtype=7 index=1 width=1920 height=1080
+ frame subtype=7 index=2 width=1280 height=720
+ frame subtype=7 index=3 width=800 height=600
+ frame subtype=7 index=4 width=640 height=480
+me subtype=5 index=1 width=1280 height=720
+ frame subtype=5 index=2 width=640 height=480
+IF 1 alt=1 class=0e subclass=02 endpoints=1
+ video EP=82 transfer=1 packet=1024 transactions=3 interval=1
+IF 1 alt=2 class=0e subclass=02 endpoints=1
+ video EP=82 transfer=1 packet=880 transactions=3 interval=1
+IF 1 alt=3 class=0e subclass=02 endpoints=1
+ video EP=82 transfer=1 packet=1024 transactions=2 interval=1
+IF 1 alt=4 class=0e subclass=02 endpoints=1
+ video EP=82 transfer=1 packet=800 transactions=2 interval=1
+IF 1 alt=5 class=0e subclass=02 endpoints=1
+ video EP=82 transfer=1 packet=1024 transactions=1 interval=1
+IF 1 alt=6 class=0e subclass=02 endpoints=1
+ video EP=82 transfer=1 packet=512 transactions=1 interval=1
+IF 2 alt=0 class=01 subclass=01 endpoints=0
+IF 3 alt=0 class=01 subclass=02 endpoints=0
+IF 3 alt=1 class=01 subclass=02 endpoints=1
+Use probe, then snapshot, burst or stream (one capture attempt per boot).
+nsh> [K
+k7host probe
+UVC request MJPEG 640x480 format=1 frame=4 interval=333333 IF=1
+UVC SET_INTERFACE alt0 ret=0
+UVC GET_CUR PROBE ret=0
+UVC SET_CUR PROBE ret=0
+UVC negotiated ret=0 format=1 frame=4 interval=333333 max_frame=153600 payload=3072
+UVC SET_CUR COMMIT ret=0
+UVC probe result=0 committed=1 (no streaming yet)
+nsh> [K

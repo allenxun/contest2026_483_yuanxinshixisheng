@@ -1,0 +1,73 @@
+--- a/app/k7sound/duplex.c
++++ b/app/k7sound/duplex.c
+@@ -57,13 +57,16 @@
+   return e->rc;}
+  return rc;
+ }
+-int dl_run(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+- uint32_t*capture,unsigned capacity,unsigned frames,struct dl_result*r)
++static int run_route(const struct dl_port*p,int prepared,int common,uint32_t mclk,
++ uint32_t*capture,unsigned capacity,unsigned frames,int route,struct dl_result*r)
+ {
+- uint32_t v,t,x,mask,value;unsigned i;uint64_t now;
++ uint32_t v,t,x,mask,value,pathmask;unsigned i;uint64_t now;
+  int rc=-5,clocks_attempted=0,path_saved=0;
+  if(!r)return -22;
+  memset(r,0,sizeof(*r));
++ if(route!=DL_ROUTE_DEFAULT&&route!=DL_ROUTE_RX_ALL_SDI0)return r->result=-22;
++ if(route==DL_ROUTE_RX_ALL_SDI0&&frames!=128)return r->result=-22;
++ pathmask=route==DL_ROUTE_RX_ALL_SDI0?0x00fcff03u:0x00fc0303u;
+  if(!p||!p->read||!p->write||!p->us||!p->amp_low||!capture||
+     frames<8||frames>DL_MAX_FRAMES||capacity<2*frames)return r->result=-22;
+  if(!prepared||!common||mclk!=4096000)return r->result=-38;
+@@ -89,14 +92,14 @@
+     mod(p,SAI_TX_SHIFT,SAI_XSHIFT_RIGHT_MASK,2)||
+     mod(p,SAI_RX_SHIFT,SAI_XSHIFT_RIGHT_MASK,2)||
+     mod(p,SAI_FSCR,0x1ffffff,0x101f03f)||mod(p,SAI_CKR,0x7fff,0x18)||
+-    mod(p,SAI_PATH_SEL,0xfc0303,0x40000)||
++    mod(p,SAI_PATH_SEL,pathmask,0x40000)||
+     mod(p,SAI_INTCR,SAI_INTCR_TXUIC|SAI_INTCR_RXOIC,
+         SAI_INTCR_TXUIC|SAI_INTCR_RXOIC))goto done;
+  if(expect(p,SAI_TXCR,mask,value)||expect(p,SAI_RXCR,mask,value)||
+     expect(p,SAI_TX_SHIFT,UINT32_MAX,2)||expect(p,SAI_RX_SHIFT,UINT32_MAX,2)||
+     expect(p,SAI_FSCR,0x1ffffff,0x101f03f)||expect(p,SAI_CKR,0x7fff,0x18)||
+     rd(p,SAI_PATH_SEL,&r->path_active))goto done;
+- if(r->path_active!=((r->path_before&~0xfc0303u)|0x40000u)){rc=-71;goto done;}
++ if(r->path_active!=((r->path_before&~pathmask)|0x40000u)){rc=-71;goto done;}
+  if((rc=delay20(p)))goto done;
+  rc=-5;clocks_attempted=1;
+  if(mod(p,SAI_XFER,3,3)||expect(p,SAI_XFER,15,3))goto done;
+@@ -127,11 +130,18 @@
+  if(clocks_attempted)r->stop_rc=stop(p);
+  else if(expect(p,SAI_XFER,15,0)||expect(p,SAI_STATUS,14,14))r->stop_rc=-16;
+  if(!r->stop_rc&&path_saved){
+-  r->restore_rc=mod(p,SAI_PATH_SEL,0xfc0303,r->path_before);
++  r->restore_rc=mod(p,SAI_PATH_SEL,pathmask,r->path_before);
+   if(!r->restore_rc)r->restore_rc=rd(p,SAI_PATH_SEL,&r->path_restored);
+-  if(!r->restore_rc&&(r->path_restored&0xfc0303)!=(r->path_before&0xfc0303))r->restore_rc=-71;
++  if(!r->restore_rc&&(r->path_restored&pathmask)!=(r->path_before&pathmask))r->restore_rc=-71;
+  }
+  if(!r->stop_rc&&!r->restore_rc&&!r->amp_rc)r->held=0;
+  r->result=rc?rc:(r->stop_rc?r->stop_rc:(r->restore_rc?r->restore_rc:r->amp_rc));
+  return r->result;
+ }
++
++int dl_run(const struct dl_port*p,int prepared,int common,uint32_t mclk,
++ uint32_t*capture,unsigned capacity,unsigned frames,struct dl_result*r)
++{return run_route(p,prepared,common,mclk,capture,capacity,frames,DL_ROUTE_DEFAULT,r);}
++int dl_run_route(const struct dl_port*p,int prepared,int common,uint32_t mclk,
++ uint32_t*capture,unsigned capacity,unsigned frames,int route,struct dl_result*r)
++{return run_route(p,prepared,common,mclk,capture,capacity,frames,route,r);}
+--- a/app/k7sound/duplex.h
++++ b/app/k7sound/duplex.h
+@@ -29,4 +29,10 @@
+ int dl_run(const struct dl_port *,int prepared,int common_clock_verified,
+  uint32_t mclk,uint32_t *capture,unsigned capacity,unsigned frames,
+  struct dl_result *);
++/* Only explicit RX_ALL mode changes PATH[15:8] to select SDI0 for all
++ * RX paths. Requires frames=128. All original stop/amp/fault fences remain.
++ * Default dl_run remains source compatible and preserves RX paths1..3. */
++enum {DL_ROUTE_DEFAULT=0,DL_ROUTE_RX_ALL_SDI0=1};
++int dl_run_route(const struct dl_port *,int,int,uint32_t,uint32_t *,unsigned,
++ unsigned frames,int route,struct dl_result *);
+ #endif

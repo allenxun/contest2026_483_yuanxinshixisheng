@@ -1,0 +1,37 @@
+{
+  "updated_at": "2026-09-09T09:22:57.626015+00:00",
+  "running_revision": "wifi-ip-rx-20260909",
+  "boot": "RAM",
+  "firmware_sha256": "a6d7410907e80e5494ecd3cfa5e02a6b9266915891d5ffe191b9a4aaa448a160",
+  "wpa2_hardware_passed": true,
+  "dhcp_hardware_passed": true,
+  "test_ssid": "Lansee",
+  "tested_ip": "10.3.0.214",
+  "tested_gateway": "10.3.0.1",
+  "gateway_ping": {
+    "sent": 30,
+    "received": 30,
+    "loss_percent": 0
+  },
+  "wrong_password": {
+    "authenticated": false,
+    "keys_installed": false,
+    "ip_acquired": false,
+    "cleanup_passed": true
+  },
+  "correct_password_retry_passed": true,
+  "ble_wifi_coexistence_passed": false,
+  "frontend_connect": false,
+  "current_device_scope": "Rebooted same RAM image for user-requested phone BLE retry; Wi-Fi not yet reconnected after that reboot",
+  "emmc_written": false,
+  "stm32_written": false,
+  "gimbal_started": false,
+  "evidence": {
+    "lansee-ip-01.jsonl": "6f546afced0e90752c2355264d185d5b60dfd71172a69bfac42f17014e3877dc",
+    "lansee-reconnect-02.jsonl": "ca702e00618acba908313c8b18bd9742779363b00f84572c7219272c1a5013d3",
+    "ping-gateway.bin": "50b5b964eaa7a8bd05e1cdb88399a1434c45681b4278696ef583275dc750d118",
+    "ping-coexist-01.bin": "75a035a442482bcf70d857ad63555e5e08828323e176b84798d69e81ef47fb95",
+    "wrong-password-01.jsonl": "678d0475a525f44f416768f0b88c44f877cf7e3c919f21472518a6d7422f88d3",
+    "disconnect-01.bin": "20e03f62bc09fc68f395e126ea464d3342ca618db8286ff36b715937013dd728"
+  }
+}

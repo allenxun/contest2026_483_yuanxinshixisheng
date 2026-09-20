@@ -1,0 +1,45 @@
+{
+  "input_path": "E:\\openvela\\VelaVision\\port\\tracked\\nuttx\\fs\\fat\\fs_fat32dirent.c",
+  "input_sha256": "2cb3dfec0c3005ebcf283108e9646241339dd3724f0091d0f79f7bb6e6285338",
+  "candidate_sha256": "8de2d42642d1bc9303f603706f37d533762c0b1414b9cd962c6d0b64c10633a4",
+  "guarded_functions": [
+    "fat_createalias",
+    "fat_findalias",
+    "fat_uniquealias",
+    "fat_allocatesfnentry",
+    "fat_allocatelfnentry",
+    "fat_putsfname",
+    "fat_initlfname",
+    "fat_putlfnchunk",
+    "fat_putlfname",
+    "fat_putsfdirentry"
+  ],
+  "scope": "Preprocessor/call-site audit only; complete target compilation remains root work",
+  "checks": [
+    {
+      "features": [],
+      "default_token_equivalence": true,
+      "readonly_removed_all_ten_helpers_and_declarations": true,
+      "read_helpers_retained": true
+    },
+    {
+      "features": [
+        "CONFIG_FAT_LFN"
+      ],
+      "default_token_equivalence": true,
+      "readonly_removed_all_ten_helpers_and_declarations": true,
+      "read_helpers_retained": true
+    },
+    {
+      "features": [
+        "CONFIG_FAT_LFN",
+        "CONFIG_FAT_LFN_UTF8",
+        "CONFIG_FAT_LCNAMES",
+        "CONFIG_FAT_LFN_ALIAS_HASH"
+      ],
+      "default_token_equivalence": true,
+      "readonly_removed_all_ten_helpers_and_declarations": true,
+      "read_helpers_retained": true
+    }
+  ]
+}

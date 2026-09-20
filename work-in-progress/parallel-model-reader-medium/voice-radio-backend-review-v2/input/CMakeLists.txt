@@ -1,0 +1,12 @@
+if(CONFIG_EXAMPLES_K7RADIO)
+  add_compile_definitions(CJSON_NESTING_LIMIT=4)
+  include_directories(${NUTTX_DIR}/wireless/bluetooth)
+  include(${CMAKE_CURRENT_LIST_DIR}/supplicant.cmake)
+  set(SKW_IP_SOURCES)
+  if(CONFIG_EXAMPLES_K7RADIO_IP)
+    list(APPEND SKW_IP_SOURCES skw_netdev.c)
+  endif()
+  nuttx_add_application(NAME k7radio SRCS k7radio_main.c skw_bus.c skw_dw.c skw_rk3576.c skw_packet.c skw_bt.c skw_wpa_transport.c prov_protocol.c cJSON.c
+                        ${SKW_SUPPLICANT_SOURCES} skw_random.c ${SKW_IP_SOURCES}
+                        STACKSIZE 16384 PRIORITY 100)
+endif()

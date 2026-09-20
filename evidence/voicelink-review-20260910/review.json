@@ -1,0 +1,33 @@
+{
+  "source": "E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink",
+  "source_hashes": {
+    "src/board_hooks_k7.c": "d67255aa03b2470a222034895327ec71d1bd23a17e7976fcf2aab8bd5cd95eca",
+    "src/core.cpp": "7db207b085e26ea5ea08d4cf6cfbd32c7fe9183999e3280a6f6f3ca465efbef3",
+    "src/main.cpp": "0fe89dc564a73da352045861edddb964e4f4f66f763fb6d08295a1b181ede210",
+    "src/parsers.cpp": "914a9a6734d9e442eca9e34acf3c8811a98b6a7af2d18f72d2b7b1192f1ae8ce",
+    "src/platform_openvela.cpp": "d96bb5527953fe3faf9b72b09484c55bb86fad9c8ae89da23bddbbb42ed36f46",
+    "src/speech_engine_k7.cpp": "da663c5174d18f70c7840e99f9229deaceb6cedb6c2d91445d847d4724a63561",
+    "include/voicelink/board_hooks.h": "6a16e71cef2733a99e1a883759db757e22752ca8a615bceb6128a13d2be28bae",
+    "include/voicelink/controller.hpp": "a692d6242501d3c88e0f3fbb0b46997b863c4921b6f9e2155c11a3e28ab76015",
+    "include/voicelink/parsers.hpp": "5205f1e9e1d95386789054e4d1bd07762874e2edaae2453399d75cecd0cf764a",
+    "include/voicelink/platform.hpp": "1bdbcc46b8fdca2cdd29c40cd119545f961b2421dcdcbed198f310f0e3d1f8b4",
+    "include/voicelink/ports.hpp": "c1430e442842d5ce77f477bafc9880c8be4e436d3af48313edbbc9d9f83657fe",
+    "include/voicelink/speech_engine.h": "83597e914d2751f40441ba8befb1516a071f36702d35f42abae463b0b8249f04",
+    "include/voicelink/types.hpp": "17fb2a05d7bdf5d8b8891399714bc4df65a4dc32d51f84f15af50c7a28e7b05b",
+    "tests/test_io_status.cpp": "8809afe698a31d840164549c2522dc5f5826d15ed09ccd98c58c23c01c87062d",
+    "tests/test_network_selection.cpp": "20995ac946be328b196338ca197a1089cf93abcc78503f18bcbc9f4a01175c9a",
+    "tests/test_parsers.cpp": "967249274549663134815985ce3239c1749255d7702b215df545877662017245",
+    "tests/test_password.cpp": "bff06e8178c1a526087185327423fa5b5662c4b2acb1a6f48d76a144db3c86b5",
+    "tests/test_wake_word.cpp": "9a4950e3c2f51a0083a64da53ea7031a8305bbaa5717d650b7d8f632d07715c5"
+  },
+  "host_tests": [
+    "test_io_status",
+    "test_network_selection",
+    "test_parsers",
+    "test_password",
+    "test_wake_word"
+  ],
+  "scope": "Fresh MinGW C++17 core/parser tests only. No speech engine, board hooks or target link tested.",
+  "target_deployed": false,
+  "firmware_modified": false
+}

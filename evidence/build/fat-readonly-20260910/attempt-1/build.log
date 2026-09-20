@@ -1,0 +1,247 @@
+{"result": "PASS", "source_files": 1062, "changes": 10, "applied": true}
+-- Found Python3: /usr/bin/python3.10 (found version "3.10.12") found components: Interpreter 
+-- Initializing NuttX
+CMake Warning at cmake/nuttx_kconfig.cmake:182 (message):
+  Kconfig Configuration Error:
+  /home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/.config.compressed:2720:
+  warning: USBHOST_MSC (defined at drivers/usbhost/Kconfig:126) set more than
+  once.  Old value "n", new value "y".
+
+Call Stack (most recent call first):
+  CMakeLists.txt:358 (nuttx_olddefconfig)
+
+
+Loaded configuration '/home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/.config.compressed'
+Minimal configuration saved to '/home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/defconfig.tmp'
+  Select HOST_LINUX=y
+--   CMake:  3.23.0
+--   Ninja:  1.12.1
+--   Board:  kickpi_k7
+--   Config: velavision_fat_readonly_local
+--   Appdir: /home/swl/openvela/apps
+-- The C compiler identification is GNU 11.4.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /home/swl/openvela/prebuilts/tools/linux/x86_64/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- NuttX Host Tools
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/bin_host
+-- The C compiler identification is GNU 13.4.0
+-- The CXX compiler identification is GNU 13.4.0
+-- The ASM compiler identification is GNU
+-- Found assembler: /home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-gcc
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/swl/openvela/cmake_out/velavision_fat_readonly_20260910
+[1/1] cd /home/swl/openvela/nuttx && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E copy /home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_fat_readonly_local/defconfig /home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/.config && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E env KCONFIG_CONFIG=/home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/.config EXTERNALDIR=dummy APPSDIR=/home/swl/openvela/apps DRIVERS_PLATFORM_DIR=dummy APPSBINDIR=/home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/apps BINDIR=/home/swl/openvela/cmake_out/velavision_fat_readonly_20260910 olddefconfig && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E copy /home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/.config /home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/.config.orig && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E touch /home/swl/openvela/nuttx/CMakeLists.txt
+/home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/.config:2720: warning: USBHOST_MSC (defined at drivers/usbhost/Kconfig:126) set more than once. Old value "n", new value "y".
+Loaded configuration '/home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/.config'
+Configuration saved to '/home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/.config'
+[0/1] Re-running CMake...
+-- NuttX Host Tools
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/bin_host
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/swl/openvela/cmake_out/velavision_fat_readonly_20260910
+[1/1635] cd /home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/libs/libc/misc && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E touch /home/swl/openvela/nuttx/libs/libc/misc/lib_utsname.c
+[2/1635] Generating bin output directories
+[3/1635] Generating dramboot.ld.tmp
+[4/1635] cd /home/swl/openvela/nuttx && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -DKCONFIG_CONFIG=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_fat_readonly_local/defconfig -DNUTTX_DIR=/home/swl/openvela/nuttx -DCMAKE_BINARY_DIR=/home/swl/openvela/cmake_out/velavision_fat_readonly_20260910 -P /home/swl/openvela/nuttx/cmake/nuttx_generate_dts.cmake
+[5/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jaricom.c.o
+[6/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcapistd.c.o
+[7/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcapimin.c.o
+[8/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jccoefct.c.o
+[9/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcicc.c.o
+[10/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcdctmgr.c.o
+[11/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcinit.c.o
+[12/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcarith.c.o
+[13/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcmainct.c.o
+[14/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jccolor.c.o
+[15/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcomapi.c.o
+[16/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcmarker.c.o
+[17/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcmaster.c.o
+[18/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcparam.c.o
+[19/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcprepct.c.o
+[20/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdapimin.c.o
+[21/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcsample.c.o
+[22/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jctrans.c.o
+[23/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jcphuff.c.o
+[24/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdatasrc-tj.c.o
+[25/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdatadst-tj.c.o
+[26/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdapistd.c.o
+[27/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdatadst.c.o
+[28/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdatasrc.c.o
+[29/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jddctmgr.c.o
+[30/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdarith.c.o
+[31/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdicc.c.o
+[32/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdinput.c.o
+[33/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdcoefct.c.o
+[34/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdmainct.c.o
+[35/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdhuff.c.o
+[36/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdmaster.c.o
+[37/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdcolor.c.o
+[38/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdpostct.c.o
+[39/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdtrans.c.o
+[40/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdmarker.c.o
+[41/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdphuff.c.o
+[42/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdsample.c.o
+[43/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jerror.c.o
+[44/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jfdctflt.c.o
+[45/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jfdctfst.c.o
+[46/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jfdctint.c.o
+[47/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jdmerge.c.o
+[48/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jidctflt.c.o
+[49/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jidctfst.c.o
+[50/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jidctred.c.o
+[51/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jmemnobs.c.o
+[52/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jpegtran.c.o
+[53/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jmemmgr.c.o
+[54/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jquant1.c.o
+[55/1635] Building ASM object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_vector_table.S.o
+[56/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jutils.c.o
+[57/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jsimd_none.c.o
+[58/1635] Building ASM object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_fork_func.S.o
+[59/1635] Building ASM object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_vectors.S.o
+[60/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jquant2.c.o
+[61/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_initialize.c.o
+[62/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_boot.c.o
+[63/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_initialstate.c.o
+[64/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_nputs.c.o
+[65/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_releasestack.c.o
+[66/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_createstack.c.o
+[67/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jidctint.c.o
+[68/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_stackframe.c.o
+[69/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_usestack.c.o
+[70/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_getintstack.c.o
+[71/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_perf.c.o
+[72/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_exit.c.o
+[73/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_fork.c.o
+[74/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_registerdump.c.o
+[75/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_tcbinfo.c.o
+[76/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_cpuidlestack.c.o
+[77/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_schedulesigaction.c.o
+[78/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_sigdeliver.c.o
+[79/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_arch_timer.c.o
+[80/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_doirq.c.o
+[81/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_cache.c.o
+[82/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_allocateheap.c.o
+[83/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_idle.c.o
+[84/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_fatal.c.o
+[85/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_syscall.c.o
+[86/1635] Building ASM object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_smccc.S.o
+[87/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_gicv2.c.o
+[88/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_cpu_psci.c.o
+[89/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_cpustart.c.o
+[90/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_hwdebug.c.o
+[91/1635] Building ASM object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_fpu_func.S.o
+[92/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_mmu.c.o
+[93/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_smpcall.c.o
+[94/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_fpu.c.o
+[95/1635] Building ASM object arch/CMakeFiles/arch.dir/arm64/src/rk3576/rk3576_lowputc.S.o
+[96/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_checkstack.c.o
+[97/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_backtrace.c.o
+[98/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/rk3576/rk3576_boot.c.o
+[99/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/rk3576/rk3576_serial.c.o
+[100/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_globals.c.o
+[101/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/rk3576/rk3576_uart6.c.o
+[102/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_initialize.c.o
+[103/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/rk3576/rk3576_model_arena.c.o
+[104/1635] Building C object arch/CMakeFiles/arch.dir/arm64/src/rk3576/rk3576_usbhost.c.o
+[105/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_register.c.o
+[106/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_unregister.c.o
+[107/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_loadmodule.c.o
+[108/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_unloadmodule.c.o
+[109/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_copyargv.c.o
+[110/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_execmodule.c.o
+[111/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_exec.c.o
+[112/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_copyactions.c.o
+[113/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_copyattr.c.o
+[114/1635] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_dumpmodule.c.o
+[115/1635] Building C object binfmt/CMakeFiles/binfmt.dir/builtin.c.o
+[116/1635] Building C object drivers/CMakeFiles/drivers.dir/bch/bchlib_setup.c.o
+[117/1635] Building C object drivers/CMakeFiles/drivers.dir/bch/bchlib_teardown.c.o
+[118/1635] Building C object drivers/CMakeFiles/drivers.dir/bch/bchlib_read.c.o
+[119/1635] Building C object drivers/CMakeFiles/drivers.dir/bch/bchlib_write.c.o
+[120/1635] Building C object drivers/CMakeFiles/drivers.dir/bch/bchdev_register.c.o
+[121/1635] Building C object drivers/CMakeFiles/drivers.dir/bch/bchlib_cache.c.o
+[122/1635] Building C object drivers/CMakeFiles/drivers.dir/bch/bchdev_unregister.c.o
+[123/1635] Building C object drivers/CMakeFiles/drivers.dir/misc/dev_null.c.o
+[124/1635] Building C object drivers/CMakeFiles/drivers.dir/misc/dev_zero.c.o
+[125/1635] Building C object drivers/CMakeFiles/drivers.dir/misc/ramdisk.c.o
+[126/1635] Building C object drivers/CMakeFiles/drivers.dir/loop/losetup.c.o
+[127/1635] Building C object drivers/CMakeFiles/drivers.dir/misc/mkrd.c.o
+[128/1635] Building C object drivers/CMakeFiles/drivers.dir/bch/bchdev_driver.c.o
+[129/1635] Building C object drivers/CMakeFiles/drivers.dir/pipes/pipe.c.o
+[130/1635] Building C object drivers/CMakeFiles/drivers.dir/pipes/fifo.c.o
+[131/1635] Building C object drivers/CMakeFiles/drivers.dir/pipes/pipe_common.c.o
+[132/1635] Building C object drivers/CMakeFiles/drivers.dir/syslog/syslog_initialize.c.o
+[133/1635] Building C object drivers/CMakeFiles/drivers.dir/serial/serial_io.c.o
+[134/1635] Building C object drivers/CMakeFiles/drivers.dir/serial/uart_16550.c.o
+[135/1635] Building C object drivers/CMakeFiles/drivers.dir/syslog/setlogmask.c.o
+[136/1635] Building C object drivers/CMakeFiles/drivers.dir/syslog/vsyslog.c.o
+[137/1635] Building C object drivers/CMakeFiles/drivers.dir/net/netdev_upperhalf.c.o
+[138/1635] Building C object drivers/CMakeFiles/drivers.dir/syslog/syslog_write.c.o
+[139/1635] Building C object drivers/CMakeFiles/drivers.dir/syslog/syslog_channel.c.o
+[140/1635] Building C object drivers/CMakeFiles/drivers.dir/syslog/syslog_flush.c.o
+[141/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_registry.c.o
+[142/1635] Building C object drivers/CMakeFiles/drivers.dir/syslog/ramlog.c.o
+[143/1635] Building C object drivers/CMakeFiles/drivers.dir/timers/oneshot.c.o
+[144/1635] Building C object apps/external/libjpeg-turbo/CMakeFiles/turbojpeg-static.dir/libjpeg-turbo/jchuff.c.o
+[145/1635] Building C object drivers/CMakeFiles/drivers.dir/serial/serial.c.o
+[146/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_registerclass.c.o
+[147/1635] Building C object drivers/CMakeFiles/drivers.dir/timers/arch_alarm.c.o
+[148/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_findclass.c.o
+[149/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_waiter.c.o
+[150/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_drivers.c.o
+[151/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_xhci_rk3576_trace.c.o
+[152/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_enumerate.c.o
+[153/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_devaddr.c.o
+[154/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_trace.c.o
+[155/1635] Building C object drivers/CMakeFiles/drivers.dir/wireless/bluetooth/bt_driver.c.o
+[156/1635] Building C object drivers/CMakeFiles/drivers.dir/drivers_initialize.c.o
+[157/1635] Building C object fs/CMakeFiles/fs.dir/fs_heap.c.o
+[158/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_hub.c.o
+[159/1635] Building C object fs/CMakeFiles/fs.dir/fs_initialize.c.o
+[160/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_registerpipedriver.c.o
+[161/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_unregisterdriver.c.o
+[162/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_registerdriver.c.o
+[163/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_unregisterpipedriver.c.o
+[164/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_registerblockdriver.c.o
+[165/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_unregisterblockdriver.c.o
+[166/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_findblockdriver.c.o
+[167/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_storage.c.o
+[168/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_openblockdriver.c.o
+[169/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_closeblockdriver.c.o
+[170/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_findmtddriver.c.o
+[171/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_closemtddriver.c.o
+[172/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_blockpartition.c.o
+[173/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_blockmerge.c.o
+[174/1635] Building C object fs/CMakeFiles/fs.dir/driver/fs_blockproxy.c.o
+[175/1635] Building C object fs/CMakeFiles/fs.dir/fat/fs_fat32dirent.c.o
+FAILED: fs/CMakeFiles/fs.dir/fat/fs_fat32dirent.c.o 
+/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-gcc -D__KERNEL__ -D__NuttX__ -I/home/swl/openvela/apps/frameworks/security/include -I/home/swl/openvela/nuttx/fs -I/home/swl/openvela/nuttx/sched -isystem /home/swl/openvela/nuttx/include -isystem /home/swl/openvela/cmake_out/velavision_fat_readonly_20260910/include -march=armv8-a -mcpu=cortex-a53 -Os -fno-strict-aliasing -fno-omit-frame-pointer -D_LDBL_EQ_DBL -fno-common -Wall -Wshadow -Wundef -Wno-attributes -Wno-unknown-pragmas -Werror -Wstrict-prototypes -Wno-psabi -ffunction-sections -fdata-sections -g3 -fdiagnostics-color=always -fmacro-prefix-map=/home/swl/openvela/nuttx= -fmacro-prefix-map=/home/swl/openvela/apps= -fmacro-prefix-map=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7= -fmacro-prefix-map=/home/swl/openvela/nuttx/arch/arm64/src/rk3576= -MD -MT fs/CMakeFiles/fs.dir/fat/fs_fat32dirent.c.o -MF fs/CMakeFiles/fs.dir/fat/fs_fat32dirent.c.o.d -o fs/CMakeFiles/fs.dir/fat/fs_fat32dirent.c.o -c /home/swl/openvela/nuttx/fs/fat/fs_fat32dirent.c
+/home/swl/openvela/nuttx/fs/fat/fs_fat32dirent.c:2478:12: error: 'fat_putsfdirentry' defined but not used [-Werror=unused-function]
+ 2478 | static int fat_putsfdirentry(FAR struct fat_mountpt_s *fs,
+      |            ^~~~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors
+[176/1635] Building C object fs/CMakeFiles/fs.dir/fat/fs_fat32attrib.c.o
+[177/1635] Building C object fs/CMakeFiles/fs.dir/fat/fs_fat32util.c.o
+[178/1635] Building C object fs/CMakeFiles/fs.dir/inode/fs_files.c.o
+[179/1635] Building C object fs/CMakeFiles/fs.dir/fat/fs_fat32.c.o
+[180/1635] Building C object drivers/CMakeFiles/drivers.dir/usbhost/usbhost_xhci_rk3576.c.o
+ninja: build stopped: subcommand failed.

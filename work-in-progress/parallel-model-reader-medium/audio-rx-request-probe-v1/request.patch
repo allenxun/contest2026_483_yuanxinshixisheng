@@ -1,0 +1,93 @@
+--- a/app/k7sound/pio.c
++++ b/app/k7sound/pio.c
+@@ -225,3 +225,74 @@
+ int pio_run_clockwait(const struct pio_port*p,int prepared,uint32_t mclk,int tx,
+  uint32_t *capture,unsigned capacity,unsigned frames,struct pio_result*out)
+ {return run(p,prepared,mclk,tx,capture,capacity,frames,out,NULL,0,0,1);}
++
++/* Isolated callback adapter: original run/stop and all existing entry points
++ * remain byte-identical. Only explicit new API uses these callbacks. */
++struct request_proxy {const struct pio_port*p;struct pio_rx_request_report*r;};
++static int request_read(void*x,uint32_t o,uint32_t*v)
++{
++ struct request_proxy*q=x;int e=q->p->read(q->p->ctx,o,v);
++ if(o==SAI_DMACR && !q->r->initial_seen){
++  q->r->initial_seen=1;q->r->initial_rc=e;
++  if(!e)q->r->initial_dmacr=*v;
++ }
++ return e;
++}
++static int request_write(void*x,uint32_t o,uint32_t v)
++{
++ struct request_proxy*q=x;struct pio_rx_request_report*r=q->r;uint32_t d;int e;
++ if(o==SAI_XFER && (v&SAI_XFER_RXS_MASK) && !r->enable_attempted){
++  unsigned i;
++  for(i=0;i<8;i++)r->mask_rc[i]=q->p->read(q->p->ctx,0x3cu+4u*i,&r->slot_masks[i]);
++  e=q->p->read(q->p->ctx,SAI_DMACR,&d);if(e)return e;
++  if(d&(SAI_DMACR_RDE_MASK|SAI_DMACR_TDE_MASK))return -16;
++  r->enable_attempted=1;
++  e=q->p->write(q->p->ctx,SAI_DMACR,d|SAI_DMACR_RDE_MASK);
++  if(e){r->enabled_rc=e;return e;}
++  r->enabled_rc=q->p->read(q->p->ctx,SAI_DMACR,&r->enabled_dmacr);
++  if(r->enabled_rc)return r->enabled_rc;
++  if(r->enabled_dmacr!=(d|SAI_DMACR_RDE_MASK)){r->enabled_rc=-5;return -5;}
++ }
++ /* Original stop first clears RXS after amp-off. Clear/verify RDE before
++  * allowing that write. Failure makes original stop retain held ownership. */
++ if(o==SAI_XFER && !(v&SAI_XFER_RXS_MASK) && r->enable_attempted && !r->disable_attempted){
++  r->disable_attempted=1;
++  e=q->p->read(q->p->ctx,SAI_DMACR,&d);
++  if(!e)e=q->p->write(q->p->ctx,SAI_DMACR,d&~SAI_DMACR_RDE_MASK);
++  r->final_rc=q->p->read(q->p->ctx,SAI_DMACR,&r->final_dmacr);
++  if(!e)e=r->final_rc;
++  if(!e && (r->final_dmacr&(SAI_DMACR_RDE_MASK|SAI_DMACR_TDE_MASK)))e=-5;
++  r->disable_rc=e;if(e)return e;
++ }
++ return q->p->write(q->p->ctx,o,v);
++}
++static uint64_t request_time(void*x){struct request_proxy*q=x;return q->p->us(q->p->ctx);}
++static int request_clocks(void*x){struct request_proxy*q=x;return q->p->clocks_started(q->p->ctx);}
++static int request_streams(void*x){struct request_proxy*q=x;return q->p->streams_started(q->p->ctx);}
++static int request_ampoff(void*x){struct request_proxy*q=x;return q->p->amp_off_fast(q->p->ctx);}
++int pio_run_rx_request(const struct pio_port*p,int prepared,uint32_t mclk,
++ uint32_t*capture,unsigned capacity,unsigned frames,struct pio_result*out,
++ struct pio_rx_request_report*r)
++{
++ struct request_proxy q;struct pio_port proxy;int rc;
++ if(!r || !out)return -22;
++ memset(r,0,sizeof *r);r->initial_rc=r->enabled_rc=r->final_rc=-38;
++ for(unsigned i=0;i<8;i++)r->mask_rc[i]=-38;
++ if(!p || !p->read || !p->write || !p->us || !p->clocks_started ||
++    !p->streams_started || !p->amp_off_fast){memset(out,0,sizeof *out);return out->result=-22;}
++ q.p=p;q.r=r;
++ proxy=(struct pio_port){&q,request_read,request_write,request_time,request_clocks,request_streams,request_ampoff,p->amplitude};
++ rc=pio_run(&proxy,prepared,mclk,0,capture,capacity,frames,out);
++ if(r->enable_attempted && !r->disable_attempted){
++  /* A stop pre-read can fail before request_write gets called. Never release. */
++  uint32_t d;int e;
++  r->disable_attempted=1;e=p->read(p->ctx,SAI_DMACR,&d);
++  if(!e)e=p->write(p->ctx,SAI_DMACR,d&~SAI_DMACR_RDE_MASK);
++  r->final_rc=p->read(p->ctx,SAI_DMACR,&r->final_dmacr);
++  if(!e)e=r->final_rc;
++  if(!e && (r->final_dmacr&(SAI_DMACR_RDE_MASK|SAI_DMACR_TDE_MASK)))e=-5;
++  r->disable_rc=e;out->held=1;
++  if(!rc)rc=out->result=e?e:-5;
++ }
++ return rc;
++}
+--- a/app/k7sound/pio.h
++++ b/app/k7sound/pio.h
+@@ -78,4 +78,13 @@
+ /* Opt-in 20us bounded wait after DIV, immediately before CLK/FS enable. */
+ int pio_run_clockwait(const struct pio_port *,int,uint32_t,int,
+  uint32_t *,unsigned,unsigned,struct pio_result *);
++/* Capture-only request experiment. No DMA engine access/submission. Caller
++ * must ensure no DMA engine channel can respond to SAI RX request. */
++struct pio_rx_request_report {
++ uint32_t initial_dmacr,enabled_dmacr,final_dmacr,slot_masks[8];
++ int initial_rc,enabled_rc,final_rc,mask_rc[8],disable_rc;
++ unsigned initial_seen,enable_attempted,disable_attempted;
++};
++int pio_run_rx_request(const struct pio_port *,int,uint32_t,uint32_t *,
++ unsigned,unsigned,struct pio_result *,struct pio_rx_request_report *);
+ #endif

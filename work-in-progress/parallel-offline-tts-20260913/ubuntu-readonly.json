@@ -1,0 +1,22 @@
+{
+  "inspected_at": "2026-09-13",
+  "mode": "read-only SSH inspection",
+  "path": "/home/swl/openvela/work/native-vits-lexicon-20260911/link1/session.o",
+  "bytes": 47967336,
+  "sha256": "e43242de83135f400ee8c72668813d92c534f6b6f0020e3525f14904d6a4c767",
+  "historic_link_result": {
+    "exit_code": 0,
+    "strong_undefined": 393,
+    "missing_count_against_sdk_definition_inventory": 0,
+    "firmware_linked": false,
+    "model_run": false,
+    "ort_kernel_set": "ASR+VITS registration; inference untested"
+  },
+  "required_tts_symbols_present": [
+    "SherpaOnnxCreateOfflineTts",
+    "SherpaOnnxDestroyOfflineTts",
+    "SherpaOnnxDestroyOfflineTtsGeneratedAudio",
+    "SherpaOnnxOfflineTtsGenerateWithCallbackWithArg"
+  ],
+  "scope": "Prior relocatable link evidence only. It is not a new compile/link of this candidate and not firmware or device proof."
+}

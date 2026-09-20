@@ -1,0 +1,25 @@
+--- sdk/app/k7sound/stream_ring.h
++++ app/k7sound/stream_ring.h
+@@ -3,7 +3,9 @@
+ #include <stdint.h>
+ #define K7_STREAM_SAMPLES 320u
+ #define K7_STREAM_BYTES 640u
+-#define K7_STREAM_SLOTS 32u
++/* A live request records 150 frames (3 seconds). Keep the entire bounded
++ * utterance if TCP stalls; the sender still drains frames as they arrive. */
++#define K7_STREAM_SLOTS 150u
+ /* Single producer / single consumer; initialize only while both are stopped.
+  * Publish a whole 20 ms frame with release/acquire. Overflow is fatal, never
+  * overwrite unconsumed microphone audio or silently skip sequence numbers. */
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -200,6 +200,9 @@
+   if(have_rx)pthread_join(receiver,NULL);
+   if(!rc)rc=p->receive_rc;
+   if(!rc && !p->completed)rc=-EIO;
++  printf("K7CLOUD asr_capture result=%d produced=%lu consumed=%lu slots=%u receive=%d\n",
++         p->capture_rc,(unsigned long)p->ring.produced,
++         (unsigned long)p->ring.consumed,K7_STREAM_SLOTS,p->receive_rc);
+   printf("K7CLOUD asr result=%d frames_sent=%lu completed=%d\n",rc,(unsigned long)count,p->completed);
+   printf("K7CLOUD timing asr_completed_us=%" PRIu64 " result=%d\n",p->completed_us,rc);
+   if(!rc && intent)*intent=k7_voice_result_intent(&p->result);

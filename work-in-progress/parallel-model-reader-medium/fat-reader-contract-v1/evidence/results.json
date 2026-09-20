@@ -1,0 +1,54 @@
+[
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-DOFF_BITS=64",
+      "selected.c",
+      "-o",
+      "evidence/contract64.exe"
+    ],
+    "timeout_seconds": 30,
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\fat-reader-contract-v1\\evidence\\contract64.exe"
+    ],
+    "timeout_seconds": 15,
+    "returncode": 0,
+    "stdout": "PASS off64: FAT sizes 0..UINT32_MAX; exact SEEK_SET >2GiB; beyond EOF allowed; stat/fstat identity collision; errors preserved\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-DOFF_BITS=32",
+      "selected.c",
+      "-o",
+      "evidence/contract32.exe"
+    ],
+    "timeout_seconds": 30,
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\fat-reader-contract-v1\\evidence\\contract32.exe"
+    ],
+    "timeout_seconds": 15,
+    "returncode": 0,
+    "stdout": "PASS off32 mock: UINT32_MAX narrows to -1 on this GCC; reader must require target off_t64\n",
+    "stderr": ""
+  }
+]

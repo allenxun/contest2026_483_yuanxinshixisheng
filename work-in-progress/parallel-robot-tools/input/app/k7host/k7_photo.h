@@ -1,0 +1,13 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+#ifndef K7_PHOTO_H
+#define K7_PHOTO_H
+#include "k7_track.h"
+#include <stddef.h>
+struct k7_photo_s;
+struct k7_photo_s *k7_photo_create(void);
+void k7_photo_destroy(struct k7_photo_s *);
+void k7_photo_process(struct k7_photo_s *,const uint8_t *,size_t,unsigned int,
+                      uint64_t,const struct k7_track_result_s *,unsigned int,bool);
+void k7_photo_ack(unsigned int,unsigned int,unsigned int,bool);
+void k7_photo_reset(void);
+#endif

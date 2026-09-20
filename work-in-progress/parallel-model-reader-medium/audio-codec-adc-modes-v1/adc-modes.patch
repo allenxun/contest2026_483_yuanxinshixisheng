@@ -1,0 +1,55 @@
+--- a/codec_duplex.c
++++ b/codec_duplex.c
+@@ -62,22 +62,28 @@
+  if(!c||!p||!p->now||!p->write||!p->read||!p->delay||!p->amp||!p->ready||!p->quiesce)return -EINVAL;
+  memset(c,0,sizeof(*c));c->io=*p;return 0;
+ }
+-int kd_prepare(struct kd_codec*c,unsigned bits,uint64_t d){
+- int e;if(!c || (bits!=16 && bits!=32))return -EINVAL;if(c->busy)return -EBUSY;if(c->state!=KD_OFF)return -EBUSY;
++int kd_prepare_adc_variant(struct kd_codec*c,unsigned bits,enum kd_adc_variant variant,uint64_t d){
++ int e;if(!c || (bits!=16 && bits!=32) ||
++   (variant!=KD_ADC_BASELINE && variant!=KD_ADC_COMMON_NORMAL && variant!=KD_ADC_VMID_50K))return -EINVAL;
++ if(c->busy)return -EBUSY;
++ if(c->state!=KD_OFF)return -EBUSY;
+  e=begin(c,d);if(e)return finish(c,e);c->state=KD_CONFIGURING;
+  c->word_bits=bits;
+  e=after(c,c->io.amp(c->io.arg,false,d),d);
+  if(!e)e=after(c,c->io.ready(c->io.arg,bits,4096000,32000u*bits,false,false,d),d);
+  for(size_t i=0;!e && i<sizeof(init)/sizeof(init[0]);i++){
+-  uint8_t value=init[i].value;
++  uint8_t value=init[i].value,verify=init[i].verify;
++  if(variant==KD_ADC_COMMON_NORMAL && init[i].reg==0x01 && value==0x60){value=0x40;verify=0x20;}
++  if(variant==KD_ADC_VMID_50K && init[i].reg==0x00 && value==0x36){value=0x35;verify=0x03;}
+   if(bits==32 && init[i].reg==0x0c)value=0x10;
+   if(bits==32 && init[i].reg==0x17)value=0x20;
+-  e=writev(c,init[i].reg,value,init[i].verify,d);
++  e=writev(c,init[i].reg,value,verify,d);
+   if(!e && init[i].delay)e=delayv(c,init[i].delay,d);
+  }
+  if(!e)c->state=KD_PREPARED;
+  return finish(c,e);
+ }
++int kd_prepare(struct kd_codec*c,unsigned bits,uint64_t d){return kd_prepare_adc_variant(c,bits,KD_ADC_BASELINE,d);}
+ static int activate(struct kd_codec*c,bool cap,bool play,bool immediate,uint64_t d){
+  int e;if(!c||(!cap&&!play))return -EINVAL;if(c->busy)return -EBUSY;
+  if(c->state!=KD_PREPARED && c->state!=KD_ACTIVE)return -EBUSY;
+--- a/codec_duplex.h
++++ b/codec_duplex.h
+@@ -4,6 +4,7 @@
+ #include <stddef.h>
+ #include <stdint.h>
+ enum kd_state { KD_OFF, KD_CONFIGURING, KD_PREPARED, KD_ACTIVE, KD_FAULT };
++enum kd_adc_variant { KD_ADC_BASELINE, KD_ADC_COMMON_NORMAL, KD_ADC_VMID_50K };
+ /* All callbacks serialized and deadline-bounded. 0=success, negative errno=failure.
+  * write: combined register/value TX2. read: repeated-start register TX1/RX1.
+  * amp(false) must physically disable GPIO2_B1. quiesce must JOIN old DMA/I/O.
+@@ -25,6 +26,9 @@
+ int kd_bind(struct kd_codec *,const struct kd_port *);
+ /* word_bits=16 or32, stereo slots of the same width, fixed Fs16000/MCLK4096000. */
+ int kd_prepare(struct kd_codec *,unsigned word_bits,uint64_t deadline);
++/* Explicit independent experiments, from KD_OFF only; no automatic retry/ramp.
++ * BASELINE=00:36/01:60; COMMON_NORMAL=36/40; VMID_50K=35/60. */
++int kd_prepare_adc_variant(struct kd_codec *,unsigned word_bits,enum kd_adc_variant,uint64_t deadline);
+ int kd_activate(struct kd_codec *,bool capture,bool playback,uint64_t deadline);
+ /* Prestart PIO hook: unmute +30ms playback wait, amplifier remains LOW. */
+ int kd_arm(struct kd_codec *,bool capture,bool playback,uint64_t deadline);

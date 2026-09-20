@@ -1,0 +1,52 @@
+[
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-O0",
+      "test.c",
+      "-o",
+      "test-O0.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-sai-clockwait-v1\\test-O0.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "opt-in wait=21 us frames=1 words=2\r\nPASS 20us/stalled/backward/opt-in/legacy/FIFO identical; synthetic actual candidate C\r\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-O2",
+      "test.c",
+      "-o",
+      "test-O2.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-sai-clockwait-v1\\test-O2.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "opt-in wait=21 us frames=1 words=2\r\nPASS 20us/stalled/backward/opt-in/legacy/FIFO identical; synthetic actual candidate C\r\n",
+    "stderr": ""
+  }
+]

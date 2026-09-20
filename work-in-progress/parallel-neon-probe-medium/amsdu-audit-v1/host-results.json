@@ -1,0 +1,56 @@
+{
+  "scope": "Actual parser header host tests; synthetic frames, not captured frames",
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-IE:\\openvela\\VelaVision\\app\\k7radio",
+        "E:\\openvela\\VelaVision\\tests\\wifi\\test_amsdu.c",
+        "-o",
+        "original.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\amsdu-audit-v1\\original.exe"
+      ],
+      "returncode": 0,
+      "stdout": "PASS: AMSDU complete-before-delivery, ordered release, duplicate/replay, mixed PN/sequence, orphan, timeout, bounds and unsupported subframe filtering\r\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-IE:\\openvela\\VelaVision\\app\\k7radio",
+        "replay_synthetic.c",
+        "-o",
+        "synthetic.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\amsdu-audit-v1\\synthetic.exe"
+      ],
+      "returncode": 0,
+      "stdout": "synthetic committed-floor equality -> EACCES, inspect=0, amsdu=0\r\nsynthetic committed-floor greater -> EACCES\r\nsynthetic newer pending group -> EACCES even at age1000ms (non-AMSDU path precedes expiry)\r\nsynthetic complete1/subframes2 plus non-AMSDU floor rejection is possible, NOT captured-frame replay\r\nPASS actual header implementation; all PN/addresses/payload synthetic; no hardware\r\n",
+      "stderr": ""
+    }
+  ]
+}

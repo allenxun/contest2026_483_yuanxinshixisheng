@@ -1,0 +1,30 @@
+{
+  "scope": "host portable reference only; ARM source not compiled or executed",
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\test_reference.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\reference-test.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\reference-test.exe"
+      ],
+      "returncode": 0,
+      "stdout": "reference PASS cases=132 lane_corruptions=2112 invalid_steps=132\n",
+      "stderr": ""
+    }
+  ]
+}

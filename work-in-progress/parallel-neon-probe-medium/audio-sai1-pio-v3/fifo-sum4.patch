@@ -1,0 +1,87 @@
+--- a/app/k7sound/pio.c
++++ b/app/k7sound/pio.c
+@@ -5,6 +5,16 @@
+ #define BIT(n) (UINT32_C(1)<<(n))
+ #define GENMASK(h,l) ((UINT32_MAX>>(31-(h))) & (UINT32_MAX<<(l)))
+ #include "input/rockchip_sai.h"
++/* Vendor rockchip_sai_get_fifo_count sums all four fields irrespective of
++ * configured serial lane count. Do not equate CSR with FIFO bank layout.
++ * Reserved high bits are not part of occupancy. */
++unsigned pio_fifo_count(uint32_t v)
++{
++  return ((v&SAI_FIFOLR_XFL0_MASK)>>SAI_FIFOLR_XFL0_SHIFT)+
++    ((v&SAI_FIFOLR_XFL1_MASK)>>SAI_FIFOLR_XFL1_SHIFT)+
++    ((v&SAI_FIFOLR_XFL2_MASK)>>SAI_FIFOLR_XFL2_SHIFT)+
++    ((v&SAI_FIFOLR_XFL3_MASK)>>SAI_FIFOLR_XFL3_SHIFT);
++}
+ int pio_summarize(const uint32_t *data,unsigned frames,struct pio_stats*out)
+ {
+   unsigned i,ch;int64_t v;
+@@ -81,7 +91,7 @@
+   if((v&14)!=14)return out->result=-16;
+   /* Refuse residue instead of attributing old FIFO data to this capture. */
+   if(rd(p,tx?SAI_TXFIFOLR:SAI_RXFIFOLR,&v))return out->result=-5;
+-  if(v&0xffffff)return out->result=-16;
++  if(pio_fifo_count(v))return out->result=-16;
+   out->held=1;
+   mask=SAI_XCR_START_SEL_MASK|SAI_XCR_EDGE_SHIFT_MASK|SAI_XCR_CSR_MASK|
+     SAI_XCR_SJM_MASK|SAI_XCR_FBM_MASK|SAI_XCR_SNB_MASK|SAI_XCR_VDJ_MASK|
+@@ -113,8 +123,9 @@
+       out->prefill_words++;
+     }
+     if(rd(p,SAI_TXFIFOLR,&v))goto done;
+-    out->max_fifo=v&63;
+-    if(v!=16){rc=-71;goto done;}
++    out->first_fifo_raw=out->last_fifo_raw=v;
++    out->max_fifo=pio_fifo_count(v);
++    if(out->max_fifo!=16){rc=-71;goto done;}
+     out->frames=8;
+   }
+   if(mod(p,SAI_XFER,tx?SAI_XFER_TXS_MASK:SAI_XFER_RXS_MASK,
+@@ -132,8 +143,9 @@
+     if(rd(p,SAI_INTSR,&v))goto done;
+     if(v&(tx?SAI_INTSR_TXUI_ACT:SAI_INTSR_RXOI_ACT)){rc=-75;goto done;}
+     if(rd(p,tx?SAI_TXFIFOLR:SAI_RXFIFOLR,&v))goto done;
+-    if(v&0xffffc0){rc=-71;goto done;}
+-    v&=63;
++    if(!tx&&!out->polls)out->first_fifo_raw=v;
++    out->last_fifo_raw=v;
++    v=pio_fifo_count(v);
+     if(v>out->max_fifo)out->max_fifo=v;
+     if(tx&&v>16){rc=-71;goto done;}
+     if(out->frames==frames) { if(!tx || !v){rc=0;goto done;}continue; }
+--- a/app/k7sound/pio.h
++++ b/app/k7sound/pio.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0-or-later */
+-#ifndef K7_SAI_PIO_V2_H
+-#define K7_SAI_PIO_V2_H
++#ifndef K7_SAI_PIO_V3_H
++#define K7_SAI_PIO_V3_H
+ #include <stdint.h>
+ #define PIO_FRAMES 48000u
+ #define PIO_MAX_AMPLITUDE (UINT32_C(1)<<27)
+@@ -23,15 +23,21 @@
+ };
+ struct pio_result {
+  unsigned frames,polls,prefill_words,max_fifo;
++ uint32_t first_fifo_raw,last_fifo_raw;
+  int result,stop_result,held,activation_result,start_result,amp_off_result;
+ };
+ struct pio_stats {int64_t sum[2];int32_t min[2],max[2];unsigned nonzero[2];};
+ int pio_summarize(const uint32_t *,unsigned,struct pio_stats *);
++/* Sum four6-bit fields as vendor get_fifo_count; never infer physical bank
++ * distribution or sample format from one field. Reserved high bits ignored. */
++unsigned pio_fifo_count(uint32_t);
+ /* V1 platform prerequisites retained: exclusive, codec raw32, actualMCLK,
+  * IRQ/DMA off, MMIO ordering, nonblocking read/write/time, VERSION23073576.
+- * Exactly16 prefill words with TX stopped; readback must be16. During TX
++ * Exactly16 prefill words with TX stopped; sum4 readback must be16. During TX
+  * enqueue pair only at count<=14; never knowingly exceed16. Observed FIFO
+- * occupancy is recorded. Full physical depth >=16 inferred from vendor
++ * occupancy total is recorded; first/last raw registers preserve all fields.
++ * For RX first raw is first loop observation (may be zero); TX is prefill.
++ * Full physical depth >=16 inferred from vendor
+  * threshold16/maxburst8, still requires actual FIFO evidence on this board.
+  * Capture capacity>=2*frames, frames1..48000 (384000bytes maximum).
+  * Playback frames8..3200 only; first root probe uses3200. Transfer deadline

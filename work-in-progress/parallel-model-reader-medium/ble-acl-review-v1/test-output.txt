@@ -1,0 +1,10 @@
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O0 -Wall -Wextra -Werror -Wpedantic E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\ble-acl-review-v1\skw_packet.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\ble-acl-review-v1\test_codec.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\ble-acl-review-v1\codec-O0.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\ble-acl-review-v1\codec-O0.exe
+PASS actual codec: valid port5 ACL accepted; nonzero pad/wrong H4-port/high channel/short ACL rejected; filler discarded. Synthetic bytes only, no observed failing ACL.
+exit=0
+$ D:/software/mingw64/mingw64/bin/gcc.exe -std=c11 -O2 -Wall -Wextra -Werror -Wpedantic E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\ble-acl-review-v1\skw_packet.c E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\ble-acl-review-v1\test_codec.c -o E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\ble-acl-review-v1\codec-O2.exe
+exit=0
+$ E:\openvela\VelaVision\work-in-progress\parallel-model-reader-medium\ble-acl-review-v1\codec-O2.exe
+PASS actual codec: valid port5 ACL accepted; nonzero pad/wrong H4-port/high channel/short ACL rejected; filler discarded. Synthetic bytes only, no observed failing ACL.
+exit=0

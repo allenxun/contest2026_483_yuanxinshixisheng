@@ -1,0 +1,358 @@
+{
+  "scope": "Windows host, mock Wi-Fi and fake sherpa C API; no model or board execution",
+  "session_id": "01a0892e-2964-7ec3-bd76-9ab4937980cb",
+  "cwd": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink",
+  "utc": "20260910T024748380029Z",
+  "passed": true,
+  "runs": [
+    {
+      "label": "compiler",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\compiler.txt"
+    },
+    {
+      "label": "baseline-test_io_status-build",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-Iinput/include",
+        "input/src/core.cpp",
+        "input/src/parsers.cpp",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\input\\tests\\test_io_status.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_io_status.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_io_status-build.txt"
+    },
+    {
+      "label": "baseline-test_io_status-test",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_io_status.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_io_status-test.txt"
+    },
+    {
+      "label": "baseline-test_network_selection-build",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-Iinput/include",
+        "input/src/core.cpp",
+        "input/src/parsers.cpp",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\input\\tests\\test_network_selection.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_network_selection.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_network_selection-build.txt"
+    },
+    {
+      "label": "baseline-test_network_selection-test",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_network_selection.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_network_selection-test.txt"
+    },
+    {
+      "label": "baseline-test_parsers-build",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-Iinput/include",
+        "input/src/core.cpp",
+        "input/src/parsers.cpp",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\input\\tests\\test_parsers.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_parsers.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_parsers-build.txt"
+    },
+    {
+      "label": "baseline-test_parsers-test",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_parsers.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_parsers-test.txt"
+    },
+    {
+      "label": "baseline-test_password-build",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-Iinput/include",
+        "input/src/core.cpp",
+        "input/src/parsers.cpp",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\input\\tests\\test_password.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_password.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_password-build.txt"
+    },
+    {
+      "label": "baseline-test_password-test",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_password.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_password-test.txt"
+    },
+    {
+      "label": "baseline-test_wake_word-build",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-Iinput/include",
+        "input/src/core.cpp",
+        "input/src/parsers.cpp",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\input\\tests\\test_wake_word.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_wake_word.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_wake_word-build.txt"
+    },
+    {
+      "label": "baseline-test_wake_word-test",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_wake_word.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\baseline-test_wake_word-test.txt"
+    },
+    {
+      "label": "candidate-async-build",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-Iinclude",
+        "src/core.cpp",
+        "src/parsers.cpp",
+        "tests/test_async.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-async.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-async-build.txt"
+    },
+    {
+      "label": "candidate-async-test",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-async.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-async-test.txt"
+    },
+    {
+      "label": "candidate-audio-build",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-Iinclude",
+        "-Ivendor",
+        "src/audio.cpp",
+        "tests/test_audio.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-audio.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-audio-build.txt"
+    },
+    {
+      "label": "candidate-audio-test",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-audio.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-audio-test.txt"
+    },
+    {
+      "label": "candidate-parsers-build",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-Iinclude",
+        "src/parsers.cpp",
+        "input/tests/test_parsers.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-parsers.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-parsers-build.txt"
+    },
+    {
+      "label": "candidate-parsers-test",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-parsers.exe"
+      ],
+      "exit_code": 0,
+      "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink\\evidence\\run-20260910T024748380029Z\\candidate-parsers-test.txt"
+    }
+  ],
+  "input_checks": [
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\src\\core.cpp",
+      "expected": "7db207b085e26ea5ea08d4cf6cfbd32c7fe9183999e3280a6f6f3ca465efbef3",
+      "actual": "7db207b085e26ea5ea08d4cf6cfbd32c7fe9183999e3280a6f6f3ca465efbef3",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\src\\parsers.cpp",
+      "expected": "914a9a6734d9e442eca9e34acf3c8811a98b6a7af2d18f72d2b7b1192f1ae8ce",
+      "actual": "914a9a6734d9e442eca9e34acf3c8811a98b6a7af2d18f72d2b7b1192f1ae8ce",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\src\\speech_engine_k7.cpp",
+      "expected": "da663c5174d18f70c7840e99f9229deaceb6cedb6c2d91445d847d4724a63561",
+      "actual": "da663c5174d18f70c7840e99f9229deaceb6cedb6c2d91445d847d4724a63561",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\src\\board_hooks_k7.c",
+      "expected": "d67255aa03b2470a222034895327ec71d1bd23a17e7976fcf2aab8bd5cd95eca",
+      "actual": "d67255aa03b2470a222034895327ec71d1bd23a17e7976fcf2aab8bd5cd95eca",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\include\\voicelink\\types.hpp",
+      "expected": "17fb2a05d7bdf5d8b8891399714bc4df65a4dc32d51f84f15af50c7a28e7b05b",
+      "actual": "17fb2a05d7bdf5d8b8891399714bc4df65a4dc32d51f84f15af50c7a28e7b05b",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\include\\voicelink\\ports.hpp",
+      "expected": "c1430e442842d5ce77f477bafc9880c8be4e436d3af48313edbbc9d9f83657fe",
+      "actual": "c1430e442842d5ce77f477bafc9880c8be4e436d3af48313edbbc9d9f83657fe",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\include\\voicelink\\controller.hpp",
+      "expected": "a692d6242501d3c88e0f3fbb0b46997b863c4921b6f9e2155c11a3e28ab76015",
+      "actual": "a692d6242501d3c88e0f3fbb0b46997b863c4921b6f9e2155c11a3e28ab76015",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\include\\voicelink\\parsers.hpp",
+      "expected": "5205f1e9e1d95386789054e4d1bd07762874e2edaae2453399d75cecd0cf764a",
+      "actual": "5205f1e9e1d95386789054e4d1bd07762874e2edaae2453399d75cecd0cf764a",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\tests\\test_parsers.cpp",
+      "expected": "967249274549663134815985ce3239c1749255d7702b215df545877662017245",
+      "actual": "967249274549663134815985ce3239c1749255d7702b215df545877662017245",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\tests\\test_wake_word.cpp",
+      "expected": "9a4950e3c2f51a0083a64da53ea7031a8305bbaa5717d650b7d8f632d07715c5",
+      "actual": "9a4950e3c2f51a0083a64da53ea7031a8305bbaa5717d650b7d8f632d07715c5",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\tests\\test_network_selection.cpp",
+      "expected": "20995ac946be328b196338ca197a1089cf93abcc78503f18bcbc9f4a01175c9a",
+      "actual": "20995ac946be328b196338ca197a1089cf93abcc78503f18bcbc9f4a01175c9a",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\tests\\test_password.cpp",
+      "expected": "bff06e8178c1a526087185327423fa5b5662c4b2acb1a6f48d76a144db3c86b5",
+      "actual": "bff06e8178c1a526087185327423fa5b5662c4b2acb1a6f48d76a144db3c86b5",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\tests\\test_io_status.cpp",
+      "expected": "8809afe698a31d840164549c2522dc5f5826d15ed09ccd98c58c23c01c87062d",
+      "actual": "8809afe698a31d840164549c2522dc5f5826d15ed09ccd98c58c23c01c87062d",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\openvela\\语音模块\\openvela-voicelink\\CMakeLists.txt",
+      "expected": "2d349d8316c067d8dd1a06f45eae7426447504d3710f50a3c7f7493a71f31ebf",
+      "actual": "2d349d8316c067d8dd1a06f45eae7426447504d3710f50a3c7f7493a71f31ebf",
+      "unchanged": true
+    }
+  ],
+  "candidate_sha256": {
+    "src\\audio.cpp": "d12967050bed1deb608bd595a0ac527c0d63d3573bc34beb99819bc8efc13dfe",
+    "src\\core.cpp": "b165a82f85cc189c21258468362d6baae67988004c6381634a67e8b0bec97833",
+    "src\\parsers.cpp": "914a9a6734d9e442eca9e34acf3c8811a98b6a7af2d18f72d2b7b1192f1ae8ce",
+    "include\\voicelink\\audio.hpp": "3673e4b7d4f474884a75c3b9e6f4933bba1ef4f21dc945b7b0b8cc86decb18dc",
+    "include\\voicelink\\controller.hpp": "96dc4fa5101cd69cd21429e9996c462031c12cd9258a1b34d5d0d1cf500f753b",
+    "include\\voicelink\\parsers.hpp": "5205f1e9e1d95386789054e4d1bd07762874e2edaae2453399d75cecd0cf764a",
+    "include\\voicelink\\ports.hpp": "5650730338584784cf6fa352043a9a8b6897ff137027fa441e64f6da5dd36be2",
+    "include\\voicelink\\types.hpp": "51b508d9988d0c1b5b601248eee8867adc7670f4ed40aa06218692ddba12d3a0",
+    "tests\\test_async.cpp": "f940abda2c11acb4929fe28db02ae48356883648115b958ac56dcc833e01ab5a",
+    "tests\\test_audio.cpp": "a4c8f8d2a803964a4cd7c81c026fd00651c1f932daf96a5e20b5317080817e84",
+    "vendor\\sherpa-onnx\\c-api\\c-api.h": "e286ded904e93b670ad229d88151dfade58671fc2740a0afb11b0372f3595100",
+    "vendor\\sherpa-onnx\\LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  "runner_sha256": "eeb5dc7e989724d89474b38b1085b71696a8e9bff0128643ffe4a24608bcc9a2"
+}

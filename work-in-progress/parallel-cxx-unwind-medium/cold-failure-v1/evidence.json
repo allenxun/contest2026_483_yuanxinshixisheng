@@ -1,0 +1,38 @@
+{
+  "input_sha256": {
+    "artifacts/cxx-eh-20260910/nuttx": "aeed298960d61435e381a4f4323dbf5b08e1b1503fc97161ae821d0dfc29d19c",
+    "artifacts/cxx-eh-20260910/.config": "aa733f809db3a81cea5ac344f865efe70f65c3c9126aefd462029615041bc843",
+    "app/k7eh/k7eh_main.cxx": "667527d784ab9a80a7bc880a0c0d32818c051bc55c9949592edfec1bd6085536",
+    "evidence/cxx-eh-20260910/integration.json": "6760a3eea685397960cd97caa892ecca27dff5c8666a6074c2fab49504cb9231",
+    "evidence/cxx-eh-20260910/cold/runtime.bin": "9992b2a38ec2551687142233e966eac88aeffc5fb450a5000073c77e0a401d3a",
+    "evidence/cxx-eh-20260910/cold/runtime.json": "35ea78a8f3b790f709dbed9b4a18a29f754f4df17a012537d2f3b3e67d031f0d",
+    "evidence/cxx-eh-20260910/cold/post-failure-ps.bin": "50ca73bb38b41f4ace1f28d0281f46f199100e6266e173149e50a37104596fed",
+    "evidence/build/cxx-eh-20260910/unwind-audit.json": "1aaa1a54d2d180a34cc0c5ff29a9785fc4fe93e934bc9d10f1e0ec09b76092f0",
+    "work-in-progress/parallel-cxx-unwind-medium/THREADING-RISK.md": "29420290da1c6326b9935dfe2384ecc44c02e30a64b974a1311c1794721e4798"
+  },
+  "commands": [
+    {
+      "command": [
+        "readelf",
+        "--debug-dump=frames",
+        "E:\\openvela\\VelaVision\\artifacts\\cxx-eh-20260910\\nuttx"
+      ],
+      "exit_code": 0,
+      "output": "frames.txt",
+      "output_sha256": "1bff0f80176d3e8b0867942feb7cad6795db8ea166758d83b735034dcab59b3c"
+    },
+    {
+      "command": [
+        "readelf",
+        "-sW",
+        "E:\\openvela\\VelaVision\\artifacts\\cxx-eh-20260910\\nuttx"
+      ],
+      "exit_code": 0,
+      "output": "symbols.txt",
+      "output_sha256": "638a89956f071acb2e167958a34c1d1c6d6882d9371720ea5a955defbbfbc84a"
+    }
+  ],
+  "independent_hardware_access": false,
+  "cause_established": false,
+  "normal_join_proven": false
+}

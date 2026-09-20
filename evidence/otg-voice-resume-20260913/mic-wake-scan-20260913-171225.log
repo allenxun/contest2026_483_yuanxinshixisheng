@@ -1,0 +1,114 @@
+
+nsh> [Kk7sound tone
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=00060300 ien=00000000 gpio_version=010219c8 gpio_input=014d30repair=fdffffff ack=00000001 idle=00000001
+SOUND mclkout before0000001d
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=0 settle_ms=0
+SOUND playback_gain_db=0 dac_attenuation_db=24 maximum=0
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=000000lue=00000000
+SOUND slot_mask offset=48 value=00000000
+SOUND sl000
+SOUND slot_mask offset=58 value=00000000
+SOUND pio=0 frame=0 held=0 max_fifo=16
+SOUND fifo first=00000208 last=00000000 T reg=00 value=36
+SOUND codec reg=01 value=60
+SOUND codec reg=0codec reg=05 value=00
+SOUND codec reg=06 value=00
+SOUND codec reg=0c value=10
+SOUND codec reg=0d value=02
+SOUND codec reg=0fue=30
+SOUND codec reg=27 value=b8
+SOUND codec reg=2a value=b8eg=30 value=14
+SOUND codec reg=31 value=14
+SOUND input pull=00itions=0 samples=50380
+SOUND pad ticks=480004 max_gap=35 countechanges=640
+SOUND pad channel=3 high=50380 changes=0
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [Kk7sound capture-pga24-grouped 48000
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 soursion=010219c8 gpio_input=014d3050
+SOUND platform_result=0 versiSOUND codec_prepare=0 state=2
+SOUND adc_variant=24 settle_ms=1000
+SOUND playback_gain_db=0 dac_attenuation_db=24 maximum=0
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=00000000000000
+SOUND slot_mask offset=4c value=00000000
+SOUND slot_m8 value=00000000
+SOUND pio=0 frames=48000 polls=2289992 stop=0 000 mismatches=0
+SOUND fifo first=00000000 last=00000000 TXCR=00000018
+SOUND trace start=312325759 end=315325804 started=1 couue=00700fff rc=0
+SOUND trace_init index=3 value=000000e4 rc=0
+=0
+SOUND trace_init index=5 value=0000000b rc=0
+SOUND trace_wofffffff after=00041040 rc=0,0,0
+SOUND trace_word index=1 us=312=00041000 rc=0,0,0
+SOUND trace_word index=3 us=312325834 before041000 rc=0,0,0
+SOUND trace_word index=4 us=312325836 before=00e_word index=5 us=312325837 before=00040000 word=00000000 after=fffffff after=00000000 rc=0,0,0
+SOUND trace_word index=7 us=312325841 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=8 us=312325860 before=00041041 word=ffffffff after=00041040 rc=0,0,0
+SOUND trace_word index=9 us=312325862 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=10 us=312325864 before=00041040 word=ffffffff after=00041000 rc=0,0,0
+SOUND trace_word index=11 us=312325865 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=12 us=312325867 before=00041000 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=13 us=312325869 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=14 us=312325870 before=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND trace_word index=15 us=312325872 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=16 us=312325892 before=00041041 word=ffffffff after=00041040 rc=0,0,0
+SOUND trace_word index=17 us=312325894 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=18 us=312325895 before=00041040 word=ffffffff after=00041000 rc=0,0,0
+SOUND trace_word index=19 us=312325897 before=00041000 word=00000000 after=00041000 rc=0,00000 rc=0,0,0
+SOUND trace_word index=21 us=312325900 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=22 us=312325902 before=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND trace_word index=23 us=312325904 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=0041041 word=ffffffff after=00041040 rc=0,0,0
+SOUND trace_word index=25 us=312325925 before=00041040 word=00000000 after=000410OUND trace_word index=27 us=312325928 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=28 us=312325930 before=00041000 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=29 us=312325932 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=30 us=312325933 before=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND trace_word index=31 us=312325935 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND codec reg=00 value=36
+SOUND codec reg=01 value=60
+SOUND codec reg=02 value=00
+SOUND codec reg=03 value=00
+SOUND codec reg=04 value=0c
+SOUND codec reg=05 value=00
+SOUND codec reg=06 value=00
+SOUND codec reg=07 value=7c
+SOUND codec reg=08 value=00
+SOUND codec reg=09 value=88
+SOUND codec reg=0a value=f0
+SOUND codec reg=0b value=82
+SOUND codec reg=0c value=10
+SOUND codec reg=0d value=02
+SOUND codec reg=0f value=20
+SOUND codec reg=17 value=20
+SOUND codec reg=18 value=02
+SOUND codec reg=19 value=06
+SOUND codec reg=1a value=30
+SOUND codec reg=1b value=30
+SOUND codec reg=27 value=b8
+SOUND codec reg=2a value=b8
+SOUND codec reg=2b value=80
+SOUND codec reg=30 value=14
+SOUND codec reg=31 value=14
+SOUND input pull=00005515 schmitt=000000ff path=000000e4 gpio_high=50388 transitions=0 samples=50388
+SOUND pad ticks=480004 max_gap=35 counter_hz=24000000 complete=1
+SOUND pad channel=0 high=24820 changes=37842
+SOUND pad channel=1 high=25345 changes=40920
+SOUND pad channel=2 high=25245 changes=640
+SOUND SOUND pcm left_min=-35309312 left_max=29528576 left_nonzero=48000 right_min=-29336064 right_max=34311680 right_nonzero=48000
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [Kk7voice flow-mic-wake
+TLS_CHECK PASS workers=2 destructors=2 main_value=123
+ASR_INFER BEGIN recognizer
+ASR_INFER chunk=1 elapsed=21.649
+ASR_INFER chunk=2 elapsed=22.796
+ASR_INFER chunk=3 elapsed=23.944
+ASR_INFER chunk=4 elapsed=25.092
+ASR_INFER chunk=5 elapsed=26.242
+ASR_STORAGE peak=467093776 live=0 records=1225 failures=0 reason=0
+VOICE_FLOW asr_error=-61
+nsh> [K

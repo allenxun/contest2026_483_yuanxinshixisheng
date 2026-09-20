@@ -1,0 +1,1032 @@
+PDF PAGE 922
+RK3576 TRM
+Chapter 24 Serial Audio Interface (SAI)
+24.1 Overview
+The SAI controller is designed for interfacing between the AHB bus and the serial audio
+interface bus.The SAI is a serial link for digital audio data transfer between devices in the
+system .The SAI interface (Serial Audio Interface) offers a wide set of audio protocols due
+to its flexibility and wide range of configurations. Many stereo or mono audio applications
+may be
+targeted. I2S standards, PCM, and TDM may be addressed.
+SAI is widely used in the devices such as ADC, DAC, DSP, CPU, etc. With the SAI interface,
+we can connect audio devices and the embedded SoC platform together and provide an
+audio interface solution for the system.
+24.1.1 Features
+   Support eight internal 32-bit wide and 32-location deep FIFOs, four for transmitting
+    and the other for receiving audio data
+   Support AHB bus interface
+   Support 8 ~ 32 bits audio data transfer
+   Support master and slave mode
+   Support DMA handshaking interface and configurable DMA water level
+   Support transmit FIFO empty, underflow, receive FIFO full, overflow interrupt and all
+    interrupts can be masked
+   Support configurable water level of transmit FIFO empty and receive FIFO full interrupt
+   Support combined interrupt output
+   Support 8 to 32 bit audio data left or right justified in 32-bit wide FIFO
+   Support two 16-bit audio data store together in one 32-bit wide location and support
+    four 8-bit audio data store together in one 32-bit wide location
+   Support TX to RX loopback bypass mode
+   Support audio protocol: I2S, PCM, TDM
+   Support Number of bits by frame can be configurable
+   Support First active slot position in the frame is configurable
+   Support up to 128 slots available with configurable size
+   Support slot length 8 to 32 bits configurable
+   Support slot valid data length 8 to 32 bits configurable
+   Support Mono audio mode
+   Support slot mask configurable
+   Support First active bit position in the slot is configurable
+   Support MSB or LSB first serial audio data transfer
+   Support configurable SCLK and FS polarity
+   Support up to four lanes parallel transceivers
+   Support SDI,SDO IOMUX
+24.2 Block Diagram
+
+
+
+
+
+            dma interface                    TX FIFO         TX_CTRL                            audio
+                                                                                                output
+
+
+
+
+
+
+                        System Interface                Clock Generator    IO_BUFF            SAI BUS
+
+           AHB BUS
+
+
+
+              interrupt                                                                         audio
+                                             RX FIFO         RX_CTRL                            input
+              interface
+                                          Fig.24-1 SAI Block Diagram
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 922
+PDF PAGE 923
+RK3576 TRM
+System Interface
+The system interface implements the AHB slave operation. It contains not only control
+registers of transmitters and receiver inside but also interrupt and DMA handshaking
+interface.
+Clock Generator
+The Clock Generator implements clock generation function. The input source clock to the
+module is MCLK_SAI, and by the divider of the module, the clock generator generates SCLK
+and FS to transmitter and receiver.
+Transmitters
+The Transmitters implement transmission operation. The transmitters can act as either a
+master or a slave, with I2S, PCM or TDM mode surround serial audio interface.
+Receiver
+The Receiver implements receive operation. The receiver can act as either a master or a
+slave, with I2S, PCM or TDM mode stereo serial audio interface.
+Transmit FIFO
+The Transmit FIFO is the buffer to store transmitted audio data. The size of the FIFO is
+32bits x 32.
+Receive FIFO
+The Receive FIFO is the buffer to store received audio data. The size of the FIFO is 32bits x
+32.
+IO_BUFF
+SDO,SDI,LRCK_IN and LRCK_OUT Register output.
+24.3 Function Description
+In the SAI controller, there are two types: transmitter-master &receiver-master;
+transmitter-slave & receiver-slave.
+In broadcasting application, the SAI controller is used as a transmitter and external or
+internal audio CODEC is used as a receiver. In recording application, the SAI controller is
+used as a receiver and external or internal audio CODEC is used as a transmitter. Either the
+SAI controller or the audio CODEC can act as a master or a slave, but if one is master, the
+other must be slave.
+
+                                                       SCLK
+
+
+
+                                                        FS
+                              SAI  Master                               SAI Slave
+
+                                                        SD
+                          Fig.24-2 SAI transmitter-master & receiver-slave condition
+
+When the transmitter acts as a master, it sends all signals to the receiver (the slave), and
+CPU controls when to send clock and data to the receiver. When acts as a slave, SD signal
+still goes from transmitter to receiver, but SCLK and FS signals are from the receiver (the
+master) to the transmitter. Based on three interface specifications, transmitting data should
+be ready before transmitter receives SCLK and FS signals. CPU should know when the
+receiver to initialize a transaction and when the transmitter to send data.
+When the receiver acts as a master, it sends SCLK and FS signals to the transmitter (the
+slave) and receives serial data. So CPU must tell the transmitter when to start a transaction
+for it to prepare transmitting data then start a transfer and send clock and channel-select
+signals. When the receiver acts as a slave, CPU should only do initial setting and wait for all
+signals and then start reading data.
+Before transmitting or receiving data, CPU need do initial setting to the SAI register. These
+includes CPU settings, SAI interface registers settings, and maybe the embedded SoC
+platform settings. These registers must be set before starting data transfer.
+The SAI interface offers a wide set of audio protocols due to its flexibility and wide range of
+configurations.It can support I2S/PCM/TDM aduio protocol by different configuration.
+24.3.1 I2S normal mode
+This is the waveform of I2S normal mode. For FS (sai_fs_rx/sai_fs_tx) signal, it goes low to
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 923
+PDF PAGE 924
+RK3576 TRM
+indicate left channel and high to right channel. For SD (sai_sdo, sai_sdi) signal, it starts
+sending the first bit (MSB or LSB) one SCLK clock cycle after FS changes. The range of SD
+signal width is from 8 to 32bits.
+              sai_sclk
+           sai_fs_rx/                 slot0
+            sai_fs_tx                                                           slot1
+
+          sai_sdo/sai_sdi      0    1        21   22   23             0   1         21  22   23             0
+                                      Fig.24-3 I2S Normal Mode Timing Format
+
+24.3.2 I2S left justified mode
+This is the waveform of I2S left justified mode. For FS (sai_fs_rx / sai_fs_tx) signal, it goes
+high to indicate left channel and low to right channel. For SD (sai_sdo, sai_sdi) signal, it
+starts sending the first bit (MSB or LSB) at the same time when FS changes. The range of
+SD signal width is from 8 to 32bits.
+              sai_sclk
+            sai_fs_rx/                                                        slot1
+            sai_fs_tx                 slot0
+
+          sai_sdo/sai_sdi 0    1        21   22   23            0    1         21  22   23             0    1
+                                   Fig.24-4 I2S Left Justified Mode Timing Format
+
+24.3.3 I2S right justified mode
+This is the waveform of I2S right justified mode. For FS (sai_fs_rx / sai_fs_tx) signal, it
+goes high to indicate left channel and low to right channel. For SD (sai_sdo, sai_sdi) signal,
+it transfers MSB or LSB first; but what is different from I2S normal or left justified mode,
+the last bit of the transferred data is aligned to the transition edge of the FS signal while
+one bit is transferred at one SCLK cycle. The range of SD signal width is from 8 to 32bits.
+              sai_sclk
+           sai_fs_rx/                                                           slot1
+            sai_fs_tx                 slot0
+
+          sai_sdo/sai_sdi           0    1        21   22   23            0    1        21   22   23
+                                  Fig.24-5 I2S Right Justified Mode Timing Format
+
+24.3.4 PCM early mode
+This is the waveform of PCM early mode. For FS (sai_fs_rx / sai_fs_tx) signal, it goes high
+to indicate the start of a group of audio channels. For SD (sai_sdo, sai_sdi) signal, it sends
+the first bit (MSB or LSB) at the same time when FS goes high. The range of SD signal
+width is from 8 to 32bits.
+        sai_sclk
+
+      sai_fs_rx
+      /sai_fs_tx             At least one sclk cycle
+
+        sai_sdo       0    1          23   0     1         23    0     1                    23              0     1
+
+                            slot0                 slot1                   slot2  ~ slot3         no valid data
+        sai_sdi       0    1          23   0     1         23                                               0     1
+
+                            slot0                 slot1                        no valid data
+                                      Fig.24-6 PCM Early Mode Timing Format
+
+24.3.5 Flexibility and wide range of configurations
+The SAI interface (Serial Audio Interface) offers a wide set of audio protocols due to its
+flexibility and wide range of configurations.Many stereo or mono audio applications may be
+targeted. I2S standards, PCM, and TDM may be addressed.
+This is the waveform of PCM mode(SBW==VDW,FW >=SBW *SNB). For FS (sai_fs_rx /
+sai_fs_tx) signal, it goes high to indicate the start of a group of audio data.
+
+
+
+
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 924
+PDF PAGE 925
+RK3576 TRM
+       sai_sclk
+
+     sai_fs_rx                             Fs active : up to 4095 bits at least 1bit
+    /sai_fs_tx
+
+
+ sai_sdo/sai_sdi        0      1            23     0      1            23     0      1                         23                   0     1
+
+                                slot0                       slot1                        slot2~slot127               no valid data
+                                               Fig.24-7 SAI PCM mode timing format
+
+This is the waveform of I2S left mode(SBW>=VDW,FW >=SBW *SNB,VDJ==1’b1).
+       sai_sclk
+
+     sai_fs_rx                                  Fs active : up to 4095 bits at least 1bit
+    /sai_fs_tx
+
+ sai_sdo/sai_sdi        0            23    invalid 0            23    invalid 0      1                  23    invalid   invalid     0     1
+
+                                slot0                       slot1                        slot2~slot127               no valid data
+                                              Fig.24-8 SAI I2S left mode timing format
+
+This is the waveform of I2S right mode(SBW>=VDW,FW >=SBW *SNB,VDJ==1’b0).
+      sai_sclk
+
+    sai_fs_rx                                Fs active : up to 4095 bits at least 1bit
+    /sai_fs_tx
+
+
+ sai_sdo/sai_sdi     invalid 0           23    invalid0           23    invalid0      1                 23       invalid  invalid 0
+
+                              slot0                     slot1                       slot2~slot127             no valid data
+                                            Fig.24-9 SAI I2S right mode timing format
+
+This is the waveform of FS and SD delay time,as the posedge of FS (sai_fs_rx / sai_fs_tx)
+signal,we can send data at different time ,The time between the FS rise edge and the first
+valid bit can be configured using the fs_shift register,when fs_shift[0] == 1’b0,data send at
+posedge of sclk,when fs_shift[0] == 1’b1,data send at negedge of sclk.
+               sai_sclk
+
+              sai_fs_rx                                           Fs active : up to 4095 bits at least 1bit
+              /sai_fs_tx
+
+                             data dealy(0~30bits)
+            sai_sdo/sai_sdi    last frame data0         23   invalid0         23   invalid0    1               23   invalid0    1
+
+                                                    slot0                  slot1                   slot2~slot127
+
+            sai_sclk
+
+           sai_fs_rx                                             Fs active : up to 4095 bits at least 1bit
+          /sai_fs_tx
+
+                           data dealy(1~31bits)
+         sai_sdo/sai_sdi    last frame data 0          23   invalid0           23   invalid0     1                23   invalid0     1
+
+                                                   slot0                   slot1                     slot2~slot3
+                                                    Fig.24-10 fs shift timing format
+
+24.4 Register Description
+24.4.1 Internal Address Mapping
+Slave address can be divided into different length for different usage, which is shown as
+follows.
+                                                          Operational Base
+                                              Name                                Base Address
+                              SAI0                                        0x2A600000
+                              SAI1                                        0x2A610000
+                              SAI2                                        0x2A620000
+                              SAI3                                        0x2A630000
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 925
+PDF PAGE 926
+RK3576 TRM
+                                 Name                     Base Address
+                      SAI4                          0x2A640000
+                      SAI5                          0x27D40000
+                      SAI6                          0x27D50000
+                      SAI7                          0x27ED0000
+                      SAI8                          0x27EE0000
+                      SAI9                          0x27EF0000
+24.4.2 Registers Summary
+           Name                 Offset     Size      Reset                  Description
+                                                     Value
+SAI_TXCR                      0x0000       W     0x00000FFF     Transmit Operation Control
+                                                                Register
+SAI_FSCR                      0x0004       W     0x0001F03F     Transmit Frame Sync Operation
+                                                                Control Register
+SAI_RXCR                      0x0008       W     0x00000FFF     Receive Operation Control
+                                                                Register
+SAI_MONO_CR                   0x000C       W     0x00000000     Mono mode control
+SAI_XFER                      0x0010       W     0x00000000     Transfer Start Register
+SAI_CLR                       0x0014       W     0x00000000     Sclk Domain Logic Clear Register
+SAI_CKR                       0x0018       W     0x00000000     Clock Generation Register
+SAI_TXFIFOLR                  0x001C       W     0x00000000     TX FIFO Level Register
+SAI_RXFIFOLR                  0x0020       W     0x00000000     RX FIFO Level Register
+SAI_DMACR                     0x0024       W     0x00000000     DMA Control Register
+SAI_INTCR                     0x0028       W     0x01F00000     Interrupt Control Register
+SAI_INTSR                     0x002C       W     0x00000000     Interrupt Status Register
+SAI_TXDR                      0x0030       W     0x00000000     Transmit FIFO Data Register
+SAI_RXDR                      0x0034       W     0x00000000     Receive FIFO Data Register
+SAI_PATH_SEL                  0x0038       W     0x0000E4E4     Path select Register
+SAI_TX_SLOT_MASK0             0x003C       W     0x00000000     Transmit Slot 0~31 Mask state
+SAI_TX_SLOT_MASK1             0x0040       W     0x00000000     Transmit Slot 32~63 Mask state
+SAI_TX_SLOT_MASK2             0x0044       W     0x00000000     Transmit Slot 64~95 Mask state
+SAI_TX_SLOT_MASK3             0x0048       W     0x00000000     Transmit Slot 96~127 Mask state
+SAI_RX_SLOT_MASK0             0x004C       W     0x00000000     Receive Slot 0~31 Mask state
+SAI_RX_SLOT_MASK1             0x0050       W     0x00000000     Receive Slot 32~63 Mask state
+SAI_RX_SLOT_MASK2             0x0054       W     0x00000000     Receive Slot 64~95 Mask state
+SAI_RX_SLOT_MASK3             0x0058       W     0x00000000     Receive Slot 96~127 Mask state
+SAI_TX_DATA_CNT               0x005C       W     0x00000000     Tx data counter register
+SAI_RX_DATA_CNT               0x0060       W     0x00000000     Rx data counter register
+SAI_SAI_TX_SHIFT              0x0064       W     0x00000000     Tx shift register
+SAI_SAI_RX_SHIFT              0x0068       W     0x00000000     Rx shift register
+SAI_SAI_RD_STATUS             0x006C       W     0x0000000F
+SAI_VERSION                   0x0070       W     0x23073576     Version Register
+Notes:Size:B- Byte (8 bits) access, HW- Half WORD (16 bits) access, W-WORD (32 bits) access, DW-
+Double WORD (64 bits) access
+24.4.3 Detail Registers Description
+SAI_TXCR
+Address: Operational Base + offset (0x0000)
+ Bit   Attr  Reset Value                                   Description
+31:23 RO     0x000           reserved
+                             tx_delay_en
+22     RW    0x0             1'b0: NO DELAY
+                             1'b1: DELAY fsync pos
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 926
+PDF PAGE 927
+RK3576 TRM
+ Bit    Attr   Reset Value                                       Description
+                                tcsr
+                                Transmit channel select register
+21:20 RW      0x0               2'b00: One channel parallel
+                                2'b01: Two channel parallel
+                                2'b10: Three channel parallel
+                                2'b11: Four channel parallel
+                                sjm
+                                Store justified mode
+19      RW    0x0               (Can be written only when XFER[0] bit is 0.)
+                                8bit~31bit DATA stored in 32 bits width FIFO.
+                                1'b0: Right justified
+                                1'b1: Left justified
+                                fbm
+                                first bit mode
+18      RW    0x0               (Can be written only when XFER[0] bit is 0.)
+                                1'b0: MSB
+                                1'b1: LSB
+
+                                snb
+                                Transfer slot number
+                                (Can be written only when XFER[0] bit is 0.)
+                                Number of slots in a frame
+                                7'h00: 1slot
+17:11 RW      0x01              7'h01: 2slot
+                                7'h02: 3slot
+                                7'h03: 4slot
+                                ......
+                                7'h7e: 127slot
+                                7'h7f: 128slot
+                                vdj
+                                Valid data justified mode
+10      RW    0x1               (Can be written only when XFER[0] bit is 0.)
+                                1'b0: Right justified
+                                1'b1: Left justified
+                                sbw
+                                Transfer slot bits width
+                                (Can be written only when XFER[0] bit is 0.)
+                                5'h00~5'b0e: Reserved
+                                5'h0f: 16bit
+                                5'h10: 17bit
+9:5     RW    0x1f              5'h11: 18bit
+                                5'h12: 19bit
+                                ......
+                                5'h1c: 29bit
+                                5'h1d: 30bit
+                                5'h1e: 31bit
+                                5'h1f: 32bit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 927
+PDF PAGE 928
+RK3576 TRM
+ Bit    Attr  Reset Value                                      Description
+                               vdw
+                               Slot valid data width
+                               (Can be written only when XFER[0] bit is 0.)
+                               5'h00~5'b0e: Reserved
+                               5'h0f: 16bit
+                               5'h10: 17bit
+4:0     RW    0x1f             5'h11: 18bit
+                               5'h12: 19bit
+                               ......
+                               5'h1c: 29bit
+                               5'h1d: 30bit
+                               5'h1e: 31bit
+                               5'h1f: 32bit
+
+SAI_FSCR
+Address: Operational Base + offset (0x0004)
+ Bit    Attr  Reset Value                                      Description
+31:25 RO      0x00             reserved
+                               edge_sel
+24      RW    0x0              1'h0: pos
+                               1'h1: pos and neg
+                               fpw
+                               Transfer frame pulse width
+                               (Can be written only when XFER[0] is 0.)
+                               12'h000: 1bit
+23:12 RW      0x01f            12'h001: 2bit
+                               12'h002: 3bit
+                               ........
+                               12'hffe:4095bit
+                               12'hfff:res
+
+                               fw
+                               Transfer frame width
+                               (Can be written only when XFER[0] is 0.)
+                               12'h000~12'h006: Reserved
+11:0    RW    0x03f            12'h007: 8bit
+                               12'h008: 9bit
+                               ......
+                               12'hffe: 4095bit
+                               12'hfff: 4096bit
+
+SAI_RXCR
+Address: Operational Base + offset (0x0008)
+ Bit    Attr  Reset Value                                      Description
+31:23 RO      0x000            reserved
+                               rx_delay_en
+22      RW    0x0              1'b0: NO DELAY
+                               1'b1: DELAY fsync pos
+                               rcsr
+                               receive channel select register
+21:20 RW      0x0              2'b00: One channel parallel
+                               2'b01: Two channel parallel
+                               2'b10: Three channel parallel
+                               2'b11: Four channel parallel
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 928
+PDF PAGE 929
+RK3576 TRM
+ Bit    Attr   Reset Value                                       Description
+                                sjm
+                                Store justified mode
+19      RW    0x0               (Can be written only when XFER[2] bit is 0.)
+                                8bit~31bit DATA stored in 32 bits width FIFO.
+                                1'b0: Right justified
+                                1'b1: Left justified
+                                fbm
+                                first bit mode
+18      RW    0x0               (Can be written only when XFER[2] bit is 0.)
+                                1'b0: MSB
+                                1'b1: LSB
+
+                                snb
+                                receive slot number
+                                (Can be written only when XFER[2] bit is 0.)
+                                number of slots in a frame
+                                7'h00: 1slot
+17:11 RW      0x01              7'h01: 2slot
+                                7'h02: 3slot
+                                7'h03: 4slot
+                                ......
+                                7'h7e: 127slot
+                                7'h7f: 128slot
+                                vdj
+                                Valid data justified mode
+10      RW    0x1               (Can be written only when XFER[2] bit is 0.)
+                                1'b0: Right justified
+                                1'b1: Left justified
+                                sbw
+                                receive slot bits width
+                                (Can be written only when XFER[2] bit is 0.)
+                                5'h00~5'b0e: Reserved
+                                5'h0f: 16bit
+                                5'h10: 17bit
+9:5     RW    0x1f              5'h11: 18bit
+                                5'h12: 19bit
+                                ......
+                                5'h1c: 29bit
+                                5'h1d: 30bit
+                                5'h1e: 31bit
+                                5'h1f: 32bit
+                                vdw
+                                Valid fata width
+                                (Can be written only when XFER[2] bit is 0.)
+                                5'h00~5'b0e: Reserved
+                                5'h0f: 16bit
+                                5'h10: 17bit
+4:0     RW    0x1f              5'h11: 18bit
+                                5'h12: 19bit
+                                ......
+                                5'h1c: 29bit
+                                5'h1d: 30bit
+                                5'h1e: 31bit
+                                5'h1f: 32bit
+
+SAI_MONO_CR
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 929
+PDF PAGE 930
+RK3576 TRM
+Address: Operational Base + offset (0x000C)
+ Bit    Attr  Reset Value                                      Description
+31:9    RO    0x000000         reserved
+                               rx_mono_slot_sel
+                               Receive mono mode valid slot data select
+8:2     RW    0x00             7'h00: First slot data valid
+                               7'h01: Second slot data valid
+                               ......
+                               7'h7f: Slot128 data valid
+                               rx_mono_en
+1       RW    0x0              Receive mono audio data enable bit
+                               1'b0: Normal mode
+                               1'b1: Mono mode
+                               tx_mono_en
+0       RW    0x0              Transmit mono audio data enable bit
+                               1'b0: Normal mode
+                               1'b1: Mono mode
+
+SAI_XFER
+Address: Operational Base + offset (0x0010)
+ Bit    Attr  Reset Value                                      Description
+31:6    RO    0x0000000        reserved
+                               rx_data_cnt_en
+5       RW    0x0              1'b0: Stop cnt
+                               1'b1: Start cnt
+                               tx_data_cnt_en
+4       RW    0x0              1'b0: Stop cnt
+                               1'b1: Start cnt
+                               rxs
+3       RW    0x0              1'b0: Stop RX transfer
+                               1'b1: Start RX transfer
+                               txs
+2       RW    0x0              1'b0: Stop TX transfer
+                               1'b1: Start TX transfer
+                               fss
+1       RW    0x0              1'b0: Stop frame sync
+                               1'b1: Start frame sync
+                               clk_gate_en
+0       RW    0x0              1'b0: Stop clk
+                               1'b1: Start clk
+
+SAI_CLR
+Address: Operational Base + offset (0x0014)
+ Bit    Attr  Reset Value                                      Description
+31:3    RO    0x00000000       reserved
+2       W1    0x0              fsc
+        C                      This is a self-cleared bit. write 1 to clear all receive logic.
+        W1                     rxc
+1       C     0x0              RX logic clear
+                               This is a self-cleared bit. write 1 to clear all receive logic.
+        W1                     txc
+0       C     0x0              TX logic clear
+                               This is a self-cleared bit. write 1 to clear all transmit logic.
+
+SAI_CKR
+Address: Operational Base + offset (0x0018)
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 930
+PDF PAGE 931
+RK3576 TRM
+ Bit    Attr   Reset Value                                       Description
+31:15 RO      0x00000           reserved
+                                mdiv
+                                (Can be written only when XFER[0] bit is 0.)
+14:3    RW    0x000             mclk divider = (mclk/sclk)-1.
+                                For example, if mclk divider is 5, then the frequency of sclk is
+                                mclk/6.
+                                mss
+                                Transmit master/slave mode select
+2       RW    0x0               (Can be written only when XFER[0] bit is 0.)
+                                1'b0: Master mode(sclk output)
+                                1'b1: Slave mode(sclk input)
+                                ckp
+                                Transmit sclk polarity
+1       RW    0x0               (Can be written only when XFER[2] or XFER[0] bit is 0.)
+                                1'b0: Sample data at posedge sclk and drive data at negedge sclk
+                                1'b1: Sample data at negedge sclk and drive data at posedge sclk
+                                fsp
+                                Transmit fs polarity
+0       RW    0x0               (Can be written only when XFER[2] or XFER[0] bit is 0.)
+                                1'b0: Frame sync low active
+                                1'b1: Frame sync high active
+
+SAI_TXFIFOLR
+Address: Operational Base + offset (0x001C)
+ Bit    Attr   Reset Value                                       Description
+31:24 RO      0x00              reserved
+                                tfl3
+23:18 RO      0x00              Transmit fifo3 level
+                                Contains the number of valid data entries in the transmit fifo3.
+                                tfl2
+17:12 RO      0x00              Transmit fifo2 level
+                                Contains the number of valid data entries in the transmit fifo2.
+                                tfl1
+11:6    RO    0x00              Transmit fifo1 level
+                                Contains the number of valid data entries in the transmit fifo1.
+                                tfl0
+5:0     RO    0x00              Transmit fifo0 level
+                                Contains the number of valid data entries in the transmit fifo0.
+
+SAI_RXFIFOLR
+Address: Operational Base + offset (0x0020)
+ Bit    Attr   Reset Value                                       Description
+31:24 RO      0x00              reserved
+                                rfl3
+23:18 RO      0x00              Receive     fifo3 level
+                                Contains the number of valid data entries in the receive fifo3.
+                                rfl2
+17:12 RO      0x00              Receive     fifo2 level
+                                Contains the number of valid data entries in the receive fifo2.
+                                rfl1
+11:6    RO    0x00              Receive     fifo1 level
+                                Contains the number of valid data entries in the receive fifo1.
+                                rfl0
+5:0     RO    0x00              Receive fifo0 level
+                                Contains the number of valid data entries in the receive fifo0.
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 931
+PDF PAGE 932
+RK3576 TRM
+
+SAI_DMACR
+Address: Operational Base + offset (0x0024)
+ Bit    Attr   Reset Value                                      Description
+31:25 RO      0x00              reserved
+                                rde
+24      RW    0x0               Receive DMA enable
+                                1'b0: Receive DMA disabled
+                                1'b1: Receive DMA enabled
+23:21 RO      0x0               reserved
+                                rdl
+                                Receive data level
+20:16 RW      0x00              This bit field controls the level at which a DMA request is made by
+                                the receive logic. The watermark level = DMARDL+1; that is,
+                                dma_rx_req is generated when the number of valid data entries
+                                in the receive FIFO is equal to or above this field value + 1.
+15:9    RO    0x00              reserved
+                                tde
+8       RW    0x0               Transmit DMA enable
+                                1'b0: Transmit DMA disabled
+                                1'b1: Transmit DMA enabled
+7:5     RO    0x0               reserved
+                                tdl
+                                Transmit data level
+                                This bit field controls the level at which a DMA request is made by
+4:0     RW    0x00              the transmit logic. It is equal to the watermark level; that is, the
+                                dma_tx_req signal is generated when the number of valid data
+                                entries in the TX FIFO(TX FIFO0 if CSR=00;TX FIFO1 if
+                                CSR=01,TX FIFO2 if CSR=10,TX FIFO3 if CSR=11)is equal to or
+                                below this field value.
+
+SAI_INTCR
+Address: Operational Base + offset (0x0028)
+ Bit    Attr   Reset Value                                      Description
+31:25 RO      0x00              reserved
+                                rft
+24:20 RW      0x1f              Receive fifo threshold
+                                When the number of receive fifo entries is more than or equal to
+                                this threshold plus 1, the receive fifo full interrupt is triggered.
+19      RO    0x0               reserved
+                                rxoic
+18      WO    0x0               RX overrun interrupt clear
+                                Write 1 to clear RX overrun interrupt.
+                                rxoie
+17      RW    0x0               RX overrun interrupt enable
+                                1'b0: Disable
+                                1'b1: Enable
+                                rxfie
+16      RW    0x0               RX full interrupt enable
+                                1'b0: Disable
+                                1'b1: Enable
+15:9    RO    0x00              reserved
+                                tft
+8:4     RW    0x00              Transmit fifo threshold
+                                When the number of transmit fifo entries is less than or equal to
+                                this threshold, the transmit fifo empty interrupt is triggered.
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 932
+PDF PAGE 933
+RK3576 TRM
+ Bit    Attr  Reset Value                                      Description
+3      RO     0x0              reserved
+       W1                      txuic
+2      C      0x0              TX underrun interrupt clear
+                               Write 1 to clear TX underrun interrupt.
+                               txuie
+1      RW     0x0              TX underrun interrupt enable
+                               1'b0: Disable
+                               1'b1: Enable
+                               txeie
+0      RW     0x0              TX empty interrupt enable
+                               1'b0: Disable
+                               1'b1: Enable
+
+SAI_INTSR
+Address: Operational Base + offset (0x002C)
+ Bit    Attr  Reset Value                                      Description
+31:18 RO      0x0000           reserved
+                               rxoi
+17     RO     0x0              RX overrun interrupt
+                               1'b0: Inactive
+                               1'b1: Active
+                               rxfi
+16     RO     0x0              RX full interrupt
+                               1'b0: Inactive
+                               1'b1: Active
+15:2   RO     0x0000           reserved
+                               txui
+1      RO     0x0              TX underrun interrupt
+                               1'b0: Inactive
+                               1'b1: Active
+                               txei
+0      RO     0x0              TX empty interrupt
+                               1'b0: Inactive
+                               1'b1: Active
+
+SAI_TXDR
+Address: Operational Base + offset (0x0030)
+ Bit    Attr  Reset Value                                      Description
+                               txdr
+31:0   RW     0x00000000       Transmit fifo fata register
+                               When it is written, data are moved into the transmit fifo.
+
+SAI_RXDR
+Address: Operational Base + offset (0x0034)
+ Bit    Attr  Reset Value                                      Description
+                               rxdr
+31:0   RW     0x00000000       Receive fifo data register
+                               When the register is read, data in the receive fifo is accessed.
+
+SAI_PATH_SEL
+Address: Operational Base + offset (0x0038)
+ Bit    Attr  Reset Value                                      Description
+31:30 RO      0x0              reserved
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 933
+PDF PAGE 934
+RK3576 TRM
+ Bit    Attr  Reset Value                                      Description
+                               sdo_to_sdi_path_sel
+                               SDO_TO_SDI_PATH_SEL
+29:22 RW      0x00             [23:22]:sdi0 sel sdo0 or sdo1 or sdo2 or sdo3
+                               [25:24]:sdi1 sel sdo0 or sdo1 or sdo2 or sdo3
+                               [27:26]:sdi2 sel sdo0 or sdo1 or sdo2 or sdo3
+                               [29:28]:sdi3 sel sdo0 or sdo1 or sdo2 or sdo3
+                               loopback_bypass
+                               Loopback by pass enable bit
+                               Tx_sdo -> Rx_sdi
+                               loopback mode should work at fs_tx_as_common mode and
+                               tx=rx=master
+21:18 RW      0x0              [18]:Loopback_en0
+                               [19]:Loopback_en1
+                               [20]:Loopback_en2
+                               [21]:Loopback_en3
+                               1'b0: No active
+                               1'b1: Active
+                               sync_out_sel
+17     RW     0x0              Tx sync out select bit
+                               1'b0: Tx sclk and fs sync out use out signal
+                               1'b1: Tx sclk and fs sync out use in signal
+                               sync_in_sel
+16     RW     0x0              Tx sync in select bit
+                               1'b0: Tx sclk and fs use pad signal
+                               1'b1: Tx sclk and fs use sync input port
+                               rx_path_select3
+                               Rx path select
+15:14 RW      0x3              2'b00: Path3 data from sdi0
+                               2'b01: Path3 data from sdi1
+                               2'b10: Path3 data from sdi2
+                               2'b11: Path3 data from sdi3
+                               rx_path_select2
+                               Rx path select
+13:12 RW      0x2              2'b00: Path2 data from sdi0
+                               2'b01: Path2 data from sdi1
+                               2'b10: Path2 data from sdi2
+                               2'b11: Path2 data from sdi3
+                               rx_path_select1
+                               Rx path select
+11:10 RW      0x1              2'b00: Path0 data from sdi0
+                               2'b01: Path0 data from sdi1
+                               2'b10: Path0 data from sdi2
+                               2'b11: Path0 data from sdi3
+                               rx_path_select0
+                               Rx path select
+9:8    RW     0x0              2'b00: Path0 data from sdi0
+                               2'b01: Path0 data from sdi1
+                               2'b10: Path0 data from sdi2
+                               2'b11: Path0 data from sdi3
+                               tx_path_select3
+                               TX path select
+7:6    RW     0x3              2'b00: Sdo3 output data from path0
+                               2'b01: Sdo3 output data from path1
+                               2'b10: Sdo3 output data from path2
+                               2'b11: Sdo3 output data from path3
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 934
+PDF PAGE 935
+RK3576 TRM
+ Bit   Attr   Reset Value                                     Description
+                               tx_path_select2
+                               TX path select
+5:4    RW    0x2               2'b00: Sdo2 output data from path0
+                               2'b01: Sdo2 output data from path1
+                               2'b10: Sdo2 output data from path2
+                               2'b11: Sdo2 output data from path3
+                               tx_path_select1
+                               TX path select
+3:2    RW    0x1               2'b00: Sdo1 output data from path0
+                               2'b01: Sdo1 output data from path1
+                               2'b10: Sdo1 output data from path2
+                               2'b11: Sdo1 output data from path3
+                               tx_path_select0
+                               TX path select
+1:0    RW    0x0               2'b00: Sdo0 output data from path0
+                               2'b01: Sdo0 output data from path1
+                               2'b10: Sdo0 output data from path2
+                               2'b11: Sdo0 output data from path3
+
+SAI_TX_SLOT_MASK0
+Address: Operational Base + offset (0x003C)
+ Bit   Attr   Reset Value                                     Description
+                               tx_slot_mask0
+                               Transmit slot 0~31 mask state
+31:0   RW    0x00000000        slot 0~31 mask state
+                               0: Slot active
+                               1: Slot mask,data is invalid
+
+SAI_TX_SLOT_MASK1
+Address: Operational Base + offset (0x0040)
+ Bit   Attr   Reset Value                                     Description
+                               tx_slot_mask1
+                               Transmit slot 32~63 mask state
+31:0   RW    0x00000000        slot 32~63 mask state
+                               0: Slot active
+                               1: Slot mask,data is invalid
+
+SAI_TX_SLOT_MASK2
+Address: Operational Base + offset (0x0044)
+ Bit   Attr   Reset Value                                     Description
+                               tx_slot_mask2
+                               Transmit slot 64~95 mask state
+31:0   RW    0x00000000        slot 64~95 mask state
+                               0: Slot active
+                               1: Slot mask,data is invalid
+
+SAI_TX_SLOT_MASK3
+Address: Operational Base + offset (0x0048)
+ Bit   Attr   Reset Value                                     Description
+                               tx_slot_mask3
+                               Transmit slot 96~127 mask state
+31:0   RW    0x00000000        slot 96~127 mask state
+                               0: Slot active
+                               1: Slot mask,data is invalid
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 935
+PDF PAGE 936
+RK3576 TRM
+SAI_RX_SLOT_MASK0
+Address: Operational Base + offset (0x004C)
+ Bit   Attr   Reset Value                                   Description
+                              rx_slot_mask0
+                              Receive slot 0~31 mask state
+31:0   RW    0x00000000       Slot 0~31 mask state
+                              0: Slot active
+                              1: Slot mask,data is invalid
+
+SAI_RX_SLOT_MASK1
+Address: Operational Base + offset (0x0050)
+ Bit   Attr   Reset Value                                   Description
+                              rx_slot_mask1
+                              Receive slot 32~63 mask state
+31:0   RW    0x00000000       slot 32~63 mask state
+                              0: Slot active
+                              1: Slot mask,data is invalid
+
+SAI_RX_SLOT_MASK2
+Address: Operational Base + offset (0x0054)
+ Bit   Attr   Reset Value                                   Description
+                              rx_slot_mask2
+                              Receive slot 64~95 mask state
+31:0   RW    0x00000000       slot 64~95 mask state
+                              0: Slot active
+                              1: Slot mask,data is invalid
+
+SAI_RX_SLOT_MASK3
+Address: Operational Base + offset (0x0058)
+ Bit   Attr   Reset Value                                   Description
+                              rx_slot_mask3
+                              Receive Slot 96~127 mask state
+31:0   RW    0x00000000       slot 96~127 mask state
+                              0: Slot active
+                              1: Slot mask,data is invalid
+
+SAI_TX_DATA_CNT
+Address: Operational Base + offset (0x005C)
+ Bit   Attr   Reset Value                                   Description
+31:0   RO    0x00000000       tx_data_cnt
+                              Tx data counter
+
+SAI_RX_DATA_CNT
+Address: Operational Base + offset (0x0060)
+ Bit   Attr   Reset Value                                   Description
+31:0   RO    0x00000000       rx_data_cnt
+                              Rx data counter
+
+SAI_SAI_TX_SHIFT
+Address: Operational Base + offset (0x0064)
+ Bit   Attr   Reset Value                                   Description
+31:23 RO     0x000            reserved
+
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 936
+PDF PAGE 937
+RK3576 TRM
+ Bit    Attr  Reset Value                                      Description
+                               fs_shift
+                               Transfer frame sync pulse shift control
+                               24'h00: Normal mode
+22:0   RW     0x000000         24'h01: Fs 1/2 cycle shift left.
+                               24'h02: Fs 1 cycle shift left.
+                               24'h03: Fs 3/2 cycle shift left.
+                               ......
+
+SAI_SAI_RX_SHIFT
+Address: Operational Base + offset (0x0068)
+ Bit    Attr  Reset Value                                      Description
+31:23 RO      0x000            reserved
+                               fs_shift
+                               Transfer frame sync pulse shift control
+                               24'h00: Normal mode
+22:0   RW     0x000000         24'h01: Fs 1/2 cycle shift left.
+                               24'h02: Fs 1 cycle shift left.
+                               24'h03: Fs 3/2 cycle shift left.
+                               ......
+
+SAI_SAI_RD_STATUS
+Address: Operational Base + offset (0x006C)
+ Bit    Attr  Reset Value                                      Description
+31:4   RO     0x0000000        reserved
+3      RW     0x1              rx_idle
+
+2      RW     0x1              tx_idle
+
+1      RW     0x1              fs_idle
+
+0      RW     0x1              clk_idle
+
+
+SAI_VERSION
+Address: Operational Base + offset (0x0070)
+ Bit    Attr  Reset Value                                      Description
+31:0   RO     0x23073576       sai_vertion
+                               SAI version
+24.5 Interface Description
+The following table shows the SAI0 interface description.
+                                  Table 24-1 SAI0 m0 Interface Description
+   Module Pin        Direction                    Pad Name                            IOMUX Setting
+                                  VI_CIF_D8/SDMMC1_DETN_M1/ETH0_RX
+ sai0_mclk          I/O           CLK_M1/SAI0_MCLK_M0/PDM0_CLK0_M3              TOP_IOC_GPIO2B_IOMUX_
+                                  /UART7_RTSN_M0/SPI4_MISO_M3/SATA1             SEL_H[7:4]=4
+                                  _ACTLED_M0/GPIO2_B5_d
+                                  VI_CIF_D7/ETH1_PTP_REFCLK_M1/ETH0_
+ sai0_sclk          I/O           RXD3_M1/SAI0_SCLK_M0/UART7_TX_M0/             TOP_IOC_GPIO2B_IOMUX_
+                                  UART8_RTSN_M1/I2C8_SCL_M2/GPIO2_B             SEL_H[11:8]=4
+
+                                  6_d
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 937

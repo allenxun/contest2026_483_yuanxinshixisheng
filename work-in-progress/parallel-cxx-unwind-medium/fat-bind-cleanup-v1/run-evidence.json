@@ -1,0 +1,167 @@
+{
+  "inputs": [
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\fat-readonly-v1\\candidate\\fat\\fs_fat32.c",
+      "bytes": 85609,
+      "sha256": "4b9d2a85491bef56e499f0362d01e05c557799db68b0d7e8bd67027874b6ddf9"
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\fat-readonly-v1\\candidate\\fat\\fs_fat32util.c",
+      "bytes": 64451,
+      "sha256": "95427b12c07ebd03dec924dcad60fa990a654979c39885af1afda4828e788843"
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\fat-readonly-v1\\HANDOFF.md",
+      "bytes": 6887,
+      "sha256": "685d5118b5987d040e9e934612b4012738ce6ee71668d505dfb9470bfbcb9f28"
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\evidence\\usb-storage-mount-20260910\\nuttx\\fs\\mount\\fs_mount.c",
+      "bytes": 17255,
+      "sha256": "402d5dcc31a60c62fd400e2baac166d349aba7871450fff4c008b30db6478890"
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\evidence\\usb-storage-mount-20260910\\nuttx\\fs\\mount\\fs_umount2.c",
+      "bytes": 6534,
+      "sha256": "84314e63ef0872e506c689fe07f3dd51febb475b6c0b3906043d2097258c7a34"
+    }
+  ],
+  "extracted": [
+    {
+      "name": "fat_mount",
+      "sha256": "9a3f730535b6c20282155e23925e30d075c69aafc97539b50d4b61fb3801aad9",
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\fat-readonly-v1\\candidate\\fat\\fs_fat32util.c"
+    },
+    {
+      "name": "fat_bind",
+      "sha256": "d7fc617f1661b8f5d327e3a548db7912440944493415e3f62324fd9f6315b21e",
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\fat-bind-cleanup-v1\\candidate\\fs_fat32.c"
+    },
+    {
+      "name": "fat_unbind",
+      "sha256": "55f8e0b58ffda105cd3a4958c5a8b9729fef5db97f7747b52bb633bd5e0b5e8f",
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\fat-bind-cleanup-v1\\candidate\\fs_fat32.c"
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "gcc.EXE (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wno-unused-parameter",
+        "-pedantic",
+        "-O0",
+        "test.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\fat-bind-cleanup-v1\\rw-O0.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\fat-bind-cleanup-v1\\rw-O0.exe"
+      ],
+      "exit_code": 0,
+      "output": "PASS 19 actual fat_bind/fat_mount/fat_unbind ownership paths\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wno-unused-parameter",
+        "-pedantic",
+        "-O2",
+        "test.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\fat-bind-cleanup-v1\\rw-O2.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\fat-bind-cleanup-v1\\rw-O2.exe"
+      ],
+      "exit_code": 0,
+      "output": "PASS 19 actual fat_bind/fat_mount/fat_unbind ownership paths\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wno-unused-parameter",
+        "-pedantic",
+        "-O0",
+        "-DCONFIG_FAT_FORCE_READONLY=1",
+        "test.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\fat-bind-cleanup-v1\\ro-O0.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\fat-bind-cleanup-v1\\ro-O0.exe"
+      ],
+      "exit_code": 0,
+      "output": "PASS 19 actual fat_bind/fat_mount/fat_unbind ownership paths\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wno-unused-parameter",
+        "-pedantic",
+        "-O2",
+        "-DCONFIG_FAT_FORCE_READONLY=1",
+        "test.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\fat-bind-cleanup-v1\\ro-O2.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\fat-bind-cleanup-v1\\ro-O2.exe"
+      ],
+      "exit_code": 0,
+      "output": "PASS 19 actual fat_bind/fat_mount/fat_unbind ownership paths\n"
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "--unsafe-paths",
+        "--directory=E:/openvela/VelaVision/work-in-progress/parallel-cxx-unwind-medium/fat-bind-cleanup-v1/patch-base",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\fat-bind-cleanup-v1\\cleanup.patch"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "scope": "actual selected FAT functions with mock block/allocator/boot parser; no target execution"
+}

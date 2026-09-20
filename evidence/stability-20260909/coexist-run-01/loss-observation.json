@@ -1,0 +1,22 @@
+{
+  "observed_round": 12,
+  "missing_sequence": 0,
+  "sent": 50,
+  "received": 49,
+  "wifi_connected": true,
+  "ble_connected_encrypted": true,
+  "ble_disconnections_delta": 0,
+  "rx_rejected_before": 26,
+  "rx_rejected_after": 26,
+  "amsdu_complete_before": 3,
+  "amsdu_complete_after": 4,
+  "amsdu_subframes_before": 6,
+  "amsdu_subframes_after": 9,
+  "cause": "undetermined; ARP/latency/transport require additional evidence; not proven by counters",
+  "ping_sequence_base": 0,
+  "sdk_source_review": [
+    "apps/netutils/ping/icmp_ping.c",
+    "nuttx/net/icmp/icmp_sendmsg.c"
+  ],
+  "runner_sha256": "d8d22d394211d99dc2ff6aa86446b939d9ca662afdcac43b33760277ee0194de"
+}

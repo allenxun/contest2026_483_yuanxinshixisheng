@@ -1,0 +1,67 @@
+{
+  "utc": "2026-09-10T06:44:20Z",
+  "hardware_tested": false,
+  "results": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "gcc.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O2",
+        "-c",
+        "model_reader.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\evidence\\model_reader.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O2",
+        "test_reader.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\evidence\\test_reader.exe"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\evidence\\test_reader.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\fixtures-d61h98nj\\small.bin",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\fixtures-d61h98nj\\sparse.bin"
+      ],
+      "exit_code": 0,
+      "stdout": "PASS real small file, EOF zero read, idempotent close\nPASS exact length mismatch closes\nPASS open budgets, reopen ownership, cross-EOF range\nPASS overflow/budget; injected EOF/read/stat/seek/EINTR exhaustion closes once\nPASS injected EINTR+short read recovery, close error reported after real release\nPASS real concurrent file truncation detected\nPASS lexical prohibited-path rejection (no device opened)\nPASS real >2GiB sparse seek/read and zero hole\nPASS all C checks\n",
+      "stderr": ""
+    },
+    {
+      "sparse_fixture": {
+        "status": "pass",
+        "logical_bytes": 2147483775,
+        "allocated_bytes": 65536,
+        "physical_budget": 1048576,
+        "method": "FSCTL_SET_SPARSE ordinary fixture handle; GetCompressedFileSizeW"
+      }
+    }
+  ]
+}

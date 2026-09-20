@@ -1,0 +1,26 @@
+Host: Windows PowerShell, MinGW g++
+Scope: host-only; no SDK, VM, serial, device, board playback, or central log update
+
+Attempt 1 command:
+g++ -std=c++17 -Wall -Wextra -Werror -pedantic -O0 voice_prompt_adapter.cpp test_voice_prompt_adapter.cpp -o voice_prompt_adapter_test_O0.exe
+
+Attempt 1 exit: 1
+Attempt 1 raw diagnostic:
+test_voice_prompt_adapter.cpp: In function 'void {anonymous}::testCancelCleansUp()':
+test_voice_prompt_adapter.cpp:103:24: error: no matching function for call to '{anonymous}::Cancel::Cancel(<brace-enclosed initializer list>)'
+  103 |   Cancel c{&s.writes, 2};
+      |                        ^
+Cause: the polymorphic test fixture is not an aggregate under this compiler.
+Fix: assign its two fields explicitly; production adapter unchanged.
+
+Attempt 2 O0 command:
+g++ -std=c++17 -Wall -Wextra -Werror -pedantic -O0 voice_prompt_adapter.cpp test_voice_prompt_adapter.cpp -o voice_prompt_adapter_test_O0.exe
+Attempt 2 O0 exit: 0
+Attempt 2 O0 stdout:
+PASS 6/6: short I/O, cancel, busy, write cleanup, cleanup failure, missing resource
+
+Attempt 2 O2 command:
+g++ -std=c++17 -Wall -Wextra -Werror -pedantic -O2 voice_prompt_adapter.cpp test_voice_prompt_adapter.cpp -o voice_prompt_adapter_test_O2.exe
+Attempt 2 O2 exit: 0
+Attempt 2 O2 stdout:
+PASS 6/6: short I/O, cancel, busy, write cleanup, cleanup failure, missing resource

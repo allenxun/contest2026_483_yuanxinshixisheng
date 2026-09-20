@@ -1,0 +1,38 @@
+--- sdk/app/k7sound/k7sound_main.c
++++ app/k7sound/k7sound_main.c
+@@ -250,6 +250,8 @@
+           printf("PCM %06x", i);
+           for (unsigned j = i; j < i + 8 && j < captured_frames * 2; j++) printf(" %08" PRIx32, capture[j]);
+           putchar('\n');
++          /* Pace diagnostics so the USB serial adapter can drain each row. */
++          usleep(1000);
+         }
+       puts("SOUND_PCM_END");
+       pthread_mutex_unlock(&owner);
+@@ -315,6 +317,13 @@
+     }
+   if ((!probe && !playing && !recording && !loopback) || bus.poisoned || bus.held || data_held || platform.held || reset_fault) goto invalid;
+   const uint32_t *playback_source = capture;
++  if (replay && !ma4 && !hp80)
++    {
++      /* Match ASR's left channel and mono TTS routing. Keep capture intact. */
++      for (unsigned i = 0; i < captured_frames; i++)
++        filtered_playback[2 * i] = filtered_playback[2 * i + 1] = capture[2 * i];
++      playback_source = filtered_playback;
++    }
+   if (ma4 || hp80)
+     {
+       uint32_t saturations = 0;
+--- sdk/app/k7agent/cloud/src/device_voice_intent.c
++++ app/k7agent/cloud/src/device_voice_intent.c
+@@ -23,7 +23,9 @@
+     }
+   normalized[used]=0;
+   if(!strcmp(normalized,"启动云台") || !strcmp(normalized,"开启云台"))return K7_VOICE_TRACK;
+-  if(!strcmp(normalized,"测肤") || !strcmp(normalized,"开始测肤"))return K7_VOICE_PHOTO;
++  /* Exact observed ASR homophone only; never substring/fuzzy matching. */
++  if(!strcmp(normalized,"测肤") || !strcmp(normalized,"开始测肤") ||
++     !strcmp(normalized,"开始侧敷"))return K7_VOICE_PHOTO;
+   if(!strcmp(normalized,"停止云台") || !strcmp(normalized,"停止测肤"))return K7_VOICE_STOP;
+   if(!strcmp(normalized,"停止播报"))return K7_VOICE_QUIET;
+   return K7_VOICE_NONE;

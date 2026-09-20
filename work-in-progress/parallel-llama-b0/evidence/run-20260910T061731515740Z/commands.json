@@ -1,0 +1,50 @@
+[
+  {
+    "name": "configure",
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-b0\\tools\\python\\cmake\\data\\bin\\cmake.exe",
+      "-S",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-b0",
+      "-B",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-b0\\evidence\\run-20260910T061731515740Z\\build",
+      "-G",
+      "MinGW Makefiles",
+      "-DCMAKE_C_COMPILER=D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-DCMAKE_CXX_COMPILER=D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+      "-DCMAKE_MAKE_PROGRAM=D:\\software\\mingw64\\mingw64\\bin\\mingw32-make.exe",
+      "-DCMAKE_BUILD_TYPE=Release"
+    ],
+    "returncode": 0,
+    "limit_seconds": 90,
+    "seconds": 2.2810000000026776,
+    "log": "configure.log"
+  },
+  {
+    "name": "compile",
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-b0\\tools\\python\\cmake\\data\\bin\\cmake.exe",
+      "--build",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-b0\\evidence\\run-20260910T061731515740Z\\build",
+      "--target",
+      "b0-probe",
+      "--parallel",
+      "4"
+    ],
+    "returncode": 0,
+    "limit_seconds": 300,
+    "seconds": 33.90600000000268,
+    "log": "compile.log"
+  },
+  {
+    "name": "probe",
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-b0\\evidence\\run-20260910T061731515740Z\\build\\b0-probe.exe",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-b0\\evidence\\run-20260910T061731515740Z\\missing.gguf",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-b0\\evidence\\run-20260910T061731515740Z\\invalid.gguf"
+    ],
+    "returncode": 0,
+    "limit_seconds": 30,
+    "seconds": 0.15699999999196734,
+    "log": "probe.log"
+  }
+]

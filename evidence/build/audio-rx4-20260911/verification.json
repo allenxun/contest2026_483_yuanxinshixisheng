@@ -1,0 +1,33 @@
+{
+  "build_exit_code": 0,
+  "build_kind": "incremental diagnostic from immutable audio-s16-20260911 build tree",
+  "sources": {
+    "app/k7sound/k7sound_main.c": "a2293c2f5228a3a4271f7918b00d2448dc3d2eb204ae07874d7ee22eb13cd080",
+    "app/k7sound/pio.c": "b85af84c4e6a5e744fed02c41ce2295ad6f4b3b92d2cbb43f5e650dc9bb00d53",
+    "app/k7sound/pio.h": "555f1c9b74a8e5c4eecf9082fee46b850883ae1c9c339923fd1bd9c64163068b"
+  },
+  "artifacts": {
+    "nuttx": {
+      "bytes": 42404872,
+      "sha256": "e1ae99d1a36c05ab8499605aa193828b9cdceb6cd63dd76dcd12517636ada3c6"
+    },
+    "nuttx.bin": {
+      "bytes": 15263088,
+      "sha256": "dcc2f2423a89eeeb6b89c1d4cb34ba4aa11da840878b03aec7fc0f5fec01c2ba"
+    },
+    ".config": {
+      "bytes": 64532,
+      "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+    }
+  },
+  "hardware_tested": true,
+  "hardware_evidence": {
+    "raw_log": "work-in-progress/audio-rx4-20260911/rx4-smoke-20260911-202334.log",
+    "raw_log_sha256": "7498178da247e5e9526a04508bacaf1b5468f90a78cfcbc023f705d9ac8c4cb7"
+  },
+  "limitations": [
+    "Incremental diagnostic build; use a fresh independent build for a production candidate",
+    "CSR=4 with default routes accelerated FIFO delivery but retained empty lanes",
+    "Routing all four receive paths to SDI0 mostly produced -1/0 and is not accepted as microphone audio"
+  ]
+}

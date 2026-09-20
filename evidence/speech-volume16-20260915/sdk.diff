@@ -1,0 +1,31 @@
+--- sdk/app/k7sound/k7sound_main.c
++++ app/k7sound/k7sound_main.c
+@@ -24,7 +24,7 @@
+ static struct dl_result loop_result;
+ static unsigned captured_frames;
+ /* Spoken audio only; cues retain their explicit maximum profile. */
+-static unsigned speech_gain_db = 18;
++static unsigned speech_gain_db = 16;
+ static unsigned captured_bits;
+ static bool capture_usable;
+ static bool playing, amp_ready, data_held, reset_fault;
+@@ -556,7 +556,7 @@
+       if (argc == 3)
+         {
+           char *end;errno = 0;gain = strtoul(argv[2], &end, 10);
+-          if (errno || !argv[2][0] || *end || gain > 24 || gain % 6) return 1;
++          if (errno || !argv[2][0] || *end || gain > 24) return 1;
+         }
+       if (pthread_mutex_trylock(&owner)) return 1;
+       if (argc == 3) speech_gain_db = (unsigned)gain;
+--- sdk/app/k7sound/codec_duplex.c
++++ app/k7sound/codec_duplex.c
+@@ -87,7 +87,7 @@
+ int kd_prepare(struct kd_codec*c,unsigned bits,uint64_t d){return kd_prepare_adc_variant(c,bits,KD_ADC_BASELINE,d);}
+ int kd_set_playback_gain(struct kd_codec*c,unsigned gain_db,uint64_t d){
+  int e;uint8_t value;
+- if(!c || gain_db>24u || gain_db%6u)return -EINVAL;
++ if(!c || gain_db>24u)return -EINVAL;
+  if(c->busy || c->state!=KD_PREPARED)return -EBUSY;
+  e=begin(c,d);if(e)return finish(c,e);
+  c->amp_armed=false;

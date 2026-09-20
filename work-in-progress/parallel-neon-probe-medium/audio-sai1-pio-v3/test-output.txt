@@ -1,0 +1,10 @@
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-pedantic', 'pio.c', 'test.c', '-o', 'testO0.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-sai1-pio-v3\\testO0.exe']
+PASS v3: vendor sum4 FIFO, strict16word prefill, raw diagnostics,3200TX/48000RX and v2 bounds
+EXIT 0
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-pedantic', 'pio.c', 'test.c', '-o', 'testO2.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-sai1-pio-v3\\testO2.exe']
+PASS v3: vendor sum4 FIFO, strict16word prefill, raw diagnostics,3200TX/48000RX and v2 bounds
+EXIT 0

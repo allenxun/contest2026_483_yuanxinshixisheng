@@ -1,0 +1,126 @@
+[
+  {
+    "name": "kaldifst",
+    "url": "https://github.com/k2-fsa/kaldifst/archive/refs/tags/v1.7.17.tar.gz",
+    "expected_sha256": "c4b701a23a400bda8032586b02c7e0d5e813a765832df60c23e6df9e62b010f4",
+    "status": "VERIFIED",
+    "sha256": "c4b701a23a400bda8032586b02c7e0d5e813a765832df60c23e6df9e62b010f4",
+    "bytes": 171684,
+    "snapshots": [
+      {
+        "path": "kaldifst-1.7.17/CMakeLists.txt",
+        "sha256": "b3ad634636a0781d2c0c3e654ea9b0fe4349e69b7d041946e4d962cdcabadc7d"
+      },
+      {
+        "path": "kaldifst-1.7.17/cmake/googletest.cmake",
+        "sha256": "c2e427882f294140bccf98b4c0be3a508f4670e89357d8c8ee1c76f2970a9d8e"
+      },
+      {
+        "path": "kaldifst-1.7.17/cmake/openfst.cmake",
+        "sha256": "39d2cf649635b600f400fc6be4b86bf19cf8460d85f4ddb307a1ff178c0a9b69"
+      },
+      {
+        "path": "kaldifst-1.7.17/cmake/pybind11.cmake",
+        "sha256": "3a5c4ac2ef41cedc302ab961d6f5dda98d9a9099d740312f3aebd84349354f42"
+      },
+      {
+        "path": "kaldifst-1.7.17/kaldifst/CMakeLists.txt",
+        "sha256": "b17433b748f2267b1c902ab788d77343bfd367447f582565d6717a2143748795"
+      },
+      {
+        "path": "kaldifst-1.7.17/kaldifst/csrc/CMakeLists.txt",
+        "sha256": "54091068b01629432f9cd04ed64eb06af6af0135038716d06f68f7b9469d355b"
+      },
+      {
+        "path": "kaldifst-1.7.17/kaldifst/python/CMakeLists.txt",
+        "sha256": "b7972f40dd2ad741d31f918c507d5097407cecb8eead884ef37e81f9566670e1"
+      },
+      {
+        "path": "kaldifst-1.7.17/kaldifst/python/csrc/CMakeLists.txt",
+        "sha256": "336f50bf0864bd8917131725903466d9b1f0250ce2f71d5be6530bb26442e4d2"
+      },
+      {
+        "path": "kaldifst-1.7.17/kaldifst/python/tests/CMakeLists.txt",
+        "sha256": "a5f420c16f81448b44f6e89e98b0d361eb5b47a6e8a23cf90f05d4cee665a90a"
+      }
+    ]
+  },
+  {
+    "name": "openfst",
+    "url": "https://github.com/csukuangfj/openfst/archive/refs/tags/sherpa-onnx-2024-06-19.tar.gz",
+    "expected_sha256": "5c98e82cc509c5618502dde4860b8ea04d843850ed57e6d6b590b644b268853d",
+    "status": "VERIFIED",
+    "sha256": "5c98e82cc509c5618502dde4860b8ea04d843850ed57e6d6b590b644b268853d",
+    "bytes": 1244216,
+    "snapshots": [
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/CMakeLists.txt",
+        "sha256": "5fee01e9695c4a435b919bdc61c5bd5432ff18836943b798816cab7501a35fb9"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/CMakeLists.txt",
+        "sha256": "c9e4fe4c302727b09cf99c2680bf2cf042c2b61489f893469e962cb9aad527d3"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/bin/CMakeLists.txt",
+        "sha256": "cbd5d9a05a17f92d8f03357caa1e8b0140a4d1e958cda529c601a1f708c8dd0d"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/extensions/CMakeLists.txt",
+        "sha256": "fff1718a7e6062c1a7149d003973833c3d356bb3e83730c3e3dabf1479c25c2b"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/extensions/compact/CMakeLists.txt",
+        "sha256": "d170c105f2408378b717951c90a0b82e423ea2ea3719454f4eca41560c79b74d"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/extensions/compress/CMakeLists.txt",
+        "sha256": "dfa809a53216772b45f08f22720509e4e739f5fe18c84e2a07a4853ff61af670"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/extensions/const/CMakeLists.txt",
+        "sha256": "6f950dad4b5b23307ac0c447f5189b1085cf3ed98e64845eba2e2eb76edadc32"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/extensions/far/CMakeLists.txt",
+        "sha256": "f77cccf53d52e044b35b9b2996b15717d3ab0d48a55f96b9d0ee9e5bbeb9dab4"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/extensions/linear/CMakeLists.txt",
+        "sha256": "c6db7fd87676c2138d37864557458a5b2c5252a6410a3882929dd9bba8369ff6"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/extensions/lookahead/CMakeLists.txt",
+        "sha256": "a3c0aa77d26f515a4e66f09145912ba2d1722bfb3eb76f89558ded5e74ac724a"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/extensions/mpdt/CMakeLists.txt",
+        "sha256": "e7395b141b08e4bfdec5863bd99322e3a78cb96844ddb347696b9592c87bf86a"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/extensions/ngram/CMakeLists.txt",
+        "sha256": "b7f5a84feb453bdf153dd37a33fcf84d76a6bb0d567690ed2d70711e7c5d6f2a"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/extensions/pdt/CMakeLists.txt",
+        "sha256": "410519410381021201f0b79f857ba826dc762128b428f30c5f41eb9d2034845a"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/extensions/special/CMakeLists.txt",
+        "sha256": "90c43597ab21605e9fc8cd1220c3e8f1bb9ab5beada15da68fe097676282fdcf"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/lib/CMakeLists.txt",
+        "sha256": "7f1123e29cf067c92eefda26cc18eb909f034069702f796712ec183d973512bd"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/script/CMakeLists.txt",
+        "sha256": "a07527129655459628692713f8fbc917fd57433c98ac0618832badf3e7214a96"
+      },
+      {
+        "path": "openfst-sherpa-onnx-2024-06-19/src/test/CMakeLists.txt",
+        "sha256": "bd9675d36e5772b22111c79d5620dffce4c67545003bdd252495adad252acac4"
+      }
+    ]
+  }
+]

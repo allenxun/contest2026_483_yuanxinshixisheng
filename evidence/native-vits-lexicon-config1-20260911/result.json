@@ -1,0 +1,63 @@
+{
+  "exit_code": 0,
+  "command": [
+    "/dev/shm/cmake-3.28.3-linux-x86_64/bin/cmake",
+    "-S",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/sherpa",
+    "-B",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/build",
+    "-G",
+    "Ninja",
+    "-DK7_SHERPA_DEPS_ROOT=/dev/shm/velavision-sherpa-asr-20260911/sources",
+    "-C",
+    "/home/swl/openvela/work/native-sherpa-config2-20260911/driver/asr-initial-cache.cmake",
+    "-DFETCHCONTENT_SOURCE_DIR_KALDIFST=/home/swl/openvela/work/native-sherpa-config2-20260911/sources/kaldifst",
+    "-DFETCHCONTENT_SOURCE_DIR_OPENFST=/home/swl/openvela/work/native-sherpa-config2-20260911/sources/openfst",
+    "-C",
+    "/home/swl/openvela/work/native-sherpa-config2-20260911/driver/eigen-cache.cmake",
+    "-DCMAKE_TOOLCHAIN_FILE=/dev/shm/velavision-ort-session-20260911/session-toolchain.cmake",
+    "-DCMAKE_BUILD_TYPE=MinSizeRel",
+    "-DCMAKE_MAKE_PROGRAM=/home/swl/openvela/prebuilts/build-tools/linux-x86_64/bin/ninja",
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+    "-DK7_ORT_PUBLIC_INCLUDE_DIR=/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/session",
+    "-DK7_ORT_STATIC_LIBRARIES=/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_base.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_log_severity.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_malloc_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_raw_logging_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_spinlock_wait.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_throw_delegate.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/container/libabsl_hashtablez_sampler.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/container/libabsl_raw_hash_set.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc32c.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_cord_state.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_cpu_detect.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_debugging_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_demangle_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_stacktrace.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_symbolize.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_commandlineflag.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_commandlineflag_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_config.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_marshalling.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_private_handle_accessor.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_program_name.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_reflection.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_city.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_hash.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_low_level_hash.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/numeric/libabsl_int128.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/profiling/libabsl_exponential_biased.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cord.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cord_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_functions.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_handle.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_info.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_str_format_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_string_view.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_strings.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_strings_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_graphcycles_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_kernel_timeout_internal.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_synchronization.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_civil_time.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_time.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_time_zone.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/types/libabsl_bad_optional_access.a;/dev/shm/velavision-ort-session-20260911/build/_deps/abseil_cpp-build/absl/types/libabsl_bad_variant_access.a;/dev/shm/velavision-ort-session-20260911/build/_deps/flatbuffers-build/libflatbuffers.a;/dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/libnsync_cpp.a;/dev/shm/velavision-ort-session-20260911/build/_deps/onnx-build/libonnx.a;/dev/shm/velavision-ort-session-20260911/build/_deps/onnx-build/libonnx_proto.a;/dev/shm/velavision-ort-session-20260911/build/_deps/protobuf-build/libprotobuf-lite.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_common.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_flatbuffers.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_framework.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_graph.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_mlas.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_optimizer.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_providers.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_session.a;/dev/shm/velavision-ort-session-20260911/build/libonnxruntime_util.a",
+    "-DSHERPA_ONNX_ENABLE_TTS=ON",
+    "-DSHERPA_ONNX_TTS_VITS_LEXICON_ONLY=ON"
+  ],
+  "changes": [
+    {
+      "path": "CMakeLists.txt",
+      "before_sha256": "9e9b9e0ff87b94808ed12d5616b452c137e7a43924f2a585bcdd8ab97ddab889",
+      "after_sha256": "d8eb3208088d6b693e07166ebbfdd73bec9214570d2dce0056683123eaea7ea0"
+    },
+    {
+      "path": "sherpa-onnx/csrc/CMakeLists.txt",
+      "before_sha256": "1e645c21ca57bce233038ca3ae17bb05e404cb6b98e04d9df435ac9565f2d11c",
+      "after_sha256": "c4816795c322bbb80b43026fcbc6eb06f1626012566e4fdce907039478682d3d"
+    },
+    {
+      "path": "sherpa-onnx/csrc/offline-tts-impl.cc",
+      "before_sha256": "706d771cf015d4c575014974aac16a44c7552f30d75db339345b53b62feea5fd",
+      "after_sha256": "7d78c9d18d22e6f49e985b6301e0d857c8af4391232bb8faba7345a207a2cd43"
+    },
+    {
+      "path": "sherpa-onnx/csrc/offline-tts-vits-impl.h",
+      "before_sha256": "33694d647bc92cbf4bd4bc512b5c7e26edd24fe80e5b6e8d2791599871f75bac",
+      "after_sha256": "201e5936c04a1e6d72903aeb76804c22c19f7ea171deddb6b5f3d48b61e33c06"
+    },
+    {
+      "path": "sherpa-onnx/c-api/c-api.cc",
+      "before_sha256": "a018872770e8057e2663678ea1264e96415ee28d19f0ddcea936f551f725f6d9",
+      "after_sha256": "3bd405d659ab4a53b5fa119becc95aea45b8b51305a91e46b638a668fb29c5e7"
+    },
+    {
+      "path": "sherpa-onnx/csrc/vits-lexicon-only-policy.h",
+      "before_sha256": null,
+      "after_sha256": "15e3c549ef3fd4cb73890ecff04947c6792be2b8d92e7f9f11489396d6f181ac"
+    }
+  ],
+  "compiled": false,
+  "model_run": false,
+  "far_memory_resolved": false,
+  "lexicon_source_selection_checked": true
+}

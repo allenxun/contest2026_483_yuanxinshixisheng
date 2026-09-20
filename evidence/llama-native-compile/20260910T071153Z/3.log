@@ -1,0 +1,54 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-opt.h:10,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-opt.cpp:1:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-opt.cpp: In function 'ggml_opt_context* ggml_opt_init(ggml_opt_params)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-opt.cpp:332:33: warning: declaration of 'ggml_init_params params' shadows a parameter [-Wshadow]
+  332 |         struct ggml_init_params params = {
+      |                                 ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-opt.cpp:293:57: note: shadowed declaration is here
+  293 | ggml_opt_context_t ggml_opt_init(struct ggml_opt_params params) {
+      |                                  ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-opt.cpp:343:33: warning: declaration of 'ggml_init_params params' shadows a parameter [-Wshadow]
+  343 |         struct ggml_init_params params = {
+      |                                 ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-opt.cpp:293:57: note: shadowed declaration is here
+  293 | ggml_opt_context_t ggml_opt_init(struct ggml_opt_params params) {
+      |                                  ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-opt.cpp: In function 'void ggml_opt_result_loss(ggml_opt_result_t, double*, double*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-opt.cpp:543:24: warning: declaration of 'const float& loss' shadows a parameter [-Wshadow]
+  543 |     for (const float & loss : result->loss) {
+      |                        ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-opt.cpp:531:62: note: shadowed declaration is here
+  531 | void ggml_opt_result_loss(ggml_opt_result_t result, double * loss, double * unc) {
+      |                                                     ~~~~~~~~~^~~~
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-opt.cpp:6:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h: At global scope:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~

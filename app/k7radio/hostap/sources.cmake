@@ -1,0 +1,26 @@
+set(SKW_HOSTAP_SOURCES
+  hostap/rsn_supp/wpa.c
+  hostap/rsn_supp/wpa_ie.c
+  hostap/rsn_supp/pmksa_cache.c
+  hostap/common/wpa_common.c
+  hostap/common/ieee802_11_common.c
+  hostap/utils/common.c
+  hostap/utils/wpabuf.c
+  hostap/utils/bitfield.c
+  hostap/crypto/aes-internal.c
+  hostap/crypto/aes-internal-enc.c
+  hostap/crypto/aes-internal-dec.c
+  hostap/crypto/aes-unwrap.c
+  hostap/crypto/aes-wrap.c
+  hostap/crypto/aes-omac1.c
+  hostap/crypto/sha1.c
+  hostap/crypto/sha1-internal.c
+  hostap/crypto/sha1-prf.c
+  hostap/crypto/sha1-pbkdf2.c
+  hostap/crypto/sha256.c
+  hostap/crypto/sha256-internal.c
+  hostap/crypto/sha256-prf.c
+  hostap/crypto/md5.c
+  hostap/crypto/md5-internal.c
+  hostap/crypto/rc4.c
+)

@@ -1,0 +1,28 @@
+{
+  "candidate": "parallel-capture-asr-worker-sol",
+  "recorded_at": "2026-09-12T17:15:23.2619478+08:00",
+  "scope": "host-only fake capture and fake ASR backend; no SDK, serial, device, central log, Controller, prompt, or Wi-Fi changes",
+  "compiler": "g++.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0",
+  "reproduce": "powershell -ExecutionPolicy Bypass -File work-in-progress/parallel-capture-asr-worker-sol/run_tests.ps1",
+  "results": {
+    "O0": "PASS",
+    "O2": "PASS",
+    "O2_repeat_iterations": 100,
+    "O2_repeat": "PASS"
+  },
+  "files": {
+    "include/capture_asr_worker.hpp": {"bytes": 3720, "sha256": "cd46446937af2e4f8ffc3cc2afef00fd49a98ac343e47491e36db594779e2614"},
+    "src/capture_asr_worker.cpp": {"bytes": 7425, "sha256": "d126b21de79d7d9fa4ea816b9b1d28e841ba7c5f140c8d276bd8cb89d641e8f7"},
+    "tests/test_worker.cpp": {"bytes": 7333, "sha256": "410678a9f25f0102be9d5aae749ece783e6935dd54d332e3352e0da165399a74"},
+    "run_tests.ps1": {"bytes": 748, "sha256": "f74c36f27f0764690aa327ebc842ac94779eee63fc82d176b958db3dfbe5962e"},
+    "README.md": {"bytes": 4376, "sha256": "03401199873a3fafafd80164c52267f2a2ac7a12baf3aee0eefd0b4fa52ec2be"},
+    "results/O0.txt": {"bytes": 346, "sha256": "e6c5f24a309261b31d7e00dedd002ce40663e529189a711e01c3aad5b783935a"},
+    "results/O2.txt": {"bytes": 346, "sha256": "e6c5f24a309261b31d7e00dedd002ce40663e529189a711e01c3aad5b783935a"},
+    "results/O2-repeat-100.txt": {"bytes": 237, "sha256": "cc4d7adfdac6a81cebe974ce72479cd9144d41d61d777699414892104228e27c"},
+    "build/test_worker_O0.exe": {"bytes": 698366, "sha256": "0cb7df8798a2a0312d4f488c0e4d35805c8cedf3f474981b8e4ed64eccbc59e0"},
+    "build/test_worker_O2.exe": {"bytes": 621482, "sha256": "96ee08ad897cef07d74ea38ca65af2072214b6ca510e1b1b1e22e99b079e0b90"}
+  },
+  "hardware_tested": false,
+  "arm64_compiled": false,
+  "formal_source_modified": false
+}

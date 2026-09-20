@@ -1,0 +1,16 @@
+{
+  "scope": "host-only pure logic candidate",
+  "compiler": "g++ C++17",
+  "variants": [
+    {"optimization": "O0", "warnings": "Wall Wextra Wpedantic Werror", "exit_code": 0},
+    {"optimization": "O2", "warnings": "Wall Wextra Wpedantic Werror", "exit_code": 0}
+  ],
+  "test_scenarios": 10,
+  "result": "passed",
+  "ports": "simulated",
+  "real_credentials_used": false,
+  "asr_tts_engine_used": false,
+  "hardware_touched": false,
+  "sdk_touched": false,
+  "formal_source_touched": false
+}

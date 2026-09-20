@@ -1,0 +1,56 @@
+{
+  "revision": "tts-spoken-flow-arena-gated-20260913",
+  "observed_at": "2026-09-13T21:43:22+08:00",
+  "board_mode": "U-Boot Fastboot, RAM-only transfer pending",
+  "board_powered": true,
+  "emmc_written": false,
+  "retained_models": {
+    "decoder": {
+      "address": "0x90000000",
+      "bytes_hex": "0x44b0310",
+      "crc32": "2af64aa7",
+      "verified_before_fastboot": true
+    },
+    "encoder_tail": {
+      "address": "0x86000000",
+      "bytes_hex": "0x3e7da30",
+      "crc32": "b5f7ae2d",
+      "verified_before_fastboot": true
+    }
+  },
+  "pending_package": {
+    "path": "work-in-progress/tts-arena-fix-20260913/spoken-tts-gated-prefix.bin",
+    "bytes": 116524928,
+    "sha256": "17d264568e8fe810da78a95b317549eb8a5ef54e236634c85b0813a517322c8e",
+    "flash_commands": false,
+    "verification": "work-in-progress/tts-arena-fix-20260913/gated-package-verification.json"
+  },
+  "host_state": {
+    "windows_fastboot_instance": "USB\\VID_18D1&PID_4D00\\F71A9D152132DB55",
+    "windows_problem_code": 28,
+    "vmware_usb_arbitration_service": "running, automatic; current process cannot restart service",
+    "ubuntu_serial": "1a86:7523 present as /dev/ttyUSB0",
+    "ubuntu_fastboot": "18d1:4d00 absent",
+    "required_action": "connect USB download gadget to Ubuntu from VMware Removable Devices"
+  },
+  "host_verification": {
+    "voicelink_text_flow_O0": "20 scenarios passed; simulated ports",
+    "voicelink_text_flow_O2": "20 scenarios passed; simulated ports",
+    "dns_O0_O2": "9 groups passed in each build",
+    "https_O0_O2": "9 groups passed in each build",
+    "mimo_client_O0_O2": "6 groups passed in each build"
+  },
+  "serial_log": {
+    "path": "work-in-progress/tts-arena-fix-20260913/ram-enter-20260913-212805.log",
+    "bytes": 4498,
+    "sha256": "457b5ba8e57d506ca323d795970a575a5d902aa69679d694ecec884c97d54321"
+  },
+  "acceptance": {
+    "package_transferred": false,
+    "ram_boot_verified": false,
+    "tts_runtime_verified": false,
+    "asr_runtime_verified": false,
+    "speaker_audibility_confirmed": false,
+    "full_voice_provisioning_verified": false
+  }
+}

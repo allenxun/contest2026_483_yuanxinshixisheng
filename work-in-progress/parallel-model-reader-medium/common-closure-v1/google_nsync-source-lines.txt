@@ -1,0 +1,5063 @@
+
+FILE nsync-1.26.0/CMakeLists.txt
+1: cmake_minimum_required (VERSION 2.8.12)
+2: 
+3: # nsync provides portable synchronization primitives, such as mutexes and
+4: # condition variables.
+5: if ("${CMAKE_MAJOR_VERSION}X" STREQUAL "2X")
+6: 	project (nsync)
+7: else ()
+8: 	# fetch from VERSION file in root
+9: 	file (STRINGS VERSION VERSION_STRING)
+10: 
+11: 	cmake_policy(SET CMP0048 NEW) # remove when min ver >=3
+12: 
+13: 	project (nsync
+14: 		VERSION "${VERSION_STRING}")
+15: endif ()
+16: 
+17: # Some builds need position-independent code.
+18: set (CMAKE_POSITION_INDEPENDENT_CODE ON)
+19: 
+20: # Allow nsync users to turn the tests on or off.
+21: option (NSYNC_ENABLE_TESTS "Enable for building tests" ON)
+22: 
+23: # -----------------------------------------------------------------
+24: # Functions to set common options on targets and files.
+25: # Should be called on all targets.
+26: function (set_c_target tgtname files)
+27: 	if ("${CMAKE_SYSTEM_NAME}X" STREQUAL "LinuxX")
+28: 		target_include_directories ("${tgtname}" BEFORE PRIVATE
+29: 			"${PROJECT_SOURCE_DIR}/platform/linux"
+30: 		)
+31: 	endif ()
+32: endfunction (set_c_target)
+33: 
+34: function (set_cpp_target tgtname files)
+35: 	target_include_directories ("${tgtname}" BEFORE PRIVATE
+36: 		"${PROJECT_SOURCE_DIR}/platform/c++11"
+37: 	)
+38: 
+39: 	if ("${CMAKE_SYSTEM_NAME}X" STREQUAL "LinuxX")
+40: 		target_include_directories ("${tgtname}" BEFORE PRIVATE
+41: 			"${PROJECT_SOURCE_DIR}/platform/c++11.futex"
+42: 		)
+43: 	endif ()
+44: 
+45: 	target_compile_definitions ("${tgtname}" PRIVATE "${NSYNC_CPP_DEFINITIONS}")
+46: 
+47: 	foreach (s IN ITEMS ${files})
+48: 		set_source_files_properties ("${s}"
+49: 			PROPERTIES LANGUAGE CXX
+50: 			COMPILE_FLAGS "${NSYNC_CPP_FLAGS}")
+51: 	endforeach (s)
+52: endfunction (set_cpp_target)
+53: 
+54: # -----------------------------------------------------------------
+55: # Platform dependencies
+56: 
+57: # Many platforms use these posix related sources; even Win32.
+58: set (NSYNC_POSIX_SRC
+59: 	"platform/posix/src/nsync_panic.c"
+60: 	"platform/posix/src/per_thread_waiter.c"
+61: 	"platform/posix/src/time_rep.c"
+62: 	"platform/posix/src/yield.c"
+63: )
+64: 
+65: set (NSYNC_CPP_DEFINITIONS NSYNC_USE_CPP11_TIMEPOINT NSYNC_ATOMIC_CPP11)
+66: set (NSYNC_OS_CPP_SRC
+67: 	# Avoid use of the C++11 version of per_thread_waiter.  It behaves
+68: 	# badly if multiple copies of nsync are linked into an address space.
+69: 	"platform/posix/src/per_thread_waiter.c"
+70: 	"platform/c++11/src/yield.cc"
+71: 	"platform/c++11/src/time_rep_timespec.cc"
+72: 	"platform/c++11/src/nsync_panic.cc"
+73: )
+74: 
+75: # Many of the string matches below use a literal "X" suffix on both sides.
+76: # This is because some versions of cmake treat (for example) "MSVC" (in quotes)
+77: # as a reference to the variable MSVC, thus the expression
+78: #      "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC"
+79: # is false when ${CMAKE_C_COMPILER_ID} has the value "MSVC"!  See
+80: #    https://cmake.org/cmake/help/v3.1/policy/CMP0054.html
+81: 
+82: # Pick the include directory for the operating system.
+83: if ("${CMAKE_SYSTEM_NAME}X" STREQUAL "WindowsX")
+84: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/win32")
+85: 	set (NSYNC_CPP_FLAGS "/TP")
+86: 
+87: 	set (NSYNC_OS_SRC
+88: 		${NSYNC_POSIX_SRC}
+89: 		"platform/win32/src/clock_gettime.c"
+90: 		"platform/win32/src/init_callback_win32.c"
+91: 		"platform/win32/src/nanosleep.c"
+92: 		"platform/win32/src/nsync_semaphore_win32.c"
+93: 		"platform/win32/src/pthread_cond_timedwait_win32.c"
+94: 		"platform/win32/src/pthread_key_win32.cc"
+95: 	)
+96: 	set (NSYNC_OS_CPP_SRC
+97: 		${NSYNC_OS_CPP_SRC}
+98: 		"platform/c++11/src/nsync_semaphore_mutex.cc"
+99: 		"platform/win32/src/clock_gettime.c"
+100: 		"platform/win32/src/pthread_key_win32.cc"
+101: 	)
+102: 	set (NSYNC_TEST_OS_SRC
+103: 		"platform/win32/src/start_thread.c"
+104: 	)
+105: 
+106: 	# Suppress warnings to reduce build log size.
+107: 	add_definitions (/wd4057 /wd4100 /wd4152 /wd4242 /wd4244 /wd4255 /wd4267)
+108: 	add_definitions (/wd4365 /wd4389 /wd4458 /wd4571 /wd4625 /wd4626 /wd4668)
+109: 	add_definitions (/wd4702 /wd4710 /wd4774 /wd4820 /wd5026 /wd5027 /wd5039)
+110: 	add_definitions (/wd5045)
+111: elseif ("${CMAKE_SYSTEM_NAME}X" STREQUAL "DarwinX")
+112: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/macos")
+113: 	# Some versions of MacOS, such as Sierra, require _DARWIN_C_SOURCE
+114: 	# when including certin C++ standard header files, such as <mutex>.
+115: 	set (NSYNC_CPP_DEFINITIONS ${NSYNC_CPP_DEFINITIONS} _DARWIN_C_SOURCE)
+116: 	set (NSYNC_POSIX ON)
+117: 
+118: 	set (NSYNC_OS_EXTRA_SRC
+119: 		"platform/posix/src/clock_gettime.c"
+120: 		"platform/posix/src/nsync_semaphore_mutex.c"
+121: 	)
+122: 	set (NSYNC_OS_CPP_SRC
+123: 		${NSYNC_OS_CPP_SRC}
+124: 		"platform/c++11/src/nsync_semaphore_mutex.cc"
+125: 		"platform/posix/src/clock_gettime.c"
+126: 		"platform/posix/src/nsync_semaphore_mutex.c"
+127: 	)
+128: elseif ("${CMAKE_SYSTEM_NAME}X" STREQUAL "LinuxX")
+129: 	set (NSYNC_POSIX ON)
+130: 
+131: 	set (NSYNC_OS_EXTRA_SRC
+132: 		"platform/linux/src/nsync_semaphore_futex.c"
+133: 	)
+134: 	set (NSYNC_OS_CPP_SRC
+135: 		"platform/linux/src/nsync_semaphore_futex.c"
+136: 		${NSYNC_OS_CPP_SRC}
+137: 	)
+138: elseif ("${CMAKE_SYSTEM_NAME}X" STREQUAL "NetBSDX")
+139: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/netbsd")
+140: 	set (NSYNC_POSIX ON)
+141: 
+142: 	set (NSYNC_OS_EXTRA_SRC
+143: 		"platform/posix/src/nsync_semaphore_mutex.c"
+144: 	)
+145: 	set (NSYNC_OS_CPP_SRC
+146: 		"platform/c++11/src/nsync_semaphore_mutex.cc"
+147: 		${NSYNC_OS_CPP_SRC}
+148: 	)
+149: elseif ("${CMAKE_SYSTEM_NAME}X" STREQUAL "FreeBSDX")
+150: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/freebsd")
+151: 	set (NSYNC_POSIX ON)
+152: 
+153: 	set (NSYNC_OS_EXTRA_SRC
+154: 		"platform/posix/src/nsync_semaphore_mutex.c"
+155: 	)
+156: 	set (NSYNC_OS_CPP_SRC
+157: 		"platform/c++11/src/nsync_semaphore_mutex.cc"
+158: 		${NSYNC_OS_CPP_SRC}
+159: 	)
+160: elseif ("${CMAKE_SYSTEM_NAME}X" STREQUAL "OpenBSDX")
+161: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/openbsd")
+162: 	set (NSYNC_POSIX ON)
+163: 
+164: 	set (NSYNC_OS_EXTRA_SRC
+165: 		"platform/posix/src/nsync_semaphore_mutex.c"
+166: 	)
+167: 	set (NSYNC_OS_CPP_SRC
+168: 		"platform/c++11/src/nsync_semaphore_mutex.cc"
+169: 		${NSYNC_OS_CPP_SRC}
+170: 	)
+171: else ()
+172: 	set (NSYNC_POSIX ON)
+173: 
+174: 	set (NSYNC_OS_EXTRA_SRC
+175: 		"platform/posix/src/nsync_semaphore_mutex.c"
+176: 	)
+177: 	set (NSYNC_OS_CPP_SRC
+178: 		"platform/c++11/src/nsync_semaphore_mutex.cc"
+179: 		${NSYNC_OS_CPP_SRC}
+180: 	)
+181: endif ()
+182: 
+183: # Pick the include directory for the compiler.
+184: if ("${CMAKE_C_COMPILER_ID}X" STREQUAL "GNUX")
+185: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/gcc")
+186: 	set (THREADS_HAVE_PTHREAD_ARG ON)
+187: elseif ("${CMAKE_C_COMPILER_ID}X" STREQUAL "ClangX")
+188: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/clang")
+189: 	set (THREADS_HAVE_PTHREAD_ARG ON)
+190: elseif ("${CMAKE_C_COMPILER_ID}X" STREQUAL "MSVCX")
+191: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/msvc")
+192: else ()
+193: 	message (WARNING "CMAKE_C_COMPILER_ID (${CMAKE_C_COMPILER_ID}) matched NOTHING")
+194: endif ()
+195: 
+196: if (NSYNC_POSIX)
+197: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/posix")
+198: 	set (NSYNC_CPP_FLAGS "-std=c++11")
+199: 
+200: 	set (NSYNC_OS_SRC
+201: 		${NSYNC_POSIX_SRC}
+202: 		${NSYNC_OS_EXTRA_SRC}
+203: 	)
+204: 	set (NSYNC_TEST_OS_SRC
+205: 		"platform/posix/src/start_thread.c"
+206: 	)
+207: endif ()
+208: 
+209: # Pick the include directory for the architecture.
+210: if (("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "x86_64X") OR
+211:     ("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "amd64X") OR
+212:     ("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "AMD64X"))
+213: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/x86_64")
+214: elseif (("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "x86_32X") OR
+215: 	("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "i386X") OR
+216:         ("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "i686X"))
+217: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/x86_32")
+218: elseif (("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "armv6lX") OR
+219: 	("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "armv7lX") OR
+220: 	("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "armX"))
+221: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/arm")
+222: elseif (("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "aarch64X") OR
+223: 	("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "arm64X"))
+224: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/aarch64")
+225: elseif (("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "ppcX") OR
+226: 	("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "ppc32X"))
+227: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/ppc32")
+228: elseif (("${CMAKE_SYSTEM_PROCESSOR}X" STREQUAL "ppc64X"))
+229: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/ppc64")
+230: endif ()
+231: 
+232: # Windows uses some include files from the posix directory also.
+233: if ("${CMAKE_SYSTEM_NAME}X" STREQUAL "WindowsX")
+234: 	include_directories ("${PROJECT_SOURCE_DIR}/platform/posix")
+235: endif ()
+236: 
+237: # -----------------------------------------------------------------
+238: 
+239: include_directories ("${PROJECT_SOURCE_DIR}/public")
+240: include_directories ("${PROJECT_SOURCE_DIR}/internal")
+241: 
+242: include (GNUInstallDirs)
+243: 
+244: set (NSYNC_COMMON_SRC
+245: 	"internal/common.c"
+246: 	"internal/counter.c"
+247: 	"internal/cv.c"
+248: 	"internal/debug.c"
+249: 	"internal/dll.c"
+250: 	"internal/mu.c"
+251: 	"internal/mu_wait.c"
+252: 	"internal/note.c"
+253: 	"internal/once.c"
+254: 	"internal/sem_wait.c"
+255: 	"internal/time_internal.c"
+256: 	"internal/wait.c"
+257: )
+258: 
+259: add_library (nsync ${NSYNC_COMMON_SRC} ${NSYNC_OS_SRC})
+260: set_target_properties (nsync PROPERTIES
+261: 	VERSION ${PROJECT_VERSION}
+262: 	SOVERSION ${PROJECT_VERSION_MAJOR})
+263: 
+264: set_c_target (nsync "${NSYNC_COMMON_SRC} ${NSYNC_OS_SRC}")
+265: 
+266: foreach (s IN ITEMS ${NSYNC_COMMON_SRC} ${NSYNC_OS_CPP_SRC})
+267: 	# The C and C++ libraries are built from the same source files but
+268: 	# compiled with either the C or C++ compiler. CMake normally detects
+269: 	# the filetype based on the extension so we need to override LANGUAGE
+270: 	# manually. A custom command first copies the source files (only if
+271: 	# changed) so the LANGUAGE property does not conflict.
+272: 	add_custom_command (
+273: 		OUTPUT cpp/${s}
+274: 		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${s} cpp/${s}
+275: 		DEPENDS ${PROJECT_SOURCE_DIR}/${s}
+276: 	)
+277: 
+278: 	set (NSYNC_CPP_SRC_COPY ${NSYNC_CPP_SRC_COPY}
+279: 		cpp/${s}
+280: 	)
+281: endforeach (s)
+282: 
+283: add_library (nsync_cpp ${NSYNC_CPP_SRC_COPY})
+284: set_target_properties (nsync_cpp PROPERTIES
+285: 	VERSION ${PROJECT_VERSION}
+286: 	SOVERSION ${PROJECT_VERSION_MAJOR})
+287: 
+288: set_cpp_target (nsync_cpp "${NSYNC_CPP_SRC_COPY}")
+289: 
+290: 
+291: if (NSYNC_ENABLE_TESTS)
+292: 	set (NSYNC_TEST_SRC
+293: 		"testing/array.c"
+294: 		"testing/atm_log.c"
+295: 		"testing/closure.c"
+296: 		"testing/smprintf.c"
+297: 		"testing/testing.c"
+298: 		"testing/time_extra.c"
+299: 		${NSYNC_TEST_OS_SRC}
+300: 	)
+301: 	add_library (nsync_test ${NSYNC_TEST_SRC})
+302: 	set_target_properties (nsync_test PROPERTIES
+303: 		VERSION ${PROJECT_VERSION}
+304: 		SOVERSION ${PROJECT_VERSION_MAJOR})
+305: 
+306: 	set_c_target (nsync_test "${NSYNC_TEST_SRC}")
+307: 	target_include_directories (nsync_test PUBLIC
+308: 		"${PROJECT_SOURCE_DIR}/testing"
+309: 	)
+310: 
+311: 	foreach (t IN ITEMS ${NSYNC_TEST_SRC})
+312: 		add_custom_command (
+313: 			OUTPUT cpp/${t}
+314: 			COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${t} cpp/${t}
+315: 			DEPENDS ${PROJECT_SOURCE_DIR}/${t}
+316: 		)
+317: 
+318: 		set (NSYNC_TEST_CPP_SRC "${NSYNC_TEST_CPP_SRC}"
+319: 			"cpp/${t}"
+320: 		)
+321: 	endforeach (t)
+322: 
+323: 	add_library (nsync_test_cpp ${NSYNC_TEST_CPP_SRC})
+324: 	set_target_properties (nsync_test_cpp PROPERTIES
+325: 		VERSION ${PROJECT_VERSION}
+326: 		SOVERSION ${PROJECT_VERSION_MAJOR})
+327: 
+328: 	set_cpp_target (nsync_test_cpp "${NSYNC_TEST_CPP_SRC}")
+329: 	target_include_directories (nsync_test_cpp PUBLIC
+330: 		"${PROJECT_SOURCE_DIR}/testing"
+331: 	)
+332: 
+333: 	# Test names should not end with _cpp
+334: 	set (NSYNC_TESTS
+335: 		"counter_test"
+336: 		"cv_mu_timeout_stress_test"
+337: 		"cv_test"
+338: 		"cv_wait_example_test"
+339: 		"dll_test"
+340: 		"mu_starvation_test"
+341: 		"mu_test"
+342: 		"mu_wait_example_test"
+343: 		"mu_wait_test"
+344: 		"note_test"
+345: 		"once_test"
+346: 		"pingpong_test"
+347: 		"wait_test"
+348: 	)
+349: 
+350: 	enable_testing ()
+351: 
+352: 	# Test targets to only run C or C++ tests
+353: 	add_custom_target(test_c COMMAND ${CMAKE_CTEST_COMMAND} -E '_cpp$$')
+354: 	add_custom_target(test_cpp COMMAND ${CMAKE_CTEST_COMMAND} -R '_cpp$$')
+355: 
+356: 	foreach (t IN ITEMS ${NSYNC_TESTS})
+357: 		add_executable (${t} "testing/${t}.c")
+358: 		set_c_target (${t} "testing/${t}.c")
+359: 		target_include_directories (${t} PUBLIC
+360: 			"${PROJECT_SOURCE_DIR}/testing"
+361: 		)
+362: 		target_link_libraries (${t} nsync_test nsync)
+363: 		add_test (NAME ${t} COMMAND ${t})
+364: 		add_dependencies (test_c ${t})
+365: 
+366: 		add_custom_command (
+367: 			OUTPUT cpp/testing/${t}.c
+368: 			COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/testing/${t}.c cpp/testing/${t}.c
+369: 			DEPENDS ${PROJECT_SOURCE_DIR}/testing/${t}.c
+370: 		)
+371: 
+372: 		set (NSYNC_TEST_CPP_SRC ${NSYNC_TEST_CPP_SRC}
+373: 			cpp/testing/${t}.c
+374: 		)
+375: 		add_executable (${t}_cpp "cpp/testing/${t}.c")
+376: 		set_cpp_target (${t}_cpp "cpp/testing/${t}.c")
+377: 		target_include_directories (${t}_cpp PUBLIC
+378: 			"${PROJECT_SOURCE_DIR}/testing"
+379: 		)
+380: 		target_link_libraries (${t}_cpp nsync_test_cpp nsync_cpp)
+381: 		add_test (NAME ${t}_cpp COMMAND ${t}_cpp)
+382: 		add_dependencies (test_cpp ${t}_cpp)
+383: 	endforeach (t)
+384: 
+385: 	find_package (Threads REQUIRED)
+386: 	set (THREADS_PREFER_PTHREAD_FLAG ON)
+387: 	foreach (t IN ITEMS "nsync" "nsync_test" ${NSYNC_TESTS})
+388: 		if (THREADS_HAVE_PTHREAD_ARG)
+389: 			target_compile_options (${t} PUBLIC "-pthread")
+390: 			target_compile_options (${t}_cpp PUBLIC "-pthread")
+391: 		endif ()
+392: 		if (CMAKE_THREAD_LIBS_INIT)
+393: 			target_link_libraries (${t} "${CMAKE_THREAD_LIBS_INIT}")
+394: 			target_link_libraries (${t}_cpp "${CMAKE_THREAD_LIBS_INIT}")
+395: 		endif ()
+396: 	endforeach (t)
+397: endif ()
+398: 
+399: set (CMAKE_SKIP_INSTALL_ALL_DEPENDENCY ON)
+400: 
+401: install (TARGETS nsync
+402: 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT RuntimeLibraries
+403: 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Development)
+404: 
+405: install (TARGETS nsync_cpp OPTIONAL
+406: 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT RuntimeLibraries
+407: 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Development)
+408: 
+409: set (NSYNC_INCLUDES
+410: 	"public/nsync.h"
+411: 	"public/nsync_atomic.h"
+412: 	"public/nsync_counter.h"
+413: 	"public/nsync_cpp.h"
+414: 	"public/nsync_cv.h"
+415: 	"public/nsync_debug.h"
+416: 	"public/nsync_mu.h"
+417: 	"public/nsync_mu_wait.h"
+418: 	"public/nsync_note.h"
+419: 	"public/nsync_once.h"
+420: 	"public/nsync_time.h"
+421: 	"public/nsync_time_internal.h"
+422: 	"public/nsync_waiter.h"
+423: )
+424: 
+425: foreach (NSYNC_INCLUDE ${NSYNC_INCLUDES})
+426: 	install (FILES ${NSYNC_INCLUDE}
+427: 		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+428: 		COMPONENT Development)
+429: endforeach ()
+
+FILE nsync-1.26.0/platform/aarch64/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_AARCH64_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_AARCH64_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 0
+19: 
+20: #endif /*NSYNC_PLATFORM_AARCH64_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/alpha/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_ALPHA_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_ALPHA_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 0
+19: 
+20: #endif /*NSYNC_PLATFORM_ALPHA_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/arm/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_ARM_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_ARM_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 0
+19: 
+20: #endif /*NSYNC_PLATFORM_ARM_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/atomic_ind/atomic.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_ATOMIC_IND_ATOMIC_H_
+16: #define NSYNC_PLATFORM_ATOMIC_IND_ATOMIC_H_
+17: 
+18: /* Atomic operations on nsync_atomic_uint32_ quantities
+19:    CAS, load, and store.
+20: 
+21:    Normally, these are used only on nsync_atomic_uint32_ values, but on Linux they may be
+22:    invoked on int values, because futexes operate on int values.  A
+23:    compile-time check in the futex code ensures that both int and   
+24:    nsync_atomic_uint32_ are 32 bits.
+25: 
+26:    Memory barriers:
+27: 	   Operations with the suffixes _ACQ and _RELACQ ensure that the operation
+28: 	   appears to complete before other memory operations subsequently performed by
+29: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_ACQ,
+30: 	   this applies only if the operation returns a non-zero value.)
+31: 
+32: 	   Operations with the suffixes _REL and _RELACQ ensure that the operation
+33: 	   appears to complete after other memory operations previously performed by
+34: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_REL,
+35: 	   this applies only if the operation returns a non-zero value.)
+36: 
+37:    // Atomically,
+38:    //   int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+39:    //		if (*p == old_value) {
+40:    //			*p = new_value;
+41:    //			return (some-non-zero-value);
+42:    //		} else {
+43:    //			return (0);
+44:    //		}
+45:    //	}
+46:    // *_ACQ, *_REL, *_RELACQ variants are available,
+47:    // with the barrier semantics described above.
+48:    int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+49: 
+50:    // Atomically,
+51:    //     uint32_t ATM_LOAD (nsync_atomic_uint32_ *p) { return (*p); }
+52:    // A *_ACQ variant is available,
+53:    // with the barrier semantics described above.
+54:    uint32_t ATM_LOAD (nsync_atomic_uint32_ *p);
+55: 
+56:    // Atomically,
+57:    //     void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value) { *p = value; }
+58:    // A *_REL variant is available,
+59:    // with the barrier semantics described above.
+60:    void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value);
+61:  */
+62: 
+63: #include "compiler.h"
+64: #include "nsync_atomic.h"
+65: 
+66: NSYNC_CPP_START_
+67: 
+68: int nsync_atm_cas_ (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+69: int nsync_atm_cas_acq_ (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+70: int nsync_atm_cas_rel_ (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+71: int nsync_atm_cas_relacq_ (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+72: uint32_t nsync_atm_load_ (const nsync_atomic_uint32_ *p);
+73: uint32_t nsync_atm_load_acq_ (const nsync_atomic_uint32_ *p);
+74: void nsync_atm_store_ (nsync_atomic_uint32_ *p, uint32_t value);
+75: void nsync_atm_store_rel_ (nsync_atomic_uint32_ *p, uint32_t value);
+76: 
+77: #define ATM_CAS nsync_atm_cas_
+78: #define ATM_CAS_ACQ nsync_atm_cas_acq_
+79: #define ATM_CAS_REL nsync_atm_cas_rel_
+80: #define ATM_CAS_RELACQ nsync_atm_cas_relacq_
+81: #define ATM_LOAD nsync_atm_load_
+82: #define ATM_LOAD_ACQ nsync_atm_load_acq_
+83: #define ATM_STORE nsync_atm_store_
+84: #define ATM_STORE_REL nsync_atm_store_rel_
+85: 
+86: NSYNC_CPP_END_
+87: 
+88: #endif /*NSYNC_PLATFORM_ATOMIC_IND_ATOMIC_H_*/
+
+FILE nsync-1.26.0/platform/c++11.futex/platform.h
+1: /* Copyright 2018 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_CPP11_FUTEX_PLATFORM_H_
+16: #define NSYNC_PLATFORM_CPP11_FUTEX_PLATFORM_H_
+17: 
+18: /* This header is for use of when a mostly-C++11 build is desired,
+19:    but on a Linux system where fuxtex is available, and outperforms
+20:    the C++11 library functions. */
+21: 
+22: #include "../c++11/platform.h"
+23: #include <unistd.h>
+24: #include <linux/futex.h>
+25: #include <sys/syscall.h>
+26: 
+27: #endif /*NSYNC_PLATFORM_CPP11_FUTEX_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/c++11/atomic.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_CPP11_ATOMIC_H_
+16: #define NSYNC_PLATFORM_CPP11_ATOMIC_H_
+17: 
+18: /* Atomic operations on nsync_atomic_uint32_ quantities
+19:    CAS, load, and store.
+20: 
+21:    Normally, these are used only on nsync_atomic_uint32_ values, but on Linux they may be
+22:    invoked on int values, because futexes operate on int values.  A
+23:    compile-time check in the futex code ensures that both int and   
+24:    nsync_atomic_uint32_ are 32 bits.
+25: 
+26:    Memory barriers:
+27: 	   Operations with the suffixes _ACQ and _RELACQ ensure that the operation
+28: 	   appears to complete before other memory operations subsequently performed by
+29: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_ACQ,
+30: 	   this applies only if the operation returns a non-zero value.)
+31: 
+32: 	   Operations with the suffixes _REL and _RELACQ ensure that the operation
+33: 	   appears to complete after other memory operations previously performed by
+34: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_REL,
+35: 	   this applies only if the operation returns a non-zero value.)
+36: 
+37:    // Atomically,
+38:    //   int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+39:    //		if (*p == old_value) {
+40:    //			*p = new_value;
+41:    //			return (some-non-zero-value);
+42:    //		} else {
+43:    //			return (0);
+44:    //		}
+45:    //	}
+46:    // *_ACQ, *_REL, *_RELACQ variants are available,
+47:    // with the barrier semantics described above.
+48:    int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+49: 
+50:    // Atomically,
+51:    //     uint32_t ATM_LOAD (nsync_atomic_uint32_ *p) { return (*p); }
+52:    // A *_ACQ variant is available,
+53:    // with the barrier semantics described above.
+54:    uint32_t ATM_LOAD (nsync_atomic_uint32_ *p);
+55: 
+56:    // Atomically,
+57:    //     void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value) { *p = value; }
+58:    // A *_REL variant is available,
+59:    // with the barrier semantics described above.
+60:    void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value);
+61:  */
+62: 
+63: #include "nsync_cpp.h"
+64: #include "nsync_atomic.h"
+65: 
+66: NSYNC_CPP_START_
+67: 
+68: static INLINE int atm_cas_nomb_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+69: 	return (std::atomic_compare_exchange_strong_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n,
+70: 					     std::memory_order_relaxed, std::memory_order_relaxed));
+71: }
+72: static INLINE int atm_cas_acq_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+73: 	return (std::atomic_compare_exchange_strong_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n,
+74: 					     std::memory_order_acquire, std::memory_order_relaxed));
+75: }
+76: static INLINE int atm_cas_rel_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+77: 	return (std::atomic_compare_exchange_strong_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n,
+78: 					     std::memory_order_release, std::memory_order_relaxed));
+79: }
+80: static INLINE int atm_cas_relacq_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+81: 	return (std::atomic_compare_exchange_strong_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n,
+82: 					     std::memory_order_acq_rel, std::memory_order_relaxed));
+83: }
+84: 
+85: #define ATM_CAS_HELPER_(barrier, p, o, n) (atm_cas_##barrier##_u32_ ((p), (o), (n)))
+86: 
+87: #define ATM_CAS(p,o,n)        	 ATM_CAS_HELPER_ (nomb,   (p), (o), (n))
+88: #define ATM_CAS_ACQ(p,o,n)       ATM_CAS_HELPER_ (acq,    (p), (o), (n))
+89: #define ATM_CAS_REL(p,o,n)       ATM_CAS_HELPER_ (rel,    (p), (o), (n))
+90: #define ATM_CAS_RELACQ(p,o,n)    ATM_CAS_HELPER_ (relacq, (p), (o), (n))
+91: 
+92: #define ATM_LOAD(p)         (std::atomic_load_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), std::memory_order_relaxed))
+93: #define ATM_LOAD_ACQ(p)     (std::atomic_load_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), std::memory_order_acquire))
+94: 
+95: #define ATM_STORE(p,v)      (std::atomic_store_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), (uint32_t) (v), std::memory_order_relaxed))
+96: #define ATM_STORE_REL(p,v)  (std::atomic_store_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), (uint32_t) (v), std::memory_order_release))
+97: 
+98: NSYNC_CPP_END_
+99: 
+100: #endif /*NSYNC_PLATFORM_CPP11_ATOMIC_H_*/
+
+FILE nsync-1.26.0/platform/c++11/platform.h
+1: /* Copyright 2017 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_CPP11_PLATFORM_H_
+16: #define NSYNC_PLATFORM_CPP11_PLATFORM_H_
+17: 
+18: /* These C header files are in "C compatibility headers" in C++11. */
+19: #include <string.h>
+20: #include <errno.h>
+21: #include <stdlib.h>
+22: #include <stddef.h>
+23: #include <inttypes.h>
+24: #include <limits.h>
+25: 
+26: #include <stdio.h>
+27: #include <stdarg.h>
+28: 
+29: #include <mutex>
+30: #include <condition_variable>
+31: 
+32: #include "nsync_cpp.h"
+33: 
+34: /* We could include pthread.h, if we knew it existed.
+35:    Instead we implement the things the tests need using C++11 equivalents. */
+36: 
+37: typedef std::mutex *nsync_pthread_mutex_;
+38: static inline int nsync_pthread_mutex_lock_ (nsync_pthread_mutex_ *mu) { (*mu)->lock (); return (0); }
+39: static inline int nsync_pthread_mutex_unlock_ (nsync_pthread_mutex_ *mu) { (*mu)->unlock (); return (0); }
+40: #undef pthread_mutex_t
+41: #undef pthread_mutex_lock
+42: #undef pthread_mutex_unlock
+43: #undef pthread_mutex_init
+44: #undef pthread_mutex_destroy
+45: #define pthread_mutex_t nsync_pthread_mutex_
+46: #define pthread_mutex_lock nsync_pthread_mutex_lock_
+47: #define pthread_mutex_unlock nsync_pthread_mutex_unlock_
+48: #define pthread_mutex_init(mu,attr) (*(mu) = new std::mutex)
+49: #define pthread_mutex_destroy(mu) delete *(mu)
+50: 
+51: typedef std::condition_variable *nsync_pthread_cond_;
+52: static inline int nsync_pthread_cond_broadcast_ (nsync_pthread_cond_ *cv) { (*cv)->notify_all (); return (0); }
+53: static inline int nsync_pthread_cond_signal_ (nsync_pthread_cond_ *cv) { (*cv)->notify_one (); return (0); }
+54: static inline int nsync_pthread_cond_wait_ (nsync_pthread_cond_ *cv, nsync_pthread_mutex_ *mu) {
+55: 	std::unique_lock<std::mutex> mu_mu (**mu, std::adopt_lock);
+56: 	(*cv)->wait (mu_mu);
+57: 	mu_mu.release ();
+58: 	return (0);
+59: }
+60: static inline int nsync_pthread_cond_timedwait_ (nsync_pthread_cond_ *cv, nsync_pthread_mutex_ *mu,
+61: 						const struct timespec *abstimeout) {
+62: 	std::cv_status result = std::cv_status::no_timeout;
+63: 	std::unique_lock<std::mutex> mu_mu (**mu, std::adopt_lock);
+64: 	if (abstimeout == NULL || abstimeout->tv_sec >= 0x7fffffff) {
+65: 		(*cv)->wait (mu_mu);
+66: 	} else {
+67: 		std::chrono::system_clock::time_point epoch;
+68: 		result = (*cv)->wait_until (mu_mu,
+69: 					 epoch + std::chrono::nanoseconds (
+70: 					     abstimeout->tv_nsec +
+71: 					     1000 * 1000 * 1000 * (int64_t) abstimeout->tv_sec));
+72: 	}
+73: 	mu_mu.release ();
+74: 	return (result == std::cv_status::timeout? ETIMEDOUT : 0);
+75: }
+76: #undef pthread_cond_t
+77: #undef pthread_cond_broadcast
+78: #undef pthread_cond_signal
+79: #undef pthread_cond_wait
+80: #undef pthread_cond_timedwait
+81: #undef pthread_cond_init
+82: #undef pthread_cond_destroy
+83: #define pthread_cond_t nsync_pthread_cond_
+84: #define pthread_cond_broadcast nsync_pthread_cond_broadcast_
+85: #define pthread_cond_signal nsync_pthread_cond_signal_
+86: #define pthread_cond_wait nsync_pthread_cond_wait_
+87: #define pthread_cond_timedwait nsync_pthread_cond_timedwait_
+88: #define pthread_cond_init(cv, attr) (*(cv) = new std::condition_variable)
+89: #define pthread_cond_destroy(cv) delete *(cv)
+90: 
+91: typedef struct nsync_pthread_rwlock_s {
+92: 	nsync_pthread_rwlock_s () : lock (0) {}
+93:         int lock; /* -1 == exclusive; 0==unlocked; +ve == reader count */
+94:         std::mutex mu;
+95:         std::condition_variable cv;
+96: } *nsync_pthread_rwlock_;
+97: static inline int nsync_pthread_rwlock_wrlock_ (nsync_pthread_rwlock_ *rw) {
+98: 	std::unique_lock<std::mutex> rw_mu ((*rw)->mu, std::defer_lock);
+99: 	rw_mu.lock ();
+100: 	while ((*rw)->lock != 0) {
+101: 		(*rw)->cv.wait (rw_mu);
+102: 	}
+103: 	(*rw)->lock = -1;
+104: 	rw_mu.unlock ();
+105: 	return (0);
+106: }
+107: static inline int nsync_pthread_rwlock_rdlock_ (nsync_pthread_rwlock_ *rw) {
+108: 	std::unique_lock<std::mutex> rw_mu ((*rw)->mu, std::defer_lock);
+109: 	rw_mu.lock ();
+110: 	while ((*rw)->lock == -1) {
+111: 		(*rw)->cv.wait (rw_mu);
+112: 	}
+113: 	(*rw)->lock++;
+114: 	rw_mu.unlock ();
+115: 	return (0);
+116: }
+117: static inline int nsync_pthread_rwlock_unlock_ (nsync_pthread_rwlock_ *rw) {
+118: 	std::unique_lock<std::mutex> rw_mu ((*rw)->mu, std::defer_lock);
+119: 	rw_mu.lock ();
+120: 	if ((*rw)->lock == -1) {
+121: 		(*rw)->lock = 0;
+122: 	} else if ((*rw)->lock > 0) {
+123: 		(*rw)->lock--;
+124: 	}
+125: 	if ((*rw)->lock == 0) {
+126: 		(*rw)->cv.notify_all ();
+127: 	}
+128: 	rw_mu.unlock ();
+129: 	return (0);
+130: }
+131: #undef pthread_rwlock_t
+132: #undef pthread_rwlock_wrlock
+133: #undef pthread_rwlock_rdlock
+134: #undef pthread_rwlock_unlock
+135: #undef pthread_rwlock_init
+136: #undef pthread_rwlock_destroy
+137: #define pthread_rwlock_t nsync_pthread_rwlock_
+138: #define pthread_rwlock_wrlock nsync_pthread_rwlock_wrlock_
+139: #define pthread_rwlock_rdlock nsync_pthread_rwlock_rdlock_
+140: #define pthread_rwlock_unlock nsync_pthread_rwlock_unlock_
+141: #define pthread_rwlock_init(rw,attr) (*(rw) = new nsync_pthread_rwlock_s)
+142: #define pthread_rwlock_destroy(rw) delete *(rw)
+143: 
+144: 
+145: typedef int nsync_pthread_once_type_;
+146: #undef PTHREAD_ONCE_INIT
+147: #define PTHREAD_ONCE_INIT 0
+148: static inline void nsync_pthread_once_ (nsync_pthread_once_type_ *o, void (*f) ()) {
+149: 	static std::mutex mu;
+150: 	static std::condition_variable cv;
+151: 	std::unique_lock<std::mutex> o_mu (mu, std::defer_lock);
+152: 	o_mu.lock ();
+153: 	if (*o == 0) {
+154: 		*o = 1;
+155: 		o_mu.unlock ();
+156: 		(*f) ();
+157: 		o_mu.lock ();
+158: 		*o = 2;
+159: 		cv.notify_all ();
+160: 	} else {
+161: 		while (*o != 2) {
+162: 			cv.wait (o_mu);
+163: 		}
+164: 	}
+165: 	o_mu.unlock ();
+166: }
+167: #undef pthread_once_t
+168: #undef pthread_once
+169: #define pthread_once_t nsync_pthread_once_type_
+170: #define pthread_once nsync_pthread_once_
+171: 
+172: /* Some platforms need more OS-specific help. */
+173: #include "platform_c++11_os.h"
+174: 
+175: #endif /*NSYNC_PLATFORM_CPP11_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/c++11/src/nsync_panic.cc
+1: /* Copyright 2017 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: #include <cstdlib>
+17: #include <iostream>
+18: 
+19: NSYNC_CPP_START_
+20: 
+21: /* Abort after printing the nul-terminated string s[]. */
+22: void nsync_panic_ (const char *s) {
+23:         std::cerr << "panic: " << s;
+24:         std::abort ();
+25: }
+26: 
+27: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/c++11/src/nsync_semaphore_mutex.cc
+1: /* Copyright 2017 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: /* This module implements a binary semaphore using C++11 constructs.
+18: 
+19:    The interface of std::condition_variable requires the use of
+20:    std::unique_lock, but the justification of correctness here is more subtle
+21:    than I'd like.  Presumably, the idea behind std::unique_lock was to provide
+22:    exception safety:  it guarantees to release the lock no matter how a block
+23:    is exited.  However, if the lock had a non-trivial monitor invariant,
+24:    std::unique_lock wouldn't restore it, so the programmer would be forced to
+25:    maintain/restore the monitor invariant at every point in the region where an
+26:    exception could be thown.  This is why other languages with locks and
+27:    exceptions provide try-finally, even if they also provide scoped locked
+28:    regions.
+29: 
+30:    In this code we can get away with std::unique_lock only because the
+31:    monitor invariant happens to be trivial, and holds at all procedure call
+32:    sites within the region.  The lock and unlock calls are explicit so readers
+33:    can see the region bounaries.  */
+34: 
+35: NSYNC_CPP_START_
+36: 
+37: #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+38: 
+39: struct mutex_cond {
+40: 	std::mutex mu;
+41: 	std::condition_variable cv;
+42: 	uint32_t i;
+43: };
+44: 
+45: static_assert (sizeof (struct mutex_cond) <= sizeof (nsync_semaphore),
+46:                "mutex_cond must fit in an nsync_semaphore");
+47: 
+48: /* Initialize *s; the initial value is 0. */
+49: void nsync_mu_semaphore_init (nsync_semaphore *s) {
+50: 	struct mutex_cond *mc = (struct mutex_cond *) s;
+51: 	new (&mc->mu) std::mutex ();
+52: 	new (&mc->cv) std::condition_variable ();
+53: 	mc->i = 0;
+54: }
+55: 
+56: /* Wait until the count of *s exceeds 0, and decrement it. */
+57: void nsync_mu_semaphore_p (nsync_semaphore *s) {
+58: 	struct mutex_cond *mc = (struct mutex_cond *) s;
+59:         /* std::unique_lock works here because the monitor invariant holds
+60:            throughout the region.  */
+61: 	std::unique_lock<std::mutex> mc_mu(mc->mu, std::defer_lock);
+62: 
+63: 	mc_mu.lock ();
+64: 	while (mc->i == 0) {
+65: 		mc->cv.wait (mc_mu);
+66: 	}
+67: 	mc->i = 0;
+68: 	mc_mu.unlock ();
+69: }
+70: 
+71: /* Wait until one of:
+72:    the count of *s is non-zero, in which case decrement *s and return 0;
+73:    or abs_deadline expires, in which case return ETIMEDOUT. */
+74: int nsync_mu_semaphore_p_with_deadline (nsync_semaphore *s,
+75: 					nsync_time abs_deadline) {
+76: 	struct mutex_cond *mc = (struct mutex_cond *)s;
+77: 	std::cv_status res = std::cv_status::no_timeout;
+78:         /* std::unique_lock works here because the monitor invariant holds
+79:            throughout the regions. */
+80: 	std::unique_lock<std::mutex> mc_mu(mc->mu, std::defer_lock);
+81: 
+82: 	if (nsync_time_cmp (abs_deadline, nsync_time_no_deadline) == 0) {
+83: 		mc_mu.lock ();
+84: 		while (mc->i == 0) {
+85: 			mc->cv.wait (mc_mu);
+86: 		}
+87: 		mc->i = 0;
+88: 		mc_mu.unlock ();
+89: 	} else {
+90: 		nsync_cpp_time_point_ tp_deadline = nsync_to_time_point_ (abs_deadline);
+91: 		mc_mu.lock ();
+92: 		while (mc->i == 0 &&
+93: 		       ((res = mc->cv.wait_until (mc_mu, tp_deadline)) == std::cv_status::no_timeout ||
+94: 			(res == std::cv_status::timeout && /* Various systems wake up too early. */
+95: 			 nsync_time_cmp (abs_deadline, nsync_time_now ()) > 0))) {
+96: 		}
+97: 		ASSERT (res == std::cv_status::no_timeout ||
+98: 			res == std::cv_status::timeout);
+99: 		if (mc->i != 0) {
+100: 			res = std::cv_status::no_timeout;
+101: 			mc->i = 0;
+102: 		}
+103: 		mc_mu.unlock ();
+104: 	}
+105: 	return (res == std::cv_status::timeout? ETIMEDOUT : 0);
+106: }
+107: 
+108: /* Ensure that the count of *s is at least 1. */
+109: void nsync_mu_semaphore_v (nsync_semaphore *s) {
+110: 	struct mutex_cond *mc = (struct mutex_cond *) s;
+111:         /* std::unique_lock works here because the monitor invariant holds
+112:            throughout the region. */
+113: 	std::unique_lock<std::mutex> mc_mu(mc->mu, std::defer_lock);
+114: 	mc_mu.lock ();
+115: 	mc->i = 1;
+116: 	mc->cv.notify_all ();
+117: 	mc_mu.unlock ();
+118: }
+119: 
+120: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/c++11/src/per_thread_waiter.cc
+1: /* Copyright 2017 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: namespace {
+20: 	class per_thread {
+21: 	public:
+22: 		per_thread();
+23: 		~per_thread();
+24: 		/* Return the per-thread value, and set the destructor to dest. */
+25: 		void *get(void (*dest) (void *));
+26: 		/* Set the per-thread value to p, and setting the destructor to dest. */
+27: 		void set(void *p, void (*dest) (void *));
+28: 	private:
+29: 		void *value;
+30: 		void (*dest) (void *);
+31: 	};
+32: 	per_thread::per_thread() {
+33: 		this->value = nullptr;
+34: 		this->dest = nullptr;
+35: 	}
+36: 	per_thread::~per_thread() {
+37: 		void *value = this->value;
+38: 		void (*dest) (void *) = this->dest;
+39: 		this->value = nullptr;
+40: 		this->dest = nullptr;
+41: 		if (dest != nullptr && value != nullptr) {
+42: 			(*dest) (value);
+43: 		}
+44: 	}
+45: 	void *per_thread::get(void (*dest) (void *)) {
+46: 		this->dest = dest;
+47: 		return (this->value);
+48: 	}
+49: 	void per_thread::set(void *p, void (*dest) (void *)) {
+50: 		this->value = p;
+51: 		this->dest = dest;
+52: 	}
+53: 
+54: 	thread_local per_thread thread_specific;
+55: }
+56: 
+57: void *nsync_per_thread_waiter_ (void (*dest) (void *)) {
+58: 	return (thread_specific.get (dest));
+59: }
+60: 
+61: void nsync_set_per_thread_waiter_ (void *v, void (*dest) (void *)) {
+62: 	thread_specific.set (v, dest);
+63: }
+64: 
+65: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/c++11/src/start_thread.cc
+1: /* Copyright 2017 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: #include <thread>
+17: 
+18: NSYNC_CPP_START_
+19: 
+20: void nsync_start_thread_ (void (*f) (void *), void *arg) {
+21: 	std::thread t (f, arg);
+22: 	t.detach ();
+23: }
+24: 
+25: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/c++11/src/time_rep_timespec.cc
+1: /* Copyright 2017 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "nsync_cpp.h"
+16: #include "platform.h"
+17: #include "compiler.h"
+18: #include "cputype.h"
+19: #include "nsync_time_init.h"
+20: #include "nsync_time.h"
+21: #include <chrono>
+22: #include <thread>
+23: 
+24: NSYNC_CPP_START_
+25: 
+26: #define NSYNC_NS_IN_S_ (1000 * 1000 * 1000)
+27: 
+28: /* Return the maximum t, assuming it's an integral
+29:    type, and the representation is not too strange.  */
+30: #define MAX_INT_TYPE(t) (((t)~(t)0) > 1?   /*is t unsigned?*/ \
+31:                 (t)~(t)0 :  /*unsigned*/ \
+32:                 (t) ((((uintmax_t)1) << (sizeof (t) * CHAR_BIT - 1)) - 1)) /*signed*/
+33: 
+34: const nsync_time nsync_time_no_deadline =
+35:         NSYNC_TIME_STATIC_INIT (MAX_INT_TYPE (time_t), NSYNC_NS_IN_S_ - 1);
+36: 
+37: const nsync_time nsync_time_zero = NSYNC_TIME_STATIC_INIT (0, 0);
+38: 
+39: nsync_time nsync_time_s_ns (time_t s, unsigned ns) {
+40: 	nsync_time t;
+41: 	memset (&t, 0, sizeof (t));
+42: 	t.tv_sec = s;
+43: 	t.tv_nsec = ns;
+44: 	return (t);
+45: }
+46: 
+47: /* Return the nsync_time corresponding to tp. */
+48: nsync_time nsync_from_time_point_ (nsync_cpp_time_point_ tp) {
+49:         /* std::chrono::system_clock::to_time_t() says that "[i]t is implementation
+50:            defined whether values are rounded or truncated to the required
+51:            precision", which is a little tricky to use.
+52:            Assume instead that the epoch for std::chrono::system_clock::time_point is
+53:            the same as that for a struct timespec.  This seems to be true on at
+54:            least Linux, NetBSD, MacOS, and Win32; and with 64 bits gives
+55: 	   us an implementation that will work for over 200 years.   By then,
+56: 	   we'll be able to call C++17's timespec_get.  */
+57:         int64_t ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+58:                 tp.time_since_epoch ()).count();
+59: 	struct timespec ts;
+60: 	memset (&ts, 0, sizeof (ts));
+61: 	ts.tv_sec = ns / NSYNC_NS_IN_S_;
+62: 	ts.tv_nsec = (long) (ns - ts.tv_sec * NSYNC_NS_IN_S_);
+63: 	return (ts);
+64: }
+65: 
+66: /* Return the nsync_cpp_time_point_ corresponding to absolute time t. */
+67: nsync_cpp_time_point_ nsync_to_time_point_ (nsync_time t) {
+68: 	nsync_cpp_time_point_ tp;
+69: 	std::chrono::nanoseconds t_ns(NSYNC_TIME_NSEC (t) +
+70:                                       NSYNC_NS_IN_S_ * (int64_t) NSYNC_TIME_SEC (t));
+71: 	nsync_cpp_time_point_::duration tp_dur =
+72: 		std::chrono::duration_cast<nsync_cpp_time_point_::duration>(t_ns);
+73: 	return (tp + tp_dur);
+74: }
+75: 
+76: nsync_time nsync_time_now (void) {
+77:         return (nsync_from_time_point_ (std::chrono::system_clock::now ()));
+78: }
+79: 
+80: nsync_time nsync_time_sleep (nsync_time delay) {
+81: 	nsync_time start = nsync_time_now ();
+82: 	nsync_time expected_end = nsync_time_add (start, delay);
+83: 	nsync_time remain;
+84: 	std::chrono::nanoseconds delay_ns(NSYNC_TIME_NSEC (delay) +
+85: 					  NSYNC_NS_IN_S_ * (int64_t) NSYNC_TIME_SEC (delay));
+86: 	std::this_thread::sleep_for (delay_ns);
+87: 	nsync_time actual_end = nsync_time_now ();
+88: 	if (nsync_time_cmp (actual_end, expected_end) < 0) {
+89: 		remain = nsync_time_sub (expected_end, actual_end);
+90: 	} else {
+91: 		remain = nsync_time_zero;
+92: 	}
+93: 	return (remain);
+94: }
+95: 
+96: nsync_time nsync_time_add (nsync_time a, nsync_time b) {
+97: 	a.tv_sec += b.tv_sec;
+98: 	a.tv_nsec += b.tv_nsec;
+99: 	if (a.tv_nsec >= NSYNC_NS_IN_S_) {
+100: 		a.tv_nsec -= NSYNC_NS_IN_S_;
+101: 		a.tv_sec++;
+102: 	}
+103: 	return (a);
+104: }
+105: 
+106: nsync_time nsync_time_sub (nsync_time a, nsync_time b) {
+107: 	a.tv_sec -= b.tv_sec;
+108: 	if (a.tv_nsec < b.tv_nsec) {
+109: 		a.tv_nsec += NSYNC_NS_IN_S_;
+110: 		a.tv_sec--;
+111: 	}
+112: 	a.tv_nsec -= b.tv_nsec;
+113: 	return (a);
+114: }
+115: 
+116: int nsync_time_cmp (nsync_time a, nsync_time b) {
+117: 	int cmp = (NSYNC_TIME_SEC (a) > NSYNC_TIME_SEC (b)) -
+118: 		  (NSYNC_TIME_SEC (a) < NSYNC_TIME_SEC (b));
+119: 	if (cmp == 0) {
+120: 		cmp = (NSYNC_TIME_NSEC (a) > NSYNC_TIME_NSEC (b)) -
+121: 		      (NSYNC_TIME_NSEC (a) < NSYNC_TIME_NSEC (b));
+122: 	}
+123: 	return (cmp);
+124: }
+125: 
+126: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/c++11/src/time_rep_timespec_test.cc
+1: /* Copyright 2017 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "platform.h"
+16: #include "compiler.h"
+17: #include "nsync.h"
+18: #include "time_extra.h"
+19: #include "smprintf.h"
+20: /* #include "closure.h" */
+21: #include "testing.h"
+22: 
+23: /* Test that the functions that accept and return C++11 time_point values work
+24:    as advertised.  */
+25: 
+26: NSYNC_CPP_USING_
+27: 
+28: /* Test the form of nsync_counter_wait() that takes a time_point.  */
+29: static void test_nsync_counter_wait_cpp (testing t) {
+30: 	nsync_time start;
+31: 	nsync_time waited;
+32: 	nsync_counter c = nsync_counter_new (1);
+33: 	start = nsync_time_now ();
+34: 	if (nsync_counter_wait (c, std::chrono::system_clock::now () +
+35: 				   std::chrono::milliseconds (1000)) != 1) {
+36: 		TEST_ERROR (t, ("counter is not 1 (1s wait)"));
+37: 	}
+38: 	waited = nsync_time_sub (nsync_time_now (), start);
+39:         if (nsync_time_cmp (waited, nsync_time_ms (900)) < 0) {
+40:                 TEST_ERROR (t, ("timed wait on non-zero counter returned too quickly (1s wait took %s)",
+41:                             nsync_time_str (waited, 2)));
+42:         }
+43:         if (nsync_time_cmp (waited, nsync_time_ms (2000)) > 0) {
+44:                 TEST_ERROR (t, ("timed wait on non-zero counter returned too slowly (1s wait took %s)",
+45:                            nsync_time_str (waited, 2)));
+46:         }
+47: 	if (nsync_counter_add (c, -1) != 0) {
+48: 		TEST_ERROR (t, ("zero counter is not 0 (add)"));
+49:         }
+50: 	if (nsync_counter_wait (c, std::chrono::system_clock::now () +
+51: 				   std::chrono::milliseconds (1000)) != 0) {
+52: 		TEST_ERROR (t, ("counter is not 0 (1s wait)"));
+53: 	}
+54: 	nsync_counter_free (c);
+55: }
+56: 
+57: /* Call nsync_mu_lock() on v. */
+58: static void mu_lock (void *v) {
+59: 	nsync_mu_lock ((nsync_mu *) v);
+60: }
+61: 
+62: /* Call nsync_mu_unlock() on v. */
+63: static void mu_unlock (void *v) {
+64: 	nsync_mu_unlock ((nsync_mu *) v);
+65: }
+66: 
+67: /* Test the forms of nsync_cv_wait_with_deadline() and
+68:    nsync_cv_wait_with_deadline_generic() that take a time_point.  */
+69: static void test_nsync_cv_wait_cpp (testing t UNUSED) {
+70: 	nsync_time start;
+71: 	nsync_time waited;
+72: 	nsync_mu mu;
+73: 	nsync_cv cv;
+74: 	nsync_mu_init (&mu);
+75: 	nsync_cv_init (&cv);
+76: 	nsync_mu_lock (&mu);
+77: 	start = nsync_time_now ();
+78: 
+79: 	nsync_cv_wait_with_deadline (&cv, &mu,
+80: 				     std::chrono::system_clock::now () +
+81: 				     std::chrono::milliseconds (1000), nullptr);
+82: 	waited = nsync_time_sub (nsync_time_now (), start);
+83:         if (nsync_time_cmp (waited, nsync_time_ms (900)) < 0) {
+84:                 TEST_ERROR (t, ("timed wait on condition variable returned too quickly (1s wait took %s)",
+85:                             nsync_time_str (waited, 2)));
+86:         }
+87:         if (nsync_time_cmp (waited, nsync_time_ms (2000)) > 0) {
+88:                 TEST_ERROR (t, ("timed wait on condition variable returned too slowly (1s wait took %s)",
+89:                            nsync_time_str (waited, 2)));
+90:         }
+91: 
+92: 	start = nsync_time_now ();
+93: 	nsync_cv_wait_with_deadline_generic (&cv, &mu, &mu_lock, &mu_unlock,
+94: 				     std::chrono::system_clock::now () +
+95: 				     std::chrono::milliseconds (1000), nullptr);
+96: 	waited = nsync_time_sub (nsync_time_now (), start);
+97:         if (nsync_time_cmp (waited, nsync_time_ms (900)) < 0) {
+98:                 TEST_ERROR (t, ("timed wait generic on condition variable returned too quickly (1s wait took %s)",
+99:                             nsync_time_str (waited, 2)));
+100:         }
+101:         if (nsync_time_cmp (waited, nsync_time_ms (2000)) > 0) {
+102:                 TEST_ERROR (t, ("timed wait generic on condition variable returned too slowly (1s wait took %s)",
+103:                            nsync_time_str (waited, 2)));
+104:         }
+105: 
+106: 	nsync_mu_unlock (&mu);
+107: }
+108: 
+109: /* A false condition. */
+110: static int false_cond (const void *v UNUSED) {
+111: 	return (0);
+112: }
+113: 
+114: /* Test the form of nsync_mu_wait_with_deadline() that takes a time_point.  */
+115: static void test_nsync_mu_wait_cpp (testing t UNUSED) {
+116: 	nsync_time start;
+117: 	nsync_time waited;
+118: 	nsync_mu mu;
+119: 	nsync_mu_init (&mu);
+120: 	nsync_mu_lock (&mu);
+121: 	start = nsync_time_now ();
+122:         nsync_mu_wait_with_deadline (&mu, &false_cond, nullptr, nullptr,
+123: 				     std::chrono::system_clock::now () +
+124: 				     std::chrono::milliseconds (1000), nullptr);
+125: 	waited = nsync_time_sub (nsync_time_now (), start);
+126:         if (nsync_time_cmp (waited, nsync_time_ms (900)) < 0) {
+127:                 TEST_ERROR (t, ("timed wait on mutex returned too quickly (1s wait took %s)",
+128:                             nsync_time_str (waited, 2)));
+129:         }
+130:         if (nsync_time_cmp (waited, nsync_time_ms (2000)) > 0) {
+131:                 TEST_ERROR (t, ("timed wait on mutex returned too slowly (1s wait took %s)",
+132:                            nsync_time_str (waited, 2)));
+133:         }
+134: 	nsync_mu_unlock (&mu);
+135: }
+136: 
+137: /* Test the forms of nsync_note_new() and nsync_note_wait() that take a
+138:    time_point, plus nsync_note_expiry_timepoint().  */
+139: static void test_nsync_note_wait_cpp (testing t) {
+140: 	nsync_time start;
+141: 	nsync_time waited;
+142: 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now ();
+143: 	std::chrono::system_clock::time_point expected_expiry =
+144: 		now + std::chrono::milliseconds (2000);
+145: 	nsync_note n = nsync_note_new (nullptr, expected_expiry);
+146: 	std::chrono::system_clock::time_point expiry = nsync_note_expiry_timepoint (n);
+147: 	/* Assume that "system_clock" is no coarser than 100ms */
+148: 	if (expiry < expected_expiry - std::chrono::milliseconds(101)) {
+149:                 TEST_ERROR (t, ("expiry earlier than expected"));
+150:         }
+151: 	if (expected_expiry + std::chrono::milliseconds(101) < expiry) {
+152:                 TEST_ERROR (t, ("expiry later than expected"));
+153:         }
+154: 	start = nsync_time_now ();
+155: 	if (nsync_note_wait (n, std::chrono::system_clock::now () +
+156: 				   std::chrono::milliseconds (1000))) {
+157: 		TEST_ERROR (t, ("note is ready (1s wait)"));
+158: 	}
+159: 	waited = nsync_time_sub (nsync_time_now (), start);
+160:         if (nsync_time_cmp (waited, nsync_time_ms (900)) < 0) {
+161:                 TEST_ERROR (t, ("timed wait on non-ready note returned too quickly (1s wait took %s)",
+162:                             nsync_time_str (waited, 2)));
+163:         }
+164:         if (nsync_time_cmp (waited, nsync_time_ms (1900)) > 0) {
+165:                 TEST_ERROR (t, ("timed wait on non-ready note returned too slowly (1s wait took %s)",
+166:                            nsync_time_str (waited, 2)));
+167:         }
+168: 	start = nsync_time_now ();
+169: 	if (!nsync_note_wait (n, std::chrono::system_clock::now () +
+170: 				 std::chrono::milliseconds (2000))) {
+171: 		TEST_ERROR (t, ("note did not expire (2s wait)"));
+172: 	}
+173: 	waited = nsync_time_sub (nsync_time_now (), start);
+174:         if (nsync_time_cmp (waited, nsync_time_ms (900)) < 0) {
+175:                 TEST_ERROR (t, ("timed wait on expired note returned too quickly (1s wait took %s)",
+176:                             nsync_time_str (waited, 2)));
+177:         }
+178:         if (nsync_time_cmp (waited, nsync_time_ms (1900)) > 0) {
+179:                 TEST_ERROR (t, ("timed wait on expired note returned too slowly (1s wait took %s)",
+180:                            nsync_time_str (waited, 2)));
+181:         }
+182: 	nsync_note_free (n);
+183: }
+184: 
+185: /* Test the form of nsync_wait_n() that takes a time_point.  */
+186: static void test_nsync_wait_n_cpp (testing t UNUSED) {
+187: 	nsync_time start;
+188: 	nsync_time waited;
+189: 	struct nsync_waitable_s w[1];
+190: 	struct nsync_waitable_s *wp[1];
+191: 	nsync_note n = nsync_note_new (nullptr, std::chrono::system_clock::now () +
+192: 						std::chrono::milliseconds (2000));
+193: 	w[0].v = n;
+194: 	w[0].funcs = &nsync_note_waitable_funcs;
+195: 	wp[0] = &w[0];
+196: 	start = nsync_time_now ();
+197: 	nsync_wait_n (nullptr, nullptr, nullptr,
+198: 		      std::chrono::system_clock::now () +
+199: 		      std::chrono::milliseconds (1000),
+200: 		      1, wp);
+201: 	waited = nsync_time_sub (nsync_time_now (), start);
+202:         if (nsync_time_cmp (waited, nsync_time_ms (900)) < 0) {
+203:                 TEST_ERROR (t, ("timed wait_n on non-ready note returned too quickly (1s wait took %s)",
+204:                             nsync_time_str (waited, 2)));
+205:         }
+206:         if (nsync_time_cmp (waited, nsync_time_ms (2000)) > 0) {
+207:                 TEST_ERROR (t, ("timed wait_n on non-ready note returned too slowly (1s wait took %s)",
+208:                            nsync_time_str (waited, 2)));
+209:         }
+210: 	nsync_note_free (n);
+211: }
+212: 
+213: int main (int argc, char *argv[]) {
+214: 	testing_base tb = testing_new (argc, argv, 0);
+215:         TEST_RUN (tb, test_nsync_counter_wait_cpp);
+216:         TEST_RUN (tb, test_nsync_cv_wait_cpp);
+217:         TEST_RUN (tb, test_nsync_mu_wait_cpp);
+218:         TEST_RUN (tb, test_nsync_note_wait_cpp);
+219:         TEST_RUN (tb, test_nsync_wait_n_cpp);
+220:         return (testing_base_exit (tb));
+221: }
+222: 
+223: #if 0
+224: #define NSYNC_WAITER_CPP_OVERLOAD_ \
+225:         static inline int nsync_wait_n (void *mu, void (*lock) (void *), \
+226:                                         void (*unlock) (void *), \
+227:                                         nsync_cpp_time_point_ abs_deadline, \
+228:                                         int count, struct nsync_waitable_s *waitable[]) { \
+229:                 return (nsync_wait_n (mu, lock, unlock, \
+230:                                       nsync_from_time_point_ (abs_deadline), count, waitable)); \
+231:         }
+232: #endif
+
+FILE nsync-1.26.0/platform/c++11/src/yield.cc
+1: /* Copyright 2017 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: #include <thread>
+17: 
+18: NSYNC_CPP_START_
+19: 
+20: void nsync_yield_ (void) {
+21: 	std::this_thread::yield ();
+22: }
+23: 
+24: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/c11/atomic.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_C11_ATOMIC_H_
+16: #define NSYNC_PLATFORM_C11_ATOMIC_H_
+17: 
+18: /* Atomic operations on nsync_atomic_uint32_ quantities
+19:    CAS, load, and store.
+20: 
+21:    Normally, these are used only on nsync_atomic_uint32_ values, but on Linux they may be
+22:    invoked on int values, because futexes operate on int values.  A
+23:    compile-time check in the futex code ensures that both int and   
+24:    nsync_atomic_uint32_ are 32 bits.
+25: 
+26:    Memory barriers:
+27: 	   Operations with the suffixes _ACQ and _RELACQ ensure that the operation
+28: 	   appears to complete before other memory operations subsequently performed by
+29: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_ACQ,
+30: 	   this applies only if the operation returns a non-zero value.)
+31: 
+32: 	   Operations with the suffixes _REL and _RELACQ ensure that the operation
+33: 	   appears to complete after other memory operations previously performed by
+34: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_REL,
+35: 	   this applies only if the operation returns a non-zero value.)
+36: 
+37:    // Atomically,
+38:    //   int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+39:    //		if (*p == old_value) {
+40:    //			*p = new_value;
+41:    //			return (some-non-zero-value);
+42:    //		} else {
+43:    //			return (0);
+44:    //		}
+45:    //	}
+46:    // *_ACQ, *_REL, *_RELACQ variants are available,
+47:    // with the barrier semantics described above.
+48:    int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+49: 
+50:    // Atomically,
+51:    //     uint32_t ATM_LOAD (nsync_atomic_uint32_ *p) { return (*p); }
+52:    // A *_ACQ variant is available,
+53:    // with the barrier semantics described above.
+54:    uint32_t ATM_LOAD (nsync_atomic_uint32_ *p);
+55: 
+56:    // Atomically,
+57:    //     void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value) { *p = value; }
+58:    // A *_REL variant is available,
+59:    // with the barrier semantics described above.
+60:    void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value);
+61:  */
+62: 
+63: #include "compiler.h"
+64: #include "nsync_atomic.h"
+65: 
+66: NSYNC_CPP_START_
+67: 
+68: static __inline__ int atm_cas_nomb_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+69: 	return (atomic_compare_exchange_strong_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n,
+70: 					     memory_order_relaxed, memory_order_relaxed));
+71: }
+72: static __inline__ int atm_cas_acq_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+73: 	return (atomic_compare_exchange_strong_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n,
+74: 					     memory_order_acquire, memory_order_relaxed));
+75: }
+76: static __inline__ int atm_cas_rel_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+77: 	return (atomic_compare_exchange_strong_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n,
+78: 					     memory_order_release, memory_order_relaxed));
+79: }
+80: static __inline__ int atm_cas_relacq_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+81: 	return (atomic_compare_exchange_strong_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n,
+82: 					     memory_order_acq_rel, memory_order_relaxed));
+83: }
+84: 
+85: #define ATM_CAS_HELPER_(barrier, p, o, n) (atm_cas_##barrier##_u32_ ((p), (o), (n)))
+86: 
+87: #define ATM_CAS(p,o,n)           ATM_CAS_HELPER_ (nomb,   (p), (o), (n))
+88: #define ATM_CAS_ACQ(p,o,n)       ATM_CAS_HELPER_ (acq,    (p), (o), (n))
+89: #define ATM_CAS_REL(p,o,n)       ATM_CAS_HELPER_ (rel,    (p), (o), (n))
+90: #define ATM_CAS_RELACQ(p,o,n)    ATM_CAS_HELPER_ (relacq, (p), (o), (n))
+91: 
+92: /* Need a cast to remove "const" from some uses. */
+93: #define ATM_LOAD(p)         (atomic_load_explicit ((nsync_atomic_uint32_ *) NSYNC_ATOMIC_UINT32_PTR_ (p), memory_order_relaxed))
+94: #define ATM_LOAD_ACQ(p)     (atomic_load_explicit ((nsync_atomic_uint32_ *) NSYNC_ATOMIC_UINT32_PTR_ (p), memory_order_acquire))
+95: 
+96: #define ATM_STORE(p,v)      (atomic_store_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), (v), memory_order_relaxed))
+97: #define ATM_STORE_REL(p,v)  (atomic_store_explicit (NSYNC_ATOMIC_UINT32_PTR_ (p), (v), memory_order_release))
+98: 
+99: NSYNC_CPP_END_
+100: 
+101: #endif /*NSYNC_PLATFORM_C11_ATOMIC_H_*/
+
+FILE nsync-1.26.0/platform/c_from_c++11/src/nsync_atm_c++.cc
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: /* Atomic operations on nsync_atomic_uint32_ quantities
+16:    CAS, load, and store.
+17: 
+18:    Normally, these are used only on nsync_atomic_uint32_ values, but on Linux they may be
+19:    invoked on int values, because futexes operate on int values.  A
+20:    compile-time check in the futex code ensures that both int and   
+21:    nsync_atomic_uint32_ are 32 bits.
+22: 
+23:    Memory barriers:
+24: 	   Operations with the suffixes _ACQ and _RELACQ ensure that the operation
+25: 	   appears to complete before other memory operations subsequently performed by
+26: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_ACQ and
+27: 	   ATM_CAS_RELACQ, this applies only if the operation returns a non-zero
+28: 	   value.)
+29: 
+30: 	   Operations with the suffixes _REL and _RELACQ ensure that the operation
+31: 	   appears to complete after other memory operations previously performed by
+32: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_REL and
+33: 	   ATM_CAS_RELACQ, this applies only if the operation returns a non-zero value.)
+34: 
+35:    // Atomically,
+36:    //   int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+37:    //		if (*p == old_value) {
+38:    //			*p = new_value;
+39:    //			return (some-non-zero-value);
+40:    //		} else {
+41:    //			return (0);
+42:    //		}
+43:    //	}
+44:    // *_ACQ, *_REL, and *_RELACQ variants are available,
+45:    // with the barrier semantics described above.
+46:    int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+47: 
+48:    // Atomically,
+49:    //     uint32_t ATM_LOAD (nsync_atomic_uint32_ *p) { return (*p); }
+50:    // A *_ACQ variant is available,
+51:    // with the barrier semantics described above.
+52:    uint32_t ATM_LOAD (nsync_atomic_uint32_ *p);
+53: 
+54:    // Atomically,
+55:    //     void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value) { *p = value; }
+56:    // A *_REL variant is available,
+57:    // with the barrier semantics described above.
+58:    void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value);
+59:    */
+60: 
+61: #include <atomic>
+62: #include "platform.h"
+63: #include "nsync_atomic.h"
+64: #include "nsync_cpp.h"
+65: 
+66: NSYNC_CPP_USING_
+67: 
+68: NSYNC_C_START_
+69: 
+70: int assert_atomic32_size_ = 1 / (sizeof (uint32_t) == sizeof (nsync_atomic_uint32_));
+71: 
+72: typedef std::atomic<uint32_t> nsync_atomic_uint32_cpp_;
+73: 
+74: // Helper routines for C++ implementation of atomic operations.
+75: 
+76: int nsync_atm_cas_ (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+77: 	return (std::atomic_compare_exchange_strong_explicit ((nsync_atomic_uint32_cpp_ *) p, &old_value, new_value,
+78: 		std::memory_order_relaxed, std::memory_order_relaxed));
+79: }
+80: 
+81: int nsync_atm_cas_acq_ (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+82: 	return (std::atomic_compare_exchange_strong_explicit ((nsync_atomic_uint32_cpp_ *) p, &old_value, new_value,
+83: 		std::memory_order_acquire, std::memory_order_relaxed));
+84: }
+85: 
+86: int nsync_atm_cas_rel_ (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+87: 	return (std::atomic_compare_exchange_strong_explicit ((nsync_atomic_uint32_cpp_ *) p, &old_value, new_value,
+88: 		std::memory_order_release, std::memory_order_relaxed));
+89: }
+90: 
+91: int nsync_atm_cas_relacq_ (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+92: 	return (std::atomic_compare_exchange_strong_explicit ((nsync_atomic_uint32_cpp_ *) p, &old_value, new_value,
+93: 		std::memory_order_acq_rel, std::memory_order_relaxed));
+94: }
+95: 
+96: uint32_t nsync_atm_load_ (const nsync_atomic_uint32_ *p) {
+97: 	return (std::atomic_load_explicit ((nsync_atomic_uint32_cpp_ *) p, std::memory_order_relaxed));
+98: }
+99: 
+100: uint32_t nsync_atm_load_acq_ (const nsync_atomic_uint32_ *p) {
+101: 	return (std::atomic_load_explicit ((nsync_atomic_uint32_cpp_ *) p, std::memory_order_acquire));
+102: }
+103: 
+104: void nsync_atm_store_ (nsync_atomic_uint32_ *p, uint32_t value) {
+105: 	std::atomic_store_explicit ((nsync_atomic_uint32_cpp_ *) p, value, std::memory_order_relaxed);
+106: }
+107: 
+108: void nsync_atm_store_rel_ (nsync_atomic_uint32_ *p, uint32_t value) {
+109: 	std::atomic_store_explicit ((nsync_atomic_uint32_cpp_ *) p, value, std::memory_order_release);
+110: }
+111: 
+112: NSYNC_C_END_
+
+FILE nsync-1.26.0/platform/clang/atomic.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_CLANG_ATOMIC_H_
+16: #define NSYNC_PLATFORM_CLANG_ATOMIC_H_
+17: #include "../gcc/atomic.h"
+18: #endif /*NSYNC_PLATFORM_CLANG_ATOMIC_H_*/
+
+FILE nsync-1.26.0/platform/clang/compiler.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_CLANG_COMPILER_H_
+16: #define NSYNC_PLATFORM_CLANG_COMPILER_H_
+17: 
+18: #define INLINE __inline
+19: #define UNUSED __attribute__((unused))
+20: #define THREAD_LOCAL __thread
+21: #define HAVE_THREAD_LOCAL 1
+22: 
+23: #endif /*NSYNC_PLATFORM_CLANG_COMPILER_H_*/
+
+FILE nsync-1.26.0/platform/cygwin/platform.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_CYGWIN_PLATFORM_H_
+16: #define NSYNC_PLATFORM_CYGWIN_PLATFORM_H_
+17: 
+18: #if !defined(_GNU_SOURCE)
+19: #define _GNU_SOURCE
+20: #endif
+21: #include <errno.h>
+22: #include <limits.h>
+23: #include <pthread.h>
+24: #include <stdarg.h>
+25: #include <stdint.h>
+26: #include <stdio.h>
+27: #include <stdlib.h>
+28: #include <string.h>
+29: #include <sys/timeb.h>
+30: #include <unistd.h>
+31: 
+32: #endif /*NSYNC_PLATFORM_CYGWIN_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/decc/compiler.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_DECC_COMPILER_H_
+16: #define NSYNC_PLATFORM_DECC_COMPILER_H_
+17: 
+18: #define INLINE __inline
+19: #define UNUSED
+20: #define THREAD_LOCAL __declspec(thread)
+21: #define HAVE_THREAD_LOCAL 1
+22: 
+23: #endif /*NSYNC_PLATFORM_DECC_COMPILER_H_*/
+
+FILE nsync-1.26.0/platform/freebsd/platform.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_FREEBSD_PLATFORM_H_
+16: #define NSYNC_PLATFORM_FREEBSD_PLATFORM_H_
+17: 
+18: #include <string.h>
+19: #include <unistd.h>
+20: #include <errno.h>
+21: #include <stdlib.h>
+22: #include <stddef.h>
+23: #include <inttypes.h>
+24: #include <limits.h>
+25: #include <time.h>
+26: #include <pthread.h>
+27: 
+28: #include <stdio.h>
+29: #include <stdarg.h>
+30: #include <semaphore.h>
+31: 
+32: #endif /*NSYNC_PLATFORM_FREEBSD_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/gcc/atomic.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_GCC_ATOMIC_H_
+16: #define NSYNC_PLATFORM_GCC_ATOMIC_H_
+17: 
+18: /* Atomic operations on nsync_atomic_uint32_ quantities
+19:    CAS, load, and store.
+20: 
+21:    Normally, these are used only on nsync_atomic_uint32_ values, but on Linux
+22:    they may be invoked on int values, because futexes operate on int values.  A
+23:    compile-time check in the futex code ensures that both int and
+24:    nsync_atomic_uint32_ are 32 bits.
+25: 
+26:    Memory barriers:
+27: 	   Operations with the suffixes _ACQ and _RELACQ ensure that the operation
+28: 	   appears to complete before other memory operations subsequently performed by
+29: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_ACQ and
+30: 	   ATM_CAS_RELACQ, this applies only if the operation returns a non-zero
+31: 	   value.)
+32: 
+33: 	   Operations with the suffixes _REL and _RELACQ ensure that the operation
+34: 	   appears to complete after other memory operations previously performed by
+35: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_REL and
+36: 	   ATM_CAS_RELACQ, this applies only if the operation returns a non-zero value.)
+37: 
+38:    // Atomically,
+39:    //   int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+40:    //		if (*p == old_value) {
+41:    //			*p = new_value;
+42:    //			return (some-non-zero-value);
+43:    //		} else {
+44:    //			return (0);
+45:    //		}
+46:    //	}
+47:    // *_ACQ, *_REL, and *_RELACQ variants are available,
+48:    // with the barrier semantics described above.
+49:    int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+50: 
+51:    // Atomically,
+52:    //     uint32_t ATM_LOAD (nsync_atomic_uint32_ *p) { return (*p); }
+53:    // A *_ACQ variant is available,
+54:    // with the barrier semantics described above.
+55:    uint32_t ATM_LOAD (nsync_atomic_uint32_ *p);
+56: 
+57:    // Atomically,
+58:    //     void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value) { *p = value; }
+59:    // A *_REL variant is available,
+60:    // with the barrier semantics described above.
+61:    void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value);
+62:    */
+63: 
+64: #if !defined(__GNUC__) || \
+65:     ((__GNUC__ - 0) * 100 + (__GNUC_MINOR__ - 0)) < 407 || \
+66:     defined(__INTEL_COMPILER) || defined(__clang__)
+67: #include "../gcc_old/atomic.h"
+68: #else
+69: #include "../gcc_new/atomic.h"
+70: #endif
+71: 
+72: #endif /*NSYNC_PLATFORM_GCC_ATOMIC_H_*/
+
+FILE nsync-1.26.0/platform/gcc/compiler.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_GCC_COMPILER_H_
+16: #define NSYNC_PLATFORM_GCC_COMPILER_H_
+17: 
+18: #define INLINE __inline
+19: #define UNUSED __attribute__((unused))
+20: #define THREAD_LOCAL __thread
+21: #define HAVE_THREAD_LOCAL 1
+22: 
+23: #endif /*NSYNC_PLATFORM_GCC_COMPILER_H_*/
+
+FILE nsync-1.26.0/platform/gcc_new/atomic.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_GCC_NEW_ATOMIC_H_
+16: #define NSYNC_PLATFORM_GCC_NEW_ATOMIC_H_
+17: 
+18: /* Atomic operations on nsync_atomic_uint32_ quantities
+19:    CAS, load, and store.
+20: 
+21:    Normally, these are used only on nsync_atomic_uint32_ values, but on Linux they may be
+22:    invoked on int values, because futexes operate on int values.  A
+23:    compile-time check in the futex code ensures that both int and   
+24:    nsync_atomic_uint32_ are 32 bits.
+25: 
+26:    Memory barriers:
+27: 	   Operations with the suffixes _ACQ and _RELACQ ensure that the operation
+28: 	   appears to complete before other memory operations subsequently performed by
+29: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_ACQ,
+30: 	   this applies only if the operation returns a non-zero value.)
+31: 
+32: 	   Operations with the suffixes _REL and _RELACQ ensure that the operation
+33: 	   appears to complete after other memory operations previously performed by
+34: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_REL,
+35: 	   this applies only if the operation returns a non-zero value.)
+36: 
+37:    // Atomically,
+38:    //   int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+39:    //		if (*p == old_value) {
+40:    //			*p = new_value;
+41:    //			return (some-non-zero-value);
+42:    //		} else {
+43:    //			return (0);
+44:    //		}
+45:    //	}
+46:    // *_ACQ, *_REL, *_RELACQ variants are available,
+47:    // with the barrier semantics described above.
+48:    int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+49: 
+50:    // Atomically,
+51:    //     uint32_t ATM_LOAD (nsync_atomic_uint32_ *p) { return (*p); }
+52:    // A *_ACQ variant is available,
+53:    // with the barrier semantics described above.
+54:    uint32_t ATM_LOAD (nsync_atomic_uint32_ *p);
+55: 
+56:    // Atomically,
+57:    //     void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value) { *p = value; }
+58:    // A *_REL variant is available,
+59:    // with the barrier semantics described above.
+60:    void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value);
+61:  */
+62: 
+63: #include "compiler.h" 
+64: #include "nsync_atomic.h"
+65: 
+66: NSYNC_CPP_START_
+67: 
+68: /* GCC 4.7 or later --- has new-style atomic ops */
+69: 
+70: static __inline__ int atm_cas_nomb_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+71: 	return (__atomic_compare_exchange_n (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n, 0,
+72: 					     __ATOMIC_RELAXED, __ATOMIC_RELAXED));
+73: }
+74: static __inline__ int atm_cas_acq_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+75: 	return (__atomic_compare_exchange_n (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n, 0,
+76: 					     __ATOMIC_ACQUIRE, __ATOMIC_RELAXED));
+77: }
+78: static __inline__ int atm_cas_rel_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+79: 	return (__atomic_compare_exchange_n (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n, 0,
+80: 					     __ATOMIC_RELEASE, __ATOMIC_RELAXED));
+81: }
+82: static __inline__ int atm_cas_relacq_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+83: 	return (__atomic_compare_exchange_n (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n, 0,
+84: 					     __ATOMIC_ACQ_REL, __ATOMIC_RELAXED));
+85: }
+86: 
+87: #define ATM_CAS_HELPER_(barrier, p, o, n) (atm_cas_##barrier##_u32_ ((p), (o), (n)))
+88: 
+89: #define ATM_CAS(p,o,n)           ATM_CAS_HELPER_ (nomb,   (p), (o), (n))
+90: #define ATM_CAS_ACQ(p,o,n)       ATM_CAS_HELPER_ (acq,    (p), (o), (n))
+91: #define ATM_CAS_REL(p,o,n)       ATM_CAS_HELPER_ (rel,    (p), (o), (n))
+92: #define ATM_CAS_RELACQ(p,o,n)    ATM_CAS_HELPER_ (relacq, (p), (o), (n))
+93: 
+94: #define ATM_LOAD(p)         (__atomic_load_n (NSYNC_ATOMIC_UINT32_PTR_ (p), __ATOMIC_RELAXED))
+95: #define ATM_LOAD_ACQ(p)     (__atomic_load_n (NSYNC_ATOMIC_UINT32_PTR_ (p), __ATOMIC_ACQUIRE))
+96: 
+97: #define ATM_STORE(p,v)      (__atomic_store_n (NSYNC_ATOMIC_UINT32_PTR_ (p), (v), __ATOMIC_RELAXED))
+98: #define ATM_STORE_REL(p,v)  (__atomic_store_n (NSYNC_ATOMIC_UINT32_PTR_ (p), (v), __ATOMIC_RELEASE))
+99: 
+100: NSYNC_CPP_END_
+101: 
+102: #endif /*NSYNC_PLATFORM_GCC_NEW_ATOMIC_H_*/
+
+FILE nsync-1.26.0/platform/gcc_new_debug/atomic.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_GCC_NEW_DEBUG_ATOMIC_H_
+16: #define NSYNC_PLATFORM_GCC_NEW_DEBUG_ATOMIC_H_
+17: 
+18: /* Atomic operations on nsync_atomic_uint32_ quantities
+19:    CAS, load, and store.
+20: 
+21:    Normally, these are used only on nsync_atomic_uint32_ values, but on Linux they may be
+22:    invoked on int values, because futexes operate on int values.  A
+23:    compile-time check in the futex code ensures that both int and   
+24:    nsync_atomic_uint32_ are 32 bits.
+25: 
+26:    Memory barriers:
+27: 	   Operations with the suffixes _ACQ and _RELACQ ensure that the operation
+28: 	   appears to complete before other memory operations subsequently performed by
+29: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_ACQ,
+30: 	   this applies only if the operation returns a non-zero value.)
+31: 
+32: 	   Operations with the suffixes _REL and _RELACQ ensure that the operation
+33: 	   appears to complete after other memory operations previously performed by
+34: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_REL,
+35: 	   this applies only if the operation returns a non-zero value.)
+36: 
+37:    // Atomically,
+38:    //   int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+39:    //		if (*p == old_value) {
+40:    //			*p = new_value;
+41:    //			return (some-non-zero-value);
+42:    //		} else {
+43:    //			return (0);
+44:    //		}
+45:    //	}
+46:    // *_ACQ, *_REL, *_RELACQ variants are available,
+47:    // with the barrier semantics described above.
+48:    int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+49: 
+50:    // Atomically,
+51:    //     uint32_t ATM_LOAD (nsync_atomic_uint32_ *p) { return (*p); }
+52:    // A *_ACQ variant is available,
+53:    // with the barrier semantics described above.
+54:    uint32_t ATM_LOAD (nsync_atomic_uint32_ *p);
+55: 
+56:    // Atomically,
+57:    //     void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value) { *p = value; }
+58:    // A *_REL variant is available,
+59:    // with the barrier semantics described above.
+60:    void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value);
+61:  */
+62: 
+63: #include "compiler.h" 
+64: #include "nsync_atomic.h"
+65: 
+66: NSYNC_CPP_START_
+67: 
+68: /* GCC 4.7 or later --- has new-style atomic ops */
+69: 
+70: static __inline__ int atm_cas_nomb_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+71: 	return (__atomic_compare_exchange_n (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n, 0,
+72: 					     __ATOMIC_RELAXED, __ATOMIC_RELAXED));
+73: }
+74: static __inline__ int atm_cas_acq_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+75: 	return (__atomic_compare_exchange_n (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n, 0,
+76: 					     __ATOMIC_ACQUIRE, __ATOMIC_RELAXED));
+77: }
+78: static __inline__ int atm_cas_rel_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+79: 	return (__atomic_compare_exchange_n (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n, 0,
+80: 					     __ATOMIC_RELEASE, __ATOMIC_RELAXED));
+81: }
+82: static __inline__ int atm_cas_relacq_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+83: 	return (__atomic_compare_exchange_n (NSYNC_ATOMIC_UINT32_PTR_ (p), &o, n, 0,
+84: 					     __ATOMIC_ACQ_REL, __ATOMIC_RELAXED));
+85: }
+86: 
+87: #if NSYNC_ATM_LOG
+88: #include "atm_log.h"
+89: #define ATM_LOG_VAL_(c,p,o,n) (nsync_atm_log_ ((c), (p), (o), (n), __FILE__, __LINE__), (o))
+90: #define ATM_LOG_NO_VAL_(c,p,o,n) (nsync_atm_log_ ((c), (p), (o), (n), __FILE__, __LINE__))
+91: #else
+92: #define ATM_LOG_VAL_(c,p,o,n) (o)
+93: #define ATM_LOG_NO_VAL_(c,p,o,n) ((void)0)
+94: #endif
+95: 
+96: #define ATM_CAS_HELPER_(barrier, p, o, n) \
+97: 	( \
+98: 		ATM_LOG_NO_VAL_ ('P', (p), (o), (n)), \
+99: 		atm_cas_##barrier##_u32_ ((p), (o), (n)) ? \
+100: 			(ATM_LOG_NO_VAL_ ('C', (p), (o), (n)), 1) : 0 \
+101: 	)
+102: 
+103: #define ATM_CAS(p,o,n)           ATM_CAS_HELPER_ (nomb,   (p), (o), (n))
+104: #define ATM_CAS_ACQ(p,o,n)       ATM_CAS_HELPER_ (acq,    (p), (o), (n))
+105: #define ATM_CAS_REL(p,o,n)       ATM_CAS_HELPER_ (rel,    (p), (o), (n))
+106: #define ATM_CAS_RELACQ(p,o,n)    ATM_CAS_HELPER_ (relacq, (p), (o), (n))
+107: 
+108: #define ATM_LOAD(p)         (          ATM_LOG_VAL_ ('L', (p), \
+109: 				       __atomic_load_n (NSYNC_ATOMIC_UINT32_PTR_ (p), \
+110: 				       __ATOMIC_RELAXED), 0))
+111: #define ATM_LOAD_ACQ(p)     (          ATM_LOG_VAL_ ('L', (p), \
+112: 				       __atomic_load_n (NSYNC_ATOMIC_UINT32_PTR_ (p), \
+113: 				       __ATOMIC_ACQUIRE), 0))
+114: 
+115: #define ATM_STORE(p,v)      (ATM_LOG_NO_VAL_ ('S', (p), NSYNC_ATOMIC_UINT32_LOAD_ (p), (v)), \
+116: 			     __atomic_store_n (NSYNC_ATOMIC_UINT32_PTR_ (p), (v), \
+117: 			     __ATOMIC_RELAXED))
+118: #define ATM_STORE_REL(p,v)  (ATM_LOG_NO_VAL_ ('S', (p), NSYNC_ATOMIC_UINT32_LOAD_ (p), (v)), \
+119: 			     __atomic_store_n (NSYNC_ATOMIC_UINT32_PTR_ (p), (v), \
+120: 			     __ATOMIC_RELEASE))
+121: 
+122: NSYNC_CPP_END_
+123: 
+124: #endif /*NSYNC_PLATFORM_GCC_NEW_DEBUG_ATOMIC_H_*/
+
+FILE nsync-1.26.0/platform/gcc_no_tls/compiler.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_GCC_NO_TLS_COMPILER_H_
+16: #define NSYNC_PLATFORM_GCC_NO_TLS_COMPILER_H_
+17: 
+18: #define INLINE __inline
+19: #define UNUSED __attribute__((unused))
+20: #define THREAD_LOCAL
+21: #define HAVE_THREAD_LOCAL 0
+22: 
+23: #endif /*NSYNC_PLATFORM_GCC_NO_TLS_COMPILER_H_*/
+
+FILE nsync-1.26.0/platform/gcc_old/atomic.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_GCC_OLD_ATOMIC_H_
+16: #define NSYNC_PLATFORM_GCC_OLD_ATOMIC_H_
+17: 
+18: /* Atomic operations on nsync_atomic_uint32_ quantities
+19:    CAS, load, and store.
+20: 
+21:    Normally, these are used only on nsync_atomic_uint32_ values, but on Linux they may be
+22:    invoked on int values, because futexes operate on int values.  A
+23:    compile-time check in the futex code ensures that both int and   
+24:    nsync_atomic_uint32_ are 32 bits.
+25: 
+26:    Memory barriers:
+27: 	   Operations with the suffixes _ACQ and _RELACQ ensure that the operation
+28: 	   appears to complete before other memory operations subsequently performed by
+29: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_ACQ,
+30: 	   this applies only if the operation returns a non-zero value.)
+31: 
+32: 	   Operations with the suffixes _REL and _RELACQ ensure that the operation
+33: 	   appears to complete after other memory operations previously performed by
+34: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_REL,
+35: 	   this applies only if the operation returns a non-zero value.)
+36: 
+37:    // Atomically,
+38:    //   int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+39:    //		if (*p == old_value) {
+40:    //			*p = new_value;
+41:    //			return (some-non-zero-value);
+42:    //		} else {
+43:    //			return (0);
+44:    //		}
+45:    //	}
+46:    // *_ACQ, *_REL, *_RELACQ variants are available,
+47:    // with the barrier semantics described above.
+48:    int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+49: 
+50:    // Atomically,
+51:    //     uint32_t ATM_LOAD (nsync_atomic_uint32_ *p) { return (*p); }
+52:    // A *_ACQ variant is available,
+53:    // with the barrier semantics described above.
+54:    uint32_t ATM_LOAD (nsync_atomic_uint32_ *p);
+55: 
+56:    // Atomically,
+57:    //     void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value) { *p = value; }
+58:    // A *_REL variant is available,
+59:    // with the barrier semantics described above.
+60:    void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value);
+61:  */
+62: 
+63: #include "compiler.h" 
+64: #include "nsync_atomic.h"
+65: 
+66: NSYNC_CPP_START_
+67: 
+68: /* GCC before 4.7 or old gcc compatible --- use __sync ops. */
+69: 
+70: #if ATM_LD_IS_ACQ_ST_IS_REL_
+71: #define ATM_LD_ACQ_ ATM_CB_
+72: #define ATM_ST_REL_ ATM_CB_
+73: #else
+74: #define ATM_LD_ACQ_ ATM_MB_
+75: #define ATM_ST_REL_ ATM_MB_
+76: #endif
+77: 
+78: #define ATM_CB_() __asm__ __volatile__ ("" : : : "memory")     /* compiler barrier */
+79: 
+80: #define ATM_MB_()  __sync_synchronize ()
+81: 
+82: /*----*/
+83: 
+84: #define ATM_CAS(p,o,n)    (__sync_bool_compare_and_swap (NSYNC_ATOMIC_UINT32_PTR_ (p), (o), (n)))
+85: #define ATM_CAS_ACQ       ATM_CAS
+86: #define ATM_CAS_REL       ATM_CAS
+87: #define ATM_CAS_RELACQ    ATM_CAS
+88: 
+89: /*----*/
+90: 
+91: static __inline__ uint32_t atm_load_acq_u32_ (nsync_atomic_uint32_ *p) {
+92: 	uint32_t result = NSYNC_ATOMIC_UINT32_LOAD_ ((volatile nsync_atomic_uint32_ *)p);
+93: 	ATM_LD_ACQ_ ();
+94: 	return (result);
+95: }
+96: 
+97: #define ATM_LOAD(p) NSYNC_ATOMIC_UINT32_LOAD_ ((volatile nsync_atomic_uint32_ *)(p))
+98: #define ATM_LOAD_ACQ(p) (atm_load_acq_u32_ (p))
+99: 
+100: /*----*/
+101: 
+102: #define ATM_STORE_X_(p,v,b,a) do { \
+103: 		b; \
+104: 		NSYNC_ATOMIC_UINT32_STORE_ ((volatile nsync_atomic_uint32_ *)(p), (uint32_t) (v)); \
+105: 		a; \
+106: 	} while (0)
+107: 
+108: #define ATM_STORE(p,v)     ATM_STORE_X_ ((p), (v), ;             , ;       )
+109: #define ATM_STORE_REL(p,v) ATM_STORE_X_ ((p), (v), ATM_ST_REL_ (), ;       )
+110: 
+111: NSYNC_CPP_END_
+112: 
+113: #endif /*NSYNC_PLATFORM_GCC_OLD_ATOMIC_H_*/
+
+FILE nsync-1.26.0/platform/ia64/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_IA64_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_IA64_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 0
+19: 
+20: #endif /*NSYNC_PLATFORM_IA64_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/irix64/platform.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_IRIX64_PLATFORM_H_
+16: #define NSYNC_PLATFORM_IRIX64_PLATFORM_H_
+17: 
+18: #include <string.h>
+19: #include <unistd.h>
+20: #include <errno.h>
+21: #include <stdlib.h>
+22: #include <stddef.h>
+23: #include <inttypes.h>
+24: #include <limits.h>
+25: #include <time.h>
+26: #include <pthread.h>
+27: #include <semaphore.h>
+28: #include <sys/time.h>
+29: 
+30: #include <stdio.h>
+31: #include <stdarg.h>
+32: 
+33: /* Strangely, some Irix versions have snprintf() and vsnprintf(),
+34:    yet stdio.h lacks valid signatures. */
+35: int snprintf (char *, size_t, const char *, ...);
+36: int vsnprintf (char *, size_t, const char *, va_list);
+37: 
+38: #endif /*NSYNC_PLATFORM_IRIX64_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/lcc/compiler.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_LCC_COMPILER_H_
+16: #define NSYNC_PLATFORM_LCC_COMPILER_H_
+17: 
+18: #define INLINE
+19: #define UNUSED
+20: #define THREAD_LOCAL
+21: #define HAVE_THREAD_LOCAL 0
+22: 
+23: #endif /*NSYNC_PLATFORM_LCC_COMPILER_H_*/
+
+FILE nsync-1.26.0/platform/lcc/nsync_time_init.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_LCC_NSYNC_TIME_INIT_H_
+16: #define NSYNC_PLATFORM_LCC_NSYNC_TIME_INIT_H_
+17: 
+18: #if defined(__i386__)
+19: #define NSYNC_TIME_STATIC_INIT(t,ns) { (t), 0, (ns) } /* fake 64-bit time_t with 32-bit ints */
+20: #else
+21: #define NSYNC_TIME_STATIC_INIT(t,ns) { (t), (ns) }
+22: #endif
+23: 
+24: #endif /*NSYNC_PLATFORM_LCC_NSYNC_TIME_INIT_H_*/
+
+FILE nsync-1.26.0/platform/linux/platform.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_LINUX_PLATFORM_H_
+16: #define NSYNC_PLATFORM_LINUX_PLATFORM_H_
+17: 
+18: #if !defined(_GNU_SOURCE)
+19: #define _GNU_SOURCE /* for futexes */
+20: #endif
+21: 
+22: #include <string.h>
+23: #include <unistd.h>
+24: #include <errno.h>
+25: #include <stdlib.h>
+26: #include <stddef.h>
+27: #include <time.h>
+28: #include <inttypes.h>
+29: #include <limits.h>
+30: #include <linux/futex.h>
+31: #include <sys/syscall.h>
+32: #include <pthread.h>
+33: #include <semaphore.h>
+34: 
+35: #include <stdio.h>
+36: #include <stdarg.h>
+37: 
+38: #endif /*NSYNC_PLATFORM_LINUX_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/linux/src/nsync_semaphore_futex.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: static int futex (int *uaddr, int op, int val, const struct timespec *timeout, int *uaddr2,
+20: 		  int val3) {
+21: 	return (syscall (__NR_futex, uaddr, op, val, timeout, uaddr2, val3));
+22: }
+23: 
+24: /* Check that atomic operations on nsync_atomic_uint32_ can be applied to int. */
+25: static const int assert_int_size = 1 /
+26: 	(sizeof (assert_int_size) == sizeof (uint32_t) &&
+27: 	 sizeof (nsync_atomic_uint32_) == sizeof (uint32_t));
+28: 
+29: #if defined(FUTEX_PRIVATE_FLAG)
+30: #define FUTEX_PRIVATE_FLAG_ FUTEX_PRIVATE_FLAG
+31: #else
+32: #define FUTEX_PRIVATE_FLAG_ 0
+33: #endif
+34: 
+35: #if defined(FUTEX_WAIT_BITSET)
+36: #define FUTEX_WAIT_ (FUTEX_WAIT_BITSET | FUTEX_PRIVATE_FLAG_ | FUTEX_CLOCK_REALTIME)
+37: #define FUTEX_WAIT_BITS_ FUTEX_BITSET_MATCH_ANY
+38: #else
+39: #define FUTEX_WAIT_ (FUTEX_WAIT | FUTEX_PRIVATE_FLAG_)
+40: #define FUTEX_WAIT_BITS_ 0
+41: #endif
+42: #define FUTEX_WAKE_ (FUTEX_WAKE | FUTEX_PRIVATE_FLAG_)
+43: #define FUTEX_TIMEOUT_IS_ABSOLUTE (FUTEX_WAIT_BITS_ != 0)
+44: 
+45: #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+46: 
+47: struct futex {
+48: 	int i;  /* lo half=count; hi half=waiter count */
+49: };
+50: 
+51: static nsync_semaphore *sem_big_enough_for_futex = (nsync_semaphore *) (uintptr_t)(1 /
+52: 	(sizeof (struct futex) <= sizeof (*sem_big_enough_for_futex)));
+53: 
+54: /* Initialize *s; the initial value is 0. */
+55: void nsync_mu_semaphore_init (nsync_semaphore *s) {
+56: 	struct futex *f = (struct futex *) s;
+57: 	f->i = 0;
+58: }
+59: 
+60: /* Wait until the count of *s exceeds 0, and decrement it. */
+61: void nsync_mu_semaphore_p (nsync_semaphore *s) {
+62: 	struct futex *f = (struct futex *) s;
+63: 	int i;
+64: 	do {
+65: 		i = ATM_LOAD ((nsync_atomic_uint32_ *) &f->i);
+66: 		if (i == 0) {
+67:                         int futex_result = futex (&f->i, FUTEX_WAIT_, i, NULL,
+68:                                                   NULL, FUTEX_WAIT_BITS_);
+69: 			ASSERT (futex_result == 0 || errno == EINTR ||
+70: 				errno == EWOULDBLOCK);
+71: 		}
+72: 	} while (i == 0 || !ATM_CAS_ACQ ((nsync_atomic_uint32_ *) &f->i, i, i-1));
+73: }
+74: 
+75: /* Wait until one of:
+76:    the count of *s is non-zero, in which case decrement *s and return 0;
+77:    or abs_deadline expires, in which case return ETIMEDOUT. */
+78: int nsync_mu_semaphore_p_with_deadline (nsync_semaphore *s, nsync_time abs_deadline) {
+79: 	struct futex *f = (struct futex *)s;
+80: 	int i;
+81: 	int result = 0;
+82: 	do {
+83: 		i = ATM_LOAD ((nsync_atomic_uint32_ *) &f->i);
+84: 		if (i == 0) {
+85: 			int futex_result;
+86: 			struct timespec ts_buf;
+87: 			const struct timespec *ts = NULL;
+88: 			if (nsync_time_cmp (abs_deadline, nsync_time_no_deadline) != 0) {
+89: 				memset (&ts_buf, 0, sizeof (ts_buf));
+90: 				if (FUTEX_TIMEOUT_IS_ABSOLUTE) {
+91: 					ts_buf.tv_sec = NSYNC_TIME_SEC (abs_deadline);
+92: 					ts_buf.tv_nsec = NSYNC_TIME_NSEC (abs_deadline);
+93: 				} else {
+94: 					nsync_time now;
+95: 					now = nsync_time_now ();
+96: 					if (nsync_time_cmp (now, abs_deadline) > 0) {
+97: 						ts_buf.tv_sec = 0;
+98: 						ts_buf.tv_nsec = 0;
+99: 					} else {
+100: 						nsync_time rel_deadline;
+101: 						rel_deadline = nsync_time_sub (abs_deadline, now);
+102: 						ts_buf.tv_sec = NSYNC_TIME_SEC (rel_deadline);
+103: 						ts_buf.tv_nsec = NSYNC_TIME_NSEC (rel_deadline);
+104: 					}
+105: 				}
+106: 				ts = &ts_buf;
+107: 			}
+108: 			futex_result = futex (&f->i, FUTEX_WAIT_, i, ts, NULL, FUTEX_WAIT_BITS_);
+109: 			ASSERT (futex_result == 0 || errno == EINTR || errno == EWOULDBLOCK ||
+110: 				errno == ETIMEDOUT);
+111: 			/* Some systems don't wait as long as they are told. */ 
+112: 			if (futex_result == -1 && errno == ETIMEDOUT &&
+113: 			    nsync_time_cmp (abs_deadline, nsync_time_now ()) <= 0) {
+114: 				result = ETIMEDOUT;
+115: 			}
+116: 		}
+117: 	} while (result == 0 && (i == 0 || !ATM_CAS_ACQ ((nsync_atomic_uint32_ *) &f->i, i, i - 1)));
+118: 	return (result);
+119: }
+120: 
+121: /* Ensure that the count of *s is at least 1. */
+122: void nsync_mu_semaphore_v (nsync_semaphore *s) {
+123: 	struct futex *f = (struct futex *) s;
+124:         uint32_t old_value;
+125:         do {    
+126:                 old_value = ATM_LOAD ((nsync_atomic_uint32_ *) &f->i);
+127:         } while (!ATM_CAS_REL ((nsync_atomic_uint32_ *) &f->i, old_value, old_value+1));
+128: 	ASSERT (futex (&f->i, FUTEX_WAKE_, 1, NULL, NULL, 0) >= 0);
+129: }
+130: 
+131: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/m68k/cputype.h
+1: /* Copyright 2018 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_M68K_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_M68K_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 1
+19: 
+20: #endif /*NSYNC_PLATFORM_M68K_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/macos/atomic.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_MACOS_ATOMIC_H_
+16: #define NSYNC_PLATFORM_MACOS_ATOMIC_H_
+17: 
+18: /* Atomic operations on nsync_atomic_uint32_ quantities
+19:    CAS, load, and store.
+20: 
+21:    Normally, these are used only on nsync_atomic_uint32_ values, but on Linux they may be
+22:    invoked on int values, because futexes operate on int values.  A
+23:    compile-time check in the futex code ensures that both int and   
+24:    nsync_atomic_uint32_ are 32 bits.
+25: 
+26:    Memory barriers:
+27: 	   Operations with the suffixes _ACQ and _RELACQ ensure that the operation
+28: 	   appears to complete before other memory operations subsequently performed by
+29: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_ACQ,
+30: 	   this applies only if the operation returns a non-zero value.)
+31: 
+32: 	   Operations with the suffixes _REL and _RELACQ ensure that the operation
+33: 	   appears to complete after other memory operations previously performed by
+34: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_REL,
+35: 	   this applies only if the operation returns a non-zero value.)
+36: 
+37:    // Atomically,
+38:    //   int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+39:    //		if (*p == old_value) {
+40:    //			*p = new_value;
+41:    //			return (some-non-zero-value);
+42:    //		} else {
+43:    //			return (0);
+44:    //		}
+45:    //	}
+46:    // *_ACQ, *_REL, *_RELACQ variants are available,
+47:    // with the barrier semantics described above.
+48:    int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+49: 
+50:    // Atomically,
+51:    //     uint32_t ATM_LOAD (nsync_atomic_uint32_ *p) { return (*p); }
+52:    // A *_ACQ variant is available,
+53:    // with the barrier semantics described above.
+54:    uint32_t ATM_LOAD (nsync_atomic_uint32_ *p);
+55: 
+56:    // Atomically,
+57:    //     void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value) { *p = value; }
+58:    // A *_REL variant is available,
+59:    // with the barrier semantics described above.
+60:    void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value);
+61:  */
+62: 
+63: #include "compiler.h" 
+64: #include "nsync_atomic.h"
+65: #include <libkern/OSAtomic.h>
+66: 
+67: NSYNC_CPP_START_
+68: 
+69: #define ATM_MB_()  OSMemoryBarrier ()
+70: 
+71: #if ATM_LD_IS_ACQ_ST_IS_REL_
+72: #define ATM_CB_() __asm__ __volatile__ ("" : : : "memory")     /* compiler barrier */
+73: #define ATM_LD_ACQ_ ATM_CB_
+74: #define ATM_ST_REL_ ATM_CB_
+75: #else
+76: #define ATM_LD_ACQ_ ATM_MB_
+77: #define ATM_ST_REL_ ATM_MB_
+78: #endif
+79: 
+80: #define ATM_CAS(p,o,n)        OSAtomicCompareAndSwap32 ((o), (n), (int32_t *) NSYNC_ATOMIC_UINT32_PTR_ (p))
+81: #define ATM_CAS_ACQ(p,o,n)    OSAtomicCompareAndSwap32Barrier ((o), (n), (int32_t *) NSYNC_ATOMIC_UINT32_PTR_ (p))
+82: #define ATM_CAS_REL(p,o,n)    OSAtomicCompareAndSwap32Barrier ((o), (n), (int32_t *) NSYNC_ATOMIC_UINT32_PTR_ (p))
+83: #define ATM_CAS_RELACQ(p,o,n) OSAtomicCompareAndSwap32Barrier ((o), (n), (int32_t *) NSYNC_ATOMIC_UINT32_PTR_ (p))
+84: 
+85: /*----*/
+86: 
+87: static INLINE uint32_t atm_load_acq_u32_ (nsync_atomic_uint32_ *p) {
+88: 	uint32_t result = NSYNC_ATOMIC_UINT32_LOAD_ ((volatile nsync_atomic_uint32_ *)p);
+89: 	ATM_LD_ACQ_ ();
+90: 	return (result);
+91: }
+92: 
+93: #define ATM_LOAD(p) (NSYNC_ATOMIC_UINT32_LOAD_ ((volatile nsync_atomic_uint32_ *)(p)))
+94: #define ATM_LOAD_ACQ(p) (atm_load_acq_u32_ (p))
+95: 
+96: /*----*/
+97: 
+98: #define ATM_STORE_X_(p,v,b,a) do { \
+99: 		b; \
+100: 		NSYNC_ATOMIC_UINT32_STORE_ ((volatile nsync_atomic_uint32_ *)(p), (uint32_t) (v)); \
+101: 		a; \
+102: 	} while (0)
+103: 
+104: #define ATM_STORE(p,v)     ATM_STORE_X_ ((p), (v), ;             , ;       )
+105: #define ATM_STORE_REL(p,v) ATM_STORE_X_ ((p), (v), ATM_ST_REL_ (), ;       )
+106: 
+107: NSYNC_CPP_END_
+108: 
+109: #endif /*NSYNC_PLATFORM_MACOS_ATOMIC_H_*/
+
+FILE nsync-1.26.0/platform/macos/platform.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_MACOS_PLATFORM_H_
+16: #define NSYNC_PLATFORM_MACOS_PLATFORM_H_
+17: 
+18: #define _DARWIN_C_SOURCE
+19: 
+20: #include <string.h>
+21: #include <unistd.h>
+22: #include <errno.h>
+23: #include <stdlib.h>
+24: #include <stddef.h>
+25: #include <time.h>
+26: #include <inttypes.h>
+27: #include <limits.h>
+28: #include <sys/time.h>
+29: 
+30: #include <pthread.h>
+31: #include <stdio.h>
+32: #include <stdarg.h>
+33: 
+34: /* Some versions(!) of MacOS don't implement clock_gettime(). */
+35: #if !defined(CLOCK_REALTIME)
+36: #define CLOCK_REALTIME 0
+37: typedef int clockid_t;
+38: int clock_gettime (clockid_t clk_id, struct timespec *tp);
+39: #define TIMER_ABSTIME 1
+40: #endif /*CLOCK_REALTIME*/
+41: 
+42: #endif /*NSYNC_PLATFORM_MACOS_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/macos/platform_c++11_os.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_MACOS_PLATFORM_CPP_OS_H_
+16: #define NSYNC_PLATFORM_MACOS_PLATFORM_CPP_OS_H_
+17: 
+18: /* Some versions(!) of MacOS don't implement clock_gettime(). */
+19: #include <sys/time.h>
+20: #if !defined(CLOCK_REALTIME)
+21: 
+22: #define CLOCK_REALTIME 0
+23: #define TIMER_ABSTIME 1
+24: 
+25: NSYNC_CPP_START_
+26: typedef int clockid_t;
+27: int clock_gettime (clockid_t clk_id, struct timespec *tp);
+28: NSYNC_CPP_END_
+29: 
+30: #endif /*CLOCK_REALTIME*/
+31: 
+32: #endif /*NSYNC_PLATFORM_MACOS_PLATFORM_CPP_OS_H_*/
+
+FILE nsync-1.26.0/platform/macos/src/nsync_semaphore_gcd.c
+1: /* Copyright 2019 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: #pragma GCC diagnostic ignored "-Wlong-long"  /* to avoid error on DISPATCH_TIME_FOREVER */
+17: #include <dispatch/dispatch.h>
+18: 
+19: NSYNC_CPP_START_
+20: 
+21: static nsync_semaphore *sem_big_enough_for_dispatch_semaphore_t = (void *) (1 /
+22: 	(sizeof (dispatch_semaphore_t) <= sizeof (*sem_big_enough_for_dispatch_semaphore_t)));
+23: 
+24: /* Initialize *s; the initial value is 0.  */
+25: void nsync_mu_semaphore_init (nsync_semaphore *s) {
+26: 	*(dispatch_semaphore_t *)s = dispatch_semaphore_create (0);
+27: }
+28: 
+29: /* Wait until the count of *s exceeds 0, and decrement it. */
+30: void nsync_mu_semaphore_p (nsync_semaphore *s) {
+31: 	dispatch_semaphore_wait (*(dispatch_semaphore_t *)s, DISPATCH_TIME_FOREVER);
+32: }
+33: 
+34: /* Wait until one of:
+35:    the count of *s is non-zero, in which case decrement *s and return 0;
+36:    or abs_deadline expires, in which case return ETIMEDOUT. */
+37: int nsync_mu_semaphore_p_with_deadline (nsync_semaphore *s,
+38: 					nsync_time abs_deadline) {
+39: 	int result = 0;
+40: 	if (nsync_time_cmp (abs_deadline, nsync_time_no_deadline) == 0) {
+41: 		dispatch_semaphore_wait (*(dispatch_semaphore_t *)s, DISPATCH_TIME_FOREVER);
+42: 	} else {
+43: 		struct timespec ts;
+44: 		memset (&ts, 0, sizeof (ts));
+45: 		ts.tv_sec = NSYNC_TIME_SEC (abs_deadline);
+46: 		ts.tv_nsec = NSYNC_TIME_NSEC (abs_deadline);
+47: 		if (dispatch_semaphore_wait (*(dispatch_semaphore_t *)s,
+48: 					     dispatch_walltime (&abs_deadline, 0)) != 0) {
+49: 			result = ETIMEDOUT;
+50: 		}
+51: 	}
+52: 	return (result);
+53: }
+54: 
+55: /* Ensure that the count of *s is at least 1. */
+56: void nsync_mu_semaphore_v (nsync_semaphore *s) {
+57: 	dispatch_semaphore_signal (*(dispatch_semaphore_t *)s);
+58: }
+59: 
+60: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/mips/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_MIPS_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_MIPS_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 0
+19: 
+20: #endif /*NSYNC_PLATFORM_MIPS_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/msvc/compiler.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_MSVC_COMPILER_H_
+16: #define NSYNC_PLATFORM_MSVC_COMPILER_H_
+17: 
+18: #define INLINE __inline
+19: #define UNUSED
+20: #define THREAD_LOCAL __declspec(thread)
+21: #define HAVE_THREAD_LOCAL 1
+22: 
+23: #endif /*NSYNC_PLATFORM_MSVC_COMPILER_H_*/
+
+FILE nsync-1.26.0/platform/netbsd/atomic.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_NETBSD_ATOMIC_H_
+16: #define NSYNC_PLATFORM_NETBSD_ATOMIC_H_
+17: 
+18: /* Atomic operations on nsync_atomic_uint32_ quantities
+19:    CAS, load, and store.
+20: 
+21:    Normally, these are used only on nsync_atomic_uint32_ values, but on Linux they may be
+22:    invoked on int values, because futexes operate on int values.  A
+23:    compile-time check in the futex code ensures that both int and   
+24:    nsync_atomic_uint32_ are 32 bits.
+25: 
+26:    Memory barriers:
+27: 	   Operations with the suffixes _ACQ and _RELACQ ensure that the operation
+28: 	   appears to complete before other memory operations subsequently performed by
+29: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_ACQ,
+30: 	   this applies only if the operation returns a non-zero value.)
+31: 
+32: 	   Operations with the suffixes _REL and _RELACQ ensure that the operation
+33: 	   appears to complete after other memory operations previously performed by
+34: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_REL,
+35: 	   this applies only if the operation returns a non-zero value.)
+36: 
+37:    // Atomically,
+38:    //   int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+39:    //		if (*p == old_value) {
+40:    //			*p = new_value;
+41:    //			return (some-non-zero-value);
+42:    //		} else {
+43:    //			return (0);
+44:    //		}
+45:    //	}
+46:    // *_ACQ, *_REL, *_RELACQ variants are available,
+47:    // with the barrier semantics described above.
+48:    int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+49: 
+50:    // Atomically,
+51:    //     uint32_t ATM_LOAD (nsync_atomic_uint32_ *p) { return (*p); }
+52:    // A *_ACQ variant is available,
+53:    // with the barrier semantics described above.
+54:    uint32_t ATM_LOAD (nsync_atomic_uint32_ *p);
+55: 
+56:    // Atomically,
+57:    //     void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value) { *p = value; }
+58:    // A *_REL variant is available,
+59:    // with the barrier semantics described above.
+60:    void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value);
+61:  */
+62: 
+63: #include "compiler.h"
+64: #include "nsync_atomic.h"
+65: #include <sys/atomic.h>
+66: 
+67: NSYNC_CPP_START_
+68: 
+69: #if ATM_LD_IS_ACQ_ST_IS_REL_ && defined(__GNUC__)
+70: #define ATM_CB_() __asm__ __volatile__ ("" : : : "memory")     /* compiler barrier */
+71: #define ATM_LD_ACQ_ ATM_CB_
+72: #define ATM_ST_REL_ ATM_CB_
+73: #else
+74: #define ATM_LD_ACQ_ membar_sync   /* not membar_enter(); it doesn't affect preceding loads */
+75: #define ATM_ST_REL_ membar_exit
+76: #endif
+77: 
+78: static INLINE int atm_cas_nomb_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+79: 	return (atomic_cas_32 (NSYNC_ATOMIC_UINT32_PTR_ (p), o, n) == o);
+80: }
+81: 
+82: static INLINE int atm_cas_acq_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+83: 	int res = (atomic_cas_32 (NSYNC_ATOMIC_UINT32_PTR_ (p), o, n) == o);
+84: 	membar_enter ();
+85: 	return (res);
+86: }
+87: 
+88: #define ATM_CAS(p,o,n)        (atm_cas_nomb_u32_ ((p),(o),(n)))
+89: #define ATM_CAS_ACQ(p,o,n)    (atm_cas_acq_u32_ ((p),(o),(n)))
+90: #define ATM_CAS_REL(p,o,n)    (membar_exit (), ATM_CAS ((p), (o), (n)))
+91: #define ATM_CAS_RELACQ(p,o,n) (membar_exit (), atm_cas_acq_u32_ ((p),(o),(n)))
+92: 
+93: /*----*/
+94: 
+95: static INLINE uint32_t atm_load_acq_u32_ (nsync_atomic_uint32_ *p) {
+96: 	uint32_t result = NSYNC_ATOMIC_UINT32_LOAD_ ((volatile nsync_atomic_uint32_ *)p);
+97: 	ATM_LD_ACQ_ ();
+98: 	return (result);
+99: }
+100: 
+101: #define ATM_LOAD(p) (NSYNC_ATOMIC_UINT32_LOAD_ ((volatile nsync_atomic_uint32_ *)(p)))
+102: #define ATM_LOAD_ACQ(p) (atm_load_acq_u32_ (p))
+103: 
+104: /*----*/
+105: 
+106: #define ATM_STORE_X_(p,v,b,a) do { \
+107: 		b; \
+108: 		NSYNC_ATOMIC_UINT32_STORE_ ((volatile nsync_atomic_uint32_ *)(p), (uint32_t) (v)); \
+109: 		a; \
+110: 	} while (0)
+111: 
+112: #define ATM_STORE(p,v)     ATM_STORE_X_ ((p), (v), ;             , ;       )
+113: #define ATM_STORE_REL(p,v) ATM_STORE_X_ ((p), (v), ATM_ST_REL_ (), ;       )
+114: 
+115: NSYNC_CPP_END_
+116: 
+117: #endif /*NSYNC_PLATFORM_NETBSD_ATOMIC_H_*/
+
+FILE nsync-1.26.0/platform/netbsd/platform.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_NETBSD_PLATFORM_H_
+16: #define NSYNC_PLATFORM_NETBSD_PLATFORM_H_
+17: 
+18: #if !defined(_NETBSD_SOURCE)
+19: #define _NETBSD_SOURCE
+20: #endif
+21: 
+22: #include <string.h>
+23: #include <unistd.h>
+24: #include <errno.h>
+25: #include <stdlib.h>
+26: #include <stddef.h>
+27: #include <inttypes.h>
+28: #include <limits.h>
+29: #include <time.h>
+30: #include <pthread.h>
+31: #include <semaphore.h>
+32: #include <sys/time.h>
+33: 
+34: #include <stdio.h>
+35: #include <stdarg.h>
+36: 
+37: #endif /*NSYNC_PLATFORM_NETBSD_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/num_time/nsync_time_init.h
+1: /* Copyright 2018 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_NUM_TIME_NSYNC_TIME_INIT_H_
+16: #define NSYNC_PLATFORM_NUM_TIME_NSYNC_TIME_INIT_H_
+17: 
+18: #define NSYNC_TIME_STATIC_INIT(t,ns) \
+19: 	(sizeof (nsync_time) >= 8? \
+20: 	 (((nsync_time) (t))*1000*1000*1000) + (nsync_time) (ns) : \
+21: 	 ((((nsync_time) (t))*1000) + (nsync_time) (ns / (1000 * 1000))))
+22: 
+23: #endif /*NSYNC_PLATFORM_NUM_TIME_NSYNC_TIME_INIT_H_*/
+
+FILE nsync-1.26.0/platform/num_time/src/time_rep.c
+1: /* Copyright 2018 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "nsync_cpp.h"
+16: #include "platform.h"
+17: #include "compiler.h"
+18: #include "cputype.h"
+19: #include "nsync_time_init.h"
+20: #include "nsync_time.h"
+21: #include "nsync_once.h"
+22: 
+23: NSYNC_CPP_START_
+24: 
+25: #define NSYNC_NS_IN_S_ ((nsync_time)(1000 * 1000 * 1000))
+26: 
+27: /* Return the maximum t, assuming it's an integral
+28:    type, and the representation is not too strange.
+29:    This macro may be used by NSYNC_TIME_MAX_ internally. */
+30: #define MAX_INT_TYPE(t) (((t)~(t)0) > 1?   /*is t unsigned?*/ \
+31:                 (t)~(t)0 :  /*unsigned*/ \
+32:                 (t) ((((uintmax_t)1) << (sizeof (t) * CHAR_BIT - 1)) - 1)) /*signed*/
+33: 
+34: const nsync_time nsync_time_no_deadline = NSYNC_TIME_MAX_; /* May use MAX_INT_TYPE() */
+35: 
+36: const nsync_time nsync_time_zero = 0;
+37: 
+38: static nsync_once initial_time_once = NSYNC_ONCE_INIT;
+39: struct timespec nsync_time_initial_;
+40: static void get_initial_time (void) {
+41: 	clock_gettime (CLOCK_REALTIME, &nsync_time_initial_);
+42: }
+43: 
+44: nsync_time nsync_time_s_ns (time_t s, unsigned ns) {
+45: 	nsync_time result;
+46: 	if (sizeof (nsync_time) >= 8) {
+47: 		result = ((nsync_time) s) * NSYNC_NS_IN_S_ + (nsync_time) ns;
+48: 	} else {
+49: 		result = ((nsync_time) s) * (nsync_time) 1000 +
+50: 			 ((nsync_time) ns) / (nsync_time) (1000 * 1000);
+51: 	}
+52: 	return (result);
+53: }
+54: 
+55: nsync_time nsync_time_now (void) {
+56: 	struct timespec ts;
+57: 	if (sizeof (nsync_time) < 8) {
+58: 		nsync_run_once (&initial_time_once, &get_initial_time);
+59: 	}
+60: 	clock_gettime (CLOCK_REALTIME, &ts);
+61: 	return (nsync_time_s_ns (
+62: 			ts.tv_sec - (sizeof (nsync_time) < 8? nsync_time_initial_.tv_sec: 0),
+63: 			ts.tv_nsec));
+64: }
+65: 
+66: nsync_time nsync_time_sleep (nsync_time delay) {
+67: 	struct timespec ts;
+68: 	struct timespec remain;
+69: 	memset (&ts, 0, sizeof (ts));
+70: 	ts.tv_sec = NSYNC_TIME_SEC (delay);
+71: 	ts.tv_nsec = NSYNC_TIME_NSEC (delay);
+72: 	if (nanosleep (&ts, &remain) == 0) {
+73: 		/* nanosleep() is not required to fill in "remain"
+74: 		   if it returns 0. */
+75: 		memset (&remain, 0, sizeof (remain));
+76: 	}
+77: 	return (nsync_time_s_ns (remain.tv_sec, remain.tv_nsec));
+78: }
+79: 
+80: nsync_time nsync_time_add (nsync_time a, nsync_time b) {
+81: 	return (a+b);
+82: }
+83: 
+84: nsync_time nsync_time_sub (nsync_time a, nsync_time b) {
+85: 	return (a-b);
+86: }
+87: 
+88: int nsync_time_cmp (nsync_time a, nsync_time b) {
+89: 	return ((a > b) - (a < b));
+90: }
+91: 
+92: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/openbsd/platform.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_OPENBSD_PLATFORM_H_
+16: #define NSYNC_PLATFORM_OPENBSD_PLATFORM_H_
+17: 
+18: #if !defined(_BSD_SOURCE)
+19: #define _BSD_SOURCE  /* provided ECANCELED */
+20: #endif
+21: 
+22: #include <string.h>
+23: #include <unistd.h>
+24: #include <errno.h>
+25: #include <stdlib.h>
+26: #include <stddef.h>
+27: #include <inttypes.h>
+28: #include <limits.h>
+29: #include <time.h>
+30: #include <semaphore.h>
+31: #include <pthread.h>
+32: 
+33: #include <stdio.h>
+34: #include <stdarg.h>
+35: 
+36: #endif /*NSYNC_PLATFORM_OPENBSD_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/osf1/platform.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_OSF1_PLATFORM_H_
+16: #define NSYNC_PLATFORM_OSF1_PLATFORM_H_
+17: 
+18: #include <string.h>
+19: #include <errno.h>
+20: #include <stddef.h>
+21: #include <inttypes.h>
+22: #include <time.h>
+23: #include <limits.h>
+24: #include <pthread.h>
+25: #include <stdlib.h>
+26: 
+27: #include <stdio.h>
+28: #include <stdarg.h>
+29: 
+30: #endif /*NSYNC_PLATFORM_OSF1_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/parisc64/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_PARISC64_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_PARISC64_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 0
+19: 
+20: #endif /*NSYNC_PLATFORM_PARISC64_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/pcc/compiler.h
+1: /* Copyright 2018 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_PCC_COMPILER_H_
+16: #define NSYNC_PLATFORM_PCC_COMPILER_H_
+17: 
+18: #define INLINE
+19: #define UNUSED
+20: 
+21: /* pcc accepts the __thread keyword, but it seems to be broken */
+22: #define THREAD_LOCAL
+23: #define HAVE_THREAD_LOCAL 0
+24: 
+25: #endif /*NSYNC_PLATFORM_PCC_COMPILER_H_*/
+
+FILE nsync-1.26.0/platform/pmax/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_PMAX_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_PMAX_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 1
+19: 
+20: #endif /*NSYNC_PLATFORM_PMAX_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/posix/compiler.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_POSIX_COMPILER_H_
+16: #define NSYNC_PLATFORM_POSIX_COMPILER_H_
+17: 
+18: #define INLINE
+19: #define UNUSED
+20: #define THREAD_LOCAL
+21: #define HAVE_THREAD_LOCAL 0
+22: 
+23: #endif /*NSYNC_PLATFORM_POSIX_COMPILER_H_*/
+
+FILE nsync-1.26.0/platform/posix/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_POSIX_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_POSIX_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 0
+19: 
+20: #endif /*NSYNC_PLATFORM_POSIX_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/posix/nsync_time_init.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_POSIX_NSYNC_TIME_INIT_H_
+16: #define NSYNC_PLATFORM_POSIX_NSYNC_TIME_INIT_H_
+17: 
+18: #define NSYNC_TIME_STATIC_INIT(t,ns) { (t), (ns) }
+19: 
+20: #endif /*NSYNC_PLATFORM_POSIX_NSYNC_TIME_INIT_H_*/
+
+FILE nsync-1.26.0/platform/posix/platform.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_POSIX_PLATFORM_H_
+16: #define NSYNC_PLATFORM_POSIX_PLATFORM_H_
+17: 
+18: #include <string.h>
+19: #include <unistd.h>
+20: #include <errno.h>
+21: #include <stdlib.h>
+22: #include <stddef.h>
+23: #include <inttypes.h>
+24: #include <limits.h>
+25: #include <time.h>
+26: #include <pthread.h>
+27: #include <semaphore.h>
+28: #include <sys/time.h>
+29: 
+30: #include <stdio.h>
+31: #include <stdarg.h>
+32: 
+33: #endif /*NSYNC_PLATFORM_POSIX_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/posix/platform_c++11_os.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+
+FILE nsync-1.26.0/platform/posix/src/clock_gettime.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: int clock_gettime(clockid_t clk_id UNUSED, struct timespec *tp) {
+20: 	struct timeval tv;
+21: 	int rc = gettimeofday(&tv, NULL);
+22: 	if (rc == 0) {
+23: 		tp->tv_sec = tv.tv_sec;
+24: 		tp->tv_nsec = tv.tv_usec * 1000;
+25: 	}
+26: 	return (rc);
+27: }
+28: 
+29: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/posix/src/nsync_panic.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: /* Write the nul-terminated string s[] to file descriptor fd. */
+20: static void writestr (int fd, const char *s) {
+21:         int len = strlen (s);
+22:         int n = 0;
+23:         while (len != 0 && n >= 0) {
+24:                 n = write (fd, s, len);
+25:                 if (n >= 0) {
+26:                         len -= n;
+27:                         s += n;
+28:                 } else if (n == -1 && errno == EINTR) {
+29:                         n = 0;
+30:                 }
+31:         }
+32: }
+33: 
+34: /* Abort after printing the nul-terminated string s[]. */
+35: void nsync_panic_ (const char *s) {
+36:         writestr (2, "panic: ");
+37:         writestr (2, s);
+38:         abort ();
+39: }
+40: 
+41: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/posix/src/nsync_semaphore_mutex.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+20: 
+21: struct mutex_cond {
+22: 	pthread_mutex_t mu;
+23: 	pthread_cond_t cv;
+24: 	uint32_t i;
+25: };
+26: 
+27: static nsync_semaphore *sem_big_enough_for_mutex_cond =
+28: 	(nsync_semaphore *) (1 /
+29: 	(sizeof (struct mutex_cond) <= sizeof (*sem_big_enough_for_mutex_cond)));
+30: 
+31: /* Initialize *s; the initial value is 0. */
+32: void nsync_mu_semaphore_init (nsync_semaphore *s) {
+33: 	struct mutex_cond *mc = (struct mutex_cond *) s;
+34: 	ASSERT (pthread_mutex_init (&mc->mu, NULL) == 0);
+35: 	ASSERT (pthread_cond_init (&mc->cv, NULL) == 0);
+36: 	mc->i = 0;
+37: }
+38: 
+39: /* Wait until the count of *s exceeds 0, and decrement it. */
+40: void nsync_mu_semaphore_p (nsync_semaphore *s) {
+41: 	struct mutex_cond *mc = (struct mutex_cond *) s;
+42: 	ASSERT (pthread_mutex_lock (&mc->mu) == 0);
+43: 	while (mc->i == 0) {
+44: 		ASSERT (pthread_cond_wait (&mc->cv, &mc->mu) == 0);
+45: 	}
+46: 	mc->i = 0;
+47: 	ASSERT (pthread_mutex_unlock (&mc->mu) == 0);
+48: }
+49: 
+50: /* Wait until one of:
+51:    the count of *s is non-zero, in which case decrement *s and return 0;
+52:    or abs_deadline expires, in which case return ETIMEDOUT. */
+53: int nsync_mu_semaphore_p_with_deadline (nsync_semaphore *s,
+54: 					nsync_time abs_deadline) {
+55: 	struct mutex_cond *mc = (struct mutex_cond *)s;
+56: 	int res = 0;
+57: 	ASSERT (pthread_mutex_lock (&mc->mu) == 0);
+58: 	if (nsync_time_cmp (abs_deadline, nsync_time_no_deadline) == 0) {
+59: 		while (mc->i == 0) {
+60: 			ASSERT (pthread_cond_wait (&mc->cv, &mc->mu) == 0);
+61: 		}
+62: 		mc->i = 0;
+63: 	} else {
+64: 		struct timespec ts_deadline;
+65: 		memset (&ts_deadline, 0, sizeof (ts_deadline));
+66: 		ts_deadline.tv_sec = NSYNC_TIME_SEC (abs_deadline);
+67: 		ts_deadline.tv_nsec = NSYNC_TIME_NSEC (abs_deadline);
+68: 		while (mc->i == 0 &&
+69: 		       ((res = pthread_cond_timedwait (&mc->cv, &mc->mu, &ts_deadline)) == 0 ||
+70: 			(res == ETIMEDOUT && /* Various systems wake up too early. */
+71: 			 nsync_time_cmp (abs_deadline, nsync_time_now ()) > 0))) {
+72: 		}
+73: 		ASSERT (res == 0 || res == ETIMEDOUT);
+74: 		if (mc->i != 0) {
+75: 			res = 0;
+76: 			mc->i = 0;
+77: 		}
+78: 	}
+79: 	ASSERT (pthread_mutex_unlock (&mc->mu) == 0);
+80: 	return (res);
+81: }
+82: 
+83: /* Ensure that the count of *s is at least 1. */
+84: void nsync_mu_semaphore_v (nsync_semaphore *s) {
+85: 	struct mutex_cond *mc = (struct mutex_cond *) s;
+86: 	ASSERT (pthread_mutex_lock (&mc->mu) == 0);
+87: 	mc->i = 1;
+88: 	ASSERT (pthread_cond_broadcast (&mc->cv) == 0);
+89: 	ASSERT (pthread_mutex_unlock (&mc->mu) == 0);
+90: }
+91: 
+92: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/posix/src/nsync_semaphore_sem_t.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+20: 
+21: static nsync_semaphore *sem_big_enough_for_sem_t = (void *) (1 /
+22: 	(sizeof (sem_t) <= sizeof (*sem_big_enough_for_sem_t)));
+23: 
+24: /* Initialize *s; the initial value is 0.  */
+25: void nsync_mu_semaphore_init (nsync_semaphore *s) {
+26: 	ASSERT (sem_init ((sem_t *)s, 0, 0) == 0);
+27: }
+28: 
+29: /* Wait until the count of *s exceeds 0, and decrement it. */
+30: void nsync_mu_semaphore_p (nsync_semaphore *s) {
+31: 	while (sem_wait ((sem_t *)s) != 0 && errno == EINTR) {
+32: 	}
+33: }
+34: 
+35: /* Wait until one of:
+36:    the count of *s is non-zero, in which case decrement *s and return 0;
+37:    or abs_deadline expires, in which case return ETIMEDOUT. */
+38: int nsync_mu_semaphore_p_with_deadline (nsync_semaphore *s,
+39: 					nsync_time abs_deadline) {
+40: 	int result = 0;
+41: 	if (nsync_time_cmp (abs_deadline, nsync_time_no_deadline) == 0) {
+42: 		while (sem_wait ((sem_t *)s) != 0 && errno == EINTR) {
+43: 		}
+44: 	} else {
+45: 		int rc;
+46: 		struct timespec ts;
+47: 		memset (&ts, 0, sizeof (ts));
+48: 		ts.tv_sec = NSYNC_TIME_SEC (abs_deadline);
+49: 		ts.tv_nsec = NSYNC_TIME_NSEC (abs_deadline);
+50: 		do {
+51: 			rc = sem_timedwait ((sem_t *)s, &ts);
+52: 		} while (rc != 0 &&
+53: 			 (errno == EINTR ||
+54: 		          (errno == ETIMEDOUT &&
+55: 			   nsync_time_cmp (abs_deadline, nsync_time_now ()) > 0)));
+56: 		if (rc != 0 && errno == ETIMEDOUT) {
+57: 			result = ETIMEDOUT;
+58: 		}
+59: 	}
+60: 	return (result);
+61: }
+62: 
+63: /* Ensure that the count of *s is at least 1. */
+64: void nsync_mu_semaphore_v (nsync_semaphore *s) {
+65: 	ASSERT (sem_post ((sem_t *)s) == 0);
+66: }
+67: 
+68: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/posix/src/per_thread_waiter.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: static pthread_key_t waiter_key;
+20: static nsync_atomic_uint32_ pt_once;
+21: 
+22: static void do_once (nsync_atomic_uint32_ *ponce, void (*dest) (void *)) {
+23: 	uint32_t o = ATM_LOAD_ACQ (ponce);
+24: 	if (o != 2) {
+25: 		while (o == 0 && !ATM_CAS_ACQ (ponce, 0, 1)) {
+26: 			o = ATM_LOAD (ponce);
+27: 		}
+28: 		if (o == 0) {
+29: 			pthread_key_create (&waiter_key, dest);
+30: 			ATM_STORE_REL (ponce, 2);
+31: 		}
+32: 		while (ATM_LOAD_ACQ (ponce) != 2) {
+33: 			sched_yield ();
+34: 		}
+35: 	}
+36: }
+37: 
+38: void *nsync_per_thread_waiter_ (void (*dest) (void *)) {
+39: 	do_once (&pt_once, dest);
+40: 	return (pthread_getspecific (waiter_key));
+41: }
+42: 
+43: void nsync_set_per_thread_waiter_ (void *v, void (*dest) (void *)) {
+44: 	do_once (&pt_once, dest);
+45: 	pthread_setspecific (waiter_key, v);
+46: }
+47: 
+48: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/posix/src/start_thread.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: struct thd_args {
+20: 	void (*f) (void *);
+21: 	void *arg;
+22: };
+23: 
+24: static void *body (void *v) {
+25: 	struct thd_args *args = (struct thd_args *) v;
+26: 	(*args->f) (args->arg);
+27: 	free (args);
+28: 	return (NULL);
+29: }
+30: 
+31: void nsync_start_thread_ (void (*f) (void *), void *arg) {
+32: 	struct thd_args *args = (struct thd_args *) malloc (sizeof (*args));
+33: 	pthread_t t;
+34: 	args->f = f;
+35: 	args->arg = arg;
+36: 	pthread_create (&t, NULL, body, args);
+37: 	pthread_detach (t);
+38: }
+39: 
+40: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/posix/src/time_rep.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "nsync_cpp.h"
+16: #include "platform.h"
+17: #include "compiler.h"
+18: #include "cputype.h"
+19: #include "nsync_time_init.h"
+20: #include "nsync_time.h"
+21: 
+22: NSYNC_CPP_START_
+23: 
+24: #define NSYNC_NS_IN_S_ (1000 * 1000 * 1000)
+25: 
+26: /* Return the maximum t, assuming it's an integral
+27:    type, and the representation is not too strange.  */
+28: #define MAX_INT_TYPE(t) (((t)~(t)0) > 1?   /*is t unsigned?*/ \
+29:                 (t)~(t)0 :  /*unsigned*/ \
+30:                 (t) ((((uintmax_t)1) << (sizeof (t) * CHAR_BIT - 1)) - 1)) /*signed*/
+31: 
+32: const nsync_time nsync_time_no_deadline =
+33:         NSYNC_TIME_STATIC_INIT (MAX_INT_TYPE (time_t), NSYNC_NS_IN_S_ - 1);
+34: 
+35: const nsync_time nsync_time_zero = NSYNC_TIME_STATIC_INIT (0, 0);
+36: 
+37: nsync_time nsync_time_s_ns (time_t s, unsigned ns) {
+38: 	nsync_time t;
+39: 	memset (&t, 0, sizeof (t));
+40: 	t.tv_sec = s;
+41: 	t.tv_nsec = ns;
+42: 	return (t);
+43: }
+44: 
+45: nsync_time nsync_time_now (void) {
+46: 	struct timespec ts;
+47: 	clock_gettime (CLOCK_REALTIME, &ts);
+48: 	return (ts);
+49: }
+50: 
+51: nsync_time nsync_time_sleep (nsync_time delay) {
+52: 	struct timespec ts;
+53: 	struct timespec remain;
+54: 	memset (&ts, 0, sizeof (ts));
+55: 	ts.tv_sec = NSYNC_TIME_SEC (delay);
+56: 	ts.tv_nsec = NSYNC_TIME_NSEC (delay);
+57: 	if (nanosleep (&ts, &remain) == 0) {
+58: 		/* nanosleep() is not required to fill in "remain"
+59: 		   if it returns 0. */
+60: 		memset (&remain, 0, sizeof (remain));
+61: 	}
+62: 	return (remain);
+63: }
+64: 
+65: nsync_time nsync_time_add (nsync_time a, nsync_time b) {
+66: 	a.tv_sec += b.tv_sec;
+67: 	a.tv_nsec += b.tv_nsec;
+68: 	if (a.tv_nsec >= NSYNC_NS_IN_S_) {
+69: 		a.tv_nsec -= NSYNC_NS_IN_S_;
+70: 		a.tv_sec++;
+71: 	}
+72: 	return (a);
+73: }
+74: 
+75: nsync_time nsync_time_sub (nsync_time a, nsync_time b) {
+76: 	a.tv_sec -= b.tv_sec;
+77: 	if (a.tv_nsec < b.tv_nsec) {
+78: 		a.tv_nsec += NSYNC_NS_IN_S_;
+79: 		a.tv_sec--;
+80: 	}
+81: 	a.tv_nsec -= b.tv_nsec;
+82: 	return (a);
+83: }
+84: 
+85: int nsync_time_cmp (nsync_time a, nsync_time b) {
+86: 	int cmp = (NSYNC_TIME_SEC (a) > NSYNC_TIME_SEC (b)) -
+87: 		  (NSYNC_TIME_SEC (a) < NSYNC_TIME_SEC (b));
+88: 	if (cmp == 0) {
+89: 		cmp = (NSYNC_TIME_NSEC (a) > NSYNC_TIME_NSEC (b)) -
+90: 		      (NSYNC_TIME_NSEC (a) < NSYNC_TIME_NSEC (b));
+91: 	}
+92: 	return (cmp);
+93: }
+94: 
+95: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/posix/src/time_rep_debug.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "nsync_cpp.h"
+16: #include "platform.h"
+17: #include "compiler.h"
+18: #include "cputype.h"
+19: #include "nsync_time_init.h"
+20: #include "nsync_time.h"
+21: 
+22: NSYNC_CPP_START_
+23: 
+24: #define NSYNC_NS_IN_S_ (1000 * 1000 * 1000)
+25: 
+26: /* Return the maximum t, assuming it's an integral
+27:    type, and the representation is not too strange.  */
+28: #define MAX_INT_TYPE(t) (((t)~(t)0) > 1?   /*is t unsigned?*/ \
+29: 		(t)~(t)0 :  /*unsigned*/ \
+30: 		(t) ((((uintmax_t)1) << (sizeof (t) * CHAR_BIT - 1)) - 1)) /*signed*/
+31: 
+32: const nsync_time nsync_time_no_deadline =
+33: 	NSYNC_TIME_STATIC_INIT (MAX_INT_TYPE (time_t), NSYNC_NS_IN_S_ - 1);
+34: 
+35: const nsync_time nsync_time_zero = NSYNC_TIME_STATIC_INIT (0, 0);
+36: 
+37: nsync_time nsync_time_s_ns (time_t s, unsigned ns) {
+38: 	nsync_time t;
+39: 	t.seconds = s;
+40: 	t.nanoseconds = ns;
+41: 	return (t);
+42: }
+43: 
+44: nsync_time nsync_time_now (void) {
+45: 	struct timespec ts;
+46: 	clock_gettime (CLOCK_REALTIME, &ts);
+47: 	return (nsync_time_s_ns (ts.tv_sec, ts.tv_nsec));
+48: }
+49: 
+50: nsync_time nsync_time_sleep (nsync_time delay) {
+51: 	struct timespec ts;
+52: 	struct timespec remain;
+53: 	ts.tv_sec = NSYNC_TIME_SEC (delay);
+54: 	ts.tv_nsec = NSYNC_TIME_NSEC (delay);
+55: 	if (nanosleep (&ts, &remain) == 0) {
+56: 		memset (&remain, 0, sizeof (remain));
+57: 	}
+58: 	return (nsync_time_s_ns (remain.tv_sec, remain.tv_nsec));
+59: }
+60: 
+61: nsync_time nsync_time_add (nsync_time a, nsync_time b) {
+62: 	a.seconds += b.seconds;
+63: 	a.nanoseconds += b.nanoseconds;
+64: 	if (a.nanoseconds >= NSYNC_NS_IN_S_) {
+65: 		a.nanoseconds -= NSYNC_NS_IN_S_;
+66: 		a.seconds++;
+67: 	}
+68: 	return (a);
+69: }
+70: 
+71: nsync_time nsync_time_sub (nsync_time a, nsync_time b) {
+72: 	a.seconds -= b.seconds;
+73: 	if (a.nanoseconds < b.nanoseconds) {
+74: 		a.nanoseconds += NSYNC_NS_IN_S_;
+75: 		a.seconds--;
+76: 	}
+77: 	a.nanoseconds -= b.nanoseconds;
+78: 	return (a);
+79: }
+80: 
+81: int nsync_time_cmp (nsync_time a, nsync_time b) {
+82: 	int cmp = (NSYNC_TIME_SEC (a) > NSYNC_TIME_SEC (b)) -
+83: 		  (NSYNC_TIME_SEC (a) < NSYNC_TIME_SEC (b));
+84: 	if (cmp == 0) {
+85: 		cmp = (NSYNC_TIME_NSEC (a) > NSYNC_TIME_NSEC (b)) -
+86: 		      (NSYNC_TIME_NSEC (a) < NSYNC_TIME_NSEC (b));
+87: 	}
+88: 	return (cmp);
+89: }
+90: 
+91: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/posix/src/yield.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: void nsync_yield_ (void) {
+20: 	sched_yield ();
+21: }
+22: 
+23: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/ppc32/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_PPC32_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_PPC32_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 0
+19: 
+20: #endif /*NSYNC_PLATFORM_PPC32_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/ppc64/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_PPC64_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_PPC64_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 0
+19: 
+20: #endif /*NSYNC_PLATFORM_PPC64_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/riscv/cputype.h
+1: /* Copyright 2018 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_RISCV_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_RISCV_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 0
+19: 
+20: #endif /*NSYNC_PLATFORM_RISCV_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/s390x/cputype.h
+1: /* Copyright 2017 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_S390X_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_S390X_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 1
+19: 
+20: #endif /*NSYNC_PLATFORM_S390X_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/shark/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_SHARK_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_SHARK_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 1
+19: 
+20: #endif /*NSYNC_PLATFORM_SHARK_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/sparc64/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_SPARC64_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_SPARC64_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 0
+19: 
+20: #endif /*NSYNC_PLATFORM_SPARC64_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/tcc/compiler.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_TCC_COMPILER_H_
+16: #define NSYNC_PLATFORM_TCC_COMPILER_H_
+17: 
+18: #define INLINE __inline
+19: #define UNUSED __attribute__((unused))
+20: #define THREAD_LOCAL 
+21: #define HAVE_THREAD_LOCAL 0
+22: 
+23: #endif /*NSYNC_PLATFORM_TCC_COMPILER_H_*/
+
+FILE nsync-1.26.0/platform/tendracc/compiler.h
+1: /* Copyright 2018 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_TENDRACC_COMPILER_H_
+16: #define NSYNC_PLATFORM_TENDRACC_COMPILER_H_
+17: 
+18: #define INLINE __inline
+19: #define UNUSED
+20: #define THREAD_LOCAL
+21: #define HAVE_THREAD_LOCAL 0
+22: 
+23: #endif /*NSYNC_PLATFORM_TENDRACC_COMPILER_H_*/
+
+FILE nsync-1.26.0/platform/vax/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_VAX_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_VAX_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 1
+19: 
+20: #endif /*NSYNC_PLATFORM_VAX_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/win32/atomic.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_WIN32_ATOMIC_H_
+16: #define NSYNC_PLATFORM_WIN32_ATOMIC_H_
+17: 
+18: /* Atomic operations on nsync_atomic_uint32_ quantities
+19:    CAS, load, and store.
+20: 
+21:    Normally, these are used only on nsync_atomic_uint32_ values, but on Linux they may be
+22:    invoked on int values, because futexes operate on int values.  A
+23:    compile-time check in the futex code ensures that both int and   
+24:    nsync_atomic_uint32_ are 32 bits.
+25: 
+26:    Memory barriers:
+27: 	   Operations with the suffixes _ACQ and _RELACQ ensure that the operation
+28: 	   appears to complete before other memory operations subsequently performed by
+29: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_ACQ,
+30: 	   this applies only if the operation returns a non-zero value.)
+31: 
+32: 	   Operations with the suffixes _REL and _RELACQ ensure that the operation
+33: 	   appears to complete after other memory operations previously performed by
+34: 	   the same thread, as seen by other threads.  (In the case of ATM_CAS_REL,
+35: 	   this applies only if the operation returns a non-zero value.)
+36: 
+37:    // Atomically,
+38:    //   int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value) {
+39:    //		if (*p == old_value) {
+40:    //			*p = new_value;
+41:    //			return (some-non-zero-value);
+42:    //		} else {
+43:    //			return (0);
+44:    //		}
+45:    //	}
+46:    // *_ACQ, *_REL, *_RELACQ variants are available,
+47:    // with the barrier semantics described above.
+48:    int ATM_CAS (nsync_atomic_uint32_ *p, uint32_t old_value, uint32_t new_value);
+49: 
+50:    // Atomically,
+51:    //     uint32_t ATM_LOAD (nsync_atomic_uint32_ *p) { return (*p); }
+52:    // A *_ACQ variant is available,
+53:    // with the barrier semantics described above.
+54:    uint32_t ATM_LOAD (nsync_atomic_uint32_ *p);
+55: 
+56:    // Atomically,
+57:    //     void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value) { *p = value; }
+58:    // A *_REL variant is available,
+59:    // with the barrier semantics described above.
+60:    void ATM_STORE (nsync_atomic_uint32_ *p, uint32_t value);
+61:  */
+62: 
+63: #include "compiler.h" 
+64: #include "nsync_atomic.h"
+65: #include <Windows.h>
+66: #include <intrin.h>
+67: 
+68: NSYNC_CPP_START_
+69: 
+70: #define ATM_MB_()  MemoryBarrier ()
+71: 
+72: #if ATM_LD_IS_ACQ_ST_IS_REL_
+73: #define ATM_CB_() _ReadWriteBarrier ()   /* compiler barrier */
+74: #define ATM_LD_ACQ_ ATM_CB_
+75: #define ATM_ST_REL_ ATM_CB_
+76: #else
+77: #define ATM_LD_ACQ_ ATM_MB_
+78: #define ATM_ST_REL_ ATM_MB_
+79: #endif
+80: 
+81: static INLINE int atm_cas_nomb_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+82: 	/* InterlockedCompareExchangeNoFence unavailable before Windows 8 */
+83: 	return (InterlockedCompareExchange (
+84: 		(LONG volatile *) NSYNC_ATOMIC_UINT32_PTR_ (p), n, o) == o);
+85: }
+86: 
+87: static INLINE int atm_cas_barrier_u32_ (nsync_atomic_uint32_ *p, uint32_t o, uint32_t n) {
+88: 	/* InterlockedCompareExchangeAcquire unavailable before Windows Vista */
+89: 	return (InterlockedCompareExchange (
+90: 		(LONG volatile *) NSYNC_ATOMIC_UINT32_PTR_ (p), n, o) == o);
+91: }
+92: 
+93: #define ATM_CAS(p,o,n)        (atm_cas_nomb_u32_ ((p),(o),(n)))
+94: #define ATM_CAS_ACQ(p,o,n)    (atm_cas_barrier_u32_ ((p),(o),(n)))
+95: #define ATM_CAS_REL(p,o,n)    (atm_cas_barrier_u32_ ((p),(o),(n)))
+96: #define ATM_CAS_RELACQ(p,o,n) (atm_cas_barrier_u32_ ((p),(o),(n)))
+97: 
+98: /*----*/
+99: 
+100: static INLINE uint32_t atm_load_acq_u32_ (nsync_atomic_uint32_ *p) {
+101: 	uint32_t result = NSYNC_ATOMIC_UINT32_LOAD_ ((volatile nsync_atomic_uint32_ *)p);
+102: 	ATM_LD_ACQ_ ();
+103: 	return (result);
+104: }
+105: 
+106: #define ATM_LOAD(p) (NSYNC_ATOMIC_UINT32_LOAD_ ((volatile nsync_atomic_uint32_ *)(p)))
+107: #define ATM_LOAD_ACQ(p) (atm_load_acq_u32_ (p))
+108: 
+109: /*----*/
+110: 
+111: #define ATM_STORE_X_(p,v,b,a) do { \
+112: 		b; \
+113: 		NSYNC_ATOMIC_UINT32_STORE_ ((volatile nsync_atomic_uint32_ *)(p), (uint32_t) (v)); \
+114: 		a; \
+115: 	} while (0)
+116: 
+117: #define ATM_STORE(p,v)     ATM_STORE_X_ ((p), (v), ;             , ;       )
+118: #define ATM_STORE_REL(p,v) ATM_STORE_X_ ((p), (v), ATM_ST_REL_ (), ;       )
+119: 
+120: NSYNC_CPP_END_
+121: 
+122: #endif /*NSYNC_PLATFORM_WIN32_ATOMIC_H_*/
+
+FILE nsync-1.26.0/platform/win32/platform.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_WIN32_PLATFORM_H_
+16: #define NSYNC_PLATFORM_WIN32_PLATFORM_H_
+17: 
+18: #include <Windows.h>
+19: #include <time.h>
+20: #include <inttypes.h>
+21: #include <stdio.h>
+22: #include <stdlib.h>
+23: #include <string.h>
+24: #include <time.h>
+25: #include <sys/timeb.h>
+26: 
+27: #include "compiler.h"
+28: #include "nsync_cpp.h"
+29: 
+30: extern int write (int, const char *, size_t);
+31: 
+32: /* Avoid deprecation/safety warning for tmpfile() */
+33: #define tmpfile nsync_tmpfile_wrapper
+34: static inline FILE *nsync_tmpfile_wrapper (void) {
+35: 	FILE *fp;
+36: 	if (tmpfile_s (&fp) != 0) {
+37: 		fp = NULL;
+38: 	}
+39: 	return (fp);
+40: }
+41: 
+42: NSYNC_C_START_
+43: /* Can't use TlsAlloc() because we use pthread_key_create's destructor
+44:    argument, so we implement it anew. */
+45: #define pthread_key_t nsync_pthread_key_t
+46: typedef int nsync_pthread_key_t;
+47: int nsync_pthread_key_create (nsync_pthread_key_t *pkey, void (*dest) (void *));
+48: int nsync_pthread_key_delete (nsync_pthread_key_t key);
+49: void *nsync_pthread_getspecific (nsync_pthread_key_t key);
+50: int nsync_pthread_setspecific (nsync_pthread_key_t key, void *value);
+51: #define pthread_key_create nsync_pthread_key_create
+52: #define pthread_key_delete nsync_pthread_key_delete
+53: #define pthread_getspecific nsync_pthread_getspecific
+54: #define pthread_setspecific nsync_pthread_setspecific
+55: NSYNC_C_END_
+56: 
+57: NSYNC_CPP_START_
+58: 
+59: #define CLOCK_REALTIME 0
+60: #define TIMER_ABSTIME 1
+61: #define clockid_t nsync_clockid_t
+62: typedef int nsync_clockid_t;
+63: int nsync_clock_gettime (clockid_t clk_id, struct timespec *tp);
+64: #define clock_gettime nsync_clock_gettime
+65: int nsync_nanosleep(const struct timespec *delay, struct timespec *remaining);
+66: #define nanosleep nsync_nanosleep
+67: 
+68: #define pthread_mutex_t CRITICAL_SECTION
+69: #define pthread_mutex_lock EnterCriticalSection
+70: #define pthread_mutex_unlock LeaveCriticalSection
+71: #define pthread_mutex_init(mu,attr) InitializeCriticalSection (mu)
+72: #define pthread_mutex_destroy DeleteCriticalSection
+73: 
+74: #define pthread_cond_t CONDITION_VARIABLE
+75: #define pthread_cond_broadcast WakeAllConditionVariable
+76: #define pthread_cond_signal WakeConditionVariable
+77: #define pthread_cond_wait(cv, mu) SleepConditionVariableCS ((cv), (mu), INFINITE)
+78: #define pthread_cond_timedwait nsync_pthread_cond_timedwait
+79: #define pthread_cond_init(cv, attr) InitializeConditionVariable (cv)
+80: #define pthread_cond_destroy(cv) /*no-op*/
+81: int nsync_pthread_cond_timedwait (pthread_cond_t *cv, pthread_mutex_t *mu,
+82: 		                  const struct timespec *abstimeout);
+83: 
+84: typedef struct {
+85: 	SRWLOCK srw;
+86: 	int w;
+87: } nsync_pthread_rwlock_t;
+88: #define pthread_rwlock_t nsync_pthread_rwlock_t
+89: #define pthread_rwlock_wrlock(rw) do { AcquireSRWLockExclusive (&(rw)->srw); (rw)->w = 1; } while (0)
+90: #define pthread_rwlock_rdlock(rw) AcquireSRWLockShared (&(rw)->srw)
+91: #define pthread_rwlock_unlock(rw) do { if ((rw)->w) { (rw)->w = 0; ReleaseSRWLockExclusive (&(rw)->srw); } else { ReleaseSRWLockShared (&(rw)->srw); } } while (0)
+92: #define pthread_rwlock_init(rw,attr) do { InitializeSRWLock (&(rw)->srw); (rw)->w = 0; } while (0) 
+93: #define pthread_rwlock_destroy(rw) /*no-op*/
+94: 
+95: 
+96: #define pthread_once_t INIT_ONCE
+97: #define PTHREAD_ONCE_INIT INIT_ONCE_STATIC_INIT
+98: extern BOOL CALLBACK nsync_init_callback_ (pthread_once_t *o, void *v, void **c);
+99: #define pthread_once(o, f) do { \
+100: 				void (*ff) = (f); \
+101: 				InitOnceExecuteOnce ((o),  &nsync_init_callback_, &ff, NULL); \
+102: 			   } while (0)
+103: 
+104: #define sched_yield() Sleep(0)
+105: 
+106: NSYNC_CPP_END_
+107: 
+108: #endif /*NSYNC_PLATFORM_WIN32_PLATFORM_H_*/
+
+FILE nsync-1.26.0/platform/win32/platform_c++11_os.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_WIN32_PLATFORM_CPP_OS_H_
+16: #define NSYNC_PLATFORM_WIN32_PLATFORM_CPP_OS_H_
+17: 
+18: /* Windows doesn't implement clock_gettime(). */
+19: #include <sys/timeb.h>
+20: 
+21: #define clock_gettime nsync_clock_gettime
+22: 
+23: #define CLOCK_REALTIME 0
+24: #define TIMER_ABSTIME 1
+25: 
+26: NSYNC_CPP_START_
+27: typedef int clockid_t;
+28: int clock_gettime (clockid_t clk_id, struct timespec *tp);
+29: NSYNC_CPP_END_
+30: 
+31: /* Avoid deprecation/safety warning for tmpfile().
+32:    This is used for the C++11 build.   The copy in
+33:    win32/platform.h is used for the win32 "native" build. */
+34: #define tmpfile nsync_tmpfile_wrapper
+35: static inline FILE *nsync_tmpfile_wrapper (void) {
+36:         FILE *fp;
+37:         if (tmpfile_s (&fp) != 0) {
+38:                 fp = NULL;
+39:         }
+40:         return (fp);
+41: }
+42: 
+43: /* Windows lacks pthread_key_t. */
+44: #include "Windows.h"
+45: #define sched_yield() Sleep(0)
+46: NSYNC_C_START_
+47: /* Can't use TlsAlloc() because we use pthread_key_create's destructor
+48:    argument, so we implement it anew. */
+49: #define pthread_key_t nsync_pthread_key_t
+50: typedef int nsync_pthread_key_t;
+51: int nsync_pthread_key_create (nsync_pthread_key_t *pkey, void (*dest) (void *));
+52: int nsync_pthread_key_delete (nsync_pthread_key_t key);
+53: void *nsync_pthread_getspecific (nsync_pthread_key_t key);
+54: int nsync_pthread_setspecific (nsync_pthread_key_t key, void *value);
+55: #define pthread_key_create nsync_pthread_key_create
+56: #define pthread_key_delete nsync_pthread_key_delete
+57: #define pthread_getspecific nsync_pthread_getspecific
+58: #define pthread_setspecific nsync_pthread_setspecific
+59: NSYNC_C_END_
+60: 
+61: #endif /*NSYNC_PLATFORM_WIN32_PLATFORM_CPP_OS_H_*/
+
+FILE nsync-1.26.0/platform/win32/src/clock_gettime.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: int nsync_clock_gettime (clockid_t clk_id UNUSED, struct timespec *tp) {
+20: 	struct timeb tb;
+21: 	ftime (&tb);
+22: 	tp->tv_sec = tb.time;
+23: 	tp->tv_nsec = tb.millitm * 1000 * 1000;
+24: 	return (0);
+25: }
+26: 
+27: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/win32/src/init_callback_win32.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "platform.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: typedef void (*init_once_fn_) (void);
+20: BOOL CALLBACK nsync_init_callback_ (pthread_once_t *o, void *v, void **c) {
+21:         init_once_fn_ *f = (init_once_fn_ *) v;
+22:         (**f) ();
+23:         return (TRUE);
+24: }
+25: 
+26: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/win32/src/nanosleep.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: int nsync_nanosleep (const struct timespec *request, struct timespec *remain) {
+20: 	time_t x = request->tv_sec;
+21: 	while (x > 1000) {
+22: 		x -= 1000;
+23: 		Sleep (1000 * 1000);
+24: 	}
+25: 	Sleep ((unsigned) (x * 1000 + (request->tv_nsec + 999999) / (1000 * 1000)));
+26: 	if (remain != NULL) {
+27: 		memset (remain, 0, sizeof (*remain));
+28: 	}
+29: 	return (0);
+30: }
+31: 
+32: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/win32/src/nsync_semaphore_win32.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include <Windows.h>
+16: #include "nsync_cpp.h"
+17: #include "nsync_time.h"
+18: #include "sem.h"
+19: 
+20: NSYNC_CPP_START_
+21: 
+22: /* Initialize *s; the initial value is 0. */
+23: void nsync_mu_semaphore_init (nsync_semaphore *s) {
+24: 	HANDLE *h = (HANDLE *) s;
+25: 	*h = CreateSemaphore(NULL, 0, 1, NULL);
+26: 	if (*h == NULL) {
+27: 		abort ();
+28: 	}
+29: }
+30: 
+31: /* Wait until the count of *s exceeds 0, and decrement it. */
+32: void nsync_mu_semaphore_p (nsync_semaphore *s) {
+33: 	HANDLE *h = (HANDLE *) s;
+34: 	WaitForSingleObject(*h, INFINITE);
+35: }
+36: 
+37: /* Wait until one of:
+38:    the count of *s is non-zero, in which case decrement *s and return 0;
+39:    or abs_deadline expires, in which case return ETIMEDOUT. */
+40: int nsync_mu_semaphore_p_with_deadline (nsync_semaphore *s, nsync_time abs_deadline) {
+41: 	HANDLE *h = (HANDLE *) s;
+42: 	int result;
+43: 
+44: 	if (nsync_time_cmp (abs_deadline, nsync_time_no_deadline) == 0) {
+45: 		result = WaitForSingleObject(*h, INFINITE);
+46: 	} else {
+47: 		nsync_time now;
+48: 		now = nsync_time_now ();
+49: 		do {
+50: 			if (nsync_time_cmp (abs_deadline, now) <= 0) {
+51: 				result = WaitForSingleObject (*h, 0);
+52: 			} else {
+53: 				nsync_time delay;
+54: 				delay = nsync_time_sub (abs_deadline, now);
+55: 				if (NSYNC_TIME_SEC (delay) > 1000*1000) {
+56: 					result = WaitForSingleObject (*h, 1000*1000);
+57: 				} else {
+58: 					result = WaitForSingleObject (*h,
+59: 						(unsigned) (NSYNC_TIME_SEC (delay) * 1000 +
+60: 							(NSYNC_TIME_NSEC (delay) + 999999) / (1000 * 1000)));
+61: 				}
+62: 			}
+63: 			if (result == WAIT_TIMEOUT) {
+64: 				now = nsync_time_now ();
+65: 			}
+66: 		} while (result == WAIT_TIMEOUT && /* Windows generates early wakeups. */
+67: 			 nsync_time_cmp (abs_deadline, now) > 0);
+68: 	}
+69: 	return (result == WAIT_TIMEOUT? ETIMEDOUT : 0);
+70: }
+71: 
+72: /* Ensure that the count of *s is at least 1. */
+73: void nsync_mu_semaphore_v (nsync_semaphore *s) {
+74: 	HANDLE *h = (HANDLE *) s;
+75: 	ReleaseSemaphore(*h, 1, NULL);
+76: }
+77: 
+78: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/win32/src/per_thread_waiter.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: static pthread_key_t waiter_key;
+20: static nsync_atomic_uint32_ pt_once;
+21: 
+22: static void do_once (nsync_atomic_uint32_ *ponce, void (*dest) (void *)) {
+23: 	uint32_t o = ATM_LOAD_ACQ (ponce);
+24: 	if (o != 2) {
+25: 		while (o == 0 && !ATM_CAS_ACQ (ponce, 0, 1)) {
+26: 			o = ATM_LOAD (ponce);
+27: 		}
+28: 		if (o == 0) {
+29: 			pthread_key_create (&waiter_key, dest);
+30: 			ATM_STORE_REL (ponce, 2);
+31: 		}
+32: 		while (ATM_LOAD_ACQ (ponce) != 2) {
+33: 			sched_yield ();
+34: 		}
+35: 	}
+36: }
+37: 
+38: void *nsync_per_thread_waiter_ (void (*dest) (void *)) {
+39: 	do_once (&pt_once, dest);
+40: 	return (pthread_getspecific (waiter_key));
+41: }
+42: 
+43: void nsync_set_per_thread_waiter_ (void *v, void (*dest) (void *)) {
+44: 	do_once (&pt_once, dest);
+45: 	pthread_setspecific (waiter_key, v);
+46: }
+47: 
+48: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/win32/src/pthread_cond_timedwait_win32.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "nsync_cpp.h"
+16: #include "platform.h"
+17: 
+18: NSYNC_CPP_START_
+19: 
+20: int nsync_pthread_cond_timedwait (pthread_cond_t *cv, pthread_mutex_t *mu,
+21: 			    const struct timespec *abs_deadline) {
+22: 	int result;
+23:         if (abs_deadline == NULL) {
+24:                 result = SleepConditionVariableCS (cv, mu, INFINITE);
+25: 	} else {
+26: 		int again;
+27: 		do {
+28: 			struct timespec now;
+29: 			again = 0;
+30: 			clock_gettime (CLOCK_REALTIME, &now);
+31: 			if (abs_deadline->tv_sec < now.tv_sec ||
+32:                             (abs_deadline->tv_sec == now.tv_sec && abs_deadline->tv_nsec <= now.tv_nsec)) {
+33: 				result = SleepConditionVariableCS (cv, mu, 0);
+34: 			} else {
+35: 				struct timespec delay;
+36: 				delay = *abs_deadline;
+37: 				delay.tv_sec -= now.tv_sec;
+38: 				if (delay.tv_nsec < now.tv_nsec) {
+39: 					delay.tv_nsec += 1000 * 1000 * 1000;
+40: 					delay.tv_sec--;
+41: 				}
+42: 				delay.tv_nsec -= now.tv_nsec;
+43: 				if (delay.tv_sec > 1000*1000) {
+44: 					result = SleepConditionVariableCS (cv, mu, 1000*1000);
+45: 					again = (result == ERROR_TIMEOUT);
+46: 				} else {
+47: 					result = SleepConditionVariableCS (cv, mu,
+48: 						(unsigned) (delay.tv_sec * 1000 +
+49: 						(delay.tv_nsec + 999999) / (1000 * 1000)));
+50: 					if (result == ERROR_TIMEOUT) {
+51: 						/* Windows often generates early wakeups. */
+52: 						clock_gettime (CLOCK_REALTIME, &now);
+53: 						again = (abs_deadline->tv_sec > now.tv_sec ||
+54: 						         (abs_deadline->tv_sec == now.tv_sec &&
+55: 							  abs_deadline->tv_nsec > now.tv_nsec));
+56: 					}
+57: 				}
+58: 			}
+59: 		} while (again);
+60: 	}
+61: 	return (result == ERROR_TIMEOUT? ETIMEDOUT : 0);
+62: }
+63: 
+64: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/win32/src/pthread_key_win32.cc
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: // Struct representing an element of the "dest" array, whose elements
+18: // indicate the destructor asscoaied with the corresponding key.
+19: namespace {
+20: struct KeyDestructor {
+21: 	bool allocated;         // Whether this key is allocated.
+22: 	pthread_key_t key;	// Last used version of key.
+23: 	void (*dest) (void *);  // Destructor for the key, or nullptr.
+24: };
+25: } // anonymous namespace
+26: 
+27: 
+28: static SRWLOCK mu = SRWLOCK_INIT;  // protects dest.
+29: static const int kMaxKeyShift = 7;
+30: static const int kMaxKeys = 1 << kMaxKeyShift;
+31: static const int kKeyMask = kMaxKeys - 1;
+32: static KeyDestructor dest[kMaxKeys];  // Destructors for keys.
+33: 
+34: // Element per key per thread.
+35: namespace {
+36: struct KeyValue {
+37: 	pthread_key_t key;  // last key stored
+38: 	void *value;
+39: };
+40: } // anonymous namespace
+41: 
+42: // Each thread has a class instance that represents an array of pointers
+43: // to client-specified thread-specific data.
+44: // The class destructor calls the key destructors when the accociated
+45: // thread exits.
+46: namespace {
+47: 
+48: class PerThreadData {
+49:  public:
+50:   PerThreadData() {
+51:   }
+52:   ~PerThreadData();
+53:   void *value(pthread_key_t key) {
+54:     void *result = 0;
+55:     int i = key & kKeyMask;
+56:     if (this->array_[i].key == key) {
+57:       result = this->array_[i].value;
+58:     }
+59:     return (result);
+60:   }
+61:   void set_value(pthread_key_t key, void *value) {
+62:     int i = key & kKeyMask;
+63:     this->array_[i].key = key;
+64:     this->array_[i].value = value;
+65:   }
+66:  private:
+67:   KeyValue array_[kMaxKeys];
+68: };
+69: 
+70: PerThreadData::~PerThreadData() {
+71: 	bool again = true;
+72: 	// Try a few times to clear the thread's array.
+73: 	for (int attempt = 0; attempt != 4 && again; attempt++) { 
+74: 		again = false;
+75: 		// Take a snapshot of the destructor state.
+76: 		AcquireSRWLockExclusive (&mu);
+77: 		KeyDestructor dest_copy[kMaxKeys];
+78: 		memcpy (dest_copy, dest, sizeof (dest_copy));
+79: 		ReleaseSRWLockExclusive(&mu);
+80: 		// Iterate over the values, calling destructors
+81: 		// when both destructor and value are non-nil.
+82: 		for (int i = 1; i != kMaxKeys; i++) {
+83: 			if (dest_copy[i].allocated) {
+84: 				void (*destructor) (void *) = dest_copy[i].dest;
+85: 				void *value = this->array_[i].value;
+86: 				this->array_[i].value = nullptr;
+87: 				if (dest_copy[i].key == this->array_[i].key &&
+88:                                     destructor != nullptr && value != nullptr) {
+89: 					again = true;  // in case destructors set values.
+90: 					(*destructor) (value);
+91: 				}
+92: 			}
+93: 		}
+94: 	}
+95: }
+96: } // anonymous namespace
+97: 
+98: static __declspec(thread) class PerThreadData per_thread_data;
+99: 
+100: NSYNC_C_START_
+101: 
+102: int nsync_pthread_key_create (pthread_key_t *pkey, void (*destructor) (void *)) {
+103: 	int result = EAGAIN;
+104: 	int i;
+105: 	AcquireSRWLockExclusive (&mu);
+106: 	// Search for an unused slot. Slot 1 is never used.
+107: 	for (i = 1; i != kMaxKeys && dest[i].allocated; i++) {
+108: 	}
+109: 	if (i != kMaxKeys) { // found one
+110: 		dest[i].allocated = true;
+111: 		dest[i].dest = destructor;
+112: 		dest[i].key += kMaxKeys;  // High bits are version number.
+113: 		dest[i].key |= i;  // Low bits are slot number.
+114: 		*pkey = dest[i].key;
+115: 		result = 0;
+116: 	}
+117: 	ReleaseSRWLockExclusive(&mu);
+118: 	return (result);
+119: }
+120: 
+121: int nsync_pthread_key_delete (pthread_key_t key) {
+122: 	int result = EINVAL;
+123: 	int i = key & kKeyMask;
+124: 	AcquireSRWLockExclusive (&mu);
+125: 	if (key > 0 && dest[i].allocated) {
+126: 		dest[i].allocated = false;
+127: 		dest[i].dest = nullptr;
+128: 		result = 0;
+129: 	}
+130: 	ReleaseSRWLockExclusive(&mu);
+131: 	return (result);
+132: }
+133: 
+134: void *nsync_pthread_getspecific (pthread_key_t key) {
+135: 	return (per_thread_data.value (key));
+136: }
+137: 
+138: int nsync_pthread_setspecific (pthread_key_t key, void *value) {
+139: 	int result = EINVAL;
+140: 	if (key > 0) {
+141: 		per_thread_data.set_value (key, value);
+142: 		result = 0;
+143: 	}
+144: 	return (result);
+145: }
+146: 
+147: NSYNC_C_END_
+
+FILE nsync-1.26.0/platform/win32/src/start_thread.c
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #include "headers.h"
+16: 
+17: NSYNC_CPP_START_
+18: 
+19: struct nsync_thd_args {
+20: 	void (*f) (void *);
+21: 	void *arg;
+22: };
+23: 
+24: static DWORD WINAPI body (void *v) {
+25: 	struct nsync_thd_args *args = (struct nsync_thd_args *) v;
+26: 	(*args->f) (args->arg);
+27: 	free (args);
+28: 	return (0);
+29: }
+30: 
+31: void nsync_start_thread_ (void (*f) (void *), void *arg) {
+32: 	struct nsync_thd_args *args = (struct nsync_thd_args *) malloc (sizeof (*args));
+33: 	HANDLE t;
+34: 	args->f = f;
+35: 	args->arg = arg;
+36: 	t = CreateThread (NULL, 0, &body, args, 0, NULL);
+37: 	CloseHandle (t);
+38: }
+39: 
+40: NSYNC_CPP_END_
+
+FILE nsync-1.26.0/platform/x86_32/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_X86_32_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_X86_32_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 1
+19: 
+20: #endif /*NSYNC_PLATFORM_X86_32_CPUTYPE_H_*/
+
+FILE nsync-1.26.0/platform/x86_64/cputype.h
+1: /* Copyright 2016 Google Inc.
+2: 
+3:   Licensed under the Apache License, Version 2.0 (the "License");
+4:   you may not use this file except in compliance with the License.
+5:   You may obtain a copy of the License at
+6: 
+7:     http://www.apache.org/licenses/LICENSE-2.0
+8: 
+9:   Unless required by applicable law or agreed to in writing, software
+10:   distributed under the License is distributed on an "AS IS" BASIS,
+11:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+12:   See the License for the specific language governing permissions and
+13:   limitations under the License. */
+14: 
+15: #ifndef NSYNC_PLATFORM_X86_64_CPUTYPE_H_
+16: #define NSYNC_PLATFORM_X86_64_CPUTYPE_H_
+17: 
+18: #define ATM_LD_IS_ACQ_ST_IS_REL_ 1
+19: 
+20: #endif /*NSYNC_PLATFORM_X86_64_CPUTYPE_H_*/

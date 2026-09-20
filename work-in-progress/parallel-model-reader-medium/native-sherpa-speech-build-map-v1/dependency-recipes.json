@@ -1,0 +1,364 @@
+[
+  {
+    "recipe": "kaldi-native-fbank",
+    "path": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9\\cmake\\kaldi-native-fbank.cmake",
+    "source_settings": [
+      {
+        "line": 2,
+        "text": "include(FetchContent)"
+      },
+      {
+        "line": 4,
+        "text": "set(kaldi_native_fbank_URL   \"https://github.com/csukuangfj/kaldi-native-fbank/archive/refs/tags/v1.22.1.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(kaldi_native_fbank_URL2  \"https://hf-mirror.com/csukuangfj/sherpa-onnx-cmake-deps/resolve/main/kaldi-native-fbank-1.22.1.tar.gz\")"
+      },
+      {
+        "line": 6,
+        "text": "set(kaldi_native_fbank_HASH \"SHA256=b292ddd1fa121f28371d11c14dd016c59c54b3f0dbb2bb2cfdc82d562564d0f5\")"
+      },
+      {
+        "line": 24,
+        "text": "set(kaldi_native_fbank_URL  \"${f}\")"
+      },
+      {
+        "line": 27,
+        "text": "set(kaldi_native_fbank_URL2 )"
+      },
+      {
+        "line": 32,
+        "text": "FetchContent_Declare(kaldi_native_fbank"
+      },
+      {
+        "line": 52,
+        "text": "add_subdirectory(${kaldi_native_fbank_SOURCE_DIR} ${kaldi_native_fbank_BINARY_DIR} EXCLUDE_FROM_ALL)"
+      }
+    ]
+  },
+  {
+    "recipe": "kaldi-decoder",
+    "path": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9\\cmake\\kaldi-decoder.cmake",
+    "source_settings": [
+      {
+        "line": 2,
+        "text": "include(FetchContent)"
+      },
+      {
+        "line": 4,
+        "text": "set(kaldi_decoder_URL  \"https://github.com/k2-fsa/kaldi-decoder/archive/refs/tags/v0.2.10.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(kaldi_decoder_URL2 \"https://hf-mirror.com/csukuangfj/sherpa-onnx-cmake-deps/resolve/main/kaldi-decoder-0.2.10.tar.gz\")"
+      },
+      {
+        "line": 6,
+        "text": "set(kaldi_decoder_HASH \"SHA256=a3d602edc1f422acfe663153faf3f0a716305ec1f95b8fcf9d28d301d6827309\")"
+      },
+      {
+        "line": 24,
+        "text": "set(kaldi_decoder_URL  \"${f}\")"
+      },
+      {
+        "line": 27,
+        "text": "set(kaldi_decoder_URL2 )"
+      },
+      {
+        "line": 32,
+        "text": "FetchContent_Declare(kaldi_decoder"
+      },
+      {
+        "line": 54,
+        "text": "add_subdirectory(${kaldi_decoder_SOURCE_DIR} ${kaldi_decoder_BINARY_DIR} EXCLUDE_FROM_ALL)"
+      }
+    ]
+  },
+  {
+    "recipe": "kaldifst",
+    "path": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9\\cmake\\kaldifst.cmake",
+    "source_settings": [
+      {
+        "line": 2,
+        "text": "include(FetchContent)"
+      },
+      {
+        "line": 4,
+        "text": "set(kaldifst_URL  \"https://github.com/k2-fsa/kaldifst/archive/refs/tags/v1.7.17.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(kaldifst_URL2 \"https://hf-mirror.com/csukuangfj/sherpa-onnx-cmake-deps/resolve/main/kaldifst-1.7.17.tar.gz\")"
+      },
+      {
+        "line": 6,
+        "text": "set(kaldifst_HASH \"SHA256=c4b701a23a400bda8032586b02c7e0d5e813a765832df60c23e6df9e62b010f4\")"
+      },
+      {
+        "line": 20,
+        "text": "set(kaldifst_URL  \"${f}\")"
+      },
+      {
+        "line": 23,
+        "text": "set(kaldifst_URL2)"
+      },
+      {
+        "line": 31,
+        "text": "FetchContent_Declare(kaldifst"
+      },
+      {
+        "line": 51,
+        "text": "add_subdirectory(${kaldifst_SOURCE_DIR} ${kaldifst_BINARY_DIR} EXCLUDE_FROM_ALL)"
+      }
+    ]
+  },
+  {
+    "recipe": "openfst",
+    "path": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9\\cmake\\openfst.cmake",
+    "source_settings": [
+      {
+        "line": 4,
+        "text": "include(FetchContent)"
+      },
+      {
+        "line": 6,
+        "text": "set(openfst_URL  \"https://github.com/csukuangfj/openfst/archive/refs/tags/sherpa-onnx-2024-06-19.tar.gz\")"
+      },
+      {
+        "line": 7,
+        "text": "set(openfst_URL2 \"https://hf-mirror.com/csukuangfj/sherpa-onnx-cmake-deps/resolve/main/openfst-sherpa-onnx-2024-06-19.tar.gz\")"
+      },
+      {
+        "line": 8,
+        "text": "set(openfst_HASH \"SHA256=5c98e82cc509c5618502dde4860b8ea04d843850ed57e6d6b590b644b268853d\")"
+      },
+      {
+        "line": 22,
+        "text": "set(openfst_URL  \"${f}\")"
+      },
+      {
+        "line": 24,
+        "text": "set(openfst_URL2)"
+      },
+      {
+        "line": 45,
+        "text": "FetchContent_Declare(openfst"
+      },
+      {
+        "line": 50,
+        "text": "PATCH_COMMAND"
+      },
+      {
+        "line": 52,
+        "text": "sed -i.bak s/add_subdirectory\\(test\\)//g \"src/CMakeLists.txt\" &&"
+      },
+      {
+        "line": 54,
+        "text": "# sed -i.bak s/add_subdirectory\\(script\\)//g \"src/CMakeLists.txt\" &&"
+      },
+      {
+        "line": 55,
+        "text": "# sed -i.bak s/add_subdirectory\\(extensions\\)//g \"src/CMakeLists.txt\""
+      },
+      {
+        "line": 58,
+        "text": "FetchContent_Declare(openfst"
+      },
+      {
+        "line": 76,
+        "text": "add_subdirectory(${openfst_SOURCE_DIR} ${openfst_BINARY_DIR} EXCLUDE_FROM_ALL)"
+      }
+    ]
+  },
+  {
+    "recipe": "simple-sentencepiece",
+    "path": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9\\cmake\\simple-sentencepiece.cmake",
+    "source_settings": [
+      {
+        "line": 2,
+        "text": "include(FetchContent)"
+      },
+      {
+        "line": 4,
+        "text": "set(simple-sentencepiece_URL  \"https://github.com/pkufool/simple-sentencepiece/archive/refs/tags/v0.7.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(simple-sentencepiece_URL2 \"https://hf-mirror.com/csukuangfj/sherpa-onnx-cmake-deps/resolve/main/simple-sentencepiece-0.7.tar.gz\")"
+      },
+      {
+        "line": 6,
+        "text": "set(simple-sentencepiece_HASH \"SHA256=1748a822060a35baa9f6609f84efc8eb54dc0e74b9ece3d82367b7119fdc75af\")"
+      },
+      {
+        "line": 20,
+        "text": "set(simple-sentencepiece_URL  \"${f}\")"
+      },
+      {
+        "line": 23,
+        "text": "set(simple-sentencepiece_URL2)"
+      },
+      {
+        "line": 31,
+        "text": "FetchContent_Declare(simple-sentencepiece"
+      },
+      {
+        "line": 51,
+        "text": "add_subdirectory(${simple-sentencepiece_SOURCE_DIR} ${simple-sentencepiece_BINARY_DIR} EXCLUDE_FROM_ALL)"
+      }
+    ]
+  },
+  {
+    "recipe": "cppjieba",
+    "path": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9\\cmake\\cppjieba.cmake",
+    "source_settings": [
+      {
+        "line": 2,
+        "text": "include(FetchContent)"
+      },
+      {
+        "line": 4,
+        "text": "set(cppjieba_URL  \"https://github.com/csukuangfj/cppjieba/archive/refs/tags/sherpa-onnx-2024-04-19.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(cppjieba_URL2 \"https://hf-mirror.com/csukuangfj/sherpa-onnx-cmake-deps/resolve/main/cppjieba-sherpa-onnx-2024-04-19.tar.gz\")"
+      },
+      {
+        "line": 6,
+        "text": "set(cppjieba_HASH \"SHA256=03e5264687f0efaef05487a07d49c3f4c0f743347bfbf825df4b30cc75ac5288\")"
+      },
+      {
+        "line": 20,
+        "text": "set(cppjieba_URL  \"${f}\")"
+      },
+      {
+        "line": 23,
+        "text": "set(cppjieba_URL2)"
+      },
+      {
+        "line": 28,
+        "text": "FetchContent_Declare(cppjieba"
+      },
+      {
+        "line": 42,
+        "text": "add_subdirectory(${cppjieba_SOURCE_DIR} ${cppjieba_BINARY_DIR} EXCLUDE_FROM_ALL)"
+      }
+    ]
+  },
+  {
+    "recipe": "cppinyin",
+    "path": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9\\cmake\\cppinyin.cmake",
+    "source_settings": [
+      {
+        "line": 2,
+        "text": "include(FetchContent)"
+      },
+      {
+        "line": 4,
+        "text": "set(cppinyin_URL \"https://github.com/pkufool/cppinyin/archive/refs/tags/v0.10.tar.gz\")"
+      },
+      {
+        "line": 5,
+        "text": "set(cppinyin_URL2 \"https://gh-proxy.com/https://github.com/pkufool/cppinyin/archive/refs/tags/v0.10.tar.gz\")"
+      },
+      {
+        "line": 6,
+        "text": "set(cppinyin_HASH \"SHA256=abe6584d7ee56829e8f4b5fbda3b50ecdf49a13be8e413a78d1b0d5d5c019982\")"
+      },
+      {
+        "line": 20,
+        "text": "set(cppinyin_URL  \"${f}\")"
+      },
+      {
+        "line": 23,
+        "text": "set(cppinyin_URL2)"
+      },
+      {
+        "line": 31,
+        "text": "FetchContent_Declare(cppinyin"
+      },
+      {
+        "line": 59,
+        "text": "add_subdirectory(${cppinyin_SOURCE_DIR} ${cppinyin_BINARY_DIR} EXCLUDE_FROM_ALL)"
+      }
+    ]
+  },
+  {
+    "recipe": "espeak-ng-for-piper",
+    "path": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9\\cmake\\espeak-ng-for-piper.cmake",
+    "source_settings": [
+      {
+        "line": 2,
+        "text": "include(FetchContent)"
+      },
+      {
+        "line": 4,
+        "text": "set(espeak_ng_URL  \"https://github.com/csukuangfj/espeak-ng/archive/f6fed6c58b5e0998b8e68c6610125e2d07d595a7.zip\")"
+      },
+      {
+        "line": 5,
+        "text": "set(espeak_ng_URL2 \"https://hf-mirror.com/csukuangfj/sherpa-onnx-cmake-deps/resolve/main/espeak-ng-f6fed6c58b5e0998b8e68c6610125e2d07d595a7.zip\")"
+      },
+      {
+        "line": 6,
+        "text": "set(espeak_ng_HASH \"SHA256=70cbf4050e7a014aae19140b05e57249da4720f56128459fbe3a93beaf971ae6\")"
+      },
+      {
+        "line": 33,
+        "text": "set(espeak_ng_URL  \"${f}\")"
+      },
+      {
+        "line": 36,
+        "text": "set(espeak_ng_URL2 )"
+      },
+      {
+        "line": 41,
+        "text": "FetchContent_Declare(espeak_ng"
+      },
+      {
+        "line": 61,
+        "text": "add_subdirectory(${espeak_ng_SOURCE_DIR} ${espeak_ng_BINARY_DIR})"
+      }
+    ]
+  },
+  {
+    "recipe": "piper-phonemize",
+    "path": "E:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9\\cmake\\piper-phonemize.cmake",
+    "source_settings": [
+      {
+        "line": 2,
+        "text": "include(FetchContent)"
+      },
+      {
+        "line": 4,
+        "text": "set(piper_phonemize_URL  \"https://github.com/csukuangfj/piper-phonemize/archive/78a788e0b719013401572d70fef372e77bff8e43.zip\")"
+      },
+      {
+        "line": 5,
+        "text": "set(piper_phonemize_URL2 \"https://hf-mirror.com/csukuangfj/sherpa-onnx-cmake-deps/resolve/main/piper-phonemize-78a788e0b719013401572d70fef372e77bff8e43.zip\")"
+      },
+      {
+        "line": 6,
+        "text": "set(piper_phonemize_HASH \"SHA256=89641a46489a4898754643ce57bda9c9b54b4ca46485fdc02bf0dc84b866645d\")"
+      },
+      {
+        "line": 20,
+        "text": "set(piper_phonemize_URL  \"${f}\")"
+      },
+      {
+        "line": 23,
+        "text": "set(piper_phonemize_URL2 )"
+      },
+      {
+        "line": 28,
+        "text": "FetchContent_Declare(piper_phonemize"
+      },
+      {
+        "line": 48,
+        "text": "add_subdirectory(${piper_phonemize_SOURCE_DIR} ${piper_phonemize_BINARY_DIR} EXCLUDE_FROM_ALL)"
+      }
+    ]
+  }
+]

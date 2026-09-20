@@ -1,0 +1,292 @@
+--- K7_V1.1_20241211_SCH-p16.txt
++++ K7_V2.0_20250716_SCH-p16.txt
+@@ -114,7 +114,7 @@
+ K7(RK3576+LPDDR4)
+ RK3576-GPIO VCCIO2
+ A3
+-16 39Monday, December 16, 2024
++16 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ Page Title
+@@ -126,7 +126,7 @@
+ K7(RK3576+LPDDR4)
+ RK3576-GPIO VCCIO2
+ A3
+-16 39Monday, December 16, 2024
++16 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ Page Title
+@@ -138,7 +138,7 @@
+ K7(RK3576+LPDDR4)
+ RK3576-GPIO VCCIO2
+ A3
+-16 39Monday, December 16, 2024
++16 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ VCCIO2 Domain
+--- K7_V1.1_20241211_SCH-p17.txt
++++ K7_V2.0_20250716_SCH-p17.txt
+@@ -97,11 +97,8 @@
+ I2C7_SCL_M1 [42]
+ I2C5_SDA_M3_MIPI_CSI1 [29]
+ MIPI_DPHY_CSI0_PWREN_H [42]
+-MIPI_DPHY_CSI0_CAM_CLKOUT [29]
++PCIE0_WAKEn_M0 [33]
+ IRC_AIN [42]
+-PCIE0_WAKEn_M0 [33]
+-MIPI_DPHY_CSI1_CAM_CLKOUT [29]
+-MIPI_DPHY_CSI3_CAM_CLKOUT [29]
+ GMAC1_MCLKINOUT_M0 [36]
+ HDMI_TX_ON_H [32]
+ SPK_CTL_H [38]
+@@ -131,7 +128,7 @@
+ K7(RK3576+LPDDR4)
+ RK3576-GPIO VCCIO4/5
+ A3
+-17 39Monday, December 16, 2024
++17 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ Page Title
+@@ -143,7 +140,7 @@
+ K7(RK3576+LPDDR4)
+ RK3576-GPIO VCCIO4/5
+ A3
+-17 39Monday, December 16, 2024
++17 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ Page Title
+@@ -155,18 +152,18 @@
+ K7(RK3576+LPDDR4)
+ RK3576-GPIO VCCIO4/5
+ A3
+-17 39Monday, December 16, 2024
++17 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ R1927
+-2.2K
++NC
+ R0201
+ R1902 NC R0201
+ R1910
+-4.7K
++NC
+ R0201
+ R1935
+-2.2K
++NC
+ R0201
+ R1901 NC R0201
+ C1902
+@@ -176,10 +173,10 @@
+ 6.3V
+ 12
+ R1926
+-2.2K
++NC
+ R0201
+ R1934
+-2.2K
++NC
+ R0201
+ VCCIO4 Domain
+ Operating Voltage=1.8V/3.3V
+@@ -273,7 +270,7 @@
+ 2.2K
+ R0201
+ R1909
+-4.7K
++NC
+ R0201
+ C1903
+ 1uF
+--- K7_V1.1_20241211_SCH-p20.txt
++++ K7_V2.0_20250716_SCH-p20.txt
+@@ -64,7 +64,7 @@
+ K7(RK3576+LPDDR4)
+ Power-Ext Discrete/RTC
+ A3
+-20 39Monday, December 16, 2024
++20 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ Page Title
+@@ -76,7 +76,7 @@
+ K7(RK3576+LPDDR4)
+ Power-Ext Discrete/RTC
+ A3
+-20 39Monday, December 16, 2024
++20 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ Page Title
+@@ -88,7 +88,7 @@
+ K7(RK3576+LPDDR4)
+ Power-Ext Discrete/RTC
+ A3
+-20 39Monday, December 16, 2024
++20 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ R2424
+@@ -149,6 +149,8 @@
+ X5R
+ 10V
+ 12
++TP2400
++TP_0.7
+ U2403
+ SOT_23_5
+ SGM2590DSY6280AAC
+@@ -299,7 +301,7 @@
+ CON2_1.25X2_SMT_V
+ 11
+ 22
+-3 344
++33 4 4
+ C2407
+ 100nF
+ C0402
+--- K7_V1.1_20241211_SCH-p32.txt
++++ K7_V2.0_20250716_SCH-p32.txt
+@@ -81,7 +81,7 @@
+ K7(RK3576+LPDDR4)
+ Audio-CODEC(ES8388)
+ A3
+-32 41Monday, December 16, 2024
++32 41Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ Page Title
+@@ -93,7 +93,7 @@
+ K7(RK3576+LPDDR4)
+ Audio-CODEC(ES8388)
+ A3
+-32 41Monday, December 16, 2024
++32 41Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ Page Title
+@@ -105,9 +105,11 @@
+ K7(RK3576+LPDDR4)
+ Audio-CODEC(ES8388)
+ A3
+-32 41Monday, December 16, 2024
++32 41Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
++TP7005
++TP_0.7
+ C7001
+ 100nF
+ C0402
+@@ -237,6 +239,8 @@
+ X5R
+ 6.3V
+ 12
++TP7002
++TP_0.7
+ R7002 22R R0402
+ C7017
+ NC/100nF
+@@ -266,6 +270,8 @@
+ C7002 1uF
+ C0402X5R 6.3V
+ 1 2
++TP7003
++TP_0.7
+ R7001 0R R0402
+ C7000
+ 4.7uF
+@@ -273,14 +279,20 @@
+ X5R
+ 6.3V
+ 12
++TP7000
++TP_0.7
+ R7003 22R R0402
+ R7004 0R R0402
++TP7004
++TP_0.7
+ ED7001
+ ESD5451N
+ ESD0402
+ 12
+ C7012 22UF C0603 X5R 6.3V
+ 1 2
++TP7001
++TP_0.7
+ J7000
+ PJ-382
+ CS-PJ-382-7P
+--- K7_V1.1_20241211_SCH-p33.txt
++++ K7_V2.0_20250716_SCH-p33.txt
+@@ -47,7 +47,7 @@
+ K7(RK3576+LPDDR4)
+ Audio-SPK
+ A3
+-33 39Monday, December 16, 2024
++33 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ Page Title
+@@ -59,7 +59,7 @@
+ K7(RK3576+LPDDR4)
+ Audio-SPK
+ A3
+-33 39Monday, December 16, 2024
++33 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ Page Title
+@@ -71,7 +71,7 @@
+ K7(RK3576+LPDDR4)
+ Audio-SPK
+ A3
+-33 39Monday, December 16, 2024
++33 39Wednesday, July 16, 2025
+ K7_V1.1
+ TIM TIM DR4
+ J7400
+@@ -115,6 +115,8 @@
+ C0402X5R 10V
+ 1 2
+ R7404 100K R0402
++TP7400
++TP_0.7
+ FB7400
+ 120R-100M L0603
+ 1.3A 0.25
+@@ -126,6 +128,8 @@
+ C0G
+ 50V
+ 12
++TP7401
++TP_0.7
+ J7401
+ CON2_1.25X2_SMT_V
+ CON2_1.25X2_SMT_V
+@@ -176,7 +180,8 @@
+ C0G
+ 50V
+ 12
+-U7400
++TP7402
++TP_0.7U7400
+ AD51652/TCS7191A_MH
+ MSOP8
+ EN1
+@@ -192,6 +197,8 @@
+ C0G
+ 50V
+ 12
++TP7403
++TP_0.7
+ C7404 10nF
+ C0402
+ X5R

@@ -1,0 +1,58 @@
+[
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-O0",
+      "pio.c",
+      "test_runtime.c",
+      "-o",
+      "test-O0.exe"
+    ],
+    "cwd": "candidate",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-pio-runtime-review-v1\\candidate\\test-O0.exe"
+    ],
+    "cwd": "candidate",
+    "exit_code": 0,
+    "stdout": "observed mode=0 rc=-75 frames=8 held=0 stop=0\r\nsynthetic mode=0 result=-75 frames=8 held=0 samples=deadbeef,deadbeef\r\nobserved mode=1 rc=-75 frames=8 held=0 stop=0\r\nsynthetic mode=1 result=-75 frames=8 held=0 samples=deadbeef,deadbeef\r\nobserved mode=2 rc=0 frames=1 held=0 stop=0\r\nsynthetic mode=2 result=0 frames=1 held=0 samples=abc00000,abc00001\r\nobserved mode=3 rc=-5 frames=0 held=0 stop=0\r\nsynthetic mode=3 result=-5 frames=0 held=0 samples=abc00000,deadbeef\r\nPASS frozen actual PIO: terminal TXUI remains rejected, middle TXUI rejected, real RX words preserved, partial pair uncounted, no zero padding\r\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-O2",
+      "pio.c",
+      "test_runtime.c",
+      "-o",
+      "test-O2.exe"
+    ],
+    "cwd": "candidate",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-pio-runtime-review-v1\\candidate\\test-O2.exe"
+    ],
+    "cwd": "candidate",
+    "exit_code": 0,
+    "stdout": "observed mode=0 rc=-75 frames=8 held=0 stop=0\r\nsynthetic mode=0 result=-75 frames=8 held=0 samples=deadbeef,deadbeef\r\nobserved mode=1 rc=-75 frames=8 held=0 stop=0\r\nsynthetic mode=1 result=-75 frames=8 held=0 samples=deadbeef,deadbeef\r\nobserved mode=2 rc=0 frames=1 held=0 stop=0\r\nsynthetic mode=2 result=0 frames=1 held=0 samples=abc00000,abc00001\r\nobserved mode=3 rc=-5 frames=0 held=0 stop=0\r\nsynthetic mode=3 result=-5 frames=0 held=0 samples=abc00000,deadbeef\r\nPASS frozen actual PIO: terminal TXUI remains rejected, middle TXUI rejected, real RX words preserved, partial pair uncounted, no zero padding\r\n",
+    "stderr": ""
+  }
+]

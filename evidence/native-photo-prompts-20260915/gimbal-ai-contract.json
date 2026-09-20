@@ -1,0 +1,140 @@
+{
+  "schema": {
+    "properties": {
+      "text": {
+        "type": "string",
+        "description": "必填，字符串，用户文本，1—2000 字符（去空白后非空）；服务端仅原样转发给 AI 服务，不落地存储（无会话历史）。",
+        "example": "帮我看看今天的护肤建议",
+        "maxLength": 2000,
+        "minLength": 0
+      }
+    },
+    "required": [
+      "text"
+    ]
+  },
+  "operation": {
+    "post": {
+      "tags": [
+        "云台AI问答"
+      ],
+      "summary": "云台 AI 文本问答（流式，无状态透传）",
+      "description": "用途：云台设备提交一段用户文本，服务端<b>流式</b>转发给 AI 服务并逐事件回传。\n调用方：仅云台设备会话（Authorization: Bearer <gimbal device session token>）。\nAPP 会话主体一律 403 CALLER_NOT_ALLOWED，且不产生任何下游请求；未认证请求由\nBearerAuthFilter 统一 401（AUTH_REQUIRED/SESSION_INVALID）。\n请求（严格形状）：body 仅允许 text 一个字段（1—2000 字符，去空白后非空）；\n未知字段、空/超长 → 400 INVALID_INPUT，解析失败发生在任何下游调用之前。\n成功响应：200，Content-Type: text/event-stream（Cache-Control: no-store）。\n服务端逐事件、每事件即时 flush（绝不缓冲整段答案），外部事件为：\n- response.accepted（信息性）；\n- response.delta：data 为 {\"delta\":\"…\"}，按序即时下发；\n- response.completed：data 为 {\"answerText\":\"…\"}（权威答案），恰一个成功终态；\n- response.failed：data 为 {\"code\":\"DEPENDENCY_UNAVAILABLE|DEPENDENCY_TIMEOUT\",\n  \"message\":\"…\"}（仅安全码/文案，不含堆栈、下游响应体、continuation_state 或密钥），\n  恰一个失败终态。\n服务端对下游 SSE 做<b>解析-校验-重编码白名单</b>，绝不字节透传：只认\nresponse.accepted/response.delta/response.completed/response.failed；未知事件、重复/缺失终态、畸形、\nEOF、读取超时一律 fail-closed（流内失败转成一个 response.failed 终态）。客户端断开时\n服务端取消下游连接。\n错误映射：<b>预流失败</b>（授权、校验、下游连接失败/预流非 2xx/预流超时）\n在建立 SSE 前发生，返回统一 JSON 错误信封与 HTTP 状态（如 400/403/503/504）；\n一旦流已开始，失败只能以一个 response.failed 事件表达（HTTP 仍为 200）。\n下游契约（服务端内部）：POST {app.gimbal-ai.base-url}/internal/v1/ai/responses:stream，\nHeader X-Service-Name=medical-platform、X-API-Key、X-Request-Id（服务端每次调用\n新生成，与 body.request_id 一致）、Idempotency-Key（每次调用全新，且不发送\nLast-Event-ID、绝不断点续传）、X-Protocol-Version=1.0、traceparent（W3C）、\nAccept: text/event-stream、Content-Type: application/json；body 为\n{protocol_version:\"1.0\", request_id, use_case:\"APP_AGENT_CONVERSATION\",\ninput:{text}}，不含 continuation_state。绝不回退一次性接口。\n幂等语义（重要限制）：本端点无本地幂等存储，每次调用都使用全新的下游\nIdempotency-Key——客户端重试会产生一个<b>新问题</b>（下游亦无重放存储）。\n配置与降级：app.gimbal-ai.base-url / api-key 缺省为空（安全占位），真实值由部署\n环境注入；app.providers.mode=disabled 或未配置（非生产）时一律预流 503\nDEPENDENCY_UNAVAILABLE，绝不回退替身或合成答案；生产信号下缺配置拒绝启动。\n错误处理：INVALID_INPUT 修正 body；CALLER_NOT_ALLOWED 换用云台会话；\nDEPENDENCY_UNAVAILABLE（503）与 DEPENDENCY_TIMEOUT（504）为下游依赖失败/超时\n（预流为 HTTP 问题，流内为 response.failed 事件），受限重试（注意\"重试即新问题\"语义）。\n**能力限制（如实披露）**：这是无状态、无上下文的文本问答，不存储也不回传\ncontinuation_state，因此无法承载真实的测肤报告后续追问；真正的报告后追问需要\n先存储并回传评估的 continuation_state，属后续增量（本轮明确不在范围内）。\n",
+      "operationId": "messages",
+      "requestBody": {
+        "description": "请求体：仅 text（必填，1—2000 字符，去空白后非空）；未知字段一律 400 INVALID_INPUT。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GimbalAiMessageRequest"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "SSE 事件流（text/event-stream）：response.accepted / response.delta{delta} / response.completed{answerText} / response.failed{code,message}；每事件即时 flush，恰一个终态；预流失败改以 JSON 错误信封表达",
+          "headers": {
+            "X-Request-Id": {
+              "description": "本次 HTTP 尝试的请求 ID，与响应体 requestId 同值"
+            }
+          },
+          "content": {
+            "text/event-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "业务错误（HTTP 状态由各业务码映射；同一状态多码合并列出）：\n- INVALID_INPUT（retryable=false）：请求字段缺失、格式非法、枚举越界或未知字段。触发：Bean Validation 或业务前置校验失败。客户端动作：修正请求后重试；不得原样重放。details 形态：{fields:[{field,reason}]}（逐字段原因，不泄漏服务端内部结构）。",
+          "headers": {
+            "X-Request-Id": {
+              "description": "本次 HTTP 尝试的请求 ID，与响应体 requestId 同值"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorEnvelope"
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "业务错误（HTTP 状态由各业务码映射；同一状态多码合并列出）：\n- AUTH_REQUIRED（retryable=false）：缺少或格式错误的 Authorization 头。触发：无 Bearer token 或非 Bearer 方案。客户端动作：先登录获取 token 后重试。本码不区分 token 是否有效，避免枚举。\n- SESSION_INVALID（retryable=false）：会话 token 无效、已过期或已被撤销（含账号停用/全端登出/云台凭据版本轮换）。触发：每请求与本地状态复核失败。客户端动作：重新登录/重新握手获取新 token 后重试；不得复用旧 token。",
+          "headers": {
+            "X-Request-Id": {
+              "description": "本次 HTTP 尝试的请求 ID，与响应体 requestId 同值"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorEnvelope"
+              }
+            }
+          }
+        },
+        "403": {
+          "description": "业务错误（HTTP 状态由各业务码映射；同一状态多码合并列出）：\n- CALLER_NOT_ALLOWED（retryable=false）：当前主体类型不允许调用该端点（如云台调用 APP 专属端点、APP 调用云台专属端点）。触发：principal 类型与端点要求的 APP/GIMBAL 不符。客户端动作：改用正确主体/端点，重试无意义。",
+          "headers": {
+            "X-Request-Id": {
+              "description": "本次 HTTP 尝试的请求 ID，与响应体 requestId 同值"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorEnvelope"
+              }
+            }
+          }
+        },
+        "503": {
+          "description": "业务错误（HTTP 状态由各业务码映射；同一状态多码合并列出）：\n- DEPENDENCY_UNAVAILABLE（retryable=true）：依赖不可用（存储写入/人脸或分析提供方等）；任务/写入未成功，绝不伪报成功。触发：下游调用或存储失败。客户端动作：受限退避重试；retryable=true。本码绝不返回“默认核验通过”；上传失败不会留下可用的媒体对象。",
+          "headers": {
+            "X-Request-Id": {
+              "description": "本次 HTTP 尝试的请求 ID，与响应体 requestId 同值"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorEnvelope"
+              }
+            }
+          }
+        },
+        "504": {
+          "description": "业务错误（HTTP 状态由各业务码映射；同一状态多码合并列出）：\n- DEPENDENCY_TIMEOUT（retryable=true）：依赖调用超时；结果未知，未伪报成功。触发：下游超时。客户端动作：受限退避重试；retryable=true。与 DEPENDENCY_UNAVAILABLE 同样不得视为核验通过。",
+          "headers": {
+            "X-Request-Id": {
+              "description": "本次 HTTP 尝试的请求 ID，与响应体 requestId 同值"
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorEnvelope"
+              }
+            }
+          }
+        }
+      },
+      "x-error-codes": [
+        "INVALID_INPUT",
+        "AUTH_REQUIRED",
+        "SESSION_INVALID",
+        "CALLER_NOT_ALLOWED",
+        "DEPENDENCY_UNAVAILABLE",
+        "DEPENDENCY_TIMEOUT"
+      ]
+    }
+  },
+  "path": "/api/v1/gimbal-ai/messages",
+  "captured_utc": "2026-09-15T05:45:26.6965708Z"
+}

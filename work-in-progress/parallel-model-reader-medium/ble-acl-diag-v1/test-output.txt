@@ -1,0 +1,51 @@
+COMMAND ['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-pthread', '-Istubs', '-Icandidate', 'test.c', 'candidate/skw_bt.c', 'candidate/skw_packet.c', '-o', 'rx-O0.exe']
+
+
+RADIO ACL RX count=1 bytes=4 handle_flags=0000
+RADIO BT HCI decode ret=-134 channel=5 length=20
+RADIO HCI complete op=0c31 status=12
+PASS real skw_bt RX failures/H4/flow + send/slot helpers + 4x100000 atomic increments/wrap
+
+
+COMMAND ['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-pthread', '-Istubs', '-Icandidate', 'test_tx.c', '-o', 'tx-O0.exe']
+
+
+RADIO BT TX worker stopped ret=-5
+RADIO BT TX worker stopped ret=-4
+RADIO BT TX worker stopped ret=-138
+RADIO BLE name=VelaVision K7 connected=0 handle=0 ACL_RX=0 ACL_TX_queued=0
+RADIO BLE history connections=0 disconnections=0 last_reason=0 encrypt_status=0 encrypted=0
+RADIO BTM ACL_QUEUED=0 ACL_SEND_OK=0 ACL_SEND_FAIL=0 ACL_ACK_MATCH=0
+RADIO BTM ACL_ACK_OTHER=0 ACL_ACK_WAIT_FAIL=0 PORT5_SLOT=0 SLOT_DECODE_FAIL=0
+RADIO BTM PORT5_SLOT_DECODE_FAIL=0 HCI_DECODE_FAIL=0 PORT5_HCI_DECODE_FAIL=0 READY_REJECT=0
+RADIO BTM RX_LOCK_FAIL=0 H4_ACL=0 H4_EVENT=0 H4_SCO=0
+RADIO BTM H4_VENDOR=0 H4_OTHER=0 LINK_ACK=0 FLOW_COMPLETE=0
+RADIO BTM last_send=0 last_decode=0 last_ready=0 last_wait=0 flow_status=0
+PASS extracted actual queue/worker/ACK functions: send failure, ACK match/unmatched, timeout, queue full, lock failure
+
+
+COMMAND ['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-pthread', '-Istubs', '-Icandidate', 'test.c', 'candidate/skw_bt.c', 'candidate/skw_packet.c', '-o', 'rx-O2.exe']
+
+
+RADIO ACL RX count=1 bytes=4 handle_flags=0000
+RADIO BT HCI decode ret=-134 channel=5 length=20
+RADIO HCI complete op=0c31 status=12
+PASS real skw_bt RX failures/H4/flow + send/slot helpers + 4x100000 atomic increments/wrap
+
+
+COMMAND ['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-pthread', '-Istubs', '-Icandidate', 'test_tx.c', '-o', 'tx-O2.exe']
+
+
+RADIO BT TX worker stopped ret=-5
+RADIO BT TX worker stopped ret=-4
+RADIO BT TX worker stopped ret=-138
+RADIO BLE name=VelaVision K7 connected=0 handle=0 ACL_RX=0 ACL_TX_queued=0
+RADIO BLE history connections=0 disconnections=0 last_reason=0 encrypt_status=0 encrypted=0
+RADIO BTM ACL_QUEUED=0 ACL_SEND_OK=0 ACL_SEND_FAIL=0 ACL_ACK_MATCH=0
+RADIO BTM ACL_ACK_OTHER=0 ACL_ACK_WAIT_FAIL=0 PORT5_SLOT=0 SLOT_DECODE_FAIL=0
+RADIO BTM PORT5_SLOT_DECODE_FAIL=0 HCI_DECODE_FAIL=0 PORT5_HCI_DECODE_FAIL=0 READY_REJECT=0
+RADIO BTM RX_LOCK_FAIL=0 H4_ACL=0 H4_EVENT=0 H4_SCO=0
+RADIO BTM H4_VENDOR=0 H4_OTHER=0 LINK_ACK=0 FLOW_COMPLETE=0
+RADIO BTM last_send=0 last_decode=0 last_ready=0 last_wait=0 flow_status=0
+PASS extracted actual queue/worker/ACK functions: send failure, ACK match/unmatched, timeout, queue full, lock failure
+

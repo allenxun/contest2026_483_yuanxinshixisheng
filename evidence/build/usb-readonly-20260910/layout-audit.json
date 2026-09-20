@@ -1,0 +1,91 @@
+{
+  "layout_passed": true,
+  "errors": [],
+  "entry": "0x40400000",
+  "memory_end": "0x40a34000",
+  "memory_bytes": 6504448,
+  "old_6MiB_gate_passed": false,
+  "proposed_8MiB_headroom": 1884160,
+  "estimated_heap_gap": 125616128,
+  "heap_gap_is_not_runtime_free_heap": true,
+  "boot_authorized": false,
+  "raw_binary_verified": false,
+  "sha256": "a0bafc30267c061323980e8603fa3085a4279402d0aee26ffdeab771ab439cb9",
+  "elf_file_bytes": 18181520,
+  "loads": [
+    {
+      "type": 1,
+      "flags": 5,
+      "offset": 65536,
+      "virtual": 1077936128,
+      "physical": 1077936128,
+      "filesz": 1101824,
+      "memsz": 1101824,
+      "align": 65536
+    },
+    {
+      "type": 1,
+      "flags": 4,
+      "offset": 1167360,
+      "virtual": 1079037952,
+      "physical": 1079037952,
+      "filesz": 1396736,
+      "memsz": 1396736,
+      "align": 65536
+    },
+    {
+      "type": 1,
+      "flags": 6,
+      "offset": 2564096,
+      "virtual": 1080434688,
+      "physical": 1080434688,
+      "filesz": 9376,
+      "memsz": 4005888,
+      "align": 65536
+    }
+  ],
+  "image_header": {
+    "text_offset": 0,
+    "image_size": 6504448,
+    "flags": 10,
+    "magic": "0x644d5241"
+  },
+  "symbols": {
+    "_srodata": 1079037952,
+    "_ebss": 1084342272,
+    "_s_initstack": 1084342272,
+    "g_idle_topstack": 1084440576,
+    "_stext": 1077936128,
+    "_etext": 1079037952,
+    "__start": 1077936128,
+    "_sdata": 1080434688,
+    "_e_initstack": 1084440576,
+    "_sbss": 1080446976,
+    "g_cpu_idlestackalloc": 1084375040,
+    "_erodata": 1080434688,
+    "_edata": 1080444064
+  },
+  "raw_span_from_loads": 2507936,
+  "reserved": [
+    [
+      "dtb_firmware_conservative",
+      1210056704,
+      1228931072
+    ],
+    [
+      "radio_staging",
+      1342177280,
+      1344274432
+    ],
+    [
+      "loader_snapshot",
+      1358954496,
+      1363148800
+    ],
+    [
+      "model_arena",
+      1610612736,
+      2684354560
+    ]
+  ]
+}

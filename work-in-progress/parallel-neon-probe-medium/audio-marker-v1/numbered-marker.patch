@@ -1,0 +1,91 @@
+--- a/app/k7sound/duplex.c
++++ b/app/k7sound/duplex.c
+@@ -43,9 +43,18 @@
+     expect(p,SAI_RXFIFOLR,0xffffff,0))return -71;
+  return 0;
+ }
+-static uint32_t marker(unsigned n)
++int dl_numbered_marker(unsigned n,uint32_t*out)
++{
++ if(!out||n>=288u)return -22;
++ *out=0x01000000u|((n&7u)<<20)|(((n>>3)+1u)<<8);
++ return 0;
++}
++static uint32_t marker(unsigned n,int numbered)
+ {static const uint32_t a[8]={0x01012300,0x02024500,0x03036700,0x04048900,
+- 0x0505ab00,0x0606cd00,0x0707ef00,0x08081100};return a[n&7];}
++ 0x0505ab00,0x0606cd00,0x0707ef00,0x08081100};
++ /* Numbered mode is fixed128 frames; enqueue cap enforces n<288. */
++ if(numbered)return 0x01000000u|((n&7u)<<20)|(((n>>3)+1u)<<8);
++ return a[n&7];}
+ static int word(const struct dl_port*p,int tx,uint32_t*w,struct dl_result*r)
+ {
+  struct dl_word*e=NULL;unsigned *n=tx?&r->ntx:&r->nrx;
+@@ -58,12 +67,13 @@
+  return rc;
+ }
+ static int run_route(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+- uint32_t*capture,unsigned capacity,unsigned frames,int route,struct dl_result*r)
++ uint32_t*capture,unsigned capacity,unsigned frames,int route,int numbered,struct dl_result*r)
+ {
+  uint32_t v,t,x,mask,value,pathmask;unsigned i;uint64_t now;
+  int rc=-5,clocks_attempted=0,path_saved=0;
+  if(!r)return -22;
+  memset(r,0,sizeof(*r));
++ if(numbered&&(frames!=128||route!=DL_ROUTE_DEFAULT))return r->result=-22;
+  if(route!=DL_ROUTE_DEFAULT&&route!=DL_ROUTE_RX_ALL_SDI0)return r->result=-22;
+  if(route==DL_ROUTE_RX_ALL_SDI0&&frames!=128)return r->result=-22;
+  pathmask=route==DL_ROUTE_RX_ALL_SDI0?0x00fcff03u:0x00fc0303u;
+@@ -82,6 +92,8 @@
+  for(i=0x3c;i<=0x58;i+=4)if(expect(p,i,UINT32_MAX,0))return r->result=-16;
+  if(rd(p,SAI_PATH_SEL,&r->path_before))return r->result=-5;
+  if(r->path_before&0x30000)return r->result=-38;
++ /* Numbered experiment requires the same default RX route as baseline. */
++ if(numbered&&(r->path_before&0xff00u)!=0xe400u)return r->result=-38;
+  path_saved=1;r->held=1;
+  mask=SAI_XCR_START_SEL_MASK|SAI_XCR_EDGE_SHIFT_MASK|SAI_XCR_CSR_MASK|
+   SAI_XCR_SJM_MASK|SAI_XCR_FBM_MASK|SAI_XCR_SNB_MASK|SAI_XCR_VDJ_MASK|
+@@ -103,7 +115,7 @@
+  if((rc=delay20(p)))goto done;
+  rc=-5;clocks_attempted=1;
+  if(mod(p,SAI_XFER,3,3)||expect(p,SAI_XFER,15,3))goto done;
+- for(i=0;i<16;i++){x=marker(r->tx_words);if(word(p,1,&x,r))goto done;r->tx_words++;}
++ for(i=0;i<16;i++){x=marker(r->tx_words,numbered);if(word(p,1,&x,r))goto done;r->tx_words++;}
+  if(rd(p,SAI_TXFIFOLR,&t))goto done;
+  r->max_tx=count(t);if(r->max_tx!=16){rc=-71;goto done;}
+  if(mod(p,SAI_XFER,12,12)||expect(p,SAI_XFER,15,15))goto done;
+@@ -120,7 +132,7 @@
+   if(t>16||v>128){rc=-71;goto done;}
+   if(t<=14){
+    if(r->tx_words>=2*(frames+16u)){rc=-71;goto done;}
+-   for(i=0;i<2;i++){x=marker(r->tx_words);if(word(p,1,&x,r))goto done;r->tx_words++;}}
++   for(i=0;i<2;i++){x=marker(r->tx_words,numbered);if(word(p,1,&x,r))goto done;r->tx_words++;}}
+   if(v>=2){for(i=0;i<2;i++)if(word(p,0,&capture[2*r->frames+i],r))goto done;
+    if(++r->frames==frames){rc=0;goto done;}}
+  }
+@@ -141,7 +153,11 @@
+ 
+ int dl_run(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+  uint32_t*capture,unsigned capacity,unsigned frames,struct dl_result*r)
+-{return run_route(p,prepared,common,mclk,capture,capacity,frames,DL_ROUTE_DEFAULT,r);}
++{return run_route(p,prepared,common,mclk,capture,capacity,frames,DL_ROUTE_DEFAULT,0,r);}
+ int dl_run_route(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+  uint32_t*capture,unsigned capacity,unsigned frames,int route,struct dl_result*r)
+-{return run_route(p,prepared,common,mclk,capture,capacity,frames,route,r);}
++{return run_route(p,prepared,common,mclk,capture,capacity,frames,route,0,r);}
++
++int dl_run_numbered(const struct dl_port*p,int prepared,int common,uint32_t mclk,
++ uint32_t*capture,unsigned capacity,struct dl_result*r)
++{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,r);}
+--- a/app/k7sound/duplex.h
++++ b/app/k7sound/duplex.h
+@@ -35,4 +35,9 @@
+ enum {DL_ROUTE_DEFAULT=0,DL_ROUTE_RX_ALL_SDI0=1};
+ int dl_run_route(const struct dl_port *,int,int,uint32_t,uint32_t *,unsigned,
+  unsigned frames,int route,struct dl_result *);
++/* Explicit 128-frame numbered source; RX route must be default e4xx.
++ * Cannot combine with RX_ALL. n is enqueue WORD index, not FIFO bank/frame. */
++int dl_numbered_marker(unsigned n,uint32_t *out); /* 0<=n<288, else -22 */
++int dl_run_numbered(const struct dl_port *,int,int,uint32_t,uint32_t *,unsigned,
++ struct dl_result *);
+ #endif

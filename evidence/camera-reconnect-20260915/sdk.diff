@@ -1,0 +1,81 @@
+--- sdk/app/k7host/k7host_main.c
++++ app/k7host/k7host_main.c
+@@ -32,9 +32,12 @@
+ static bool g_connected;
+ static uint8_t g_desc[2048];
+ static int g_desclen;
+-/* Retain this diagnostic instance until reset. Disconnect must never wait
+- * for g_lock: a control transfer may need the HCD worker to finish. */
++/* Disconnect must never wait for g_lock: an in-flight control transfer may
++ * need the HCD worker. Re-enumeration is allowed only before capture and
++ * when no control/capture owner holds g_lock. */
+ static bool g_created;
++static bool g_capture_attempted;
++static struct usbhost_class_s *g_camera_class;
+ static struct usbhost_hubport_s g_camera_port;
+ static uint8_t g_probe[26];
+ static bool g_committed;
+@@ -65,10 +68,13 @@
+       offset += d[offset];
+     }
+   nxmutex_lock(&g_lock);
++  if (g_camera_class != c)
++    { nxmutex_unlock(&g_lock); return -ENODEV; }
+   memcpy(g_desc, d, n);
+   g_desclen = n;
+   g_camera_hport = c->hport;
+   g_camera_port = *c->hport;
++  g_committed = false;
+   g_connected = true;
+   nxmutex_unlock(&g_lock);
+   printf("K7 CAMERA ENUMERATED: 32e6:9221 address=%u speed=%u config_bytes=%d\n",
+@@ -78,10 +84,17 @@
+ static int disconnect_camera(struct usbhost_class_s *c)
+ {
+   irqstate_t flags = enter_critical_section();
+-  g_connected = false;
+-  g_committed = false;
++  if (g_camera_class == c)
++    {
++      g_connected = false;
++      g_committed = false;
++      g_camera_class = NULL;
++      g_created = false;
++    }
+   leave_critical_section(flags);
+-  /* One diagnostic instance per boot. No premature free during control I/O. */
++  /* No control/capture operation retains the class allocation itself.
++   * Hub disconnect contract transfers its destruction to this callback. */
++  kmm_free(c);
+   return 0;
+ }
+ static struct usbhost_class_s *create_camera(struct usbhost_hubport_s *port,
+@@ -89,15 +102,19 @@
+ {
+   struct usbhost_class_s *c;
+   if (id->vid != 0x32e6 || id->pid != 0x9221) return NULL;
+-  if (g_created) return NULL;
++  if (nxmutex_trylock(&g_lock) < 0) return NULL;
++  if (g_created || g_capture_attempted)
++    { nxmutex_unlock(&g_lock); return NULL; }
+   c = kmm_zalloc(sizeof(*c));
+   if (c)
+     {
+       g_created = true;
++      g_camera_class = c;
+       c->hport = port;
+       c->connect = connect_camera;
+       c->disconnected = disconnect_camera;
+     }
++  nxmutex_unlock(&g_lock);
+   return c;
+ }
+ static const struct usbhost_id_s g_id[] = {{0xef, 2, 1, 0x32e6, 0x9221}};
+@@ -255,7 +272,6 @@
+ /* One bounded capture attempt per boot while the experimental HCD endpoint
+  * teardown is being validated. Retain endpoint and DMA memory until reset;
+  * a timeout must never free memory that hardware may still write. */
+-static bool g_capture_attempted;
+ static int32_t g_batch_results[K7_FLOW_BANKS][2048];
+ extern int k7_xhci_isoc_batch(struct usbhost_driver_s *, usbhost_ep_t, uint8_t *, size_t, int32_t *);
+ extern int k7_xhci_isoc_submit(struct usbhost_driver_s *, usbhost_ep_t, uint8_t *, size_t, int32_t *);

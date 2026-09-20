@@ -1,0 +1,57 @@
+--- a/cmake/onnxruntime.cmake
++++ b/cmake/onnxruntime.cmake
+@@ -1,3 +1,8 @@
++if(CMAKE_SYSTEM_NAME STREQUAL "NuttX")
++  include("${CMAKE_CURRENT_LIST_DIR}/onnxruntime-nuttx.cmake")
++  return()
++endif()
++
+ # Copyright (c)  2022-2023  Xiaomi Corporation
+ function(download_onnxruntime)
+   include(FetchContent)
+--- /dev/null
++++ b/cmake/onnxruntime-nuttx.cmake
+@@ -0,0 +1,43 @@
++# Real NuttX target archives only. The caller owns complete archive ordering/ABI.
++if(NOT CMAKE_SYSTEM_NAME STREQUAL "NuttX")
++  message(FATAL_ERROR "NuttX ORT import used on a different platform")
++endif()
++set(K7_ORT_PUBLIC_INCLUDE_DIR "" CACHE PATH "ORT1.17.1 public session headers")
++set(K7_ORT_STATIC_LIBRARIES "" CACHE STRING "Semicolon-separated absolute real target .a files in link order")
++foreach(h IN ITEMS onnxruntime_c_api.h onnxruntime_cxx_api.h onnxruntime_cxx_inline.h)
++  if(NOT EXISTS "${K7_ORT_PUBLIC_INCLUDE_DIR}/${h}")
++    message(FATAL_ERROR "Missing real public ORT header ${h}")
++  endif()
++endforeach()
++file(STRINGS "${K7_ORT_PUBLIC_INCLUDE_DIR}/onnxruntime_c_api.h" k7_api_version REGEX "^#define ORT_API_VERSION 17$")
++if(NOT k7_api_version OR NOT K7_ORT_STATIC_LIBRARIES)
++  message(FATAL_ERROR "Require ORT API17 headers and nonempty real archive list")
++endif()
++if(TARGET onnxruntime)
++  message(FATAL_ERROR "Independent Sherpa build must not silently reuse another onnxruntime target")
++endif()
++# Validate every archive BEFORE creating any import targets.
++foreach(lib IN LISTS K7_ORT_STATIC_LIBRARIES)
++  if(NOT IS_ABSOLUTE "${lib}" OR NOT EXISTS "${lib}" OR IS_DIRECTORY "${lib}" OR NOT lib MATCHES "\\.a$")
++    message(FATAL_ERROR "Invalid target static archive: ${lib}")
++  endif()
++  file(SIZE "${lib}" nbytes)
++  file(READ "${lib}" magic LIMIT 8 HEX)
++  if(nbytes LESS_EQUAL 8 OR NOT magic STREQUAL "213c617263683e0a")
++    message(FATAL_ERROR "Require nonempty regular ar archive (no thin/external members): ${lib}")
++  endif()
++endforeach()
++add_library(onnxruntime INTERFACE)
++target_include_directories(onnxruntime INTERFACE "${K7_ORT_PUBLIC_INCLUDE_DIR}")
++set(k7_idx 0)
++set(k7_imports)
++foreach(lib IN LISTS K7_ORT_STATIC_LIBRARIES)
++  math(EXPR k7_idx "${k7_idx}+1")
++  add_library(k7_ort_archive_${k7_idx} STATIC IMPORTED)
++  set_target_properties(k7_ort_archive_${k7_idx} PROPERTIES IMPORTED_LOCATION "${lib}")
++  list(APPEND k7_imports k7_ort_archive_${k7_idx})
++endforeach()
++target_link_libraries(onnxruntime INTERFACE ${k7_imports})
++# No fake pthread/math library: final application supplies actual target runtime.
++include_directories("${K7_ORT_PUBLIC_INCLUDE_DIR}")
++set(onnxruntime_lib_files "${K7_ORT_STATIC_LIBRARIES}")

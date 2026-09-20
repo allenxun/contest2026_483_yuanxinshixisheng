@@ -1,0 +1,251 @@
+PDF PAGE 946
+RK3576 TRM
+
+   Module Pin            Direction                            Pad Name                                   IOMUX Setting
+ sai4_sdi0             I                  ETH1_TXCTL_M0/SAI4_SDI_M3/UART4_T                       TOP_IOC_GPIO2D_IOMUX
+                                          X_M0/I2C6_SCL_M2/PWM2_CH0_M2/GPI                        _SEL_L[3:0]=4
+
+                                          O2_D0_d
+
+24.6 Application Notes
+24.6.1 Software Application Notes
+
+                               Disable SAI transmitter by writing 0x0 to SAI_XFER[1:0]
+
+
+
+
+
+                                  Clear control logic by writing 0x1 to SAI_CLR[0]
+
+
+
+
+                                                            SAI_CLR[0]= 0x1
+
+
+                                               Read SAI_CLR[0]
+
+
+                                                          SAI_CLR[0]= 0x0
+
+                              Write SAI_TXCR  & SAI_TX_FSCR& SAI_CKR to config
+                                            SAI TX  operation mode
+
+
+
+
+
+                             Config a DMA channel for SAI transmitter and the destination
+                                             address is SAI_TXDR
+
+
+
+
+
+
+                              Write SAI_DMACR to determine when to issue dma request            SAI
+                                                                                             Contrlloller
+                                                                                             Configuration
+
+
+
+                               Enable SAI transmitter by writing 0x3 to SAI_XFER[1:0]
+
+
+
+                                                                                                DMA
+                                                                                              Controller
+                              SAI_XFER[1:0] can not be disabled until the current transfer   Configuration
+                                                has completed
+                                 Fig.24-11 SAI controller transmit operation flow chart
+Note: User should clear TX/RX logical by CLR[0]/CLR[1] and wait clear operation done before configure the
+other registers.
+24.6.2 Cascade Function Application Notes
+    sai0 in <- sai4 out
+                                                                 SAI0
+
+
+
+
+
+
+                                                                  SAI4
+
+     Control cascading relationships by configuring registers SYS_GRF_SOC_CON2[1]
+    sai1 in <- sai0/4 out
+
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 946
+PDF PAGE 947
+RK3576 TRM
+
+                                                       SAI1
+
+
+                                                      MUX
+
+
+
+
+                                                SAI0           SAI4
+    Control cascading relationships by configuring registers SYS_GRF_SOC_CON2[3:2]
+   sai2 in -> sai0/1/4 out
+
+                                                       SAI2
+
+
+                                                       MUX
+
+
+
+
+                                              SAI0      SAI1      SAI4
+    Control cascading relationships by configuring registers SYS_GRF_SOC_CON2[5:4]
+   sai3 in <- sai0/1/2/4 out
+
+                                                       SAI3
+
+
+                                                       MUX
+
+
+
+
+                                         SAI0      SAI1      SAI2      SAI4
+    Control cascading relationships by configuring registers SYS_GRF_SOC_CON2[8:6]
+   Sai4 in <- sai0/1/2/3 out
+
+                                                       SAI4
+
+
+                                                       MUX
+
+
+
+
+                                         SAI0      SAI1      SAI2      SAI3
+    Control cascading relationships by configuring registers SYS_GRF_SOC_CON2[11:9]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 947
+PDF PAGE 948
+RK3576 TRM
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 948

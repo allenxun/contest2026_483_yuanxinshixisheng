@@ -1,0 +1,71 @@
+{
+  "scope": "compile/link only; no DNS, socket, TLS, credential or board operation",
+  "inputs": {
+    "app/k7agent/CMakeLists.txt": "9267387179b5a88283960ab72b1b249d1444a4f120b54c87fd65fc505fc85e1e",
+    "app/k7agent/Kconfig": "8ed0014b5a080dbbce90a32e19466123009cd3cb037ed88eb1be01b5614bed6c",
+    "app/k7agent/README.md": "ebf5cfd9d5bd6cad28f387e055ebc9adcaa1b58f96aefda8d87e80087c6aa30e",
+    "app/k7agent/cloud/README.md": "8ecbf769912c367b71845d8513c237a7f6bd07f3d10f1d1abc2a4752b2f36b10",
+    "app/k7agent/cloud/include/vv_dns_client.h": "460f629c16913707174bb83a01f3756ef128f22a3c4d77d16d1fe99968f6c752",
+    "app/k7agent/cloud/include/vv_dns_nuttx.h": "1c5eece5961be054c4c5d1195beb3152cc70fd6a21b621267dc79f299fb893e8",
+    "app/k7agent/cloud/include/vv_https_client.h": "b1006cbbe4242d9b210a1fe337d02cbad707d1032826ca4ad475b99dd9086131",
+    "app/k7agent/cloud/include/vv_https_mbedtls.h": "2feb5ceb783bcb7582cdfe98381b93b7e5309d9a1159eca389e906a3500345f4",
+    "app/k7agent/cloud/src/k7cloud_main.c": "c5ff188ec8b7511c438b583576a89ec2ca0dae10ef206497cca4ca6e21fc9481",
+    "app/k7agent/cloud/src/vv_dns_client.c": "e18562d2c90b4a6806804795ea13b30a7464787c4430252f468b763be60125a6",
+    "app/k7agent/cloud/src/vv_dns_nuttx.c": "c7953b7898e2cef686453269fcff22b472fdea2a53ba81456e54d681c2db8d5d",
+    "app/k7agent/cloud/src/vv_https_client.c": "a5c07b04e7eb83697ff441c25a135e8d1805ee9e02bf5ba3d7f0e22cc71f7300",
+    "app/k7agent/cloud/src/vv_https_mbedtls.c": "dc4f2b55d5b0b0760704e6dfa0a5150132478a290b94aa0f0eb2efe36ac140f0",
+    "board/kickpi_k7/configs/velavision_cloud_probe_local/defconfig": "b2296d8c847e9f84bda83cd9b017f6f87a97dd77bcf1175a50b186987df04190",
+    "port/tracked/apps/crypto/mbedtls/include/mbedtls/mbedtls_config.h": "35dcbde0e65dcfd308112984773971f833f3e292dd057dfd3767bb9fcb04c38d",
+    "port/tracked/apps/crypto/mbedtls/mbedtls/include/mbedtls/ssl.h": "259d333b5b90fef05384addc0081d8f0a710c783fe2a93e4f37e694009201eb4"
+  },
+  "configure_command": [
+    "cmake",
+    "-S",
+    "nuttx",
+    "-B",
+    "/home/swl/openvela/cmake_out/velavision_k7cloud_link_attempt4_20260913",
+    "-G",
+    "Ninja",
+    "-DBOARD_CONFIG=kickpi_k7:velavision_cloud_probe_local"
+  ],
+  "configure_exit_code": 0,
+  "build_command": [
+    "cmake",
+    "--build",
+    "/home/swl/openvela/cmake_out/velavision_k7cloud_link_attempt4_20260913",
+    "-j4"
+  ],
+  "build_exit_code": 0,
+  "required_config": {
+    "CONFIG_LIBC_NETDB=y": true,
+    "CONFIG_NETDB_DNSCLIENT=y": true,
+    "CONFIG_NETDB_DNSSERVER_NOADDR=y": true,
+    "CONFIG_CRYPTO_MBEDTLS=y": true,
+    "CONFIG_EXAMPLES_K7CLOUD=y": true
+  },
+  "strong_symbols": {
+    "k7cloud_main": true,
+    "vv_dns_resolve_ipv4": false,
+    "vv_dns_nuttx_backend_init": true,
+    "vv_https_perform": true,
+    "vv_https_mbedtls_create": true
+  },
+  "board_tested": false,
+  "network_accessed": false,
+  "credentials_used": false,
+  "flash_written": false,
+  "artifacts": {
+    "nuttx": {
+      "bytes": 22235728,
+      "sha256": "5ad1abaf601eab372940c2fcc72624bf753bfc7ef6a253fdb8f15aca9c0690ce"
+    },
+    "nuttx.bin": {
+      "bytes": 2766256,
+      "sha256": "00988f65fde286154e641320f6e910be57507d2cea1cec7cf3f0201b609acfa2"
+    },
+    ".config": {
+      "bytes": 69468,
+      "sha256": "fd40f628f4abf13e4ac836e38909ac4fe037294b071549bfc491028f8e00d7df"
+    }
+  }
+}

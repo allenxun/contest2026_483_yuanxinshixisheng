@@ -1,0 +1,42 @@
+{
+  "created_utc": "20260915T051330Z",
+  "hardware_tested": false,
+  "tests": [
+    {
+      "tool": "test_device_intent_vm.py",
+      "exit_code": 0
+    },
+    {
+      "tool": "test_device_stop_vm.py",
+      "exit_code": 0
+    },
+    {
+      "tool": "test_photo_store_vm.py",
+      "exit_code": 0
+    },
+    {
+      "tool": "test_native_photo_flow_vm.py",
+      "exit_code": 0
+    },
+    {
+      "tool": "test_photo_prompts_vm.py",
+      "exit_code": 0
+    },
+    {
+      "tool": "test_voice_mode_vm.py",
+      "exit_code": 0
+    }
+  ],
+  "passed": true,
+  "sources": {
+    "app/k7agent/cloud/include/device_photo_prompts.h": "a830f8747d69a70431c5c260f2767312b82a69b02588aa00c6940f6e6cb9802e",
+    "app/k7agent/cloud/include/device_voice_intent.h": "09bd85db66c9481b3408fe030af15e763a7ab7c7756ecdf7478934e6f8e1a860",
+    "app/k7agent/cloud/src/device_photo_prompts.c": "03cddcc888d28faa54970aeab3195878b546f4bca2bd6aa417a37bce1a6ddff4",
+    "app/k7agent/cloud/src/device_voice_intent.c": "308b22bad89b6023a0a0446e53f60d7c79f847810dff0785c9daee774171b2b2",
+    "app/k7agent/cloud/src/board_speech_bridge.c": "0ab4f0e0fa2e1c9730ed4f2a77673b580717ed40befdb306ac9530d6b0e433d2",
+    "app/k7host/k7_photo.c": "d06467c2e12025579d29380d787de51f2c3a795d9fa62530f019862217cda221",
+    "app/k7host/k7_photo.h": "84795f649d0864bb7466cc59d3420310014e39d09e1c559ab2af2e840bc41f9e",
+    "app/k7host/k7_photo_store.c": "b91a91d6949eb8e49f5023a4e6ca2868864626015cabb4fd44ff95869654ce36",
+    "app/k7host/k7_photo_store.h": "33ab2cd50ba099ecb2644b8241dfbfd528d5d177e13ad258fecbfd88a03ad481"
+  }
+}

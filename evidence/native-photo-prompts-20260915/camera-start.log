@@ -1,0 +1,246 @@
+k7host start
+K7 Combo mode before=00000110
+K7 Combo mode after=00000104
+K7 host: DWC3=5533300a GCTL=30c11004 xHCI=01100020 PHY=00008a00
+K7 PHY: USB2=00101408 PIPE=010c0002 PHP=00000189
+K7 host start result=0; run 'k7host camera' after enumeration.
+K7 root port 0: reg=23400420 PORTSC=000006e1
+nsh> [K
+[CPU0] k7-usb-a: port 1: device attached at high speed, 480Mbps
+[CPU0] K7 HUB: addr=1 ports=4 speed=3
+RADIO HCI LE subevent=01 bytes=21
+RADIO BLE connection status=0 handle=17 role=1
+PROV connected security_request=0
+RADIO ACL RADIO ACL RX count=1 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=1 opcode=10 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATT dopcode=16 error=0
+RADIO ACL TX count=3 bytes=16
+RADIO BLE ATT TX queued=3 opcode=11 bytes=16
+RADIO ACL RX count=2 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=2 opcode=10 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATT dTT TX queued=4 opcode=11 bytes=30
+RADIO ACL RX count=3 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=3 opcode=10 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATT derror=0
+RADIO ACL TX count=5 bytes=13
+RADIO BLE ATT TX queued=RADIO ACL RX count=4 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=4 opcode=08 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATT dispatch opcode=8 bytes=7
+PROV ATT result opcode=8 error=0
+RADIO ACL TX count=6 bytes=13
+RADIO BLE ATT TX queued=6 opcode=01 bytes=13
+RADIO ACL RX count=5 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=5 opcode=08 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATT dE ATT TX queued=7 opcode=09 bytes=24
+RADIO HCI LE subevent=03 bytes=12
+RADIO ACL RX count=6 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=6 opcode=08 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATT dRADIO BLE ATT TX queued=8 opcode=01 bytes=13
+RADIO ACL RX count=7 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=7 opcode=08 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATT dispatch opcode=8 bytes=7
+PROV ATT result opcode=8 error=0
+RADIO ACL TX count=9 bytes=13
+RADIO BLE ATT TX queued=9 opcode=01 bytes=13
+RADIO ACL RX count=8 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=8 opcode=08 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATT dTT TX queued=10 opcode=09 bytes=31
+RADIO ACL RX count=9 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=9 opcode=08 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATT dispatch opcode=8 bytes=7
+PROV A
+RADIO BLE ATT TX queued=11 opcode=09 bytes=31
+RADIO ACL RX count=10 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=10 opcode=08 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATT dispatch opcode=8 bytes=7
+PROV ATT result opcode=8 error=0
+RADIO ACL TX count=12 bytes=31
+RADIO BLE ATT TX queued=12 opcode=09 bytes=31
+RADIO ACL RX count=11 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=11 opcode=08 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATT3
+RADIO BLE ATT TX queued=13 opcode=01 bytes=13
+RADIO ACL RX count=12 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=12 opcode=04 bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATT ATT TX queued=14 opcode=05 bytes=14
+RADIO ACL RX count=13 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=13 opcode=12 bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATT ATT TX queued=15 opcode=13 bytes=9
+RADIO ACL RX count=14 bytes=11 handle_flags=2011
+RADIO BLE ATT RX count=14 opcode=0a bytes=11
+PROV L2CAP ATT bytes=3
+PROV ATT31
+RADIO BLE ATT TX queued=16 opcode=0b bytes=31
+RADIO ACL RX count=15 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=15 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATT dispatch opcode=12 bytes=5
+PROV ATT result opcode=12 error=0
+RADIO ACL TX count=17 bytes=31
+RADIO BLE ATT TX queued=17 opcode=0d bytes=31
+RADIO HCI LE subevent=03 bytes=12
+RADIO ACL RX count=16 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=16 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATT dispatch opcode=12 bytes=5
+PROV ATT result opcode=12 error=0
+RADIO ACL TX count=18 bytes=31
+RADIO BLE ATT TX queued=18 opcode=0d bytes=31
+RADIO ACL RX count=17 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=17 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATTd=19 opcode=0d bytes=31
+RADIO ACL RX count=18 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=18 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATT dispatch opcode=12 bytes=5
+PROV ATT result opcode=12 error=0
+RADIO ACL TX count=20 bytes=31
+RADIO BLE ATT TX queued=20 opcodRADIO ACL RX count=19 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=19 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATTDIO BLE ATT TX queued=21 opcode=0d bytes=17
+RADIO ACL RX count=20 bytes=15 handle_flags=2011
+RADIO SMP RX opcode=01 bytes=15
+RADIO HCI TX op=2018 bytes=3
+RADIO HCI complete op=2018 status=0
+RADIO HCI TX op=2018 bytes=3
+RADIO HCI complete op=2018 status=0
+RADIO ACL TX count=22 bytes=15
+RADIO SMP TX opcode=02 bytes=15
+RADIO ACL RX count=21 bytes=11 handle_flags=2011
+RADIO BLE ATT RX count=21 opcode=0a bytes=11
+PROV L2CAP ATT bytes=3
+PROV ATTCL TX count=23 bytes=31
+RADIO BLE ATT TX queued=23 opcode=0b byRADIO ACL RX count=22 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=22 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATTT TX queued=24 opcode=0d bytes=31
+k7hosRADIO ACL RX count=23 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=23 opcode=0c bytes=13
+tPROV L2CAP ATT bytes=5
+PROV ATT dispatch opcode=12 bytes=5
+PROV ATT result opcode=12 error=0
+RADIO ACL TX count=25 bytes=31
+RADIO BLE ATT TX queued=25 opcode=0d bytes=31
+ camera
+camera connected=0 committed=0 descriptor_bytes=0
+Use probe, then snapshot, burst or stream (one capture attempt per boot).
+RADIO ACL RX count=24 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=24 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATTT TX queued=26 opcode=0d bytes=31
+RADIO ACL RX count=25 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=25 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATTBLE ATT TX queued=27 opcode=0d bytes=31
+RADIO ACL RX count=26 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=26 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATT=17
+RADIO BLE ATT TX queued=28 opcode=0d bytes=17
+RADIO ACL RX count=27 bytes=11 handle_flags=2011
+RADIO BLE ATT RX count=27 opcode=0a bytes=11
+PROV L2CAP ATT bytes=3
+PROV ATTLE ATT TX queued=29 opcode=0b bytes=31
+RADIO ACL RX count=28 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=28 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATTBLE ATT TX queued=30 opcode=0d bytes=31
+RADIO ACL RX count=29 bytes=25 handle_flags=2011
+RADIO SMP RX opcode=03 bytes=25
+RADIO HCI TX op=2017 bytes=35
+RADIO HCI complete op=2017 status=0
+RADIO HCI TX op=2017 bytes=35
+RADIO HCI complete op=2017 status=0
+RADIO ACL TX count=31 bytes=25
+RADIO SMP TX opcode=03 bytes=25
+RADIO ACL RX count=30 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=30 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATTBLE ATT TX queued=32 opcode=0d bytes=31
+RADIO ACL RX count=31 bRADIO HCI complete op=2017 status=0
+RADIO HCI TX op=2017 bytes=35
+RADIO HCI complete op=2017 status=0
+RADIO HCI TX op=2017 bytes=35
+RADIO HCI complete op=2017 status=0
+RADIO ACL TX count=33 bytes=25
+RADIO SMP TX opcode=04 bytes=25
+RADIO HCI LE subevent=05 bytes=15
+RADIO HCI TX op=201a bytes=21
+RADIO HCI complete op=201a status=0
+RADIO BLE encryption status=0 handle=17 enabled=1
+RADIO HCI TX op=2018 bytes=3
+RADIO HCI complete op=2018 status=0
+RADIO HCI TX op=2018 bytes=3
+RADIO HCI complete op=2018 status=0
+RADIO HCI TX op=2018 bytes=3
+RADIO HCI complete op=2018 status=0
+RADIO HCI TX op=2018 bytes=3
+RADIO HCI complete op=2018 status=0
+RADIO ACL TX count=34 bytes=25
+RADIO SMP TX opcode=06 bytes=25
+RADIO ACL TX count=35 bytes=19
+RADIO SMP TX opcode=07 bytes=19
+RADIO ACL RX count=32 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=32 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATTunt=36 bytes=31
+RADIO BLE ATT TX queued=36 opcode=0d bytes=31
+RADIO ACL RX count=33 bytes=25 handle_flags=2011
+RADIO SMP RX opcode=06 bytes=25
+RADIO ACL RX count=34 bytes=19 handle_flags=2011
+RADIO SMP RX opcode=07 bytes=19
+RADIO ACL RX count=35 bytes=25 handle_flags=2011
+RADIO SMP RX opcode=08 bytes=25
+RADIO ACL RX count=36 bytes=16 handle_flags=2011
+RADIO SMP RX opcode=09 bytes=16
+RADIO ACL RX count=37 bytes=15 handle_flags=2011
+RADIO BLE ATT RX count=37 opcode=08 bytes=15
+PROV L2CAP ATT bytes=7
+PROV ATTT TX queued=37 opcode=01 bytes=13
+RADIO ACL RX count=38 bytes=17 handle_flags=2011
+RADIO BLE ATT RX count=38 opcode=06 bytes=17
+PROV L2CAP ATT bytes=9
+PROV ATTount=38 bytes=13
+RADIO BLE ATT TX queued=38 opcode=01 bytes=13RADIO ACL RX count=39 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=39 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATT=31
+RADIO BLE ATT TX queued=39 opcode=0d bytes=31
+RADIO ACL RX count=40 bytes=13 handle_flags=2011
+RADIO BLE ATT RX count=40 opcode=0c bytes=13
+PROV L2CAP ATT bytes=5
+PROV ATTed=40 opcode=0d bytes=16
+RADIO ACL RX count=41 bytes=31 handle_flags=2011
+RADIO BLE ATT RX count=41 opcode=12 bytes=31
+PROV L2CAP ATT bytes=23
+PROV ATT dispatch opcode=18 bytes=23
+PROV ATT result opcode=18 error=0
+RADIO ACL TX count=41 bytes=9
+RADIO BLE ATT TX queued=41 opcode=13 bytes=9
+RADIO ACL RX count=42 bytes=21 handle_flags=2011
+RADIO BLE ATT RX count=42 opcode=12 bytes=21
+PROV L2CAP ATT bytes=13
+PROV AT BLE ATT TX queued=42 opcode=13 bytes=9
+RADIO ACL TX count=43 bRADIO ACL TX count=44 bytes=31
+RADIO BLE ATT TX queued=44 opcode=1b bytes=31
+RADIO ACL TX count=45 bytes=31
+RADIO BLE ATT TX queued=45 opcode=1b bytes=31
+RADIO ACL TX count=46 bytes=28
+RADIO BLE ATT TX queued=46 opcode=1b bytes=28
+PROV command=2 id=5 ret=0 notify_ret=0
+

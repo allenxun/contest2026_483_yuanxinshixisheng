@@ -1,0 +1,42 @@
+--- a/src/audio.cpp
++++ b/src/audio.cpp
+@@ -105,6 +105,25 @@
+   if (status != AudioStatus::Ok) abortStream();
+   return status;
+ }
++AudioStatus SpeechSession::finishWithTail(std::string& text,
++                                         const std::atomic_bool& stop, int rate,
++                                         unsigned tail_ms, std::size_t budget) {
++  text.clear();
++  if (!stream_ || finished_) return AudioStatus::Invalid;
++  if (rate <= 0 || rate > 192000 || tail_ms > 2000) {
++    abortStream();
++    return AudioStatus::Invalid;
++  }
++  std::array<std::int16_t, 512> silence{};
++  std::size_t remaining = static_cast<std::size_t>(rate) * tail_ms / 1000;
++  while (remaining) {
++    const auto count = std::min(remaining, silence.size());
++    const auto status = feed(silence.data(), count, rate, stop, budget);
++    if (status != AudioStatus::Ok) return status;
++    remaining -= count;
++  }
++  return finish(text, stop, budget);
++}
+ AudioStatus SpeechSession::finish(std::string& text, const std::atomic_bool& stop,
+                                  std::size_t budget) {
+   text.clear();
+--- a/include/voicelink/audio.hpp
++++ b/include/voicelink/audio.hpp
+@@ -37,6 +37,11 @@
+                    const std::atomic_bool& stop, std::size_t decode_budget = 1024);
+   AudioStatus finish(std::string&, const std::atomic_bool& stop,
+                      std::size_t decode_budget = 1024);
++  // Explicit model profile, not a universal ASR default. Real Paraformer v1.12.14
++  // tested with 300 ms at 16 kHz. Bounded to 2 s / 192 kHz; no feed after EOF.
++  AudioStatus finishWithTail(std::string&, const std::atomic_bool& stop,
++                            int sample_rate, unsigned tail_ms,
++                            std::size_t decode_budget = 1024);
+   bool endpoint() const noexcept;
+  private:
+   void abortStream() noexcept;

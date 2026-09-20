@@ -1,0 +1,13 @@
+In file included from /home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/ostream:179,
+                 from /home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/istream:170,
+                 from /home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/sstream:273,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-chat.cpp:6:
+/home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/ios:216:5: error: #error "The iostreams library is not supported since libc++ has been configured without support for localization."
+  216 | #   error "The iostreams library is not supported since libc++ has been configured without support for localization."
+      |     ^~~~~
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-cpu.h:4,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/include/llama.h:5,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-chat.cpp:3:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^

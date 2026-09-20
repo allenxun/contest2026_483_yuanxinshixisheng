@@ -1,0 +1,8 @@
+ASR_MIC frames=4 rate=16000 channel=left
+ASR_INFER BEGIN recognizer
+ASR_INFER RESULT seconds=0.000 text=hello openvela
+ASR_MIC frames=4 rate=16000 channel=left
+ASR_INFER BEGIN recognizer
+ASR_INFER FAIL no completed microphone recording
+OBSERVED baseline_capture_busy=-EIO expected_preserved=-EBUSY
+PASS baseline_reproduction

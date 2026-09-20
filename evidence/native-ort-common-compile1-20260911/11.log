@@ -1,0 +1,69 @@
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/platform/threadpool.h:23[m[K,
+                 from [01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/threadpool.cc:19[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/common.h:88:6:[m[K [01;35m[Kwarning: [m[K"_MSC_VER" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   88 | #if ([01;35m[K_MSC_VER[m[K && !defined(__PRETTY_FUNCTION__))
+      |      [01;35m[K^~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_mu.h:20[m[K,
+                 from [01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync.h:18[m[K,
+                 from [01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/platform/ort_mutex.h:105[m[K,
+                 from [01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/platform/EigenNonBlockingThreadPool.h:53[m[K,
+                 from [01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/threadpool.cc:23[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_atomic.h:23:5:[m[K [01;35m[Kwarning: [m[K"NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   23 | #if [01;35m[KNSYNC_ATOMIC_TYPECHECK[m[K
+      |     [01;35m[K^~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_atomic.h:33:7:[m[K [01;35m[Kwarning: [m[K"NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   33 | #elif [01;35m[KNSYNC_ATOMIC_C11[m[K
+      |       [01;35m[K^~~~~~~~~~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_time.h:19[m[K,
+                 from [01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_mu_wait.h:67[m[K,
+                 from [01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync.h:19[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_time_internal.h:36:5:[m[K [01;35m[Kwarning: [m[K"NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   36 | #if [01;35m[KNSYNC_USE_GPR_TIMESPEC[m[K
+      |     [01;35m[K^~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_time_internal.h:67:7:[m[K [01;35m[Kwarning: [m[K"NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   67 | #elif [01;35m[KNSYNC_USE_DEBUG_TIME[m[K
+      |       [01;35m[K^~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/google_nsync/public/nsync_time_internal.h:80:8:[m[K [01;35m[Kwarning: [m[K"NSYNC_USE_CPP11_TIMEPOINT" is not defined, evaluates to 0 [[01;35m[K-Wundef[m[K]
+   80 |       ([01;35m[KNSYNC_USE_CPP11_TIMEPOINT[m[K || (__cplusplus >= 201103L) || (_MSC_VER >= 1700))
+      |        [01;35m[K^~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/common.h:35[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:[m[K In constructor '[01m[Konnxruntime::CodeLocation::[01;32m[KCodeLocation[m[K(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)[m[K':
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105:[m[K [01;35m[Kwarning: [m[Kdeclaration of '[01m[Kstacktrace[m[K' shadows a member of '[01m[Konnxruntime::CodeLocation[m[K' [[01;35m[K-Wshadow[m[K]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, [01;35m[Kconst std::vector<std::string>& stacktrace[m[K)
+      |                                                                         [01;35m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34:[m[K [01;36m[Knote: [m[Kshadowed declaration is here
+   55 |   const std::vector<std::string> [01;36m[Kstacktrace[m[K;
+      |                                  [01;36m[K^~~~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/eigen/unsupported/Eigen/CXX11/../../../Eigen/Core:215[m[K,
+                 from [01m[K/dev/shm/velavision-ort-env3-20260911/eigen/unsupported/Eigen/CXX11/Tensor:14[m[K,
+                 from [01m[K/dev/shm/velavision-ort-env3-20260911/ort/include/onnxruntime/core/common/eigen_common_wrapper.h:64[m[K,
+                 from [01m[K/dev/shm/velavision-ort-common1-20260911/ort/onnxruntime/core/common/threadpool.cc:22[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/eigen/unsupported/Eigen/CXX11/../../../Eigen/src/Core/arch/NEON/PacketMath.h:[m[K In function '[01m[KPacket Eigen::internal::[01;32m[Kpload[m[K(const typename unpacket_traits<T>::type*) [35m[K[with Packet = eigen_packet_wrapper<int, 2>; typename unpacket_traits<T>::type = signed char][m[K[m[K':
+[01m[K/dev/shm/velavision-ort-env3-20260911/eigen/unsupported/Eigen/CXX11/../../../Eigen/src/Core/arch/NEON/PacketMath.h:1671:9:[m[K [01;35m[Kwarning: [m[K'[01m[Kvoid*[01;32m[K memcpy[m[K(void*, const void*, size_t)[m[K' copying an object of non-trivial type '[01m[KEigen::internal::Packet4c[m[K' {aka '[01m[Kstruct Eigen::internal::eigen_packet_wrapper<int, 2>[m[K'} from an array of '[01m[Kconst int8_t[m[K' {aka '[01m[Kconst signed char[m[K'} [[01;35m[K-Wclass-memaccess[m[K]
+ 1671 |   [01;35m[Kmemcpy(&res, from, sizeof(Packet4c))[m[K;
+      |   [01;35m[K~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+In file included from [01m[K/dev/shm/velavision-ort-env3-20260911/eigen/unsupported/Eigen/CXX11/../../../Eigen/Core:173[m[K:
+[01m[K/dev/shm/velavision-ort-env3-20260911/eigen/unsupported/Eigen/CXX11/../../../Eigen/src/Core/GenericPacketMath.h:159:8:[m[K [01;36m[Knote: [m[K'[01m[KEigen::internal::Packet4c[m[K' {aka '[01m[Kstruct Eigen::internal::eigen_packet_wrapper<int, 2>[m[K'} declared here
+  159 | struct [01;36m[Keigen_packet_wrapper[m[K
+      |        [01;36m[K^~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/eigen/unsupported/Eigen/CXX11/../../../Eigen/src/Core/arch/NEON/PacketMath.h:[m[K In function '[01m[KPacket Eigen::internal::[01;32m[Kploadu[m[K(const typename unpacket_traits<T>::type*) [35m[K[with Packet = eigen_packet_wrapper<int, 2>; typename unpacket_traits<T>::type = signed char][m[K[m[K':
+[01m[K/dev/shm/velavision-ort-env3-20260911/eigen/unsupported/Eigen/CXX11/../../../Eigen/src/Core/arch/NEON/PacketMath.h:1716:9:[m[K [01;35m[Kwarning: [m[K'[01m[Kvoid*[01;32m[K memcpy[m[K(void*, const void*, size_t)[m[K' copying an object of non-trivial type '[01m[KEigen::internal::Packet4c[m[K' {aka '[01m[Kstruct Eigen::internal::eigen_packet_wrapper<int, 2>[m[K'} from an array of '[01m[Kconst int8_t[m[K' {aka '[01m[Kconst signed char[m[K'} [[01;35m[K-Wclass-memaccess[m[K]
+ 1716 |   [01;35m[Kmemcpy(&res, from, sizeof(Packet4c))[m[K;
+      |   [01;35m[K~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/dev/shm/velavision-ort-env3-20260911/eigen/unsupported/Eigen/CXX11/../../../Eigen/src/Core/GenericPacketMath.h:159:8:[m[K [01;36m[Knote: [m[K'[01m[KEigen::internal::Packet4c[m[K' {aka '[01m[Kstruct Eigen::internal::eigen_packet_wrapper<int, 2>[m[K'} declared here
+  159 | struct [01;36m[Keigen_packet_wrapper[m[K
+      |        [01;36m[K^~~~~~~~~~~~~~~~~~~~[m[K

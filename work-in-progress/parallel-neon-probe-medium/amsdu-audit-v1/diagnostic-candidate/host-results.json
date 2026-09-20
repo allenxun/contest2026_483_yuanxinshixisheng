@@ -1,0 +1,59 @@
+{
+  "scope": "Host actual candidate vs frozen baseline, no SDK/device/service integration build",
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\amsdu-audit-v1\\diagnostic-candidate",
+        "-IE:\\openvela\\VelaVision\\app\\k7radio",
+        "E:\\openvela\\VelaVision\\tests\\wifi\\test_amsdu.c",
+        "-o",
+        "original-on-candidate.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\amsdu-audit-v1\\diagnostic-candidate\\original-on-candidate.exe"
+      ],
+      "returncode": 0,
+      "stdout": "PASS: AMSDU complete-before-delivery, ordered release, duplicate/replay, mixed PN/sequence, orphan, timeout, bounds and unsupported subframe filtering\r\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\amsdu-audit-v1\\diagnostic-candidate",
+        "-IE:\\openvela\\VelaVision\\app\\k7radio",
+        "test_diag.c",
+        "baseline.c",
+        "-o",
+        "differential.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\amsdu-audit-v1\\diagnostic-candidate\\differential.exe"
+      ],
+      "returncode": 0,
+      "stdout": "PASS differential steps=3034; four reasons, 16-record cap, 1000ms gate, saturation, age; record_bytes=64 storage_bytes=1056\r\n",
+      "stderr": ""
+    }
+  ]
+}

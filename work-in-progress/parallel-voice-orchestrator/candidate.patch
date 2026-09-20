@@ -1,0 +1,554 @@
+--- /dev/null
++++ b/include/mock_wifi_task.hpp
+@@ -0,0 +1,35 @@
++#pragma once
++#include "orchestrator.hpp"
++#include "wifi_broker.h"
++#include <vector>
++namespace voice {
++// Example ONLY. Fake credentials, fake radio, synthetic IP; no hardware/network.
++class MockWifiTask final:public TaskPort {
++ public:
++ explicit MockWifiTask(bool fail=false):fail_(fail){wb_init(&broker,0,1);}
++ std::string handle(std::uint64_t owner,const std::string&,const std::atomic_bool& stop) override {
++  if(stop.load())throw std::runtime_error("cancelled");
++  const auto r=wb_begin(&broker,owner,"mock",4,"mockpass",8,++now,100);
++  seen.push_back(r.status);if(r.status!=WB_RECEIVED)throw std::runtime_error("broker busy");
++  wb_job job{};if(!wb_take_job(&broker,&job,++now))throw std::runtime_error("worker missing");
++  wb_job_clear(&job);seen.push_back(wb_poll(&broker,owner,r.id).status);
++  wb_done d{};d.owner=owner;d.id=r.id;d.sequence=1;
++  d.success=!fail_;d.authenticated=!fail_;d.dhcp=!fail_;d.worker_exited=1;d.link_up=!fail_;
++  d.ip[0]=192;d.ip[1]=0;d.ip[2]=2;d.ip[3]=1; // RFC documentation address
++  if(stop.load())wb_cancel(&broker,owner,r.id,++now);
++  wb_complete(&broker,&d,++now);auto result=wb_poll(&broker,owner,r.id);seen.push_back(result.status);
++  if(result.status!=WB_IP_READY)throw std::runtime_error("mock connection failed/cancelled");
++  return "模拟网络连接成功。";
++ }
++ void close()noexcept override {
++  const auto a=broker.active;
++  if(broker.radio==WB_OWNED)wb_release(&broker,a.owner,a.id,++now);
++  else if(broker.radio==WB_RUNNING || broker.radio==WB_QUEUED)wb_cancel(&broker,a.owner,a.id,++now);
++  if(broker.radio==WB_DRAINING){wb_done d{};d.owner=a.owner;d.id=a.id;
++   d.sequence=broker.event_sequence+1;d.worker_exited=1;wb_complete(&broker,&d,++now);}
++ }
++ ~MockWifiTask(){close();}
++ wb_broker broker{};std::vector<wb_status> seen;
++ private:bool fail_;std::uint64_t now=0;
++};
++}
+--- /dev/null
++++ b/include/orchestrator.hpp
+@@ -0,0 +1,119 @@
++#pragma once
++#include <atomic>
++#include <cstdint>
++#include <limits>
++#include <optional>
++#include <string>
++#include <stdexcept>
++
++namespace voice {
++enum class State { Idle, Listening, Recognizing, Handling, Speaking, Cancelling, Error };
++enum class Op { ReadWav, Asr, Task, Tts, Release };
++enum class Policy { ReleaseBeforeTask, ReleaseBeforeTts };
++enum class Outcome { None, Success, Cancelled, Timeout, Failure, ClockError };
++struct Config {
++ Policy policy=Policy::ReleaseBeforeTask;
++ std::uint64_t stageMs=30000, totalMs=90000;
++ std::size_t maxTextBytes=8192;
++};
++struct Command { std::uint64_t transaction, operation; Op kind; };
++struct Event {
++ Event(Command c,bool success=true,std::string value={},bool freed=false):
++  command(c),ok(success),text(std::move(value)),released(freed){}
++ Command command;
++ bool ok=true;
++ std::string text;
++ // Only trusted worker after synchronous destruction AND TaskPort quiescence.
++ bool released=false;
++};
++// Serialized coordinator only; owns no backend resources. One outstanding command.
++// Driver owns worker and MUST stop/join/close before destroying coordinator.
++class Machine {
++ public:
++ explicit Machine(Config config={}, std::uint64_t firstId=1):cfg_(config),next_(firstId) {
++  if(!cfg_.stageMs || !cfg_.totalMs || !cfg_.maxTextBytes || !firstId)
++   throw std::invalid_argument("invalid configuration");
++ }
++ bool start(std::uint64_t now) {
++  if(state_!=State::Idle || !next_ || clockFault_)return false;
++  id_=next_;next_=next_==std::numeric_limits<std::uint64_t>::max()?0:next_+1;
++  sequence_=0; start_=last_=stage_=now; outcome_=Outcome::None;
++  transcript_.clear(); reply_.clear();state_=State::Listening;queue(Op::ReadWav);return true;
++ }
++ std::optional<Command> take() {
++  if(!pending_ || running_)return {};
++  running_=true;return pending_;
++ }
++ void tick(std::uint64_t now) {
++  if(state_==State::Idle || state_==State::Error)return;
++  if(now<last_){clockFault_=true;cancel(Outcome::ClockError);return;}
++  last_=now;
++  if(state_!=State::Cancelling && (now-start_>=cfg_.totalMs || now-stage_>=cfg_.stageMs))
++   cancel(Outcome::Timeout);
++ }
++ void cancel(Outcome why=Outcome::Cancelled) {
++  if(state_==State::Idle || state_==State::Error || state_==State::Cancelling)return;
++  outcome_=why;state_=State::Cancelling;
++  if(!running_)queueRelease(After::Cancelled);
++ }
++ bool complete(const Event& event,std::uint64_t now) {
++  tick(now); // deadline wins a simultaneous result
++  if(!running_ || !pending_ || event.command.transaction!=id_ ||
++     event.command.operation!=pending_->operation || event.command.kind!=pending_->kind)return false;
++  running_=false;const auto op=pending_->kind;pending_.reset();
++  if(state_==State::Cancelling) {
++   if(op==Op::Release && event.ok && event.released)finishCancelled();
++   else queueRelease(After::Cancelled);
++   return true;
++  }
++  if(!event.ok || event.text.size()>cfg_.maxTextBytes ||
++     (op==Op::Release && !event.released)) {
++   cancel(Outcome::Failure);return true;
++  }
++  stage_=last_;
++  switch(op) {
++   case Op::ReadWav:state_=State::Recognizing;queue(Op::Asr);break;
++   case Op::Asr:
++    if(event.text.empty()){cancel(Outcome::Failure);break;}
++    transcript_=event.text;
++    if(cfg_.policy==Policy::ReleaseBeforeTask)queueRelease(After::Task);
++    else {state_=State::Handling;queue(Op::Task);} break;
++   case Op::Task:
++    if(event.text.empty()){cancel(Outcome::Failure);break;}
++    reply_=event.text;queueRelease(After::Tts);break;
++   case Op::Tts:queueRelease(After::Success);break;
++   case Op::Release:
++    if(after_==After::Task){state_=State::Handling;queue(Op::Task);}
++    else if(after_==After::Tts){state_=State::Speaking;queue(Op::Tts);}
++    else {state_=State::Idle;outcome_=Outcome::Success;}
++    break;
++  }
++  return true;
++ }
++ bool resetError() {if(state_!=State::Error || clockFault_)return false;state_=State::Idle;return true;}
++ State state()const{return state_;}
++ Outcome outcome()const{return outcome_;}
++ bool stopRequested()const{return state_==State::Cancelling;}
++ bool running()const{return running_;}
++ std::uint64_t id()const{return id_;}
++ const std::string& transcript()const{return transcript_;}
++ const std::string& reply()const{return reply_;}
++ private:
++ enum class After {Task,Tts,Success,Cancelled};
++ void queue(Op op){pending_=Command{id_,++sequence_,op};}
++ void queueRelease(After after){after_=after;queue(Op::Release);}
++ void finishCancelled(){state_=outcome_==Outcome::Cancelled?State::Idle:State::Error;}
++ Config cfg_;std::uint64_t next_,id_=0,sequence_=0,start_=0,last_=0,stage_=0;
++ State state_=State::Idle;Outcome outcome_=Outcome::None;After after_=After::Success;
++ bool running_=false,clockFault_=false;std::optional<Command> pending_;
++ std::string transcript_,reply_;
++};
++// Blocking worker boundary. Implementations must observe stop/deadlines at bounded
++// checkpoints, retain ownership until quiescence, and never report fake success.
++class TaskPort {
++ public:
++ virtual ~TaskPort()=default;
++ virtual std::string handle(std::uint64_t,const std::string&,const std::atomic_bool&)=0;
++ virtual void close() noexcept=0; // synchronous quiescence; may block
++};
++}
+--- a/include/voicelink/audio.hpp
++++ b/include/voicelink/audio.hpp
+@@ -29,7 +29,9 @@
+   ~SpeechSession();
+   SpeechSession(const SpeechSession&) = delete;
+   SpeechSession& operator=(const SpeechSession&) = delete;
+-  bool init(const SherpaOnnxOfflineTtsConfig&, const SherpaOnnxOnlineRecognizerConfig&);
++  // Exclusive model ownership: destruction completes before the next create.
++  bool initAsr(const SherpaOnnxOnlineRecognizerConfig&);
++  bool initTts(const SherpaOnnxOfflineTtsConfig&);
+   void close() noexcept;
+   AudioStatus speak(const char*, PcmSink&, const std::atomic_bool& stop);
+   bool beginStream();
+--- a/src/audio.cpp
++++ b/src/audio.cpp
+@@ -29,14 +29,15 @@
+   tts_ = nullptr;
+   finished_ = false;
+ }
+-bool SpeechSession::init(const SherpaOnnxOfflineTtsConfig& t,
+-                         const SherpaOnnxOnlineRecognizerConfig& r) {
++bool SpeechSession::initTts(const SherpaOnnxOfflineTtsConfig& t) {
+   close();
+   tts_ = SherpaOnnxCreateOfflineTts(&t);
+-  if (!tts_) return false;
++  return tts_ != nullptr;
++}
++bool SpeechSession::initAsr(const SherpaOnnxOnlineRecognizerConfig& r) {
++  close();
+   recognizer_ = SherpaOnnxCreateOnlineRecognizer(&r);
+-  if (!recognizer_) { close(); return false; }
+-  return true;
++  return recognizer_ != nullptr;
+ }
+ AudioStatus SpeechSession::speak(const char* text, PcmSink& sink,
+                                 const std::atomic_bool& stop) {
+--- /dev/null
++++ b/src/demo.cpp
+@@ -0,0 +1,148 @@
++#include "orchestrator.hpp"
++#include "voicelink/audio.hpp"
++#include "mock_wifi_task.hpp"
++#include <array>
++#include <chrono>
++#include <filesystem>
++#include <fstream>
++#include <future>
++#include <iostream>
++#include <memory>
++#include <thread>
++#include <vector>
++using namespace voice;
++using namespace voicelink;
++using Clock=std::chrono::steady_clock;
++static auto origin=Clock::now();
++static std::uint64_t now(){return std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now()-origin).count();}
++static void mark(const char* s){std::cout<<"mark="<<s<<" ms="<<now()<<std::endl;}
++struct Models {
++ std::string tm,tt,lex,far,enc,dec,tok;
++ SherpaOnnxOfflineTtsConfig t{};SherpaOnnxOnlineRecognizerConfig a{};
++ explicit Models(const std::string& base){
++  auto td=base+"/vits-icefall-zh-aishell3/",ad=base+"/sherpa-onnx-streaming-paraformer-bilingual-zh-en/";
++  tm=td+"model.onnx";tt=td+"tokens.txt";lex=td+"lexicon.txt";far=td+"rule.far";
++  enc=ad+"encoder.int8.onnx";dec=ad+"decoder.int8.onnx";tok=ad+"tokens.txt";
++  t.model.vits.model=tm.c_str();t.model.vits.tokens=tt.c_str();t.model.vits.lexicon=lex.c_str();t.rule_fars=far.c_str();
++  t.model.vits.length_scale=1;t.model.vits.noise_scale=.667f;t.model.vits.noise_scale_w=.8f;
++  t.model.provider="cpu";t.model.num_threads=1;t.max_num_sentences=1;t.silence_scale=1;
++  a.feat_config.sample_rate=16000;a.feat_config.feature_dim=80;
++  a.model_config.paraformer.encoder=enc.c_str();a.model_config.paraformer.decoder=dec.c_str();
++  a.model_config.tokens=tok.c_str();a.model_config.provider="cpu";a.model_config.num_threads=1;
++  a.decoding_method="greedy_search";a.enable_endpoint=0;
++ }
++ Models(const Models&)=delete;Models& operator=(const Models&)=delete;
++};
++class ExampleTask:public TaskPort {
++ std::string handle(std::uint64_t,const std::string& text,const std::atomic_bool& stop) override {
++  if(stop.load() || text.empty())throw std::runtime_error("task cancelled/empty");
++  return "你好，已收到语音。"; // fixed response; no intent comprehension or Agent
++ }
++ void close()noexcept override{}
++};
++class WavSink:public PcmSink {
++ public:
++ bool begin(int r)noexcept override {rate=r;data.clear();return r==8000;}
++ std::ptrdiff_t write(const std::uint8_t* p,std::size_t n)noexcept override{
++  if(n>2000000-data.size())return -1;
++  try{data.insert(data.end(),p,p+n);return static_cast<std::ptrdiff_t>(n);}catch(...){return -1;}
++ }
++ void end()noexcept override{}
++ void save(const std::string& path){
++  if(data.empty() || data.size()%2 || std::filesystem::exists(path))throw std::runtime_error("invalid/existing output");
++  std::ofstream f(path,std::ios::binary);if(!f)throw std::runtime_error("output open");
++  auto u16=[&](unsigned v){f.put(static_cast<char>(v));f.put(static_cast<char>(v>>8));};
++  auto u32=[&](unsigned v){u16(v&65535);u16(v>>16);};
++  f.write("RIFF",4);u32(36+static_cast<unsigned>(data.size()));f.write("WAVEfmt ",8);u32(16);
++  u16(1);u16(1);u32(rate);u32(rate*2);u16(2);u16(16);f.write("data",4);
++  u32(static_cast<unsigned>(data.size()));f.write(reinterpret_cast<const char*>(data.data()),data.size());
++  f.close();if(!f)throw std::runtime_error("output write");
++ }
++ int rate=0;std::vector<std::uint8_t> data;
++};
++class Worker {
++ public:
++ Worker(std::string base,std::string wav,std::string out,bool wifi):models(base),wavPath(std::move(wav)),outPath(std::move(out)),
++ task(wifi?static_cast<TaskPort*>(new MockWifiTask):static_cast<TaskPort*>(new ExampleTask)){}
++ ~Worker(){stop=true;if(future.valid())future.wait();close();}
++ void launch(Command cmd,const std::string& text){
++  if(future.valid())throw std::runtime_error("worker capacity exceeded");
++  future=std::async(std::launch::async,[this,cmd,text]{return execute(cmd,text);});
++ }
++ bool ready(){return future.valid() && future.wait_for(std::chrono::milliseconds(0))==std::future_status::ready;}
++ Event get(){return future.get();}
++ std::atomic_bool stop{false};
++ private:
++ void close()noexcept{speech.close();wave.reset();task->close();}
++ Event execute(Command cmd,const std::string& text){
++  Event e{cmd,true,"",false};
++  try{
++   if(cmd.kind==Op::Release){close();mark("release_complete");e.released=true;return e;}
++   if(stop.load())throw std::runtime_error("cancelled");
++   switch(cmd.kind){
++    case Op::ReadWav:{
++     // Same native narrow-path convention as the pinned C API on Windows.
++     std::ifstream sizeProbe(wavPath,std::ios::binary|std::ios::ate);
++     if(!sizeProbe || sizeProbe.tellg()<0 || sizeProbe.tellg()>2000000)throw std::runtime_error("WAV missing/capacity");
++     wave.reset(SherpaOnnxReadWave(wavPath.c_str()));
++     if(!wave || wave->sample_rate!=16000 || wave->num_samples<=0 || wave->num_samples>960000)
++      throw std::runtime_error("requires bounded mono 16k WAV");
++     mark("wav_loaded");break;}
++    case Op::Asr:{
++     mark("asr_load_begin");if(!speech.initAsr(models.a))throw std::runtime_error("asr load");mark("asr_loaded");
++     if(!speech.beginStream())throw std::runtime_error("stream create");
++     std::array<std::int16_t,512> chunk{};
++     for(int pos=0;pos<wave->num_samples;pos+=512){
++      int n=std::min(512,wave->num_samples-pos);
++      for(int i=0;i<n;++i)chunk[i]=floatToPcm16(wave->samples[pos+i]);
++      if(speech.feed(chunk.data(),n,16000,stop)!=AudioStatus::Ok)throw std::runtime_error("feed/cancel");
++     }
++     if(speech.finishWithTail(e.text,stop,16000,300)!=AudioStatus::Ok)throw std::runtime_error("finish/cancel");
++     wave.reset();mark("asr_finished");break;}
++    case Op::Task:e.text=task->handle(cmd.transaction,text,stop);mark("example_task_finished");break;
++    case Op::Tts:{
++     mark("tts_load_begin");if(!speech.initTts(models.t))throw std::runtime_error("tts load");mark("tts_loaded");
++     WavSink sink;if(speech.speak(text.c_str(),sink,stop)!=AudioStatus::Ok)throw std::runtime_error("speak/cancel");
++     // Keep bytes private until coordinator accepts result; no late cancelled output commit.
++     audio=std::move(sink);mark("tts_finished");break;}
++    case Op::Release:break;
++   }
++  }catch(const std::exception& ex){e.ok=false;e.text=ex.what();}
++  catch(...){e.ok=false;e.text="unknown worker exception";}
++  return e;
++ }
++ public:
++ void commit(){audio.save(outPath);}
++ private:
++ Models models;std::string wavPath,outPath;SpeechSession speech;
++ std::unique_ptr<TaskPort> task;
++ std::unique_ptr<const SherpaOnnxWave,decltype(&SherpaOnnxFreeWave)> wave{nullptr,SherpaOnnxFreeWave};
++ WavSink audio;std::future<Event> future;
++};
++int main(int argc,char** argv){
++ if(argc!=7)return 2;
++ try{
++  std::cout<<"sherpa="<<SherpaOnnxGetVersionStr()<<" sha="<<SherpaOnnxGetGitSha1()<<std::endl;
++  if(std::string(SherpaOnnxGetVersionStr())!="1.12.14")throw std::runtime_error("version mismatch");
++  const auto cancelAt=std::stoull(argv[5]);
++  Config cfg;cfg.policy=std::string(argv[4])=="hold"?Policy::ReleaseBeforeTts:Policy::ReleaseBeforeTask;
++  Machine machine(cfg);Worker worker(argv[1],argv[2],argv[3],std::string(argv[6])=="wifi-mock");
++  machine.start(now());
++  while(machine.state()!=State::Idle && machine.state()!=State::Error){
++   machine.tick(now());if(cancelAt && now()>=cancelAt)machine.cancel();
++   if(machine.stopRequested())worker.stop=true;
++   if(worker.ready()){
++    auto e=worker.get();std::cout<<"event tx="<<e.command.transaction<<" op="<<e.command.operation
++     <<" kind="<<static_cast<int>(e.command.kind)<<" ok="<<e.ok<<" released="<<e.released<<std::endl;
++    if(!e.ok)std::cout<<"worker_error="<<e.text<<std::endl;
++    machine.complete(e,now());
++   }
++   if(auto c=machine.take())worker.launch(*c,c->kind==Op::Task?machine.transcript():machine.reply());
++   std::this_thread::sleep_for(std::chrono::milliseconds(2));
++  }
++  std::cout<<"transcript="<<machine.transcript()<<"\nreply="<<machine.reply()
++   <<"\noutcome="<<static_cast<int>(machine.outcome())<<std::endl;
++  if(machine.outcome()==Outcome::Success){worker.commit();return 0;}
++  return machine.outcome()==Outcome::Cancelled?20:3;
++ }catch(const std::exception& ex){std::cerr<<ex.what()<<std::endl;return 3;}
++}
+--- /dev/null
++++ b/tests/test_machine.cpp
+@@ -0,0 +1,66 @@
++#include "orchestrator.hpp"
++#include <iostream>
++#include <limits>
++using namespace voice;
++static int checks=0;
++#define CHECK(x) do {++checks;if(!(x))throw std::runtime_error(#x);}while(0)
++static Command take(Machine& m,Op op){auto c=m.take();CHECK(c && c->kind==op);CHECK(!m.take());return *c;}
++static void done(Machine& m,Op op,const std::string& text="",std::uint64_t now=0){auto c=take(m,op);CHECK(m.complete({c,true,text,op==Op::Release},now));}
++static void success(Machine& m,Policy p){
++ done(m,Op::ReadWav);done(m,Op::Asr,"recognized");
++ if(p==Policy::ReleaseBeforeTask)done(m,Op::Release);
++ CHECK(m.state()==State::Handling);done(m,Op::Task,"reply");
++ done(m,Op::Release);CHECK(m.state()==State::Speaking);
++ done(m,Op::Tts);CHECK(m.state()!=State::Idle);done(m,Op::Release);
++ CHECK(m.state()==State::Idle && m.outcome()==Outcome::Success);
++}
++int main(){try{
++ for(auto p:{Policy::ReleaseBeforeTask,Policy::ReleaseBeforeTts}){
++  Machine m({p,30,90,20});CHECK(m.start(0));CHECK(!m.start(0));success(m,p);
++  CHECK(m.transcript()=="recognized");CHECK(m.start(0));CHECK(m.id()==2);success(m,p);
++ }
++ // Cancel while each worker stage is outstanding; no new work before release ACK.
++ for(int stage=0;stage<7;++stage){
++  Machine m;CHECK(m.start(0));
++  Op sequence[]={Op::ReadWav,Op::Asr,Op::Release,Op::Task,Op::Release,Op::Tts,Op::Release};
++  for(int i=0;i<stage;++i)done(m,sequence[i],"text");
++  auto held=take(m,sequence[stage]);m.cancel();CHECK(m.state()==State::Cancelling);
++  CHECK(!m.start(1));CHECK(!m.take());CHECK(m.complete({held,true,"late",false},1));
++  CHECK(m.transcript()!="late");auto release=take(m,Op::Release);
++  CHECK(m.complete({release,true,"",false},2));CHECK(!m.start(2));
++  done(m,Op::Release,"",3);CHECK(m.state()==State::Idle);CHECK(m.start(3));
++  CHECK(!m.complete({held,true,"stale",true},3));
++ }
++ {Machine m;CHECK(m.start(0));auto old=take(m,Op::ReadWav);CHECK(m.complete({old},0));
++  auto c=take(m,Op::Asr);CHECK(!m.complete({old,true,"old",true},0));
++  CHECK(m.complete({c,false},0));CHECK(m.state()==State::Cancelling);
++  done(m,Op::Release);CHECK(m.state()==State::Error);CHECK(m.resetError());}
++ // Exact timeout beats valid result; cleanup itself has no fictitious deadline ACK.
++ {Machine m({Policy::ReleaseBeforeTask,10,25,20});CHECK(m.start(0));auto c=take(m,Op::ReadWav);
++  CHECK(m.complete({c},10));CHECK(m.outcome()==Outcome::Timeout);m.tick(100000);
++  CHECK(!m.start(100000));done(m,Op::Release,"",100000);CHECK(m.state()==State::Error);}
++ {Machine m;CHECK(m.start(10));m.tick(9);done(m,Op::Release,"",11);
++  CHECK(m.outcome()==Outcome::ClockError);CHECK(!m.resetError());}
++ {Machine m;CHECK(m.start(0));done(m,Op::ReadWav);done(m,Op::Asr,"");done(m,Op::Release);
++  CHECK(m.state()==State::Error);}
++ {Machine m({Policy::ReleaseBeforeTask,10,100,3});CHECK(m.start(0));done(m,Op::ReadWav);
++  done(m,Op::Asr,"large");done(m,Op::Release);CHECK(m.state()==State::Error);}
++ {Machine m({},std::numeric_limits<std::uint64_t>::max());CHECK(m.start(0));
++  success(m,Policy::ReleaseBeforeTask);CHECK(!m.start(0));}
++ // Injection: load/read/task/TTS/release failures all roll back through release.
++ for(int stage=0;stage<7;++stage){Machine m;CHECK(m.start(0));
++  Op sequence[]={Op::ReadWav,Op::Asr,Op::Release,Op::Task,Op::Release,Op::Tts,Op::Release};
++  for(int i=0;i<stage;++i)done(m,sequence[i],"text");
++  auto c=take(m,sequence[stage]);CHECK(m.complete({c,false,"injected"},0));
++  CHECK(m.state()==State::Cancelling);CHECK(!m.start(0));done(m,Op::Release);
++  CHECK(m.state()==State::Error);CHECK(m.resetError());}
++ {Machine m({Policy::ReleaseBeforeTask,10,15,20});CHECK(m.start(0));
++  done(m,Op::ReadWav,"",9);done(m,Op::Asr,"text",15);
++  CHECK(m.outcome()==Outcome::Timeout);done(m,Op::Release,"",15);}
++ // Repeated deterministic stale-event/cancel/busy interleavings, fixed storage.
++ for(unsigned i=0;i<1000;++i){Machine m;CHECK(m.start(0));auto c=take(m,Op::ReadWav);
++  auto stale=c;stale.operation+=1;CHECK(!m.complete({stale},0));
++  m.cancel();CHECK(!m.start(0));CHECK(m.complete({c},0));done(m,Op::Release);
++  CHECK(m.outcome()==Outcome::Cancelled);}
++ std::cout<<"mock_machine_checks="<<checks<<" failures=0\n";return 0;
++ }catch(const std::exception& e){std::cerr<<e.what()<<"\n";return 1;}}
+--- /dev/null
++++ b/tests/test_wifi.cpp
+@@ -0,0 +1,23 @@
++#include "mock_wifi_task.hpp"
++#include <iostream>
++using namespace voice;
++#define CHECK(x) do{if(!(x))throw std::runtime_error(#x);}while(0)
++int main(){try{
++ std::atomic_bool stop{false};MockWifiTask task;
++ CHECK(!task.handle(3,"uninterpreted",stop).empty());
++ CHECK(task.seen==std::vector<wb_status>({WB_RECEIVED,WB_CONNECTING,WB_IP_READY}));
++ CHECK(task.broker.radio==WB_OWNED);task.close();CHECK(task.broker.radio==WB_FREE);
++ wb_broker b{};wb_init(&b,0,1);auto r=wb_begin(&b,1,"x",1,"password",8,0,100);
++ CHECK(r.status==WB_RECEIVED);wb_job j{};CHECK(wb_take_job(&b,&j,1));wb_job_clear(&j);
++ wb_cancel(&b,1,r.id,2);CHECK(b.radio==WB_DRAINING);
++ CHECK(wb_begin(&b,2,"y",1,"password",8,3,100).status==WB_BUSY);
++ wb_done d{};d.owner=1;d.id=r.id;d.sequence=1;d.success=1;d.authenticated=1;
++ d.dhcp=1;d.link_up=1;d.ip[0]=192;d.ip[1]=0;d.ip[2]=2;d.ip[3]=1;
++ wb_complete(&b,&d,4);CHECK(b.radio==WB_DRAINING);
++ d.sequence=2;d.worker_exited=1;wb_complete(&b,&d,5);CHECK(b.radio==WB_DRAINING);
++ d.sequence=3;d.link_up=0;d.success=0;wb_complete(&b,&d,6);CHECK(b.radio==WB_FREE);
++ CHECK(wb_poll(&b,1,r.id).status==WB_CANCELLED);
++ MockWifiTask fail(true);bool caught=false;try{fail.handle(5,"x",stop);}catch(...){caught=true;}
++ CHECK(caught);fail.close();CHECK(fail.broker.radio==WB_FREE);
++ std::cout<<"mock_wifi_receipt_connecting_ip_failure_cancel_drain=PASS\n";return 0;
++ }catch(const std::exception& e){std::cerr<<e.what();return 1;}}
+--- /dev/null
++++ b/scripts/package.py
+@@ -0,0 +1,17 @@
++from pathlib import Path
++import hashlib,json,difflib
++R=Path(__file__).resolve().parents[1]
++patch=[]
++for folder in ['include','src','tests','scripts']:
++ for p in sorted((R/folder).rglob('*')):
++  if not p.is_file() or p.suffix not in ['.hpp','.h','.c','.cpp','.py']:continue
++  rel=p.relative_to(R).as_posix();old=R/'input'/rel
++  patch.extend(difflib.unified_diff(old.read_text(encoding='utf8').splitlines(True) if old.exists() else [],p.read_text(encoding='utf8').splitlines(True),fromfile='a/'+rel if old.exists() else '/dev/null',tofile='b/'+rel))
++(R/'candidate.patch').write_text(''.join(patch),encoding='utf8')
++inputs=json.loads((R/'input/sources.json').read_text(encoding='utf8'))
++for row in inputs:row['unchanged']=hashlib.sha256(Path(row['source']).read_bytes()).hexdigest()==row['sha256']
++delivery={'session_id':'01a0892e-2964-7ec3-bd76-9ab4937980cb','cwd':r'E:\openvela','inputs':inputs,
++ 'files':{str(p.relative_to(R)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(R.rglob('*')) if p.is_file() and p.name!='delivery.json'},
++ 'board_verified':False,'agent_deployed':False,'log_collection_owner':'main thread; maomaojiang01'}
++(R/'evidence/delivery.json').write_text(json.dumps(delivery,ensure_ascii=False,indent=2),encoding='utf8')
++print('inputs_unchanged',all(x['unchanged'] for x in inputs),'files',len(delivery['files']))
+--- /dev/null
++++ b/scripts/run.py
+@@ -0,0 +1,63 @@
++from pathlib import Path
++import subprocess,datetime,json,os,time,hashlib,wave,ctypes
++import psutil
++R=Path(__file__).resolve().parents[1]
++run=R/'evidence'/('run-'+datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ'))
++run.mkdir()
++cc=Path(r'D:\software\mingw64\mingw64\bin')
++lib=R.parent/'parallel-voicelink-runtime/runtime/sherpa-onnx-v1.12.14-win-x64-shared/lib'
++models=Path(r'E:\openvela\语音模块\openvela-voicelink\models')
++env=os.environ.copy();env['PATH']=str(lib)+';'+str(cc)+';'+env.get('PATH','')
++records=[]
++ort=ctypes.CDLL(str(lib/'onnxruntime.dll'))
++ort.OrtGetApiBase.restype=ctypes.POINTER(ctypes.c_void_p)
++ort_version=ctypes.CFUNCTYPE(ctypes.c_char_p)(ort.OrtGetApiBase()[1])().decode()
++assert ort_version=='1.17.1',ort_version
++assert hashlib.sha256((R/'vendor/sherpa-onnx/c-api/c-api.h').read_bytes()).hexdigest()=='e286ded904e93b670ad229d88151dfade58671fc2740a0afb11b0372f3595100'
++(run/'versions.json').write_text(json.dumps({'ort':ort_version,'sherpa':'1.12.14','provider':'cpu','threads':1}),encoding='utf8')
++def execute(name,args,expected=0,limit=60):
++ out=run/(name+'.stdout.raw');err=run/(name+'.stderr.raw')
++ t=time.monotonic();peak=0;samples=[];timedout=False
++ with out.open('xb') as o,err.open('xb') as e:
++  p=subprocess.Popen([str(x) for x in args],stdout=o,stderr=e,cwd=R,env=env)
++  proc=psutil.Process(p.pid)
++  while p.poll() is None:
++   try:
++    m=proc.memory_info();private=getattr(m,'private',m.rss);peak=max(peak,private)
++    samples.append([time.monotonic()-t,private,m.rss])
++   except psutil.Error:pass
++   if time.monotonic()-t>limit:
++    timedout=True;p.kill();p.wait();break
++   time.sleep(.02)
++ rec=dict(name=name,command=[str(x) for x in args],exit=p.returncode,expected=expected,
++          timeout=timedout,seconds=time.monotonic()-t,peak_private_bytes=peak)
++ records.append(rec)
++ (run/(name+'.memory.json')).write_text(json.dumps(samples),encoding='utf8')
++ (run/'results.json').write_text(json.dumps(records,indent=2),encoding='utf8')
++ print(name,rec['exit'],round(rec['seconds'],3),flush=True)
++ if p.returncode!=expected or timedout:raise RuntimeError(name+' failed; raw evidence retained')
++flags=['-std=c++17','-O2','-Wall','-Wextra','-Werror','-finput-charset=UTF-8','-fexec-charset=UTF-8','-I',R/'include','-I',R/'vendor']
++execute('build-machine',[cc/'g++.exe',*flags,R/'tests/test_machine.cpp','-o',run/'machine.exe'])
++execute('mock-machine',[run/'machine.exe'])
++execute('build-broker',[cc/'gcc.exe','-std=c11','-O2','-Wall','-Wextra','-Werror','-I',R/'include','-c',R/'src/wifi_broker.c','-o',run/'broker.o'])
++execute('build-wifi',[cc/'g++.exe',*flags,R/'tests/test_wifi.cpp',run/'broker.o','-o',run/'wifi.exe'])
++execute('mock-wifi',[run/'wifi.exe'])
++execute('build-real',[cc/'g++.exe',*flags,R/'src/demo.cpp',R/'src/audio.cpp',run/'broker.o',lib/'sherpa-onnx-c-api.lib','-o',run/'demo.exe'])
++wav=models/'sherpa-onnx-streaming-paraformer-bilingual-zh-en/test_wavs/0.wav'
++for name,policy,cancel,task in [('real-release','release','0','example'),('real-hold','hold','0','example'),('real-wifi-mock','release','0','wifi-mock'),('real-cancel','release','50','example')]:
++ execute(name,[run/'demo.exe',models,wav,run/(name+'.wav'),policy,cancel,task],20 if cancel!='0' else 0)
++ if cancel=='0':
++  with wave.open(str(run/(name+'.wav'))) as w:assert (w.getnchannels(),w.getsampwidth(),w.getframerate())==(1,2,8000) and w.getnframes()>0
++  log=(run/(name+'.stdout.raw')).read_text(encoding='utf8')
++  assert log.count('mark=asr_load_begin')==1 and log.count('mark=tts_load_begin')==1
++  assert log.index('mark=asr_finished')<log.index('mark=release_complete')<log.index('mark=tts_load_begin')
++  assert 'transcript=昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三' in log
++ else:assert not (run/(name+'.wav')).exists()
++# Real missing model/WAV errors separate from injected core events.
++execute('real-invalid-model',[run/'demo.exe',run/'absent-models',wav,run/'absent.wav','release','0','example'],3)
++execute('real-invalid-wav',[run/'demo.exe',models,run/'absent.wav',run/'no.wav','release','0','example'],3)
++hashes=[]
++for p in [wav,*lib.glob('*.dll'),lib/'sherpa-onnx-c-api.lib',models/'sherpa-onnx-streaming-paraformer-bilingual-zh-en/encoder.int8.onnx',models/'sherpa-onnx-streaming-paraformer-bilingual-zh-en/decoder.int8.onnx',models/'vits-icefall-zh-aishell3/model.onnx']:
++ hashes.append(dict(path=str(p),sha256=hashlib.sha256(p.read_bytes()).hexdigest()))
++(run/'runtime-inputs.json').write_text(json.dumps(hashes,ensure_ascii=False,indent=2),encoding='utf8')
++print('EVIDENCE='+str(run),flush=True)
+--- /dev/null
++++ b/scripts/snapshot.py
+@@ -0,0 +1,23 @@
++from pathlib import Path
++import hashlib,json,shutil
++root=Path(__file__).resolve().parents[1]
++wip=root.parent
++items={
++ 'include/voicelink/audio.hpp':wip/'parallel-voicelink-tuning/include/voicelink/audio.hpp',
++ 'src/audio.cpp':wip/'parallel-voicelink-tuning/src/audio.cpp',
++ 'include/wifi_broker.h':wip/'parallel-wifi-service/include/wifi_broker.h',
++ 'src/wifi_broker.c':wip/'parallel-wifi-service/src/wifi_broker.c',
++ 'vendor/sherpa-onnx/c-api/c-api.h':wip/'parallel-voicelink/vendor/sherpa-onnx/c-api/c-api.h',
++ 'vendor/LICENSE':wip/'parallel-voicelink/vendor/sherpa-onnx/LICENSE',
++}
++rows=[]
++for dest,src in items.items():
++ data=src.read_bytes()
++ for p in [root/dest,root/'input'/dest]:
++  p.parent.mkdir(parents=True,exist_ok=True)
++  with p.open('xb') as f:f.write(data)
++ rows.append(dict(source=str(src),copy=dest,sha256=hashlib.sha256(data).hexdigest()))
++for folder in ['parallel-voicelink','parallel-wifi-service','parallel-voicelink-runtime','parallel-voicelink-tuning']:
++ for src in (wip/folder).glob('*.md'):
++  rows.append(dict(source=str(src),sha256=hashlib.sha256(src.read_bytes()).hexdigest()))
++with (root/'input/sources.json').open('x',encoding='utf8') as f:json.dump(rows,f,ensure_ascii=False,indent=2)

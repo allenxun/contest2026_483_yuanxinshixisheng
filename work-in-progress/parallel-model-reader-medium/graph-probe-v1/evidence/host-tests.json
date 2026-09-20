@@ -1,0 +1,382 @@
+{
+  "utc": "2026-09-10T07:35:10Z",
+  "hardware_tested": false,
+  "results": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "--version"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "gcc.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-fstack-usage",
+        "-Iinput/include",
+        "-c",
+        "graph_probe.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\graph_probe.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-fstack-usage",
+        "-Iinput/include",
+        "-DGP_HOST_MAIN",
+        "-c",
+        "graph_probe_main.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\graph_probe_main.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-fstack-usage",
+        "-Iinput/include",
+        "-DGP_TESTING",
+        "-c",
+        "graph_probe.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\graph_probe_test.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-fstack-usage",
+        "-Iinput/include",
+        "-DGP_TESTING",
+        "-c",
+        "test_graph_probe.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\graph_probe.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\graph_probe_main.o",
+        "-Wl,--start-group",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-cpu.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-base.a",
+        "-Wl,--end-group",
+        "-pthread",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\graph_probe.exe"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\graph_probe_test.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.o",
+        "-Wl,--start-group",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-cpu.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-base.a",
+        "-Wl,--end-group",
+        "-pthread",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\graph_probe.exe",
+        "both"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "threads_configured=2 result=0 operation=0 cleanup=0 compute=0 checked=4096 mismatches=0 checksum=-10 worker_mask=2 starts=1 exits=1 pool_bytes=0 handles=0 running=0 mutexes=0 conds=0 attrs=0 context_used=50928 plan_work=0 pool_budget=263552 retained_pool=0 retained_context=0 affinity=default_unbound physical_cpu_observed=0 weights=0\nthreads_configured=4 result=0 operation=0 cleanup=0 compute=0 checked=4096 mismatches=0 checksum=-10 worker_mask=14 starts=3 exits=3 pool_bytes=0 handles=0 running=0 mutexes=0 conds=0 attrs=0 context_used=50928 plan_work=0 pool_budget=788928 retained_pool=0 retained_context=0 affinity=default_unbound physical_cpu_observed=0 weights=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "2",
+        "0"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=0 threads=2 result=0 compute=0 checked=4096 mismatches=0 mask=2 starts=1 exits=1 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "2",
+        "1"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=1 threads=2 result=12 compute=-1 checked=0 mismatches=0 mask=0 starts=0 exits=0 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "2",
+        "2"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=2 threads=2 result=11 compute=-1 checked=0 mismatches=0 mask=0 starts=0 exits=0 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "2",
+        "3"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=3 threads=2 result=11 compute=-1 checked=0 mismatches=0 mask=0 starts=0 exits=0 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "2",
+        "4"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=4 threads=2 result=105 compute=-1 checked=0 mismatches=0 mask=0 starts=1 exits=1 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "2",
+        "5"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=5 threads=2 result=105 compute=-1 checked=0 mismatches=0 mask=0 starts=1 exits=1 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "2",
+        "6"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=6 threads=2 result=105 compute=-1 checked=0 mismatches=0 mask=0 starts=1 exits=1 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "2",
+        "7"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=7 threads=2 result=105 compute=-1 checked=0 mismatches=0 mask=0 starts=1 exits=1 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "2",
+        "8"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=8 threads=2 result=42 compute=0 checked=4096 mismatches=1 mask=2 starts=1 exits=1 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "2",
+        "9"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=9 threads=2 result=16 compute=0 checked=4096 mismatches=0 mask=2 starts=1 exits=0 retained_before_retry=1\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "4",
+        "0"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=0 threads=4 result=0 compute=0 checked=4096 mismatches=0 mask=14 starts=3 exits=3 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "4",
+        "1"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=1 threads=4 result=12 compute=-1 checked=0 mismatches=0 mask=0 starts=0 exits=0 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "4",
+        "2"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=2 threads=4 result=11 compute=-1 checked=0 mismatches=0 mask=0 starts=2 exits=2 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "4",
+        "3"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=3 threads=4 result=16 compute=-1 checked=0 mismatches=0 mask=0 starts=0 exits=0 retained_before_retry=1\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "4",
+        "4"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=4 threads=4 result=105 compute=-1 checked=0 mismatches=0 mask=0 starts=3 exits=3 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "4",
+        "5"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=5 threads=4 result=105 compute=-1 checked=0 mismatches=0 mask=0 starts=3 exits=3 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "4",
+        "6"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=6 threads=4 result=105 compute=-1 checked=0 mismatches=0 mask=0 starts=3 exits=3 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "4",
+        "7"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=7 threads=4 result=105 compute=-1 checked=0 mismatches=0 mask=0 starts=3 exits=3 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "4",
+        "8"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=8 threads=4 result=42 compute=0 checked=4096 mismatches=1 mask=14 starts=3 exits=3 retained_before_retry=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\test_graph_probe.exe",
+        "4",
+        "9"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario=9 threads=4 result=16 compute=0 checked=4096 mismatches=0 mask=14 starts=3 exits=0 retained_before_retry=1\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\nm.exe",
+        "-u",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\graph-probe-v1\\evidence\\graph_probe.o"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "                 U ggml_build_forward_expand\n                 U ggml_cpu_init\n                 U ggml_free\n                 U ggml_graph_compute\n                 U ggml_graph_overhead_custom\n                 U ggml_graph_plan\n                 U ggml_init\n                 U ggml_mul\n                 U ggml_new_graph_custom\n                 U ggml_new_tensor_2d\n                 U ggml_pool_create_checked\n                 U ggml_pool_destroy_checked\n                 U ggml_pool_options_default\n                 U ggml_pool_required_bytes\n                 U ggml_tensor_overhead\n                 U ggml_threadpool_params_default\n                 U ggml_used_mem\n                 U memcpy\n                 U memset\n",
+      "stderr": ""
+    }
+  ]
+}

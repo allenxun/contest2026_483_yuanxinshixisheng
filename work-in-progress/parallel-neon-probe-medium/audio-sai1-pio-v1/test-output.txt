@@ -1,0 +1,10 @@
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-pedantic', 'pio.c', 'test.c', '-o', 'test.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-sai1-pio-v1\\test.exe']
+PASS simulated raw32 capture/tone, version/preconditions, deadline/xrun/stop/MMIO failure
+EXIT 0
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-pedantic', 'platform.c', 'test_platform.c', '-o', 'test_platform.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-sai1-pio-v1\\test_platform.exe']
+PASS platform: setup clock/pins, no SAI writes, power-timeout no SAI read, cleanup gate+restore
+EXIT 0

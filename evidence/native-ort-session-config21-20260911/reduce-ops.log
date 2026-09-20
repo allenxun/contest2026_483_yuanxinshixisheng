@@ -1,0 +1,5 @@
+2026-09-11 11:33:04,039 tools_python_utils [INFO] - flatbuffers module is not installed. parse_config will not be available
+Traceback (most recent call last):
+  File "/dev/shm/velavision-ort-session-20260911/ort/tools/ci_build/reduce_op_kernels.py", line 24, in <module>
+    from util import parse_config  # noqa: E402
+ImportError: cannot import name 'parse_config' from 'util' (/dev/shm/velavision-ort-session-20260911/ort/tools/python/util/__init__.py)

@@ -1,0 +1,29 @@
+[
+  {
+    "cmd": [
+      "git",
+      "init",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\eigen-source-check-v1\\git-proof"
+    ],
+    "returncode": 0,
+    "stdout": "Initialized empty Git repository in E:/openvela/VelaVision/work-in-progress/parallel-model-reader-medium/eigen-source-check-v1/git-proof/.git/\n",
+    "stderr": "hint: Using 'master' as the name for the initial branch. This default branch name\nhint: will change to \"main\" in Git 3.0. To configure the initial branch name\nhint: to use in all of your new repositories, which will suppress this warning,\nhint: call:\nhint:\nhint: \tgit config --global init.defaultBranch <name>\nhint:\nhint: Names commonly chosen instead of 'master' are 'main', 'trunk' and\nhint: 'development'. The just-created branch can be renamed via this command:\nhint:\nhint: \tgit branch -m <name>\nhint:\nhint: Disable this message with \"git config set advice.defaultBranchName false\"\n"
+  },
+  {
+    "cmd": [
+      "git",
+      "-C",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\eigen-source-check-v1\\git-proof",
+      "-c",
+      "credential.helper=",
+      "fetch",
+      "--depth=1",
+      "--no-tags",
+      "https://gitlab.com/libeigen/eigen.git",
+      "e7248b26a1ed53fa030c5c459f7ea095dfd276ac"
+    ],
+    "returncode": 128,
+    "stdout": "",
+    "stderr": "fatal: unable to access 'https://gitlab.com/libeigen/eigen.git/': schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS (0x8009030e) - \u5b89\u5168\u5305\u4e2d\u6ca1\u6709\u53ef\u7528\u7684\u51ed\u8bc1\n"
+  }
+]

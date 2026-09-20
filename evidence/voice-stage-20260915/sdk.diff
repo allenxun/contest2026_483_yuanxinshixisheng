@@ -1,0 +1,287 @@
+--- sdk/app/k7sound/pio.c
++++ app/k7sound/pio.c
+@@ -2,6 +2,7 @@
+ #include "pio.h"
+ #include <stddef.h>
+ #include <string.h>
++#include <errno.h>
+ #define BIT(n) (UINT32_C(1)<<(n))
+ #define GENMASK(h,l) ((UINT32_MAX>>(31-(h))) & (UINT32_MAX<<(l)))
+ #include "input/rockchip_sai.h"
+@@ -133,6 +134,8 @@
+       (sink && (tx || !grouped)) ||
+       (!tx && (!capture || capacity<2*frames)))return out->result=-22;
+   if(!prepared)return out->result=-38;
++  if(tx && p->cancelled && p->cancelled(p->cancel_arg))
++    return out->result=-ECANCELED;
+   bclk=32000u*bits;
+   if(!mclk || mclk%bclk || !(div=mclk/bclk) || div>4096)return out->result=-22;
+   if(rd(p,SAI_VERSION,&v))return out->result=-5;
+@@ -204,6 +207,8 @@
+   start=now;
+   if(!tx)trace_begin(p,&out->rx_trace,start);
+   for(out->polls=0;out->polls<frames*4096u;out->polls++) {
++    if(tx && p->cancelled && p->cancelled(p->cancel_arg))
++      {rc=-ECANCELED;goto done;}
+     now=p->us(p->ctx);
+     if(now<start || now-start>=((uint64_t)frames*1000000u/16000u+100000u))
+       {rc=-110;goto done;}
+--- sdk/app/k7sound/pio.h
++++ app/k7sound/pio.h
+@@ -28,6 +28,10 @@
+   * Root may do codec mute/I2C after stream stop; failure retains held. */
+  int (*amp_off_fast)(void *);
+  uint32_t amplitude; /* 1..2^27; applies to playback signed32 tone */
++ /* Optional nonblocking playback cancellation. Cleanup still mutes the amp
++  * and stops SAI; callback must not perform I/O or take a blocking lock. */
++ int (*cancelled)(void *);
++ void *cancel_arg;
+ };
+ #define PIO_RX_TRACE_MAX 32u
+ struct pio_rx_trace_entry {
+--- sdk/app/k7sound/k7sound_main.c
++++ app/k7sound/k7sound_main.c
+@@ -231,7 +231,8 @@
+ static int sound_run(int argc, char **argv, const uint32_t *speech32,
+                      const int16_t *speech16,
+                      unsigned speech_frames, unsigned listen_frames,
+-                     pio_sample_sink sink, void *sink_arg)
++                     pio_sample_sink sink, void *sink_arg,
++                     int (*cancelled)(void *), void *cancel_arg)
+ {
+   const bool speech = speech32 || speech16;
+   if (argc > 1 && !strcmp(argv[1], "mmu"))
+@@ -427,7 +428,8 @@
+     }
+   else if (!rc && !probe)
+     {
+-      struct pio_port pio = {NULL, sai_read, sai_write, now_us, arm_codec, enable_amp, amp_off, 1u << 27};
++      struct pio_port pio = {NULL, sai_read, sai_write, now_us, arm_codec, enable_amp, amp_off, 1u << 27,
++                             cancelled, cancel_arg};
+       /* Prepare and settle the ADC before the audible cue. Keep ownership and
+        * codec state across TX -> RX: no reset, serial logging, or one-second
+        * settling delay between the cue and the capture window. */
+@@ -530,6 +532,7 @@
+   printf("SOUND result=%d codec_stop=%d platform_restore=%d i2c_restore=%d amp_low=%u\n",
+          rc, stop_rc, platform_rc, bus_rc, amp_ready && !(rd(NULL, GPIO2) & 0x200));
+   pthread_mutex_unlock(&owner);
++  if (rc == -ECANCELED && !stop_rc && !platform_rc && !bus_rc) return -ECANCELED;
+   return rc || stop_rc || platform_rc || bus_rc ? 1 : 0;
+ invalid:
+   puts("SOUND invalid_request_or_latched_fault");
+@@ -539,7 +542,7 @@
+ 
+ int main(int argc, char **argv)
+ {
+-  return sound_run(argc, argv, NULL, NULL, 0, 0, NULL, NULL);
++  return sound_run(argc, argv, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL);
+ }
+ 
+ int k7sound_speak_pcm(const uint32_t *pcm, unsigned frames,
+@@ -548,7 +551,7 @@
+   if (!pcm || !frames || frames > PIO_PLAYBACK_FRAMES ||
+       capture_frames > PIO_FRAMES) return -EINVAL;
+   char *argv[] = {(char *)"k7sound", (char *)"speech-internal"};
+-  return sound_run(2, argv, pcm, NULL, frames, capture_frames, NULL, NULL) ? -EIO : 0;
++  return sound_run(2, argv, pcm, NULL, frames, capture_frames, NULL, NULL, NULL, NULL) ? -EIO : 0;
+ }
+ 
+ int k7sound_speak_mono16(const int16_t *pcm, unsigned frames,
+@@ -557,7 +560,16 @@
+   if (!pcm || !frames || frames > PIO_PLAYBACK_FRAMES ||
+       capture_frames > PIO_FRAMES) return -EINVAL;
+   char *argv[] = {(char *)"k7sound", (char *)"speech-internal"};
+-  return sound_run(2, argv, NULL, pcm, frames, capture_frames, NULL, NULL) ? -EIO : 0;
++  return sound_run(2, argv, NULL, pcm, frames, capture_frames, NULL, NULL, NULL, NULL) ? -EIO : 0;
++}
++
++int k7sound_speak_mono16_cancel(const int16_t *pcm, unsigned frames,
++                               int (*cancelled)(void *), void *arg)
++{
++  if (!pcm || !frames || frames > PIO_PLAYBACK_FRAMES || !cancelled) return -EINVAL;
++  char *argv[] = {(char *)"k7sound", (char *)"speech-internal"};
++  int rc = sound_run(2, argv, NULL, pcm, frames, 0, NULL, NULL, cancelled, arg);
++  return rc == -ECANCELED ? rc : rc ? -EIO : 0;
+ }
+ 
+ int k7sound_capture_grouped(unsigned frames)
+@@ -583,5 +595,5 @@
+   if (!sink || frames < 320 || frames > PIO_FRAMES || frames % 320)
+     return -EINVAL;
+   snprintf(count, sizeof(count), "%u", frames);
+-  return sound_run(3, argv, NULL, NULL, 0, 0, sink, arg) ? -EIO : 0;
+-}
++  return sound_run(3, argv, NULL, NULL, 0, 0, sink, arg, NULL, NULL) ? -EIO : 0;
++}
+--- sdk/app/k7sound/k7sound_api.h
++++ app/k7sound/k7sound_api.h
+@@ -17,6 +17,9 @@
+  * no system-heap playback buffer is allocated. */
+ int k7sound_speak_mono16(const int16_t *pcm, unsigned frames,
+                          unsigned capture_frames);
++/* ECANCELED means playback cancellation and the normal cleanup succeeded. */
++int k7sound_speak_mono16_cancel(const int16_t *pcm, unsigned frames,
++                               int (*cancelled)(void *), void *arg);
+ 
+ #ifdef __cplusplus
+ }
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -7,6 +7,7 @@
+ #include <poll.h>
+ #include <pthread.h>
+ #include <stdint.h>
++#include <stdatomic.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -19,6 +20,25 @@
+ #endif
+ 
+ int k7sound_speak_mono16(const int16_t *, unsigned, unsigned);
++int k7sound_speak_mono16_cancel(const int16_t *,unsigned,int (*)(void *),void *);
++#include "board_voice_prompts.inc"
++static pthread_mutex_t tts_lock=PTHREAD_MUTEX_INITIALIZER;
++static atomic_bool tts_cancelled;
++static int tts_busy,tts_fd=-1,tts_result;
++static int playback_cancelled(void *arg) {(void)arg;return atomic_load(&tts_cancelled);}
++int k7cloud_tts_control(int stop)
++{
++  pthread_mutex_lock(&tts_lock);
++  if(stop)
++    {
++      atomic_store(&tts_cancelled,1);
++      if(tts_fd>=0)shutdown(tts_fd,SHUT_RDWR);
++      puts("K7CLOUD tts_stop requested=1");
++    }
++  else printf("K7CLOUD tts_state busy=%d result=%d cancelled=%d\n",tts_busy,tts_result,tts_result==-ECANCELED);
++  pthread_mutex_unlock(&tts_lock);
++  return 0;
++}
+ 
+ static int transfer(int fd, void *buffer, size_t bytes, int writing)
+ {
+@@ -163,23 +183,54 @@
+   free(p);return rc;
+ }
+ 
+-static int tts(int fd)
+-{
+-  char phrase[]="联网成功";unsigned char kind;uint32_t size=0;
+-  int rc=transfer(fd,(void *)"K7S1T",5,1);void *pcm=NULL;
+-  if(!rc)rc=send_packet(fd,'T',phrase,sizeof(phrase)-1);
++static int tts(int fd, const char *phrase, int prompt)
++{
++  unsigned char kind;uint32_t size=0;
++  int rc=transfer(fd,(void *)(prompt?"K7S1P":"K7S1T"),5,1);void *pcm=NULL;
++  if(!rc)rc=send_packet(fd,'T',(void *)phrase,strlen(phrase));
+   if(!rc)rc=header(fd,&kind,&size);
+   if(!rc && (kind!='D'||!size||size>960000||size%2))rc=-EINVAL;
+   if(!rc){pcm=malloc(size);if(!pcm)rc=-ENOMEM;}
+   if(!rc)rc=transfer(fd,pcm,size,0);
+-  if(!rc)rc=k7sound_speak_mono16(pcm,size/2,0);
++  if(atomic_load(&tts_cancelled))rc=-ECANCELED;
++  if(!rc)rc=k7sound_speak_mono16_cancel(pcm,size/2,playback_cancelled,NULL);
+   printf("K7CLOUD tts result=%d pcm_bytes=%lu\n",rc,(unsigned long)size);
+   free(pcm);return rc;
+ }
+ 
+ int k7cloud_board_speech(const char *mode,const char *ip)
+ {
+-  int fd=connect_server(ip);if(fd<0){printf("K7CLOUD connect result=%d\n",fd);return fd;}
+-  int rc=!strcmp(mode,"asr-live")?asr(fd):tts(fd);
+-  close(fd);return rc;
+-}
++  const char *phrase = NULL;
++  if (!strcmp(mode,"tts-test")) phrase="联网成功";
++  else if (strcmp(mode,"asr-live"))
++    {
++      for (unsigned int i=0;i<sizeof(k7_voice_prompts)/sizeof(k7_voice_prompts[0]);i++)
++        if (!strcmp(mode,k7_voice_prompts[i].key)) { phrase=k7_voice_prompts[i].text; break; }
++      if (!phrase) { puts("K7CLOUD prompt rejected=unknown_key"); return -EINVAL; }
++    }
++  if(!strcmp(mode,"asr-live"))
++    {
++      int fd=connect_server(ip);if(fd<0){printf("K7CLOUD connect result=%d\n",fd);return fd;}
++      int rc=asr(fd);close(fd);return rc;
++    }
++  pthread_mutex_lock(&tts_lock);
++  if(tts_busy){pthread_mutex_unlock(&tts_lock);puts("K7CLOUD prompt_done result=-16");return -EBUSY;}
++  tts_busy=1;tts_result=0;atomic_store(&tts_cancelled,0);
++  puts("K7CLOUD prompt_started busy=1");
++  pthread_mutex_unlock(&tts_lock);
++  int fd=connect_server(ip),rc=fd;
++  if(fd>=0)
++    {
++      pthread_mutex_lock(&tts_lock);tts_fd=fd;
++      int cancelled=atomic_load(&tts_cancelled);
++      pthread_mutex_unlock(&tts_lock);
++      rc=cancelled?-ECANCELED:tts(fd,phrase,strcmp(mode,"tts-test")!=0);
++    }
++  else if(atomic_load(&tts_cancelled))rc=-ECANCELED;
++  pthread_mutex_lock(&tts_lock);
++  tts_fd=-1;if(fd>=0)close(fd);
++  tts_busy=0;tts_result=rc;
++  printf("K7CLOUD prompt_done result=%d\n",rc);
++  pthread_mutex_unlock(&tts_lock);
++  return rc;
++}
+--- sdk/app/k7agent/cloud/src/k7cloud_main.c
++++ app/k7agent/cloud/src/k7cloud_main.c
+@@ -18,6 +18,7 @@
+ #  include "cloud_speech_mimo_adapter.h"
+ int k7cloud_capture_stream_probe(void);
+ int k7cloud_board_speech(const char *mode, const char *ip);
++int k7cloud_tts_control(int stop);
+ #endif
+ 
+ #ifdef K7CLOUD_RADIO_READINESS
+@@ -153,8 +154,16 @@
+ int main(int argc, char **argv)
+ {
+ #ifdef K7CLOUD_SPEECH_ORCHESTRATOR
++  if (argc == 2 && !strcmp(argv[1], "tts-stop")) return k7cloud_tts_control(1);
++  if (argc == 2 && !strcmp(argv[1], "tts-state")) return k7cloud_tts_control(0);
+   if (argc == 3 && (!strcmp(argv[1], "asr-live") || !strcmp(argv[1], "tts-test")))
+     return k7cloud_board_speech(argv[1], argv[2]) ? 1 : 0;
++  if (argc == 4 && !strcmp(argv[1], "tts-prompt"))
++    {
++      /* Key only: the table supplies text. Never pass raw ASR into a shell. */
++      if (!strcmp(argv[3],"asr-live") || !strcmp(argv[3],"tts-test")) return 1;
++      return k7cloud_board_speech(argv[3], argv[2]) ? 1 : 0;
++    }
+   if (argc == 2 && strcmp(argv[1], "capture-stream-check") == 0)
+     return k7cloud_capture_stream_probe() ? 1 : 0;
+ #endif
+--- sdk/app/k7agent/cloud/src/board_voice_prompts.inc
++++ app/k7agent/cloud/src/board_voice_prompts.inc
+@@ -0,0 +1,29 @@
++/* Generated by tools/generate_board_voice_prompts.py; UTF-8. */
++struct k7_prompt_entry { const char *key; const char *text; };
++static const struct k7_prompt_entry k7_voice_prompts[] = {
++  {"tracking_starting", "正在启动云台，请稍候。"},
++  {"tracking_ready", "云台已启动。您可以说开始测肤。"},
++  {"tracking_failed", "云台启动失败，请检查设备连接。"},
++  {"assessment_starting", "开始测肤，正在检测人脸和角度。"},
++  {"face_missing", "暂时没有检测到人脸，请面对摄像头。"},
++  {"front_aligning", "正在对准正面，请保持稳定。"},
++  {"front_ready", "正面角度已达标。"},
++  {"front_saved", "正面拍照完成。"},
++  {"left_aligning", "请向您的左侧缓慢转头，角度合适时会自动拍照。"},
++  {"left_ready", "左侧角度已达标。"},
++  {"left_saved", "左侧拍照完成。"},
++  {"right_aligning", "请向您的右侧缓慢转头，角度合适时会自动拍照。"},
++  {"right_ready", "右侧角度已达标。"},
++  {"right_saved", "右侧拍照完成。"},
++  {"capture_complete", "三视图拍摄完成，正在上传。"},
++  {"upload_accepted", "照片已提交，正在分析，请稍候。"},
++  {"upload_failed", "照片上传失败，尚未提交成功。"},
++  {"report_ready", "测肤报告已生成。"},
++  {"stop_requested", "正在停止云台。"},
++  {"tracking_stopped", "云台跟踪已停止。"},
++  {"chat_ready", "已恢复语音聊天。"},
++  {"chat_unavailable", "云台跟踪已停止，对话服务暂时不可用。"},
++  {"stop_failed", "停止状态尚未确认，请检查设备。"},
++  {"capture_saved_local", "三视图拍摄完成，照片已保存。"},
++  {"task_failed", "本轮操作未完成，已停止云台跟踪。"},
++};

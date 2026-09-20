@@ -1,0 +1,47 @@
+{
+  "command": [
+    "readelf",
+    "--debug-dump=macro",
+    "E:\\openvela\\VelaVision\\artifacts\\eh-control-20260910\\nuttx"
+  ],
+  "exit_code": 0,
+  "full_output_sha256": "f622e166770abe42eb8ad1c514ac02f86d64734b258e7c57527cc179d2bfa0a9",
+  "relevant_lines": [
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 438 macro : CONFIG_EXAMPLES_K7EH 1",
+    " DW_MACRO_define_strp - lineno : 439 macro : CONFIG_EXAMPLES_K7EHCONTROL 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 20 macro : K7EH_FAIL_CREATE (-1)",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 21 macro : K7EH_FAIL_CREATE (-1)",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : main k7ehcontrol_main",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1",
+    " DW_MACRO_define_strp - lineno : 0 macro : __NuttX__ 1"
+  ],
+  "unwanted_macro_mentions": {
+    "K7EH_HOST_TEST": false,
+    "K7EH_SLOW_READY": false,
+    "K7EH_BAD_COUNT": false
+  },
+  "note": "ELF debug macro evidence; exact compile-command/preprocessing confirmation requested separately"
+}

@@ -1,0 +1,32 @@
+--- a/app/k7sound/pio.c
++++ b/app/k7sound/pio.c
+@@ -141,7 +141,17 @@
+     if(now<start || now-start>=((uint64_t)frames*1000000u/16000u+100000u))
+       {rc=-110;goto done;}
+     if(rd(p,SAI_INTSR,&v))goto done;
+-    if(v&(tx?SAI_INTSR_TXUI_ACT:SAI_INTSR_RXOI_ACT)){rc=-75;goto done;}
++    if(v&(tx?SAI_INTSR_TXUI_ACT:SAI_INTSR_RXOI_ACT)){
++      uint32_t raw=0;
++      out->error_intsr=v;
++      if(!rd(p,tx?SAI_TXFIFOLR:SAI_RXFIFOLR,&raw)){
++        out->error_fifo_valid=1;out->error_fifo_raw=raw;
++      }
++      /* Diagnostic only: enqueued != physically emitted. Never waive TXUI. */
++      out->tx_tail_candidate=tx && out->frames==frames &&
++        out->error_fifo_valid && !pio_fifo_count(raw);
++      rc=-75;goto done;
++    }
+     if(rd(p,tx?SAI_TXFIFOLR:SAI_RXFIFOLR,&v))goto done;
+     if(!tx&&!out->polls)out->first_fifo_raw=v;
+     out->last_fifo_raw=v;
+--- a/app/k7sound/pio.h
++++ b/app/k7sound/pio.h
+@@ -24,6 +24,8 @@
+ struct pio_result {
+  unsigned frames,polls,prefill_words,max_fifo;
+  uint32_t first_fifo_raw,last_fifo_raw;
++ uint32_t error_intsr,error_fifo_raw;
++ unsigned error_fifo_valid,tx_tail_candidate; /* never an acceptance flag */
+  int result,stop_result,held,activation_result,start_result,amp_off_result;
+ };
+ struct pio_stats {int64_t sum[2];int32_t min[2],max[2];unsigned nonzero[2];};

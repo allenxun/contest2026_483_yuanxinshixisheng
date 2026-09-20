@@ -1,0 +1,401 @@
+[0/2] Re-checking globbed directories...
+[1/15] Linking CXX static library _deps/abseil_cpp-build/absl/flags/libabsl_flags_reflection.a
+[2/15] Linking CXX static library _deps/abseil_cpp-build/absl/flags/libabsl_flags_internal.a
+[3/15] Linking CXX static library _deps/flatbuffers-build/libflatbuffers.a
+[4/15] Linking CXX static library libonnxruntime_flatbuffers.a
+[5/15] Linking CXX static library libonnxruntime_mlas.a
+[6/15] Linking CXX static library libonnxruntime_common.a
+[7/15] Linking CXX static library libonnxruntime_graph.a
+[8/15] Linking CXX static library libonnxruntime_util.a
+[9/15] Linking CXX static library _deps/onnx-build/libonnx.a
+[10/15] Linking CXX static library libonnxruntime_framework.a
+[11/15] Linking CXX static library libonnxruntime_optimizer.a
+[12/15] Linking CXX static library libonnxruntime_providers.a
+[13/15] Building CXX object CMakeFiles/onnxruntime_session.dir/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc.obj
+In file included from /dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/parse_context.h:47,
+                 from /dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/extension_set.h:53,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/onnx-build/onnx/onnx-ml.pb.h:30,
+                 from /dev/shm/velavision-ort-session-20260911/sources/onnx/onnx/onnx_pb.h:65,
+                 from /dev/shm/velavision-ort-session-20260911/sources/onnx/onnx/defs/data_type_utils.h:14,
+                 from /dev/shm/velavision-ort-session-20260911/sources/onnx/onnx/defs/shape_inference.h:13,
+                 from /dev/shm/velavision-ort-session-20260911/sources/onnx/onnx/defs/schema.h:26,
+                 from /dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/onnx_protobuf.h:22,
+                 from /dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc:4:
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/inlined_string_field.h:430:5: warning: "GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE" is not defined, evaluates to 0 [-Wundef]
+  430 | #if GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.h:11,
+                 from /dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc:5:
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/common.h:88:6: warning: "_MSC_VER" is not defined, evaluates to 0 [-Wundef]
+   88 | #if (_MSC_VER && !defined(__PRETTY_FUNCTION__))
+      |      ^~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/platform/ort_mutex.h:105,
+                 from /dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/common/profiler.h:14,
+                 from /dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.h:15:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:80:8: warning: "NSYNC_USE_CPP11_TIMEPOINT" is not defined, evaluates to 0 [-Wundef]
+   80 |       (NSYNC_USE_CPP11_TIMEPOINT || (__cplusplus >= 201103L) || (_MSC_VER >= 1700))
+      |        ^~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena.h:52,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/onnx-build/onnx/onnx-ml.pb.h:24:
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h: In constructor 'google::protobuf::internal::SerialArena::Block::Block(google::protobuf::internal::SerialArena::Block*, size_t)':
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:31: warning: declaration of 'size' shadows a member of 'google::protobuf::internal::SerialArena::Block' [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |                        ~~~~~~~^~~~
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:392:18: note: shadowed declaration is here
+  392 |     const size_t size;
+      |                  ^~~~
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:18: warning: declaration of 'next' shadows a member of 'google::protobuf::internal::SerialArena::Block' [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |           ~~~~~~~^~~~
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:391:18: note: shadowed declaration is here
+  391 |     Block* const next;
+      |                  ^~~~
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h: In constructor 'google::protobuf::internal::SerialArena::Block::Block(google::protobuf::internal::SerialArena::Block*, size_t)':
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:31: warning: declaration of 'size' shadows a member of 'google::protobuf::internal::SerialArena::Block' [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |                        ~~~~~~~^~~~
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:392:18: note: shadowed declaration is here
+  392 |     const size_t size;
+      |                  ^~~~
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:18: warning: declaration of 'next' shadows a member of 'google::protobuf::internal::SerialArena::Block' [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |           ~~~~~~~^~~~
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:391:18: note: shadowed declaration is here
+  391 |     Block* const next;
+      |                  ^~~~
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h: In constructor 'google::protobuf::internal::SerialArena::Block::Block(google::protobuf::internal::SerialArena::Block*, size_t)':
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:31: warning: declaration of 'size' shadows a member of 'google::protobuf::internal::SerialArena::Block' [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |                        ~~~~~~~^~~~
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:392:18: note: shadowed declaration is here
+  392 |     const size_t size;
+      |                  ^~~~
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:384:18: warning: declaration of 'next' shadows a member of 'google::protobuf::internal::SerialArena::Block' [-Wshadow]
+  384 |     Block(Block* next, size_t size) : next(next), size(size), start(nullptr) {}
+      |           ~~~~~~~^~~~
+/dev/shm/velavision-ort-session-20260911/sources/protobuf/src/google/protobuf/arena_impl.h:391:18: note: shadowed declaration is here
+  391 |     Block* const next;
+      |                  ^~~~
+In file included from /dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/common.h:35:
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h: In constructor 'onnxruntime::CodeLocation::CodeLocation(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)':
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105: warning: declaration of 'stacktrace' shadows a member of 'onnxruntime::CodeLocation' [-Wshadow]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, const std::vector<std::string>& stacktrace)
+      |                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34: note: shadowed declaration is here
+   55 |   const std::vector<std::string> stacktrace;
+      |                                  ^~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h: In constructor 'onnxruntime::CodeLocation::CodeLocation(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)':
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105: warning: declaration of 'stacktrace' shadows a member of 'onnxruntime::CodeLocation' [-Wshadow]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, const std::vector<std::string>& stacktrace)
+      |                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34: note: shadowed declaration is here
+   55 |   const std::vector<std::string> stacktrace;
+      |                                  ^~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h: In constructor 'onnxruntime::CodeLocation::CodeLocation(const char*, int, const char*, const std::__1::vector<std::__1::basic_string<char> >&)':
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:30:105: warning: declaration of 'stacktrace' shadows a member of 'onnxruntime::CodeLocation' [-Wshadow]
+   30 |   CodeLocation(const char* file_path, const int line, const char* func, const std::vector<std::string>& stacktrace)
+      |                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/common/code_location.h:55:34: note: shadowed declaration is here
+   55 |   const std::vector<std::string> stacktrace;
+      |                                  ^~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/tensor.h:14,
+                 from /dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/execution_provider.h:14,
+                 from /dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/execution_providers.h:11,
+                 from /dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.h:17:
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h: In constructor 'OrtArenaCfg::OrtArenaCfg(size_t, int, int, int, int, int64_t)':
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:26:23: warning: declaration of 'max_power_of_two_extend_bytes' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   26 |               int64_t max_power_of_two_extend_bytes)
+      |               ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:39:11: note: shadowed declaration is here
+   39 |   int64_t max_power_of_two_extend_bytes;  // use -1 to allow ORT to choose the default
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:49: warning: declaration of 'initial_growth_chunk_size_bytes' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   25 |               int max_dead_bytes_per_chunk, int initial_growth_chunk_size_bytes,
+      |                                             ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:38:7: note: shadowed declaration is here
+   38 |   int initial_growth_chunk_size_bytes;    // use -1 to allow ORT to choose the default
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:19: warning: declaration of 'max_dead_bytes_per_chunk' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   25 |               int max_dead_bytes_per_chunk, int initial_growth_chunk_size_bytes,
+      |               ~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:37:7: note: shadowed declaration is here
+   37 |   int max_dead_bytes_per_chunk;           // use -1 to allow ORT to choose the default
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:62: warning: declaration of 'initial_chunk_size_bytes' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |                                                          ~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:36:7: note: shadowed declaration is here
+   36 |   int initial_chunk_size_bytes;           // use -1 to allow ORT to choose the default
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:35: warning: declaration of 'arena_extend_strategy' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |                               ~~~~^~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:35:7: note: shadowed declaration is here
+   35 |   int arena_extend_strategy;              // use -1 to allow ORT to choose the default, 0 = kNextPowerOfTwo, 1 = kSameAsRequested
+      |       ^~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:22: warning: declaration of 'max_mem' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |               ~~~~~~~^~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:34:10: note: shadowed declaration is here
+   34 |   size_t max_mem;                         // use 0 to allow ORT to choose the default
+      |          ^~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h: In constructor 'OrtArenaCfg::OrtArenaCfg(size_t, int, int, int, int, int64_t)':
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:26:23: warning: declaration of 'max_power_of_two_extend_bytes' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   26 |               int64_t max_power_of_two_extend_bytes)
+      |               ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:39:11: note: shadowed declaration is here
+   39 |   int64_t max_power_of_two_extend_bytes;  // use -1 to allow ORT to choose the default
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:49: warning: declaration of 'initial_growth_chunk_size_bytes' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   25 |               int max_dead_bytes_per_chunk, int initial_growth_chunk_size_bytes,
+      |                                             ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:38:7: note: shadowed declaration is here
+   38 |   int initial_growth_chunk_size_bytes;    // use -1 to allow ORT to choose the default
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:19: warning: declaration of 'max_dead_bytes_per_chunk' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   25 |               int max_dead_bytes_per_chunk, int initial_growth_chunk_size_bytes,
+      |               ~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:37:7: note: shadowed declaration is here
+   37 |   int max_dead_bytes_per_chunk;           // use -1 to allow ORT to choose the default
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:62: warning: declaration of 'initial_chunk_size_bytes' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |                                                          ~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:36:7: note: shadowed declaration is here
+   36 |   int initial_chunk_size_bytes;           // use -1 to allow ORT to choose the default
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:35: warning: declaration of 'arena_extend_strategy' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |                               ~~~~^~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:35:7: note: shadowed declaration is here
+   35 |   int arena_extend_strategy;              // use -1 to allow ORT to choose the default, 0 = kNextPowerOfTwo, 1 = kSameAsRequested
+      |       ^~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:22: warning: declaration of 'max_mem' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |               ~~~~~~~^~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:34:10: note: shadowed declaration is here
+   34 |   size_t max_mem;                         // use 0 to allow ORT to choose the default
+      |          ^~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h: In constructor 'OrtArenaCfg::OrtArenaCfg(size_t, int, int, int, int, int64_t)':
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:26:23: warning: declaration of 'max_power_of_two_extend_bytes' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   26 |               int64_t max_power_of_two_extend_bytes)
+      |               ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:39:11: note: shadowed declaration is here
+   39 |   int64_t max_power_of_two_extend_bytes;  // use -1 to allow ORT to choose the default
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:49: warning: declaration of 'initial_growth_chunk_size_bytes' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   25 |               int max_dead_bytes_per_chunk, int initial_growth_chunk_size_bytes,
+      |                                             ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:38:7: note: shadowed declaration is here
+   38 |   int initial_growth_chunk_size_bytes;    // use -1 to allow ORT to choose the default
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:25:19: warning: declaration of 'max_dead_bytes_per_chunk' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   25 |               int max_dead_bytes_per_chunk, int initial_growth_chunk_size_bytes,
+      |               ~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:37:7: note: shadowed declaration is here
+   37 |   int max_dead_bytes_per_chunk;           // use -1 to allow ORT to choose the default
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:62: warning: declaration of 'initial_chunk_size_bytes' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |                                                          ~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:36:7: note: shadowed declaration is here
+   36 |   int initial_chunk_size_bytes;           // use -1 to allow ORT to choose the default
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:35: warning: declaration of 'arena_extend_strategy' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |                               ~~~~^~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:35:7: note: shadowed declaration is here
+   35 |   int arena_extend_strategy;              // use -1 to allow ORT to choose the default, 0 = kNextPowerOfTwo, 1 = kSameAsRequested
+      |       ^~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:24:22: warning: declaration of 'max_mem' shadows a member of 'OrtArenaCfg' [-Wshadow]
+   24 |   OrtArenaCfg(size_t max_mem, int arena_extend_strategy, int initial_chunk_size_bytes,
+      |               ~~~~~~~^~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:34:10: note: shadowed declaration is here
+   34 |   size_t max_mem;                         // use 0 to allow ORT to choose the default
+      |          ^~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h: In lambda function:
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:185:73: warning: declaration of 'p' shadows a previous local [-Wshadow]
+  185 |                                   [allocator = std::move(allocator)](T* p) {
+      |                                                                      ~~~^
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:181:8: note: shadowed declaration is here
+  181 |     T* p = static_cast<T*>(AllocateBufferWithOptions(*allocator, alloc_size, use_reserve, stream, std::move(wait_fn)));
+      |        ^
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h: In lambda function:
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:213:54: warning: declaration of 'p' shadows a previous local [-Wshadow]
+  213 |                                   [ort_allocator](T* p) {
+      |                                                   ~~~^
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/allocator.h:209:8: note: shadowed declaration is here
+  209 |     T* p = static_cast<T*>(ort_allocator->Alloc(ort_allocator, alloc_size));
+      |        ^
+In file included from /dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/float16.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/data_types.h:17,
+                 from /dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/tensor.h:18:
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/session/onnxruntime_float16.h: In lambda function:
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/session/onnxruntime_float16.h:493:16: warning: declaration of 'result' shadows a previous local [-Wshadow]
+  493 |       uint16_t result;
+      |                ^~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/session/onnxruntime_float16.h:488:12: note: shadowed declaration is here
+  488 |   uint16_t result;
+      |            ^~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/ort/include/onnxruntime/core/framework/execution_provider.h:29:
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h: In constructor 'onnxruntime::AllocatorCreationInfo::AllocatorCreationInfo(onnxruntime::AllocatorFactory, OrtDevice::DeviceId, bool, OrtArenaCfg, bool, bool)':
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:21:37: warning: declaration of 'arena_cfg' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   21 |                         OrtArenaCfg arena_cfg = {0, -1, -1, -1, -1, -1L},
+      |                         ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:35:15: note: shadowed declaration is here
+   35 |   OrtArenaCfg arena_cfg;
+      |               ^~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:20:30: warning: declaration of 'use_arena' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   20 |                         bool use_arena = true,
+      |                         ~~~~~^~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:34:8: note: shadowed declaration is here
+   34 |   bool use_arena;
+      |        ^~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:19:45: warning: declaration of 'device_id' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   19 |                         OrtDevice::DeviceId device_id = 0,
+      |                         ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:33:23: note: shadowed declaration is here
+   33 |   OrtDevice::DeviceId device_id;
+      |                       ^~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:18:42: warning: declaration of 'device_alloc_factory' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   18 |   AllocatorCreationInfo(AllocatorFactory device_alloc_factory,
+      |                         ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:32:20: note: shadowed declaration is here
+   32 |   AllocatorFactory device_alloc_factory;
+      |                    ^~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h: In constructor 'onnxruntime::AllocatorCreationInfo::AllocatorCreationInfo(onnxruntime::AllocatorFactory, OrtDevice::DeviceId, bool, OrtArenaCfg, bool, bool)':
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:21:37: warning: declaration of 'arena_cfg' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   21 |                         OrtArenaCfg arena_cfg = {0, -1, -1, -1, -1, -1L},
+      |                         ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:35:15: note: shadowed declaration is here
+   35 |   OrtArenaCfg arena_cfg;
+      |               ^~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:20:30: warning: declaration of 'use_arena' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   20 |                         bool use_arena = true,
+      |                         ~~~~~^~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:34:8: note: shadowed declaration is here
+   34 |   bool use_arena;
+      |        ^~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:19:45: warning: declaration of 'device_id' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   19 |                         OrtDevice::DeviceId device_id = 0,
+      |                         ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:33:23: note: shadowed declaration is here
+   33 |   OrtDevice::DeviceId device_id;
+      |                       ^~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:18:42: warning: declaration of 'device_alloc_factory' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   18 |   AllocatorCreationInfo(AllocatorFactory device_alloc_factory,
+      |                         ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:32:20: note: shadowed declaration is here
+   32 |   AllocatorFactory device_alloc_factory;
+      |                    ^~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h: In constructor 'onnxruntime::AllocatorCreationInfo::AllocatorCreationInfo(onnxruntime::AllocatorFactory, OrtDevice::DeviceId, bool, OrtArenaCfg, bool, bool)':
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:21:37: warning: declaration of 'arena_cfg' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   21 |                         OrtArenaCfg arena_cfg = {0, -1, -1, -1, -1, -1L},
+      |                         ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:35:15: note: shadowed declaration is here
+   35 |   OrtArenaCfg arena_cfg;
+      |               ^~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:20:30: warning: declaration of 'use_arena' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   20 |                         bool use_arena = true,
+      |                         ~~~~~^~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:34:8: note: shadowed declaration is here
+   34 |   bool use_arena;
+      |        ^~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:19:45: warning: declaration of 'device_id' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   19 |                         OrtDevice::DeviceId device_id = 0,
+      |                         ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:33:23: note: shadowed declaration is here
+   33 |   OrtDevice::DeviceId device_id;
+      |                       ^~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:18:42: warning: declaration of 'device_alloc_factory' shadows a member of 'onnxruntime::AllocatorCreationInfo' [-Wshadow]
+   18 |   AllocatorCreationInfo(AllocatorFactory device_alloc_factory,
+      |                         ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/framework/allocator_utils.h:32:20: note: shadowed declaration is here
+   32 |   AllocatorFactory device_alloc_factory;
+      |                    ^~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc:38:
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h: In constructor 'onnxruntime::ModelOptions::ModelOptions(bool, bool)':
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:39:54: warning: declaration of 'strict_shape_type_inference' shadows a member of 'onnxruntime::ModelOptions' [-Wshadow]
+   39 |   ModelOptions(bool allow_released_opsets_only, bool strict_shape_type_inference)
+      |                                                 ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:37:8: note: shadowed declaration is here
+   37 |   bool strict_shape_type_inference;
+      |        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:39:21: warning: declaration of 'allow_released_opsets_only' shadows a member of 'onnxruntime::ModelOptions' [-Wshadow]
+   39 |   ModelOptions(bool allow_released_opsets_only, bool strict_shape_type_inference)
+      |                ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:32:8: note: shadowed declaration is here
+   32 |   bool allow_released_opsets_only;
+      |        ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h: In constructor 'onnxruntime::ModelOptions::ModelOptions(bool, bool)':
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:39:54: warning: declaration of 'strict_shape_type_inference' shadows a member of 'onnxruntime::ModelOptions' [-Wshadow]
+   39 |   ModelOptions(bool allow_released_opsets_only, bool strict_shape_type_inference)
+      |                                                 ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:37:8: note: shadowed declaration is here
+   37 |   bool strict_shape_type_inference;
+      |        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:39:21: warning: declaration of 'allow_released_opsets_only' shadows a member of 'onnxruntime::ModelOptions' [-Wshadow]
+   39 |   ModelOptions(bool allow_released_opsets_only, bool strict_shape_type_inference)
+      |                ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:32:8: note: shadowed declaration is here
+   32 |   bool allow_released_opsets_only;
+      |        ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h: In constructor 'onnxruntime::ModelOptions::ModelOptions(bool, bool)':
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:39:54: warning: declaration of 'strict_shape_type_inference' shadows a member of 'onnxruntime::ModelOptions' [-Wshadow]
+   39 |   ModelOptions(bool allow_released_opsets_only, bool strict_shape_type_inference)
+      |                                                 ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:37:8: note: shadowed declaration is here
+   37 |   bool strict_shape_type_inference;
+      |        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:39:21: warning: declaration of 'allow_released_opsets_only' shadows a member of 'onnxruntime::ModelOptions' [-Wshadow]
+   39 |   ModelOptions(bool allow_released_opsets_only, bool strict_shape_type_inference)
+      |                ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/graph/model.h:32:8: note: shadowed declaration is here
+   32 |   bool allow_released_opsets_only;
+      |        ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc: In lambda function:
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc:1131:43: warning: declaration of 'onnxruntime::Graph& graph' shadows a parameter [-Wshadow]
+ 1131 |                                    Graph& graph) {
+      |                                    ~~~~~~~^~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc:1106:69: note: shadowed declaration is here
+ 1106 | common::Status InferenceSession::TransformGraph(onnxruntime::Graph& graph, bool saving_model_in_ort_format) {
+      |                                                 ~~~~~~~~~~~~~~~~~~~~^~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc: In lambda function:
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc:1199:57: warning: declaration of 'const onnxruntime::Graph& graph' shadows a parameter [-Wshadow]
+ 1199 |       debug_graph_fn = [counter = 1, this](const Graph& graph) mutable {
+      |                                            ~~~~~~~~~~~~~^~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc:1106:69: note: shadowed declaration is here
+ 1106 | common::Status InferenceSession::TransformGraph(onnxruntime::Graph& graph, bool saving_model_in_ort_format) {
+      |                                                 ~~~~~~~~~~~~~~~~~~~~^~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc: In lambda function:
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc:1364:80: warning: declaration of 'fbs_session' shadows a previous local [-Wshadow]
+ 1364 |   const auto has_saved_runtime_optimizations = [](const fbs::InferenceSession& fbs_session) -> bool {
+      |                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc:1340:15: note: shadowed declaration is here
+ 1340 |   const auto* fbs_session = fbs::GetInferenceSession(ort_format_model_bytes_.data());
+      |               ^~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc: In lambda function:
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc:1850:61: warning: declaration of 'graph' shadows a previous local [-Wshadow]
+ 1850 |         auto are_nodes_assigned_to_cpu_ep = [](const Graph& graph) -> bool {
+      |                                                ~~~~~~~~~~~~~^~~~~
+/dev/shm/velavision-ort-session-20260911/ort/onnxruntime/core/session/inference_session.cc:1606:25: note: shadowed declaration is here
+ 1606 |     onnxruntime::Graph& graph = model_->MainGraph();
+      |                         ^~~~~
+[14/15] Linking CXX static library libonnxruntime_session.a

@@ -1,0 +1,58 @@
+{
+  "team": "远信实习生",
+  "project": "VelaVision 智能测肤云台",
+  "branch": "dev-ai-contest-2026",
+  "track": "new_hardware_porting",
+  "include": [
+    "app/k7host",
+    "app/gimbal",
+    "app/k7npu",
+    "app/k7radio",
+    "app/k7usb",
+    "app/k7agent",
+    "app/k7audio",
+    "app/k7sound",
+    "board/kickpi_k7",
+    "port",
+    "mcu",
+    "host",
+    "frontend",
+    "config",
+    "patches",
+    "tests",
+    "tools",
+    "docs",
+    "evidence",
+    "skills/k7-openvela-driver-port",
+    "logs/maomaojiang01",
+    "contest2026_483_yuanxinshixisheng.xml",
+    "project-manifest.json",
+    "README.md"
+  ],
+  "exclude": [
+    "private",
+    "legacy",
+    "baselines",
+    "vm-archive",
+    "work-in-progress",
+    "deploy",
+    "third_party",
+    "artifacts",
+    "*.pyc",
+    "__pycache__"
+  ],
+  "linkfiles": [
+    {"src": "app/k7host", "dest": "apps/examples/k7host"},
+    {"src": "app/gimbal", "dest": "apps/examples/gimbal"},
+    {"src": "app/k7npu", "dest": "apps/examples/k7npu"},
+    {"src": "app/k7radio", "dest": "apps/examples/k7radio"},
+    {"src": "app/k7usb", "dest": "apps/examples/k7usb"},
+    {"src": "board/kickpi_k7", "dest": "nuttx/boards/arm64/rk3576/kickpi_k7"}
+  ],
+  "truth_boundary": {
+    "two_hour_coexistence": "not_passed",
+    "ten_round_closed_loop": "not_passed",
+    "independent_recovery": "not_passed",
+    "mock_narration_is_formal_report": false
+  }
+}

@@ -1,0 +1,22 @@
+[Unit]
+Description=VelaVision Alibaba speech gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=bool
+Group=bool
+WorkingDirectory=/home/bool/velavision-speech/releases/20260915T034307Z
+EnvironmentFile=/home/bool/velavision-speech/releases/20260915T034307Z/speech.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/home/bool/velavision-speech/venv/bin/python -m host.streaming_asr.serve --service-dir /home/bool/velavision-speech/releases/20260915T034307Z/service --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

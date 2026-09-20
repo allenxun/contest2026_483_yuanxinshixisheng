@@ -1,0 +1,67 @@
+{
+  "revision": "voice-ort-add-20260911",
+  "build_exit_code": 0,
+  "hardware_tested": false,
+  "sources": {
+    "app/voicelink/CMakeLists.txt": "872b9d3af864a2ba80c8ef895f5b592c229066f69b77eb447a12d44cf48f9713",
+    "app/voicelink/src/k7voice_main.cpp": "40921eef66db2f8d78bdc7915d85b627948597368f9595313eae7f3b4ef0dc6e"
+  },
+  "runtime_sha256": "bad4bf018ef10914394d3114e5a869574f89665c5cf52e0f242ac73ecbbbf183",
+  "artifacts": {
+    "nuttx": {
+      "bytes": 34863392,
+      "sha256": "b84aed64b247e0375302449ea5f87b55de4aa912fc7a94d3d6c8092f24a70144"
+    },
+    "nuttx.bin": {
+      "bytes": 10514736,
+      "sha256": "522047a5f8d6197ea0285227e581f3bce06e04ed23fb101af3dadc61b4f6fdd2"
+    },
+    ".config": {
+      "bytes": 64532,
+      "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+    }
+  },
+  "limitation": "Explicit Add diagnostic only; no ASR/TTS. Runtime support localeconv was compiled from real NuttX source in isolated TU.",
+  "records": [
+    {
+      "name": "sync-check",
+      "command": [
+        "python3",
+        "/home/swl/openvela/work/velavision-project/tools/sync_sdk.py",
+        "--sdk",
+        "/home/swl/openvela",
+        "--check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "sync-apply",
+      "command": [
+        "python3",
+        "/home/swl/openvela/work/velavision-project/tools/sync_sdk.py",
+        "--sdk",
+        "/home/swl/openvela",
+        "--apply"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "configure",
+      "command": [
+        "bash",
+        "-c",
+        "source build/envsetup.sh >/dev/null && cmake -S nuttx -B /home/swl/openvela/cmake_out/velavision_voice_ort_add_20260911 -G Ninja -DBOARD_CONFIG=kickpi_k7:velavision_audio_sound_local -DK7VOICE_NATIVE_ORT_ADD=ON -DK7VOICE_ORT_OBJECT=/home/swl/openvela/work/native-ort-add-runtime-20260911/runtime.o -DK7VOICE_ORT_OBJECT_SHA256=bad4bf018ef10914394d3114e5a869574f89665c5cf52e0f242ac73ecbbbf183"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "command": [
+        "bash",
+        "-c",
+        "source build/envsetup.sh >/dev/null && cmake --build /home/swl/openvela/cmake_out/velavision_voice_ort_add_20260911 -j4"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

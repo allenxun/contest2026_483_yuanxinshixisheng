@@ -1,0 +1,52 @@
+--- a/cmake/CMakeLists.txt
++++ b/cmake/CMakeLists.txt
+@@ -872,8 +872,11 @@
+     if(onnxruntime_DISABLE_ABSEIL)
+       target_compile_definitions(${target_name} PRIVATE DISABLE_ABSEIL)
+     endif()
+-    if(UNIX)
++    if(UNIX OR CMAKE_SYSTEM_NAME STREQUAL "NuttX")
+       target_compile_definitions(${target_name} PRIVATE PLATFORM_POSIX)
++    endif()
++    if(CMAKE_SYSTEM_NAME STREQUAL "NuttX")
++      target_compile_definitions(${target_name} PRIVATE ORT_K7_NUTTX)
+     endif()
+     target_compile_definitions(${target_name} PRIVATE EIGEN_USE_THREADS)
+     if (onnxruntime_DISABLE_CONTRIB_OPS)
+--- a/cmake/external/onnxruntime_external_deps.cmake
++++ b/cmake/external/onnxruntime_external_deps.cmake
+@@ -85,7 +85,7 @@
+ 
+ # Flatbuffers
+ # We do not need to build flatc for iOS or Android Cross Compile
+-if (CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
++if (CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "Emscripten" OR CMAKE_SYSTEM_NAME STREQUAL "NuttX")
+   set(FLATBUFFERS_BUILD_FLATC OFF CACHE BOOL "FLATBUFFERS_BUILD_FLATC" FORCE)
+ endif()
+ set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "FLATBUFFERS_BUILD_TESTS" FORCE)
+@@ -273,6 +273,13 @@
+   set(CPUINFO_SUPPORTED FALSE)
+ endif()
+ 
++if(CMAKE_SYSTEM_NAME STREQUAL "NuttX")
++  set(CPUINFO_SUPPORTED FALSE)
++  if(onnxruntime_USE_XNNPACK)
++    message(FATAL_ERROR "NuttX CPU gate does not support XNNPACK/cpuinfo")
++  endif()
++endif()
++
+ # xnnpack depends on clog
+ # Android build should use the system's log library instead of clog
+ if ((CPUINFO_SUPPORTED OR onnxruntime_USE_XNNPACK) AND NOT ANDROID)
+--- a/cmake/onnxruntime_mlas.cmake
++++ b/cmake/onnxruntime_mlas.cmake
+@@ -323,6 +323,9 @@
+         endif()
+     endif()
+     if(ARM64 AND MLAS_SOURCE_IS_NOT_SET )
++        if(CMAKE_SYSTEM_NAME STREQUAL "NuttX" AND NOT CMAKE_ASM_COMPILER)
++            message(FATAL_ERROR "Set real target CMAKE_ASM_COMPILER in NuttX toolchain")
++        endif()
+         enable_language(ASM)
+         set(mlas_platform_srcs
+           ${MLAS_SRC_DIR}/aarch64/ConvSymS8KernelDot.S

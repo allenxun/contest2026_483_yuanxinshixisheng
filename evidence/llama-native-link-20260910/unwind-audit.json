@@ -1,0 +1,31 @@
+{
+  "elf": "E:\\openvela\\VelaVision\\evidence\\llama-native-link-20260910\\llama-link.elf",
+  "sha256": "1ec6625d7f36f76b90af390dbb30d118913d8306fb45fafd6cf0ce99f0b3e1dc",
+  "checks": {
+    "eh_frame_present": true,
+    "lsda_consolidated_nonempty": true,
+    "no_orphan_lsda": true,
+    "valid_records_terminal_zero_no_hidden_records": true,
+    ".eh_frame_readonly_file_load": true,
+    ".eh_frame_inside_rodata_mmu_range": true,
+    ".gcc_except_table_readonly_file_load": true,
+    ".gcc_except_table_inside_rodata_mmu_range": true,
+    "registration_symbol": true,
+    "first_initializer_is_unwind_registration": true,
+    "start_symbol_exact": true,
+    "end_symbol_exact": true
+  },
+  "records": {
+    "cie": 2,
+    "fde": 2323
+  },
+  "first_initializer": "0x40579f38",
+  "passed": true,
+  "hardware_tested": false,
+  "limitations": [
+    "No startup call-order proof",
+    "No full DWARF/FDE PC coverage proof",
+    "No registration call disassembly proof",
+    "No runtime exception proof"
+  ]
+}

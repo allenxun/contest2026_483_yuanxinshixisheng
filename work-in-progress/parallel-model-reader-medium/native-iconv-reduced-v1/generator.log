@@ -1,0 +1,6 @@
+2026-09-11 11:37:51,930 tools_python_utils [INFO] - flatbuffers module is not installed. parse_config will not be available
+Traceback (most recent call last):
+  File "E:\openvela\VelaVision\work-in-progress\native-voice-sources\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\tools\ci_build\reduce_op_kernels.py", line 24, in <module>
+    from util import parse_config  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ImportError: cannot import name 'parse_config' from 'util' (E:\openvela\VelaVision\work-in-progress\native-voice-sources\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\tools\python\util\__init__.py)

@@ -1,0 +1,62 @@
+k7radio sdio-boot
+RADIO PMU repair=85ffffff idle=00000001 ack=00000001
+RADIO CRU gate42=00000000 reset42=00000000 clksel104=00002f02 gate17=00000000
+RADIO IOC Bhigh=00000000 Clow=00000000 Chigh=00000000
+RADIO scope=SDMMC1-only firmware=0 wifi=0 bluetooth=0
+RADIO id13 C4/C5 GPIO inputs pull-up; C6 pull-up, pullC=00007ff5 ext=003c0bff
+SDIO controller ver=5342270a hcon=04c434c1
+RADIO GPIO1 ver=010219c8 drh=00000040 ddrh=00000040 ext=007dfbff
+RADIO SDIO ctrl=00000000 clkdiv=00000000 clkena=00000001 uhs=00000000
+RADIO SDIO usrid=20230001 phase_out=00000002 phase_in=00000000
+RADIO PAD ieB=000000ff ieC=000000ff pullB=0000ffd7 pullC=00007fff
+RADIO PAD driveBhigh=00002222 driveClow=00006622 expected_masked=2222/22
+RADIO PAD observed_changes=00020000 clock_changes=800 (sampled, not frequency measurement)
+SDIO init_hz=400000 (configured, not measured)
+SDIO CMD52 pad_samples=561 cmd_changes=10 clk_changes=336
+SDIO CMD52 arg=00000c00 irq=00000100 status=00000106
+SDIO CMD52 pad_samples=381 cmd_changes=14 clk_changes=236
+SDIO CMD52 arg=80000c08 irq=00000100 status=00000106
+SDIO pre-reset read_ret=-5 write_ret=-5 r5=00000000
+SDIO CMD0 pad_samples=203 cmd_changes=10 clk_changes=122
+SDIO CMD5 pad_samples=171 cmd_changes=20 clk_changes=102
+SDIO OCR initial=90ffff00 functions=1
+SDIO CMD5 pad_samples=124 cmd_changes=16 clk_changes=80
+SDIO RCA=0001
+SDIO CCCR=43 caps=17
+SDIO CIS base=000 ptr=001000
+SDIO ID vendor=1ffe device=6621
+RADIO data mode 4-bit 12000000Hz configured CCCR07=02
+RADIO id36 F1 ready; bind_ret=0
+RADIO CMD53 chip bytes: 53 56 36 31 36 30 4c 49 54 45 00 00 00 00 00 01
+RADIO chip_probe_ret=0 lite_verified=1 host_bytes=16 card_bytes=16 raw=00000000 status=00000000 cleanup=0
+RADIO FW write 20200000 ret=0 completed=193224/193224
+RADIO FW verified 20200000 bytes=193224 crc16=2a29
+RADIO FW write 00100000 ret=0 completed=356616/356616
+RADIO FW verified 00100000 bytes=356616 crc16=d34b
+RADIO pre-start window[0]=00
+RADIO pre-start window[1]=70
+RADIO pre-start window[2]=15
+RADIO pre-start window[3]=00
+RADIO notify cccr05=02 fifo=00->01 GPIO=207dfbff
+RADIO RX bytes=2048 valid=79 next=0 header=013f004f
+RADIO RX channel=1 len=79
+RADIO CP message: trunk_W23.20.2-rev36403-rev36425-rev36426 20250611-01:36:19, slp=0
+
+RADIO notify cccr05=02 fifo=01->02 GPIO=207ffbff
+RADIO RX bytes=2048 valid=21 next=0 header=013f0015
+RADIO RX channel=1 len=21
+RADIO CP message: WIFIREADY
+RADIO notify cccr05=02 fifo=02->03 GPIO=207dfbff
+RADIO RX bytes=2048 valid=19 next=0 header=013f0013
+RADIO RX channel=1 len=19
+RADIO CP message: BTREADY
+RADIO notify cccr05=02 fifo=03->05 GPIO=207dfbff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12
+RADIO notify cccr05=00 fifo=05->05 GPIO=207dfbff
+RADIO RX bytes=2048 valid=27 next=0 header=023f001b
+RADIO RX channel=2 len=27
+RADIO HCI event: 0e 0c 01 01 10 00 0c 02 53 0c 4d 0c 0d 00
+RADIO id36 boot_ret=0 cp_ready=1 wifi_ready=1 bt_ready=1; network_connected=0 paired=0
+RADIO final fault=0 raw=00000000 status=00000000 host=0 card=2048 cleanup=0
+nsh> [K

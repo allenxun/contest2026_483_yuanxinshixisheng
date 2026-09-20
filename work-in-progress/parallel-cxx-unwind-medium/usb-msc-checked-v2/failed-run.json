@@ -1,0 +1,26 @@
+[
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "gcc.EXE (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
+  },
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-O2",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\mock-replay.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\mock-replay.exe"
+    ],
+    "exit_code": 1,
+    "output": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\mock-replay.c: In function 'usbhost_getle32':\nE:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\mock-replay.c:7:20: error: implicit declaration of function 'usbhost_getle16'; did you mean 'usbhost_getle32'? [-Werror=implicit-function-declaration]\n    7 |   return (uint32_t)usbhost_getle16(&val[2]) << 16 |\n      |                    ^~~~~~~~~~~~~~~\n      |                    usbhost_getle32\nE:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\mock-replay.c: In function 'usbhost_getbe32':\nE:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\mock-replay.c:15:20: error: implicit declaration of function 'usbhost_getbe16'; did you mean 'usbhost_getbe32'? [-Werror=implicit-function-declaration]\n   15 |   return (uint32_t)usbhost_getbe16(val) << 16 |\n      |                    ^~~~~~~~~~~~~~~\n      |                    usbhost_getbe32\ncc1.exe: all warnings being treated as errors\n"
+  }
+]

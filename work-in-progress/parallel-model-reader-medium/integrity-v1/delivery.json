@@ -1,0 +1,165 @@
+{
+  "utc": "2026-09-10T07:23:21Z",
+  "status": "host-tested integrity candidate",
+  "nuttx_tested": false,
+  "model_loaded": false,
+  "hardware_accessed": false,
+  "same_length_mutation_not_prevented": true,
+  "files": [
+    {
+      "path": "evidence\\host-tests.json",
+      "bytes": 26724,
+      "sha256": "815a016dd14193b524955dfb15d559176723a4975df77e517aeb6312f0982103"
+    },
+    {
+      "path": "evidence\\input-hashes.json",
+      "bytes": 2803,
+      "sha256": "b93e0ba0fd9917868379ea158baf1af8403ae66aae2a21e784273a06f9ed4781"
+    },
+    {
+      "path": "evidence\\model_integrity.o",
+      "bytes": 2451,
+      "sha256": "a9dd2229976488e9bb086778e8a6d6d291fec605f6f4278c2955978a6b0c5dd4"
+    },
+    {
+      "path": "evidence\\model_integrity.su",
+      "bytes": 221,
+      "sha256": "54ba83312d29a79acddc71b463e4301e9c93ac4cdc2811f9de8490795220d1ea"
+    },
+    {
+      "path": "evidence\\model_reader.o",
+      "bytes": 3430,
+      "sha256": "e265bb4779a11dabe9d28fc03c4e85ef4471ac0c598b12e0f9b26b7f968dfd0b"
+    },
+    {
+      "path": "evidence\\model_reader.su",
+      "bytes": 278,
+      "sha256": "9cdbc6b7b3e80aac56d736eb27ce6b534ccd7b6a6525666fcbac063a205adc6d"
+    },
+    {
+      "path": "evidence\\production_probe-production_probe.su",
+      "bytes": 137,
+      "sha256": "2d9225acb2d23a39dd7a09470e3a8c13de5186abfe7bd0d216706ebf22808f8c"
+    },
+    {
+      "path": "evidence\\production_probe.exe",
+      "bytes": 102800,
+      "sha256": "ca86826dc871378b2e3a71d39ca32c4e154593e40c35c4b57f1cb14496f0527d"
+    },
+    {
+      "path": "evidence\\sha256_vendor.o",
+      "bytes": 6485,
+      "sha256": "78312b9520ac6a6ee9b29bca237e0568b85bdaef8a4b7b3a769d3b1e5a84b67a"
+    },
+    {
+      "path": "evidence\\sha256_vendor.su",
+      "bytes": 287,
+      "sha256": "69807dbd655e5e4674a43026a5e13a0f429702a482f108f16e58b27a6708239c"
+    },
+    {
+      "path": "evidence\\test_integrity-sha256_vendor.su",
+      "bytes": 287,
+      "sha256": "69807dbd655e5e4674a43026a5e13a0f429702a482f108f16e58b27a6708239c"
+    },
+    {
+      "path": "evidence\\test_integrity-test_integrity.su",
+      "bytes": 954,
+      "sha256": "f19c85c984856a8a11130ff1dbfa20bde1a29185cbfa3774b8fe0a7dd62f823e"
+    },
+    {
+      "path": "evidence\\test_integrity.exe",
+      "bytes": 133437,
+      "sha256": "f7b309556e17ffa7cc7d21a4b817bb52263982d56af55b284e370dc2065f9cd9"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 5495,
+      "sha256": "a21566a2292b77c6abcd583fa6c53c24bcbe61338912ef77c33b394861ceb9fc"
+    },
+    {
+      "path": "input\\formal\\model_reader.c",
+      "bytes": 6837,
+      "sha256": "b8acd7d1e813f6a0b1135005d771004661c00ab403955bfe19830f452c9f207e"
+    },
+    {
+      "path": "input\\formal\\model_reader.h",
+      "bytes": 842,
+      "sha256": "eaa679c7dea85e5269ef938ee689d023bb33bc0b5703ab799f618889a10fa38d"
+    },
+    {
+      "path": "input\\original\\model_reader.c",
+      "bytes": 6837,
+      "sha256": "b8acd7d1e813f6a0b1135005d771004661c00ab403955bfe19830f452c9f207e"
+    },
+    {
+      "path": "input\\original\\model_reader.h",
+      "bytes": 842,
+      "sha256": "eaa679c7dea85e5269ef938ee689d023bb33bc0b5703ab799f618889a10fa38d"
+    },
+    {
+      "path": "model_integrity.c",
+      "bytes": 3038,
+      "sha256": "da825e6b9e1ef46f8779c6d02c0dfcbe43660e26357c102859b59002fdb0f22b"
+    },
+    {
+      "path": "model_integrity.h",
+      "bytes": 1334,
+      "sha256": "83c74819623ffc7390529a8e62fa9976366b64f85f48e20e82e1c2a3b559d991"
+    },
+    {
+      "path": "production_probe.c",
+      "bytes": 772,
+      "sha256": "b5e4745ec83259d4d325667fbcec913762524552c90377b3cdaec1ffc5461ad0"
+    },
+    {
+      "path": "run_tests.py",
+      "bytes": 2463,
+      "sha256": "560ae47fc4313201bdeba31f9454bf024d23dacc6fc8e5437c1dc1cd1aea30ac"
+    },
+    {
+      "path": "seal_delivery.py",
+      "bytes": 1554,
+      "sha256": "76537b29bc408254049b5e32bf43a97b0bc54d8cee6784666102ca1e91df729e"
+    },
+    {
+      "path": "sha256_namespace.h",
+      "bytes": 343,
+      "sha256": "d91e2e7a3ffbdad5f320b0d55a14b22616215a060cc418556ac475ed7e788a32"
+    },
+    {
+      "path": "sha256_vendor.c",
+      "bytes": 65,
+      "sha256": "1f46f972af39a8ed6fb6d42888130051fbdba20fd761a6ace326106cbd82a920"
+    },
+    {
+      "path": "test_integrity.c",
+      "bytes": 4799,
+      "sha256": "45beb9dfead020451e1c5da03a4596b6d830d1bd5011320d9cd4f1eae9972cf8"
+    },
+    {
+      "path": "vendor\\rotate-bits\\package.json",
+      "bytes": 255,
+      "sha256": "4627415dc3410ba88c7b1015875a717a2e23441972fef9b33d0539527b2760ba"
+    },
+    {
+      "path": "vendor\\rotate-bits\\rotate-bits.h",
+      "bytes": 1017,
+      "sha256": "4a100f5e9b6bdc3e780bec38caeaec7f0edc87cf06b69b5bc1f87c2c867bdf23"
+    },
+    {
+      "path": "vendor\\sha256\\package.json",
+      "bytes": 283,
+      "sha256": "674f1b5d34a7eb827115875774222ce30d5c79cb59101477dc74a18e83cd8773"
+    },
+    {
+      "path": "vendor\\sha256\\sha256.c",
+      "bytes": 5282,
+      "sha256": "ba7a8ea69ad125385db28ef17e77be4a09dfdc30bb9532c30b259baaf670129c"
+    },
+    {
+      "path": "vendor\\sha256\\sha256.h",
+      "bytes": 549,
+      "sha256": "6086b0330eafe9ddef74072738290bc268b2dcccae16bc6d6cde84dc7585ca07"
+    }
+  ]
+}

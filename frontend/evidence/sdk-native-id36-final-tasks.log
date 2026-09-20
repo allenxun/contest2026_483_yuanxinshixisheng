@@ -1,0 +1,11 @@
+ps
+  PID GROUP PRI POLICY   TYPE    NPX STATE    EVENT     SIGMASK            STACK    USED FILLED COMMAND
+    0     0   0 FIFO     Kthread   - Ready              0000000000000000 0008144 0001024  12.5%  CPU0 IDLE
+    1     0 192 RR       Kthread   - Waiting  Semaphore 0000000000000000 0008080 0000992  12.2%  hpwork 0x40460a40 0x40460ac8
+    2     0 100 RR       Kthread   - Waiting  Semaphore 0000000000000000 0008080 0002496  30.8%  lpwork 0x40460980 0x40460a08
+    3     3 100 RR       Task      - Running            0000000000000000 0008112 0003616  44.5%  nsh_main
+    6     0  95 RR       Kthread   - Waiting  Semaphore 0000000000000000 0004016 0001376  34.2%  skw_bt_tx
+    7     0  90 RR       Kthread   - Ready              0000000000000000 0004016 0002512  62.5%  skw_radio_rx
+    8     0 100 RR       Kthread   - Waiting  MQ empty  0000000000000000 0004016 0002752  68.5%  BT_HCI_Tx
+    9     0  85 RR       Kthread   - Waiting  Semaphore 0000000000000000 0008112 0003904  48.1%  k7_provision
+nsh> [K

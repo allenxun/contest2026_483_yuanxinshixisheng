@@ -1,0 +1,35 @@
+services:
+  speech:
+    build: .
+    image: velavision-speech:20260915
+    restart: unless-stopped
+    env_file: ./speech.env
+    ports:
+      - "127.0.0.1:8000:8000"
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+  bridge:
+    image: velavision-speech:20260915
+    restart: unless-stopped
+    depends_on:
+      speech: {condition: service_healthy}
+    command: [python, -m, host.streaming_asr.board_bridge, --host, 0.0.0.0, --service, "http://speech:8000"]
+    ports:
+      - "${K7_BIND_IP:?Set K7_BIND_IP to the server private LAN IPv4}:8001:8001"
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}

@@ -1,0 +1,37 @@
+{
+  "revision": "k7cloud-radio-readiness-20260914",
+  "checked_at": "2026-09-14T18:36:00+08:00",
+  "scope": "Host-tested, default-off bridge from authoritative k7radio DHCP snapshots to the two network readiness gates",
+  "sources": {
+    "app/k7radio/k7_radio_service.h": "24137802e57df24aa9634ba37509c59137727f86b477dd1b91b6e79ee021c58b",
+    "app/k7radio/wifi_ip_service.inc": "5886ccc468bad78c090a47e324a98eecb35ce75bf04f6863d695d49779269457",
+    "app/k7agent/cloud/include/cloud_speech_radio_bridge.h": "77b779ae3e9aa0b52ace602f37dd081ac9820085ae224f4967a117d37b3b91aa",
+    "app/k7agent/cloud/src/cloud_speech_radio_bridge.c": "96a5d584624edc611b5a75c567baad3934ff2cb42a6ade342e202a6ab4a7a27d",
+    "app/k7agent/cloud/src/cloud_speech_k7radio_sync.c": "b1393341f1e05e196927156ff9e00d103291e694607e13bb0a4c75445e1323b1",
+    "tests/k7cloud/test_cloud_speech_radio_bridge.c": "fedc4481955724bd4f10004f911f9a4d6159bbde44171711669187716907408c"
+  },
+  "behavior": {
+    "authoritative_locked_snapshot": true,
+    "generation_on_dhcp_publish_and_withdraw": true,
+    "valid_ipv4_required": true,
+    "stale_or_contradictory_generation_fails_closed": true,
+    "wifi_ipv4_bits_only": true,
+    "dns_entropy_time_ca_tcp_api_bits_set": false
+  },
+  "host_tests": {
+    "optimizations": ["O0", "O2"],
+    "dns_groups_each": 9,
+    "https_groups_each": 9,
+    "mimo_groups_each": 12,
+    "orchestrator_groups_each": 4,
+    "radio_bridge_groups_each": 6,
+    "passed": true
+  },
+  "strict_compile": "cloud_speech_k7radio_sync.c passed -Wall -Wextra -Werror -pedantic",
+  "default_enabled": false,
+  "arm64_full_build": false,
+  "board_tested": false,
+  "flash_commands": false,
+  "emmc_written": false,
+  "remote_submission": false
+}

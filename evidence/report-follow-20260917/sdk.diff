@@ -1,0 +1,72 @@
+--- sdk/app/k7host/k7_pipeline.c
++++ app/k7host/k7_pipeline.c
+@@ -35,6 +35,27 @@
+     g_voice_applied_revision != g_voice_revision ? -EAGAIN :
+     g_voice_applied_result ? g_voice_applied_result :
+     g_voice_applied_mode != mode ? -EIO : 0;
++  pthread_mutex_unlock(&g_voice_lock);
++  return ret;
++}
++int k7_pipeline_hold_revision(unsigned int *revision)
++{
++  if (!revision) return -EINVAL;
++  pthread_mutex_lock(&g_voice_lock);
++  int ret = !g_voice_active ? -ENODEV :
++    atomic_load(&g_voice_mode) != 0 || !atomic_load(&g_track_halt) ||
++    g_voice_applied_revision != g_voice_revision || g_voice_applied_result ? -EAGAIN : 0;
++  if (!ret) *revision = g_voice_revision;
++  pthread_mutex_unlock(&g_voice_lock);
++  return ret;
++}
++int k7_pipeline_resume_tracking(unsigned int revision)
++{
++  pthread_mutex_lock(&g_voice_lock);
++  int ret = !g_voice_active ? -ENODEV :
++    g_voice_revision != revision || atomic_load(&g_voice_mode) != 0 ||
++    !atomic_load(&g_track_halt) ? -ECANCELED : 0;
++  if (!ret) { g_voice_revision++; atomic_store(&g_voice_mode, 1); }
+   pthread_mutex_unlock(&g_voice_lock);
+   return ret;
+ }
+--- sdk/app/k7host/k7_pipeline.h
++++ app/k7host/k7_pipeline.h
+@@ -39,6 +39,9 @@
+ int k7_pipeline_voice_mode(unsigned int mode);
+ /* -EAGAIN while worker has not applied the request; 0 only after application. */
+ int k7_pipeline_voice_mode_status(unsigned int mode);
++/* Resume only if no stop/mode request occurred since this held revision. */
++int k7_pipeline_hold_revision(unsigned int *revision);
++int k7_pipeline_resume_tracking(unsigned int revision);
+ void k7_pipeline_publish(struct k7_pipeline_s *p,
+                          const uint8_t *jpeg, size_t bytes);
+ int k7_pipeline_finish(struct k7_pipeline_s *p,
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -560,7 +560,27 @@
+       rc=photo_upload(ip,epoch,photo_epoch);
+       if(rc){board_speech("upload_failed",ip,&epoch);return rc;}
+       rc=board_speech("upload_accepted",ip,&epoch);if(rc)return rc;
++      unsigned held_revision;
++      rc=k7_pipeline_hold_revision(&held_revision);if(rc)return rc;
+       rc=report_play(ip,latest_report_task,epoch);if(rc)return rc;
++      uint32_t final_photo_epoch;unsigned final_done;
++      rc=k7_photo_native_status(&final_photo_epoch,&final_done);if(rc)return rc;
++      if(final_photo_epoch!=photo_epoch || final_done!=7)return -ESTALE;
++      pthread_mutex_lock(&tts_lock);
++      rc=epoch!=atomic_load(&device_epoch) || atomic_load(&tts_cancelled) ?
++        -ECANCELED : k7_pipeline_resume_tracking(held_revision);
++      pthread_mutex_unlock(&tts_lock);
++      if(!rc) {
++        for(unsigned i=0;i<300;i++) {
++          if(epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;break;}
++          rc=k7_pipeline_voice_mode_status(1);
++          if(rc!=-EAGAIN)break;
++          usleep(10000);
++        }
++        if(rc==-EAGAIN)rc=-ETIMEDOUT;
++      }
++      printf("K7CLOUD report_resume_tracking result=%d photo_epoch=%" PRIu32 "\n",rc,photo_epoch);
++      if(rc)return rc;
+     }
+ #else
+   (void)ip;(void)epoch;(void)state;

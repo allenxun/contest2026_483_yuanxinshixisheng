@@ -1,0 +1,6 @@
+from pathlib import Path
+import hashlib,json
+p=Path(__file__).parent;root=p.parents[2];s=root/'work-in-progress/native-voice-sources/sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9';prev=p.parent/'native-sherpa-offline-stage-v1/sources'
+fs=[s/'CMakeLists.txt',s/'cmake/kaldifst.cmake',s/'cmake/openfst.cmake',s/'cmake/eigen.cmake',prev/'kaldi-decoder/CMakeLists.txt',prev/'kaldifst/CMakeLists.txt',prev/'eigen/CMakeLists.txt',prev/'eigen/cmake/FindStandardMathLibrary.cmake',root/'evidence/native-sherpa-asr-config1-20260911/configure.log',root/'evidence/native-sherpa-asr-config1-20260911/CMakeCache.txt']
+(p/'inputs.json').write_text(json.dumps({str(f):hashlib.sha256(f.read_bytes()).hexdigest() for f in fs},indent=2))
+outs={str(f.relative_to(p)):hashlib.sha256(f.read_bytes()).hexdigest() for f in p.rglob('*') if f.is_file() and f.name not in ('outputs.json','delivery.json')};(p/'outputs.json').write_text(json.dumps(outs,indent=2));d={'status':'ACTUAL_RECIPE_ARCHIVES_CORRECTED_MATH_FAILURE_CAUSE_PENDING_TRYCOMPILE_LOG','outputs_sha256':hashlib.sha256((p/'outputs.json').read_bytes()).hexdigest()};(p/'delivery.json').write_text(json.dumps(d,indent=2));print(d);print(hashlib.sha256((p/'delivery.json').read_bytes()).hexdigest())

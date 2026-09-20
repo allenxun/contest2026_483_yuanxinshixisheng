@@ -1,0 +1,33 @@
+{
+  "revision": "audio-rx4-20260911",
+  "hardware_tested": true,
+  "raw_log": "rx4-smoke-20260911-202334.log",
+  "results": [
+    {
+      "command": "k7sound capture-pga24-rx4 3200",
+      "requested_frames": 3200,
+      "pio_result": 0,
+      "captured_frames": 3200,
+      "stop_result": 0,
+      "held": 0,
+      "left_nonzero": null,
+      "right_nonzero": null,
+      "rx_lanes": null,
+      "route_all": null,
+      "terminal_result_ok": true
+    },
+    {
+      "command": "k7sound capture-pga24-rx4-all 3200",
+      "requested_frames": 3200,
+      "pio_result": null,
+      "captured_frames": null,
+      "stop_result": null,
+      "held": null,
+      "left_nonzero": 2400,
+      "right_nonzero": 1843,
+      "rx_lanes": null,
+      "route_all": null,
+      "terminal_result_ok": true
+    }
+  ]
+}

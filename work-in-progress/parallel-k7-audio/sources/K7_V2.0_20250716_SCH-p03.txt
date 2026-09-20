@@ -1,0 +1,380 @@
+5
+5
+4
+4
+3
+3
+2
+2
+1
+1
+D D
+C C
+B B
+A A
+Power Tree
+12V/3A
+Adapter
+3000mA
+DC/DC
+VCC12V_DCIN
+Seq:5A MIPI DSI TX_LCD_5V
+MIPI CSI RX0/1/2/3/4_CON_5V
+VCC5V0_USB3_HOST
+VBUS5V0_TYPEC
+VCC5V0_DEVICE_S0
+MOS PCIe1_Slot_12V
+Note:
+With PCIe, the current is 
+estimated according to the 
+actual number of PCIe 5000mA
+DC/DC
+Seq:0
+VCC5V0_SYS_S5
+Power on 
+Sequence
+Seq:2
+Seq:5
+Seq:2
+VCC1
+RK806S-5
+BUCK3
+5.0A max
+BUCK4
+5.0A max
+BUCK1
+6.5A max
+VCC2 BUCK2
+5.0A max
+VCC3
+VCC4
+Seq:7
+Seq:2
+Seq:2
+Seq:2
+VCC5
+BUCK7
+3A max
+BUCK8
+3A max
+BUCK5
+3A max
+VCC6 BUCK6
+3A max
+VCC7
+VCC8
+Seq:4BUCK9
+3A maxVCC9
+Seq:2BUCK10
+3A maxVCC10
+Seq:3
+Seq:5
+Seq:4
+PLDO1
+500mA max
+VCC11 PLDO2
+300mA max
+PLDO3
+300mA max
+Seq:5
+Seq:5
+VCC12 PLDO4
+500mA max
+PLDO5
+300mA max
+Seq:3VCCA PLDO6
+300mA max
+Seq:2
+Seq:2
+Seq:2
+NLDO1
+300mA max
+VCC13 NLDO2
+300mA max
+NLDO3
+500mA max
+Seq:2
+Seq:2
+VCC14 NLDO4
+500mA max
+NLDO5
+300mA max
+VCCA_1V8_S0
+VCCA1V8_PLDO2_S0
+VDDA_1V2_S0
+VCCA_3V3_S0
+VCCIO_SD_S0
+VDD_0V75_S3
+VDDA_DDR_PLL_S0
+VCCA1V8_PLDO6_S3
+VDDA0V75_HDMI_S0
+VDDA_0V85_S0
+VCCA1V8_PLDO6_S3
+VCCIO1_VCC_SOC
+Seq:3
+OSC_AVDD1V8_SOC
+PMU_LOGIC_DVDD0V75_SOC
+PLL_AVDD1V8_SOC
+PMUIO0_VCC1V8_SOC
+DDRPHY_PLL_DVDD_SOC
+SW_3V3(FSUSB30MUX/GMA340)
+RGMII_PHY0/1_3V3
+PLL_DVDD0V75_SOC
+CODEC_VCCA3V3
+OTP_DVDD0V75_SOC
+HDMI_TX/eDP_TX_AVDDD0V75_SOC
+HDMI_TX/eDP_TX_AVDDC0V75_SOC
+USB3_OTG0/DP_TX_AVDD0V85_SOC
+UFS_AVDD0V85_SOC
+USB3_OTG0/DP_TX_DVDD0V85_SOC
+PCIE0_SATA0_AVDD0V85_SOC
+PCIE1_SATA1_USB3_OTG1_AVDD0V85_SOC
+IR_3V3
+G-SENSOR_3V3
+FT232RL_3V3
+HUSB311_CC_3V3
+VDD_CPU_BIG_SOC
+VDD_NPU_SOC
+VDD_CPU_LIT_S0
+VDD_NPU_S0
+VCC_1V8_S3
+VDD_LOGIC_S0
+VDD_CPU_BIG_S0
+VDDA_0V75_S0
+VCC_2V0_PLDO_S3
+VCC_1V1_NLDO_S3
+VCC_1V1_NLDO_S3
+VCC_3V3_S3
+VDD_CPU_LIT_SOC
+The RK806S-5 LDO power distribution of the 
+reference schematic is only suitable for the 
+interface used in the reference schematic.
+If other interface functions need to be added 
+to the reference schematic, the RK806S-5 LDO 
+distribution needs to be re evaluated, otherwise 
+the added functions may exceed the maximum 
+current provided by the LDO
+Note:
+USB2_OTG_DVDD0V75_SOC
+VCC_UFS_S0
+SPK_AMP_5V
+VCC3V3_CLK(3V3,PCIe Clock IC)LDO , 0.5A
+TCAN1044V-Q1_CAN_3V3 VCCIO4_VCC_SOC
+VCCIO6_VCC_SOC
+USB2_OTG_AVDD3V3_SOC
+MIPI CSI RX0/1/2/3/4_CON_3V3
+eMMC_3V3
+VDD_LOGIC_SOC
+LPDDR4/4X VDD1
+VCCIO7_VCC_SOC
+MIPI_DCPHY_AVDD1V2_SOC
+MIPI_DCPHY_AVDD_SOC
+MIPI_CSI1/2_RX_AVDD0V75_SOC
+MIPI_CSI3/4_RX_AVDD0V75_SOC
+VDD_LOGIC_MEM_SOC
+3000mADC/DC PCIe1_Slot_3V3 Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+Max:
+MicArray_CON_5V Max:
+Max:
+PMOS Max:UFS_VCCQ2_1V8_S0
+LOAD SWITCH
+VCC_1V8_S0
+Max:
+Max:
+Max:
+MIPI CSI RX0/1/2/3/4_CON_1V8
+Max:
+Max:
+FSPI_1V8
+Max:
+ES8388/ES7202_AUDIO_1V8
+eMMC_1V8
+VCCIO0_VCC1V8_SOC
+Max:VCCIO2_VCC_SOC
+VCCIO5_VCC_SOC
+VCC3V3_SD_S0 Max:LOAD SWITCH
+Max:VCC3V3_LCD_S0PMOS
+LOAD SWITCH
+VCC_3V3_S0
+VDD_GPU_SOC Max:
+DDRPHY_DVDD_SOCVDD_DDR_S0 Max:
+Max:MOS to LPDDR4 VDDQ(Opt)
+Max:DDRPHY_CKE_VDDQ_SOC
+Max:
+VDD2_DDR_S3
+LPDDR4/4x VDD2
+Max:
+VDDQ_DDR_S0 DDRPHY_VDDQ_SOC
+Max:LPDDR4x VDDQ
+Max:
+DDRPHY_CK_VDDQ_SOC
+VDD_GPU_SOC
+VCC_2V0_PLDO_S3
+VCC_UFS_S0
+VCC_1V1_NLDO_S3
+VCC1V2_UFS_VCCQ_S0
+PMIC_EXT_EN_OUT
+Seq:5B
+EN
+VCC1V8_UFS_VCCQ2_S0
+Seq:1
+EXT DC/DC ,2A
+EN
+VCC_3V3_S0
+Seq:1
+EXT DC/DC ,2A VCC_UFS_S0(Opt)
+EXT DC/DC ,2A
+EN
+VCC1V2_UFS_VCCQ_S0(Opt)
+EXT DC/DC ,2A
+EN
+PMIC_EXT_EN_OUT
+Seq:4B
+Max:
+Max:
+Max:Max:
+Max:Max:
+RTC_3V3 Max:Seq:0AEXT LDO Max:
+VCC3V3_RTC_S5
+MIPI CSI RX0/1/2/3/4_CON_12V
+Max:
+Max:
+FAN
+Max:WIFI/BT-Ext Board
+PMUIO1_VCC_SOC Max:
+WIFI/BT-Ext Board
+Max:
+PCIe WIFI-AP6276P
+Max:VCCIO3_VCC_SOC
+WIFI/BT-Ext Board
+PCIe WIFI-AP6276P Max:
+VCC5V_HDMI_TX Max:
+Max:JTAG/UART_3V3
+Max:Breathing LED & Work LED
+Max:Power LED
+CAN_VIO Max:
+Note:
+Peripherals connected to the GPIO of SOC need to consider 
+the leakage between the GPIO of SOC and the Peripherals.
+It is recommended to power on both the Peripherals's power 
+supply and the SOC's GPIO power supply simultaneously.
+SARADC_AVDD1V8_SOC Max:
+HDMI_TX/eDP_TX_AVDDCMN1V8_SOC
+PCIE0_SATA0_AVDD1V8_SOC
+PCIE1_SATA1_USB3_OTG1_AVDD1V8_SOC
+OSC_UFS_AVDD_SOC
+USB3_OTG0/DP_TX_AVDD1V8_SOC
+MIPI_CSI1/2_AVDD1V8_SOC
+MIPI_D/C_PHY_AVDD1V8_SOC
+USB2_OTG_AVDD1V8_SOC
+UFS_AVDD1V8_SOC
+DDRPHY_PLL_AVDD1V8_SOC
+MIPI_CSI3/4_AVDD1V8_SOC
+HDMI_TX/eDP_TX_AVDDIO1V8_SOC
+Page Title
+Page Size
+Document Title
+Date: Sheet o f
+PCB NO.
+Sch Designer Pcb Designer Project Stage
+K7(RK3576+LPDDR4)
+Power Tree
+A2
+3 39Wednesday, July 16, 2025
+K7_V1.1
+TIM TIM DR4
+Page Title
+Page Size
+Document Title
+Date: Sheet o f
+PCB NO.
+Sch Designer Pcb Designer Project Stage
+K7(RK3576+LPDDR4)
+Power Tree
+A2
+3 39Wednesday, July 16, 2025
+K7_V1.1
+TIM TIM DR4
+Page Title
+Page Size
+Document Title
+Date: Sheet o f
+PCB NO.
+Sch Designer Pcb Designer Project Stage
+K7(RK3576+LPDDR4)
+Power Tree
+A2
+3 39Wednesday, July 16, 2025
+K7_V1.1
+TIM TIM DR4

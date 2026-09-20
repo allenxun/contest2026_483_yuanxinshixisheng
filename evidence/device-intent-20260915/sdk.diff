@@ -1,0 +1,320 @@
+--- sdk/app/k7host/k7_pipeline.c
++++ app/k7host/k7_pipeline.c
+@@ -24,6 +24,20 @@
+ static bool g_voice_active;
+ static atomic_uint g_voice_mode;
+ static unsigned int g_voice_revision;
++static unsigned int g_voice_applied_revision;
++static unsigned int g_voice_applied_mode;
++static int g_voice_applied_result;
++int k7_pipeline_voice_mode_status(unsigned int mode)
++{
++  pthread_mutex_lock(&g_voice_lock);
++  int ret = !g_voice_active ? -ENODEV :
++    mode != atomic_load(&g_voice_mode) ? -ECANCELED :
++    g_voice_applied_revision != g_voice_revision ? -EAGAIN :
++    g_voice_applied_result ? g_voice_applied_result :
++    g_voice_applied_mode != mode ? -EIO : 0;
++  pthread_mutex_unlock(&g_voice_lock);
++  return ret;
++}
+ void k7_pipeline_halt(void)
+ {
+   pthread_mutex_lock(&g_voice_lock);
+@@ -113,6 +127,9 @@
+       atomic_store(&g_track_halt, mode == 0 || p->stats.track_error != 0);
+       p->applied_mode = mode;
+       p->applied_revision = g_voice_revision;
++      g_voice_applied_revision = g_voice_revision;
++      g_voice_applied_mode = mode;
++      g_voice_applied_result = ret;
+       printf("VOICE MODE applied=%u result=%d\n", mode, ret);
+     }
+   pthread_mutex_unlock(&g_voice_lock);
+--- sdk/app/k7host/k7_pipeline.h
++++ app/k7host/k7_pipeline.h
+@@ -37,6 +37,8 @@
+  * Return 0 means accepted; VOICE MODE applied is emitted by the worker.
+  */
+ int k7_pipeline_voice_mode(unsigned int mode);
++/* -EAGAIN while worker has not applied the request; 0 only after application. */
++int k7_pipeline_voice_mode_status(unsigned int mode);
+ void k7_pipeline_publish(struct k7_pipeline_s *p,
+                          const uint8_t *jpeg, size_t bytes);
+ int k7_pipeline_finish(struct k7_pipeline_s *p,
+--- sdk/app/k7agent/CMakeLists.txt
++++ app/k7agent/CMakeLists.txt
+@@ -21,6 +21,7 @@
+       cloud/src/cloud_speech_orchestrator.c
+       cloud/src/capture_stream_probe.c
+       cloud/src/board_speech_bridge.c
++      cloud/src/device_voice_intent.c
+       cloud/src/cloud_speech_mimo_adapter.c)
+     target_compile_definitions(apps_k7cloud PRIVATE
+       K7CLOUD_SPEECH_ORCHESTRATOR=1)
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -1,12 +1,14 @@
+ /* Explicit LAN speech test commands. No flash, reboot or Wi-Fi operations. */
+ #include "capture_stream.h"
+ #include "stream_ring.h"
++#include "device_voice_intent.h"
+ #include <arpa/inet.h>
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <poll.h>
+ #include <pthread.h>
+ #include <stdint.h>
++#include <stdbool.h>
+ #include <stdatomic.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -25,6 +27,13 @@
+ static pthread_mutex_t tts_lock=PTHREAD_MUTEX_INITIALIZER;
+ static atomic_bool tts_cancelled;
+ static int tts_busy,tts_fd=-1,tts_result;
++static pthread_mutex_t audio_owner=PTHREAD_MUTEX_INITIALIZER;
++static atomic_bool device_busy;
++#if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
++int k7_pipeline_voice_mode(unsigned int);
++int k7_pipeline_voice_mode_status(unsigned int);
++void k7_pipeline_halt(void);
++#endif
+ static int playback_cancelled(void *arg) {(void)arg;return atomic_load(&tts_cancelled);}
+ int k7cloud_tts_control(int stop)
+ {
+@@ -95,6 +104,7 @@
+ struct live {
+   struct k7_stream_ring ring;
+   int fd,done,capture_rc,receive_rc,completed;
++  struct k7_voice_result result;
+ };
+ 
+ static void *record(void *arg)
+@@ -108,7 +118,9 @@
+ {
+   unsigned char kind;uint32_t n;int rc=header(fd,&kind,&n);
+   if(rc || kind!='J' || !n || n>=cap)return -EIO;
+-  rc=transfer(fd,text,n,0);text[n]=0;return rc;
++  rc=transfer(fd,text,n,0);
++  if(!rc && memchr(text,0,n))rc=-EINVAL;
++  text[n]=0;return rc;
+ }
+ 
+ static void *receive_events(void *arg)
+@@ -116,18 +128,16 @@
+   struct live *p=arg;char text[8193];int rc;
+   while(!(rc=json_event(p->fd,text,sizeof(text))))
+     {
+-      /* The development bridge emits JSON with stable spacing. No text logs. */
+-      if(strstr(text,"\"type\": \"partial\""))puts("K7CLOUD asr partial_received=1");
+-      else if(strstr(text,"\"type\": \"final\""))puts("K7CLOUD asr final_received=1");
+-      else if(strstr(text,"\"type\": \"completed\"")){p->completed=1;break;}
+-      else {rc=-EIO;break;}
++      rc=k7_voice_event(&p->result,text,strlen(text));
++      if(rc)break;
++      if(p->result.completed){p->completed=1;break;}
+     }
+   p->receive_rc=rc;
+   if(rc){k7_stream_ring_cancel(&p->ring);shutdown(p->fd,SHUT_RDWR);}
+   return NULL;
+ }
+ 
+-static int asr(int fd)
++static int asr(int fd,enum k7_voice_intent *intent)
+ {
+   struct live *p=calloc(1,sizeof(*p));pthread_t capture,receiver;
+   pthread_attr_t attr;unsigned char audio[644];char ready[256];
+@@ -180,6 +190,7 @@
+   if(!rc)rc=p->receive_rc;
+   if(!rc && !p->completed)rc=-EIO;
+   printf("K7CLOUD asr result=%d frames_sent=%lu completed=%d\n",rc,(unsigned long)count,p->completed);
++  if(!rc && intent)*intent=k7_voice_result_intent(&p->result);
+   free(p);return rc;
+ }
+ 
+@@ -210,11 +221,14 @@
+     }
+   if(!strcmp(mode,"asr-live"))
+     {
+-      int fd=connect_server(ip);if(fd<0){printf("K7CLOUD connect result=%d\n",fd);return fd;}
+-      int rc=asr(fd);close(fd);return rc;
+-    }
++      if(pthread_mutex_trylock(&audio_owner))return -EBUSY;
++      int fd=connect_server(ip),rc=fd;
++      if(fd>=0){rc=asr(fd,NULL);close(fd);}
++      pthread_mutex_unlock(&audio_owner);return rc;
++    }
++  if(pthread_mutex_trylock(&audio_owner))return -EBUSY;
+   pthread_mutex_lock(&tts_lock);
+-  if(tts_busy){pthread_mutex_unlock(&tts_lock);puts("K7CLOUD prompt_done result=-16");return -EBUSY;}
++  if(tts_busy){pthread_mutex_unlock(&tts_lock);pthread_mutex_unlock(&audio_owner);puts("K7CLOUD prompt_done result=-16");return -EBUSY;}
+   tts_busy=1;tts_result=0;atomic_store(&tts_cancelled,0);
+   puts("K7CLOUD prompt_started busy=1");
+   pthread_mutex_unlock(&tts_lock);
+@@ -232,5 +246,56 @@
+   tts_busy=0;tts_result=rc;
+   printf("K7CLOUD prompt_done result=%d\n",rc);
+   pthread_mutex_unlock(&tts_lock);
++  pthread_mutex_unlock(&audio_owner);
+   return rc;
+ }
++
++/* One explicit recording round. Camera must already be in the held voicecam
++ * session; this entry never opens UVC or assumes a calibrated MCU position. */
++int k7cloud_device_once(const char *ip)
++{
++#if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
++  bool expected=false;
++  if(!atomic_compare_exchange_strong(&device_busy,&expected,true))return -EBUSY;
++  enum k7_voice_intent intent=K7_VOICE_NONE;
++  int rc=-EBUSY;
++  if(pthread_mutex_trylock(&audio_owner))goto done;
++  int fd=connect_server(ip);rc=fd;
++  if(fd>=0){rc=asr(fd,&intent);close(fd);}
++  pthread_mutex_unlock(&audio_owner);
++  if(rc)goto done;
++  printf("K7CLOUD device intent=%u\n",(unsigned)intent);
++  if(intent==K7_VOICE_NONE){rc=0;goto done;}
++  if(intent==K7_VOICE_QUIET){rc=k7cloud_tts_control(1);goto done;}
++  if(intent==K7_VOICE_STOP)
++    {
++      k7_pipeline_halt(); /* Software hold, not motor disable/physical ACK. */
++      rc=k7cloud_board_speech("tracking_stopped",ip);goto done;
++    }
++  unsigned mode=intent==K7_VOICE_TRACK?1:2;
++  rc=k7_pipeline_voice_mode(mode);
++  if(!rc)
++    {
++      for(unsigned i=0;i<300;i++)
++        {
++          rc=k7_pipeline_voice_mode_status(mode);
++          if(rc!=-EAGAIN)break;
++          usleep(10000);
++        }
++      if(rc==-EAGAIN)rc=-ETIMEDOUT;
++    }
++  if(rc)
++    {
++      k7_pipeline_halt();
++      k7cloud_board_speech("tracking_failed",ip);
++      goto done;
++    }
++  rc=k7cloud_board_speech(mode==1?"tracking_ready":"assessment_starting",ip);
++  if(rc)k7_pipeline_halt();
++done:
++  atomic_store(&device_busy,false);
++  printf("K7CLOUD device result=%d\n",rc);return rc;
++#else
++  (void)ip;return -ENOSYS;
++#endif
++}
+--- sdk/app/k7agent/cloud/src/k7cloud_main.c
++++ app/k7agent/cloud/src/k7cloud_main.c
+@@ -19,6 +19,7 @@
+ int k7cloud_capture_stream_probe(void);
+ int k7cloud_board_speech(const char *mode, const char *ip);
+ int k7cloud_tts_control(int stop);
++int k7cloud_device_once(const char *ip);
+ #endif
+ 
+ #ifdef K7CLOUD_RADIO_READINESS
+@@ -154,6 +155,8 @@
+ int main(int argc, char **argv)
+ {
+ #ifdef K7CLOUD_SPEECH_ORCHESTRATOR
++  if(argc==3 && !strcmp(argv[1],"device-once"))
++    return k7cloud_device_once(argv[2]) ? 1 : 0;
+   if (argc == 2 && !strcmp(argv[1], "tts-stop")) return k7cloud_tts_control(1);
+   if (argc == 2 && !strcmp(argv[1], "tts-state")) return k7cloud_tts_control(0);
+   if (argc == 3 && (!strcmp(argv[1], "asr-live") || !strcmp(argv[1], "tts-test")))
+--- sdk/app/k7agent/cloud/src/device_voice_intent.c
++++ app/k7agent/cloud/src/device_voice_intent.c
+@@ -0,0 +1,70 @@
++#include "device_voice_intent.h"
++#include "../../../k7radio/cJSON.h"
++#include <errno.h>
++#include <math.h>
++#include <string.h>
++
++static enum k7_voice_intent command(const char *text)
++{
++  char normalized[129];size_t used=0;
++  for(size_t i=0;text[i];)
++    {
++      unsigned char ch=(unsigned char)text[i];
++      if(ch==' ' || ch=='\t' || ch=='\r' || ch=='\n' ||
++         ch==',' || ch=='.' || ch=='!' || ch=='?'){i++;continue;}
++      const char *marks[]={"，","。","！","？","　"};
++      int skip=0;
++      for(unsigned k=0;k<sizeof(marks)/sizeof(marks[0]);k++)
++        if(!strncmp(text+i,marks[k],strlen(marks[k])))
++          {i+=strlen(marks[k]);skip=1;break;}
++      if(skip)continue;
++      if(used==sizeof(normalized)-1)return K7_VOICE_NONE;
++      normalized[used++]=text[i++];
++    }
++  normalized[used]=0;
++  if(!strcmp(normalized,"启动云台") || !strcmp(normalized,"开启云台"))return K7_VOICE_TRACK;
++  if(!strcmp(normalized,"测肤") || !strcmp(normalized,"开始测肤"))return K7_VOICE_PHOTO;
++  if(!strcmp(normalized,"停止云台") || !strcmp(normalized,"停止测肤"))return K7_VOICE_STOP;
++  if(!strcmp(normalized,"停止播报"))return K7_VOICE_QUIET;
++  return K7_VOICE_NONE;
++}
++
++int k7_voice_event(struct k7_voice_result *out,const char *json,size_t size)
++{
++  if(!out || !json || !size || size>8192 || out->completed ||
++     memchr(json,0,size))return -EINVAL;
++  /* cJSON strings are NUL terminated: reject an escaped NUL before decoding. */
++  for(size_t i=0;i+6<=size;i++)
++    if(!memcmp(json+i,"\\u0000",6))return -EINVAL;
++  const char *end=NULL;
++  cJSON *root=cJSON_ParseWithLengthOpts(json,size,&end,0);
++  int rc=-EINVAL;
++  if(!root || !cJSON_IsObject(root))goto done;
++  while(end<json+size && (*end==' '||*end=='\n'||*end=='\r'||*end=='\t'))end++;
++  if(end!=json+size)goto done;
++  for(cJSON *a=root->child;a;a=a->next)
++    for(cJSON *b=a->next;b;b=b->next)
++      if(!strcmp(a->string,b->string))goto done;
++  cJSON *type=cJSON_GetObjectItemCaseSensitive(root,"type");
++  if(!cJSON_IsString(type))goto done;
++  if(!strcmp(type->valuestring,"partial")){rc=0;goto done;}
++  if(!strcmp(type->valuestring,"completed")){out->completed=1;rc=0;goto done;}
++  if(strcmp(type->valuestring,"final"))goto done;
++  cJSON *text=cJSON_GetObjectItemCaseSensitive(root,"text");
++  cJSON *id=cJSON_GetObjectItemCaseSensitive(root,"sentence_id");
++  if(!cJSON_IsString(text) || !cJSON_IsNumber(id) ||
++     !isfinite(id->valuedouble) || id->valuedouble<0 ||
++     id->valuedouble>2147483647 || floor(id->valuedouble)!=id->valuedouble)goto done;
++  enum k7_voice_intent intent=command(text->valuestring);
++  if(out->finals>=32)goto done;
++  if(!intent || (out->finals && intent!=out->intent))out->ambiguous=1;
++  out->intent=intent;out->finals++;rc=0;
++done:
++  cJSON_Delete(root);return rc;
++}
++
++enum k7_voice_intent k7_voice_result_intent(const struct k7_voice_result *result)
++{
++  return result && result->completed && result->finals && !result->ambiguous
++    ? result->intent : K7_VOICE_NONE;
++}
+--- sdk/app/k7agent/cloud/include/device_voice_intent.h
++++ app/k7agent/cloud/include/device_voice_intent.h
+@@ -0,0 +1,14 @@
++#ifndef K7_DEVICE_VOICE_INTENT_H
++#define K7_DEVICE_VOICE_INTENT_H
++#include <stddef.h>
++enum k7_voice_intent { K7_VOICE_NONE, K7_VOICE_TRACK, K7_VOICE_PHOTO,
++                       K7_VOICE_STOP, K7_VOICE_QUIET };
++struct k7_voice_result {
++  enum k7_voice_intent intent;
++  unsigned finals;
++  int ambiguous, completed;
++};
++/* Only complete, exact command finals are eligible; never return shell text. */
++int k7_voice_event(struct k7_voice_result *, const char *, size_t);
++enum k7_voice_intent k7_voice_result_intent(const struct k7_voice_result *);
++#endif

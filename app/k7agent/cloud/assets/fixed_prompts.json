@@ -1,0 +1,190 @@
+{
+  "format": "s16le",
+  "rate": 16000,
+  "channels": 1,
+  "sha256": "38a1f29e18b010e96f9d7bdd0c4d08e6d74d8d9602b0f2c691ea0850eb701953",
+  "prompts": [
+    {
+      "key": "tracking_starting",
+      "text": "正在启动云台，请稍候。",
+      "offset": 0,
+      "bytes": 74240,
+      "sha256": "325cb42793af0f56d0bf1ccfa24087bf057eaa00d861da8a55bcbe2c0520c150"
+    },
+    {
+      "key": "tracking_ready",
+      "text": "OpenVela 云台已启动。您可以说开始测肤。",
+      "offset": 74240,
+      "bytes": 115200,
+      "sha256": "7a54505469c52d66dfba9275912705b56b6ce9b12a781bceaf836322ccb15baa"
+    },
+    {
+      "key": "tracking_failed",
+      "text": "云台启动失败，请检查设备连接。",
+      "offset": 189440,
+      "bytes": 92160,
+      "sha256": "7cd43ad80af0c7a32be73befceb1f389dd2e47d7f7494371b4cf625006ea15bd"
+    },
+    {
+      "key": "assessment_starting",
+      "text": "开始测肤，请正对镜头。",
+      "offset": 281600,
+      "bytes": 81920,
+      "sha256": "56829c8b0e5733c2e312e25b4789722333494e2184e127c741541701d4389d52"
+    },
+    {
+      "key": "face_missing",
+      "text": "暂时没有检测到人脸，请面对摄像头。",
+      "offset": 363520,
+      "bytes": 97280,
+      "sha256": "dd123a25073c294d158806bd38b69ab1714ac2c6bc4e6d650cd6e241b7443e90"
+    },
+    {
+      "key": "front_aligning",
+      "text": "正在对准正面，请保持稳定。",
+      "offset": 460800,
+      "bytes": 84480,
+      "sha256": "83a1acfcab8fe9006fdc8e3c3f8891fc8e0823cd12b52ed5376ffad021d7d0f6"
+    },
+    {
+      "key": "front_ready",
+      "text": "正面角度已达标。",
+      "offset": 545280,
+      "bytes": 46080,
+      "sha256": "dbe879a80eb311e1717e449e6211e0155c1554e2704aafaa37864af8e5cd7c6d"
+    },
+    {
+      "key": "front_saved",
+      "text": "正脸拍照完成。",
+      "offset": 591360,
+      "bytes": 46080,
+      "sha256": "da97600ecc96a6ba4c1eb9d314d6745616bac6532382c598b6043fd7d288d48a"
+    },
+    {
+      "key": "left_aligning",
+      "text": "请向您的左侧缓慢转头，角度合适时会自动拍照。",
+      "offset": 637440,
+      "bytes": 179200,
+      "sha256": "a2feeffe213d60b7dbcb5d910a15dfa7c263b586baecee52f59073a15ef4d348"
+    },
+    {
+      "key": "left_ready",
+      "text": "左侧角度已达标。",
+      "offset": 816640,
+      "bytes": 51200,
+      "sha256": "2576962f0fcde56d56d28c2940cfd19a3f16971b4d7873e18839d22f70e70f48"
+    },
+    {
+      "key": "left_saved",
+      "text": "左侧脸拍照完成。",
+      "offset": 867840,
+      "bytes": 51200,
+      "sha256": "f46dd10beb42a84d18c4a03cbbe77305d5d7d1df1777e509c77fe4815a680116"
+    },
+    {
+      "key": "right_aligning",
+      "text": "请向您的右侧缓慢转头，角度合适时会自动拍照。",
+      "offset": 919040,
+      "bytes": 153600,
+      "sha256": "0b492add67488260bf684a0416d70a06b9ca62d395c78cbce72ab5c748c21180"
+    },
+    {
+      "key": "right_ready",
+      "text": "右侧角度已达标。",
+      "offset": 1072640,
+      "bytes": 58880,
+      "sha256": "5370f8f27aa509197db9af396c9d8875703cbd55fbe4aad0589e5f37dae0efb8"
+    },
+    {
+      "key": "right_saved",
+      "text": "右侧脸拍照完成。",
+      "offset": 1131520,
+      "bytes": 53760,
+      "sha256": "e9a51eb693578608df3ce7d4371c1829f85ff504eeb80f2e312d0d2440cdd5ba"
+    },
+    {
+      "key": "capture_complete",
+      "text": "三视图拍摄完成，正在上传。",
+      "offset": 1185280,
+      "bytes": 81920,
+      "sha256": "29efe639df5a98300d69a1dacf8a5183c455768bf164994fdb284e034f7be2d5"
+    },
+    {
+      "key": "upload_accepted",
+      "text": "照片已提交，正在分析，请稍候。",
+      "offset": 1267200,
+      "bytes": 87040,
+      "sha256": "e1eba969a0fe66d460343f916dcced5165a68349ce546097fef58d8c66789dcd"
+    },
+    {
+      "key": "upload_failed",
+      "text": "照片上传失败，尚未提交成功。",
+      "offset": 1354240,
+      "bytes": 107520,
+      "sha256": "f9236ee4a1859637c66356d06581cb3d8c9b8a8972fe1316ec47aa2c8167a2ea"
+    },
+    {
+      "key": "report_ready",
+      "text": "测肤报告已生成。",
+      "offset": 1461760,
+      "bytes": 58880,
+      "sha256": "e59b5c7b73fe6d62e031987d9ffa4e64cbc82e9a62a64bb16e5a2a5042eb480a"
+    },
+    {
+      "key": "stop_requested",
+      "text": "正在停止云台。",
+      "offset": 1520640,
+      "bytes": 43520,
+      "sha256": "1dc8a81374b7c211fcf939f540999166eb0339bc036bc0dca21448d67263583a"
+    },
+    {
+      "key": "tracking_stopped",
+      "text": "云台跟踪已停止。",
+      "offset": 1564160,
+      "bytes": 51200,
+      "sha256": "9ef03a503b28666e29e9a78def58fe66c15cc79ea98bc420181928ba256d0524"
+    },
+    {
+      "key": "chat_ready",
+      "text": "已恢复语音聊天。",
+      "offset": 1615360,
+      "bytes": 53760,
+      "sha256": "1fb4958b938cf8c20596297737bdda9b209ddb964659782bc828bdc698f835a5"
+    },
+    {
+      "key": "chat_unavailable",
+      "text": "云台跟踪已停止，对话服务暂时不可用。",
+      "offset": 1669120,
+      "bytes": 117760,
+      "sha256": "345205b2928011970d3fe020298a3f9a5936b916a5cfbbb143ca0046aead9d26"
+    },
+    {
+      "key": "stop_failed",
+      "text": "停止状态尚未确认，请检查设备。",
+      "offset": 1786880,
+      "bytes": 87040,
+      "sha256": "c1780af33b5b5a60671395d32e81ba75f81c379807aef2dcda5e2d65bb657584"
+    },
+    {
+      "key": "capture_saved_local",
+      "text": "三视图拍摄完成，照片已保存。",
+      "offset": 1873920,
+      "bytes": 92160,
+      "sha256": "4873a6968b84d5e6fb736c6028db2fdd1b260493f7043706fd8a7035ded21fda"
+    },
+    {
+      "key": "capture_retained",
+      "text": "三视图拍摄完成，照片已暂存在设备内存中。",
+      "offset": 1966080,
+      "bytes": 128000,
+      "sha256": "4c34b2f690f0010890e92f96712f715848f29214ff3bd572214ed106a52176d6"
+    },
+    {
+      "key": "task_failed",
+      "text": "本轮操作未完成，已停止云台跟踪。",
+      "offset": 2094080,
+      "bytes": 102400,
+      "sha256": "6a580f468a9657f0f2722dafddfb93a8c834ea363631cd79f0a10ce9eb6a688b"
+    }
+  ]
+}

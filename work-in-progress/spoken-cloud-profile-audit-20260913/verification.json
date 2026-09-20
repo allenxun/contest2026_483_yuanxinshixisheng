@@ -1,0 +1,177 @@
+{
+  "status": "pass",
+  "scope": "static combined-profile audit only; no SDK/config mutation, build, network, credential, board or flash operation",
+  "checks": {
+    "source_profiles_exist": true,
+    "source_profile_diff_is_known": true,
+    "cloud_profile_matches_overlay": true,
+    "fragment_cloud_overlay_exact": true,
+    "fragment_preserves_speech_contract": true,
+    "fragment_symbol_set_exact": true,
+    "combined_contract_resolves": true,
+    "linkonly_trust_gates_remain_closed": true,
+    "fragment_has_no_duplicate_assignments": true,
+    "spoken_duplicate_romfs_is_last_value_y": true,
+    "voice_cmake_hash_pins_runtime": true,
+    "voice_cmake_requires_asr_tts_romfs": true,
+    "cloud_cmake_has_all_five_sources": true,
+    "cloud_kconfig_dependencies_present": true,
+    "tls_requires_ca_security_gate_and_sni": true,
+    "cloud_command_still_disables_requests": true,
+    "arena_is_lower_half_of_staged_window": true,
+    "staged_assets_are_disjoint": true,
+    "staged_assets_inside_upper_half": true,
+    "current_ram_package_within_limit": true,
+    "current_package_is_ram_only": true,
+    "gated_runtime_hash_is_pinned": true
+  },
+  "inputs": {
+    "board/kickpi_k7/configs/velavision_spoken_tts_local/defconfig": "d2d4a3d8067881f606d0e32197d45cc5a6befe0ecbe027ec1ed1ff4f9aca8e0f",
+    "board/kickpi_k7/configs/velavision_cloud_probe_local/defconfig": "b2296d8c847e9f84bda83cd9b017f6f87a97dd77bcf1175a50b186987df04190",
+    "work-in-progress/spoken-cloud-profile-audit-20260913/combined-linkonly.fragment": "14fea6f43b174e50daf7fe6ff9157af0223ea15d4bc880d75861b2822c6866b9",
+    "work-in-progress/spoken-cloud-profile-audit-20260913/combined-build-contract.json": "09974108c7936b2aaaf49ff6f4efafaaac154dd8c67a949af7e889a3495bdcec",
+    "work-in-progress/tts-arena-fix-20260913/gated-prefix-package.json": "2aa06159409ec32b53f56fc7a51aee12ca21242fc3598550c29c7f6be8f440c5",
+    "work-in-progress/tts-arena-fix-20260913/gated-firmware-result.json": "e2f8f82e707966ed8ad674fc237c7307077c200d5c15f472dd66622c8bfee243",
+    "work-in-progress/tts-spoken-flow-20260913/k7tts_assets_generated.h": "afdb9f2020186effb3c43e3f9b4ace894b8d8a7103081d23820be5d270506dd1",
+    "port/new/nuttx/include/nuttx/mm/k7_model_arena.h": "f750642f4ccc821a8e43a808c16beebb47377f278e8f407153e055eaf3b78dd2",
+    "app/voicelink/Kconfig": "64a423644e8908de13b948503bdaa69c5b93ef136fd841c1a0f2abf1ff194f07",
+    "app/voicelink/CMakeLists.txt": "50d61ae31645152d0c9837f7a21f7720f90e8c2feebd7c187d046851c04b569b",
+    "app/k7agent/Kconfig": "ef9e56c8f3509f20b3e518f5d2229adec6fba436c67c62a85c8379d3e9040073",
+    "app/k7agent/CMakeLists.txt": "b0c6a920855e79a99b9e4a02f694ec68d136c87fc7916dcdbefa73e87b0c5e00",
+    "app/k7agent/cloud/src/k7cloud_main.c": "cfab190e9e2388482e3e90f2858141f52fbd31db665031a3c2cc39e6ff2c5d31",
+    "app/k7agent/cloud/src/vv_https_mbedtls.c": "dc4f2b55d5b0b0760704e6dfa0a5150132478a290b94aa0f0eb2efe36ac140f0"
+  },
+  "source_profile_differences": {
+    "CRYPTO_MBEDTLS": {
+      "spoken": "n",
+      "cloud": "y"
+    },
+    "EXAMPLES_K7CLOUD": {
+      "spoken": "<absent>",
+      "cloud": "y"
+    },
+    "EXAMPLES_K7VOICE_STAGED_ASSETS": {
+      "spoken": "y",
+      "cloud": "<absent>"
+    },
+    "FS_ROMFS": {
+      "spoken": "y",
+      "cloud": "n"
+    },
+    "LIBC_NETDB": {
+      "spoken": "<absent>",
+      "cloud": "y"
+    },
+    "MBEDTLS_SSL_IN_CONTENT_LEN": {
+      "spoken": "<absent>",
+      "cloud": "16384"
+    },
+    "MBEDTLS_SSL_OUT_CONTENT_LEN": {
+      "spoken": "<absent>",
+      "cloud": "16384"
+    },
+    "MBEDTLS_SSL_PROTO_DTLS": {
+      "spoken": "<absent>",
+      "cloud": "n"
+    },
+    "MBEDTLS_SSL_SRV_C": {
+      "spoken": "<absent>",
+      "cloud": "n"
+    },
+    "NETDB_DNSCLIENT": {
+      "spoken": "<absent>",
+      "cloud": "y"
+    },
+    "NETDB_DNSCLIENT_ENTRIES": {
+      "spoken": "<absent>",
+      "cloud": "2"
+    },
+    "NETDB_DNSCLIENT_MAXRESPONSE": {
+      "spoken": "<absent>",
+      "cloud": "512"
+    },
+    "NETDB_DNSCLIENT_NAMESIZE": {
+      "spoken": "<absent>",
+      "cloud": "128"
+    },
+    "NETDB_DNSCLIENT_RECV_TIMEOUT": {
+      "spoken": "<absent>",
+      "cloud": "1"
+    },
+    "NETDB_DNSCLIENT_RETRIES": {
+      "spoken": "<absent>",
+      "cloud": "1"
+    },
+    "NETDB_DNSCLIENT_SEND_TIMEOUT": {
+      "spoken": "<absent>",
+      "cloud": "1"
+    },
+    "NETDB_DNSSERVER_NAMESERVERS": {
+      "spoken": "<absent>",
+      "cloud": "1"
+    },
+    "NETDB_DNSSERVER_NOADDR": {
+      "spoken": "<absent>",
+      "cloud": "y"
+    }
+  },
+  "combined_profile": {
+    "base": "board/kickpi_k7/configs/velavision_spoken_tts_local/defconfig",
+    "overlay": "work-in-progress/spoken-cloud-profile-audit-20260913/combined-linkonly.fragment",
+    "runtime_https_ready": false,
+    "reason": "entropy, trusted wall time and caller-owned CA are not validated or provisioned"
+  },
+  "memory": {
+    "allocator": {
+      "start": "0x60000000",
+      "end": "0x80000000",
+      "bytes": 536870912
+    },
+    "staged_window": {
+      "start": "0x80000000",
+      "end": "0xa0000000",
+      "bytes": 536870912
+    },
+    "regions": [
+      {
+        "name": "encoder",
+        "start": "0x80000000",
+        "end": "0x89e7da30",
+        "bytes": 166189616
+      },
+      {
+        "name": "decoder",
+        "start": "0x90000000",
+        "end": "0x944b0310",
+        "bytes": 72024848
+      },
+      {
+        "name": "tts_romfs",
+        "start": "0x96000000",
+        "end": "0x97fb2400",
+        "bytes": 33235968
+      }
+    ],
+    "current_package_bytes": 116524928,
+    "download_payload_limit_bytes": 117440512,
+    "combined_firmware_growth_budget_bytes": 915584,
+    "growth_budget_gate": "a combined nuttx.bin larger by more than this budget requires a reviewed package-layout change"
+  },
+  "unresolved_runtime_gates": [
+    "Choose and validate an RK3576 hardware entropy source; merely enabling DEV_URANDOM is insufficient.",
+    "Choose and validate trusted wall time for X.509 validity; RTC and CLOCK_TIMEKEEPING are currently disabled.",
+    "Provide a minimal caller-owned CA bundle for the selected MiMo Token Plan endpoint.",
+    "Install DHCP option 6 DNS servers and bind DNS/TLS cancellation to a Wi-Fi lease generation.",
+    "Build the combined ELF and require every symbol in combined-build-contract.json exactly once.",
+    "Repackage RAM-only and recheck the 117440512-byte OTG payload ceiling; current headroom is small."
+  ],
+  "claims": {
+    "formal_config_modified": false,
+    "sdk_modified": false,
+    "firmware_built": false,
+    "network_accessed": false,
+    "credentials_used": false,
+    "board_tested": false,
+    "flash_written": false
+  }
+}

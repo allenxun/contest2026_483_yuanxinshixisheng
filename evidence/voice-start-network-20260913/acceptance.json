@@ -1,0 +1,29 @@
+{
+  "revision": "voice-start-network-20260913",
+  "firmware_sha256": "55aeacf13f087db3f9e9b5cd4228206d9a3bb87b650592592c87c02d14f52fe2",
+  "wake_rule": "normalized text starts with 你好, or matches 开始联网",
+  "host_flow_scenarios": 20,
+  "host_O0_O2_passed": true,
+  "runtime_logging_tests": "runtime-test.json",
+  "arm64_build_passed": true,
+  "elf_unwind_passed": true,
+  "ram_crc_passed": true,
+  "initial_boot_script_timeout": true,
+  "nsh_verified_by_followup": true,
+  "wireless_host_ready": true,
+  "wifi_service_ready": true,
+  "wifi_connected": false,
+  "phone_ble_connected": null,
+  "phone_ble_note": "Host initialized; client connection not separately rechecked",
+  "latest_microphone_asr_text": "哦",
+  "wake_to_scan_passed": false,
+  "voice_provisioning_passed": false,
+  "remaining": [
+    "Capture cue timing / ASR accuracy",
+    "Actual voice-triggered scan",
+    "Network selection, spoken credentials, confirmation, real connection"
+  ],
+  "scope": "Rule change deployed; no claim that actual wake recognition passed",
+  "flash_written": false,
+  "gimbal_started": false
+}

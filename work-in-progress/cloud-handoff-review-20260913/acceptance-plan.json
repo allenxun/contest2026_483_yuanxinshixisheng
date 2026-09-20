@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.0",
+  "reviewed_at": "2026-09-13T21:45:00+08:00",
+  "branch": "dev-ai-contest-2026",
+  "scope": "read-only review of formal source and latest project state",
+  "formal_source_modified": false,
+  "network_called": false,
+  "credential_used_or_recorded": false,
+  "board_touched": false,
+  "current_truth": {
+    "voice_wifi_provisioning_hardware_passed": false,
+    "board_wifi_online": false,
+    "dns_core_host_tested": true,
+    "dns_board_tested": false,
+    "https_core_host_tested": true,
+    "https_board_tested": false,
+    "mimo_protocol_in_formal_source": false,
+    "mimo_api_called": false,
+    "agent_deployed": false
+  },
+  "states": [
+    "OFFLINE_PROVISIONING",
+    "WIFI_LEASE_READY",
+    "DNS_INSTALLING",
+    "DNS_PROBING",
+    "DNS_READY",
+    "TRUST_PREFLIGHT",
+    "TLS_PROBING",
+    "CLOUD_READY",
+    "CAPTURE",
+    "MIMO_ASR",
+    "TRANSCRIPT",
+    "MIMO_TTS",
+    "PLAYBACK"
+  ],
+  "tasks": [
+    {
+      "id": "C0",
+      "name": "local_voice_provisioning_acceptance",
+      "depends_on": [],
+      "status": "pending_hardware",
+      "pass": [
+        "TTS-ASR-TTS shared arena returns to zero live allocations",
+        "real spoken provisioning reaches matching IpReady",
+        "success prompt is user-audible"
+      ]
+    },
+    {
+      "id": "C0A",
+      "name": "combined_speech_cloud_firmware_profile",
+      "depends_on": ["C0"],
+      "status": "missing",
+      "pass": [
+        "accepted spoken ASR/TTS arena addresses and package layout remain unchanged",
+        "DNS client, mbedTLS, k7cloud, VoiceLink staged assets and radio shared service symbols are present exactly once",
+        "ELF, heap and task-stack budgets pass",
+        "result remains a RAM-only package with no flash command"
+      ]
+    },
+    {
+      "id": "C1",
+      "name": "versioned_wifi_lease_and_dhcp_dns",
+      "depends_on": ["C0", "C0A"],
+      "status": "missing",
+      "pass": [
+        "snapshot contains interface, IPv4, gateway, 1-2 validated DNS IPv4 addresses and generation",
+        "disconnect clears DNS and changes generation",
+        "old-generation cancellation becomes true within 100 ms",
+        "no password or token in snapshot or logs"
+      ]
+    },
+    {
+      "id": "C2",
+      "name": "bounded_board_dns_probe",
+      "depends_on": ["C0A", "C1"],
+      "status": "core_exists_board_missing",
+      "pass": [
+        "configured public hostname resolves to nonzero IPv4 within policy",
+        "attempts do not exceed 3",
+        "link loss cancels",
+        "NXDOMAIN and reconnect cannot return stale address"
+      ]
+    },
+    {
+      "id": "C3",
+      "name": "entropy_time_ca_preflight",
+      "depends_on": ["C0", "C0A"],
+      "status": "missing",
+      "pass": [
+        "approved entropy source documented and reboot-separated DRBG outputs differ",
+        "trusted wall time source documented and valid",
+        "minimal endpoint CA bundle parses",
+        "expired, future, wrong-host and untrusted-chain fixtures fail"
+      ]
+    },
+    {
+      "id": "C4",
+      "name": "bounded_tcp_tls_probe_without_credentials",
+      "depends_on": ["C2", "C3"],
+      "status": "https_core_exists_tcp_and_runtime_missing",
+      "pass": [
+        "nonblocking TCP honors absolute deadline and cancellation",
+        "SNI set, peer certificate present and verification flags zero",
+        "link loss closes transport within deadline",
+        "request has no credential header"
+      ]
+    },
+    {
+      "id": "C5",
+      "name": "official_mimo_nonstream_codec",
+      "depends_on": ["C0"],
+      "status": "spec_exists_formal_codec_missing",
+      "pass": [
+        "exact runtime Token Plan endpoint and credential type are atomically paired",
+        "official nested ASR and TTS golden fixtures pass",
+        "malformed, oversized, duplicate-field and non-200 fixtures fail",
+        "no partial output and no credential in fixtures or logs"
+      ]
+    },
+    {
+      "id": "C6",
+      "name": "single_board_mimo_asr",
+      "depends_on": ["C4", "C5"],
+      "status": "missing",
+      "pass": [
+        "bounded <=5-second PCM16 capture wrapped as valid WAV",
+        "2xx response yields bounded UTF-8 transcript",
+        "request and token staging are erased",
+        "evidence contains no token, audio or transcript bytes"
+      ]
+    },
+    {
+      "id": "C7",
+      "name": "single_board_mimo_tts_playback",
+      "depends_on": ["C4", "C5"],
+      "status": "missing",
+      "pass": [
+        "nonstream TTS WAV response validates before output commit",
+        "bounded format conversion and playback succeed",
+        "audio owner and codec restore succeed",
+        "user confirms expected phrase is audible"
+      ]
+    },
+    {
+      "id": "C8",
+      "name": "cloud_supervisor_and_offline_fallback",
+      "depends_on": ["C6", "C7"],
+      "status": "missing",
+      "pass": [
+        "cloud speech starts only in CLOUD_READY",
+        "link loss during each network phase cancels and releases resources",
+        "reconnect uses a new generation and reruns DNS/TLS gates",
+        "offline provisioning remains usable"
+      ]
+    }
+  ],
+  "separate_future_gate": {
+    "name": "agent_and_real_tool_execution",
+    "required_for_cloud_speech": false,
+    "current_status": "not_deployed",
+    "acceptance": "model request must be validated, executed by a real device adapter, and returned to the model before any success announcement"
+  }
+}

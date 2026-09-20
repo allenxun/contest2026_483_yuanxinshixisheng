@@ -1,0 +1,131 @@
+--- a/app/k7radio/skw_wifi_amsdu.h
++++ b/app/k7radio/skw_wifi_amsdu.h
+@@ -9,20 +9,21 @@
+   uint64_t pn,started_ms;uint16_t sequence;uint8_t bitmap,first_index,last_index;bool active,last_seen;
+   struct {size_t length;bool supported;uint8_t data[SKW_NET_FRAME_MAX];} frames[SKW_AMSDU_MAX];
+ };
++#include "skw_wifi_pn_diag.h"
+ struct skw_amsdu_rx {struct skw_amsdu_pending pending[2][8];unsigned complete,subframes;};
+-static inline int skw_amsdu_receive(struct skw_amsdu_rx *a,struct skw_data_replay *r,
++static inline int skw_amsdu_receive_diag(struct skw_amsdu_rx *a,struct skw_data_replay *r,
+   const uint8_t *slot,size_t size,uint8_t instance,uint8_t peer,const uint8_t own[6],
+-  uint64_t now_ms,int (*deliver)(const uint8_t *,size_t))
++  uint64_t now_ms,int (*deliver)(const uint8_t *,size_t),struct skw_pn_diag *diag)
+ {
+   struct skw_data_view v;
+   if(!a || !deliver)return -EINVAL;
+   int ret=skw_data_inspect(slot,size,instance,peer,own,r,&v);if(ret)return ret;
+   uint64_t *floor=v.multicast?&r->multicast[v.tid]:&r->unicast[v.tid];
+   struct skw_amsdu_pending *p=&a->pending[v.multicast][v.tid];
+-  if(v.pn<=*floor)return -EACCES;
++  if(v.pn<=*floor)return skw_pn_reject(diag,SKW_PN_FLOOR,&v,*floor,p,now_ms);
+   if(!v.amsdu)
+     {
+-      if(p->active && v.pn<p->pn)return -EACCES;
++      if(p->active && v.pn<p->pn)return skw_pn_reject(diag,SKW_PN_PENDING_NEWER,&v,*floor,p,now_ms);
+       memset(p,0,sizeof(*p));*floor=v.pn;
+       return v.supported?deliver(v.ethernet,v.length):-EPROTONOSUPPORT;
+     }
+@@ -34,14 +35,14 @@
+       memset(p,0,sizeof(*p));p->active=true;p->pn=v.pn;
+       p->sequence=v.sequence;p->started_ms=now_ms;p->first_index=v.index;
+     }
+-  if(p->pn!=v.pn || p->sequence!=v.sequence)return -EACCES;
++  if(p->pn!=v.pn || p->sequence!=v.sequence)return skw_pn_reject(diag,SKW_PN_PENDING_TUPLE,&v,*floor,p,now_ms);
+   /* Actual SWT6621S samples start at index 1. The explicit first marker opens
+    * the group; store relative indices, still requiring every contained MSDU.
+    * A second first marker cannot truncate an already pending aggregate. */
+   if(v.index<p->first_index || v.index-p->first_index>=SKW_AMSDU_MAX ||
+      v.first!=(v.index==p->first_index))return -EPROTO;
+   v.index-=p->first_index;
+-  if(p->bitmap&(1u<<v.index))return -EACCES;
++  if(p->bitmap&(1u<<v.index))return skw_pn_reject(diag,SKW_PN_DUPLICATE_INDEX,&v,*floor,p,now_ms);
+   if((p->last_seen && (v.index>p->last_index || (v.last && v.index!=p->last_index))) ||
+      (v.last && (p->bitmap & ~((1u<<(v.index+1))-1))))
+     {memset(p,0,sizeof(*p));return -EPROTO;}
+@@ -55,4 +56,9 @@
+     {ret=deliver(p->frames[i].data,p->frames[i].length);if(ret && !first_error)first_error=ret;}
+   memset(p,0,sizeof(*p));return first_error;
+ }
++/* Preserve original caller ABI; diagnostics are opt-in. */
++static inline int skw_amsdu_receive(struct skw_amsdu_rx *a,struct skw_data_replay *r,
++ const uint8_t *slot,size_t size,uint8_t instance,uint8_t peer,const uint8_t own[6],
++ uint64_t now_ms,int (*deliver)(const uint8_t *,size_t))
++{return skw_amsdu_receive_diag(a,r,slot,size,instance,peer,own,now_ms,deliver,NULL);}
+ #endif
+--- a/app/k7radio/wifi_ip_service.inc
++++ b/app/k7radio/wifi_ip_service.inc
+@@ -4,6 +4,9 @@
+ #include "skw_wifi_amsdu.h"
+ static struct skw_data_replay g_wifi_replay;
+ static struct skw_amsdu_rx g_wifi_amsdu;
++/* RX-owner-only, first 16 rate-limited PN decisions per firmware lifetime.
++ * No asynchronous reader, reset or receive-path printing is added. */
++static struct skw_pn_diag g_wifi_pn_diag;
+ static struct skw_supplicant *g_wifi_supplicant;
+ static sem_t g_wifi_ip_ready=SEM_INITIALIZER(0),g_wifi_ip_done=SEM_INITIALIZER(0);
+ static mutex_t g_wifi_ip_state=NXMUTEX_INITIALIZER;
+@@ -13,8 +16,8 @@
+ static void fw_wifi_net_slot(const uint8_t *slot,size_t n)
+ {
+   if(!g_wifi_replay.active)return;
+-  int ret=skw_amsdu_receive(&g_wifi_amsdu,&g_wifi_replay,slot,n,
+-    g_wifi_join_instance,g_wifi_wpa.peer,g_wifi_mac,now_us()/1000,skw_netdev_rx);
++  int ret=skw_amsdu_receive_diag(&g_wifi_amsdu,&g_wifi_replay,slot,n,
++    g_wifi_join_instance,g_wifi_wpa.peer,g_wifi_mac,now_us()/1000,skw_netdev_rx,&g_wifi_pn_diag);
+   if(ret && ret!=-EPROTONOSUPPORT)
+     {
+       g_wifi_ip_rejects++;
+--- /dev/null
++++ b/app/k7radio/skw_wifi_pn_diag.h
+@@ -0,0 +1,50 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/* Included after skw_amsdu_pending. Single RX owner only, no I/O or payload. */
++#ifndef SKW_WIFI_PN_DIAG_H
++#define SKW_WIFI_PN_DIAG_H
++#include <limits.h>
++#define SKW_PN_DIAG_CAPACITY 16
++#define SKW_PN_DIAG_INTERVAL_MS 1000
++enum skw_pn_reason { SKW_PN_FLOOR=1, SKW_PN_PENDING_NEWER,
++                     SKW_PN_PENDING_TUPLE, SKW_PN_DUPLICATE_INDEX };
++struct skw_pn_record {
++  uint64_t now_ms,pn,floor,pending_pn,age_ms;
++  uint16_t sequence,pending_sequence;
++  uint8_t tid,index,bitmap,first_index,last_index,reason;
++  bool multicast,amsdu,first,last,pending_active,last_seen,age_valid;
++};
++struct skw_pn_diag {
++  struct skw_pn_record entries[SKW_PN_DIAG_CAPACITY];
++  unsigned count,seen,suppressed,full;
++  uint64_t last_ms;
++  bool has_last;
++};
++static inline void skw_pn_sat(unsigned *n) {if(*n<UINT_MAX)(*n)++;}
++static inline int skw_pn_reject(struct skw_pn_diag *d,enum skw_pn_reason reason,
++ const struct skw_data_view *v,uint64_t floor,const struct skw_amsdu_pending *p,
++ uint64_t now)
++{
++  if(!d)return -EACCES;
++  skw_pn_sat(&d->seen);
++  if(d->count>=SKW_PN_DIAG_CAPACITY){skw_pn_sat(&d->full);return -EACCES;}
++  /* Backwards time cannot bypass rate limiting or underflow age. */
++  if(d->has_last && (now<d->last_ms || now-d->last_ms<SKW_PN_DIAG_INTERVAL_MS))
++    {skw_pn_sat(&d->suppressed);return -EACCES;}
++  struct skw_pn_record *s=&d->entries[d->count++];
++  memset(s,0,sizeof(*s));
++  s->reason=(uint8_t)reason;s->now_ms=now;s->pn=v->pn;s->floor=floor;
++  s->tid=v->tid;s->multicast=v->multicast;s->amsdu=v->amsdu;
++  s->sequence=v->sequence;
++  s->index=v->index+(reason==SKW_PN_DUPLICATE_INDEX?p->first_index:0);
++  s->first=v->first;s->last=v->last;
++  s->pending_active=p->active;
++  if(p->active) {
++    s->pending_pn=p->pn;s->pending_sequence=p->sequence;s->bitmap=p->bitmap;
++    s->first_index=p->first_index;s->last_index=p->last_index;s->last_seen=p->last_seen;
++    s->age_valid=now>=p->started_ms;
++    if(s->age_valid)s->age_ms=now-p->started_ms;
++  }
++  d->has_last=true;d->last_ms=now;
++  return -EACCES;
++}
++#endif

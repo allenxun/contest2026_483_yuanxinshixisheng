@@ -1,0 +1,446 @@
+{
+  "scope": "Host-generated fixed audio assets; playback and routing still untested",
+  "dynamic_ssid_speech": false,
+  "prompts": [
+    {
+      "id": "p000",
+      "text": "没有听清，请再说一次",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p000.wav",
+        "没有听清，请再说一次"
+      ],
+      "exit_code": 0,
+      "seconds": 4.26600000000326,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 21865,
+      "sha256": "526e0637f6cbad01301871c27c24902de75fe0298436e7f94a3354df67be718c"
+    },
+    {
+      "id": "p001",
+      "text": "没有发现网络，请说重新扫描或取消",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p001.wav",
+        "没有发现网络，请说重新扫描或取消"
+      ],
+      "exit_code": 0,
+      "seconds": 3.9059999999881256,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 41627,
+      "sha256": "57c351ac5ee2a728f4c9a09b8591e85a91a08f3e521e26b895c1616c249e0b35"
+    },
+    {
+      "id": "p002",
+      "text": "编号无效，请重新选择网络",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p002.wav",
+        "编号无效，请重新选择网络"
+      ],
+      "exit_code": 0,
+      "seconds": 3.8440000000118744,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 29742,
+      "sha256": "8c3834885071c9155581378a514bb1a7b0ed41d2df832fabcb6b9f08484c21f3"
+    },
+    {
+      "id": "p003",
+      "text": "没有听清，请再说一次当前字符",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p003.wav",
+        "没有听清，请再说一次当前字符"
+      ],
+      "exit_code": 0,
+      "seconds": 3.7179999999934807,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 37179,
+      "sha256": "7ace150663648e70a8cdde053a9c6912fd5d4a9834ef33e5a932c62c12eaf52b"
+    },
+    {
+      "id": "p004",
+      "text": "已达到最大长度，请说完成、删除、清空、重输或取消",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p004.wav",
+        "已达到最大长度，请说完成、删除、清空、重输或取消"
+      ],
+      "exit_code": 0,
+      "seconds": 3.875,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 54197,
+      "sha256": "695a2b0a578faa1c9ac34fcff2cc011de861886845af53084c2bf58fc0d250bb"
+    },
+    {
+      "id": "p005",
+      "text": "已清空，请重新输入密码，默认小写",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p005.wav",
+        "已清空，请重新输入密码，默认小写"
+      ],
+      "exit_code": 0,
+      "seconds": 3.8910000000032596,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 38759,
+      "sha256": "1800def1d3dba77a6e4c710af37c2070b8325b80d2f1e0b6249c7949fea53384"
+    },
+    {
+      "id": "p006",
+      "text": "已重新开始，请输入密码，默认小写",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p006.wav",
+        "已重新开始，请输入密码，默认小写"
+      ],
+      "exit_code": 0,
+      "seconds": 3.937999999994645,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 37803,
+      "sha256": "0712cc25983a45c43732a0c46593f75ce84c35123076ce0f82128c849f7c88b2"
+    },
+    {
+      "id": "p007",
+      "text": "已切换到大写模式",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p007.wav",
+        "已切换到大写模式"
+      ],
+      "exit_code": 0,
+      "seconds": 4.01500000001397,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 20179,
+      "sha256": "218da1de8ec2fafeeebdac401fb4198e01ba115df99938234c4b555b7bb88b62"
+    },
+    {
+      "id": "p008",
+      "text": "已切换到小写模式",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p008.wav",
+        "已切换到小写模式"
+      ],
+      "exit_code": 0,
+      "seconds": 3.702999999979511,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 22163,
+      "sha256": "9a24199ce3b18e7ab4bbf8b7467fa69db0ce369b26904859d37207116e1ebd18"
+    },
+    {
+      "id": "p009",
+      "text": "密码长度不足，请继续输入",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p009.wav",
+        "密码长度不足，请继续输入"
+      ],
+      "exit_code": 0,
+      "seconds": 3.875,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 31672,
+      "sha256": "3f86b17c462ac2e18f0daa504470412ad5bc0142b32581a8d8f42d9349536eb6"
+    },
+    {
+      "id": "p010",
+      "text": "已收到凭据，等待联网结果",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p010.wav",
+        "已收到凭据，等待联网结果"
+      ],
+      "exit_code": 0,
+      "seconds": 3.7190000000118744,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 28327,
+      "sha256": "3d231ef48784144d78cdc3058b6383af736818643cb88de924f121a3f20816f3"
+    },
+    {
+      "id": "p011",
+      "text": "正在连接网络",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p011.wav",
+        "正在连接网络"
+      ],
+      "exit_code": 0,
+      "seconds": 3.8910000000032596,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 17078,
+      "sha256": "e8c27eb0f62acb474d34490621ccb87fcab5ee8af698f4f9b1ab49af49496352"
+    },
+    {
+      "id": "p012",
+      "text": "密码错误，请重新输入",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p012.wav",
+        "密码错误，请重新输入"
+      ],
+      "exit_code": 0,
+      "seconds": 3.812000000005355,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 27795,
+      "sha256": "ae2a522728aa4bd4ca795cd5d21ebf5d2e47f53ae66ff0021748720e152189e3"
+    },
+    {
+      "id": "p013",
+      "text": "连接超时，请重试",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p013.wav",
+        "连接超时，请重试"
+      ],
+      "exit_code": 0,
+      "seconds": 3.7969999999913853,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 20409,
+      "sha256": "a8ba19acb08473cc1bd35748741668e6e8050abfa8b0469397c7adae730787ef"
+    },
+    {
+      "id": "p014",
+      "text": "网络服务忙，请稍后重试",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p014.wav",
+        "网络服务忙，请稍后重试"
+      ],
+      "exit_code": 0,
+      "seconds": 3.687999999994645,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 26367,
+      "sha256": "20d1d4509296a8f069f8d58f9b50e850dd25aeb468d220b568b71d4b5e89d753"
+    },
+    {
+      "id": "p015",
+      "text": "暂不支持该网络，请重新选择网络",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p015.wav",
+        "暂不支持该网络，请重新选择网络"
+      ],
+      "exit_code": 0,
+      "seconds": 3.7339999999967404,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 34724,
+      "sha256": "775e70e534e0f8f09aca97d0cf4ec584e0a8a777a7dc0c199e369fd9b9bc568f"
+    },
+    {
+      "id": "p016",
+      "text": "找不到该网络，请重新选择网络",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p016.wav",
+        "找不到该网络，请重新选择网络"
+      ],
+      "exit_code": 0,
+      "seconds": 3.9060000000172295,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 34252,
+      "sha256": "fa4b4169656dacd14a078d77474382adada3fc51f487df7bf16e29c52e21dfb0"
+    },
+    {
+      "id": "p017",
+      "text": "连接失败，请重试",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p017.wav",
+        "连接失败，请重试"
+      ],
+      "exit_code": 0,
+      "seconds": 3.6719999999913853,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 17982,
+      "sha256": "89146ff79efdd21477aa787a0b5db7058f786d4f51e4912896c1c7c959df8815"
+    },
+    {
+      "id": "p018",
+      "text": "正在扫描网络",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p018.wav",
+        "正在扫描网络"
+      ],
+      "exit_code": 0,
+      "seconds": 3.8439999999827705,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 15895,
+      "sha256": "124da667d65cd4e58a187e4ecb263763fefc592ce7a73141895673393701cf72"
+    },
+    {
+      "id": "p019",
+      "text": "网络连接成功",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p019.wav",
+        "网络连接成功"
+      ],
+      "exit_code": 0,
+      "seconds": 3.922000000020489,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 15342,
+      "sha256": "395ed47dc1287875d5249f9fdf09be84b9926c3cd1ad836260f59c7ebc826f67"
+    },
+    {
+      "id": "p020",
+      "text": "请说要连接的网络名称",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p020.wav",
+        "请说要连接的网络名称"
+      ],
+      "exit_code": 0,
+      "seconds": 3.7179999999934807,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 23217,
+      "sha256": "590b52e3c52c93e4ad05bc5ad8c05fe9f3c5037954a7bf1d9fe2440c83e0fd19"
+    },
+    {
+      "id": "p021",
+      "text": "已取消配置",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\bin\\sherpa-onnx-offline-tts.exe",
+        "--vits-model=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+        "--vits-tokens=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+        "--vits-lexicon=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt",
+        "--tts-rule-fars=E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far",
+        "--num-threads=1",
+        "--output-filename=E:\\openvela\\VelaVision\\work-in-progress\\provisioning-fixed-prompts-20260911\\p021.wav",
+        "已取消配置"
+      ],
+      "exit_code": 0,
+      "seconds": 3.6570000000065193,
+      "played_on_board": false,
+      "rate": 8000,
+      "frames": 17222,
+      "sha256": "1eda4fe3326fbbec71565216b3afc902924271156a4fe980db201e62556576bb"
+    }
+  ]
+}

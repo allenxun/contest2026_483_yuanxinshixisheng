@@ -1,0 +1,7 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/include/ggml-cpu.h:4,
+                 from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/include/llama.h:5,
+                 from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-memory.h:3,
+                 from /home/swl/openvela/work/llama-native-20260910T071713Z/vendor/src/llama-memory.cpp:1:
+/home/swl/openvela/work/llama-native-20260910T071713Z/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^

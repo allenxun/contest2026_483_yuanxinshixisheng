@@ -1,0 +1,532 @@
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 38bec1a6b79..827177470da 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -53,6 +53,17 @@ config ARCH_CHIP_RK3399
+ 	---help---
+ 		Rockchip RK3399 SoC
+ 
++config ARCH_CHIP_RK3576
++	bool "Rockchip RK3576"
++	select ARCH_CORTEX_A53
++	select ARCH_HAVE_ADDRENV
++	select ARCH_HAVE_RESET
++	select ARCH_NEED_ADDRENV_MAPPING
++	select ARM64_HAVE_PSCI
++	select ARCH_HAVE_IRQPRIO
++	---help---
++		Rockchip RK3576 SoC
++
+ config ARCH_CHIP_QEMU_ARM64
+ 	bool "QEMU virt platform (ARMv8a)"
+ 	select ARCH_HAVE_ADDRENV
+@@ -234,6 +245,15 @@ config ARCH_SET_VMPIDR_EL2
+ 		ARM FVP and VDK should set it since these platform will boot
+ 		without BootLoader.
+ 
++config ARM64_IMAGE_TEXT_OFFSET
++	hex "ARM64 Image load offset"
++	default 0x480000
++	---help---
++		Offset from a 2 MiB aligned base to the ARM64 Image entry point.
++		Bootloaders use this header field when relocating the image.
++		For a fixed-address image, RAM_START minus this offset must be
++		2 MiB aligned, and the image must be loaded at its link address.
++
+ config ARCH_EARLY_PRINT
+ 	bool "arch early print support"
+ 	default n
+@@ -335,6 +355,7 @@ config ARCH_CHIP
+ 	string
+ 	default "a64"       if ARCH_CHIP_A64
+ 	default "rk3399"    if ARCH_CHIP_RK3399
++	default "rk3576"    if ARCH_CHIP_RK3576
+ 	default "zynq-mpsoc" if ARCH_CHIP_ZYNQ_MPSOC
+ 	default "qemu"      if ARCH_CHIP_QEMU_ARM64
+ 	default "goldfish"  if ARCH_CHIP_GOLDFISH_ARM64
+@@ -501,6 +522,10 @@ if ARCH_CHIP_RK3399
+ source "arch/arm64/src/rk3399/Kconfig"
+ endif
+ 
++if ARCH_CHIP_RK3576
++source "arch/arm64/src/rk3576/Kconfig"
++endif
++
+ if ARCH_CHIP_QEMU_ARM64
+ source "arch/arm64/src/qemu/Kconfig"
+ endif
+diff --git a/arch/arm64/src/common/arm64_head.S b/arch/arm64/src/common/arm64_head.S
+index 07bbb9186b4..2e970fe75bb 100644
+--- a/arch/arm64/src/common/arm64_head.S
++++ b/arch/arm64/src/common/arm64_head.S
+@@ -41,6 +41,12 @@
+  ****************************************************************************/
+ 
+ /* macro define from xen head, for efi head define */
++/* Preserve the historical header for existing configurations. */
++
++#ifndef CONFIG_ARM64_IMAGE_TEXT_OFFSET
++#  define CONFIG_ARM64_IMAGE_TEXT_OFFSET 0x480000
++#endif
++
+ #define PAGE_SHIFT              12
+ #define __HEAD_FLAG_PAGE_SIZE   ((PAGE_SHIFT - 10) / 2)
+ 
+@@ -108,7 +114,7 @@ __start:
+ 
+     add     x13, x18, #0x16      /* the magic "MZ" signature */
+     b       real_start           /* branch to kernel start */
+-    .quad   0x480000              /* Image load offset from start of RAM */
++    .quad   CONFIG_ARM64_IMAGE_TEXT_OFFSET /* Image load offset */
+     .quad   _e_initstack - __start         /* Effective size of kernel image, little-endian */
+     .quad   __HEAD_FLAGS         /* Informative flags, little-endian */
+     .quad   0                    /* reserved */
+diff --git a/boards/Kconfig b/boards/Kconfig
+index 0f14229f84d..36a788ca183 100644
+--- a/boards/Kconfig
++++ b/boards/Kconfig
+@@ -2238,6 +2238,13 @@ config ARCH_BOARD_NANOPI_M4
+ 		This options selects support for NuttX on FriendlyElec NanoPi M4
+ 		based on Rockchip RK3399 SoC with ARM Cortex-A53
+ 
++config ARCH_BOARD_KICKPI_K7
++	bool "KICKPI K7"
++	depends on ARCH_CHIP_RK3576
++	---help---
++		This options selects support for NuttX on KICKPI K7 board
++		based on Rockchip RK3576 SoC with ARM Cortex-A72/A53
++
+ config ARCH_BOARD_FVP_ARMV8R
+ 	bool "FVP ARM-v8r CPUs board"
+ 	depends on ARCH_CHIP_FVP_ARMV8R
+@@ -3523,6 +3530,7 @@ config ARCH_BOARD
+ 	default "pinephone"                 if ARCH_BOARD_PINEPHONE
+ 	default "pinephonepro"              if ARCH_BOARD_PINEPHONE_PRO
+ 	default "nanopi_m4"                 if ARCH_BOARD_NANOPI_M4
++	default "kickpi_k7"                 if ARCH_BOARD_KICKPI_K7
+ 	default "fvp-armv8r"                if ARCH_BOARD_FVP_ARMV8R
+ 	default "vdk-armv8r"                if ARCH_BOARD_VDK_ARMV8R_BASE
+ 	default "fvp-armv8r-aarch32"        if ARCH_BOARD_FVP_ARMV8R_AARCH32
+diff --git a/drivers/serial/uart_16550.c b/drivers/serial/uart_16550.c
+index c31c730a135..5f2051713ff 100644
+--- a/drivers/serial/uart_16550.c
++++ b/drivers/serial/uart_16550.c
+@@ -1707,6 +1707,12 @@ void up_putc(int ch)
+   FAR struct u16550_s *priv = (FAR struct u16550_s *)CONSOLE_DEV.priv;
+ 
+   u16550_putc(priv, ch);
++#ifdef CONFIG_RK3576_USBHOST
++  /* Temporary K7 bring-up pacing: preserve crash diagnostics through the
++   * 1.5 Mbaud CH340/VMware link. Normal UART transfers are unchanged.
++   */
++  up_udelay(50);
++#endif
+ }
+ #endif
+ 
+diff --git a/drivers/usbhost/CMakeLists.txt b/drivers/usbhost/CMakeLists.txt
+index daf3ddd30b8..8c56c3461ea 100644
+--- a/drivers/usbhost/CMakeLists.txt
++++ b/drivers/usbhost/CMakeLists.txt
+@@ -79,6 +79,10 @@ if(CONFIG_USBHOST)
+     list(APPEND SRCS usbhost_xhci_pci.c usbhost_xhci_trace.c)
+   endif()
+ 
++  if(CONFIG_USBHOST_RK3576_XHCI)
++    list(APPEND SRCS usbhost_xhci_rk3576.c usbhost_xhci_rk3576_trace.c)
++  endif()
++
+   # HCD debug/trace logic
+ 
+   if(CONFIG_USBHOST_TRACE)
+diff --git a/drivers/usbhost/Kconfig b/drivers/usbhost/Kconfig
+index 3c09aa0ecce..5ee266b177c 100644
+--- a/drivers/usbhost/Kconfig
++++ b/drivers/usbhost/Kconfig
+@@ -753,6 +753,18 @@ config USBHOST_BTHCI
+ 	---help---
+ 		Select this option to build in support for USB Bluetooth HCI devices.
+ 
++config USBHOST_RK3576_XHCI
++	bool "Experimental K7 memory-mapped xHCI host"
++	depends on ARCH_CHIP_RK3576 && USBHOST_WAITER && SCHED_HPWORK && SCHED_LPWORK
++	depends on !USBHOST_XHCI_PCI
++	select USBHOST_HAVE_ASYNCH
++	default n
++
++config USBHOST_XHCI_ENUM_RETRIES
++	int
++	default 3
++	depends on USBHOST_RK3576_XHCI
++
+ menuconfig USBHOST_XHCI_PCI
+ 	bool "USB xHCI PCI Host Driver Support"
+ 	default n
+@@ -761,7 +773,7 @@ menuconfig USBHOST_XHCI_PCI
+ 	---help---
+ 		USB xHCI PCI host driver support.
+ 
+-if USBHOST_XHCI_PCI
++if USBHOST_XHCI_PCI || USBHOST_RK3576_XHCI
+ 
+ config USBHOST_XHCI_MAX_DEVS
+ 	int "xHCI maximum supported devices"
+diff --git a/drivers/usbhost/Make.defs b/drivers/usbhost/Make.defs
+index 11cf128e973..551230f4e53 100644
+--- a/drivers/usbhost/Make.defs
++++ b/drivers/usbhost/Make.defs
+@@ -84,6 +84,10 @@ ifeq ($(CONFIG_USBHOST_XHCI_PCI),y)
+ CSRCS += usbhost_xhci_pci.c usbhost_xhci_trace.c
+ endif
+ 
++ifeq ($(CONFIG_USBHOST_RK3576_XHCI),y)
++CSRCS += usbhost_xhci_rk3576.c usbhost_xhci_rk3576_trace.c
++endif
++
+ # HCD debug/trace logic
+ 
+ ifeq ($(CONFIG_USBHOST_TRACE),y)
+diff --git a/drivers/usbhost/usbhost_hub.c b/drivers/usbhost/usbhost_hub.c
+index fb7a2cce2bd..c93c84af01c 100644
+--- a/drivers/usbhost/usbhost_hub.c
++++ b/drivers/usbhost/usbhost_hub.c
+@@ -32,6 +32,7 @@
+ #include <assert.h>
+ #include <errno.h>
+ #include <debug.h>
++#include <syslog.h>
+ 
+ #include <nuttx/kmalloc.h>
+ #include <nuttx/arch.h>
+@@ -184,7 +185,7 @@ static int usbhost_disconnected(FAR struct usbhost_class_s *hubclass);
+  * used to associate the USB host hub class to a connected USB hub.
+  */
+ 
+-static const struct usbhost_id_s g_id[2] =
++static const struct usbhost_id_s g_id[3] =
+ {
+   {
+       USB_CLASS_HUB,  /* base         */
+@@ -199,7 +200,8 @@ static const struct usbhost_id_s g_id[2] =
+       1,              /* proto HS hub */
+       0,              /* vid          */
+       0               /* pid          */
+-  }
++  },
++  { USB_CLASS_HUB, 0, 2, 0, 0 }
+ };
+ 
+ /* This is the USB host hub class's registry entry */
+@@ -208,7 +210,7 @@ static struct usbhost_registry_s g_hub =
+ {
+   NULL,                   /* flink    */
+   usbhost_create,         /* create   */
+-  2,                      /* nids     */
++  3,                      /* nids     */
+   g_id                    /* id[]     */
+ };
+ 
+@@ -569,6 +571,12 @@ static inline int usbhost_hubdesc(FAR struct usbhost_class_s *hubclass)
+ 
+   priv->pwrondelay  = (2 * hubdesc->pwrondelay);
+   priv->ctrlcurrent = hubdesc->ctrlcurrent;
++#ifdef CONFIG_USBHOST_RK3576_XHCI
++  hport->nports = hubdesc->nports;
++  hport->ttt = (hubchar & USBHUB_CHAR_TTTT_MASK) >> USBHUB_CHAR_TTTT_SHIFT;
++  syslog(LOG_INFO, "K7 HUB: addr=%u ports=%u speed=%u\n",
++         hport->funcaddr, hport->nports, hport->speed);
++#endif
+ 
+   uinfo("Hub Descriptor:\n");
+   uinfo("  bDescLength:         %d\n", hubdesc->len);
+@@ -993,9 +1001,10 @@ static void usbhost_hub_event(FAR void *arg)
+               connport = &priv->hport[PORT_INDX(port)];
+               if (connport->devclass != NULL)
+                 {
++                  bool ishub = connport->devclass->connect == usbhost_connect;
+                   CLASS_DISCONNECTED(connport->devclass);
+ 
+-                  if (connport->devclass->connect == usbhost_connect)
++                  if (ishub)
+                     {
+                       /* For hubs, the usbhost_disconnect_event function
+                        * (triggered by the CLASS_DISCONNECTED call above)
+diff --git a/include/nuttx/net/bluetooth.h b/include/nuttx/net/bluetooth.h
+index 5eef47a82c2..aabe15747b9 100644
+--- a/include/nuttx/net/bluetooth.h
++++ b/include/nuttx/net/bluetooth.h
+@@ -54,7 +54,11 @@
+ #define BLUETOOTH_SMP_MTU       65
+ #define BLUETOOTH_MAX_MTU       70
+ 
+-#define BLUETOOTH_MAX_FRAMELEN  (BLUETOOTH_MAX_MTU + BLUETOOTH_MAX_HDRLEN)
++#ifdef CONFIG_BLUETOOTH_FRAME_CAPACITY
++#  define BLUETOOTH_MAX_FRAMELEN CONFIG_BLUETOOTH_FRAME_CAPACITY
++#else
++#  define BLUETOOTH_MAX_FRAMELEN (BLUETOOTH_MAX_MTU + BLUETOOTH_MAX_HDRLEN)
++#endif
+ 
+ #define BLUETOOTH_ADDRSIZE      6
+ #define BLUETOOTH_ADDRCOPY(d,s) memcpy((d),(s),BLUETOOTH_ADDRSIZE)
+diff --git a/include/nuttx/usb/usbhost.h b/include/nuttx/usb/usbhost.h
+index 47e585a175b..b10b5f73ecd 100644
+--- a/include/nuttx/usb/usbhost.h
++++ b/include/nuttx/usb/usbhost.h
+@@ -722,6 +722,10 @@ struct usbhost_hubport_s
+   uint8_t port;                         /* Hub port index */
+   uint8_t funcaddr;                     /* Device function address */
+   uint8_t speed;                        /* Device speed */
++#ifdef CONFIG_USBHOST_RK3576_XHCI
++  uint8_t nports;                       /* Downstream ports if this is a hub */
++  uint8_t ttt;                          /* Transaction translator think time */
++#endif
+ };
+ 
+ /* The root hub port differs in that it includes a data set that is used to
+@@ -737,6 +741,9 @@ struct usbhost_roothubport_s
+ 
+   struct usbhost_hubport_s hport;        /* Common hub port definitions */
+   FAR struct usbhost_devaddr_s *pdevgen; /* Address generation data pointer */
++#ifdef CONFIG_USBHOST_RK3576_XHCI
++  uint8_t bus;
++#endif
+ };
+ 
+ /* struct usbhost_class_s provides access from the USB host driver to the
+diff --git a/wireless/bluetooth/Kconfig b/wireless/bluetooth/Kconfig
+index 7ab4e093404..c1ee21fb1e4 100644
+--- a/wireless/bluetooth/Kconfig
++++ b/wireless/bluetooth/Kconfig
+@@ -131,6 +131,15 @@ config BLUETOOTH_MAXDISCOVER
+ 		requests the results.  This parameter specifies the maximum results
+ 		that can be buffered before discovery results are lost.
+ 
++config BLUETOOTH_FRAME_CAPACITY
++	int "Legacy host frame capacity including transport headroom"
++	default 79
++	range 74 255
++	---help---
++		Must fit CONFIG_IOB_BUFSIZE and the host's 8-bit buffer length.
++		An SDIO driver with zero head reserve can use 255 for 251-byte ACL
++		payloads. Keep the default for existing controllers.
++
+ config BLUETOOTH_BUFFER_PREALLOC
+ 	int "Number of pre-allocated buffer structures"
+ 	default 20
+diff --git a/wireless/bluetooth/bt_att.c b/wireless/bluetooth/bt_att.c
+index 11ffa3a8b70..77d42380973 100644
+--- a/wireless/bluetooth/bt_att.c
++++ b/wireless/bluetooth/bt_att.c
+@@ -79,8 +79,7 @@
+                                     BT_GATT_PERM_WRITE_ENCRYPT)
+ #define BT_GATT_PERM_AUTHEN_MASK    (BT_GATT_PERM_READ_AUTHEN | \
+                                     BT_GATT_PERM_WRITE_AUTHEN)
+-#define BT_ATT_OP_CMD_MASK         (BT_ATT_OP_WRITE_CMD & \
+-                                    BT_ATT_OP_SIGNED_WRITE_CMD)
++#define BT_ATT_OP_CMD_MASK         0x40 /* ATT opcode command flag, bit 6 */
+ 
+ /****************************************************************************
+  * Private Types
+@@ -480,10 +479,11 @@ static uint8_t att_mtu_req(FAR struct bt_conn_s *conn,
+   req = (FAR void *)data->data;
+ 
+   mtu = BT_LE162HOST(req->mtu);
++  printf("PROV ATT MTU request=%u\n",mtu);
+ 
+   wlinfo("Client MTU %u\n", mtu);
+ 
+-  if (mtu > BT_ATT_MAX_LE_MTU || mtu < BT_ATT_DEFAULT_LE_MTU)
++  if (mtu < BT_ATT_DEFAULT_LE_MTU)
+     {
+       return BT_ATT_ERR_INVALID_PDU;
+     }
+@@ -498,7 +498,7 @@ static uint8_t att_mtu_req(FAR struct bt_conn_s *conn,
+    * extra byte for ATT header.
+    */
+ 
+-  maxmtu = bt_buf_tailroom(buf) + 1;
++  maxmtu = MIN(bt_buf_tailroom(buf) + 1, BT_ATT_MAX_LE_MTU);
+   if (mtu > maxmtu)
+     {
+       mtu = maxmtu;
+@@ -506,12 +506,15 @@ static uint8_t att_mtu_req(FAR struct bt_conn_s *conn,
+ 
+   wlinfo("Server MTU %u\n", mtu);
+ 
+-  att->mtu = mtu;
+-
++  /* A peer advertises its receive capability, not a size we must allocate.
++   * Report our bounded receive capacity and then use the smaller value.
++   */
+   rsp = bt_buf_extend(buf, sizeof(*rsp));
+-  rsp->mtu = BT_HOST2LE16(mtu);
++  rsp->mtu = BT_HOST2LE16(maxmtu);
+ 
+   bt_l2cap_send(conn, BT_L2CAP_CID_ATT, buf);
++  att->mtu = mtu;
++  printf("PROV ATT MTU local=%u negotiated=%u\n", maxmtu, mtu);
+ 
+   return 0;
+ }
+@@ -1756,6 +1759,7 @@ static void bt_att_receive(FAR struct bt_conn_s *conn,
+     }
+ 
+   wlinfo("Received ATT code 0x%02x len %u\n", hdr->code, buf->len);
++  printf("PROV ATT dispatch opcode=%u bytes=%u\n",hdr->code,buf->len);
+ 
+   bt_buf_consume(buf, sizeof(*hdr));
+ 
+@@ -1775,6 +1779,7 @@ static void bt_att_receive(FAR struct bt_conn_s *conn,
+         }
+ 
+       err = g_handlers[i].func(conn, buf);
++      printf("PROV ATT result opcode=%u error=%u\n",hdr->code,err);
+       break;
+     }
+ 
+diff --git a/wireless/bluetooth/bt_buf.c b/wireless/bluetooth/bt_buf.c
+index b2a6b7f2cf6..281e5cd97bf 100644
+--- a/wireless/bluetooth/bt_buf.c
++++ b/wireless/bluetooth/bt_buf.c
+@@ -384,7 +384,8 @@ FAR struct bt_buf_s *bt_buf_alloc(enum bt_buf_type_e type,
+ 
+ void bt_buf_release(FAR struct bt_buf_s *buf)
+ {
+-#ifdef CONFIG_WIRELESS_BLUETOOTH_HOST
++#if defined(CONFIG_WIRELESS_BLUETOOTH_HOST) && \
++    !defined(CONFIG_BLUETOOTH_CNTRL_HOST_FLOW_DISABLE)
+   enum bt_buf_type_e type;
+   uint16_t handle;
+ #endif
+@@ -400,7 +401,8 @@ void bt_buf_release(FAR struct bt_buf_s *buf)
+       return;
+     }
+ 
+-#ifdef CONFIG_WIRELESS_BLUETOOTH_HOST
++#if defined(CONFIG_WIRELESS_BLUETOOTH_HOST) && \
++    !defined(CONFIG_BLUETOOTH_CNTRL_HOST_FLOW_DISABLE)
+   handle = buf->u.acl.handle;
+   type   = buf->type;
+ #endif
+@@ -462,7 +464,8 @@ void bt_buf_release(FAR struct bt_buf_s *buf)
+ 
+   wlinfo("Buffer freed: %p\n", buf);
+ 
+-#ifdef CONFIG_WIRELESS_BLUETOOTH_HOST
++#if defined(CONFIG_WIRELESS_BLUETOOTH_HOST) && \
++    !defined(CONFIG_BLUETOOTH_CNTRL_HOST_FLOW_DISABLE)
+   if (type == BT_ACL_IN)
+     {
+       FAR struct bt_hci_cp_host_num_completed_packets_s *cp;
+diff --git a/wireless/bluetooth/bt_hcicore.c b/wireless/bluetooth/bt_hcicore.c
+index 79c2c446fde..e1ba6abc5e6 100644
+--- a/wireless/bluetooth/bt_hcicore.c
++++ b/wireless/bluetooth/bt_hcicore.c
+@@ -265,7 +265,11 @@ static void hci_acl(FAR struct bt_buf_s *buf)
+       return;
+     }
+ 
+-  bt_conn_receive(conn, buf, flags);
++  /* The RX work queue keeps its reference until hci_acl returns.
++   * Connection reassembly may retain or consume the additional reference.
++   */
++  bt_conn_receive(conn, bt_buf_addref(buf), flags);
++  bt_conn_release(conn);
+ }
+ 
+ /* HCI event processing */
+@@ -1269,7 +1273,9 @@ static void le_read_buffer_size_complete(FAR struct bt_buf_s *buf)
+ 
+ static int hci_initialize(void)
+ {
++#ifndef CONFIG_BLUETOOTH_CNTRL_HOST_FLOW_DISABLE
+   FAR struct bt_hci_cp_host_buffer_size_s *hbs;
++#endif
+   FAR struct bt_hci_cp_set_event_mask_s *ev;
+   FAR struct bt_buf_s *buf;
+   FAR struct bt_buf_s *rsp;
+@@ -1403,6 +1409,7 @@ static int hci_initialize(void)
+       return ret;
+     }
+ 
++#ifndef CONFIG_BLUETOOTH_CNTRL_HOST_FLOW_DISABLE
+   buf = bt_hci_cmd_create(BT_HCI_OP_HOST_BUFFER_SIZE, sizeof(*hbs));
+   if (buf == NULL)
+     {
+@@ -1417,13 +1424,23 @@ static int hci_initialize(void)
+                               g_btdev.btdev->head_reserve);
+   hbs->acl_pkts = BT_HOST2LE16(CONFIG_BLUETOOTH_BUFFER_PREALLOC);
+ 
+-  ret = bt_hci_cmd_send(BT_HCI_OP_HOST_BUFFER_SIZE, buf);
++  rsp = NULL;
++  ret = bt_hci_cmd_send_sync(BT_HCI_OP_HOST_BUFFER_SIZE, buf, &rsp);
++  if (ret < 0)
++    {
++      return ret;
++    }
++
++  ret = rsp && rsp->len >= 1 && rsp->data[0] == 0 ? 0 : -EIO;
++  if (rsp) bt_buf_release(rsp);
+   if (ret < 0)
+     {
+-      wlerr("ERROR:  bt_hci_cmd_send failed: %d\n", ret);
++      wlerr("ERROR: Controller rejected host buffer size\n");
+       return ret;
+     }
+ 
++#endif
++
+   buf = bt_hci_cmd_create(BT_HCI_OP_SET_CTL_TO_HOST_FLOW, 1);
+   if (buf == NULL)
+     {
+@@ -1438,10 +1455,18 @@ static int hci_initialize(void)
+   *enable = 1;
+ #endif
+ 
+-  ret = bt_hci_cmd_send_sync(BT_HCI_OP_SET_CTL_TO_HOST_FLOW, buf, NULL);
++  rsp = NULL;
++  ret = bt_hci_cmd_send_sync(BT_HCI_OP_SET_CTL_TO_HOST_FLOW, buf, &rsp);
+   if (ret < 0)
+     {
+-      wlerr("ERROR:  bt_hci_cmd_send_sync failed: %d\n", ret);
++      return ret;
++    }
++
++  ret = rsp && rsp->len >= 1 && rsp->data[0] == 0 ? 0 : -EIO;
++  if (rsp) bt_buf_release(rsp);
++  if (ret < 0)
++    {
++      wlerr("ERROR: Controller rejected host flow control\n");
+       return ret;
+     }
+ 
+@@ -1808,7 +1833,16 @@ int bt_receive(FAR struct bt_driver_s *btdev, enum bt_buf_type_e type,
+    * queue.
+    */
+ 
+-  buf = bt_buf_alloc(type, NULL, BLUETOOTH_H4_HDRLEN);
++  /* Match Host Buffer Size and the actual driver headroom. */
++  if (!data || btdev->head_reserve > BLUETOOTH_MAX_FRAMELEN ||
++      len > BLUETOOTH_MAX_FRAMELEN - btdev->head_reserve ||
++      btdev->head_reserve > CONFIG_IOB_BUFSIZE ||
++      len > CONFIG_IOB_BUFSIZE - btdev->head_reserve || len > UINT8_MAX)
++    {
++      return -EMSGSIZE;
++    }
++
++  buf = bt_buf_alloc(type, NULL, btdev->head_reserve);
+   if (buf == NULL)
+     {
+       return -ENOMEM;
+diff --git a/wireless/bluetooth/bt_l2cap.c b/wireless/bluetooth/bt_l2cap.c
+index d36e338bacf..b550a41df75 100644
+--- a/wireless/bluetooth/bt_l2cap.c
++++ b/wireless/bluetooth/bt_l2cap.c
+@@ -382,6 +382,7 @@ void bt_l2cap_receive(FAR struct bt_conn_s *conn, FAR struct bt_buf_s *buf)
+   bt_buf_consume(buf, sizeof(*hdr));
+ 
+   wlinfo("Packet for CID %u len %u\n", cid, buf->len);
++  if(cid==4) printf("PROV L2CAP ATT bytes=%u\n",buf->len);
+ 
+   /* Search for a subscriber to this channel */
+ 

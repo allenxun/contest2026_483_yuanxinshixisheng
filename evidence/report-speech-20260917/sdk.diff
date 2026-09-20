@@ -1,0 +1,96 @@
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -368,6 +368,59 @@
+   if(atomic_load(&device_loop_busy))return -EBUSY;
+   return device_round(ip,atomic_load(&device_epoch));
+ }
++static char latest_report_task[37];
++static int report_play(const char *ip,const char *task,unsigned epoch)
++{
++  if(!task || strlen(task)!=36)return -EINVAL;
++  for(unsigned i=0;i<36;i++)
++    if((i==8||i==13||i==18||i==23)?task[i]!='-':
++       !((task[i]>='0'&&task[i]<='9')||(task[i]>='a'&&task[i]<='f')))return -EINVAL;
++  if(pthread_mutex_trylock(&audio_owner))return -EBUSY;
++  pthread_mutex_lock(&tts_lock);
++  if(tts_busy || epoch!=atomic_load(&device_epoch))
++    {pthread_mutex_unlock(&tts_lock);pthread_mutex_unlock(&audio_owner);return -ECANCELED;}
++  tts_busy=1;atomic_store(&tts_cancelled,false);
++  pthread_mutex_unlock(&tts_lock);
++  int fd=connect_server(ip),rc=fd;
++  pthread_mutex_lock(&tts_lock);tts_fd=fd;pthread_mutex_unlock(&tts_lock);
++  if(fd>=0)rc=transfer(fd,(void *)"K7S1R",5,1);
++  if(!rc)rc=send_packet(fd,'R',(void *)task,36);
++  unsigned segments=0,packets=0;bool finished=false;
++  printf("K7CLOUD report_started task=%s\n",task);
++  while(!rc && !finished && packets++<400)
++    {
++      unsigned char kind=0;uint32_t size=0;
++      if(epoch!=atomic_load(&device_epoch)||atomic_load(&tts_cancelled)){rc=-ECANCELED;break;}
++      rc=header(fd,&kind,&size);if(rc)break;
++      if(kind=='W'&&!size)continue;
++      if(kind=='E'&&!size){finished=true;break;}
++      if(kind=='J' && size>0 && size<512)
++        {
++          char status[512];rc=transfer(fd,status,size,0);status[size]=0;
++          if(!rc)printf("K7CLOUD report_status %s\n",status);
++          continue;
++        }
++      if(kind!='D'||!size||size>960000||size%2||segments>=40){rc=-EPROTO;break;}
++      void *pcm=malloc(size);if(!pcm){rc=-ENOMEM;break;}
++      rc=transfer(fd,pcm,size,0);
++      if(!rc && (epoch!=atomic_load(&device_epoch)||atomic_load(&tts_cancelled)))rc=-ECANCELED;
++      if(!rc)rc=k7sound_speak_mono16_cancel(pcm,size/2,playback_cancelled,NULL);
++      free(pcm);
++      if(!rc)rc=send_packet(fd,'A',NULL,0);
++      if(!rc)printf("K7CLOUD report_segment played=%u bytes=%" PRIu32 "\n",++segments,size);
++    }
++  if(!rc&&!finished)rc=-ETIMEDOUT;
++  pthread_mutex_lock(&tts_lock);
++  tts_fd=-1;if(fd>=0)close(fd);tts_busy=0;tts_result=rc;
++  pthread_mutex_unlock(&tts_lock);pthread_mutex_unlock(&audio_owner);
++  printf("K7CLOUD report_done result=%d segments=%u task=%s\n",rc,segments,task);
++  return rc;
++}
++int k7cloud_report_play(const char *ip,const char *task)
++{
++  if(atomic_load(&device_loop_busy)||atomic_load(&device_busy))return -EBUSY;
++  return report_play(ip,task,atomic_load(&device_epoch));
++}
+ /* Immutable snapshot first; no submission until all views and held mode agree. */
+ static int photo_upload(const char *ip,unsigned command_epoch,uint32_t photo_epoch)
+ {
+@@ -421,6 +474,7 @@
+   while(!rc && kind=='W' && n==0 && waits++<18)rc=header(fd,&kind,&n);
+   if(!rc && (kind!='K' || n!=36))rc=-EIO;
+   if(!rc)rc=transfer(fd,task,36,0);
++  if(!rc)memcpy(latest_report_task,task,sizeof(latest_report_task));
+   if(fd>=0)
+     {
+       pthread_mutex_lock(&tts_lock);tts_fd=-1;tts_busy=0;pthread_mutex_unlock(&tts_lock);
+@@ -482,6 +536,7 @@
+       rc=photo_upload(ip,epoch,photo_epoch);
+       if(rc){board_speech("upload_failed",ip,&epoch);return rc;}
+       rc=board_speech("upload_accepted",ip,&epoch);if(rc)return rc;
++      rc=report_play(ip,latest_report_task,epoch);if(rc)return rc;
+     }
+ #else
+   (void)ip;(void)epoch;(void)state;
+--- sdk/app/k7agent/cloud/src/k7cloud_main.c
++++ app/k7agent/cloud/src/k7cloud_main.c
+@@ -25,6 +25,7 @@
+ int k7cloud_device_loop(const char *ip,unsigned rounds);
+ int k7cloud_device_stop(void);
+ int k7cloud_photo_retry(const char *ip);
++int k7cloud_report_play(const char *ip,const char *task);
+ #endif
+ 
+ #ifdef K7CLOUD_RADIO_READINESS
+@@ -161,6 +162,7 @@
+ int main(int argc, char **argv)
+ {
+ #ifdef K7CLOUD_SPEECH_ORCHESTRATOR
++  if(argc==4 && !strcmp(argv[1],"report-play"))return k7cloud_report_play(argv[2],argv[3])?1:0;
+   if(argc==3 && !strcmp(argv[1],"photo-retry"))return k7cloud_photo_retry(argv[2])?1:0;
+   if(argc==2 && !strcmp(argv[1],"device-stop"))return k7cloud_device_stop()?1:0;
+   if(argc==4 && (!strcmp(argv[1],"device-loop") || !strcmp(argv[1],"chat-loop")))

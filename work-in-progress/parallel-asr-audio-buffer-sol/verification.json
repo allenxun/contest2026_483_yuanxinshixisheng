@@ -1,0 +1,149 @@
+{
+  "candidate": "parallel-asr-audio-buffer-sol",
+  "recorded_at": "2026-09-12T17:52:09.1033173+08:00",
+  "scope": "candidate-only specified PCM float ASR entry and host fake tests; no formal source, SDK, device, VM, serial, central log, or remote changes",
+  "compiler": "g++.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0",
+  "reproduce": "powershell -ExecutionPolicy Bypass -File work-in-progress/parallel-asr-audio-buffer-sol/run_tests.ps1",
+  "patch_check": "PASS",
+  "results": {
+    "O0": "PASS",
+    "O2": "PASS",
+    "O2_repeat_iterations": 100,
+    "O2_repeat": "PASS"
+  },
+  "coverage": [
+    "invalid/null/zero frames",
+    "unsupported sample rate",
+    "frame limit overflow",
+    "direct samples without capture reread",
+    "cooperative pre/during cancel",
+    "absolute deadline",
+    "128-step decode budget",
+    "concurrent -EBUSY and gate reuse",
+    "-ENOSPC output clearing",
+    "RAII cleanup counters",
+    "single-capture compatibility wrapper"
+  ],
+  "candidate_files": [
+    {
+      "path": "build\\test_audio_buffer_O0.exe",
+      "bytes": 151856,
+      "sha256": "3d63380436e4f4e964f1c9e7c9056ca8b648a00570f060df64559d7224c43737"
+    },
+    {
+      "path": "build\\test_audio_buffer_O2.exe",
+      "bytes": 72290,
+      "sha256": "2527f0498799e625c485e55406ff96c9aee51d4aa2b31cb5d047343d14b5776d"
+    },
+    {
+      "path": "candidate.patch",
+      "bytes": 11034,
+      "sha256": "2783795272a0917699077a3f5f3c62c09e0a73332517dadc074df0d6d2e7fb3c"
+    },
+    {
+      "path": "include\\voicelink\\asr_runtime.h",
+      "bytes": 884,
+      "sha256": "736c4a483baa8d766f1d2291ae4d31ed6deaaf1248352e2d825679b06a7cb790"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2730,
+      "sha256": "59d63e6f51fdcb71692baac77c7935737abdc85e56e34e3da106913716cce2dd"
+    },
+    {
+      "path": "results\\compiler.txt",
+      "bytes": 68,
+      "sha256": "8d74517e6e2259bb9c0649e3503eee588b7c586cefa798c0ec8dfccc3e01724c"
+    },
+    {
+      "path": "results\\O0-build.txt",
+      "bytes": 585,
+      "sha256": "88f1c86d2b456dbb89b4beff423cbb1a25ef0230808eff2bddd4c809416f06f3"
+    },
+    {
+      "path": "results\\O0-test.txt",
+      "bytes": 446,
+      "sha256": "846d248a462815000e863fd9970e36c0c7a2ac8068ff222b1fcd0fd9fb036dbb"
+    },
+    {
+      "path": "results\\O2-build.txt",
+      "bytes": 585,
+      "sha256": "3c2e7cbacc3c59ba2441cd2a6eaaa22853d2996763ff9c9a372fa5883134b5c2"
+    },
+    {
+      "path": "results\\O2-repeat-100.txt",
+      "bytes": 28,
+      "sha256": "ec4a4573eac78864437774cd12c46e3b40638ca8b1a79bb2756d54bcfb294d45"
+    },
+    {
+      "path": "results\\O2-test.txt",
+      "bytes": 446,
+      "sha256": "846d248a462815000e863fd9970e36c0c7a2ac8068ff222b1fcd0fd9fb036dbb"
+    },
+    {
+      "path": "results\\patch-check.txt",
+      "bytes": 103,
+      "sha256": "9b1654fb3e75b1513ecab9339267315f2bfe95f0bd91caaa56740ee5818294f9"
+    },
+    {
+      "path": "run_tests.ps1",
+      "bytes": 1081,
+      "sha256": "9a10cfc41c3313bd562a23b582dbd719197a1ea0b68f429a7f12b09d7a5f58f8"
+    },
+    {
+      "path": "src\\native_asr_runtime.cpp",
+      "bytes": 7623,
+      "sha256": "6876e5ce1f2c41173eef6161487054645a22439be7cd34addf7b28303ebc8ca8"
+    },
+    {
+      "path": "tests\\fakes\\sherpa-onnx\\c-api\\c-api.h",
+      "bytes": 1917,
+      "sha256": "53bbc34b090ec34cb9832f970407fba7f335f082045ba284ba590688022a12b3"
+    },
+    {
+      "path": "tests\\fakes\\test_assets.h",
+      "bytes": 207,
+      "sha256": "c0a5e4f1199690139296c09bec38d11948a2b4b3e2f6470d5c2ffef16c503527"
+    },
+    {
+      "path": "tests\\test_audio_buffer.cpp",
+      "bytes": 8117,
+      "sha256": "2f52088baaafe99da17376e487a4827a28764f2cc7166d76a3645d6c9dc01c48"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "app/voicelink/include/voicelink/asr_runtime.h",
+      "bytes": 555,
+      "sha256": "24cadcd0e13e4a563ded63064a266b8e6c91cbdf06c7dae981fd9a39e80142b1"
+    },
+    {
+      "path": "app/voicelink/src/native_asr_runtime.cpp",
+      "bytes": 5956,
+      "sha256": "a1e7138ecb538a61ea08585d5fecd59e1f7c0a3d134d6fa4d2f3e12cb02fcb41"
+    },
+    {
+      "path": "work-in-progress/parallel-capture-asr-worker-sol/include/capture_asr_worker.hpp",
+      "bytes": 3720,
+      "sha256": "cd46446937af2e4f8ffc3cc2afef00fd49a98ac343e47491e36db594779e2614"
+    },
+    {
+      "path": "work-in-progress/parallel-capture-asr-worker-sol/src/capture_asr_worker.cpp",
+      "bytes": 7425,
+      "sha256": "d126b21de79d7d9fa4ea816b9b1d28e841ba7c5f140c8d276bd8cb89d641e8f7"
+    },
+    {
+      "path": "work-in-progress/parallel-voice-candidates-merge-audit-sol/required-interfaces.md",
+      "bytes": 3553,
+      "sha256": "22075c0cd743df0c8101a2d9b878a734139e6eda86eb6af87f2f8e640c024d4f"
+    }
+  ],
+  "formal_source_modified": false,
+  "arm64_compiled": false,
+  "hardware_tested": false,
+  "sdk_touched": false,
+  "device_or_serial_touched": false,
+  "vm_touched": false,
+  "central_logs_touched": false
+}
+

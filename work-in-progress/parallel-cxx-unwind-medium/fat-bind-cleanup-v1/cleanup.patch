@@ -1,0 +1,51 @@
+--- a/fs/fat/fs_fat32.c
++++ b/fs/fat/fs_fat32.c
+@@ -2264,6 +2264,7 @@
+ {
+   FAR struct fat_mountpt_s *fs;
+   int ret;
++  bool opened = false;
+ 
+   /* Open the block driver */
+ 
+@@ -2278,12 +2279,15 @@
+       return -ENODEV;
+     }
+ 
++  opened = blkdriver->u.i_bops->open != NULL;
++
+   /* Create an instance of the mountpt state structure */
+ 
+   fs = fs_heap_zalloc(sizeof(struct fat_mountpt_s));
+   if (!fs)
+     {
+-      return -ENOMEM;
++      ret = -ENOMEM;
++      goto errout_with_open;
+     }
+ 
+   /* Initialize the allocated mountpt state structure.  The filesystem is
+@@ -2307,11 +2311,22 @@
+     {
+       nxmutex_destroy(&fs->fs_lock);
+       fs_heap_free(fs);
+-      return ret;
++      goto errout_with_open;
+     }
+ 
+   *handle = (FAR void *)fs;
+   return OK;
++
++errout_with_open:
++  /* VFS drops its inode reference on bind failure; only FAT owns this
++   * successful block open. Preserve the primary failure if close fails. */
++
++  if (opened && blkdriver->u.i_bops->close)
++    {
++      blkdriver->u.i_bops->close(blkdriver);
++    }
++
++  return ret;
+ }
+ 
+ /****************************************************************************

@@ -1,0 +1,310 @@
+PDF_PAGE 793
+RK3576 TRM
+ Bit    Attr  Reset Value                                     Description
+                               undef_instr
+0      RO     0x0              1'b0: defined instruction
+                               1'b1: undefined instruction
+                               This fault is a precise abort.
+
+DMA_CSR0
+Address: Operational Base + offset (0x0100)
+ Bit    Attr  Reset Value                                     Description
+31:22 RO      0x000            reserved
+                               cns
+21     RO     0x0              1'b0: DMA channel operates in the Secure state
+                               1'b1: DMA channel operates in the Non-secure state
+20:16 RO      0x00             reserved
+                               dmawfp_periph
+15     RO     0x0              1'b0: DMAWFP executed with the periph operand not set
+                               1'b1: DMAWFP executed with the periph operand set
+                               dmawfp_b_ns
+14     RO     0x0              1'b0: DMAWFP executed with the single operand set
+                               1'b1: DMAWFP executed with the burst operand set
+13:9   RO     0x00             reserved
+                               wakeup_number
+                               indicate the event or peripheral number that the channel is
+                               waiting for:
+8:4    RO     0x00             5'b00000: DMA channel is waiting for event, or peripheral, 0
+                               5'b00001: DMA channel is waiting for event, or peripheral, 1
+                               5'b00010: DMA channel is waiting for event, or peripheral, 2
+
+                               5'b11111: DMA channel is waiting for event, or peripheral, 31
+                               channel_status
+                               4'b0000: Stopped
+                               4'b0001: Executing
+                               4'b0010: Cache miss
+                               4'b0011: Updating PC
+                               4'b0100: Waiting for event
+3:0    RO     0x0              4'b0101: At barrier
+                               4'b0110: reserved
+                               4'b0111: Waiting for peripheral
+                               4'b1000: Killing
+                               4'b1001: Completing
+                               b1010-b1101 = reserved
+                               b1110 = Faulting completing
+                               b1111 = Faulting
+
+DMA_CPC0
+Address: Operational Base + offset (0x0104)
+ Bit    Attr  Reset Value                                     Description
+31:0   RO     0x00000000       pc_chnl
+                               Program counter for the DMA channel 0 thread
+
+DMA_CSR1
+Address: Operational Base + offset (0x0108)
+ Bit    Attr  Reset Value                                     Description
+31:22 RO      0x000            reserved
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 793
+PDF_PAGE 794
+RK3576 TRM
+ Bit    Attr  Reset Value                                     Description
+                               cns
+21     RO     0x0              1'b0: DMA channel operates in the Secure state
+                               1'b1: DMA channel operates in the Non-secure state
+20:16 RO      0x00             reserved
+                               dmawfp_periph
+15     RO     0x0              1'b0: DMAWFP executed with the periph operand not set
+                               1'b1: DMAWFP executed with the periph operand set
+                               dmawfp_b_ns
+14     RO     0x0              1'b0: DMAWFP executed with the single operand set
+                               1'b1: DMAWFP executed with the burst operand set
+13:9   RO     0x00             reserved
+                               wakeup_number
+                               indicate the event or peripheral number that the channel is
+                               waiting for:
+8:4    RO     0x00             5'b00000: DMA channel is waiting for event, or peripheral, 0
+                               5'b00001: DMA channel is waiting for event, or peripheral, 1
+                               5'b00010: DMA channel is waiting for event, or peripheral, 2
+
+                               5'b11111: DMA channel is waiting for event, or peripheral, 31
+                               channel_status
+                               4'b0000: Stopped
+                               4'b0001: Executing
+                               4'b0010: Cache miss
+                               4'b0011: Updating PC
+                               4'b0100: Waiting for event
+3:0    RO     0x0              4'b0101: At barrier
+                               4'b0110: reserved
+                               4'b0111: Waiting for peripheral
+                               4'b1000: Killing
+                               4'b1001: Completing
+                               b1010-b1101 = reserved
+                               b1110 = Faulting completing
+                               b1111 = Faulting
+
+DMA_CPC1
+Address: Operational Base + offset (0x010C)
+ Bit    Attr  Reset Value                                     Description
+31:0   RO     0x00000000       pc_chnl
+                               Program counter for the DMA channel 1 thread
+
+DMA_CSR2
+Address: Operational Base + offset (0x0110)
+ Bit    Attr  Reset Value                                     Description
+31:22 RO      0x000            reserved
+                               cns
+21     RO     0x0              1'b0: DMA channel operates in the Secure state
+                               1'b1: DMA channel operates in the Non-secure state
+20:16 RO      0x00             reserved
+                               dmawfp_periph
+15     RO     0x0              1'b0: DMAWFP executed with the periph operand not set
+                               1'b1: DMAWFP executed with the periph operand set
+                               dmawfp_b_ns
+14     RO     0x0              1'b0: DMAWFP executed with the single operand set
+                               1'b1: DMAWFP executed with the burst operand set
+13:9   RO     0x00             reserved
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 794
+PDF_PAGE 795
+RK3576 TRM
+ Bit    Attr  Reset Value                                      Description
+                               wakeup_number
+                               indicate the event or peripheral number that the channel is
+                               waiting for:
+8:4    RO     0x00             5'b00000: DMA channel is waiting for event, or peripheral, 0
+                               5'b00001: DMA channel is waiting for event, or peripheral, 1
+                               5'b00010: DMA channel is waiting for event, or peripheral, 2
+
+                               5'b11111: DMA channel is waiting for event, or peripheral, 31
+                               channel_status
+                               4'b0000: Stopped
+                               4'b0001: Executing
+                               4'b0010: Cache miss
+                               4'b0011: Updating PC
+                               4'b0100: Waiting for event
+3:0    RO     0x0              4'b0101: At barrier
+                               4'b0110: reserved
+                               4'b0111: Waiting for peripheral
+                               4'b1000: Killing
+                               4'b1001: Completing
+                               b1010-b1101 = reserved
+                               b1110 = Faulting completing
+                               b1111 = Faulting
+
+DMA_CPC2
+Address: Operational Base + offset (0x0114)
+ Bit    Attr  Reset Value                                      Description
+31:0   RO     0x00000000       pc_chnl
+                               Program counter for the DMA channel 2 thread
+
+DMA_CSR3
+Address: Operational Base + offset (0x0118)
+ Bit    Attr  Reset Value                                      Description
+31:22 RO      0x000            reserved
+                               cns
+21     RO     0x0              1'b0: DMA channel operates in the Secure state
+                               1'b1: DMA channel operates in the Non-secure state
+20:16 RO      0x00             reserved
+                               dmawfp_periph
+15     RO     0x0              1'b0: DMAWFP executed with the periph operand not set
+                               1'b1: DMAWFP executed with the periph operand set
+                               dmawfp_b_ns
+14     RO     0x0              1'b0: DMAWFP executed with the single operand set
+                               1'b1: DMAWFP executed with the burst operand set
+13:9   RO     0x00             reserved
+                               wakeup_number
+                               indicate the event or peripheral number that the channel is
+                               waiting for:
+8:4    RO     0x00             5'b00000: DMA channel is waiting for event, or peripheral, 0
+                               5'b00001: DMA channel is waiting for event, or peripheral, 1
+                               5'b00010: DMA channel is waiting for event, or peripheral, 2
+
+                               5'b11111: DMA channel is waiting for event, or peripheral, 31
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 795
+PDF_PAGE 796
+RK3576 TRM
+ Bit    Attr  Reset Value                                     Description
+                               channel_status
+                               4'b0000: Stopped
+                               4'b0001: Executing
+                               4'b0010: Cache miss
+                               4'b0011: Updating PC
+                               4'b0100: Waiting for event
+3:0    RO     0x0              4'b0101: At barrier
+                               4'b0110: reserved
+                               4'b0111: Waiting for peripheral
+                               4'b1000: Killing
+                               4'b1001: Completing
+                               b1010-b1101 = reserved
+                               b1110 = Faulting completing
+                               b1111 = Faulting
+
+DMA_CPC3
+Address: Operational Base + offset (0x011C)
+ Bit    Attr  Reset Value                                     Description
+31:0   RO     0x00000000       pc_chnl
+                               Program counter for the DMA channel 3 thread
+
+DMA_CSR4
+Address: Operational Base + offset (0x0120)
+ Bit    Attr  Reset Value                                     Description
+31:22 RO      0x000            reserved
+                               cns
+21     RO     0x0              1'b0: DMA channel operates in the Secure state
+                               1'b1: DMA channel operates in the Non-secure state
+20:16 RO      0x00             reserved
+                               dmawfp_periph
+15     RO     0x0              1'b0: DMAWFP executed with the periph operand not set
+                               1'b1: DMAWFP executed with the periph operand set
+                               dmawfp_b_ns
+14     RO     0x0              1'b0: DMAWFP executed with the single operand set
+                               1'b1: DMAWFP executed with the burst operand set
+13:9   RO     0x00             reserved
+                               wakeup_number
+                               indicate the event or peripheral number that the channel is
+                               waiting for:
+8:4    RO     0x00             5'b00000: DMA channel is waiting for event, or peripheral, 0
+                               5'b00001: DMA channel is waiting for event, or peripheral, 1
+                               5'b00010: DMA channel is waiting for event, or peripheral, 2
+
+                               5'b11111: DMA channel is waiting for event, or peripheral, 31
+                               channel_status
+                               4'b0000: Stopped
+                               4'b0001: Executing
+                               4'b0010: Cache miss
+                               4'b0011: Updating PC
+3:0    RO     0x0              4'b0100: Waiting for event
+                               4'b0101: At barrier
+                               4'b0110: reserved
+                               4'b0111: Waiting for peripheral
+                               4'b1000: Killing
+                               4'b1001: Completing
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 796
+PDF_PAGE 797
+RK3576 TRM
+ Bit   Attr   Reset Value                                     Description
+                               b1010-b1101 = reserved
+                               b1110 = Faulting completing
+                               b1111 = Faulting
+
+DMA_CPC4
+Address: Operational Base + offset (0x0124)
+ Bit   Attr   Reset Value                                     Description
+31:0   RO     0x00000000       pc_chnl
+                               Program counter for the DMA channel 4 thread
+
+DMA_CSR5
+Address: Operational Base + offset (0x0128)
+ Bit   Attr   Reset Value                                     Description
+31:22 RO      0x000            reserved
+                               cns
+21     RO     0x0              1'b0: DMA channel operates in the Secure state
+                               1'b1: DMA channel operates in the Non-secure state
+20:16 RO      0x00             reserved
+                               dmawfp_periph
+15     RO     0x0              1'b0: DMAWFP executed with the periph operand not set
+                               1'b1: DMAWFP executed with the periph operand set
+                               dmawfp_b_ns
+14     RO     0x0              1'b0: DMAWFP executed with the single operand set
+                               1'b1: DMAWFP executed with the burst operand set
+13:9   RO     0x00             reserved
+                               wakeup_number
+                               indicate the event or peripheral number that the channel is
+                               waiting for:
+8:4    RO     0x00             5'b00000: DMA channel is waiting for event, or peripheral, 0
+                               5'b00001: DMA channel is waiting for event, or peripheral, 1
+                               5'b00010: DMA channel is waiting for event, or peripheral, 2
+
+                               5'b11111: DMA channel is waiting for event, or peripheral, 31
+                               channel_status
+                               4'b0000: Stopped
+                               4'b0001: Executing
+                               4'b0010: Cache miss
+                               4'b0011: Updating PC
+                               4'b0100: Waiting for event
+3:0    RO     0x0              4'b0101: At barrier
+                               4'b0110: reserved
+                               4'b0111: Waiting for peripheral
+                               4'b1000: Killing
+                               4'b1001: Completing
+                               b1010-b1101 = reserved
+                               b1110 = Faulting completing
+                               b1111 = Faulting
+
+DMA_CPC5
+Address: Operational Base + offset (0x012C)
+ Bit   Attr   Reset Value                                     Description
+31:0   RO     0x00000000       pc_chnl
+                               Program counter for the DMA channel 5 thread
+
+DMA_CSR6
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 797

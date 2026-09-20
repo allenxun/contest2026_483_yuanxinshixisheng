@@ -1,0 +1,563 @@
+PDF_PAGE 26
+RK3576 TRM
+
+   Number                  Source                  Polarity        Number                       Source                    Polarity
+
+      194        irq_gpio2[1]                    High level           393         irq_ufshc_sinterrupt                   High level
+
+      195        irq_gpio2[2]                    High level           394         irq_ufshc_fe                           High level
+
+      196        irq_gpio2[3]                    High level           395         irq_unipro                             High level
+
+      197        irq_gpio3[0]                    High level           396         irq_fw_vop2ddr_main                    High level
+
+      198        irq_gpio3[1]                    High level           397         irq_edp                                High level
+
+      199        irq_gpio3[2]                    High level           398         irq_mphy_pcs                           High level
+
+      200        irq_gpio3[3]                    High level           399         irq_hdmitx_hpd                         High level
+
+      201        irq_gpio4[0]                    High level           400         irq_ddrmcu_freqdone                    High level
+
+      202        irq_gpio4[1]                    High level           401         irq_flexbus                            High level
+
+      203        irq_gpio4[2]                    High level           402         irq_spdif_tx4                          High level
+
+      204        irq_gpio4[3]                    High level           403         irq_spdif_tx5                          High level
+
+      205        irq_pmu_mcu_cache               High level           404         irq_sai8                               High level
+
+      206        irq_pmu_pvtm                    High level           405         irq_sai9                               High level
+
+      207        irq_pmic                        High level           406         irq_osc_chk_rst_req                    High level
+
+      208        irq_crc_chk_rst_req_sgrf        High level           407         irq_jtag_lock_rst_req                  High level
+
+      209        irq_nscrypto                    High level           408         irq_otg0_vbusvalid                     High level
+
+      210        irq_scrypto                     High level           409         irq_otg1_vbusvalid                     High level
+
+      211        irq_keylad                      High level           410         irq_mainTimeout                        High level
+
+      212        irq_rkrng_s                     High level           411         irq_vop_vp0                            High level
+
+      213        irq_rkrng_ns                    High level           412         irq_vop_vp1                            High level
+
+      214        irq_hdcp0_trng                  High level           413         irq_vop_vp2                            High level
+
+      215        irq_hdcp1_trng                  High level           414         irq_ufs_state                          High level
+
+      216        irq_otpmask                     High level           415         irq_csihost3_1                         High level
+
+      217        irq_otpc_ns                     High level           416         irq_csihost3_2                         High level
+
+      218        irq_otpc_s                      High level           417         irq_csihost4_1                         High level
+
+      219        irq_sai0                        High level           418         irq_csihost4_2                         High level
+
+      220        irq_sai1                        High level           419         irq_vepu1                              High level
+
+      221        irq_sai2                        High level           420         irq_vepu1_mmu                          High level
+
+1.4 System DMA Hardware Request Connection
+RK3576 provides three DMA controller (DMAC) inside the system, the following tables are
+the DMA hardware request list.
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 26
+PDF_PAGE 27
+RK3576 TRM
+
+                                        Table 1-4 DMAC Request Mapping Table
+                                                          DMAC0
+                                    Req Number             Source             Polarity
+                                           0           sai0_tx              High level
+                                           1           sai0_rx              High level
+                                           2           sai1_tx              High level
+                                           3           sai1_rx              High level
+                                           4           pdm0                 High level
+                                           5           spdif_tx0            High level
+                                           6           uart0 tx             High level
+                                           7           uart0 rx             High level
+                                           8           uart1 tx             High level
+                                           9           uart1 rx             High level
+                                          10           uart2 tx             High level
+                                          11           uart2 rx             High level
+                                          12           uart3 tx             High level
+                                          13           uart3 rx             High level
+                                          14           spi0_tx              High level
+                                          15           spi0_rx              High level
+                                          16           spi1_tx              High level
+                                          17           spi1_rx              High level
+                                          18           \                    High level
+                                          19           \                    High level
+                                          20           can0_rx              High level
+                                          21           \                    High level
+                                          22           i3c0_rx              High level
+                                          23           i3c0_tx              High level
+                                          24           i3c0_ibi             High level
+                                          25           spdif_tx5            High level
+                                          26           sai9_tx              High level
+                                          27           asrc2ch_0_rx         High level
+                                          28           asrc2ch_0_tx         High level
+                                          29           \                    High level
+                                          30           dsmc_0               High level
+                                          31           dsmc_1               High level
+                                                          DMAC1
+                                    Req Number             Source           case cover
+                                           0           sai2_tx              High level
+                                           1           sai2_rx              High level
+                                           2           sai3_tx              High level
+                                           3           sai3_rx              High level
+                                           4           pdm1                 High level
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 27
+PDF_PAGE 774
+RK3576 TRM
+Chapter 12 DMA Controller (DMAC)
+12.1 Overview
+This device supports 3 Direct Memory Access (DMA) Controller. DMAC0/1/2 support
+transfers between memory and memory, peripheral and memory. DMAC0/1/2 is under Non-
+secure state after reset, and the Secure state can be changed by configurable SGRF
+module.
+DMAC supports the following features:
+   DMAC0 Supports 28 peripheral requests
+   DMAC1 Supports 25 peripheral requests
+   DMAC2 Supports 26 peripheral requests
+   Up to 64 bits data size
+   8 channel at the same time
+   Up to burst 16
+   16 interrupts output and 1 abort output
+   Supports 128 MFIFO depth
+
+DMAC supports incrementing-address burst and fixed-address burst. But in the case of
+access to SPI and UART at byte or half word size, DMAC only supports fixed-address burst
+and the address must be aligned to word.
+12.2 Block Diagram
+Following figure shows the block diagram of DMAC.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                     26
+                                     Fig. 12-1 Block Diagram of DMAC
+
+As the DMAC supports TrustZone technology, so dual APB interfaces enable the operation of
+the DMAC to be partitioned into the Secure state and Non-secure state. You can use the
+APB interfaces to access status registers and also directly execute instructions in the DMAC.
+The default interface after reset is Non-secure APB interface.
+12.3 Function Description
+12.3.1 Introduction
+The DMAC contains an instruction processing block that enables it to process program code
+that controls a DMA transfer. The program code is stored in a region of system memory
+that the DMAC accesses using its AXI interface. The DMAC stores instructions temporarily
+in a cache. It supports 8 channels, each channel capable of supporting a single concurrent
+thread of DMA operation. In addition, a single DMA manager thread exists, and you can use
+it to initialize the DMA channel threads. The DMAC executes up to one instruction for each
+AXI clock cycle. To ensure that it regularly executes each active thread, it alternates by
+processing the DMA manager thread and then a DMA channel thread. It uses a round-robin
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 774
+PDF_PAGE 775
+RK3576 TRM
+process when selecting the next active DMA channel thread to execute.
+The DMAC uses variable-length instructions that consist of one to six bytes. It provides a
+separate Program Counter (PC) register for each DMA channel. When a thread requests an
+instruction from an address, the cache performs a look-up. If a cache hit occurs, then the
+cache immediately provides the data. Otherwise, the thread is stalled while the DMAC uses
+the AXI interface to perform a cache line fill. If an instruction is greater than 4 bytes, or
+spans the end of a cache line, the DMAC performs multiple cache accesses to fetch the
+instruction.
+When a cache line fill is in progress, the DMAC enables other threads to access the cache,
+but if another cache miss occurs, this stalls the pipeline until the first line fill is complete.
+When a DMA channel thread executes a load or store instruction, the DMAC adds the
+instruction to the relevant read or write queue. The DMAC uses these queues as an
+instruction storage buffer prior to it issuing the instructions on the AXI bus. The DMAC also
+contains a Multi First-In-First-Out (MFIFO) data buffer that it uses to store data that it
+reads, or writes, during a DMA transfer.
+12.3.2 Operating states
+Following figure shows the operating states for the DMA manager thread and DMA channel
+threads.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                       Fig. 12-2 DMAC Operation State
+
+Notes: arcs with no letter designator indicate state transitions for the DMA manager and DMA channel
+threads, otherwise use is restricted as follows:
+C  DMA channel threads only.
+M  DMA manager thread only.
+After the DMAC exits from reset, it sets all DMA channel threads to the stopped state, and
+DMA manager thread moves to the Stopped state.
+12.4 Register Description
+12.4.1 Internal Address Mapping
+Slave address can be divided into different length for different usage, which is shown as
+follows.
+                                            Operational Base
+                                    Name                       Base Address
+                       DMAC0_S                           0x2AB80000
+                       DMAC0_NS                          0x2AB90000
+                       DMAC1_S                           0x2ABA0000
+                       DMAC1_NS                          0x2ABB0000
+                       DMAC2_S                           0x2ABC0000
+                       DMAC2_NS                          0x2ABD0000
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 775
+PDF_PAGE 776
+RK3576 TRM
+12.4.2 Registers Summary
+          Name                  Offset    Size      Reset                  Description
+                                                    Value
+DMA_DSR                      0x0000       W     0x00000200     DMA Manager Status Register
+DMA_DPC                      0x0004       W     0x00000000     DMA Program Counter Register
+DMA_INTEN                    0x0020       W     0x00000000     Interrupt Enable Register
+DMA_EVENT_RIS                0x0024       W     0x00000000     Event-Interrupt Raw Status
+                                                               Register
+DMA_INTMIS                   0x0028       W     0x00000000     Interrupt Status Register
+DMA_INTCLR                   0x002C       W     0x00000000     Interrupt Clear Register
+DMA_FSRD                     0x0030       W     0x00000000     Fault Status DMA Manager
+                                                               Register
+DMA_FSRC                     0x0034       W     0x00000000     Fault Status DMA Channel
+                                                               Register
+DMA_FTRD                     0x0038       W     0x00000000     Fault Type DMA Manager Register
+DMA_FTR0                     0x0040       W     0x00000000     Fault Type DMA Channel Register
+DMA_FTR1                     0x0044       W     0x00000000     Fault Type DMA Channel Register
+DMA_FTR2                     0x0048       W     0x00000000     Fault Type DMA Channel Register
+DMA_FTR3                     0x004C       W     0x00000000     Fault Type DMA Channel Register
+DMA_FTR4                     0x0050       W     0x00000000     Fault Type DMA Channel Register
+DMA_FTR5                     0x0054       W     0x00000000     Fault Type DMA Channel Register
+DMA_FTR6                     0x0058       W     0x00000000     Fault Type DMA Channel Register
+DMA_FTR7                     0x005C       W     0x00000000     Fault Type DMA Channel Register
+DMA_CSR0                     0x0100       W     0x00000000     Channel Status Registers
+DMA_CPC0                     0x0104       W     0x00000000     Channel Program Counter
+                                                               Registers
+DMA_CSR1                     0x0108       W     0x00000000     Channel Status Registers
+DMA_CPC1                     0x010C       W     0x00000000     Channel Program Counter
+                                                               Registers
+DMA_CSR2                     0x0110       W     0x00000000     Channel Status Registers
+DMA_CPC2                     0x0114       W     0x00000000     Channel Program Counter
+                                                               Registers
+DMA_CSR3                     0x0118       W     0x00000000     Channel Status Registers
+DMA_CPC3                     0x011C       W     0x00000000     Channel Program Counter
+                                                               Registers
+DMA_CSR4                     0x0120       W     0x00000000     Channel Status Registers
+DMA_CPC4                     0x0124       W     0x00000000     Channel Program Counter
+                                                               Registers
+DMA_CSR5                     0x0128       W     0x00000000     Channel Status Registers
+DMA_CPC5                     0x012C       W     0x00000000     Channel Program Counter
+                                                               Registers
+DMA_CSR6                     0x0130       W     0x00000000     Channel Status Registers
+DMA_CPC6                     0x0134       W     0x00000000     Channel Program Counter
+                                                               Registers
+DMA_CSR7                     0x0138       W     0x00000000     Channel Status Registers
+DMA_CPC7                     0x013C       W     0x00000000     Channel Program Counter
+                                                               Registers
+DMA_SAR0                     0x0400       W     0x00000000     Source Address Registers
+DMA_DAR0                     0x0404       W     0x00000000     Destination Address Registers
+DMA_CCR0                     0x0408       W     0x00000000     Channel Control Registers
+DMA_LC0_0                    0x040C       W     0x00000000     Loop Counter 0 Registers
+DMA_LC1_0                    0x0410       W     0x00000000     Loop Counter 1 Registers
+DMA_SAR1                     0x0420       W     0x00000000     Source Address Registers
+DMA_DAR1                     0x0424       W     0x00000000     Destination Address Registers
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 776
+PDF_PAGE 777
+RK3576 TRM
+           Name                 Offset    Size      Reset                  Description
+                                                    Value
+DMA_CCR1                     0x0428       W     0x00000000     Channel Control Registers
+DMA_LC0_1                    0x042C       W     0x00000000     Loop Counter 0 Registers
+DMA_LC1_1                    0x0430       W     0x00000000     Loop Counter 1 Registers
+DMA_SAR2                     0x0440       W     0x00000000     Source Address Registers
+DMA_DAR2                     0x0444       W     0x00000000     Destination Address Registers
+DMA_CCR2                     0x0448       W     0x00000000     Channel Control Registers
+DMA_LC0_2                    0x044C       W     0x00000000     Loop Counter 0 Registers
+DMA_LC1_2                    0x0450       W     0x00000000     Loop Counter 1 Registers
+DMA_SAR3                     0x0460       W     0x00000000     Source Address Registers
+DMA_DAR3                     0x0464       W     0x00000000     Destination Address Registers
+DMA_CCR3                     0x0468       W     0x00000000     Channel Control Registers
+DMA_LC0_3                    0x046C       W     0x00000000     Loop Counter 0 Registers
+DMA_LC1_3                    0x0470       W     0x00000000     Loop Counter 1 Registers
+DMA_SAR4                     0x0480       W     0x00000000     Source Address Registers
+DMA_DAR4                     0x0484       W     0x00000000     Destination Address Registers
+DMA_CCR4                     0x0488       W     0x00000000     Channel Control Registers
+DMA_LC0_4                    0x048C       W     0x00000000     Loop Counter 0 Registers
+DMA_LC1_4                    0x0490       W     0x00000000     Loop Counter 1 Registers
+DMA_SAR5                     0x04A0       W     0x00000000     Source Address Registers
+DMA_DAR5                     0x04A4       W     0x00000000     Destination Address Registers
+DMA_CCR5                     0x04A8       W     0x00000000     Channel Control Registers
+DMA_LC0_5                    0x04AC       W     0x00000000     Loop Counter 0 Registers
+DMA_LC1_5                    0x04B0       W     0x00000000     Loop Counter 1 Registers
+DMA_SAR6                     0x04C0       W     0x00000000     Source Address Registers
+DMA_DAR6                     0x04C4       W     0x00000000     Destination Address Registers
+DMA_CCR6                     0x04C8       W     0x00000000     Channel Control Registers
+DMA_LC0_6                    0x04CC       W     0x00000000     Loop Counter 0 Registers
+DMA_LC1_6                    0x04D0       W     0x00000000     Loop Counter 1 Registers
+DMA_SAR7                     0x04E0       W     0x00000000     Source Address Registers
+DMA_DAR7                     0x04E4       W     0x00000000     Destination Address Registers
+DMA_CCR7                     0x04E8       W     0x00000000     Channel Control Registers
+DMA_LC0_7                    0x04EC       W     0x00000000     Loop Counter 0 Registers
+DMA_LC1_7                    0x04F0       W     0x00000000     Loop Counter 1 Registers
+DMA_DBGSTATUS                0x0D00       W     0x00000000     Debug Status Register
+DMA_DBGCMD                   0x0D04       W     0x00000000     Debug Command Register
+DMA_DBGINST0                 0x0D08       W     0x00000000     Debug Instruction-0 Register
+DMA_DBGINST1                 0x0D0C       W     0x00000000     Debug Instruction-1 Register
+DMA_CR0                      0x0E00       W     0x001FF075     Configuration Register 0
+DMA_CR1                      0x0E04       W     0x000000B5     Configuration Register 1
+DMA_CR2                      0x0E08       W     0x00000000     Configuration Register 2
+DMA_CR3                      0x0E0C       W     0x0000FFFF     Configuration Register 3
+DMA_CR4                      0x0E10       W     0xFFFFFFFF     Configuration Register 4
+DMA_CRDn                     0x0E14       W     0x07FF7F73     Configuration Register
+DMA_WD                       0x0E80       W     0x00000000     DMA Watchdog Register
+Notes:Size:B- Byte (8 bits) access, HW- Half WORD (16 bits) access, W-WORD (32 bits) access, DW-
+Double WORD (64 bits) access
+12.4.3 Detail Registers Description
+DMA_DSR
+Address: Operational Base + offset (0x0000)
+ Bit   Attr  Reset Value                                  Description
+31:10 RO     0x000000        reserved
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 777
+PDF_PAGE 778
+RK3576 TRM
+ Bit    Attr  Reset Value                                     Description
+                               dns
+9      RO     0x1              1'b0: DMA manager operates in the Secure state
+                               1'b1: DMA manager operates in the Non-secure state
+                               wakeup_event
+                               5'b00000: event[0]
+8:4    RO     0x00             5'b00001: event[1]
+                               5'b00010: event[2]
+
+                               5'b11111: event[31]
+                               dma_status
+                               4'b0000: Stopped
+                               4'b0001: Executing
+3:0    RO     0x0              4'b0010: Cache miss
+                               4'b0011: Updating PC
+                               4'b0100: Waiting for event
+                               4'b0101-4'b1110: reserved
+                               4'b1111: Faulting
+
+DMA_DPC
+Address: Operational Base + offset (0x0004)
+ Bit    Attr  Reset Value                                     Description
+31:0   RO     0x00000000       pc_mgr
+                               Program counter for the DMA manager thread
+
+DMA_INTEN
+Address: Operational Base + offset (0x0020)
+ Bit    Attr  Reset Value                                     Description
+                               event_irq_select
+                               Bit [N]
+                               1'b0: If the DMAC executes DMASEV for the event-interrupt
+                               resource N then the DMAC signals event N to all of the threads.
+31:0   RW     0x00000000       Set bit [N] to 0 if your system design does not use irq[N] to
+                               signal an interrupt request
+                               1'b1: If the DMAC executes DMASEV for the event-interrupt
+                               resource N then the DMAC sets irq[N] HIGH. Set bit [N] to 1 if
+                               your system designer requires         irq[N] to signal an interrupt
+                               request
+
+DMA_EVENT_RIS
+Address: Operational Base + offset (0x0024)
+ Bit    Attr  Reset Value                                     Description
+                               dmasev_active
+31:0   RO     0x00000000       Bit [N]
+                               1'b0: Event N is inactive or irq[N] is LOW
+                               1'b1: Event N is active or irq[N] is HIGH
+
+DMA_INTMIS
+Address: Operational Base + offset (0x0028)
+ Bit    Attr  Reset Value                                     Description
+                               irq_status
+31:0   RO     0x00000000       Bit [N]
+                               1'b0: Interrupt N is inactive and therefore irq[N] is LOW
+                               1'b1: Interrupt N is active and therefore irq[N] is HIGH
+
+DMA_INTCLR
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 778
+PDF_PAGE 779
+RK3576 TRM
+Address: Operational Base + offset (0x002C)
+ Bit    Attr  Reset Value                                     Description
+                               irq_clr
+                               Bit [N]
+31:0   WO     0x00000000       1'b0: The status of irq[N] does not change
+                               1'b1: The DMAC sets irq[N] LOW if the INTEN Register programs
+                               the DMAC to signal an interrupt. Otherwise, the status of irq[N]
+                               does not change
+
+DMA_FSRD
+Address: Operational Base + offset (0x0030)
+ Bit    Attr  Reset Value                                     Description
+31:1   RO     0x00000000       reserved
+                               fs_mgr
+0      RO     0x0              1'b0: the DMA manager thread is not in the Faulting state
+                               1'b1: the DMA manager thread is in the Faulting state
+
+DMA_FSRC
+Address: Operational Base + offset (0x0034)
+ Bit    Attr  Reset Value                                     Description
+31:8   RO     0x000000         reserved
+                               fault_status
+                               Bit [N]
+7:0    RO     0x00             1'b0: No fault is present on DMA channel N.
+                               1'b1: DMA channel N is in the Faulting or Faulting completing
+                               state
+
+DMA_FTRD
+Address: Operational Base + offset (0x0038)
+ Bit    Attr  Reset Value                                     Description
+31     RO     0x0              reserved
+                               dbg_instr
+                               memory or from the debug interface:
+30     RO     0x0              1'b0: instruction that generated an abort was read from system
+                               memory
+                               1'b1: instruction that generated an abort was read from the
+                               debug interface
+29:17 RO      0x0000           reserved
+                               instr_fetch_err
+16     RO     0x0              performs an instruction fetch:
+                               1'b0: OKAY response
+                               1'b1: EXOKAY, SLVERR, or DECERR response
+15:6   RO     0x000            reserved
+                               mgr_evnt_err
+                               1'b0: the DMA manager has appropriate security to execute
+                               DMAWFE or DMASEV
+5      RO     0x0              1'b1: a DMA manager thread in the Non-secure state attempted
+                               to execute either:
+                               o DMAWFE to wait for a secure event
+                               o DMASEV to create a secure event or secure interrupt
+                               dmago_err
+                               1'b0: the DMA manager has appropriate security to execute
+4      RO     0x0              DMAGO
+                               1'b1: a DMA manager thread in the Non-secure state attempted
+                               to execute DMAGO to create a DMA channel operating in the
+                               Secure state
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 779
+PDF_PAGE 780
+RK3576 TRM
+ Bit    Attr  Reset Value                                      Description
+3:2     RO    0x0               reserved
+                                operand_invalid
+1       RO    0x0               the configuration of the DMAC:
+                                1'b0: valid operand
+                                1'b1: invalid operand
+                                undef_instr
+0       RW    0x0               1'b0: defined instruction
+                                1'b1: undefined instruction
+
+DMA_FTR0
+Address: Operational Base + offset (0x0040)
+ Bit    Attr  Reset Value                                      Description
+                                lockup_err
+                                1'b0: DMA channel has adequate resources
+31      RO    0x0               1'b1: DMA channel has locked-up because of insufficient
+                                resources
+                                This fault is an imprecise abort.
+                                dbg_instr
+                                memory or from the debug interface:
+                                1'b0: instruction that generated an abort was read from system
+30      RO    0x0               memory
+                                1'b1: instruction that generated an abort was read from the
+                                debug interface
+                                This fault is an imprecise abort but the bit is only valid when a
+                                precise abort occurs.
+29:19 RO      0x000             reserved
+                                data_read_err
+                                thread performs a data read:
+18      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+                                data_write_err
+                                thread performs a data write:
+17      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+                                instr_fetch_err
+                                thread performs an instruction fetch:
+16      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is a precise abort.
+15:14 RO      0x0               reserved
+                                st_data_unavailable
+                                1'b0: MFIFO contains all the data to enable the DMAST to
+13      RO    0x0               complete
+                                1'b1: previous DMALDs have not put enough data in the MFIFO to
+                                enable the DMAST to complete
+                                This fault is a precise abort.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 780

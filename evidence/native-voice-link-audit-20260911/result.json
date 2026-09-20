@@ -1,0 +1,489 @@
+{
+  "command": [
+    "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-ld",
+    "-r",
+    "-o",
+    "/dev/shm/velavision-link-audit-20260911/common-deps.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/0.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/1.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/10.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/11.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/12.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/13.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/14.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/15.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/16.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/17.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/18.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/19.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/2.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/20.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/3.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/4.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/5.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/6.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/7.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/8.o",
+    "/dev/shm/velavision-link-audit-20260911/objects/9.o",
+    "--whole-archive",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_base.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_log_severity.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_malloc_internal.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_raw_logging_internal.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_spinlock_wait.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_throw_delegate.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/container/libabsl_hashtablez_sampler.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/container/libabsl_raw_hash_set.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/debugging/libabsl_debugging_internal.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/debugging/libabsl_demangle_internal.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/debugging/libabsl_stacktrace.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/debugging/libabsl_symbolize.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/hash/libabsl_city.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/hash/libabsl_hash.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/hash/libabsl_low_level_hash.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/numeric/libabsl_int128.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/profiling/libabsl_exponential_biased.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/strings/libabsl_string_view.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/strings/libabsl_strings.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/strings/libabsl_strings_internal.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/synchronization/libabsl_graphcycles_internal.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/synchronization/libabsl_kernel_timeout_internal.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/synchronization/libabsl_synchronization.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/time/libabsl_civil_time.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/time/libabsl_time.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/time/libabsl_time_zone.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/types/libabsl_bad_optional_access.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/types/libabsl_bad_variant_access.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/libk7_libc_time_gate.a",
+    "/dev/shm/velavision-static-deps4-20260911/build/nsync/libnsync_cpp.a",
+    "--no-whole-archive"
+  ],
+  "exit_code": 0,
+  "archive_count": 30,
+  "object_count": 21,
+  "firmware_linked": false,
+  "hardware_tested": false,
+  "inputs": [
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/0.o",
+      "sha256": "e19ef369f3fe95789e5b8b247b1fd515b31a37b435956fdc6dc2a32df37ca56d",
+      "bytes": 588888
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/1.o",
+      "sha256": "c1293204cd7bc7a1b2c1b509314ac028f5b7777a416945a285e00eed996125ee",
+      "bytes": 822752
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/10.o",
+      "sha256": "758bcbb48b72302c1cfc77ee4d9473cdc691e69a11353289ed8eaea9fa5ebdd1",
+      "bytes": 1108160
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/11.o",
+      "sha256": "0a3a108c89c4d0f469425be43862013d860679fca7f9e015e8be9c60a87db3c1",
+      "bytes": 4281608
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/12.o",
+      "sha256": "9abeb303d798666a3f6a4338e66874265077f84403dc2cb36d3d49632874fca6",
+      "bytes": 721472
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/13.o",
+      "sha256": "221cf5ad2ccea93d74b472da24bdedd5402ddb9ead2fd45ddc7170972fe81f21",
+      "bytes": 117848
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/14.o",
+      "sha256": "6df4e4432f83d93a691531540fb3d6421a02b99b2df1282f16aa86030f39069f",
+      "bytes": 801880
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/15.o",
+      "sha256": "8eff7c27a9426dbc81d56059467220520bf60ab1d032554ba1d5ced3db18b74b",
+      "bytes": 589168
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/16.o",
+      "sha256": "bd96c2a71d5b291064ed95bc0e005f0ffb2bde5d684376c1b7c255b05baa8b2e",
+      "bytes": 2172320
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/17.o",
+      "sha256": "d48eff7e4b89a3cc44f3ab2928f4faec55732f16900b1ebf910cf31b550e9e76",
+      "bytes": 130600
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/18.o",
+      "sha256": "2ce361c67334851dc57e05d5cce594b3639f3ceab0c10f8494b5535edc91173b",
+      "bytes": 1104400
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/19.o",
+      "sha256": "b4796b11b793a0d0175215b7aaa759784992adce2279ad2148e91d475bd6a365",
+      "bytes": 693256
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/2.o",
+      "sha256": "7d15662c708fca9214ac6c088c0a63aa0803262d11cd897fa9c7fce71c3eaa2d",
+      "bytes": 527408
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/20.o",
+      "sha256": "04b3293cf90e35611ec2b59e6075153a5fa2cecde781044547b21fbd59a66df6",
+      "bytes": 803632
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/3.o",
+      "sha256": "cae004396a8a4ff4352c01687e08156448adfcbfcc9bc9fca3b76e81afeda18e",
+      "bytes": 525720
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/4.o",
+      "sha256": "5eb973e8d9213a7e834b83fa10e48f6bf9acf2788566878b53631deb6542b5c8",
+      "bytes": 950040
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/5.o",
+      "sha256": "1b35406892e169e7b4e0877f9455a9dad62990c9df9c87a583eed9f1cb23ee76",
+      "bytes": 1432152
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/6.o",
+      "sha256": "4c192aeb840051c0d852568df043a1351b6511fcd820c59d692de3d01f01170d",
+      "bytes": 1439552
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/7.o",
+      "sha256": "fba69be73856c3e8143b4f821163ace6b95ac8a4e3a5840b89be27b937ea5afe",
+      "bytes": 1700128
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/8.o",
+      "sha256": "bc6717f916cb24a945d26abe16a918514c5c164804dc85d627c078f4b991b6d8",
+      "bytes": 2564144
+    },
+    {
+      "path": "/dev/shm/velavision-link-audit-20260911/objects/9.o",
+      "sha256": "906bfa8227bfc47b60214adbeaef363e6b573dea3611ca1fa3c022b7c1e3f780",
+      "bytes": 571944
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_base.a",
+      "sha256": "63cb6f1ce28a6621232540ee04a4774d95665cde94db76a63fbe6e8c56b6e973",
+      "bytes": 2263220
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_log_severity.a",
+      "sha256": "e74d4ca58da739b70b96d71c08fcf68232c9d7ba2dda6b5700e574e0376fba47",
+      "bytes": 629764
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_malloc_internal.a",
+      "sha256": "5a5a6b0af99bb55f1afee1faef7ff0589fff81e5c5f06c5bd59479d6db22deb1",
+      "bytes": 474176
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_raw_logging_internal.a",
+      "sha256": "a2ae18cb8c225978b570c9b961bf704ee927e660deb008e3ef0e9545e31e1f05",
+      "bytes": 602642
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_spinlock_wait.a",
+      "sha256": "f79119ee9544dfc999abdce881be94fa4a2cb8106193bb1e4b94d613bd73f5bf",
+      "bytes": 388050
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/base/libabsl_throw_delegate.a",
+      "sha256": "40cd13de610f6bf349aa0cb53b87726ffd22b1a5ce1194ebacfb0267afb1bb1e",
+      "bytes": 585842
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/container/libabsl_hashtablez_sampler.a",
+      "sha256": "2a73b0b19413753b891027a08c647ba2221d7db52127970a33c6312da5d6a139",
+      "bytes": 1279600
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/container/libabsl_raw_hash_set.a",
+      "sha256": "27a2ec4e828fcef2b8965601c3c26baf1ee968af728f97f6178d7ce6e8c30829",
+      "bytes": 733510
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/debugging/libabsl_debugging_internal.a",
+      "sha256": "e0450782c0cf0dbc6fd84984f6dada877c8069fcb194bd675e9b8d218b7b6f22",
+      "bytes": 588390
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/debugging/libabsl_demangle_internal.a",
+      "sha256": "10a7ec26e1bf01c4d580b20ff03610087acf79c9dec922290b200d648d93a36a",
+      "bytes": 659374
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/debugging/libabsl_stacktrace.a",
+      "sha256": "167854218e8373a240a9aaff4bd59b11cb7e08a7793e45b789cb91a3da90a066",
+      "bytes": 386130
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/debugging/libabsl_symbolize.a",
+      "sha256": "618daa97244dbdc5acc19afc0b5cb284f342b9cf29e4ab1e1c49f3eabc01cbbc",
+      "bytes": 478766
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/hash/libabsl_city.a",
+      "sha256": "e8edfa0cc423855ea0fbb8b821efd5d448bd9346fcad21e18bed6e753c146a34",
+      "bytes": 553268
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/hash/libabsl_hash.a",
+      "sha256": "15577a1205cba0ec5db7fce0d41228f279bc3dff995c054dab194170b62af337",
+      "bytes": 517456
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/hash/libabsl_low_level_hash.a",
+      "sha256": "13905b17dac8c30492a37783643bc04992077a41256fae959f86b6cef811fad7",
+      "bytes": 555418
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/numeric/libabsl_int128.a",
+      "sha256": "d955d371920b33c4bec1745a2db5933fe35e4748f8df49a5e6662c10e2132112",
+      "bytes": 757802
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/profiling/libabsl_exponential_biased.a",
+      "sha256": "2410f973545e4f72086ebe94e166276a27406078fcfd49e8f43eb1bef7e6506c",
+      "bytes": 456444
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/strings/libabsl_string_view.a",
+      "sha256": "9500f021b1e502dd7803c5df5c474d23d6f082f462420ad66cdf69fc0927ebe2",
+      "bytes": 466820
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/strings/libabsl_strings.a",
+      "sha256": "2cbbac5b330d7db8de2be1595fb1f22b3004b40bb85a0a73a861d18365890836",
+      "bytes": 8723972
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/strings/libabsl_strings_internal.a",
+      "sha256": "36a9a8c16235fba73dc69261d8bb45b198142ec724b46235808062b0014f1e39",
+      "bytes": 1139862
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/synchronization/libabsl_graphcycles_internal.a",
+      "sha256": "f5339ecbe30fc982f4af80a50e5e74cc25b833f9848737c286ffec91a2478bbb",
+      "bytes": 132164
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/synchronization/libabsl_kernel_timeout_internal.a",
+      "sha256": "e8a0b436f6acba9cb9a33c445adc95edf146f8c70c2f166798d23a114ae8df40",
+      "bytes": 617644
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/synchronization/libabsl_synchronization.a",
+      "sha256": "e517e9a7356594fa0138003b4eb3f95122ebbca0f13141a18ceb0465c70b2388",
+      "bytes": 6075168
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/time/libabsl_civil_time.a",
+      "sha256": "657c21b996dededb4e9eb85d120af58dd6baa827c3df4d2b330faff4671593a1",
+      "bytes": 949366
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/time/libabsl_time.a",
+      "sha256": "6cbc4d833d712862bd494f6e3540b77b6a5b3a41342a49b254cbef56f3429824",
+      "bytes": 3732810
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/time/libabsl_time_zone.a",
+      "sha256": "b1b95b3521f4ace6d2273525e70a05194cc1d48738fb9e36cf30215759deada7",
+      "bytes": 7856036
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/types/libabsl_bad_optional_access.a",
+      "sha256": "85e467c6ec70ddea7361312e20558882aef21c29e29fc73d3a49c8515b085a80",
+      "bytes": 378428
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/abseil/absl/types/libabsl_bad_variant_access.a",
+      "sha256": "c0dac6296c64eaea80c58c956cfd77867dbab810a59f51a81c633622aedba061",
+      "bytes": 303484
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/libk7_libc_time_gate.a",
+      "sha256": "d72e00ddfd783254815e2ad39719ae65551d51906b8a1aceefb9f9dcbb3b281b",
+      "bytes": 109586
+    },
+    {
+      "path": "/dev/shm/velavision-static-deps4-20260911/build/nsync/libnsync_cpp.a",
+      "sha256": "47331c432442cf8c356dde932d39b4b8a06d24c81c71a864a171a6de8e83e12f",
+      "bytes": 8409264
+    }
+  ],
+  "relocatable_sha256": "c1886a4253e2b81b3a899c4f07f995237935d2f16bf2299e9291cfce943d658a",
+  "strong_undefined": 278,
+  "missing_from_sdk_archives": 23,
+  "sdk_archives": [
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/builtin/libapps_builtin.a",
+      "sha256": "4ac2e50dcbb1e00d85ff461a152fcd8801ca4bbc1919a73fceef797dec14508a"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/gimbal/libapps_gimbal.a",
+      "sha256": "6b515c19c9138ee54a8041a661a601f01c9c81498e34e821f5534fc75aac4b6c"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/hello/libapps_hello.a",
+      "sha256": "abc7df0bc90c0176fd2d99cdab9f222886d15cf44d7ab16774578ad51cc4371b"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7arena/libapps_k7arena.a",
+      "sha256": "1a2bbdca8c83805e1fc55152c192e161d39b561f4cd83ecebc7b5e4acd98a6aa"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7audio/libapps_k7audio.a",
+      "sha256": "ff4f240a9757f2353a6852ee32ca5a4c81861353330110203117ca0d59baa834"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7cxx/libapps_k7cxx.a",
+      "sha256": "855bc8d44a38934df9c4161692e0777c5760bd89b4ae3c0181fdcf40fb9c576f"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7eh/libapps_k7eh.a",
+      "sha256": "8f1cbe90792bc77a5ef3f50408f749e35f1a88021f0362f04c310c929d747877"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7emmc/libapps_k7emmc.a",
+      "sha256": "4dc5ca51f2ccbfa78ba43c595e4af5a1ffdbd9d7b06896209720e7f2c9611398"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7graph/libapps_k7graph.a",
+      "sha256": "260851d6e247fd0649cf1f6ddb8f5fb8a84bad2fbec16325ab5f61e35bdbd5ef"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7host/libapps_k7host.a",
+      "sha256": "4949fb13acf165d7e68b115f29507b0b214be79cc03bdad6f65dc83270ca5618"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7load/libapps_k7load.a",
+      "sha256": "444254bf380f40a2e1cac0af821ea2a62013cc4782d3c386a9c48a9e3aa3074a"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7mem/libapps_k7mem.a",
+      "sha256": "e425501fc3bafb32fcc9b283ad60bbb9b6f23f006e37884af8ce3471ce3b698f"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7neon/libapps_k7neon.a",
+      "sha256": "fb46dc18047b31c7a2756851e5d600db18bb2fbedcf49741ebc3ffc70d3aaea8"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7npu/libapps_k7npu.a",
+      "sha256": "a8d8c9ad357db995f794cbf8b4508c14ed2a68a4fff1d8ad1ccd4696d57e6000"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7radio/libapps_k7radio.a",
+      "sha256": "aadce2cccaa85a64d1aae30febb2bcc71034c47b119c90ca365ed43b01517b7d"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7smp/libapps_k7smp.a",
+      "sha256": "8ce066ee5a2317a11f0c7f43c040a5404ac4d090856721b4d18e5eac3a0c74c4"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7sound/libapps_k7sound.a",
+      "sha256": "3fadd4cc2adde10d57975d7fdb75a8ceb6b977968f748541e6774c8a6f298842"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7storage/libapps_k7storage.a",
+      "sha256": "0e22cf9ed1463c6912cbfd1f8c2fdbb3e711e2034a5f775c4d6c88b54b46237d"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7usb/libapps_k7usb.a",
+      "sha256": "f6c8d2615a1d876c7ab3945664dc8db09aad9cae2e21103e9c733dd644e4e23b"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/voicelink/libapps_k7voice.a",
+      "sha256": "e91a1c6481f82596e4979c4ce2e42e2237190f99ed5d6d4ddd5535c63a028d7d"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/external/android/libandroid.a",
+      "sha256": "0d6f2985462df6e26747e65439e8a78feb8449ea9e0f86395e7938205a179fcf"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/external/libjpeg-turbo/libturbojpeg-static.a",
+      "sha256": "39486a24ee6cf9ae82cfa2ddebf778e3e57b010041c7e6026714cf00b08587ec"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/libapps.a",
+      "sha256": "57bfaea7b57b3535dff55944ea6da2890fb72036c15f3d407ba37f775e676d92"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/system/nsh/libapps_nsh.a",
+      "sha256": "4a367d72c26f6c830c244ea799ddf70632907525b770b65cea44c874309b924a"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/system/nsh/libapps_sh.a",
+      "sha256": "7c219a1ac88f5d0f0c59de1a01f2bb9fd79485f88588d7c5f7515973b140c330"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/system/ping/libapps_ping.a",
+      "sha256": "39f7d5832e73c27efeb1ee9aa8013cd62981f4707d2df907a7ca6072bb8ad982"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/wireless/bluetooth/btsak/libapps_bt.a",
+      "sha256": "960c23734daa4af03a85223fc0ca2e295922026139478f81d218e6fac0ff9ddb"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/arch/libarch.a",
+      "sha256": "ab594c7f25c5678fb64e03504181c316a42216ffefd37c67fc32335247334745"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/binfmt/libbinfmt.a",
+      "sha256": "f8911a2a01596cdf920b330c6c93d607806b5933aa138a686d596798e16b7ac5"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/boards/libboard.a",
+      "sha256": "1fd93b7d0f15ce4580f301e6ab3f813438343f9861e7aea61cc34e8459953489"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/drivers/libdrivers.a",
+      "sha256": "f8d39e2616d2b7f4a8251155dae3e021f6f2152c87ea4c37adbdc4ecf4485244"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/fs/libfs.a",
+      "sha256": "233142e3026760140c28b2c12a3e6ccb0fe2144eccb131b0fde1cd0be118e5ff"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/libs/libc/libc.a",
+      "sha256": "7ee32a4f4fbd74e22bbd5f73070ed786061e7f618c174f76c45ea1e96255fb8e"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/libs/libxx/libcxx/liblibcxx.a",
+      "sha256": "7a7ac9f398e3c1a7bec1c7c37305b641fc863161bf8a4d519703bd6490cd8a64"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/libs/libxx/libcxxabi/liblibcxxabi.a",
+      "sha256": "156aed523296025149cd7a337d06a8785a8657ca21c4c1820f6f2f4df3c85da4"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/mm/libmm.a",
+      "sha256": "2b35c974457587ddb3f15f63ef06a7eb70565f1e9675ec88809ba7491664813e"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/net/libnet.a",
+      "sha256": "c3303e272a5ff49a71e2201424c1a84df48013e6ec584eac3c5edb14fb2fb972"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/sched/libsched.a",
+      "sha256": "c8d41cc277cef646972b0c32abb9a2d29f84033b7a61c2b19f82221981c2ac94"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/wireless/libwireless.a",
+      "sha256": "e96e72e8edcafbe5cb480985b2a17595060ab79b50b8dfe58dcff4cb5b50fd9c"
+    },
+    {
+      "path": "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/../lib/gcc/aarch64-none-elf/13.4.0/libgcc.a",
+      "sha256": "70cf6fa3db4cdad31d53959fd1d89f9b4264df773c27f11f68fd84705b6fcfc8"
+    }
+  ],
+  "limitation": "All-object conservative symbol inventory; archive membership is not final link proof or runtime safety."
+}

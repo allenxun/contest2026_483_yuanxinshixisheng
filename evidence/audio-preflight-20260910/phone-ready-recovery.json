@@ -1,0 +1,22 @@
+{
+  "ready": true,
+  "rows": [
+    {
+      "command": "k7radio wifi-status",
+      "output": "k7radio wifi-status\r\nWIFI status active=0 wifi_connected=0 ip=none gateway=none result=-125\r\nWIFI netdev rx=112 tx=8 dropped=0\r\nWIFI ARP rx_request=0 rx_reply=2 tx_request=1 tx_reply=0 wait_ms=250 retries=5\r\nWIFI AMSDU complete=0 subframes=0 rejected=0\r\nnsh> \u001b[K"
+    },
+    {
+      "command": "k7radio ble-status",
+      "output": "k7radio ble-status\r\nRADIO BLE name=VelaVision K7 connected=0 handle=17 ACL_RX=44 ACL_TX_queued=68\r\nRADIO BLE history connections=1 disconnections=1 last_reason=19 encrypt_status=0 encrypted=0\r\nRADIO ble-status ret=0\r\nnsh> \u001b[K"
+    },
+    {
+      "command": "k7radio provision-status",
+      "output": "k7radio provision-status\r\nPROV registered=1 connected=0 subscribed=0 busy=0 session=2 commands=4 notify_queued=23 errors=1 connects=1 disconnects=1 reads=2 input_bytes=0\r\nPROV last command=2 id=9103 session=1 ret=0 notify_ret=0\r\nnsh> \u001b[K"
+    }
+  ],
+  "advertisement_observed": true,
+  "wifi_connected": false,
+  "ble_connected": false,
+  "name": "VelaVision K7",
+  "recorded_utc": "2026-09-10T10:01:13.680455+00:00"
+}

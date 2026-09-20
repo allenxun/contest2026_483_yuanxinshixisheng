@@ -1,0 +1,13 @@
+{"stage": "before", "seconds": 0.046000000002095476, "prompt": true, "passed": true}
+free
+      total       used       free    maxused    maxfree  nused  nfree name
+  116809728      22464  116787264      23200  116787264    135      1 Umem
+nsh> [K
+{"stage": "add", "seconds": 60.03200000000652, "prompt": false, "passed": false}
+k7voice ort-add
+
+Traceback (most recent call last):
+  File "E:\openvela\VelaVision\tools\test_voice_ort_add_board.py", line 24, in <module>
+    if not row['passed']:raise RuntimeError('Board diagnostic failed: '+name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Board diagnostic failed: add

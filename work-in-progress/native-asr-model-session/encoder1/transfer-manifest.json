@@ -1,0 +1,32 @@
+{
+  "transfers": [
+    {
+      "file": "encoder-part1.bin",
+      "bytes": 100663296,
+      "sha256": "e210fe4b1ac730360c52a8488f188631c7eace4ad542148997c4fa38682fb019",
+      "crc32": "90aed6ae"
+    },
+    {
+      "file": "encoder-part2-firmware.bin",
+      "bytes": 82303536,
+      "sha256": "b09cb375894244cda6c52c67b54dc64befdc771d21dce98ba09abcb80c5514f8",
+      "crc32": "1696436b"
+    }
+  ],
+  "encoder_bytes": 166189616,
+  "encoder_crc32": "b20f998f",
+  "split": 100663296,
+  "second_encoder_offset": 16777216,
+  "first_target": "0x80000000",
+  "second_target": "0x86000000",
+  "firmware_bytes": 14685504,
+  "firmware_sha256": "3dc9221c5b7783aef5322bd3c3c48bf5367c2bb0f441b4134042bd8b63afcac2",
+  "firmware_crc32": "0600d0fe",
+  "board_tested": false,
+  "required_order": [
+    "part1 copy + CRC",
+    "part2 encoder copy + full encoder CRC",
+    "firmware copy + CRC",
+    "boot"
+  ]
+}

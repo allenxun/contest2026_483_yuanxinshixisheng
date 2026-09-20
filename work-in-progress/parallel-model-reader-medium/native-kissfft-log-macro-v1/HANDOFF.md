@@ -1,0 +1,9 @@
+# KissFFT private stringification names
+
+Apply candidate.patch at the verified KissFFT source root, or replace only kiss_fft_log.h with candidate/kiss_fft_log.h after comparing the original hash in inputs.json. This is a three-line namespacing change: STRINGIFY -> KISS_FFT_LOG_STRINGIFY; TOSTRING -> KISS_FFT_LOG_TOSTRING; the sole log macro call uses the latter. No Werror change, undef of platform macros, severity change, formatting change, or runtime code change.
+
+Frozen target build.log lines141–152 establishes the conflict: KissFFT line17 defines STRINGIFY(x) #x, while NuttX include/nuttx/macro.h line31 defines STRINGIFY(x) STRINGIFY_(x). They are different macro replacement lists even though both ultimately stringify. The complete NuttX macro.h was not present in the permitted local snapshots; the diagnostic is the direct target evidence. Host fixture explicitly supplies the quoted public definition and an ordinary helper, and independently predefines TOSTRING to verify preservation of that external name. It is not a simulated full NuttX build.
+
+The two-level expansion remains intact: __LINE__ expands before stringification. Host gcc -E -P -Werror tests compare byte-identical original nonconflicting vs candidate conflicting preprocessor outputs at #line123 in both debug and NDEBUG. Original with conflicting macros fails in both modes; candidate passes. Commands and raw stdout/stderr are retained. Six preprocessing invocations completed within individual15s timeouts. No SDK compiler, device, configuration or formal source changed.
+
+Reproduce with Codex Python running prepare_test.py. This writes only this candidate directory. Root should apply to the independent actual stage and resume the real target build; full KissFFT/ASR compilation remains the root gate. The old source-manifest hash intentionally no longer matches a patched staging tree; record this explicit patch and output hash instead of altering frozen original manifests.

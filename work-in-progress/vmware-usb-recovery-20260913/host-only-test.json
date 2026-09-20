@@ -1,0 +1,78 @@
+{
+    "schema":  "velavision.vmware-usb-readonly-diagnostic.v1",
+    "timestamp":  "2026-09-13T21:32:48.7435979+08:00",
+    "constraints":  {
+                        "device_io":  false,
+                        "service_changes":  false,
+                        "process_changes":  false,
+                        "driver_changes":  false,
+                        "vmx_changes":  false,
+                        "host_or_guest_reboot":  false
+                    },
+    "host":  {
+                 "vmware_service":  {
+                                        "found":  true,
+                                        "status":  "Running",
+                                        "start_type":  "Automatic"
+                                    },
+                 "vmware_processes":  [
+                                          {
+                                              "name":  "vmware",
+                                              "pid":  33540,
+                                              "start_time":  "2026-09-13T16:59:18.2706215+08:00",
+                                              "path_visible":  false
+                                          },
+                                          {
+                                              "name":  "vmware-vmx",
+                                              "pid":  32096,
+                                              "start_time":  "2026-09-13T16:59:22.3176178+08:00",
+                                              "path_visible":  false
+                                          },
+                                          {
+                                              "name":  "vmware-usbarbitrator64",
+                                              "pid":  43632,
+                                              "start_time":  null,
+                                              "path_visible":  false
+                                          }
+                                      ],
+                 "vmrun_path":  "D:\\software\\VM\\vmrun.exe",
+                 "vmrun_list":  {
+                                    "available":  true,
+                                    "exit_code":  0,
+                                    "output":  "Total running VMs: 0"
+                                },
+                 "connected_usb":  {
+                                       "available":  true,
+                                       "exit_code":  0,
+                                       "output":  "Microsoft PnP Utility\n\nInstance ID:                USB\\Vid_0E0F\u0026Pid_0001\\5\u00265f5591a\u00260\u00267\nDevice Description:         VMware USB Device\nClass Name:                 USB\nClass GUID:                 {36fc9e60-c465-11cf-8056-444553540000}\nManufacturer Name:          VMware, Inc.\nStatus:                     Started\nDriver Name:                oem38.inf\n\nInstance ID:                USB\\VID_09DA\u0026PID_2268\\5\u00265f5591a\u00260\u00269\nDevice Description:         USB Composite Device\nClass Name:                 USB\nClass GUID:                 {36fc9e60-c465-11cf-8056-444553540000}\nManufacturer Name:          (Standard USB Host Controller)\nStatus:                     Started\nDriver Name:                usb.inf\n\nInstance ID:                PCI\\VEN_8086\u0026DEV_7A60\u0026SUBSYS_377E17AA\u0026REV_11\\3\u002611583659\u00261\u0026A0\nDevice Description:         Intel(R) USB 3.20 eXtensible Host Controller - 1.20 (Microsoft)\nClass Name:                 USB\nClass GUID:                 {36fc9e60-c465-11cf-8056-444553540000}\nManufacturer Name:          Generic USB xHCI Host Controller\nStatus:                     Started\nDriver Name:                usbxhci.inf\n\nInstance ID:                USB\\ROOT_HUB30\\4\u00261280c552\u00260\u00260\nDevice Description:         USB Root Hub (USB 3.0)\nClass Name:                 USB\nClass GUID:                 {36fc9e60-c465-11cf-8056-444553540000}\nManufacturer Name:          (Standard USB HUBs)\nStatus:                     Started\nDriver Name:                usbhub3.inf"
+                                   },
+                 "connected_ports":  {
+                                         "available":  true,
+                                         "exit_code":  0,
+                                         "output":  "Microsoft PnP Utility\n\nNo devices were found on the system."
+                                     },
+                 "problem_43":  {
+                                    "available":  true,
+                                    "exit_code":  0,
+                                    "output":  "Microsoft PnP Utility\n\nNo devices were found on the system."
+                                }
+             },
+    "guest":  {
+                  "attempted":  false,
+                  "available":  false,
+                  "exit_code":  null,
+                  "output":  ""
+              },
+    "signals":  {
+                    "vmware_service_running":  true,
+                    "vmware_proxy_connected":  true,
+                    "host_ch340_connected":  false,
+                    "host_fastboot_connected":  false,
+                    "host_problem_43_present":  false,
+                    "guest_ch340_present":  false,
+                    "guest_fastboot_present":  false,
+                    "guest_usb_timeout_seen":  false
+                },
+    "classification":  "inspect_current_ownership",
+    "next_action":  "Compare the host and guest inventories; do not mutate USB state from this inspector."
+}

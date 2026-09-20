@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-09-13",
+  "authority": "Xiaomi MiMo official documentation and XiaomiMiMo official GitHub only",
+  "live_api_called": false,
+  "credential_recorded": false,
+  "credentials": {
+    "authentication_headers": [
+      "api-key: ${MIMO_API_KEY}",
+      "Authorization: Bearer ${MIMO_API_KEY}"
+    ],
+    "choose_exactly_one": true,
+    "pay_as_you_go": {
+      "key_prefix": "sk-",
+      "base_url": "https://api.xiaomimimo.com/v1"
+    },
+    "token_plan": {
+      "key_prefix": "tp-",
+      "base_url_source_of_truth": "Token Plan console",
+      "known_openai_compatible_base_urls": [
+        "https://token-plan-cn.xiaomimimo.com/v1",
+        "https://token-plan-sgp.xiaomimimo.com/v1",
+        "https://token-plan-ams.xiaomimimo.com/v1"
+      ]
+    },
+    "cross_use_forbidden": true
+  },
+  "common": {
+    "method": "POST",
+    "path": "/chat/completions",
+    "content_type": "application/json",
+    "protocol": "OpenAI-compatible Chat Completions"
+  },
+  "asr": {
+    "model": "mimo-v2.5-asr",
+    "input": {
+      "messages_role": "user",
+      "content_type": "input_audio",
+      "single_audio_only": true,
+      "formats": {
+        "wav": ["audio/wav"],
+        "mp3": ["audio/mpeg", "audio/mp3"]
+      },
+      "base64_encoded_string_max": "10 MB",
+      "base64_encoded_string_exact_bytes": null,
+      "data_url_supported": true,
+      "pure_base64_supported": true,
+      "format_required_for_pure_base64": true,
+      "sample_rate_contract": null,
+      "channels_contract": null,
+      "bit_depth_contract": null
+    },
+    "options": {
+      "language": {
+        "default": "auto",
+        "values": ["auto", "zh", "en"]
+      },
+      "stream": {
+        "default": false,
+        "transport": "SSE",
+        "delta_path": "choices[0].delta.content",
+        "uploads_incremental_audio": false
+      }
+    },
+    "non_stream_text_path": "choices[0].message.content",
+    "usage_fields": [
+      "usage.seconds",
+      "usage.prompt_tokens_details.audio_tokens",
+      "usage.prompt_tokens",
+      "usage.completion_tokens",
+      "usage.total_tokens"
+    ],
+    "rate_limit": {"rpm": 100, "tpm": 10000},
+    "token_plan_credit_per_audio_hour": 30000000,
+    "payg_price": {"CNY_per_hour": 0.5, "USD_per_hour": 0.074}
+  },
+  "tts": {
+    "model": "mimo-v2.5-tts",
+    "target_text": {
+      "messages_role": "assistant",
+      "content_field": "content",
+      "required": true
+    },
+    "style_context": {
+      "messages_role": "user",
+      "optional": true,
+      "spoken": false
+    },
+    "audio": {
+      "formats": ["wav", "mp3", "pcm", "pcm16"],
+      "non_stream_default": "wav",
+      "stream_recommended": "pcm16",
+      "voices": ["mimo_default", "冰糖", "茉莉", "苏打", "白桦", "Mia", "Chloe", "Milo", "Dean"]
+    },
+    "non_stream": {
+      "audio_base64_path": "choices[0].message.audio.data"
+    },
+    "stream": {
+      "transport": "SSE",
+      "audio_base64_path": "choices[0].delta.audio.data",
+      "decode_each_chunk_then_concatenate": true,
+      "pcm_contract": {
+        "sample_rate_hz": 24000,
+        "channels": 1,
+        "sample_format": "signed 16-bit little-endian",
+        "container": "raw"
+      },
+      "chunk_size_contract": null,
+      "fixed_terminal_event_contract": null
+    },
+    "rate_limit": {"rpm": 100, "tpm": 10000000},
+    "pricing": "free for a limited time as of observed_at"
+  },
+  "recommended_velavision_profile": {
+    "asr_language": "zh",
+    "asr_input": "bounded 16 kHz mono PCM16 capture wrapped as WAV; requires live compatibility check",
+    "tts_voice": "冰糖",
+    "tts_first_milestone": "non-stream WAV",
+    "tts_latency_milestone": "stream PCM16LE 24 kHz mono",
+    "secret_policy": "runtime injection only; never repository, firmware image, UART log, or response log"
+  },
+  "official_sources": [
+    "https://mimo.mi.com/docs/en-US/api/audio/Speech-Recognition",
+    "https://mimo.mi.com/docs/zh-CN/quick-start/usage-guide/audio/Speech-Recognition",
+    "https://mimo.mi.com/docs/en-US/api/audio/tts",
+    "https://mimo.mi.com/docs/usage-guide/speech-synthesis-v2.5",
+    "https://mimo.mi.com/docs/en-US/tokenplan/integration/tools-overview",
+    "https://mimo.mi.com/docs/zh-CN/tokenplan/Token%20Plan/quick-access",
+    "https://mimo.mi.com/docs/en-US/quick-start/faq/api-integration",
+    "https://mimo.mi.com/docs/en-US/api/guidance/rate-limit",
+    "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+    "https://mimo.mi.com/docs/en-US/quick-start/faq/token-plan",
+    "https://github.com/XiaomiMiMo/MiMo-Skills"
+  ],
+  "unverified": [
+    "Actual Token Plan region base URL for this account",
+    "Acceptance of the board's exact 16 kHz mono PCM16 WAV encoding",
+    "ASR/TTS latency on the selected Token Plan region",
+    "TTS SSE terminal marker and chunk size distribution",
+    "Hard maximum synthesis text length for mimo-v2.5-tts",
+    "Model entitlement for this account and region"
+  ]
+}

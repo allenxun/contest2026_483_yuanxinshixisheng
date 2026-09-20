@@ -1,0 +1,43 @@
+{
+  "revision": "audio-rde-20260911",
+  "firmware_sha256": "b2aac75a43de4217bb210a09c4bf07f2686f4be6e5f1a421eff258c24099f43e",
+  "otg_payload": {
+    "bytes": 115926384,
+    "sha256": "6bb927fdc8443b9a10d55c753d51a1cc175675938d0505c22fefeb277a1cd517",
+    "usb_ack": true,
+    "ram_crc_verified": true,
+    "flash_commands": false
+  },
+  "model_crc": {
+    "encoder": "b5f7ae2d",
+    "decoder": "2af64aa7"
+  },
+  "capture": {
+    "command": "k7sound capture-pga24-rde 3200",
+    "active_dmacr": "010f0000",
+    "dma_restore_result": 0,
+    "terminal_result": 0,
+    "codec_stop": 0,
+    "platform_restore": 0,
+    "i2c_restore": 0,
+    "amp_low": 1,
+    "first_32_words_pattern": "two nonzero words from FIFO0, then six zero words from FIFO1..3; repeats",
+    "changed_periodic_zero_pattern": false
+  },
+  "conclusion": "RDE=1 with RDL watermark 16 does not change the observed four-FIFO PIO sequence and is not an audio fix.",
+  "raw_evidence": {
+    "capture_log": {
+      "path": "rde-smoke-20260911-200708.log",
+      "sha256": "820881dd1aed07726345a034a1ca0e59201a083d0efc3e41875e6c19d05c6586"
+    },
+    "boot_log": {
+      "path": "final-20260911-200525.log",
+      "sha256": "92d6e7b88489d3c2f813e80ebe08656389a433871cac0195ac723f33ba460859"
+    },
+    "usb_result": {
+      "path": "final-usb-20260911-200525.json",
+      "sha256": "67b78a221ba8b32647a68c12e57eb388513df306ad436c65e7edf064f84d862a"
+    }
+  },
+  "hardware_tested": true
+}

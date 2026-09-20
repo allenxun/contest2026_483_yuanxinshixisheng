@@ -1,0 +1,34 @@
+--- a/app/voicelink/src/native_tts_runtime.cpp
++++ b/app/voicelink/src/native_tts_runtime.cpp
+@@
+ #include "voicelink/tts_runtime.h"
++#include "speech_runtime_gate.h"
+@@
+-pthread_mutex_t gate = PTHREAD_MUTEX_INITIALIZER;
+ struct Handles {
+@@
+-  const int lock = pthread_mutex_trylock(&gate);
+-  if (lock) return -lock;
+-  struct Unlock { ~Unlock() { pthread_mutex_unlock(&gate); } } unlock;
++  const int lock = k7_speech_runtime_try_acquire();
++  if (lock < 0) return lock;
++  struct Unlock { ~Unlock() { k7_speech_runtime_release(); } } unlock;
+@@
+-    config.model.vits.model = r->model;
++    config.model.vits.model = "k7ram:tts";
+--- a/app/voicelink/src/native_asr_runtime.cpp
++++ b/app/voicelink/src/native_asr_runtime.cpp
+@@
+ #include "voicelink/asr_runtime.h"
++#include "speech_runtime_gate.h"
+@@
+-pthread_mutex_t asr_gate = PTHREAD_MUTEX_INITIALIZER;
+@@
+-  const int lock_error = pthread_mutex_trylock(&asr_gate);
+-  if (lock_error) return -lock_error;
++  const int lock_error = k7_speech_runtime_try_acquire();
++  if (lock_error < 0) return lock_error;
+   struct Gate {
+-    ~Gate() { pthread_mutex_unlock(&asr_gate); }
++    ~Gate() { k7_speech_runtime_release(); }
+   } gate;

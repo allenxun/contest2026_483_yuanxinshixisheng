@@ -1,0 +1,72 @@
+{
+  "utc": "2026-09-10T08:01:52Z",
+  "provider": "fake tiny aligned arena; not K7 hardware",
+  "ggml": "real frozen b5046 libraries",
+  "results": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "--version"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "g++.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-Iinput/include",
+        "-c",
+        "k7_host_buft.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\model-arena-buft-v1\\evidence\\k7_host_buft.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-Iinput/include",
+        "k7_host_buft.cpp",
+        "test_buft.cpp",
+        "-Wl,--start-group",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-cpu.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-base.a",
+        "-Wl,--end-group",
+        "-pthread",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\model-arena-buft-v1\\evidence\\production.exe"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\model-arena-buft-v1\\evidence\\production.exe"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "FAIL line 37: k7_buft_create(&c,&type)==EINVAL && !type\nFAIL line 97: direct()==0\n"
+    }
+  ]
+}

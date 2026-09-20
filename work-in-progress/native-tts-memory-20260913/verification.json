@@ -1,0 +1,27 @@
+{
+  "candidate": "native-tts-memory-20260913",
+  "date": "2026-09-13",
+  "source": {
+    "archive": "work-in-progress/native-voice-sources/sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9.tar.gz",
+    "offline_tts_vits_model_sha256": "0dbe70a46b0f57738d8a56ce28fd0b3db1e896fa70c87f68787c68456f11d8d9"
+  },
+  "artifacts": {
+    "shared_runtime.hpp": "15478233ad263185a71f05f8a7311894293b83842fc164868ed293f43799bb0e",
+    "native_tts_model_storage.hpp": "14a7ff57829fc8da56980604dc51a1b7667d3cbbc66b44f37d362be8f7cdea64",
+    "offline-tts-vits-model.patch": "183499edc838b22d02feab7284686b10ce49d889b42f92621f506d32227e699c",
+    "test_options.cpp": "abb4983d8f6643577533b3734e2cde84d4ef2850dbd8061ac55719a1568ad77c"
+  },
+  "checks": {
+    "git_apply_check_against_pristine_archive": true,
+    "host_cxx_standard": "c++11",
+    "host_warnings": "-Wall -Wextra -Werror",
+    "host_compile_exit_code": 0,
+    "host_test_exit_code": 0,
+    "host_test_output": [
+      "TTS_STORAGE peak=12288 live=0 records=2 failures=0 failed_bytes=0 reason=0",
+      "TTS_STORAGE peak=0 live=0 records=0 failures=0 failed_bytes=0 reason=0"
+    ],
+    "arm64_cross_compile": false,
+    "board_test": false
+  }
+}

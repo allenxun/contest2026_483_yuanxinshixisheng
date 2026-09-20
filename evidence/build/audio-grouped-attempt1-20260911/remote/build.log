@@ -1,0 +1,11 @@
+[1/9] cd /home/swl/openvela/cmake_out/velavision_audio_s16_20260911/libs/libc/misc && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E touch /home/swl/openvela/nuttx/libs/libc/misc/lib_utsname.c
+[2/9] Generating bin output directories
+[3/9] cd /home/swl/openvela/nuttx && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -DKCONFIG_CONFIG=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_audio_sound_local/defconfig -DNUTTX_DIR=/home/swl/openvela/nuttx -DCMAKE_BINARY_DIR=/home/swl/openvela/cmake_out/velavision_audio_s16_20260911 -P /home/swl/openvela/nuttx/cmake/nuttx_generate_dts.cmake
+[4/9] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/pio.c.o
+[5/9] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/k7sound_main.c.o
+[6/9] Linking C static library apps/examples/k7sound/libapps_k7sound.a
+[7/9] Linking CXX executable nuttx
+Memory region         Used Size  Region Size  %age Used
+            dram:      19588 KB       126 MB     15.18%
+[8/9] Generating nuttx.bin
+[9/9] Generating System.map

@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-09-09T12:42:03.158290+00:00",
+  "loaded_sha256": "1ed2ebc7516acf0c1a81bfaa409a537fa97380154066d305dbc9585f7802c28d",
+  "current_local_rebuild_sha256": "73c73e2c60165a0e0f19ab760625d3ed8a7dad24eecf61693e9551428f3ff0f3",
+  "loaded_proof": "ramload-progress.txt plus per-region CRCs in ramload.bin",
+  "cause": "A second build replaced local artifacts while the loader retained the first verified payload in memory.",
+  "same_revision_label": true,
+  "hashes_are_not_interchangeable": true,
+  "prevention": "Build orchestration now refuses to overwrite a completed revision; new work uses wifi-arp-20260909"
+}

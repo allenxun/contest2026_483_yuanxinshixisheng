@@ -1,0 +1,30 @@
+{
+  "status": "PASS (static artifact validation; not a hardware boot)",
+  "entry": "0x40400000",
+  "booti_destination": "0x40400000",
+  "text_offset": "0x0",
+  "image_bytes_including_bss_stack": 405504,
+  "binary_bytes": 265248,
+  "heap_end": "0x48200000",
+  "sha256": "4f5a7bb18f90d6422fc5bd21fe3b64182a4c917acf677672dc5fdc590ebf4db2",
+  "segments": [
+    {
+      "start": "0x40400000",
+      "file_bytes": 200704,
+      "memory_bytes": 200704,
+      "flags": 5
+    },
+    {
+      "start": "0x40431000",
+      "file_bytes": 61440,
+      "memory_bytes": 61440,
+      "flags": 4
+    },
+    {
+      "start": "0x40440000",
+      "file_bytes": 3104,
+      "memory_bytes": 143360,
+      "flags": 6
+    }
+  ]
+}

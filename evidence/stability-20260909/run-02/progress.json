@@ -1,0 +1,51 @@
+{
+  "state": "failed",
+  "started_at": "2026-09-09T10:07:34.011041+00:00",
+  "updated_at": "2026-09-09T10:12:36.006544+00:00",
+  "elapsed_s": 300.83,
+  "target_s": 1800,
+  "completed_rounds": 0,
+  "sent": 0,
+  "received": 0,
+  "failures": [
+    {
+      "reason": "RuntimeError",
+      "detail": "Baseline not ready within 5 minutes; soak did not start"
+    }
+  ],
+  "last_snapshot": {
+    "ble": {
+      "connected": 0,
+      "handle": 17,
+      "acl_rx": 22,
+      "acl_tx": 22,
+      "connections": 2,
+      "disconnections": 2,
+      "last_reason": 19,
+      "encrypt_status": 0,
+      "encrypted": 0
+    },
+    "wifi": {
+      "active": 1,
+      "connected": 1,
+      "ip": "10.3.0.214",
+      "gateway": "10.3.0.1",
+      "result": 0,
+      "rx": 1191,
+      "tx": 93,
+      "dropped": 0,
+      "amsdu_complete": 1,
+      "amsdu_subframes": 2,
+      "rx_rejected": 2
+    },
+    "memory": {
+      "total": 126877688,
+      "used": 72312,
+      "free": 126805376,
+      "maxused": 98880,
+      "maxfree": 126788432,
+      "nused": 55,
+      "nfree": 4
+    }
+  }
+}

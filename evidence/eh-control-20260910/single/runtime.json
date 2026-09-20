@@ -1,0 +1,24 @@
+{
+  "mode": "single",
+  "passed": true,
+  "prompt_returned": true,
+  "elapsed_seconds": 0.031000000002677552,
+  "error": null,
+  "workers": [
+    {
+      "worker": 0,
+      "caught": 1,
+      "cleaned": 3,
+      "errors": 0,
+      "cpu": 5,
+      "requested_cpu": 5,
+      "cpu_mismatch": 0,
+      "first_begin": 317976004582,
+      "first_end": 317976071957
+    }
+  ],
+  "preheat_pass": false,
+  "joined_summary": true,
+  "scope": "One fresh-boot control, not general concurrent unwinder safety or overlap proof",
+  "on_failure": "No forced task deletion/free; preserve output and restore baseline"
+}

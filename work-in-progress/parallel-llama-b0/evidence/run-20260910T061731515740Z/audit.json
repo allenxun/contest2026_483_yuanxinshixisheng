@@ -1,0 +1,79 @@
+{
+  "commands": [
+    {
+      "name": "nm-registry",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\nm.exe",
+        "-u",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-b0\\evidence\\run-20260910T061731515740Z\\build\\llama\\ggml\\src\\ggml.a"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "exe-imports",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\objdump.exe",
+        "-p",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-b0\\evidence\\run-20260910T061731515740Z\\build\\b0-probe.exe"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "compiler",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "--version"
+      ],
+      "returncode": 0
+    }
+  ],
+  "input_verification": [
+    {
+      "source": "E:\\openvela\\VelaVision\\docs\\离线Agent选型与B0落地方案_20260910.md",
+      "copy": "input\\docs\\离线Agent选型与B0落地方案_20260910.md",
+      "sha256": "38f2c756a753828d214d72acb760dec6396c44fd55e8471394d5413f1bc80d37",
+      "current_sha256": "38f2c756a753828d214d72acb760dec6396c44fd55e8471394d5413f1bc80d37",
+      "unchanged": true
+    },
+    {
+      "source": "E:\\openvela\\VelaVision\\config\\agent-offline-probe.example.json",
+      "copy": "input\\config\\agent-offline-probe.example.json",
+      "sha256": "795133f30f3435ae0d899f08c765b641aeeeb7cff5a179872aa932a521822cb5",
+      "current_sha256": "795133f30f3435ae0d899f08c765b641aeeeb7cff5a179872aa932a521822cb5",
+      "unchanged": true
+    },
+    {
+      "source": "E:\\openvela\\VelaVision\\artifacts\\smp-load-20260910\\.config",
+      "copy": "input\\artifacts\\smp-load-20260910\\.config",
+      "sha256": "c3541cdfac78b4b89c1afd27de731c76bad46152da7650fb70d8737a15607f76",
+      "current_sha256": "c3541cdfac78b4b89c1afd27de731c76bad46152da7650fb70d8737a15607f76",
+      "unchanged": true
+    }
+  ],
+  "archives": [
+    {
+      "path": "evidence\\run-20260910T061731515740Z\\build\\llama\\ggml\\src\\ggml-base.a",
+      "bytes": 801932,
+      "sha256": "2744c8578f1d8e59e774b0c657093c66a8205c5ba6e993995a777917dcf2c53f"
+    },
+    {
+      "path": "evidence\\run-20260910T061731515740Z\\build\\llama\\ggml\\src\\ggml-cpu.a",
+      "bytes": 595518,
+      "sha256": "2a88bd5d1a6648f530ca484337c796cc80caf5fa0d4a9a1d4bf66390c817e8b4"
+    },
+    {
+      "path": "evidence\\run-20260910T061731515740Z\\build\\llama\\ggml\\src\\ggml.a",
+      "bytes": 14676,
+      "sha256": "cd5deb9f04f925266a4e5853fc9c731a8925f245381750a8984fdb459f3c6b5c"
+    },
+    {
+      "path": "evidence\\run-20260910T061731515740Z\\build\\llama\\src\\libllama.a",
+      "bytes": 3516102,
+      "sha256": "2cf0fda9fa87cf8dc911c70e6186bb504073716a0115f26e8a49323268794829"
+    }
+  ],
+  "static_registry_dynamic_imports": false,
+  "openmp": false,
+  "compile_units": 39,
+  "inference": false
+}

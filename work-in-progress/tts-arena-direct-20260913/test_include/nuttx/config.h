@@ -1,0 +1,2 @@
+#pragma once
+#define CONFIG_EXAMPLES_K7VOICE_STAGED_ASSETS 1

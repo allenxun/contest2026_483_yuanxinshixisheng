@@ -1,0 +1,41 @@
+{
+  "runtime_sha256": "32427949d78e73dd2d38e01d79dd1fde5d2f0b7d62c8bf0c00c52b76e8ba4fad",
+  "asset_header_sha256": "7c2a4b9229c088363dadbff225df2e42d4695d1af784b8463b8e5d4e5beeed5f",
+  "inputs": {
+    "app/k7sound/k7sound_main.c": "632ec8fff3e40d65eb20bbc48a0fa9385141213c5e73c150b80781d2f109aadc",
+    "app/k7sound/k7sound_api.h": "b639422d06913870df9092500f82edd51f04b16b91e9bed291410db8a7395785",
+    "app/k7sound/pio.c": "ab6a17f53e4f89a2d6f6c15a5497675515b35f2101f4bbacbd354380d8d7d780",
+    "app/k7sound/pio.h": "5f25d269159a2a4a9aa55dfa7d7994078058638ebf7788a8f06cc88b3c8b4eba",
+    "app/voicelink/CMakeLists.txt": "50d61ae31645152d0c9837f7a21f7720f90e8c2feebd7c187d046851c04b569b",
+    "app/voicelink/Kconfig": "64a423644e8908de13b948503bdaa69c5b93ef136fd841c1a0f2abf1ff194f07",
+    "app/voicelink/src/core.cpp": "d83e1df93a0407933914e7514d02ef2ae51314dc2e63f01bcdf73d5efc38ce5a",
+    "app/voicelink/src/parsers.cpp": "5a1bf39bce75394178f42c5d85ebbe49e5ed8c67ac245ff4b186d5178b6d31fe",
+    "app/voicelink/src/k7voice_main.cpp": "6794b3d51c1fe4e138a78f9cbdd91b22dfc1cc8c75f61683fa116c1d137052cb",
+    "app/voicelink/src/native_speech_output.hpp": "5f2d8fc5911b9432c151d0d34515d6ddb049364c1e6c2bc382a8b6ee23a42866",
+    "app/voicelink/src/tts_assets.hpp": "22523ad91a6f6d4d4467a31cdc1d418793b59b83ff957e13101e32b106c3bebe",
+    "app/voicelink/include/voicelink/tts_runtime.h": "6aa479e8ed783f9444d145bdc84bcd8f441e62e131ec800829c7b325de1c4a8c",
+    "app/voicelink/include/voicelink/speech_pcm.hpp": "dc050bf2219b32ecad9a8e3d4fd9247c8520bce167a4ca14081adb73f4d251c2",
+    "port/new/nuttx/include/nuttx/mm/k7_model_arena.h": "f750642f4ccc821a8e43a808c16beebb47377f278e8f407153e055eaf3b78dd2",
+    "port/new/nuttx/arch/arm64/src/rk3576/rk3576_boot.c": "59e786614c1b42dd053f442853eede3cadad657442910cad7995e2ef57967d8e",
+    "board/kickpi_k7/configs/velavision_spoken_tts_local/defconfig": "d2d4a3d8067881f606d0e32197d45cc5a6befe0ecbe027ec1ed1ff4f9aca8e0f",
+    "app/voicelink/include/voicelink/spoken_ssid.hpp": "8a838d05825fa4a1cada9dc657d1998cecc7bea7ec4cd0d247a4756a669bd33e"
+  },
+  "shared_runtime_gate": true,
+  "board_tested": false,
+  "configure_exit_code": 0,
+  "build_exit_code": 0,
+  "artifacts": {
+    "nuttx": {
+      "bytes": 44976440,
+      "sha256": "6f0570c3ce4095af50040798b1444fc1c922976a55bcfc11b54170ccdad8c4f0"
+    },
+    "nuttx.bin": {
+      "bytes": 15861632,
+      "sha256": "e0fffeabfc4099ff0982f27fe0d07139d684e3645e399e85a0968cc56296a7af"
+    },
+    ".config": {
+      "bytes": 64694,
+      "sha256": "e7304e2eb5701287e534b7849e5ac15a5f3dcd315674c5f8f67c1a38e58ab79d"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+PASS full raw markers frames=256 tx_queued=528 polls=16014 trace=64/64 elapsed=16128
+PASS sparse simulator zeros preserved; transfer success is NOT content acceptance
+PASS bounds/common/DMA/amp gates; RX error; deadline; stuck clear/stop; restore failure; idle refusal; start write failure; PATH readback mismatch
+No actual SAI/FIFO/codec behavior validated by this simulator.
+PASS RX_ALL SDI0 PATH=000400e4; nonzero old RX routes restored; TX e4 unchanged; mismatch/restore errors; explicit 128-frame bound
+PASS all 288 markers unique/invertible; numbered raw capture; default route required; held failures preserved
+PASS synthetic RX2 128 pairs elapsed=4033 us raw lane1 zeros preserved
+PASS CSR readback, nonzero old CSR restore, restore failure held, stop failure skips restore
+PASS guarded: startup bank0=1/bank1=1 waits; first RXDR at2/2; all raw words retained
+PASS unknown bank/depth refusal cleanup; readiness deadline; cleanup failure held

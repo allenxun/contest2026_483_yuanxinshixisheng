@@ -1,0 +1,63 @@
+[
+  {
+    "path": "parallel-model-reader-medium/model-arena-plan-v1",
+    "manifest_sha256": "ca1ceac9e56f4a505685a773954e7402d577accc7def133be294a70dc54218a9",
+    "verified": true,
+    "files": [
+      "arena_buffer_lease.cpp",
+      "arena_buffer_lease.h",
+      "evidence\\host-tests.json",
+      "evidence\\input-hashes.json",
+      "evidence\\test_lease.exe",
+      "HANDOFF.md",
+      "run_tests.py",
+      "seal_delivery.py",
+      "test_lease.cpp"
+    ]
+  },
+  {
+    "path": "parallel-model-reader-medium/model-arena-buft-v1",
+    "manifest_sha256": "fe02247b522364148b1e2822105632f40f595d93f350371a9da6b735ed6a7858",
+    "verified": true,
+    "files": [
+      "evidence\\attempt-01-test-alignment-assumption.json",
+      "evidence\\host-tests.json",
+      "evidence\\injected.exe",
+      "evidence\\input-hashes.json",
+      "evidence\\k7_host_buft.o",
+      "evidence\\production.exe",
+      "HANDOFF.md",
+      "input\\include\\ggml-alloc.h",
+      "input\\include\\ggml-backend-impl.h",
+      "input\\include\\ggml-backend.h",
+      "input\\include\\ggml-cpu.h",
+      "input\\include\\ggml.h",
+      "k7_host_buft.cpp",
+      "k7_host_buft.h",
+      "run_tests.py",
+      "seal_delivery.py",
+      "test_buft.cpp"
+    ]
+  },
+  {
+    "path": "parallel-neon-probe-medium/amsdu-audit-v1/diagnostic-candidate",
+    "manifest": null,
+    "verified": false,
+    "reason": "No delivery.json; inspect alternate index manually"
+  },
+  {
+    "path": "parallel-cxx-unwind-medium/eh-control-elf-review-v1",
+    "manifest_sha256": "d1b6f5b0ac4776c074641879c85ff74f452c43d3be373a0aea232be194e9123c",
+    "verified": true,
+    "files": [
+      "check_macros.py",
+      "compile-macro-check.json",
+      "macro-scan.json",
+      "review.json",
+      "REVIEW.md",
+      "review.py",
+      "symbols.txt",
+      "unwind-audit.json"
+    ]
+  }
+]

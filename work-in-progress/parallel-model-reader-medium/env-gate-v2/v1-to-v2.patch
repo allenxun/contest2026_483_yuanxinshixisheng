@@ -1,0 +1,93 @@
+--- a/onnxruntime/core/platform/posix/env.cc
++++ b/onnxruntime/core/platform/posix/env.cc
+@@ -39,6 +39,7 @@
+ #if defined(ORT_K7_NUTTX)
+ #include <nuttx/config.h>
+ #include <pthread.h>
++#include <exception>
+ #include <time.h>
+ static_assert(sizeof(off_t) >= 8, "ORT K7 requires 64-bit off_t");
+ #endif
+@@ -199,8 +200,8 @@
+ #if defined(ORT_K7_NUTTX)
+     ORT_ENFORCE(!param_ptr->affinity.has_value() || param_ptr->affinity->empty(),
+                 "K7 Env gate does not implement explicit affinity");
+-    ORT_ENFORCE(!custom_create_thread_fn || custom_join_thread_fn,
+-                "K7 custom thread requires a matching join callback");
++    ORT_ENFORCE(!custom_create_thread_fn && !custom_join_thread_fn,
++                "K7 gate uses checked native pthread ownership only");
+ #endif
+     if (custom_create_thread_fn) {
+       custom_thread_handle = custom_create_thread_fn(custom_thread_creation_options, CustomThreadMain, param_ptr.get());
+@@ -212,7 +213,11 @@
+       pthread_attr_t attr;
+       int s = pthread_attr_init(&attr);
+       if (s != 0) {
++        #if defined(ORT_K7_NUTTX)
++        auto [err_no, err_msg] = GetSystemError(s);
++#else
+         auto [err_no, err_msg] = GetSystemError();
++#endif
+         ORT_THROW("pthread_attr_init failed, error code: ", err_no, " error msg: ", err_msg);
+       }
+ 
+@@ -223,14 +228,22 @@
+       if (stack_size > 0) {
+         s = pthread_attr_setstacksize(&attr, stack_size);
+         if (s != 0) {
+-          auto [err_no, err_msg] = GetSystemError();
++          #if defined(ORT_K7_NUTTX)
++        auto [err_no, err_msg] = GetSystemError(s);
++#else
++        auto [err_no, err_msg] = GetSystemError();
++#endif
+           ORT_THROW("pthread_attr_setstacksize failed, error code: ", err_no, " error msg: ", err_msg);
+         }
+       }
+ 
+       s = pthread_create(&hThread, &attr, ThreadMain, param_ptr.get());
+       if (s != 0) {
++        #if defined(ORT_K7_NUTTX)
++        auto [err_no, err_msg] = GetSystemError(s);
++#else
+         auto [err_no, err_msg] = GetSystemError();
++#endif
+         ORT_THROW("pthread_create failed, error code: ", err_no, " error msg: ", err_msg);
+       }
+       param_ptr.release();
+@@ -244,7 +257,14 @@
+       custom_thread_handle = nullptr;
+     } else {
+       void* res;
+-#ifdef NDEBUG
++#if defined(ORT_K7_NUTTX)
++      const int ret = pthread_join(hThread, &res);
++      if (ret != 0) {
++        // Returning would free pool queues still reachable by a live worker.
++        // This is a fatal invariant failure, not cancellation/recovery.
++        std::terminate();
++      }
++#elif defined(NDEBUG)
+       pthread_join(hThread, &res);
+ #else
+       int ret = pthread_join(hThread, &res);
+@@ -570,6 +590,19 @@
+     if (0 > fd) {
+       return ReportSystemError("open", path);
+     }
++#if defined(ORT_K7_NUTTX)
++    struct stat sb;
++    const int stat_result = fstat(fd, &sb);
++    const int error = stat_result != 0 ? (errno ? errno : EIO) :
++                      (!S_ISREG(sb.st_mode) || sb.st_size < 0 ? EINVAL : 0);
++    if (error) {
++      // Keep SYSTEM status: Model::Load helper handles these before using fd.
++      const int close_result = close(fd);
++      fd = -1;
++      if (close_result != 0) return ReportSystemError("close", "");
++      return common::Status(common::SYSTEM, error, "K7 model fd is not a regular file");
++    }
++#endif
+     return Status::OK();
+   }
+ 

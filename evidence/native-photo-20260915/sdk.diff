@@ -1,0 +1,252 @@
+--- sdk/app/k7host/CMakeLists.txt
++++ app/k7host/CMakeLists.txt
+@@ -13,7 +13,7 @@
+       COMPILE_OPTIONS "-O3;-ffp-contract=off")
+   endif()
+   if(CONFIG_EXAMPLES_K7HOST_TRACK)
+-    list(APPEND SRCS k7_pose.c k7_photo.c fusion_core.c k7_track.c k7_preview.c k7_preview_queue.c k7_link_probe.c dwc3_transport_core.c k7_video_frame.c k7_video_queue.c)
++    list(APPEND SRCS k7_pose.c k7_photo.c k7_photo_store.c fusion_core.c k7_track.c k7_preview.c k7_preview_queue.c k7_link_probe.c dwc3_transport_core.c k7_video_frame.c k7_video_queue.c)
+   endif()
+   set_source_files_properties(k7_pose.c PROPERTIES COMPILE_OPTIONS "-O3;-ffp-contract=off")
+   nuttx_add_application(NAME k7host SRCS ${SRCS} DEPENDS ${DEPS}
+--- sdk/app/k7host/k7_pipeline.c
++++ app/k7host/k7_pipeline.c
+@@ -357,7 +357,10 @@
+       int x=0, y=0;
+       p->tracking=true;
+       p->voice_control=track->voice_control;
+-      if(track->photo || track->voice_control) {p->photo=k7_photo_create();if(!p->photo){ret=ENOMEM;goto free_storage;}}
++      if(track->photo || track->voice_control) {
++        p->photo=track->voice_control?k7_photo_create_native():k7_photo_create();
++        if(!p->photo){ret=ENOMEM;goto free_storage;}
++      }
+       atomic_store(&g_track_halt, track->voice_control);
+       if (track->voice_control) atomic_store(&g_voice_mode, 0);
+       if (track->transmit)
+--- sdk/app/k7host/k7_photo.c
++++ app/k7host/k7_photo.c
+@@ -10,6 +10,9 @@
+ #include <string.h>
+ #include <time.h>
+ #include <pthread.h>
++#include <errno.h>
++static pthread_mutex_t store_owner=PTHREAD_MUTEX_INITIALIZER;
++static struct k7_photo_store *native_store;
+ static pthread_mutex_t ack_lock=PTHREAD_MUTEX_INITIALIZER;
+ static unsigned ack_q,ack_epoch,ack_side;
+ static bool ack_ok,ack_valid;
+@@ -18,6 +21,7 @@
+ /* Operator confirmed: own-left head turn produces positive native yaw. */
+ static const struct vf_config config={45,7,12,3,80,60,500,350,700,500,1};
+ struct k7_photo_s {
++  struct k7_photo_store *store;
+   struct k7_pose_s *pose;
+   struct vf_state gate;
+   uint8_t *rgb;
+@@ -42,6 +46,8 @@
+ void k7_photo_reset(void) {atomic_store(&reset_requested,true);}
+ static void reset(struct k7_photo_s *p) {
+   p->epoch=++epoch_counter;
++  if(p->store && k7_photo_store_begin(p->store,p->epoch))
++    puts("PHOTO RAM reset_failed=1");
+   vf_init(&p->gate,&config,p->epoch);
+   p->hn=p->hp=0;p->last_filter=0;p->missing_since=0;
+   p->locked=false;p->lost=false;p->last_print=0;
+@@ -55,7 +61,34 @@
+   reset(p);return p;
+ }
+ void k7_photo_destroy(struct k7_photo_s *p) {
+-  if(p){k7_pose_destroy(p->pose);free(p->rgb);free(p);}
++  if(p){
++    pthread_mutex_lock(&store_owner);
++    if(native_store==p->store)native_store=NULL;
++    k7_photo_store_destroy(p->store);
++    pthread_mutex_unlock(&store_owner);
++    k7_pose_destroy(p->pose);free(p->rgb);free(p);
++  }
++}
++struct k7_photo_s *k7_photo_create_native(void) {
++  struct k7_photo_s *p=k7_photo_create();if(!p)return NULL;
++  p->store=k7_photo_store_create(1024*1024);
++  if(!p->store || k7_photo_store_begin(p->store,p->epoch))
++    {k7_photo_destroy(p);return NULL;}
++  pthread_mutex_lock(&store_owner);
++  if(native_store){pthread_mutex_unlock(&store_owner);k7_photo_destroy(p);return NULL;}
++  native_store=p->store;
++  pthread_mutex_unlock(&store_owner);
++  return p;
++}
++int k7_photo_native_copy(uint32_t epoch,unsigned side,struct k7_photo_record *r,void *dst,size_t cap) {
++  pthread_mutex_lock(&store_owner);
++  int rc=native_store?k7_photo_store_copy(native_store,epoch,side,r,dst,cap):-ENODEV;
++  pthread_mutex_unlock(&store_owner);return rc;
++}
++int k7_photo_native_complete(uint32_t epoch) {
++  pthread_mutex_lock(&store_owner);
++  int rc=native_store?k7_photo_store_complete(native_store,epoch):-ENODEV;
++  pthread_mutex_unlock(&store_owner);return rc;
+ }
+ static float overlap(struct k7_face_s a,struct k7_face_s b) {
+   float w=fmaxf(0,fminf(a.x+a.width,b.x+b.width)-fmaxf(a.x,b.x));
+@@ -122,7 +155,7 @@
+                      uint64_t stamp_us,const struct k7_track_result_s *track,unsigned faces,bool halt) {
+   if(atomic_exchange(&reset_requested,false))reset(p);
+   pthread_mutex_lock(&ack_lock);
+-  if(ack_valid){vf_saved(&p->gate,ack_q,ack_epoch,(enum vf_shot)ack_side,ack_ok);ack_valid=false;}
++  if(ack_valid){if(!p->store)vf_saved(&p->gate,ack_q,ack_epoch,(enum vf_shot)ack_side,ack_ok);ack_valid=false;}
+   pthread_mutex_unlock(&ack_lock);
+   uint64_t now=now_ms(),stamp=stamp_us/1000;
+   unsigned next=!(p->gate.done&VF_FRONT)?VF_FRONT:!(p->gate.done&VF_LEFT)?VF_LEFT:!(p->gate.done&VF_RIGHT)?VF_RIGHT:0;
+@@ -177,6 +210,14 @@
+   if(result.shot) {
+     p->pending_raw=f.raw_pose;p->pending_filtered=f.filtered_pose;
+     p->pending_sharp=f.sharpness;p->pending_size=f.face_size;
+-    p->pending_at=now_ms();pending_line(p);
+-  }
+-}
++    p->pending_at=now_ms();
++    if(p->store) {
++      struct k7_photo_record r={.epoch=p->epoch,.sequence=q,.side=result.shot,.bytes=bytes};
++      int stored=k7_photo_store_put(p->store,&r,jpeg);
++      vf_saved(&p->gate,q,p->epoch,result.shot,stored==0);
++      printf("PHOTO RAM q=%u e=%u s=%u bytes=%lu result=%d complete=%d durable=0\n",
++        q,p->epoch,(unsigned)result.shot,(unsigned long)bytes,stored,
++        k7_photo_store_complete(p->store,p->epoch));
++    } else pending_line(p);
++  }
++}
+--- sdk/app/k7host/k7_photo.h
++++ app/k7host/k7_photo.h
+@@ -5,6 +5,11 @@
+ #include <stddef.h>
+ struct k7_photo_s;
+ struct k7_photo_s *k7_photo_create(void);
++/* Voice mode retains exact JPEGs in bounded RAM, without USB-host save ACK. */
++struct k7_photo_s *k7_photo_create_native(void);
++#include "k7_photo_store.h"
++int k7_photo_native_copy(uint32_t,unsigned,struct k7_photo_record *,void *,size_t);
++int k7_photo_native_complete(uint32_t);
+ void k7_photo_destroy(struct k7_photo_s *);
+ void k7_photo_process(struct k7_photo_s *,const uint8_t *,size_t,unsigned int,
+                       uint64_t,const struct k7_track_result_s *,unsigned int,bool);
+--- sdk/app/k7host/k7_photo_store.c
++++ app/k7host/k7_photo_store.c
+@@ -0,0 +1,93 @@
++#include "k7_photo_store.h"
++#include <errno.h>
++#include <pthread.h>
++#include <stdlib.h>
++#include <string.h>
++
++struct k7_photo_store {
++  pthread_mutex_t lock;
++  size_t capacity;
++  uint32_t epoch;
++  unsigned count;
++  struct k7_photo_record records[3];
++  unsigned char *data;
++};
++static int index_of(unsigned side)
++{return side==1?0:side==2?1:side==4?2:-1;}
++
++struct k7_photo_store *k7_photo_store_create(size_t capacity)
++{
++  /* Three exact images, at most 3 MiB total; caller chooses camera limit. */
++  if(capacity<4 || capacity>1024*1024)return NULL;
++  struct k7_photo_store *s=calloc(1,sizeof(*s));
++  if(!s)return NULL;
++  s->data=malloc(3*capacity);
++  if(!s->data){free(s);return NULL;}
++  if(pthread_mutex_init(&s->lock,NULL)){free(s->data);free(s);return NULL;}
++  s->capacity=capacity;return s;
++}
++void k7_photo_store_destroy(struct k7_photo_store *s)
++{
++  /* Owner must join all producers/uploaders before destruction. */
++  if(!s)return;
++  memset(s->data,0,3*s->capacity);
++  free(s->data);pthread_mutex_destroy(&s->lock);free(s);
++}
++int k7_photo_store_begin(struct k7_photo_store *s,uint32_t epoch)
++{
++  if(!s||!epoch)return -EINVAL;
++  pthread_mutex_lock(&s->lock);
++  int rc=epoch<=s->epoch?-ESTALE:0;
++  if(!rc)
++    {
++      memset(s->data,0,3*s->capacity);
++      memset(s->records,0,sizeof(s->records));
++      s->epoch=epoch;s->count=0;
++    }
++  pthread_mutex_unlock(&s->lock);return rc;
++}
++int k7_photo_store_put(struct k7_photo_store *s,const struct k7_photo_record *r,const void *data)
++{
++  if(!s||!r||!data||index_of(r->side)<0||r->bytes<4)return -EINVAL;
++  if(r->bytes>s->capacity)return -EMSGSIZE;
++  const unsigned char *b=data;
++  /* Producer must additionally have decoded/quality-checked this exact JPEG. */
++  if(b[0]!=0xff||b[1]!=0xd8||b[r->bytes-2]!=0xff||b[r->bytes-1]!=0xd9)return -EINVAL;
++  pthread_mutex_lock(&s->lock);
++  int idx=index_of(r->side),rc=0;
++  if(!s->epoch||r->epoch!=s->epoch)rc=-ESTALE;
++  else if((unsigned)idx<s->count)
++    {
++      const struct k7_photo_record *old=&s->records[idx];
++      if(old->sequence!=r->sequence || old->bytes!=r->bytes ||
++         memcmp(s->data+idx*s->capacity,data,r->bytes))rc=-EEXIST;
++    }
++  else if((unsigned)idx!=s->count)rc=-EINVAL;
++  else if(idx && r->sequence<=s->records[idx-1].sequence)rc=-ESTALE;
++  else
++    {
++      memcpy(s->data+idx*s->capacity,data,r->bytes);
++      s->records[idx]=*r;s->count++;
++    }
++  pthread_mutex_unlock(&s->lock);return rc;
++}
++int k7_photo_store_copy(struct k7_photo_store *s,uint32_t epoch,unsigned side,
++                       struct k7_photo_record *r,void *data,size_t capacity)
++{
++  int idx=index_of(side);
++  if(!s||!r||!data||idx<0)return -EINVAL;
++  pthread_mutex_lock(&s->lock);
++  int rc=0;
++  if(!s->epoch||s->epoch!=epoch)rc=-ESTALE;
++  else if((unsigned)idx>=s->count)rc=-ENOENT;
++  else if(capacity<s->records[idx].bytes)rc=-EMSGSIZE;
++  else{memcpy(data,s->data+idx*s->capacity,s->records[idx].bytes);*r=s->records[idx];}
++  pthread_mutex_unlock(&s->lock);return rc;
++}
++int k7_photo_store_complete(struct k7_photo_store *s,uint32_t epoch)
++{
++  if(!s)return -EINVAL;
++  pthread_mutex_lock(&s->lock);
++  int rc=!s->epoch||epoch!=s->epoch?-ESTALE:s->count==3?1:0;
++  pthread_mutex_unlock(&s->lock);return rc;
++}
+--- sdk/app/k7host/k7_photo_store.h
++++ app/k7host/k7_photo_store.h
+@@ -0,0 +1,22 @@
++/* Bounded RAM retention for one three-view set. NOT durable storage. */
++#ifndef K7_PHOTO_STORE_H
++#define K7_PHOTO_STORE_H
++#include <stddef.h>
++#include <stdint.h>
++struct k7_photo_store;
++struct k7_photo_record {
++  uint32_t epoch, sequence;
++  unsigned side; /* front=1, left=2, right=4 */
++  size_t bytes;
++};
++struct k7_photo_store *k7_photo_store_create(size_t max_jpeg_bytes);
++void k7_photo_store_destroy(struct k7_photo_store *);
++/* Invalidates previous set; epoch 0 and reused/older epochs are rejected. */
++int k7_photo_store_begin(struct k7_photo_store *, uint32_t epoch);
++/* Exact immutable copy. Only front -> left -> right accepted. */
++int k7_photo_store_put(struct k7_photo_store *,const struct k7_photo_record *,const void *);
++/* Returns a caller-owned copy, so reset cannot invalidate an upload pointer. */
++int k7_photo_store_copy(struct k7_photo_store *,uint32_t epoch,unsigned side,
++                       struct k7_photo_record *,void *,size_t capacity);
++int k7_photo_store_complete(struct k7_photo_store *,uint32_t epoch);
++#endif

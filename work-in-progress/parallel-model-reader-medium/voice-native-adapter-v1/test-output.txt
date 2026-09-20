@@ -1,0 +1,63 @@
+['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-Iafter/app/k7radio', '-c', 'after/app/k7radio/wifi_broker.c', '-o', 'wifi_broker-O0.o']
+
+
+['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-Iafter/app/k7radio', '-c', 'after/app/k7radio/wifi_dispatch.c', '-o', 'wifi_dispatch-O0.o']
+
+
+['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-Iafter/app/k7radio', '-c', 'after/app/k7radio/wifi_scan.c', '-o', 'wifi_scan-O0.o']
+
+
+['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-Iafter/app/k7radio', '-c', 'after/app/k7radio/scan_collector.c', '-o', 'scan_collector-O0.o']
+
+
+['D:/software/mingw64/mingw64/bin/g++.exe', '-std=c++17', '-O0', '-Wall', '-Wextra', '-Werror', '-pthread', '-Iafter/app/k7radio', '-Iafter/app/voicelink/include', '-Icandidate', 'candidate/voice_wifi_adapter.cpp', 'candidate/test_adapter.cpp', 'wifi_broker-O0.o', 'wifi_dispatch-O0.o', 'wifi_scan-O0.o', 'scan_collector-O0.o', '-o', 'test-O0-on.exe']
+
+
+['E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\voice-native-adapter-v1\\test-O0-on.exe']
+PASS checks=4377; real candidate functions, injected mock hardware only; no radio/IP acceptance
+
+
+['D:/software/mingw64/mingw64/bin/g++.exe', '-std=c++17', '-O0', '-Wall', '-Wextra', '-Werror', '-pthread', '-Iafter/app/k7radio', '-Iafter/app/voicelink/include', '-Icandidate', 'candidate/voice_wifi_adapter.cpp', 'candidate/test_adapter.cpp', 'wifi_broker-O0.o', 'wifi_dispatch-O0.o', 'wifi_scan-O0.o', 'scan_collector-O0.o', '-o', 'test-O0-off.exe', '-fno-exceptions']
+
+
+['E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\voice-native-adapter-v1\\test-O0-off.exe']
+PASS checks=4377; real candidate functions, injected mock hardware only; no radio/IP acceptance
+
+
+['D:/software/mingw64/mingw64/bin/g++.exe', '-std=c++17', '-O0', '-Wall', '-Wextra', '-Werror', '-Iafter/app/voicelink/include', '-c', 'after/app/voicelink/src/core.cpp', '-o', 'core-O0.o']
+
+
+['D:/software/mingw64/mingw64/bin/g++.exe', '-std=c++17', '-O0', '-Wall', '-Wextra', '-Werror', '-Iafter/app/voicelink/include', '-c', 'after/app/voicelink/src/parsers.cpp', '-o', 'parsers-O0.o']
+
+
+['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-Iafter/app/k7radio', '-c', 'after/app/k7radio/wifi_broker.c', '-o', 'wifi_broker-O2.o']
+
+
+['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-Iafter/app/k7radio', '-c', 'after/app/k7radio/wifi_dispatch.c', '-o', 'wifi_dispatch-O2.o']
+
+
+['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-Iafter/app/k7radio', '-c', 'after/app/k7radio/wifi_scan.c', '-o', 'wifi_scan-O2.o']
+
+
+['D:/software/mingw64/mingw64/bin/gcc.exe', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-Iafter/app/k7radio', '-c', 'after/app/k7radio/scan_collector.c', '-o', 'scan_collector-O2.o']
+
+
+['D:/software/mingw64/mingw64/bin/g++.exe', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-pthread', '-Iafter/app/k7radio', '-Iafter/app/voicelink/include', '-Icandidate', 'candidate/voice_wifi_adapter.cpp', 'candidate/test_adapter.cpp', 'wifi_broker-O2.o', 'wifi_dispatch-O2.o', 'wifi_scan-O2.o', 'scan_collector-O2.o', '-o', 'test-O2-on.exe']
+
+
+['E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\voice-native-adapter-v1\\test-O2-on.exe']
+PASS checks=4377; real candidate functions, injected mock hardware only; no radio/IP acceptance
+
+
+['D:/software/mingw64/mingw64/bin/g++.exe', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-pthread', '-Iafter/app/k7radio', '-Iafter/app/voicelink/include', '-Icandidate', 'candidate/voice_wifi_adapter.cpp', 'candidate/test_adapter.cpp', 'wifi_broker-O2.o', 'wifi_dispatch-O2.o', 'wifi_scan-O2.o', 'scan_collector-O2.o', '-o', 'test-O2-off.exe', '-fno-exceptions']
+
+
+['E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\voice-native-adapter-v1\\test-O2-off.exe']
+PASS checks=4377; real candidate functions, injected mock hardware only; no radio/IP acceptance
+
+
+['D:/software/mingw64/mingw64/bin/g++.exe', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-Iafter/app/voicelink/include', '-c', 'after/app/voicelink/src/core.cpp', '-o', 'core-O2.o']
+
+
+['D:/software/mingw64/mingw64/bin/g++.exe', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-Iafter/app/voicelink/include', '-c', 'after/app/voicelink/src/parsers.cpp', '-o', 'parsers-O2.o']
+

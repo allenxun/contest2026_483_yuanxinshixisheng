@@ -1,0 +1,15 @@
+{
+  "scope": "host observer only; no firmware or hardware reconnection performed",
+  "software_test": {
+    "command": "python -X utf8 tools/test_ble_reconnect_observer.py -v",
+    "exit_code": 0,
+    "tests_run": 8,
+    "synthetic": true
+  },
+  "sha256": {
+    "tools/observe_ble_reconnect.py": "a50b8d7e92059527bed9437d91855febbb47ac0c2107f44db584c8bdb41140db",
+    "tools/test_ble_reconnect_observer.py": "22e5839d5bfd80906c713e2a0b52b1d8d4bc35c1e1fed26b06fca02a74216984",
+    "docs/蓝牙共存与重连验收_20260909.md": "879b5bf480041a6b8fb72f0b76658858187b8830d45aa96a970a94468aaa8490"
+  },
+  "hardware_reconnect_test_started": true
+}

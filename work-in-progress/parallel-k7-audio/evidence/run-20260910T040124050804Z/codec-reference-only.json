@@ -1,0 +1,163 @@
+{
+  "source": "sources\\kernel-6.1\\sound\\soc\\codecs\\es8323.c",
+  "executable": false,
+  "note": "probe writes often ignore I/O errors; mute callback is a no-op; capture route not yet validated",
+  "statements": [
+    {
+      "line": 100,
+      "source": "snd_soc_component_write(component, ES8323_CONTROL1, 0x80);"
+    },
+    {
+      "line": 101,
+      "source": "return snd_soc_component_write(component, ES8323_CONTROL1, 0x00);"
+    },
+    {
+      "line": 783,
+      "source": "snd_soc_component_write(component, 0x01, 0x60);"
+    },
+    {
+      "line": 784,
+      "source": "snd_soc_component_write(component, 0x02, 0xF3);"
+    },
+    {
+      "line": 785,
+      "source": "snd_soc_component_write(component, 0x02, 0xF0);"
+    },
+    {
+      "line": 786,
+      "source": "snd_soc_component_write(component, 0x2B, 0x80);"
+    },
+    {
+      "line": 787,
+      "source": "snd_soc_component_write(component, 0x00, 0x36);"
+    },
+    {
+      "line": 788,
+      "source": "snd_soc_component_write(component, 0x08, 0x00);"
+    },
+    {
+      "line": 789,
+      "source": "snd_soc_component_write(component, 0x04, 0x00);"
+    },
+    {
+      "line": 790,
+      "source": "snd_soc_component_write(component, 0x06, 0xC3);"
+    },
+    {
+      "line": 791,
+      "source": "snd_soc_component_write(component, 0x19, 0x02);"
+    },
+    {
+      "line": 792,
+      "source": "snd_soc_component_write(component, 0x09, 0x00);"
+    },
+    {
+      "line": 793,
+      "source": "snd_soc_component_write(component, 0x0A, 0x00);"
+    },
+    {
+      "line": 794,
+      "source": "snd_soc_component_write(component, 0x0B, 0x02);"
+    },
+    {
+      "line": 795,
+      "source": "snd_soc_component_write(component, 0x0C, 0x4C);"
+    },
+    {
+      "line": 796,
+      "source": "snd_soc_component_write(component, 0x0D, 0x02);"
+    },
+    {
+      "line": 797,
+      "source": "snd_soc_component_write(component, 0x10, 0x00);"
+    },
+    {
+      "line": 798,
+      "source": "snd_soc_component_write(component, 0x11, 0x00);"
+    },
+    {
+      "line": 799,
+      "source": "snd_soc_component_write(component, 0x12, 0xea);"
+    },
+    {
+      "line": 800,
+      "source": "snd_soc_component_write(component, 0x13, 0xc0);"
+    },
+    {
+      "line": 801,
+      "source": "snd_soc_component_write(component, 0x14, 0x05);"
+    },
+    {
+      "line": 802,
+      "source": "snd_soc_component_write(component, 0x15, 0x06);"
+    },
+    {
+      "line": 803,
+      "source": "snd_soc_component_write(component, 0x16, 0x53);"
+    },
+    {
+      "line": 805,
+      "source": "snd_soc_component_write(component, 0x17, 0x18);"
+    },
+    {
+      "line": 806,
+      "source": "snd_soc_component_write(component, 0x18, 0x02);"
+    },
+    {
+      "line": 807,
+      "source": "snd_soc_component_write(component, 0x1A, 0x00);"
+    },
+    {
+      "line": 808,
+      "source": "snd_soc_component_write(component, 0x1B, 0x00);"
+    },
+    {
+      "line": 809,
+      "source": "snd_soc_component_write(component, 0x27, 0xB8);"
+    },
+    {
+      "line": 810,
+      "source": "snd_soc_component_write(component, 0x2A, 0xB8);"
+    },
+    {
+      "line": 811,
+      "source": "snd_soc_component_write(component, 0x35, 0xA0);"
+    },
+    {
+      "line": 812,
+      "source": "usleep_range(18000, 20000);"
+    },
+    {
+      "line": 813,
+      "source": "snd_soc_component_write(component, 0x2E, 0x1E);"
+    },
+    {
+      "line": 814,
+      "source": "snd_soc_component_write(component, 0x2F, 0x1E);"
+    },
+    {
+      "line": 815,
+      "source": "snd_soc_component_write(component, 0x30, 0x1E);"
+    },
+    {
+      "line": 816,
+      "source": "snd_soc_component_write(component, 0x31, 0x1E);"
+    },
+    {
+      "line": 817,
+      "source": "snd_soc_component_write(component, 0x03, 0x09);"
+    },
+    {
+      "line": 818,
+      "source": "snd_soc_component_write(component, 0x02, 0x00);"
+    },
+    {
+      "line": 819,
+      "source": "usleep_range(18000, 20000);"
+    },
+    {
+      "line": 820,
+      "source": "snd_soc_component_write(component, 0x04, 0x3C);"
+    }
+  ]
+}

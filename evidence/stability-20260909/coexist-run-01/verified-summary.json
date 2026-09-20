@@ -1,0 +1,122 @@
+{
+  "result": {
+    "started_at": "2026-09-09T11:06:59.678477+00:00",
+    "finished_at": "2026-09-09T11:36:59.791029+00:00",
+    "elapsed_s": 1800.11,
+    "target_s": 1800,
+    "passed": false,
+    "mode": "wifi-ble",
+    "revision": "wifi-amsdu-index-20260909",
+    "firmware_sha256": "85fb84d34a7dbc74469b91c501b3e289791a1b99636829690d3cc6210e688dfe",
+    "rounds_completed": 30,
+    "sent": 1500,
+    "received": 1497,
+    "failures": [
+      {
+        "round": 12,
+        "reason": "ping_loss",
+        "sent": 50,
+        "received": 49
+      },
+      {
+        "round": 16,
+        "reason": "ping_loss",
+        "sent": 50,
+        "received": 48
+      }
+    ],
+    "initial": {
+      "ble": {
+        "connected": 1,
+        "handle": 17,
+        "acl_rx": 25,
+        "acl_tx": 26,
+        "connections": 3,
+        "disconnections": 2,
+        "last_reason": 19,
+        "encrypt_status": 0,
+        "encrypted": 1
+      },
+      "wifi": {
+        "active": 1,
+        "connected": 1,
+        "ip": "10.3.0.214",
+        "gateway": "10.3.0.1",
+        "result": 0,
+        "rx": 4590,
+        "tx": 1600,
+        "dropped": 0,
+        "amsdu_complete": 3,
+        "amsdu_subframes": 6,
+        "rx_rejected": 17
+      },
+      "memory": {
+        "total": 126877688,
+        "used": 80840,
+        "free": 126796848,
+        "maxused": 98880,
+        "maxfree": 126788432,
+        "nused": 56,
+        "nfree": 3
+      }
+    },
+    "final": {
+      "ble": {
+        "connected": 1,
+        "handle": 17,
+        "acl_rx": 25,
+        "acl_tx": 26,
+        "connections": 3,
+        "disconnections": 2,
+        "last_reason": 19,
+        "encrypt_status": 0,
+        "encrypted": 1
+      },
+      "wifi": {
+        "active": 1,
+        "connected": 1,
+        "ip": "10.3.0.214",
+        "gateway": "10.3.0.1",
+        "result": 0,
+        "rx": 6821,
+        "tx": 3103,
+        "dropped": 0,
+        "amsdu_complete": 4,
+        "amsdu_subframes": 9,
+        "rx_rejected": 33
+      },
+      "memory": {
+        "total": 126877688,
+        "used": 80840,
+        "free": 126796848,
+        "maxused": 98880,
+        "maxfree": 126788432,
+        "nused": 56,
+        "nfree": 3
+      }
+    },
+    "scope": "30 minute phone encrypted BLE connection hold with native Wi-Fi gateway ping; no BLE application throughput, reconnect, internet or guaranteed rekey coverage"
+  },
+  "heap_free_min": 126796848,
+  "heap_free_max": 126796848,
+  "heap_free_delta": 0,
+  "all_sampled_ble_connected_encrypted": true,
+  "evidence": {
+    "result.json": "b6730f16df7971ced1fa14c8460e44320e179f1d46c15973c4fecb90eea1eedc",
+    "events.jsonl": "e3eacb8159a66d7e558c3f612afc78cd644697e2d6158f81b2f879eda5f9e7d1",
+    "minute-metrics.csv": "32ff18386aa7bafe67647ea72c111877d0c6679696fdd3ec9b93072960721624"
+  },
+  "long_term_production_acceptance": false,
+  "latency_ms": {
+    "min": 20.0,
+    "mean": 78.557,
+    "max": 397.0,
+    "p95": 127.0
+  },
+  "component_acceptance": {
+    "ble_hold": true,
+    "wifi_connection_hold": true,
+    "zero_ping_loss": false,
+    "scope": "Separate connection-hold observations from strict combined zero-loss result; no application throughput acceptance"
+  }
+}

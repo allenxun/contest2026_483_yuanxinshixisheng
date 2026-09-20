@@ -1,0 +1,25 @@
+{
+  "label": "memory-asr-1",
+  "command": [
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-tuning\\probe.exe",
+    "asr",
+    "E:/openvela/语音模块/openvela-voicelink/models",
+    "E:/openvela/语音模块/openvela-voicelink/models/sherpa-onnx-streaming-paraformer-bilingual-zh-en/test_wavs/0.wav",
+    "512",
+    "800",
+    "0",
+    "0",
+    "1024",
+    "normal"
+  ],
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "execution_passed": true,
+  "timeout": false,
+  "elapsed": 3.3761472000041977,
+  "peak_working_set": 556605440,
+  "peak_private": 734707712,
+  "os_peak_working_set": 599093248,
+  "samples": 165,
+  "sample_interval": 0.02
+}

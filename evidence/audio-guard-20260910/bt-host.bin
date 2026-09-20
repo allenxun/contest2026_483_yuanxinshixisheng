@@ -1,0 +1,95 @@
+k7radio bt-host
+RADIO notify cccr05=02 fifo=05->07 GPIO=207ff9ff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12
+RADIO notify cccr05=00 fifo=07->07 GPIO=207ff9ff
+RADIO RX bytes=2048 valid=27 next=0 header=023f001b
+RADIO RX channel=2 len=27
+RADIO HCI event: 0e 0c 01 01 10 00 0c 02 53 0c 4d 0c 0d 00
+RADIO HCI opcode=1001 complete=1 status=0 ret=0
+RADIO notify cccr05=02 fifo=07->09 GPIO=207ff9ff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12
+RADIO notify cccr05=00 fifo=09->09 GPIO=207df9ff
+RADIO RX bytes=2048 valid=25 next=0 header=023f0019
+RADIO RX channel=2 len=25
+RADIO HCI event: 0e 0a 01 09 10 00 22 44 66 78 9a cb
+RADIO HCI opcode=1009 complete=1 status=0 ret=0
+RADIO notify cccr05=02 fifo=09->0b GPIO=207df9ff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12
+RADIO notify cccr05=00 fifo=0b->0b GPIO=207df9ff
+RADIO RX bytes=2048 valid=19 next=0 header=023f0013
+RADIO RX channel=2 len=19
+RADIO HCI event: 0e 04 01 80 fc 00
+RADIO HCI opcode=fc80 complete=1 status=0 ret=0
+RADIO notify cccr05=02 fifo=0b->0d GPIO=207ff9ff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12
+RADIO notify cccr05=00 fifo=0d->0d GPIO=207df9ff
+RADIO RX bytes=2048 valid=19 next=0 header=023f0013
+RADIO RX channel=2 len=19
+RADIO HCI event: 0e 04 01 03 0c 00
+RADIO HCI opcode=0c03 complete=1 status=0 ret=0
+RADIO notify cccr05=02 fifo=0d->0f GPIO=207ff9ff
+RADIO RX bytes=2048 valid=12 next=1 header=023f000c
+RADIO RX channel=2 len=12
+RADIO notify cccr05=00 fifo=0f->0f GPIO=207ff9ff
+RADIO RX bytes=2048 valid=25 next=0 header=023f0019
+RADIO RX channel=2 len=25
+RADIO HCI event: 0e 0a 01 09 10 00 1d 17 b5 9c 48 60
+RADIO HCI opcode=1009 complete=1 status=0 ret=0
+RADIO BT controller address=60:48:9c:b5:17:1d post_reset=1
+RADIO HCI TX op=0c03 bytes=3
+RADIO HCI complete op=0c03 status=0
+RADIO HCI TX op=1003 bytes=3
+RADIO HCI complete op=1003 status=0
+RADIO HCI TX op=1001 bytes=3
+RADIO HCI complete op=1001 status=0
+RADIO HCI TX op=1009 bytes=3
+RADIO HCI complete op=1009 status=0
+RADIO HCI TX op=2003 bytes=3
+RADIO HCI complete op=2003 status=0
+RADIO HCI TX op=2002 bytes=3
+RADIO HCI complete op=2002 status=0
+RADIO HCI controller buffers LE_MTU=251 LE_COUNT=10
+RADIO HCI TX op=0c01 bytes=11
+RADIO HCI complete op=0c01 status=0
+RADIO HCI TX op=2001 bytes=11
+RADIO HCI complete op=2001 status=0
+RADIO HCI TX op=0c31 bytes=4
+RADIO HCI controller-to-host flow=0
+RADIO HCI complete op=0c31 status=0
+RADIO HCI TX op=0c6d bytes=5
+RADIO HCI complete op=0c6d status=0
+RADIO HCI TX op=2008 bytes=35
+RADIO HCI complete op=2008 status=0
+RADIO BLE advertising HCI op=2008 status=0
+RADIO HCI TX op=2009 bytes=35
+RADIO HCI complete op=2009 status=0
+RADIO BLE advertising HCI op=2009 status=0
+RADIO HCI TX op=2006 bytes=18
+RADIO HCI complete op=2006 status=0
+RADIO BLE advertising HCI op=2006 status=0
+RADIO HCI TX op=200a bytes=4
+RADIO HCI complete op=200a status=0
+RADIO BLE advertising HCI op=200a status=0
+RADIO HCI TX op=200a bytes=4
+RADIO HCI complete op=200a status=0
+RADIO BLE advertising HCI op=200a status=0
+RADIO HCI TX op=2008 bytes=35
+RADIO HCI complete op=2008 status=0
+RADIO BLE advertising HCI op=2008 status=0
+RADIO HCI TX op=2009 bytes=35
+RADIO HCI complete op=2009 status=0
+RADIO BLE advertising HCI op=2009 status=0
+RADIO HCI TX op=2006 bytes=18
+RADIO HCI complete op=2006 status=0
+RADIO BLE advertising HCI op=2006 status=0
+RADIO HCI TX op=200a bytes=4
+RADIO HCI complete op=200a status=0
+RADIO BLE advertising HCI op=200a status=0
+PROV service ready version=1 write=8 notify=10 status=13 scan=1 receive_credentials=1 connect=true advertise=0
+RADIO native Bluetooth host register=0 txpid=13 rxpid=14 tx=19 link_ack=19 RX=38 fault=0; WiFi_connected=0
+RADIO bt-host ret=0
+nsh> [K

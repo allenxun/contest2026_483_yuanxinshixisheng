@@ -1,0 +1,178 @@
+{
+  "status": "pass",
+  "host": {
+    "contract_fake_api": "O0 and O2",
+    "real_model_runs": [
+      "ONNX",
+      "ORT"
+    ],
+    "runs": [
+      {
+        "name": "compile-contract-O0",
+        "command": [
+          "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-pthread",
+          "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\include",
+          "-IE:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9",
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\native_tts_runtime.cpp",
+          "-O0",
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test_contract.cpp",
+          "-o",
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test-contract-O0.exe"
+        ],
+        "exit_code": 0,
+        "seconds": 0.329,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "run-contract-O0",
+        "command": [
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test-contract-O0.exe"
+        ],
+        "exit_code": 0,
+        "seconds": 0.015,
+        "log_sha256": "fdc6db35a5049945882e1ea0349ca44ef6c279ef5c21ae84b1fb542a7d05150b"
+      },
+      {
+        "name": "compile-contract-O2",
+        "command": [
+          "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-pthread",
+          "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\include",
+          "-IE:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9",
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\native_tts_runtime.cpp",
+          "-O2",
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test_contract.cpp",
+          "-o",
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test-contract-O2.exe"
+        ],
+        "exit_code": 0,
+        "seconds": 0.344,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "run-contract-O2",
+        "command": [
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test-contract-O2.exe"
+        ],
+        "exit_code": 0,
+        "seconds": 0.016,
+        "log_sha256": "fdc6db35a5049945882e1ea0349ca44ef6c279ef5c21ae84b1fb542a7d05150b"
+      },
+      {
+        "name": "compile-real",
+        "command": [
+          "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+          "-std=c++17",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-pthread",
+          "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\include",
+          "-IE:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9",
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\native_tts_runtime.cpp",
+          "-O2",
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test_real.cpp",
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\lib\\sherpa-onnx-c-api.lib",
+          "-o",
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test-real.exe"
+        ],
+        "exit_code": 0,
+        "seconds": 0.281,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "run-real-onnx",
+        "command": [
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test-real.exe",
+          "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx",
+          "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+          "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt"
+        ],
+        "exit_code": 0,
+        "seconds": 1.078,
+        "log_sha256": "298474fce885d1db44df71d1ecd4158806756ff3ad70f297bb09303db29d2a21"
+      },
+      {
+        "name": "run-real-ort",
+        "command": [
+          "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test-real.exe",
+          "E:\\openvela\\VelaVision\\work-in-progress\\native-speech-ort-models1\\vits.ort",
+          "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt",
+          "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt"
+        ],
+        "exit_code": 0,
+        "seconds": 0.641,
+        "log_sha256": "6835eb5c1a267e170e5ffe8767eb9bb97f5c3c05feb910c5e4f1c59c670b2ac8"
+      }
+    ]
+  },
+  "inputs": {
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\native_tts_runtime.cpp": {
+      "bytes": 3390,
+      "sha256": "4e55ca699bd9a5e3a932fcffeae9a18baa77ae56dae457733883f15aebe511f5"
+    },
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\include\\voicelink\\tts_runtime.h": {
+      "bytes": 595,
+      "sha256": "6aa479e8ed783f9444d145bdc84bcd8f441e62e131ec800829c7b325de1c4a8c"
+    },
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test_contract.cpp": {
+      "bytes": 2196,
+      "sha256": "66aab1bf7e03d7280a9ef860d7c6402eabbfe07db53a7fcf48fab700ec78424b"
+    },
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\test_real.cpp": {
+      "bytes": 1098,
+      "sha256": "f83b9a3711fbdebc74cdcd26665426f605375da8cba5447fa4f2c44aaea3da8f"
+    },
+    "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\model.onnx": {
+      "bytes": 30482262,
+      "sha256": "5511d651b7840c0a93a6bbfd4afd070a2c7f39ca1ec3ff2ecd73191519bbb852"
+    },
+    "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\tokens.txt": {
+      "bytes": 1671,
+      "sha256": "50b45a7b7de1752fd3c7b4755661c285f1547f59186eca2281089a81307ad953"
+    },
+    "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\lexicon.txt": {
+      "bytes": 2042943,
+      "sha256": "ab2e61d357551e7b24ddd965d924aca784c20165ff58c150794e539c6b5e9e35"
+    },
+    "E:\\openvela\\语音模块\\openvela-voicelink\\models\\vits-icefall-zh-aishell3\\rule.far": {
+      "bytes": 180717014,
+      "sha256": "b090ed05e333fe125b62d8b1de5f1a1d4579fb237c606e7ac0b84707c863a01f"
+    },
+    "E:\\openvela\\VelaVision\\work-in-progress\\native-speech-ort-models1\\vits.ort": {
+      "bytes": 31190816,
+      "sha256": "97084af57de4135fc9217851386b1f6d511ae22eba01d9c5d9edf04f0e2adc63"
+    },
+    "E:\\openvela\\VelaVision\\app\\voicelink\\src\\native_tts_runtime.cpp": {
+      "bytes": 3390,
+      "sha256": "4e55ca699bd9a5e3a932fcffeae9a18baa77ae56dae457733883f15aebe511f5"
+    },
+    "E:\\openvela\\VelaVision\\app\\voicelink\\include\\voicelink\\tts_runtime.h": {
+      "bytes": 595,
+      "sha256": "6aa479e8ed783f9444d145bdc84bcd8f441e62e131ec800829c7b325de1c4a8c"
+    }
+  },
+  "arm64": {
+    "candidate_object_compiled": false,
+    "candidate_linked": false,
+    "reason": "Ubuntu build tree was inspected read-only; this scoped task did not write an object there."
+  },
+  "device": {
+    "tested": false,
+    "firmware_loaded": false
+  },
+  "normalization_boundary": {
+    "rule_far_required_for_full_number_date_normalization": true,
+    "request_contract_has_rule_fsts_field": false,
+    "real_test_text_contains_no_digits_or_dates": true
+  }
+}

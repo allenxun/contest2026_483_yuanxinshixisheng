@@ -1,0 +1,57 @@
+{
+  "candidate": "parallel-sai-stream-sink-sol",
+  "generated_at": "2026-09-12T17:47:47+08:00",
+  "scope": "host-only fake-PIO candidate",
+  "formal_source_modified": false,
+  "sdk_or_vm_touched": false,
+  "device_or_serial_touched": false,
+  "central_logs_modified": false,
+  "tests": {
+    "o0": {
+      "result": "pass",
+      "cases": 10
+    },
+    "o2": {
+      "result": "pass",
+      "cases": 10
+    },
+    "sanitizers": {
+      "result": "not_run",
+      "reason": "installed MinGW linker has no libasan or libubsan"
+    }
+  },
+  "source_files": {
+    "CMakeLists.txt": {
+      "bytes": 544,
+      "sha256": "b6186a05419c1f77553a51bac23147473c7ec57fb6c64fcfcd4c6616014cf5cc"
+    },
+    "README.md": {
+      "bytes": 5693,
+      "sha256": "f9ec497f53f3304b6096877d519690fee9b4d5c1016638fdac1ce85a491fbbcc"
+    },
+    "sai_stream_sink.c": {
+      "bytes": 5061,
+      "sha256": "352edb998049666b8cbce5a28ffa7b018179523e676bd522554504f10e674ee5"
+    },
+    "sai_stream_sink.h": {
+      "bytes": 2302,
+      "sha256": "6769c147b93e84b49edbc0bc38bccb0323cdf8c6fcd00421c64989747a0476ba"
+    },
+    "test_sai_stream_sink.cpp": {
+      "bytes": 6375,
+      "sha256": "ee2982fca6c7749c95b51fb12ddba2f4066cab078f6546a6814aeb6079f309b6"
+    },
+    "test-results.txt": {
+      "bytes": 1686,
+      "sha256": "8c5ffd22975b3632e66ac96f38700fa8952a6c8002a8309c65d639114b3336cd"
+    }
+  },
+  "reproducible_artifacts": {
+    "sai_stream_sink_O0.o": "82ace2788a5749a8efd9997060d07e4601a19a0d3952103aaede91e2ba662024",
+    "sai_stream_sink_O2.o": "cf97d858e85e43536b1596af699816f4410671d6b5cda0cca48201d192aab9c6",
+    "sai_stream_sink_test_O0.exe": "ac13c474e2b9136f2e834d716e620915132dc06b24e12221abac056981753b8b",
+    "sai_stream_sink_test_O2.exe": "7c20d1aea79055114a4374f5281928400fdf2479835db32aa85a0957903496a8"
+  },
+  "hardware_tested": false,
+  "formal_integration_complete": false
+}

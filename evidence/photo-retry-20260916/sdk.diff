@@ -1,0 +1,118 @@
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -65,7 +65,8 @@
+     {
+       ssize_t n=writing?send(fd,p,bytes,0):recv(fd,p,bytes,0);
+       if(n<0 && errno==EINTR)continue;
+-      if(n<=0)return -EIO;
++      if(n<0)return -errno;
++      if(!n)return -ECONNRESET;
+       p+=n;bytes-=(size_t)n;
+     }
+   return 0;
+@@ -367,6 +368,7 @@
+ #if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
+   const size_t cap=1024*1024;unsigned char *images=malloc(3*cap);
+   struct k7_photo_record records[3];int rc=images?0:-ENOMEM,fd=-1;
++  const char *stage="copy";
+   static uint64_t boot_id;
+   if(!boot_id)boot_id=k7sound_clock_us();
+   for(unsigned i=0;!rc && i<3;i++)
+@@ -375,7 +377,7 @@
+   if(!rc)rc=k7_photo_native_status(&current,&mask);
+   if(!rc && (current!=photo_epoch || mask!=7 || command_epoch!=atomic_load(&device_epoch)))rc=-ECANCELED;
+   if(!rc)rc=k7_pipeline_voice_mode_status(0);
+-  if(!rc){fd=connect_server(ip);if(fd<0)rc=fd;}
++  if(!rc){stage="connect";fd=connect_server(ip);if(fd<0)rc=fd;}
+   if(!rc)
+     {
+       pthread_mutex_lock(&tts_lock);
+@@ -384,25 +386,32 @@
+       pthread_mutex_unlock(&tts_lock);
+       if(rc){close(fd);fd=-1;}
+     }
+-  if(!rc)rc=transfer(fd,(void *)"K7S1U",5,1);
++  if(!rc){stage="protocol";rc=transfer(fd,(void *)"K7S1U",5,1);}
+   char capture_id[80];
+   snprintf(capture_id,sizeof(capture_id),"k7-%016" PRIx64 "-%" PRIu32,boot_id,photo_epoch);
+-  if(!rc)rc=send_packet(fd,'M',capture_id,strlen(capture_id));
++  if(!rc){stage="metadata";rc=send_packet(fd,'M',capture_id,strlen(capture_id));}
+   const unsigned char markers[3]={'F','L','R'};
+   for(unsigned i=0;!rc && i<3;i++)
+     {
+       uint32_t n=(uint32_t)records[i].bytes;
+       unsigned char h[5]={markers[i],n>>24,n>>16,n>>8,n};
+       if(command_epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;break;}
++      stage=i==0?"front":i==1?"left":"right";
+       rc=transfer(fd,h,5,1);
+-      if(!rc)rc=transfer(fd,images+i*cap,n,1);
++      /* Bounded writes keep one JPEG packet while limiting socket enqueue bursts. */
++      for(uint32_t off=0;!rc && off<n;)
++        {
++          uint32_t chunk=n-off>1024?1024:n-off;
++          if(command_epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;break;}
++          rc=transfer(fd,images+i*cap+off,chunk,1);off+=chunk;
++        }
+     }
+   if(!rc)rc=k7_photo_native_status(&current,&mask);
+   if(!rc && (current!=photo_epoch || mask!=7 || command_epoch!=atomic_load(&device_epoch)))rc=-ECANCELED;
+   if(!rc)rc=k7_pipeline_voice_mode_status(0);
+-  if(!rc)rc=send_packet(fd,'E',NULL,0);
++  if(!rc){stage="commit";rc=send_packet(fd,'E',NULL,0);}
+   unsigned char kind=0;uint32_t n=0;unsigned waits=0;char task[37]={0};
+-  if(!rc)rc=header(fd,&kind,&n);
++  if(!rc){stage="backend_ack";rc=header(fd,&kind,&n);}
+   while(!rc && kind=='W' && n==0 && waits++<18)rc=header(fd,&kind,&n);
+   if(!rc && (kind!='K' || n!=36))rc=-EIO;
+   if(!rc)rc=transfer(fd,task,36,0);
+@@ -412,10 +421,32 @@
+       close(fd);
+     }
+   free(images);
++  printf("K7CLOUD photo_transport stage=%s result=%d\n",stage,rc);
+   printf("K7CLOUD photo_upload epoch=%" PRIu32 " result=%d accepted=%d task=%s\n",photo_epoch,rc,!rc,rc?"":task);
+   return rc;
+ #else
+   (void)ip;(void)command_epoch;(void)photo_epoch;return -ENOSYS;
++#endif
++}
++
++int k7cloud_photo_retry(const char *ip)
++{
++#if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
++  bool expected=false;
++  if(atomic_load(&device_loop_busy) ||
++     !atomic_compare_exchange_strong(&device_busy,&expected,true))return -EBUSY;
++  int rc=pthread_mutex_trylock(&audio_owner);
++  if(rc){atomic_store(&device_busy,false);return -EBUSY;}
++  uint32_t epoch=0;unsigned done=0;
++  rc=k7_photo_native_status(&epoch,&done);
++  if(!rc && done!=7)rc=-ENODATA;
++  if(!rc)rc=k7_pipeline_voice_mode_status(0);
++  if(!rc)rc=photo_upload(ip,atomic_load(&device_epoch),epoch);
++  pthread_mutex_unlock(&audio_owner);atomic_store(&device_busy,false);
++  printf("K7CLOUD photo_retry result=%d retained_views=%u\n",rc,done);
++  return rc;
++#else
++  (void)ip;return -ENOSYS;
+ #endif
+ }
+ 
+--- sdk/app/k7agent/cloud/src/k7cloud_main.c
++++ app/k7agent/cloud/src/k7cloud_main.c
+@@ -24,6 +24,7 @@
+ int k7cloud_chat_loop(const char *ip,unsigned rounds);
+ int k7cloud_device_loop(const char *ip,unsigned rounds);
+ int k7cloud_device_stop(void);
++int k7cloud_photo_retry(const char *ip);
+ #endif
+ 
+ #ifdef K7CLOUD_RADIO_READINESS
+@@ -160,6 +161,7 @@
+ int main(int argc, char **argv)
+ {
+ #ifdef K7CLOUD_SPEECH_ORCHESTRATOR
++  if(argc==3 && !strcmp(argv[1],"photo-retry"))return k7cloud_photo_retry(argv[2])?1:0;
+   if(argc==2 && !strcmp(argv[1],"device-stop"))return k7cloud_device_stop()?1:0;
+   if(argc==4 && (!strcmp(argv[1],"device-loop") || !strcmp(argv[1],"chat-loop")))
+     {

@@ -1,0 +1,31 @@
+{
+  "image": {
+    "entry": "0x40400000",
+    "memory_bytes": 7311360,
+    "sha256": "886137227992f07ff1a32ff3662d4de2c799d1baa6fa15238bbba75cfbed2638"
+  },
+  "binding": {
+    "elf_sha256": "f2a1dff74daab988b3b34f6e03aec7b5ba2102a56781ea0581b5f3ca79c3faaf",
+    "config_sha256": "80971b9ad0cae25a106ba0eaad1a46520afb0ead8a106a41325b027e3a949be2",
+    "reviewed_sdk": {
+      "arm64_arch.h": "a90ac6020fc6fa432b5076d6ad1d46d34d56c7efc565d22af188baef1eee6198",
+      "arm64_mmu.c": "051c5f0b8bd08980ffb7a4f357342ae4bd617bcd85676e440642e5ba354a7942",
+      "arm64_mmu.h": "bf1d8d10033f92ae4b1ee9fc93b8b0e237418af5961dbbbb3bc3c39aff263249",
+      "rk3576_boot.c": "a31741dfc79871670a0474fc2f02b2d10cf0e146f8ad13422cf22f5b5df2a822"
+    },
+    "xlat": {
+      "begin": "0x40670000",
+      "end": "0x40684000"
+    },
+    "base": {
+      "begin": "0x40684000",
+      "end": "0x40685000"
+    },
+    "command": "k7sound mmu 0x40670000 0x40684000",
+    "scope": "Structural ELF and supplied source binding; operator must match loaded ELF. Does not attest SDK compilation independently."
+  },
+  "prompt": true,
+  "elapsed_seconds": 0.046999999991385266,
+  "raw": "mmu-20260911-093323.bin",
+  "raw_sha256": "aef96c42d986a61a03adabb787b25d5634e315920ef42e39a4dde5dc20de49f7"
+}

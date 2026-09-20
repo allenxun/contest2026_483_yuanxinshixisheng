@@ -1,0 +1,83 @@
+--- a/app/k7sound/pio.c
++++ b/app/k7sound/pio.c
+@@ -31,6 +31,26 @@
+ }
+ static int rd(const struct pio_port*p,uint32_t o,uint32_t*v){return p->read(p->ctx,o,v)?-5:0;}
+ static int wr(const struct pio_port*p,uint32_t o,uint32_t v){return p->write(p->ctx,o,v)?-5:0;}
++static void trace_begin(const struct pio_port*p,struct pio_rx_trace*t,uint64_t start)
++{
++ static const uint32_t regs[6]={SAI_MONO_CR,SAI_RX_SHIFT,SAI_RXCR,SAI_PATH_SEL,SAI_DMACR,SAI_XFER};
++ unsigned i;t->start_us=start;t->window_started=1;
++ for(i=0;i<6;i++)t->init_rc[i]=rd(p,regs[i],&t->init[i]);
++}
++static int rx_word(const struct pio_port*p,uint32_t*destination,struct pio_rx_trace*t)
++{
++ struct pio_rx_trace_entry*e;int rc;
++ if(t->count==PIO_RX_TRACE_MAX)return rd(p,SAI_RXDR,destination);
++ e=&t->entry[t->count++];
++ e->time_us=p->us(p->ctx);
++ e->before_rc=rd(p,SAI_RXFIFOLR,&e->fifo_before);
++ rc=rd(p,SAI_RXDR,destination);e->word_rc=rc;
++ if(!rc)e->word=*destination;
++ e->after_rc=rd(p,SAI_RXFIFOLR,&e->fifo_after);
++ /* Extra diagnostic errors invalidate that observation only; original
++  * RXDR error still aborts. Never substitute or discard a captured zero. */
++ return rc;
++}
+ static int mod(const struct pio_port*p,uint32_t o,uint32_t mask,uint32_t val)
+ {uint32_t v;if(rd(p,o,&v))return -5;return wr(p,o,(v&~mask)|(val&mask));}
+ /* No silent reset on idle/clear timeout. 2307 uses STATUS bits3/2/1. */
+@@ -138,6 +158,7 @@
+   if(out->start_result){rc=-5;goto done;}
+   if(now<start||now-start>=100){rc=-110;goto done;}
+   start=now;
++  if(!tx)trace_begin(p,&out->rx_trace,start);
+   for(out->polls=0;out->polls<frames*4096u;out->polls++) {
+     now=p->us(p->ctx);
+     if(now<start || now-start>=((uint64_t)frames*1000000u/16000u+100000u))
+@@ -161,13 +182,14 @@
+       }
+       out->frames++;
+     } else if(!tx && v>=2) {
+-      if(rd(p,SAI_RXDR,&capture[2*out->frames]) ||
+-         rd(p,SAI_RXDR,&capture[2*out->frames+1]))goto done;
++      if(rx_word(p,&capture[2*out->frames],&out->rx_trace) ||
++         rx_word(p,&capture[2*out->frames+1],&out->rx_trace))goto done;
+       out->frames++;
+     }
+   }
+   rc=-110;
+ done:
++  if(out->rx_trace.window_started)out->rx_trace.end_us=p->us(p->ctx);
+   {
+     uint64_t before=p->us(p->ctx),after;
+     out->amp_off_result=p->amp_off_fast(p->ctx);
+--- a/app/k7sound/pio.h
++++ b/app/k7sound/pio.h
+@@ -21,10 +21,26 @@
+  int (*amp_off_fast)(void *);
+  uint32_t amplitude; /* 1..2^27; applies to playback signed32 tone */
+ };
++#define PIO_RX_TRACE_MAX 32u
++struct pio_rx_trace_entry {
++ uint64_t time_us;
++ uint32_t fifo_before,word,fifo_after;
++ int before_rc,word_rc,after_rc;
++};
++struct pio_rx_trace {
++ /* Sampling window: after stream hook, before cleanup. Zero when not entered.
++  * init[] order MONO_CR,RX_SHIFT,RXCR,PATH_SEL,DMACR,XFER; negative rc means
++  * invalid value. Snapshots sequential, not atomic; tracing perturbs timing. */
++ uint64_t start_us,end_us;
++ uint32_t init[6];int init_rc[6];
++ unsigned window_started,count;
++ struct pio_rx_trace_entry entry[PIO_RX_TRACE_MAX];
++};
+ struct pio_result {
+  unsigned frames,polls,prefill_words,max_fifo;
+  uint32_t first_fifo_raw,last_fifo_raw;
+  int result,stop_result,held,activation_result,start_result,amp_off_result;
++ struct pio_rx_trace rx_trace;
+ };
+ struct pio_stats {int64_t sum[2];int32_t min[2],max[2];unsigned nonzero[2];};
+ int pio_summarize(const uint32_t *,unsigned,struct pio_stats *);

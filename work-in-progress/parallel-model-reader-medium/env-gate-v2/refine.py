@@ -1,0 +1,2 @@
+from pathlib import Path
+p=Path(__file__).parent/'prepare.py';s=p.read_text();s=s.replace("section=section.replace('auto [err_no, err_msg] = GetSystemError();','auto [err_no, err_msg] = GetSystemError(s);')", "section=section.replace('auto [err_no, err_msg] = GetSystemError();','#if defined(ORT_K7_NUTTX)\\n        auto [err_no, err_msg] = GetSystemError(s);\\n#else\\n        auto [err_no, err_msg] = GetSystemError();\\n#endif')");p.write_text(s)

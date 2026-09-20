@@ -1,0 +1,106 @@
+[
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-O0",
+      "observe.c",
+      "test.c",
+      "-o",
+      "observe-O0.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-pad-clock-observe-v1\\observe-O0.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "synthetic complete samples=19 changes=18,18,18,0 elapsed=20\r\nPASS fixed-window/count-bound/backward-clock/invalid-frequency; synthetic only\r\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-O0",
+      "platform.c",
+      "test_platform.c",
+      "-o",
+      "platform-O0.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-pad-clock-observe-v1\\platform-O0.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "PASS actual platform10 pull-none maskc0 setup readback restore readback; neighbors preserved, synthetic only\r\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-O2",
+      "observe.c",
+      "test.c",
+      "-o",
+      "observe-O2.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-pad-clock-observe-v1\\observe-O2.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "synthetic complete samples=19 changes=18,18,18,0 elapsed=20\r\nPASS fixed-window/count-bound/backward-clock/invalid-frequency; synthetic only\r\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic",
+      "-O2",
+      "platform.c",
+      "test_platform.c",
+      "-o",
+      "platform-O2.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-pad-clock-observe-v1\\platform-O2.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "PASS actual platform10 pull-none maskc0 setup readback restore readback; neighbors preserved, synthetic only\r\n",
+    "stderr": ""
+  }
+]

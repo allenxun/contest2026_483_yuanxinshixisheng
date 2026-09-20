@@ -1,0 +1,34 @@
+[
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-O0",
+      "duplex.c",
+      "test.c",
+      "-o",
+      "test-O0.exe"
+    ],
+    "compile_rc": 0,
+    "test_rc": 0
+  },
+  {
+    "command": [
+      "gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-O2",
+      "duplex.c",
+      "test.c",
+      "-o",
+      "test-O2.exe"
+    ],
+    "compile_rc": 0,
+    "test_rc": 0
+  }
+]

@@ -1,0 +1,22 @@
+tests/test_audio.cpp: In function 'const SherpaOnnxOfflineTts* SherpaOnnxCreateOfflineTts(const SherpaOnnxOfflineTtsConfig*)':
+tests/test_audio.cpp:26:3: error: this 'if' clause does not guard... [-Werror=misleading-indentation]
+   26 |   if (fail_tts) return nullptr; ++tts_live; return new SherpaOnnxOfflineTts;
+      |   ^~
+tests/test_audio.cpp:26:33: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
+   26 |   if (fail_tts) return nullptr; ++tts_live; return new SherpaOnnxOfflineTts;
+      |                                 ^~
+tests/test_audio.cpp: In function 'const SherpaOnnxOnlineRecognizer* SherpaOnnxCreateOnlineRecognizer(const SherpaOnnxOnlineRecognizerConfig*)':
+tests/test_audio.cpp:30:3: error: this 'if' clause does not guard... [-Werror=misleading-indentation]
+   30 |   if (fail_recognizer) return nullptr; ++recognizer_live; return new SherpaOnnxOnlineRecognizer;
+      |   ^~
+tests/test_audio.cpp:30:40: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
+   30 |   if (fail_recognizer) return nullptr; ++recognizer_live; return new SherpaOnnxOnlineRecognizer;
+      |                                        ^~
+tests/test_audio.cpp: In function 'const SherpaOnnxOnlineStream* SherpaOnnxCreateOnlineStream(const SherpaOnnxOnlineRecognizer*)':
+tests/test_audio.cpp:34:3: error: this 'if' clause does not guard... [-Werror=misleading-indentation]
+   34 |   if (fail_stream) return nullptr; ++stream_live; ready = 0; return new SherpaOnnxOnlineStream;
+      |   ^~
+tests/test_audio.cpp:34:36: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
+   34 |   if (fail_stream) return nullptr; ++stream_live; ready = 0; return new SherpaOnnxOnlineStream;
+      |                                    ^~
+cc1plus.exe: all warnings being treated as errors

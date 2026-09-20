@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "prompt_returned": true,
+  "lines": [
+    "k7smp",
+    "SMP cpu=0 observed=0 samples=10000 mismatch=0 sleep_errors=0 elapsed_ns=19756333",
+    "SMP cpu=1 observed=1 samples=10000 mismatch=0 sleep_errors=0 elapsed_ns=19717250",
+    "SMP cpu=2 observed=2 samples=10000 mismatch=0 sleep_errors=0 elapsed_ns=19731542",
+    "SMP cpu=3 observed=3 samples=10000 mismatch=0 sleep_errors=0 elapsed_ns=19699167",
+    "SMP result=PASS shared_counter=40000 expected=40000",
+    "nsh>"
+  ],
+  "storage_writes": false,
+  "scope": "four A53 pinned workers, shared atomic counter and timed sleeps; not eight-core or peripheral SMP acceptance"
+}

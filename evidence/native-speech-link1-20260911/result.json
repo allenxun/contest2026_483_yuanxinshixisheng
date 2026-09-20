@@ -1,0 +1,622 @@
+{
+  "exit_code": 0,
+  "command": [
+    "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-ld",
+    "-r",
+    "--undefined=SherpaOnnxCreateOnlineRecognizer",
+    "--undefined=SherpaOnnxCreateOfflineTts",
+    "--strip-debug",
+    "-o",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/link1/session.o",
+    "/dev/shm/velavision-native-asr-add-probe-20260911/add_probe.o",
+    "--start-group",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_base.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_log_severity.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_malloc_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_raw_logging_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_spinlock_wait.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_throw_delegate.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/container/libabsl_hashtablez_sampler.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/container/libabsl_raw_hash_set.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc32c.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_cord_state.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_cpu_detect.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_debugging_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_demangle_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_stacktrace.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_symbolize.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_commandlineflag.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_commandlineflag_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_config.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_marshalling.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_private_handle_accessor.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_program_name.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_reflection.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_city.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_hash.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_low_level_hash.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/numeric/libabsl_int128.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/profiling/libabsl_exponential_biased.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cord.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cord_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_functions.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_handle.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_info.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_str_format_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_string_view.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_strings.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_strings_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_graphcycles_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_kernel_timeout_internal.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_synchronization.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_civil_time.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_time.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_time_zone.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/types/libabsl_bad_optional_access.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/types/libabsl_bad_variant_access.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/flatbuffers-build/libflatbuffers.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/google_nsync-build/libnsync_cpp.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/onnx-build/libonnx.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/onnx-build/libonnx_proto.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/protobuf-build/libprotobuf-lite.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_common.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_flatbuffers.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_framework.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_graph.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_mlas.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_optimizer.a",
+    "/home/swl/openvela/work/native-speech-registration-20260911/result/libonnxruntime_providers.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_session.a",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_util.a",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libkaldi-decoder-core.a",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libkaldi-native-fbank-core.a",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libkissfft-float.a",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libsherpa-onnx-c-api.a",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libsherpa-onnx-core.a",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libsherpa-onnx-fst.a",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libsherpa-onnx-fstfar.a",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libsherpa-onnx-kaldifst-core.a",
+    "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libssentencepiece_core.a",
+    "/dev/shm/velavision-ort-session-20260911/config-attempt9/libk7_iconv.a",
+    "/dev/shm/velavision-ort-session-20260911/support-attempt1/libk7_locale.a",
+    "--end-group"
+  ],
+  "inputs": [
+    {
+      "path": "/dev/shm/velavision-native-asr-add-probe-20260911/add_probe.o",
+      "bytes": 251320,
+      "sha256": "ffa27d89dfd6c62aea709a1f01d2c93384a95f399072f15612761c7c92185354"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_base.a",
+      "bytes": 2259708,
+      "sha256": "5f0550026e246d7dd75067a9277ad4e4e2376db989953e7134be00052087282f"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_log_severity.a",
+      "bytes": 631700,
+      "sha256": "a8cdbb43ab32a3f904fcef44284ea43bb9c783e834df8dec8922ae4b27672f9e"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_malloc_internal.a",
+      "bytes": 476432,
+      "sha256": "3b4afd659e470f7c54c800a77f9fdedbb07be3f22529d3e59d78e74771e80ce2"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_raw_logging_internal.a",
+      "bytes": 599746,
+      "sha256": "2e55c2b0926ad35bab727a2378ac09db59173b5917a9295c1f0bcf43b2af5f72"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_spinlock_wait.a",
+      "bytes": 390306,
+      "sha256": "2c72f105784101708d09097385ecc36fac7aa5eb8b81448aa7fe13e40ab88ebf"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/base/libabsl_throw_delegate.a",
+      "bytes": 598144,
+      "sha256": "0cc2ae8a3b991fc34abcd5e45a5f0fc0c8b92537b20b2eb0274d77963069ecaf"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/container/libabsl_hashtablez_sampler.a",
+      "bytes": 1283720,
+      "sha256": "87fce57e4ddea050e9364cf570d7f6bd1843c1bd85cd336915be14ae94c0cec7"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/container/libabsl_raw_hash_set.a",
+      "bytes": 716684,
+      "sha256": "c6e4de50ac1b8d2f431fa938137541be0b8102b69cefa27d26f47a7c11d652c5"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc32c.a",
+      "bytes": 2145248,
+      "sha256": "8f03bb3da91566a00d99932a7c504610ba4b1c38130207f17a8dfc31146ab90e"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_cord_state.a",
+      "bytes": 1012722,
+      "sha256": "be81fe315173990f1afb849eeba378188094b1d026a6e4831f5bfdac09964304"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_cpu_detect.a",
+      "bytes": 449398,
+      "sha256": "ef047edde07d2736633508828d1c2c37facce0078123f92283bf6d294293d19b"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/crc/libabsl_crc_internal.a",
+      "bytes": 1065282,
+      "sha256": "fa50e920bc1d36f292b6250608df275497df225bc07cbd5b1566ab8001adad57"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_debugging_internal.a",
+      "bytes": 591278,
+      "sha256": "0db096919dd64e62b260a1edb6a1993ac698a80a2e2e9ffac0d883fcb0aa1447"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_demangle_internal.a",
+      "bytes": 662446,
+      "sha256": "dd6045a7d38e498fd9786bea77970c2b8fca72684ff4dc8503f18d82a18f1157"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_stacktrace.a",
+      "bytes": 388386,
+      "sha256": "c305f6da548e6511fed18c8994f6381a2c40d12ffab1c41cf1b6eea8d009efd5"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/debugging/libabsl_symbolize.a",
+      "bytes": 481046,
+      "sha256": "2d16eb370acef66f51de121b3dcad058400e5c1d6648c9a62e6b316a1a23a9ad"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_commandlineflag.a",
+      "bytes": 533974,
+      "sha256": "47e12a5c5db01375c8b96961edc9297c7c87d205f09d32ded387e0b856ec37be"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_commandlineflag_internal.a",
+      "bytes": 124260,
+      "sha256": "07d4ade0bb4200311650a86179b82e191aa8a5d18ca322796d6cfbcec1639531"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_config.a",
+      "bytes": 1263976,
+      "sha256": "47aac54b56878169416318a3ea5b5bfb44ee6063a475ba933dacac2e6808eb03"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_internal.a",
+      "bytes": 1045516,
+      "sha256": "68c7c7c32661752acd26fe6da5473685030514e6935ee61dc8d95c0f98422590"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_marshalling.a",
+      "bytes": 1251216,
+      "sha256": "eca5d2c3ff2993670d6b94a21f9d6b8122f0c1a6daa3256da266e8bd0e00131f"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_private_handle_accessor.a",
+      "bytes": 544302,
+      "sha256": "aef330f633da8a712739800e75516d934b07650f12a7acbb29d55f4e2cfb1efb"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_program_name.a",
+      "bytes": 688074,
+      "sha256": "91de80fd11fc5ad6ca83047ce3bbfa0d9ed424e42569edc1eb4e0a834a011155"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/flags/libabsl_flags_reflection.a",
+      "bytes": 2197362,
+      "sha256": "f94d994524a9cf8a66b6b11ec6b9e5551d1be8da0d668d073552dbf9158b0736"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_city.a",
+      "bytes": 555580,
+      "sha256": "c82cfd1743f6b9c7cc2791de888ce96e3c7d7f7bf00b556685dedc81910271a5"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_hash.a",
+      "bytes": 519776,
+      "sha256": "4fa92d335f25d34112cba16a2d4accbf8549095ac01e98e3a7ed83dbaf37e11b"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/hash/libabsl_low_level_hash.a",
+      "bytes": 557666,
+      "sha256": "251b3fd1cc7bcc647c3f447c6a0aa755730f6c6ee45d17fee5045fb8cfb19444"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/numeric/libabsl_int128.a",
+      "bytes": 752006,
+      "sha256": "4ecbbc0efdc3e5745f99637cc76aaf2f8dd975f66f2f0900931c7e482112bd53"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/profiling/libabsl_exponential_biased.a",
+      "bytes": 458668,
+      "sha256": "de0ba13eadac7ae6d79873dd81be97a3a284bb9a0b21ed3e429ebd7689713b0f"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cord.a",
+      "bytes": 3076006,
+      "sha256": "87690e2a49e8451fd0db70d181d007e08e92d50c95353275a42a037031f761a0"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cord_internal.a",
+      "bytes": 4227312,
+      "sha256": "6ef5692f66ea977264d7b382500e51392589942d6f3efe728e007fdd4a8764fe"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_functions.a",
+      "bytes": 494818,
+      "sha256": "19e92d9e8b177928718fa913f8be4a26039c6bdee61ef06cbac7f40fa1c54b08"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_handle.a",
+      "bytes": 897456,
+      "sha256": "dba01914fa208c9e2299e6dc5c05869e27b2521212fa2603c8a9009b07cc56d7"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_cordz_info.a",
+      "bytes": 892172,
+      "sha256": "80cd042fdd9004111603e0cca10b4f6349b5c34d51fbb35b4d6eddedf31566ad"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_str_format_internal.a",
+      "bytes": 4898282,
+      "sha256": "03f1d4daa9fb277666e80c862372dbe8d48efe6a91add6e3906d6b847d4a8d4e"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_string_view.a",
+      "bytes": 469052,
+      "sha256": "6a9689967401fbd56102c7cf1e8bc3675ffe915d6969ea34b6b4bf44d4930905"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_strings.a",
+      "bytes": 8693052,
+      "sha256": "86764d515c677e14181af54af65a6b12e3bd7441e1b79920d6638b4489b7560c"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/strings/libabsl_strings_internal.a",
+      "bytes": 1140516,
+      "sha256": "65c34eb5ee802cfa81571aed43fa9ceb87217e937fe785c99368141923b37b33"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_graphcycles_internal.a",
+      "bytes": 132532,
+      "sha256": "e2fcb4a4599bb01709acfb9c5c4200fd3973c956f38ff7b3c2c6f768535ab440"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_kernel_timeout_internal.a",
+      "bytes": 619548,
+      "sha256": "3d4b0645dc4234954b3744f7ef393225d66aca335d303c625e873404e3379410"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/synchronization/libabsl_synchronization.a",
+      "bytes": 6015654,
+      "sha256": "af731047e9b1dd0ceb14526229e9619a75e114cb7bd77b03d9dc1b7417772882"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_civil_time.a",
+      "bytes": 950948,
+      "sha256": "e19c0630cb54607ef6eaf9283f12fd89d8418fb6bfc941cb4625f68aaa02cdd2"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_time.a",
+      "bytes": 3736810,
+      "sha256": "15cae142bc3d6eb53259ed473ee3619c766046bbe38930f491c3d967636679d3"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/time/libabsl_time_zone.a",
+      "bytes": 7859974,
+      "sha256": "359e552afc7f7b537c54543166ad12715f67bb0ba57364b07e893f8768c1d227"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/types/libabsl_bad_optional_access.a",
+      "bytes": 380628,
+      "sha256": "a87448c15e1fc1641e2a7d02b16262170dd7c9f2a4ac54cb5161b88d2fc323b2"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/abseil_cpp-build/absl/types/libabsl_bad_variant_access.a",
+      "bytes": 305724,
+      "sha256": "120bf1c2ff19e796255f6053a154005edca80e4aba5915a50a4b5bfa4012b8ea"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/flatbuffers-build/libflatbuffers.a",
+      "bytes": 19628598,
+      "sha256": "a112125a685989cb1d0d5ddd695ebca65f10b7a2c6d26d787a1d2a962b93728e"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/google_nsync-build/libnsync_cpp.a",
+      "bytes": 8414160,
+      "sha256": "410a39e2870168db98054bbafc1f9892e6f0a93664236f5511c71519994c9a50"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/onnx-build/libonnx.a",
+      "bytes": 275539810,
+      "sha256": "2c038fff0c1d33447f33cc2bd369c02a5d22b5ea4e076ac224a8a5edc4deeff3"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/onnx-build/libonnx_proto.a",
+      "bytes": 6536962,
+      "sha256": "b79b8f39b339d07f60eeffaf7a373c5e41b4b2e672a8ec856327724ca72d1be3"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/_deps/protobuf-build/libprotobuf-lite.a",
+      "bytes": 26949978,
+      "sha256": "f810b723a7e8e853ca895f0e2a1c94a688c2ee6233dd1db9339cfe81448abd18"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_common.a",
+      "bytes": 23831788,
+      "sha256": "a782cb0ca1433c089004ba5c8d3e2e703e2a267018eed2a8642f1db826fe3cf2"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_flatbuffers.a",
+      "bytes": 3053168,
+      "sha256": "c10717e211a20d3190dada3f431306ce9e690842f337053d834e97a9a11ee180"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_framework.a",
+      "bytes": 296445202,
+      "sha256": "169467909a15a844a070b2c99de52ad0548f404d808b3f9a8a264aaa9085d922"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_graph.a",
+      "bytes": 152678140,
+      "sha256": "8aa0dda9fa6d9a6f5de1a0afb6bca0ac1d852a3383d3a445f3910dffab39aa5d"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_mlas.a",
+      "bytes": 34840272,
+      "sha256": "c3a7df8e68b34def773648d19eacf67ccbb3976c4d3a190b251abb732e3f76e3"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_optimizer.a",
+      "bytes": 405215546,
+      "sha256": "1f5d13f15e0e44856680856eb8ff5628fc8494fafd6482f5fef92382e90eabfe"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-speech-registration-20260911/result/libonnxruntime_providers.a",
+      "bytes": 1454435252,
+      "sha256": "691760432c5b3a1ea17d6575e28b60733217b565294aa47b26e3677c20eb563d"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_session.a",
+      "bytes": 121686572,
+      "sha256": "4a20a0e6afe49b748ea54ca103c09d1278feb852a92eb7fff71b1e8e544f6b72"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-ort-asr-20260911/build/libonnxruntime_util.a",
+      "bytes": 59093434,
+      "sha256": "80f21f74d71de54f92471b506296f8d5d31ecbe35baaa640f928dd750836d168"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libkaldi-decoder-core.a",
+      "bytes": 19467800,
+      "sha256": "006814094b5854eec76defad5e85eb2a1c044f9fdfd9fc0a79af40c8183cdb7c"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libkaldi-native-fbank-core.a",
+      "bytes": 12419938,
+      "sha256": "99f34e866a279f699eaec00648d309f1ea15ec323bf521163b63e72c19282c5f"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libkissfft-float.a",
+      "bytes": 1238432,
+      "sha256": "80854cebfa0fe9457a6e801f551a254a9f0f3b419d9797305b27385f6711f6a7"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libsherpa-onnx-c-api.a",
+      "bytes": 4555032,
+      "sha256": "ecb494c646dae750912af067409a1c623a7684dbc75e7325a8d296ac28ebfbc6"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libsherpa-onnx-core.a",
+      "bytes": 431247628,
+      "sha256": "0e8b63ece886d20c37f9d133e0484717161cca00cc261fd3b5d8f4b9c798b4a2"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libsherpa-onnx-fst.a",
+      "bytes": 43087692,
+      "sha256": "2a0e7fa535c8d1a211507c972d9f1cea3351304c248c4e63be473a6a7317340e"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libsherpa-onnx-fstfar.a",
+      "bytes": 1241124,
+      "sha256": "3ed674d122ec733ac4a2eb53f5a75205eba19405ca91f87aa40149285a92f089"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libsherpa-onnx-kaldifst-core.a",
+      "bytes": 35480604,
+      "sha256": "44b5c5bbda2a7767e22541ae34a946962f42b2927345253d14545007a4736f6b"
+    },
+    {
+      "path": "/home/swl/openvela/work/native-vits-lexicon-20260911/build/lib/libssentencepiece_core.a",
+      "bytes": 4127628,
+      "sha256": "b3882c8751b3f00d30966b8aed96bb933e499434e557065b626fc42f8db94ede"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/config-attempt9/libk7_iconv.a",
+      "bytes": 226166,
+      "sha256": "91091bbeaac962d022ea50c237b2950db97959a73c962d4376cbb8a3e9188ef0"
+    },
+    {
+      "path": "/dev/shm/velavision-ort-session-20260911/support-attempt1/libk7_locale.a",
+      "bytes": 92476,
+      "sha256": "c7c3e30d92e59d8c88389e5f083f9acd45d3cb5b67b8c0fa6c7c8de5709fa60c"
+    }
+  ],
+  "firmware_linked": false,
+  "model_run": false,
+  "asr_ready": false,
+  "ort_kernel_set": "ASR+VITS registration; inference untested",
+  "strong_undefined": 393,
+  "missing_count": 0,
+  "relocatable_sha256": "e43242de83135f400ee8c72668813d92c534f6b6f0020e3525f14904d6a4c767",
+  "sdk_archives": [
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/builtin/libapps_builtin.a",
+      "sha256": "4ac2e50dcbb1e00d85ff461a152fcd8801ca4bbc1919a73fceef797dec14508a"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/gimbal/libapps_gimbal.a",
+      "sha256": "6b515c19c9138ee54a8041a661a601f01c9c81498e34e821f5534fc75aac4b6c"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/hello/libapps_hello.a",
+      "sha256": "abc7df0bc90c0176fd2d99cdab9f222886d15cf44d7ab16774578ad51cc4371b"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7arena/libapps_k7arena.a",
+      "sha256": "1a2bbdca8c83805e1fc55152c192e161d39b561f4cd83ecebc7b5e4acd98a6aa"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7audio/libapps_k7audio.a",
+      "sha256": "ff4f240a9757f2353a6852ee32ca5a4c81861353330110203117ca0d59baa834"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7cxx/libapps_k7cxx.a",
+      "sha256": "855bc8d44a38934df9c4161692e0777c5760bd89b4ae3c0181fdcf40fb9c576f"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7eh/libapps_k7eh.a",
+      "sha256": "8f1cbe90792bc77a5ef3f50408f749e35f1a88021f0362f04c310c929d747877"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7emmc/libapps_k7emmc.a",
+      "sha256": "4dc5ca51f2ccbfa78ba43c595e4af5a1ffdbd9d7b06896209720e7f2c9611398"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7graph/libapps_k7graph.a",
+      "sha256": "260851d6e247fd0649cf1f6ddb8f5fb8a84bad2fbec16325ab5f61e35bdbd5ef"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7host/libapps_k7host.a",
+      "sha256": "4949fb13acf165d7e68b115f29507b0b214be79cc03bdad6f65dc83270ca5618"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7load/libapps_k7load.a",
+      "sha256": "444254bf380f40a2e1cac0af821ea2a62013cc4782d3c386a9c48a9e3aa3074a"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7mem/libapps_k7mem.a",
+      "sha256": "e425501fc3bafb32fcc9b283ad60bbb9b6f23f006e37884af8ce3471ce3b698f"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7neon/libapps_k7neon.a",
+      "sha256": "fb46dc18047b31c7a2756851e5d600db18bb2fbedcf49741ebc3ffc70d3aaea8"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7npu/libapps_k7npu.a",
+      "sha256": "a8d8c9ad357db995f794cbf8b4508c14ed2a68a4fff1d8ad1ccd4696d57e6000"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7radio/libapps_k7radio.a",
+      "sha256": "aadce2cccaa85a64d1aae30febb2bcc71034c47b119c90ca365ed43b01517b7d"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7smp/libapps_k7smp.a",
+      "sha256": "8ce066ee5a2317a11f0c7f43c040a5404ac4d090856721b4d18e5eac3a0c74c4"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7sound/libapps_k7sound.a",
+      "sha256": "3fadd4cc2adde10d57975d7fdb75a8ceb6b977968f748541e6774c8a6f298842"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7storage/libapps_k7storage.a",
+      "sha256": "0e22cf9ed1463c6912cbfd1f8c2fdbb3e711e2034a5f775c4d6c88b54b46237d"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7usb/libapps_k7usb.a",
+      "sha256": "f6c8d2615a1d876c7ab3945664dc8db09aad9cae2e21103e9c733dd644e4e23b"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/voicelink/libapps_k7voice.a",
+      "sha256": "e91a1c6481f82596e4979c4ce2e42e2237190f99ed5d6d4ddd5535c63a028d7d"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/external/android/libandroid.a",
+      "sha256": "0d6f2985462df6e26747e65439e8a78feb8449ea9e0f86395e7938205a179fcf"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/external/libjpeg-turbo/libturbojpeg-static.a",
+      "sha256": "39486a24ee6cf9ae82cfa2ddebf778e3e57b010041c7e6026714cf00b08587ec"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/libapps.a",
+      "sha256": "57bfaea7b57b3535dff55944ea6da2890fb72036c15f3d407ba37f775e676d92"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/system/nsh/libapps_nsh.a",
+      "sha256": "4a367d72c26f6c830c244ea799ddf70632907525b770b65cea44c874309b924a"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/system/nsh/libapps_sh.a",
+      "sha256": "7c219a1ac88f5d0f0c59de1a01f2bb9fd79485f88588d7c5f7515973b140c330"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/system/ping/libapps_ping.a",
+      "sha256": "39f7d5832e73c27efeb1ee9aa8013cd62981f4707d2df907a7ca6072bb8ad982"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/wireless/bluetooth/btsak/libapps_bt.a",
+      "sha256": "960c23734daa4af03a85223fc0ca2e295922026139478f81d218e6fac0ff9ddb"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/arch/libarch.a",
+      "sha256": "ab594c7f25c5678fb64e03504181c316a42216ffefd37c67fc32335247334745"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/binfmt/libbinfmt.a",
+      "sha256": "f8911a2a01596cdf920b330c6c93d607806b5933aa138a686d596798e16b7ac5"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/boards/libboard.a",
+      "sha256": "1fd93b7d0f15ce4580f301e6ab3f813438343f9861e7aea61cc34e8459953489"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/drivers/libdrivers.a",
+      "sha256": "f8d39e2616d2b7f4a8251155dae3e021f6f2152c87ea4c37adbdc4ecf4485244"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/fs/libfs.a",
+      "sha256": "233142e3026760140c28b2c12a3e6ccb0fe2144eccb131b0fde1cd0be118e5ff"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/libs/libc/libc.a",
+      "sha256": "7ee32a4f4fbd74e22bbd5f73070ed786061e7f618c174f76c45ea1e96255fb8e"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/libs/libxx/libcxx/liblibcxx.a",
+      "sha256": "7a7ac9f398e3c1a7bec1c7c37305b641fc863161bf8a4d519703bd6490cd8a64"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/libs/libxx/libcxxabi/liblibcxxabi.a",
+      "sha256": "156aed523296025149cd7a337d06a8785a8657ca21c4c1820f6f2f4df3c85da4"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/mm/libmm.a",
+      "sha256": "2b35c974457587ddb3f15f63ef06a7eb70565f1e9675ec88809ba7491664813e"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/net/libnet.a",
+      "sha256": "c3303e272a5ff49a71e2201424c1a84df48013e6ec584eac3c5edb14fb2fb972"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/sched/libsched.a",
+      "sha256": "c8d41cc277cef646972b0c32abb9a2d29f84033b7a61c2b19f82221981c2ac94"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/wireless/libwireless.a",
+      "sha256": "e96e72e8edcafbe5cb480985b2a17595060ab79b50b8dfe58dcff4cb5b50fd9c"
+    },
+    {
+      "path": "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/../lib/gcc/aarch64-none-elf/13.4.0/libgcc.a",
+      "sha256": "70cf6fa3db4cdad31d53959fd1d89f9b4264df773c27f11f68fd84705b6fcfc8"
+    },
+    {
+      "path": "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/../lib/gcc/aarch64-none-elf/13.4.0/../../../../aarch64-none-elf/lib/libm.a",
+      "sha256": "fc7dc72354a5b5d0fc5b2e47831bdb3dae179ae9349677f2fde3205e1095008d"
+    }
+  ],
+  "limitation": "Normal archive extraction from actual C API client. Definition inventory is not final firmware linkage, layout validation or runtime proof."
+}

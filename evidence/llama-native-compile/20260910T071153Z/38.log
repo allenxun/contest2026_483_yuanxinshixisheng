@@ -1,0 +1,91 @@
+In file included from /home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/locale:209,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:13:
+/home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/ios:216:5: error: #error "The iostreams library is not supported since libc++ has been configured without support for localization."
+  216 | #   error "The iostreams library is not supported since libc++ has been configured without support for localization."
+      |     ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:202:20: error: 'wstring' in namespace 'std' does not name a type
+  202 | static inline std::wstring unicode_wstring_from_utf8(const std::string & s) {
+      |                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:16:1: note: 'std::wstring' is defined in header '<string>'; did you forget to '#include <string>'?
+   15 | #include <regex>
+  +++ |+#include <string>
+   16 | #include <stdexcept>
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:496:63: error: 'wstring' in namespace 'std' does not name a type
+  496 | static std::vector<size_t> unicode_regex_split_stl(const std::wstring & wtext, const std::wstring & regex_expr, const std::vector<size_t> & offsets) {
+      |                                                               ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:496:58: note: 'std::wstring' is defined in header '<string>'; did you forget to '#include <string>'?
+  496 | static std::vector<size_t> unicode_regex_split_stl(const std::wstring & wtext, const std::wstring & regex_expr, const std::vector<size_t> & offsets) {
+      |                                                          ^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:496:91: error: 'wstring' in namespace 'std' does not name a type
+  496 | static std::vector<size_t> unicode_regex_split_stl(const std::wstring & wtext, const std::wstring & regex_expr, const std::vector<size_t> & offsets) {
+      |                                                                                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:496:86: note: 'std::wstring' is defined in header '<string>'; did you forget to '#include <string>'?
+  496 | static std::vector<size_t> unicode_regex_split_stl(const std::wstring & wtext, const std::wstring & regex_expr, const std::vector<size_t> & offsets) {
+      |                                                                                      ^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp: In function 'std::__1::vector<long unsigned int> unicode_regex_split_stl(const int&, const int&, const std::__1::vector<long unsigned int>&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:497:10: error: 'wregex' is not a member of 'std'
+  497 |     std::wregex expr(regex_expr);
+      |          ^~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:502:14: error: 'wcregex_iterator' is not a member of 'std'
+  502 |         std::wcregex_iterator it(wtext.data() + start, wtext.data() + start + offset, expr);
+      |              ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:503:14: error: 'wcregex_iterator' is not a member of 'std'
+  503 |         std::wcregex_iterator end;
+      |              ^~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:506:16: error: 'it' was not declared in this scope; did you mean 'int'?
+  506 |         while (it != end) {
+      |                ^~
+      |                int
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:506:22: error: 'end' was not declared in this scope; did you mean 'std::__1::end'?
+  506 |         while (it != end) {
+      |                      ^~~
+      |                      std::__1::end
+In file included from /home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/__memory/construct_at.h:15,
+                 from /home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/__string/constexpr_c_functions.h:14,
+                 from /home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/__algorithm/find.h:17,
+                 from /home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/__algorithm/remove.h:12,
+                 from /home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/string:569,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.h:4,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:5:
+/home/swl/openvela/cmake_out/velavision_neon_file64_20260910/include/libcxx/__iterator/access.h:67:1: note: 'std::__1::end' declared here
+   67 | end(const _Cp& __c) -> decltype(__c.end())
+      | ^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:507:18: error: 'wcmatch' is not a member of 'std'
+  507 |             std::wcmatch match = *it;
+      |                  ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:508:17: error: 'match' was not declared in this scope
+  508 |             if (match.position() > start_idx) {
+      |                 ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:511:38: error: 'match' was not declared in this scope
+  511 |             bpe_offsets.emplace_back(match.length());
+      |                                      ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp: In function 'std::__1::vector<std::__1::basic_string<char> > unicode_regex_split(const std::__1::string&, const std::__1::vector<std::__1::basic_string<char> >&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:815:28: error: 'wstring' in namespace 'std' does not name a type
+  815 |                 const std::wstring wregex_expr = unicode_wstring_from_utf8(regex_expr);
+      |                            ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:815:23: note: 'std::wstring' is defined in header '<string>'; did you forget to '#include <string>'?
+  815 |                 const std::wstring wregex_expr = unicode_wstring_from_utf8(regex_expr);
+      |                       ^~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:818:22: error: 'wstring' is not a member of 'std'
+  818 |                 std::wstring wtext(cpts.begin(), cpts.end());
+      |                      ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:818:22: note: 'std::wstring' is defined in header '<string>'; did you forget to '#include <string>'?
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:819:40: error: 'wtext' was not declared in this scope; did you mean 'text'?
+  819 |                 for (size_t i = 0; i < wtext.size(); ++i) {
+      |                                        ^~~~~
+      |                                        text
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:827:55: error: 'wtext' was not declared in this scope; did you mean 'text'?
+  827 |                 bpe_offsets = unicode_regex_split_stl(wtext, wregex_expr, bpe_offsets);
+      |                                                       ^~~~~
+      |                                                       text
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:827:62: error: 'wregex_expr' was not declared in this scope; did you mean 'regex_expr'?
+  827 |                 bpe_offsets = unicode_regex_split_stl(wtext, wregex_expr, bpe_offsets);
+      |                                                              ^~~~~~~~~~~
+      |                                                              regex_expr
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp: At global scope:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:496:28: warning: 'std::__1::vector<long unsigned int> unicode_regex_split_stl(const int&, const int&, const std::__1::vector<long unsigned int>&)' defined but not used [-Wunused-function]
+  496 | static std::vector<size_t> unicode_regex_split_stl(const std::wstring & wtext, const std::wstring & regex_expr, const std::vector<size_t> & offsets) {
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/unicode.cpp:28:20: warning: 'std::__1::string unicode_cpts_to_utf8(const std::__1::vector<unsigned int>&)' defined but not used [-Wunused-function]
+   28 | static std::string unicode_cpts_to_utf8(const std::vector<uint32_t> & cps) {
+      |                    ^~~~~~~~~~~~~~~~~~~~

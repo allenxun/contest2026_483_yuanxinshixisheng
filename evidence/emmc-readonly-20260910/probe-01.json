@@ -1,0 +1,13 @@
+{
+  "command": "k7emmc probe",
+  "prompt_returned": true,
+  "lines": [
+    "EMMC status version=0005 present=03f700f0 int=00000000 clock=0007 host=24 power=0b host2=001f cru89=00004407 ready=0 recovery=0",
+    "EMMC init rc=0 cmd=13 status=00000001 state=03f700f0 ocr=c0ff8080 sectors=61079552 revision=8 partition=0 bus=0 timing=0",
+    "EMMC read lba=0 rc=0 bytes=512 status=00000002 r1=00000900 crc=8936a974 repeated=PASS signature=MBR",
+    "EMMC read lba=1 rc=0 bytes=512 status=00000002 r1=00000900 crc=a63321cb repeated=PASS signature=GPT",
+    "EMMC status version=0005 present=03f700f0 int=00000000 clock=1e07 host=00 power=0b host2=0018 cru89=00008007 ready=1 recovery=0",
+    "EMMC probe result=0 storage_writes=0"
+  ],
+  "storage_writes": false
+}

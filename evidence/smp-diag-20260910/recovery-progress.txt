@@ -1,0 +1,7 @@
+IMAGE 2089240 06320f4b86326ea91d682fb6192dad5c64f7893279f9d73ed57490f80b9fe10b
+Traceback (most recent call last):
+  File "E:\openvela\VelaVision\tools\restore_emmc_vfs_ram.py", line 67, in <module>
+    s.open()
+  File "E:\openvela\无线适配_2026-09-08\tools\pydeps\serial\serialwin32.py", line 64, in open
+    raise SerialException("could not open port {!r}: {!r}".format(self.portstr, ctypes.WinError()))
+serial.serialutil.SerialException: could not open port 'COM8': PermissionError(13, '拒绝访问。', None, 5)

@@ -1,0 +1,31 @@
+{
+  "status": "pass",
+  "sequence": [
+    "tts-smoke",
+    "asr-model",
+    "tts-smoke"
+  ],
+  "first_tts_storage": {
+    "peak": 28213884,
+    "live": 0,
+    "records": 1515,
+    "failures": 0
+  },
+  "asr_storage": {
+    "peak": 238214464,
+    "live": 0,
+    "records": 2,
+    "failures": 0
+  },
+  "second_tts_storage": {
+    "peak": 28213884,
+    "live": 0,
+    "records": 1515,
+    "failures": 0
+  },
+  "log_sha256": "d25d570c8e634f7e924d0c33bd16155169d3ff7fbec91947ccbf8e1ce32f5262",
+  "before_status_sha256": "9650116cdb54909ac1c394053cb351fad0966997ca3305764bd2d08906cccde4",
+  "after_status_sha256": "079cec0eeecfb7b940a509ae9c9d625766bc29bbf4e76c30855591d6d4fcf43e",
+  "human_audibility_confirmed": false,
+  "voice_provisioning_tested": false
+}

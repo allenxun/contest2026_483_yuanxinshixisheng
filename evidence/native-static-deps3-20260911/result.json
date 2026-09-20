@@ -1,0 +1,32 @@
+{
+  "configure": {
+    "exit_code": 0,
+    "command": [
+      "/dev/shm/cmake-3.28.3-linux-x86_64/bin/cmake",
+      "-S",
+      "/dev/shm/velavision-static-deps3-20260911",
+      "-B",
+      "/dev/shm/velavision-static-deps3-20260911/build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_TOOLCHAIN_FILE=/dev/shm/velavision-static-deps3-20260911/toolchain.cmake",
+      "-DK7_ABSEIL_SOURCE=/dev/shm/velavision-ort-env3-20260911/abseil_cpp",
+      "-DK7_NSYNC_SOURCE=/dev/shm/velavision-ort-env3-20260911/google_nsync"
+    ]
+  },
+  "build": {
+    "exit_code": 1,
+    "command": [
+      "/dev/shm/cmake-3.28.3-linux-x86_64/bin/cmake",
+      "--build",
+      "/dev/shm/velavision-static-deps3-20260911/build",
+      "--target",
+      "k7_native_deps",
+      "-j2"
+    ]
+  },
+  "isolated_compile_config_override": "CONFIG_ALLOW_MIT_COMPONENTS=1; real frozen lib_strptime.c compiled alongside; final SDK config unchanged",
+  "linked": false,
+  "hardware_tested": false,
+  "thread_link_proven": false
+}

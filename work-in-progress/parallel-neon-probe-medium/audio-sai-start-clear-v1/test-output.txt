@@ -1,0 +1,10 @@
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-pedantic', 'start_clear.c', 'test.c', '-o', 'testO0.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-sai-start-clear-v1\\testO0.exe']
+PASS start-clear: onlyCLR3 write,self-clear/residue checks,active+DMA reject,timeout/stalledclock/failure held
+EXIT 0
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-pedantic', 'start_clear.c', 'test.c', '-o', 'testO2.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-sai-start-clear-v1\\testO2.exe']
+PASS start-clear: onlyCLR3 write,self-clear/residue checks,active+DMA reject,timeout/stalledclock/failure held
+EXIT 0

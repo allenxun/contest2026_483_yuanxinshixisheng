@@ -1,0 +1,5 @@
+synthetic committed-floor equality -> EACCES, inspect=0, amsdu=0
+synthetic committed-floor greater -> EACCES
+synthetic newer pending group -> EACCES even at age1000ms (non-AMSDU path precedes expiry)
+synthetic complete1/subframes2 plus non-AMSDU floor rejection is possible, NOT captured-frame replay
+PASS actual header implementation; all PN/addresses/payload synthetic; no hardware

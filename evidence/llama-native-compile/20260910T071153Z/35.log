@@ -1,0 +1,42 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-cpu.h:4,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/include/llama.h:5,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.h:5,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp:1:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp: In function 'void llama_sampler_chain_accept(llama_sampler*, llama_token)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp:422:17: warning: declaration of 'auto* smpl' shadows a parameter [-Wshadow]
+  422 |     for (auto * smpl : chain->samplers) {
+      |                 ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp:417:63: note: shadowed declaration is here
+  417 | static void llama_sampler_chain_accept(struct llama_sampler * smpl, llama_token token) {
+      |                                        ~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp: In function 'void llama_sampler_chain_apply(llama_sampler*, llama_token_data_array*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp:434:17: warning: declaration of 'auto* smpl' shadows a parameter [-Wshadow]
+  434 |     for (auto * smpl : chain->samplers) {
+      |                 ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp:429:62: note: shadowed declaration is here
+  429 | static void llama_sampler_chain_apply(struct llama_sampler * smpl, llama_token_data_array * cur_p) {
+      |                                       ~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp: In function 'void llama_sampler_chain_reset(llama_sampler*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp:442:17: warning: declaration of 'auto* smpl' shadows a parameter [-Wshadow]
+  442 |     for (auto * smpl : chain->samplers) {
+      |                 ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp:439:62: note: shadowed declaration is here
+  439 | static void llama_sampler_chain_reset(struct llama_sampler * smpl) {
+      |                                       ~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp: In function 'llama_sampler* llama_sampler_chain_clone(const llama_sampler*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp:455:17: warning: declaration of 'auto* smpl' shadows a parameter [-Wshadow]
+  455 |     for (auto * smpl : chain_src->samplers) {
+      |                 ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp:450:86: note: shadowed declaration is here
+  450 | static struct llama_sampler * llama_sampler_chain_clone(const struct llama_sampler * smpl) {
+      |                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp: In function 'void llama_sampler_chain_free(llama_sampler*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp:465:17: warning: declaration of 'auto* smpl' shadows a parameter [-Wshadow]
+  465 |     for (auto * smpl : chain->samplers) {
+      |                 ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-sampling.cpp:462:61: note: shadowed declaration is here
+  462 | static void llama_sampler_chain_free(struct llama_sampler * smpl) {
+      |                                      ~~~~~~~~~~~~~~~~~~~~~~~^~~~

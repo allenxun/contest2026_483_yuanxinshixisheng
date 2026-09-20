@@ -1,0 +1,45 @@
+{
+  "hardware_tested": false,
+  "tests": [
+    {
+      "variant": "before",
+      "optimization": "-O0",
+      "exit_code": -6
+    },
+    {
+      "variant": "fixed",
+      "optimization": "-O0",
+      "exit_code": 0
+    },
+    {
+      "variant": "before",
+      "optimization": "-O2",
+      "exit_code": -6
+    },
+    {
+      "variant": "fixed",
+      "optimization": "-O2",
+      "exit_code": 0
+    }
+  ],
+  "sync_audit_exit": 0,
+  "source_before": "ebbfc2e206448e2f945449c95660fb9d024c371147c3f8c3c3816bb9b6ef896c",
+  "source_after": "f82e87b6865537920ab1b5233a4198ebbac118dbe23a64c41a148a5c66891418",
+  "unchanged_runtime": "0a5dbbbed5007db89cae39a58067d809c7872ffe4d8963eb0fc39e9886fb64eb",
+  "configure_exit": 0,
+  "build_exit": 0,
+  "artifacts": {
+    "nuttx": {
+      "sha256": "3e14b140fa8e6be22a03fc7570d159b9e0e42f695437bdaedae66082b79b585f",
+      "bytes": 44247696
+    },
+    "nuttx.bin": {
+      "sha256": "3421500574ee083204d3e797d1e8faf9126a76921621e561db3b10be408739ef",
+      "bytes": 15324528
+    },
+    ".config": {
+      "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92",
+      "bytes": 64532
+    }
+  }
+}

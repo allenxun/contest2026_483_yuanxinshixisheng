@@ -1,0 +1,539 @@
+[1/157] cd /home/swl/openvela/cmake_out/velavision_report_follow_20260917/libs/libc/misc && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E touch /home/swl/openvela/nuttx/libs/libc/misc/lib_utsname.c
+[2/157] Generating bin output directories
+[3/157] cd /home/swl/openvela/nuttx && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -DKCONFIG_CONFIG=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_photo_tcp/defconfig -DNUTTX_DIR=/home/swl/openvela/nuttx -DCMAKE_BINARY_DIR=/home/swl/openvela/cmake_out/velavision_report_follow_20260917 -P /home/swl/openvela/nuttx/cmake/nuttx_generate_dts.cmake
+[4/157] Building CXX object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/vendor/ggml/src/ggml-cpu/ggml-cpu.cpp.o
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu.cpp:1:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu.cpp: In lambda function:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu.cpp:38:49: warning: declaration of 'bufts' shadows a previous local [-Wshadow]
+   38 |         std::vector<ggml_backend_buffer_type_t> bufts;
+      |                                                 ^~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu.cpp:37:52: note: shadowed declaration is here
+   37 |     static std::vector<ggml_backend_buffer_type_t> bufts = []() {
+      |                                                    ^~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu.cpp: In lambda function:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu.cpp:492:43: warning: declaration of 'features' shadows a previous local [-Wshadow]
+  492 |         std::vector<ggml_backend_feature> features;
+      |                                           ^~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu.cpp:489:46: note: shadowed declaration is here
+  489 |     static std::vector<ggml_backend_feature> features = []() {
+      |                                              ^~~~~~~~
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-impl.h:6,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.h:3,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-aarch64.h:3,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu.cpp:4:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h: At global scope:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+[5/157] Building CXX object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/vendor/ggml/src/ggml-cpu/ggml-cpu-hbm.cpp.o
+[6/157] Building CXX object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/vendor/ggml/src/ggml-cpu/ggml-cpu-aarch64.cpp.o
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-backend-impl.h:5,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-aarch64.cpp:4:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-aarch64.cpp:7:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+[7/157] Building C object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/vendor/ggml/src/ggml-cpu/ggml-cpu-quants.c.o
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-quants.c:1835:5: warning: "__AVX__" is not defined, evaluates to 0 [-Wundef]
+ 1835 | #if __AVX__ || __AVX2__ || __AVX512F__
+      |     ^~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-quants.c:1835:16: warning: "__AVX2__" is not defined, evaluates to 0 [-Wundef]
+ 1835 | #if __AVX__ || __AVX2__ || __AVX512F__
+      |                ^~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-quants.c:1835:28: warning: "__AVX512F__" is not defined, evaluates to 0 [-Wundef]
+ 1835 | #if __AVX__ || __AVX2__ || __AVX512F__
+      |                            ^~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-quants.c:1602:14: warning: 'make_qkx2_quants' defined but not used [-Wunused-function]
+ 1602 | static float make_qkx2_quants(int n, int nmax, const float * GGML_RESTRICT x, const float * GGML_RESTRICT weights,
+      |              ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-quants.c:1559:14: warning: 'make_qkx1_quants' defined but not used [-Wunused-function]
+ 1559 | static float make_qkx1_quants(int n, int nmax, const float * GGML_RESTRICT x, uint8_t * GGML_RESTRICT L, float * GGML_RESTRICT the_min,
+      |              ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-quants.c:1500:14: warning: 'make_q3_quants' defined but not used [-Wunused-function]
+ 1500 | static float make_q3_quants(int n, int nmax, const float * GGML_RESTRICT x, int8_t * GGML_RESTRICT L, bool do_rmse) {
+      |              ^~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-quants.c:1431:14: warning: 'make_qx_quants' defined but not used [-Wunused-function]
+ 1431 | static float make_qx_quants(int n, int nmax, const float * GGML_RESTRICT x, int8_t * GGML_RESTRICT L, int rmse_type,
+      |              ^~~~~~~~~~~~~~
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-quants.c:6:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'ggml_hash_find_or_insert' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'ggml_hash_insert' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'ggml_hash_contains' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'ggml_bitset_size' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'ggml_set_op_params_f32' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'ggml_set_op_params_i32' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:122:14: warning: 'ggml_get_op_params_f32' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:117:16: warning: 'ggml_get_op_params_i32' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'ggml_set_op_params' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+[8/157] Building CXX object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.cpp.o
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-backend-impl.h:5,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.h:2,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.cpp:1:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-impl.h:6,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.h:3:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+[9/157] Building C object apps/examples/k7agent/CMakeFiles/apps_k7cloud.dir/cloud/src/board_speech_bridge.c.o
+[10/157] Building C object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/candidate/ggml-cpu.c.o
+/home/swl/openvela/apps/examples/k7graph/candidate/ggml-cpu.c: In function 'ggml_compute_forward_mul_mat':
+/home/swl/openvela/apps/examples/k7graph/candidate/ggml-cpu.c:6788:5: warning: "GGML_USE_LLAMAFILE" is not defined, evaluates to 0 [-Wundef]
+ 6788 | #if GGML_USE_LLAMAFILE
+      |     ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/candidate/ggml-cpu.c:6859:5: warning: "GGML_USE_LLAMAFILE" is not defined, evaluates to 0 [-Wundef]
+ 6859 | #if GGML_USE_LLAMAFILE
+      |     ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/candidate/ggml-cpu.c: At top level:
+/home/swl/openvela/apps/examples/k7graph/candidate/ggml-cpu.c:13203:13: warning: 'ggml_thread_cpumask_next' defined but not used [-Wunused-function]
+13203 | static void ggml_thread_cpumask_next(const bool * global_mask, bool * local_mask, bool strict, int32_t* iter) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/candidate/ggml-cpu.c:2509:17: warning: 'ggml_get_numa_affinity' defined but not used [-Wunused-function]
+ 2509 | static uint32_t ggml_get_numa_affinity(void) {
+      |                 ^~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-impl.h:6,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.h:3,
+                 from /home/swl/openvela/apps/examples/k7graph/candidate/ggml-cpu.c:10:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'ggml_hash_find_or_insert' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'ggml_hash_insert' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'ggml_hash_contains' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'ggml_bitset_size' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'ggml_set_op_params_f32' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'ggml_set_op_params_i32' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'ggml_set_op_params' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+[11/157] Building CXX object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/vendor/ggml/src/ggml-cpu/amx/amx.cpp.o
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/amx/amx.h:1,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/amx/amx.cpp:1:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-impl.h:6,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/amx/amx.h:2:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+[12/157] Building CXX object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/vendor/ggml/src/ggml-cpu/amx/mmq.cpp.o
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/amx/amx.h:1,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/amx/mmq.cpp:7:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-impl.h:6,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/amx/amx.h:2:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+[13/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7host_main.c.o
+[14/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_jpeg.c.o
+[15/157] Building CXX object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/candidate/ggml-backend-reg.cpp.o
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-backend-impl.h:5,
+                 from /home/swl/openvela/apps/examples/k7graph/candidate/ggml-backend-reg.cpp:1:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+In file included from /home/swl/openvela/apps/examples/k7graph/candidate/ggml-backend-reg.cpp:3:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+[16/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_pipeline.c.o
+[17/157] Building CXX object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/vendor/ggml/src/ggml-cpu/binary-ops.cpp.o
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-backend-impl.h:5,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.h:2,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/common.h:4,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/binary-ops.h:3,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/binary-ops.cpp:1:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-impl.h:6,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.h:3:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+[18/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_photo.c.o
+[19/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_photo_store.c.o
+[20/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/fusion_core.c.o
+[21/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_track.c.o
+[22/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_preview.c.o
+[23/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_preview_queue.c.o
+[24/157] Building CXX object apps/examples/k7graph/CMakeFiles/apps_k7graph.dir/vendor/ggml/src/ggml-cpu/unary-ops.cpp.o
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-backend-impl.h:5,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.h:2,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/common.h:4,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/unary-ops.h:3,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/unary-ops.cpp:1:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+In file included from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-impl.h:6,
+                 from /home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-cpu/ggml-cpu-traits.h:3:
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:258:15: warning: 'size_t ggml_hash_find_or_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  258 | static size_t ggml_hash_find_or_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:237:15: warning: 'size_t ggml_hash_insert(ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  237 | static size_t ggml_hash_insert(struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:232:13: warning: 'bool ggml_hash_contains(const ggml_hash_set*, ggml_tensor*)' defined but not used [-Wunused-function]
+  232 | static bool ggml_hash_contains(const struct ggml_hash_set * hash_set, struct ggml_tensor * key) {
+      |             ^~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:163:15: warning: 'size_t ggml_bitset_size(size_t)' defined but not used [-Wunused-function]
+  163 | static size_t ggml_bitset_size(size_t n) {
+      |               ^~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:132:13: warning: 'void ggml_set_op_params_f32(ggml_tensor*, uint32_t, float)' defined but not used [-Wunused-function]
+  132 | static void ggml_set_op_params_f32(struct ggml_tensor * tensor, uint32_t i, float value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:127:13: warning: 'void ggml_set_op_params_i32(ggml_tensor*, uint32_t, int32_t)' defined but not used [-Wunused-function]
+  127 | static void ggml_set_op_params_i32(struct ggml_tensor * tensor, uint32_t i, int32_t value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:122:14: warning: 'float ggml_get_op_params_f32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  122 | static float ggml_get_op_params_f32(const struct ggml_tensor * tensor, uint32_t i) {
+      |              ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:117:16: warning: 'int32_t ggml_get_op_params_i32(const ggml_tensor*, uint32_t)' defined but not used [-Wunused-function]
+  117 | static int32_t ggml_get_op_params_i32(const struct ggml_tensor * tensor, uint32_t i) {
+      |                ^~~~~~~~~~~~~~~~~~~~~~
+/home/swl/openvela/apps/examples/k7graph/vendor/ggml/src/ggml-impl.h:111:13: warning: 'void ggml_set_op_params(ggml_tensor*, const void*, size_t)' defined but not used [-Wunused-function]
+  111 | static void ggml_set_op_params(struct ggml_tensor * tensor, const void * params, size_t params_size) {
+      |             ^~~~~~~~~~~~~~~~~~
+[25/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/dwc3_transport_core.c.o
+[26/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_video_frame.c.o
+[27/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_link_probe.c.o
+[28/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_video_queue.c.o
+[29/157] Building C object apps/examples/k7load/CMakeFiles/apps_k7load.dir/k7load_main.c.o
+[30/157] Building C object apps/examples/k7mem/CMakeFiles/apps_k7mem.dir/k7mem_main.c.o
+[31/157] Building ASM object apps/examples/k7neon/CMakeFiles/apps_k7neon.dir/neon_hold.S.o
+[32/157] Building C object apps/examples/k7neon/CMakeFiles/apps_k7neon.dir/k7neon_main.c.o
+[33/157] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_main.c.o
+[34/157] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_mmutest.c.o
+[35/157] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/rk3576_npu_mmu.c.o
+[36/157] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/rk3576_npu_window.c.o
+[37/157] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_rawtest.c.o
+[38/157] Building C object apps/examples/k7npu/CMakeFiles/apps_k7npu.dir/k7npu_fixture_io.c.o
+[39/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_bus.c.o
+[40/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_dw.c.o
+[41/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_rk3576.c.o
+[42/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_packet.c.o
+[43/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_bt.c.o
+[44/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_wpa_transport.c.o
+[45/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/prov_protocol.c.o
+[46/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_yunet.c.o
+[47/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_supplicant.c.o
+[48/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_supplicant_os.c.o
+[49/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/cJSON.c.o
+[50/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/rsn_supp/wpa_ie.c.o
+[51/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/rsn_supp/pmksa_cache.c.o
+[52/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/common/wpa_common.c.o
+[53/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/rsn_supp/wpa.c.o
+[54/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/k7radio_main.c.o
+[55/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/utils/common.c.o
+[56/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/utils/wpabuf.c.o
+[57/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-internal.c.o
+[58/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/utils/bitfield.c.o
+[59/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-internal-enc.c.o
+[60/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-internal-dec.c.o
+[61/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-unwrap.c.o
+[62/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/common/ieee802_11_common.c.o
+[63/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-wrap.c.o
+[64/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/aes-omac1.c.o
+[65/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1.c.o
+[66/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1-prf.c.o
+[67/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1-pbkdf2.c.o
+[68/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha1-internal.c.o
+[69/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha256.c.o
+[70/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha256-prf.c.o
+[71/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/sha256-internal.c.o
+[72/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/md5.c.o
+[73/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/rc4.c.o
+[74/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_random.c.o
+[75/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/hostap/crypto/md5-internal.c.o
+[76/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/wifi_broker.c.o
+[77/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/wifi_dispatch.c.o
+[78/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/scan_collector.c.o
+[79/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/wifi_scan.c.o
+[80/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/skw_netdev.c.o
+[81/157] Building C object apps/examples/k7radio/CMakeFiles/apps_k7radio.dir/radio_fence.c.o
+[82/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/stream_ring.c.o
+[83/157] Building C object apps/examples/k7smp/CMakeFiles/apps_k7smp.dir/k7smp_main.c.o
+[84/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/playback_filter.c.o
+[85/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/mmu_command.c.o
+[86/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/duplex.c.o
+[87/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/command_core.c.o
+[88/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/mmu_probe.c.o
+[89/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/snapshot_arm64.c.o
+[90/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/live.c.o
+[91/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/i2c3_timing.c.o
+[92/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/k7sound_main.c.o
+[93/157] Building C object apps/examples/k7host/CMakeFiles/apps_k7host.dir/k7_pose.c.o
+[94/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/observe.c.o
+[95/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/platform.c.o
+[96/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/codec_duplex.c.o
+[97/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/rx2_ready.c.o
+[98/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/reset_probe.c.o
+[99/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/start_clear.c.o
+[100/157] Building C object apps/examples/k7sound/CMakeFiles/apps_k7sound.dir/pio.c.o
+[101/157] Building C object apps/examples/k7usb/CMakeFiles/apps_k7usb.dir/k7usb_main.c.o
+[102/157] Building C object apps/examples/k7storage/CMakeFiles/apps_k7storage.dir/k7storage_main.c.o
+[103/157] Building CXX object apps/examples/voicelink/CMakeFiles/apps_k7voice.dir/src/voice_wifi_adapter.cpp.o
+[104/157] Building CXX object apps/examples/voicelink/CMakeFiles/apps_k7voice.dir/src/k7voice_main.cpp.o
+[105/157] Building C object apps/external/android/CMakeFiles/android.dir/dummy.c.o
+[106/157] Linking C static library apps/external/libjpeg-turbo/libturbojpeg-static.a
+[107/157] Building C object apps/builtin/CMakeFiles/apps_builtin.dir/builtin_list.c.o
+[108/157] Building ASM object CMakeFiles/nuttx.dir/arch/arm64/src/common/arm64_head.S.o
+[109/157] Building CXX object CMakeFiles/nuttx.dir/empty.cxx.o
+[110/157] Building C object CMakeFiles/nuttx.dir/empty.c.o
+[111/157] Linking C static library arch/libarch.a
+[112/157] Linking C static library binfmt/libbinfmt.a
+[113/157] Linking C static library drivers/libdrivers.a
+[114/157] Linking C static library fs/libfs.a
+[115/157] Building CXX object apps/examples/voicelink/CMakeFiles/apps_k7voice.dir/src/voice_loop.cpp.o
+[116/157] Linking CXX static library libs/libxx/libcxx/liblibcxx.a
+[117/157] Linking CXX static library libs/libxx/libcxxabi/liblibcxxabi.a
+[118/157] Building CXX object apps/examples/voicelink/CMakeFiles/apps_k7voice.dir/src/core.cpp.o
+[119/157] Linking C static library mm/libmm.a
+[120/157] Linking C static library sched/libsched.a
+[121/157] Linking C static library wireless/libwireless.a
+[122/157] Linking C static library boards/libboard.a
+[123/157] Linking C static library net/libnet.a
+[124/157] Building CXX object apps/examples/voicelink/CMakeFiles/apps_k7voice.dir/src/parsers.cpp.o
+[125/157] Linking C static library apps/libapps.a
+[126/157] Linking C static library apps/system/nsh/libapps_nsh.a
+[127/157] Linking C static library apps/system/nsh/libapps_sh.a
+[128/157] Linking C static library apps/system/ping/libapps_ping.a
+[129/157] Linking C static library apps/examples/gimbal/libapps_gimbal.a
+[130/157] Linking C static library apps/wireless/bluetooth/btsak/libapps_bt.a
+[131/157] Linking C static library apps/examples/hello/libapps_hello.a
+[132/157] Linking CXX static library apps/examples/k7arena/libapps_k7arena.a
+[133/157] Linking C static library apps/examples/k7agent/libapps_k7cloud.a
+[134/157] Linking C static library apps/crypto/mbedtls/libmbedtls.a
+[135/157] Linking C static library libs/libc/libc.a
+[136/157] Linking C static library apps/examples/k7audio/libapps_k7audio.a
+[137/157] Linking CXX static library apps/examples/k7cxx/libapps_k7cxx.a
+[138/157] Linking CXX static library apps/examples/k7eh/libapps_k7eh.a
+[139/157] Linking C static library apps/examples/k7emmc/libapps_k7emmc.a
+[140/157] Linking C static library apps/examples/k7load/libapps_k7load.a
+[141/157] Linking C static library apps/examples/k7mem/libapps_k7mem.a
+[142/157] Linking C static library apps/examples/k7neon/libapps_k7neon.a
+[143/157] Linking C static library apps/examples/k7host/libapps_k7host.a
+[144/157] Linking C static library apps/examples/k7npu/libapps_k7npu.a
+[145/157] Linking C static library apps/examples/k7smp/libapps_k7smp.a
+[146/157] Linking C static library apps/examples/k7storage/libapps_k7storage.a
+[147/157] Linking C static library apps/examples/k7usb/libapps_k7usb.a
+[148/157] Linking C static library apps/examples/k7sound/libapps_k7sound.a
+[149/157] Linking C static library apps/external/android/libandroid.a
+[150/157] Linking C static library apps/builtin/libapps_builtin.a
+[151/157] Linking CXX static library apps/examples/voicelink/libapps_k7voice.a
+[152/157] Linking CXX static library apps/examples/k7graph/libapps_k7graph.a
+[153/157] Linking C static library apps/examples/k7radio/libapps_k7radio.a
+[154/157] Building C object arch/arm64/src/common/CMakeFiles/STARTUP_OBJS.dir/crt0.c.o
+[155/157] Linking CXX executable nuttx
+Memory region         Used Size  Region Size  %age Used
+            dram:       9604 KB       126 MB      7.44%
+[156/157] Generating System.map
+[157/157] Generating nuttx.bin

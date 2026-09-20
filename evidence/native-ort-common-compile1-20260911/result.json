@@ -1,0 +1,131 @@
+{
+  "results": [
+    {
+      "source": "onnxruntime/core/common/cpuid_info.cc",
+      "exit_code": 0,
+      "seconds": 1.5600372189946938,
+      "log": "0.log"
+    },
+    {
+      "source": "onnxruntime/core/common/cpuid_uarch.cc",
+      "exit_code": 0,
+      "seconds": 1.7396897739963606,
+      "log": "1.log"
+    },
+    {
+      "source": "onnxruntime/core/common/denormal.cc",
+      "exit_code": 0,
+      "seconds": 1.6325439009960974,
+      "log": "2.log"
+    },
+    {
+      "source": "onnxruntime/core/common/helper.cc",
+      "exit_code": 0,
+      "seconds": 1.5449905630084686,
+      "log": "3.log"
+    },
+    {
+      "source": "onnxruntime/core/common/logging/capture.cc",
+      "exit_code": 0,
+      "seconds": 2.012034201005008,
+      "log": "4.log"
+    },
+    {
+      "source": "onnxruntime/core/common/logging/logging.cc",
+      "exit_code": 1,
+      "seconds": 1.51391283099656,
+      "log": "5.log"
+    },
+    {
+      "source": "onnxruntime/core/common/logging/sinks/ostream_sink.cc",
+      "exit_code": 1,
+      "seconds": 0.19522671299637295,
+      "log": "6.log"
+    },
+    {
+      "source": "onnxruntime/core/common/path.cc",
+      "exit_code": 0,
+      "seconds": 3.792030263997731,
+      "log": "7.log"
+    },
+    {
+      "source": "onnxruntime/core/common/profiler.cc",
+      "exit_code": 1,
+      "seconds": 0.03326703999482561,
+      "log": "8.log"
+    },
+    {
+      "source": "onnxruntime/core/common/profiler_common.cc",
+      "exit_code": 0,
+      "seconds": 1.49826085800305,
+      "log": "9.log"
+    },
+    {
+      "source": "onnxruntime/core/common/status.cc",
+      "exit_code": 0,
+      "seconds": 2.7349154140101746,
+      "log": "10.log"
+    },
+    {
+      "source": "onnxruntime/core/common/threadpool.cc",
+      "exit_code": 0,
+      "seconds": 10.398433410999132,
+      "log": "11.log"
+    },
+    {
+      "source": "onnxruntime/core/platform/env.cc",
+      "exit_code": 0,
+      "seconds": 1.896723516008933,
+      "log": "12.log"
+    },
+    {
+      "source": "onnxruntime/core/platform/env_time.cc",
+      "exit_code": 0,
+      "seconds": 0.07110106700565666,
+      "log": "13.log"
+    },
+    {
+      "source": "onnxruntime/core/platform/logging/make_platform_default_log_sink.cc",
+      "exit_code": 0,
+      "seconds": 1.9357872440014035,
+      "log": "14.log"
+    },
+    {
+      "source": "onnxruntime/core/platform/path_lib.cc",
+      "exit_code": 0,
+      "seconds": 1.860284087000764,
+      "log": "15.log"
+    },
+    {
+      "source": "onnxruntime/core/platform/posix/env.cc",
+      "skipped": "patched Env v2 compiled separately"
+    },
+    {
+      "source": "onnxruntime/core/platform/posix/env_time.cc",
+      "exit_code": 0,
+      "seconds": 0.07725830300478265,
+      "log": "17.log"
+    },
+    {
+      "source": "onnxruntime/core/platform/posix/ort_mutex.cc",
+      "exit_code": 0,
+      "seconds": 2.5952082650037482,
+      "log": "18.log"
+    },
+    {
+      "source": "onnxruntime/core/platform/posix/stacktrace.cc",
+      "exit_code": 0,
+      "seconds": 1.6860739149997244,
+      "log": "19.log"
+    },
+    {
+      "source": "onnxruntime/core/platform/telemetry.cc",
+      "exit_code": 0,
+      "seconds": 1.9967924329976086,
+      "log": "20.log"
+    }
+  ],
+  "linked": false,
+  "hardware_tested": false,
+  "scope": "explicit common/platform source compilation using prior native Env header environment"
+}

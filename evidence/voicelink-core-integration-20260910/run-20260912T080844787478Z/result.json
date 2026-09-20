@@ -1,0 +1,88 @@
+{
+  "hardware_tested": false,
+  "scope": "formal C++ core, simulated audio/Wi-Fi",
+  "source_before": {
+    "app\\voicelink\\include\\voicelink\\controller.hpp": "f56383abee6ac0df2a64adff8d2fe48aa7df5af8d03fad71d0af56b71040127c",
+    "app\\voicelink\\include\\voicelink\\parsers.hpp": "48128db551cbf8a9775d3bdaa168d77d43141e9cfa56dca7baa59b0f97d10a3b",
+    "app\\voicelink\\include\\voicelink\\ports.hpp": "5bbd12bd9565b9971fe4610a7a0339a1c6081c31a776cc590241c3b57f8b5bd8",
+    "app\\voicelink\\include\\voicelink\\types.hpp": "e7c164d7b123f673eb91ce2371c7a73de2552f9db7f4d6c2851b61f4bd9fc7bf",
+    "app\\voicelink\\src\\core.cpp": "fa6a9a35f8b18bfc6bda6c72b2e1836c79e02f183a985cc9496597682cd35a61",
+    "app\\voicelink\\src\\k7voice_main.cpp": "aec57e42fac80d588383c8249684c5eb8769dd0be0e9eabb3dc30b16bfe01133",
+    "app\\voicelink\\src\\parsers.cpp": "6cf11624b7420eb286e294e6ff758ebae3cf989cc071705d034cf70caf7aa3df",
+    "app\\voicelink\\src\\voice_wifi_adapter.cpp": "04031a8e96ee93833190c4a46c0f714fd64cacaf9e724b357b2e4461ce8c6887",
+    "app\\voicelink\\src\\voice_wifi_adapter.hpp": "f1684f8d2cc0c735811ba88ad93794ccd1f36d694a1c70bcddfb18659752a263",
+    "app\\voicelink\\tests\\test_flow.cpp": "64d02bdcc3ccec0944da30e11c6439701377a29d347d074a5c669ab2edfd34f7"
+  },
+  "steps": [
+    {
+      "name": "compile-O0",
+      "argv": [
+        "D:/software/mingw64/mingw64/bin/g++.exe",
+        "-std=c++17",
+        "-O0",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-IE:\\openvela\\VelaVision\\app\\voicelink\\include",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\core.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\parsers.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\tests\\test_flow.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260912T080844787478Z\\flow-O0.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "run-O0",
+      "argv": [
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260912T080844787478Z\\flow-O0.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "compile-O2",
+      "argv": [
+        "D:/software/mingw64/mingw64/bin/g++.exe",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-IE:\\openvela\\VelaVision\\app\\voicelink\\include",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\core.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\parsers.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\tests\\test_flow.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260912T080844787478Z\\flow-O2.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "run-O2",
+      "argv": [
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260912T080844787478Z\\flow-O2.exe"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "passed": true,
+  "source_after": {
+    "app\\voicelink\\include\\voicelink\\controller.hpp": "f56383abee6ac0df2a64adff8d2fe48aa7df5af8d03fad71d0af56b71040127c",
+    "app\\voicelink\\include\\voicelink\\parsers.hpp": "48128db551cbf8a9775d3bdaa168d77d43141e9cfa56dca7baa59b0f97d10a3b",
+    "app\\voicelink\\include\\voicelink\\ports.hpp": "5bbd12bd9565b9971fe4610a7a0339a1c6081c31a776cc590241c3b57f8b5bd8",
+    "app\\voicelink\\include\\voicelink\\types.hpp": "e7c164d7b123f673eb91ce2371c7a73de2552f9db7f4d6c2851b61f4bd9fc7bf",
+    "app\\voicelink\\src\\core.cpp": "fa6a9a35f8b18bfc6bda6c72b2e1836c79e02f183a985cc9496597682cd35a61",
+    "app\\voicelink\\src\\k7voice_main.cpp": "aec57e42fac80d588383c8249684c5eb8769dd0be0e9eabb3dc30b16bfe01133",
+    "app\\voicelink\\src\\parsers.cpp": "6cf11624b7420eb286e294e6ff758ebae3cf989cc071705d034cf70caf7aa3df",
+    "app\\voicelink\\src\\voice_wifi_adapter.cpp": "04031a8e96ee93833190c4a46c0f714fd64cacaf9e724b357b2e4461ce8c6887",
+    "app\\voicelink\\src\\voice_wifi_adapter.hpp": "f1684f8d2cc0c735811ba88ad93794ccd1f36d694a1c70bcddfb18659752a263",
+    "app\\voicelink\\tests\\test_flow.cpp": "64d02bdcc3ccec0944da30e11c6439701377a29d347d074a5c669ab2edfd34f7"
+  },
+  "source_unchanged": true
+}

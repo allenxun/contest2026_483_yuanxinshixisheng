@@ -1,0 +1,57 @@
+{
+  "scope": "real app source with mock APIs; geometry shape not target verified",
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Imock",
+        "test_storage.c",
+        "-o",
+        "original.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\storage-probe-review-v1\\original.exe"
+      ],
+      "returncode": 0,
+      "stdout": "USB_STORAGE command=start result=0 mount_attempted=0\r\nUSB_STORAGE command=start result=-5 mount_attempted=0\r\nusage: k7storage start|list|read /dev/sdX (USB read-only, no mount)\r\nusage: k7storage start|list|read /dev/sdX (USB read-only, no mount)\r\nUSB_STORAGE command=read result=-22 mount_attempted=0\r\nUSB_STORAGE command=read result=-22 mount_attempted=0\r\nUSB_STORAGE busy\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nUSB_STORAGE command=list result=-5 mount_attempted=0\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=2048 readonly=1 lba=0 reads=2 crc32=cc6b99f0 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nUSB_STORAGE read node=/dev/sda sector_size=1024 sectors=2048 readonly=1 lba=0 reads=2 crc32=16ba80b9 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nUSB_STORAGE read node=/dev/sda sector_size=2048 sectors=2048 readonly=1 lba=0 reads=2 crc32=a41b70e9 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nUSB_STORAGE read node=/dev/sda sector_size=4096 sectors=2048 readonly=1 lba=0 reads=2 crc32=12673e47 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nUSB_STORAGE command=read result=-2 mount_attempted=0\r\nUSB_STORAGE command=read result=-40 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-42 mount_attempted=0\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=2048 readonly=1 lba=0 reads=2 crc32=cc6b99f0 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nMOCK PASS parameters/start/list/read/geometry/short-read/mismatch/close; no target/device calls\r\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Imock",
+        "-DFIXED",
+        "test_storage.c",
+        "-o",
+        "candidate.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\storage-probe-review-v1\\candidate.exe"
+      ],
+      "returncode": 0,
+      "stdout": "USB_STORAGE command=start result=0 mount_attempted=0\r\nUSB_STORAGE command=start result=-5 mount_attempted=0\r\nusage: k7storage start|list|read /dev/sdX (USB read-only, no mount)\r\nusage: k7storage start|list|read /dev/sdX (USB read-only, no mount)\r\nUSB_STORAGE command=read result=-22 mount_attempted=0\r\nUSB_STORAGE command=read result=-22 mount_attempted=0\r\nUSB_STORAGE busy\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nUSB_STORAGE command=list result=-5 mount_attempted=0\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=-5 mount_attempted=0\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=-5 mount_attempted=0\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=-7 mount_attempted=0\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=2048 readonly=1 lba=0 reads=2 crc32=cc6b99f0 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nUSB_STORAGE read node=/dev/sda sector_size=1024 sectors=2048 readonly=1 lba=0 reads=2 crc32=16ba80b9 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nUSB_STORAGE read node=/dev/sda sector_size=2048 sectors=2048 readonly=1 lba=0 reads=2 crc32=a41b70e9 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nUSB_STORAGE read node=/dev/sda sector_size=4096 sectors=2048 readonly=1 lba=0 reads=2 crc32=12673e47 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nUSB_STORAGE command=read result=-2 mount_attempted=0\r\nUSB_STORAGE command=read result=-40 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nUSB_STORAGE command=read result=-42 mount_attempted=0\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=2048 readonly=1 lba=0 reads=2 crc32=cc6b99f0 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nMOCK PASS parameters/start/list/read/geometry/short-read/mismatch/close; no target/device calls\r\n",
+      "stderr": ""
+    }
+  ]
+}

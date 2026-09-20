@@ -1,0 +1,336 @@
+{
+  "session_id": "01a0892e-2964-7ec3-bd76-9ab4937980cb",
+  "exclusions": "vendor separately covered by source-manifest and official source archive; regenerable build intermediates excluded; index excludes itself",
+  "files": [
+    {
+      "path": "archive-verification.json",
+      "sha256": "00a59e6b2b26c460acc29e83ed3923633499995df371518e26dc731e0b734346",
+      "bytes": 107
+    },
+    {
+      "path": "candidate\\ggml-backend-reg.cpp",
+      "sha256": "4a0f4785488840f343ad7b6ed883d6962d0897fb8533791bfa0137abdaee2248",
+      "bytes": 5886
+    },
+    {
+      "path": "candidate\\ggml-cpu.c",
+      "sha256": "24cdd4a9679ae2176468498075bc44ce39066474c2ac8f3ccb13141d6e452a67",
+      "bytes": 489259
+    },
+    {
+      "path": "candidate\\LICENSE",
+      "sha256": "e562a2ddfaf8280537795ac5ecd34e3012b6582a147ef69ba6a6a5c08c84757d",
+      "bytes": 1078
+    },
+    {
+      "path": "candidate\\pool-create.inc",
+      "sha256": "7ffaf91c32817b0bf677451b0bc4db8054d0cec838122d145c8049aac915b877",
+      "bytes": 4236
+    },
+    {
+      "path": "candidate\\pool-destroy.inc",
+      "sha256": "9798c616ede776a3d461b926ea5a947b451042bec054a9ee8c97b85c7ab6a356",
+      "bytes": 1737
+    },
+    {
+      "path": "candidate\\pool-safety.patch",
+      "sha256": "07e1a06a08248048f371c32d2e9ec3255f7f9b03331420dc244be85ecdd0512d",
+      "bytes": 12228
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "7e022e1f880756888a5ca99f8a689fb1ad9bc416229bb35eb33ef435df672a73",
+      "bytes": 1553
+    },
+    {
+      "path": "CONTRACT.md",
+      "sha256": "6ba3b0b7ab3962d259cb473276dddc5713719a7c4bf2175223ed85c2f607089f",
+      "bytes": 5074
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\CMakeCache.txt",
+      "sha256": "e775339f154d97bbdd218f700f65269d56ee86e3274dd539c5e1d123f49970c9",
+      "bytes": 29392
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\CMakeFiles\\3.31.6\\CompilerIdC\\a.exe",
+      "sha256": "673cd90d93620df01c5b781b1bb2b46f35b1df2f9a2161b2b4bd71a25bc46ced",
+      "bytes": 44766
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\CMakeFiles\\3.31.6\\CompilerIdCXX\\a.exe",
+      "sha256": "8281913136a1348943ed6b41267089ac4713496e998b159b1496de141f2a183f",
+      "bytes": 44794
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\CMakeFiles\\pool-test.dir\\link.txt",
+      "sha256": "566dd89b071fee4992e5de0d587b0cc313a75f3d44ba277dfe5e4bafd03b99e4",
+      "bytes": 534
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\CMakeFiles\\pool-test.dir\\linkLibs.rsp",
+      "sha256": "72677a9c0dad144d8cc3d04dbb46b5ca3bc71d22d861cb8bf4d51648f103faea",
+      "bytes": 179
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\compile_commands.json",
+      "sha256": "eb9a9db9386f3fa840169e0050d7e6e8beed6589e45f50fac331fc8f81a2112d",
+      "bytes": 36330
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\llama\\ggml\\src\\CMakeFiles\\ggml-base.dir\\link.txt",
+      "sha256": "7c31cc2cfda11741872e7789ce55db4d834c33e3b045bc27af780cfb75d94d84",
+      "bytes": 420
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\llama\\ggml\\src\\CMakeFiles\\ggml-cpu.dir\\link.txt",
+      "sha256": "0ddbdfc18fa69ef6164b0b02a87b3f6018d7b7a825e9d538e8f48f3c727721dd",
+      "bytes": 665
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\llama\\ggml\\src\\CMakeFiles\\ggml.dir\\link.txt",
+      "sha256": "d6f1ca9cc272b49d47ed9ffaccac757f03424c0babbb387a3f211d71f96c8365",
+      "bytes": 170
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\llama\\ggml\\src\\ggml-base.a",
+      "sha256": "f8eb5d00094aac596ab6e62d95094f431b3db5190e0caade7bca33511cd3a1ba",
+      "bytes": 802012
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\llama\\ggml\\src\\ggml-cpu.a",
+      "sha256": "714003ce049c73612cc63d2a36c9b8141c9d9754ca2ce23a1b891c12680bc3ac",
+      "bytes": 597646
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\llama\\ggml\\src\\ggml.a",
+      "sha256": "4e0b5e3aa6c275698cafaa1a41961e0a32766364a55e854eea071e085650f42e",
+      "bytes": 14692
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\llama\\src\\CMakeFiles\\llama.dir\\link.txt",
+      "sha256": "1e1d5101bb14244af6fa1b2bd5671e5f2292a8a31559458d7aa32b93be84caad",
+      "bytes": 1014
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\build\\pool-test.exe",
+      "sha256": "f5f76e8a34f28a659064a5c6329a127636feca8536df12ba5cbeb9ea4f2f2a23",
+      "bytes": 1048427
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\commands.json",
+      "sha256": "7ad422df1da5e23904e6226c4ee5668e292954d4ab4c8492959dea09812b622c",
+      "bytes": 1628
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\compile.log",
+      "sha256": "3a23deb422a58c20425f63255bea5d7416c01878b658cea8e9ad488531d166d9",
+      "bytes": 7514
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\configure.log",
+      "sha256": "95192bdfb1039d75750b583c0361b084d1174286bdd95e2e324abcc2e0fd8b0c",
+      "bytes": 1370
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\inputs.json",
+      "sha256": "4be3371da126c41ebc5d44b2c6537aa665feca4b0a202a27477e171c224a122a",
+      "bytes": 643
+    },
+    {
+      "path": "evidence\\run-20260910T063319698940Z\\pool-test.log",
+      "sha256": "16743125b9e2797a360ea68d463047d6aff7603c57ca3dbc49f40b0eca9f4c3b",
+      "bytes": 81
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\audit.json",
+      "sha256": "da0d2345d927076cf910aad4d0b8cf1f8f920b1c1541d9748399523de8e76007",
+      "bytes": 3005
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\CMakeCache.txt",
+      "sha256": "119da5239d1c0264646a1e85fe5ca3afa96ca21d1f6ae45c124d6b2ade1bbde8",
+      "bytes": 29392
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\CMakeFiles\\3.31.6\\CompilerIdC\\a.exe",
+      "sha256": "82321ff6cf69049e65f3fa2e81dbac99e5fae4dbf2f03262371e435219a3b64b",
+      "bytes": 44766
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\CMakeFiles\\3.31.6\\CompilerIdCXX\\a.exe",
+      "sha256": "bb41eff6393d51b60230ee2a792217856c582aea9a9e2677ae4fe746ed25e587",
+      "bytes": 44794
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\CMakeFiles\\pool-test.dir\\link.txt",
+      "sha256": "566dd89b071fee4992e5de0d587b0cc313a75f3d44ba277dfe5e4bafd03b99e4",
+      "bytes": 534
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\CMakeFiles\\pool-test.dir\\linkLibs.rsp",
+      "sha256": "72677a9c0dad144d8cc3d04dbb46b5ca3bc71d22d861cb8bf4d51648f103faea",
+      "bytes": 179
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\compile_commands.json",
+      "sha256": "044ca858bc3c66bb51c0e8305c594b4ea4be34493f5ba2f6682f14ef2a590096",
+      "bytes": 36330
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\CMakeFiles\\ggml-base.dir\\link.txt",
+      "sha256": "7c31cc2cfda11741872e7789ce55db4d834c33e3b045bc27af780cfb75d94d84",
+      "bytes": 420
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\CMakeFiles\\ggml-cpu.dir\\link.txt",
+      "sha256": "0ddbdfc18fa69ef6164b0b02a87b3f6018d7b7a825e9d538e8f48f3c727721dd",
+      "bytes": 665
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\CMakeFiles\\ggml.dir\\link.txt",
+      "sha256": "d6f1ca9cc272b49d47ed9ffaccac757f03424c0babbb387a3f211d71f96c8365",
+      "bytes": 170
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-base.a",
+      "sha256": "87ad2a1d2723930ef91b358c8561b3d5354c17fe21354ec2353dfaae35c5d5d1",
+      "bytes": 802012
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-cpu.a",
+      "sha256": "1aadee4308db07173a510b39e3562e3dab47cae99ceb20b3a7baac2d627aeed5",
+      "bytes": 597646
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml.a",
+      "sha256": "850ba36543c98e81fb71dd4124017d2374643d706ac697ef7993c775b7afd73e",
+      "bytes": 14692
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\llama\\src\\CMakeFiles\\llama.dir\\link.txt",
+      "sha256": "1e1d5101bb14244af6fa1b2bd5671e5f2292a8a31559458d7aa32b93be84caad",
+      "bytes": 1014
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\build\\pool-test.exe",
+      "sha256": "95f1fae7877f3180b7463040bb9f2bd63af77d7541250322b26499ac9e01f9a1",
+      "bytes": 1048939
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\commands.json",
+      "sha256": "283ef397a532b734dd54f24d75221d3aea9ba5236fbdbafd33225756e050441c",
+      "bytes": 1656
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\compile.log",
+      "sha256": "490db78167389bccbdcb27f25328b9666ab0da5e37c4d5c890f4fc601b136e58",
+      "bytes": 7514
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\configure.log",
+      "sha256": "d010259d6dfdc09f5bdb8acd2016612d99965e064734475c017da7c4bee9d62b",
+      "bytes": 1370
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\cpu-undefined.log",
+      "sha256": "4adb347a8fc9af7f8eb94d0b63865b751c9403ffd64dbab3f561246ab1b87e72",
+      "bytes": 11118
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\inputs.json",
+      "sha256": "6dc64256f80733ad2f21be3f268d4a41051686b191ac39d31088f15f1360e76e",
+      "bytes": 643
+    },
+    {
+      "path": "evidence\\run-20260910T063440936377Z\\pool-test.log",
+      "sha256": "aee9150921da0fc4e327f6632dfcb99847010abd8e27b7bbac47eb47f59512a0",
+      "bytes": 81
+    },
+    {
+      "path": "HANDOFF.md",
+      "sha256": "ebfe9a858039255be8820831b2241b20244467289868a108d0eb50d8509e48d1",
+      "bytes": 4107
+    },
+    {
+      "path": "include\\ggml-pool-safe.h",
+      "sha256": "1c318a45655a8fbd14dfe8393c142114510102a117f95a26e24a775a037ad775",
+      "bytes": 1917
+    },
+    {
+      "path": "input\\candidate\\ggml-backend-reg.cpp",
+      "sha256": "4a0f4785488840f343ad7b6ed883d6962d0897fb8533791bfa0137abdaee2248",
+      "bytes": 5886
+    },
+    {
+      "path": "input\\candidate\\LICENSE",
+      "sha256": "e562a2ddfaf8280537795ac5ecd34e3012b6582a147ef69ba6a6a5c08c84757d",
+      "bytes": 1078
+    },
+    {
+      "path": "input\\CMakeLists.txt",
+      "sha256": "c88618c501f6bc2f7b400f406910605f1107116fc8ce046851f3fe5ca17bfcbd",
+      "bytes": 1466
+    },
+    {
+      "path": "input\\DEPENDENCIES.md",
+      "sha256": "acb772d5a4fb7cd81209498246ef1f1ee7459dce48922207a898890e054b6cdf",
+      "bytes": 8190
+    },
+    {
+      "path": "input\\HANDOFF.md",
+      "sha256": "ebea6b21ab69c7f40cfacaee964ae2f30e0a30fc3aa2b874c0ca32dd7a49ceef",
+      "bytes": 5257
+    },
+    {
+      "path": "input\\input\\llama-74d4f5b041ad837153b0e90fc864b8290e01d8d5.tar.gz",
+      "sha256": "8dd9fcc7c17f972673960ffdcc7521f52de5a9ec594aa6acebd9dfd8c17c0a5c",
+      "bytes": 20880037
+    },
+    {
+      "path": "input\\sources.json",
+      "sha256": "40c23b64093e5fa37094dcef62c69153f58838f1e17c970b069aca7a5cbb5f69",
+      "bytes": 1716
+    },
+    {
+      "path": "input\\VERSION.json",
+      "sha256": "692c3e095c7a242cbaab702386f4056d1770ed63a3acf7e06b91eb327ad30d7c",
+      "bytes": 428
+    },
+    {
+      "path": "scripts\\audit.py",
+      "sha256": "2dd9ee242af6e3113a74bc6215addd2618271c9b89c54db09e1350e22ad8b016",
+      "bytes": 1509
+    },
+    {
+      "path": "scripts\\build.py",
+      "sha256": "4d01292f0762e1ef5408df4760333d802dbe45c0e65e51a6cfd513b4fa1daa79",
+      "bytes": 1915
+    },
+    {
+      "path": "scripts\\derive.py",
+      "sha256": "52ac385674a8c318f3febd3d2a8fa08ac91e60cc1b3b147d2f66361d92080ef3",
+      "bytes": 2915
+    },
+    {
+      "path": "scripts\\package.py",
+      "sha256": "4a7ca5e90f661d58afc2a181b35e0407972241cd58c5ce5e10e5cc1f6fcde707",
+      "bytes": 1617
+    },
+    {
+      "path": "scripts\\prepare.py",
+      "sha256": "17799e8c45dfc04b06ec472577ece1c54a2f46c74adf818ed38eb4062b269c1f",
+      "bytes": 1121
+    },
+    {
+      "path": "source-manifest.json",
+      "sha256": "a5c38e51683da1b0b1956f47b500c6002072a30f3a5bff649e6606b1fcdfbfce",
+      "bytes": 262447
+    },
+    {
+      "path": "tests\\pool.c",
+      "sha256": "434a925535b9702c35871828bd94d823de1b15efb1d24fbac7f49b6fcae2740a",
+      "bytes": 6423
+    }
+  ]
+}

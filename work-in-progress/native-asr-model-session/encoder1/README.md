@@ -1,0 +1,11 @@
+# Encoder 原生会话验证
+
+沿用已通过decoder会话的2048条有界分配记录及768MiB配额，改为锁定166189616字节encoder模型。本候选尚未上板。Session创建通过也不等于推理/识别通过。
+
+现有U-Boot源码cmd/fastboot.c和f_fastboot.c确认下载缓冲区是编译期地址/大小，没有运行时-l/-s参数。因此不扩大旧缓冲区，采用96MiB第一段、剩余encoder与固件第二段；完整encoder校验通过后才启动固件。模型RAM地址0x80000000，复制至独立持久模型池缓冲区后再次SHA256验证。
+
+ASR正式接口仍需调整Sherpa的ReadFile整文件普通堆加载路径；当前大模型不能直接采用该路径。下一阶段需真实特征输入与encoder/decoder推理，之后接麦克风和规则配网。
+
+实测分段失败保留：第一段初始CRC90aed6ae通过；U-Boot reset并重进USB后第一段CRC变成0f6675f7，拒绝启动。第二段USB及其尾段CRC正确，已从下载缓冲复制到0x86000000并校验b5f7ae2d。后续不允许跨分段重置板子；仅重连VMware USB，补传115348800字节第一段+固件，先查尾段、再全encoder、再固件CRC。当前等待USB连接，尚未创建encoder Session。
+
+最新验收：保留0x86000000尾段并复查后，补传第一段+固件，完整encoder CRC b20f998f通过；原生encoder Session创建/释放成功，峰值324515048字节、818条记录、分配失败0、释放后0。acceptance.json和probe日志为证据。encoder与decoder分别在不同诊断镜像验证，未同时加载，未Run音频推理，不能算ASR识别或配网通过。

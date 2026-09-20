@@ -1,0 +1,39 @@
+--- sdk/app/k7agent/cloud/src/device_voice_intent.c
++++ app/k7agent/cloud/src/device_voice_intent.c
+@@ -25,8 +25,7 @@
+   if(strstr(normalized,"停止云台") || strstr(normalized,"停止测肤"))return K7_VOICE_STOP;
+   if(strstr(normalized,"停止播报"))return K7_VOICE_QUIET;
+   if(strstr(normalized,"不要") || strstr(normalized,"别启动") || strstr(normalized,"取消启动"))return K7_VOICE_NONE;
+-  if(strstr(normalized,"启动") || strstr(normalized,"openvela") ||
+-     strstr(normalized,"openvlea") || !strcmp(normalized,"开启云台"))return K7_VOICE_TRACK;
++  if(!strncmp(normalized,"你好",strlen("你好")))return K7_VOICE_TRACK;
+   if(!strcmp(normalized,"皮肤检测") || !strcmp(normalized,"开始皮肤检测") ||
+      !strcmp(normalized,"测肤") || !strcmp(normalized,"开始测肤"))return K7_VOICE_PHOTO;
+   if(!strcmp(normalized,"停止云台") || !strcmp(normalized,"停止测肤"))return K7_VOICE_STOP;
+--- sdk/app/k7agent/cloud/src/board_voice_prompts.inc
++++ app/k7agent/cloud/src/board_voice_prompts.inc
+@@ -2,19 +2,19 @@
+ struct k7_prompt_entry { const char *key; const char *text; };
+ static const struct k7_prompt_entry k7_voice_prompts[] = {
+   {"tracking_starting", "正在启动云台，请稍候。"},
+-  {"tracking_ready", "云台已启动。您可以说皮肤检测。"},
++  {"tracking_ready", "OpenVela 云台已启动。您可以说开始测肤。"},
+   {"tracking_failed", "云台启动失败，请检查设备连接。"},
+-  {"assessment_starting", "开始皮肤检测，请按照提示调整角度。"},
++  {"assessment_starting", "开始测肤，请正对镜头。"},
+   {"face_missing", "暂时没有检测到人脸，请面对摄像头。"},
+   {"front_aligning", "正在对准正面，请保持稳定。"},
+   {"front_ready", "正面角度已达标。"},
+-  {"front_saved", "正面拍照完成。"},
++  {"front_saved", "正脸拍照完成。"},
+   {"left_aligning", "请向您的左侧缓慢转头，角度合适时会自动拍照。"},
+   {"left_ready", "左侧角度已达标。"},
+-  {"left_saved", "左侧拍照完成。"},
++  {"left_saved", "左侧脸拍照完成。"},
+   {"right_aligning", "请向您的右侧缓慢转头，角度合适时会自动拍照。"},
+   {"right_ready", "右侧角度已达标。"},
+-  {"right_saved", "右侧拍照完成。"},
++  {"right_saved", "右侧脸拍照完成。"},
+   {"capture_complete", "三视图拍摄完成，正在上传。"},
+   {"upload_accepted", "照片已提交，正在分析，请稍候。"},
+   {"upload_failed", "照片上传失败，尚未提交成功。"},

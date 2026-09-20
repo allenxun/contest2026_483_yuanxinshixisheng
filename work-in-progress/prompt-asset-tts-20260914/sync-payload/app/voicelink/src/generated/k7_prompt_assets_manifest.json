@@ -1,0 +1,230 @@
+{
+  "generator": "generate_prompt_assets.py",
+  "speaker_id": 21,
+  "sample_rate": 16000,
+  "target_peak_ratio": 0.9,
+  "vits_length_scale": 0.82,
+  "model_sha256": "5511d651b7840c0a93a6bbfd4afd070a2c7f39ca1ec3ff2ecd73191519bbb852",
+  "prompts": {
+    "wake": {
+      "text": "还没联网，请说你好联网。",
+      "frames": 35252,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 17626,
+      "source_peak": 10878,
+      "normalized_peak": 29490,
+      "duration_seconds": 2.203,
+      "wav_sha256": "d7ce31e29948ae9d64997ab8d10032e4c68e0b756a6fb149abbae74150781b56"
+    },
+    "speak": {
+      "text": "请说话。",
+      "frames": 14944,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 7472,
+      "source_peak": 6137,
+      "normalized_peak": 29490,
+      "duration_seconds": 0.934,
+      "wav_sha256": "01d4efe57832638cbcd13b2209b663fc2bc967fa19b496b990720f873ce94568"
+    },
+    "start": {
+      "text": "开始配网。",
+      "frames": 17304,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 8652,
+      "source_peak": 9615,
+      "normalized_peak": 29490,
+      "duration_seconds": 1.081,
+      "wav_sha256": "04019146d47223fbb93c67f24ba28fffcf17c3314c53579685adb323a0b74af4"
+    },
+    "found": {
+      "text": "扫描完成。",
+      "frames": 15996,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 7998,
+      "source_peak": 8259,
+      "normalized_peak": 29490,
+      "duration_seconds": 1.0,
+      "wav_sha256": "bdd6a44eaa9952009580a6f264693e96aa4e8d4988f76919813500345cc53daf"
+    },
+    "network_1": {
+      "text": "网络一。",
+      "frames": 14542,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 7271,
+      "source_peak": 8588,
+      "normalized_peak": 29490,
+      "duration_seconds": 0.909,
+      "wav_sha256": "1a08bf8aa13a1267c5bf80416de6b91f6e5bf0655a9d7e47dd555ddc8e9af654"
+    },
+    "network_2": {
+      "text": "网络二。",
+      "frames": 12482,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 6241,
+      "source_peak": 8999,
+      "normalized_peak": 29490,
+      "duration_seconds": 0.78,
+      "wav_sha256": "54956d3934460dbebda0689db318c113bb4085cef0f64327a36acd8403b165d2"
+    },
+    "network_3": {
+      "text": "网络三。",
+      "frames": 13702,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 6851,
+      "source_peak": 6619,
+      "normalized_peak": 29490,
+      "duration_seconds": 0.856,
+      "wav_sha256": "e1c210070347932f44d536eac462601ddbef6ca2856c0e680b25ceb6cc56c317"
+    },
+    "network_4": {
+      "text": "网络四。",
+      "frames": 12674,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 6337,
+      "source_peak": 7977,
+      "normalized_peak": 29490,
+      "duration_seconds": 0.792,
+      "wav_sha256": "09543f9efc68d337fca596a3eac9b8c57c1148f99d6f74d896d006fa0c4338a4"
+    },
+    "network_5": {
+      "text": "网络五。",
+      "frames": 13930,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 6965,
+      "source_peak": 10665,
+      "normalized_peak": 29490,
+      "duration_seconds": 0.871,
+      "wav_sha256": "6b8a152e2424a1ce25c81af906e10ae9c228894be33c51b888c4bb8ad92f918a"
+    },
+    "choose": {
+      "text": "请说序号。",
+      "frames": 16884,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 8442,
+      "source_peak": 5302,
+      "normalized_peak": 29490,
+      "duration_seconds": 1.055,
+      "wav_sha256": "b5a6d3ebd10f036c15567495d66d94d2eeda57519a76d3d2e18efed4996c7d1f"
+    },
+    "no_network": {
+      "text": "没有网络，请重试。",
+      "frames": 21354,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 10677,
+      "source_peak": 10172,
+      "normalized_peak": 29490,
+      "duration_seconds": 1.335,
+      "wav_sha256": "3bf3a99c3875fb082452578ec3f5c0272868a19061ab683c614e8e1b7002bc77"
+    },
+    "selected": {
+      "text": "请输入密码。",
+      "frames": 18732,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 9366,
+      "source_peak": 5203,
+      "normalized_peak": 29490,
+      "duration_seconds": 1.171,
+      "wav_sha256": "decc51da5384dddc79dfd01430e5e4ac20a2e46009d17e28f8aa7a03ccce09b2"
+    },
+    "heard_char": {
+      "text": "已记录。",
+      "frames": 13472,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 6736,
+      "source_peak": 8240,
+      "normalized_peak": 29490,
+      "duration_seconds": 0.842,
+      "wav_sha256": "1711409bb290a42d788256bad8a8b2f00c06be10e74b581a150e5144a8d8fc32"
+    },
+    "not_heard": {
+      "text": "请再说一次。",
+      "frames": 18718,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 9359,
+      "source_peak": 7322,
+      "normalized_peak": 29490,
+      "duration_seconds": 1.17,
+      "wav_sha256": "be054c856711c1eacdaaba6215ae2aa91f65153dad4c4a63d8bf3929d76d035d"
+    },
+    "confirm": {
+      "text": "请确认密码。",
+      "frames": 18324,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 9162,
+      "source_peak": 9449,
+      "normalized_peak": 29490,
+      "duration_seconds": 1.145,
+      "wav_sha256": "c68795f4ce4ca64beea5c6b5e7c64d6db213d39f598a42e8c2c554d5fb4b8456"
+    },
+    "connecting": {
+      "text": "正在连接。",
+      "frames": 17038,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 8519,
+      "source_peak": 7940,
+      "normalized_peak": 29490,
+      "duration_seconds": 1.065,
+      "wav_sha256": "3a1ae1503f2ee97eb8fe2730512cdb88ca075a1b74464f17e86c9a494695ad82"
+    },
+    "connected": {
+      "text": "联网成功。",
+      "frames": 17650,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 8825,
+      "source_peak": 11865,
+      "normalized_peak": 29490,
+      "duration_seconds": 1.103,
+      "wav_sha256": "8220200a0e4a9918f5b12068d1d0eb9647727d88eb03e50e01b8bdacc8e09302"
+    },
+    "wrong_password": {
+      "text": "密码错误，请重试。",
+      "frames": 21858,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 10929,
+      "source_peak": 6201,
+      "normalized_peak": 29490,
+      "duration_seconds": 1.366,
+      "wav_sha256": "bfac954978fd7ca723555e3117eb02d8ea22861792f5f07b2e727d75e2d39223"
+    },
+    "failed": {
+      "text": "联网失败，请重试。",
+      "frames": 22098,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 11049,
+      "source_peak": 9945,
+      "normalized_peak": 29490,
+      "duration_seconds": 1.381,
+      "wav_sha256": "5a218a5c8d80ed3d6867b47a4468a21cfd4f14beda117a21f01db293ac65de14"
+    },
+    "cancelled": {
+      "text": "已取消。",
+      "frames": 14020,
+      "rate": 16000,
+      "source_rate": 8000,
+      "source_frames": 7010,
+      "source_peak": 5414,
+      "normalized_peak": 29490,
+      "duration_seconds": 0.876,
+      "wav_sha256": "3c38db69b6efb23cc25c771842aa16fdf6a8781136029743cd1b2e516d534d4a"
+    }
+  }
+}

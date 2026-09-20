@@ -1,0 +1,36 @@
+{
+  "utc": "2026-09-10T08:36:43Z",
+  "scope": "extracted actual functions + explicit host mocks; not whole FAT/target build",
+  "results": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "--version"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "gcc.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wno-unused-function",
+        "-Wno-unused-parameter",
+        "-Wno-sign-compare",
+        "-DCONFIG_FAT_FORCE_READONLY",
+        "tests/selected_ro.c",
+        "-o",
+        "evidence/selected_ro.exe"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "tests/selected_ro.c:370:3: error: expected identifier or '(' before 'if'\n  370 |   if (fat_fscacheread(fs, fs->fs_fsinfo) == OK)\n      |   ^~\nIn file included from tests/selected_ro.c:1:\ntests/selected_ro.c: In function 'main':\ntests/selected_ro.c:2994:8: error: implicit declaration of function 'fat_fscacheread'; did you mean 'fat_ffcacheread'? [-Werror=implicit-function-declaration]\n 2994 |  CHECK(fat_fscacheread(fs,4)==0 && fs->fs_buffer[0]==4);\n      |        ^~~~~~~~~~~~~~~\ntests/compat.h:62:26: note: in definition of macro 'CHECK'\n   62 | #define CHECK(x) do{if(!(x)){fprintf(stderr,\"FAIL line=%d %s\\n\",__LINE__,#x);return 1;}}while(0)\n      |                          ^\ncc1.exe: all warnings being treated as errors\n"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "scope": "new PCM scalar analysis only; old tests not rerun; no hardware",
+  "records": [
+    {
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "pcm_observer.c",
+        "test_pcm.c",
+        "-o",
+        "test_pcm.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-bringup-gap-v1\\test_pcm.exe"
+      ],
+      "returncode": 0,
+      "stdout": "PASS PCM16LE stereo: signs/extrema/energy/clips/chunks/errors/48000-frame limit; bytes=88 no audio device\r\n",
+      "stderr": ""
+    }
+  ]
+}

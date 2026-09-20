@@ -1,0 +1,43 @@
+{
+  "source": "evidence/audio-rx2-20260910/k7sound-loopback-numbered-20260911-094328.bin",
+  "sha256": "3932e7c02f665a00df4c9c2f95eeff5ca5dfa4d52f3fdc3106c2ae82cb216c67",
+  "words": 256,
+  "zero_words": 194,
+  "invalid": 0,
+  "unique_indices": 62,
+  "strict_contiguous": false,
+  "elapsed_us": 8062,
+  "rx_records": 64,
+  "unchanged": [],
+  "zero_with_net_entry_consumed": 50,
+  "nonzero_with_net_entry_consumed": 14
+}
+{
+  "source": "evidence/audio-rx2-20260910/k7sound-loopback-rx2-20260911-094337.bin",
+  "sha256": "55ab48a6d3a3489cc825f431119909e6f9b79ac7c79820c4cab7ccaa02956a4a",
+  "words": 256,
+  "zero_words": 131,
+  "invalid": 0,
+  "unique_indices": 125,
+  "strict_contiguous": true,
+  "elapsed_us": 4061,
+  "rx_records": 64,
+  "unchanged": [
+    {
+      "index": 1,
+      "us": 346996011,
+      "before": "0x40",
+      "after": "0x40",
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "word": "00000000"
+    }
+  ],
+  "zero_with_net_entry_consumed": 34,
+  "nonzero_with_net_entry_consumed": 29
+}
+PASS raw hashes and strict full-dump parsing; no zeros discarded

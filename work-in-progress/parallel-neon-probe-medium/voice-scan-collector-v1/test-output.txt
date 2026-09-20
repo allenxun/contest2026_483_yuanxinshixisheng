@@ -1,0 +1,10 @@
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O0', '-Wall', '-Wextra', '-Werror', '-pedantic', 'scan_collector.c', 'test.c', '-o', 'testO0.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\voice-scan-collector-v1\\testO0.exe']
+PASS collector: 64/65, full-record replacement, binary SSID, stale/frozen/cancel, overflow; bytes=2960
+EXIT 0
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-pedantic', 'scan_collector.c', 'test.c', '-o', 'testO2.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\voice-scan-collector-v1\\testO2.exe']
+PASS collector: 64/65, full-record replacement, binary SSID, stale/frozen/cancel, overflow; bytes=2960
+EXIT 0

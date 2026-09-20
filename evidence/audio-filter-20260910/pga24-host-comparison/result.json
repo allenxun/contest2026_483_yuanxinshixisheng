@@ -1,0 +1,43 @@
+{
+  "command": [
+    "D:/software/mingw64/mingw64/bin/gcc.exe",
+    "-std=c11",
+    "-O2",
+    "-Wall",
+    "-Wextra",
+    "-Wconversion",
+    "-Werror",
+    "-shared",
+    "E:\\openvela\\VelaVision\\app\\k7sound\\playback_filter.c",
+    "-o",
+    "E:\\openvela\\VelaVision\\evidence\\audio-filter-20260910\\pga24-host-comparison\\filter.dll"
+  ],
+  "stdout": "",
+  "stderr": "",
+  "source": "E:\\openvela\\VelaVision\\evidence\\audio-input-20260910\\voice-pga24-first\\capture-raw32.wav",
+  "source_sha256": "0f176ee9294277215820006b2a0f164947747929bc2cd74bdadd6f4f33b6b993",
+  "code": {
+    "playback_filter.c": "4860010cf4f05d80165bfc9d2165f6508c5a9ebe731679adaef7d11bf1355a3a",
+    "playback_filter.h": "cc1101a309eeb4762d0dc74fd02bc9e6793ea6131ae2b3f201835934cd467b44"
+  },
+  "results": [
+    {
+      "mode": 1,
+      "frames": 48000,
+      "saturations": 0,
+      "file": "ma4.wav",
+      "sha256": "5a88ddd97277fcb5d122ebf0b9c53a45f40c53e7da20dabe0dc1e49c55a38a96"
+    },
+    {
+      "mode": 2,
+      "frames": 48000,
+      "saturations": 0,
+      "file": "ma4-hp80.wav",
+      "sha256": "9868413e61cc83a5d5d47d71eba04192c74c137e9e01ba0485bce2f5c50cef23"
+    }
+  ],
+  "host_only": true,
+  "raw_preserved": true,
+  "nominal_rate_not_validated": true,
+  "audio_quality_accepted": false
+}

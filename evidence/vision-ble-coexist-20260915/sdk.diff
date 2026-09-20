@@ -1,0 +1,36 @@
+--- sdk/app/k7host/k7_pipeline.c
++++ app/k7host/k7_pipeline.c
+@@ -402,16 +402,29 @@
+   ret = pthread_attr_setstacksize(&attr, 16384);
+   if (ret) goto destroy_attr;
+ #ifdef __NuttX__
+-  /* Capture application priority is 100, USB HPWORK priority is 192.
+-   * Lower decoder priority keeps bank refill ahead of image processing.
+-   */
+-  scheduling.sched_priority = 90;
++  /* Provisioning runs at 85 on CPU0. A continuously ready FIFO decoder
++   * must not starve it; keep a lower fallback priority even with affinity.
++   * USB refill remains at 100/192, ASR capture uses CPU1. */
++  scheduling.sched_priority = 80;
+   ret = pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+   if (ret) goto destroy_attr;
+   ret = pthread_attr_setschedparam(&attr, &scheduling);
+   if (ret) goto destroy_attr;
+   ret = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+   if (ret) goto destroy_attr;
++#if defined(CONFIG_SMP) && CONFIG_SMP_NCPUS > 1
++  {
++    cpu_set_t cpus;
++    CPU_ZERO(&cpus);
++#if CONFIG_SMP_NCPUS > 2
++    CPU_SET(2, &cpus);
++#else
++    CPU_SET(1, &cpus);
++#endif
++    ret = pthread_attr_setaffinity_np(&attr, sizeof(cpus), &cpus);
++    if (ret) goto destroy_attr;
++  }
++#endif
+ #else
+   (void)scheduling;
+ #endif

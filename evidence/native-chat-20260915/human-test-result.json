@@ -1,0 +1,26 @@
+{
+  "firmware": "f32aadc337547b39f78cbbc845f4ce671ab29ba450e1774bc16ce49bdc8a94b2",
+  "rounds": [
+    "1",
+    "2",
+    "3"
+  ],
+  "asr_results": [
+    "0 frames_sent=150 completed=1",
+    "0 frames_sent=150 completed=1",
+    "0 frames_sent=150 completed=1"
+  ],
+  "tts_results": [
+    "0 pcm_bytes=468480"
+  ],
+  "loop_result": 0,
+  "user_heard_complete_answer": true,
+  "user_heard_following_cues": true,
+  "user_spoken_text": "你能做什么",
+  "recognized_text": "说什么？",
+  "rounds_without_text": 2,
+  "full_multi_question_acceptance": false,
+  "issue": "cue played before capture codec preparation and 1000ms settling",
+  "fix_candidate": "native-chat-cue-20260915",
+  "fix_loaded": false
+}

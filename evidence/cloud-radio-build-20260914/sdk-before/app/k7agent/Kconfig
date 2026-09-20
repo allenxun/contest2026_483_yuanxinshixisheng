@@ -1,0 +1,31 @@
+# Agent components remain disabled until their runtime gates pass.
+
+config EXAMPLES_K7CLOUD
+	bool "K7 bounded DNS and HTTPS connectivity probe"
+	depends on ARCH_BOARD_KICKPI_K7 && BUILD_FLAT
+	depends on EXAMPLES_K7RADIO_IP && NET_TCP && NET_SOCKOPTS
+	depends on NETDB_DNSCLIENT && CRYPTO_MBEDTLS
+	default n
+	---help---
+		Links the reviewed bounded DNS and HTTPS clients into an explicit
+		diagnostic command. HTTPS still refuses to start until the platform
+		provides approved entropy, trusted wall time and a caller-owned CA.
+
+config EXAMPLES_K7CLOUD_MIMO_V25
+	bool "Compile bounded MiMo v2.5 ASR/TTS protocol support"
+	depends on EXAMPLES_K7CLOUD
+	default n
+	---help---
+		Compiles the reviewed non-streaming MiMo v2.5 Chat Completions
+		ASR/TTS encoders and strict response decoders. This option does not
+		store a token, choose a Token Plan region, or initiate a request.
+
+config EXAMPLES_K7CLOUD_SPEECH_ORCHESTRATOR
+	bool "Compile gated MiMo speech orchestration with K7 audio"
+	depends on EXAMPLES_K7CLOUD_MIMO_V25 && EXAMPLES_K7SOUND
+	default n
+	---help---
+		Compiles the batch cloud speech coordinator. Cloud ASR/TTS stays
+		disabled until live Wi-Fi, IPv4, DNS, entropy, trusted time, CA,
+		TCP and API checks are reported ready. The connected prompt is a
+		caller-owned local 16 kHz asset and does not require the cloud.

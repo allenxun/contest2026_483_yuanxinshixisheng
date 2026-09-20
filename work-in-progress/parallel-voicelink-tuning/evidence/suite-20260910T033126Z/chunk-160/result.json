@@ -1,0 +1,25 @@
+{
+  "label": "chunk-160",
+  "command": [
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-tuning\\probe.exe",
+    "asr",
+    "E:/openvela/语音模块/openvela-voicelink/models",
+    "E:/openvela/语音模块/openvela-voicelink/models/sherpa-onnx-streaming-paraformer-bilingual-zh-en/test_wavs/0.wav",
+    "160",
+    "800",
+    "0",
+    "0",
+    "1024",
+    "normal"
+  ],
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "execution_passed": true,
+  "timeout": false,
+  "elapsed": 3.6229774999956135,
+  "peak_working_set": 555560960,
+  "peak_private": 776458240,
+  "os_peak_working_set": 598388736,
+  "samples": 177,
+  "sample_interval": 0.02
+}

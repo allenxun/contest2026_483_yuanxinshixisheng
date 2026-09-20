@@ -1,0 +1,110 @@
+
+/home/swl/openvela/cmake_out/velavision_cxx_eh_20260910/nuttx:     file format elf64-littleaarch64
+
+
+Disassembly of section .text:
+
+0000000040450294 <_Unwind_Find_FDE>:
+    40450294:	a9bb7bfd 	stp	x29, x30, [sp, #-80]!
+    40450298:	910003fd 	mov	x29, sp
+    4045029c:	a9025bf5 	stp	x21, x22, [sp, #32]
+    404502a0:	b0000ff5 	adrp	x21, 4064d000 <g_cbprealloc_buffer+0x118>
+    404502a4:	911ac2b5 	add	x21, x21, #0x6b0
+    404502a8:	a90153f3 	stp	x19, x20, [sp, #16]
+    404502ac:	aa0103f6 	mov	x22, x1
+    404502b0:	f94006b4 	ldr	x20, [x21, #8]
+    404502b4:	f9001bf7 	str	x23, [sp, #48]
+    404502b8:	aa0003f7 	mov	x23, x0
+    404502bc:	b5000094 	cbnz	x20, 404502cc <_Unwind_Find_FDE+0x38>
+    404502c0:	14000026 	b	40450358 <_Unwind_Find_FDE+0xc4>
+    404502c4:	f9401694 	ldr	x20, [x20, #40]
+    404502c8:	b4000494 	cbz	x20, 40450358 <_Unwind_Find_FDE+0xc4>
+    404502cc:	f9400280 	ldr	x0, [x20]
+    404502d0:	eb17001f 	cmp	x0, x23
+    404502d4:	54ffff88 	b.hi	404502c4 <_Unwind_Find_FDE+0x30>  // b.pmore
+    404502d8:	aa1703e1 	mov	x1, x23
+    404502dc:	aa1403e0 	mov	x0, x20
+    404502e0:	97fffe0c 	bl	4044fb10 <search_object>
+    404502e4:	aa0003f3 	mov	x19, x0
+    404502e8:	b4000380 	cbz	x0, 40450358 <_Unwind_Find_FDE+0xc4>
+    404502ec:	f9401280 	ldr	x0, [x20, #32]
+    404502f0:	b9402281 	ldr	w1, [x20, #32]
+    404502f4:	f9400695 	ldr	x21, [x20, #8]
+    404502f8:	53032800 	ubfx	w0, w0, #3, #8
+    404502fc:	f9400a94 	ldr	x20, [x20, #16]
+    40450300:	a90052d5 	stp	x21, x20, [x22]
+    40450304:	371006a1 	tbnz	w1, #2, 404503d8 <_Unwind_Find_FDE+0x144>
+    40450308:	7103fc1f 	cmp	w0, #0xff
+    4045030c:	54000740 	b.eq	404503f4 <_Unwind_Find_FDE+0x160>  // b.none
+    40450310:	121c0802 	and	w2, w0, #0x70
+    40450314:	7100805f 	cmp	w2, #0x20
+    40450318:	540007c0 	b.eq	40450410 <_Unwind_Find_FDE+0x17c>  // b.none
+    4045031c:	540006c9 	b.ls	404503f4 <_Unwind_Find_FDE+0x160>  // b.plast
+    40450320:	aa1403e1 	mov	x1, x20
+    40450324:	7100c05f 	cmp	w2, #0x30
+    40450328:	54000781 	b.ne	40450418 <_Unwind_Find_FDE+0x184>  // b.any
+    4045032c:	910123e3 	add	x3, sp, #0x48
+    40450330:	91002262 	add	x2, x19, #0x8
+    40450334:	97fffa63 	bl	4044ecc0 <read_encoded_value_with_base>
+    40450338:	f94027e0 	ldr	x0, [sp, #72]
+    4045033c:	f9000ac0 	str	x0, [x22, #16]
+    40450340:	a9425bf5 	ldp	x21, x22, [sp, #32]
+    40450344:	aa1303e0 	mov	x0, x19
+    40450348:	a94153f3 	ldp	x19, x20, [sp, #16]
+    4045034c:	f9401bf7 	ldr	x23, [sp, #48]
+    40450350:	a8c57bfd 	ldp	x29, x30, [sp], #80
+    40450354:	d65f03c0 	ret
+    40450358:	910022b4 	add	x20, x21, #0x8
+    4045035c:	d503201f 	nop
+    40450360:	f94002b3 	ldr	x19, [x21]
+    40450364:	b4fffef3 	cbz	x19, 40450340 <_Unwind_Find_FDE+0xac>
+    40450368:	f9401662 	ldr	x2, [x19, #40]
+    4045036c:	aa1703e1 	mov	x1, x23
+    40450370:	aa1303e0 	mov	x0, x19
+    40450374:	f90002a2 	str	x2, [x21]
+    40450378:	97fffde6 	bl	4044fb10 <search_object>
+    4045037c:	f94006a2 	ldr	x2, [x21, #8]
+    40450380:	b40003e2 	cbz	x2, 404503fc <_Unwind_Find_FDE+0x168>
+    40450384:	f9400265 	ldr	x5, [x19]
+    40450388:	aa1403e4 	mov	x4, x20
+    4045038c:	14000004 	b	4045039c <_Unwind_Find_FDE+0x108>
+    40450390:	9100a044 	add	x4, x2, #0x28
+    40450394:	f9401442 	ldr	x2, [x2, #40]
+    40450398:	b4000082 	cbz	x2, 404503a8 <_Unwind_Find_FDE+0x114>
+    4045039c:	f9400043 	ldr	x3, [x2]
+    404503a0:	eb05007f 	cmp	x3, x5
+    404503a4:	54ffff62 	b.cs	40450390 <_Unwind_Find_FDE+0xfc>  // b.hs, b.nlast
+    404503a8:	f9001662 	str	x2, [x19, #40]
+    404503ac:	f9000093 	str	x19, [x4]
+    404503b0:	b4fffd80 	cbz	x0, 40450360 <_Unwind_Find_FDE+0xcc>
+    404503b4:	aa1303f4 	mov	x20, x19
+    404503b8:	aa0003f3 	mov	x19, x0
+    404503bc:	f9401280 	ldr	x0, [x20, #32]
+    404503c0:	b9402281 	ldr	w1, [x20, #32]
+    404503c4:	f9400695 	ldr	x21, [x20, #8]
+    404503c8:	53032800 	ubfx	w0, w0, #3, #8
+    404503cc:	f9400a94 	ldr	x20, [x20, #16]
+    404503d0:	a90052d5 	stp	x21, x20, [x22]
+    404503d4:	3617f9a1 	tbz	w1, #2, 40450308 <_Unwind_Find_FDE+0x74>
+    404503d8:	91001261 	add	x1, x19, #0x4
+    404503dc:	b9800660 	ldrsw	x0, [x19, #4]
+    404503e0:	cb000020 	sub	x0, x1, x0
+    404503e4:	97fffb13 	bl	4044f030 <get_cie_encoding>
+    404503e8:	12001c00 	and	w0, w0, #0xff
+    404503ec:	7103fc1f 	cmp	w0, #0xff
+    404503f0:	54fff901 	b.ne	40450310 <_Unwind_Find_FDE+0x7c>  // b.any
+    404503f4:	d2800001 	mov	x1, #0x0                   	// #0
+    404503f8:	17ffffcd 	b	4045032c <_Unwind_Find_FDE+0x98>
+    404503fc:	910022a4 	add	x4, x21, #0x8
+    40450400:	f9001662 	str	x2, [x19, #40]
+    40450404:	f9000093 	str	x19, [x4]
+    40450408:	b4fffac0 	cbz	x0, 40450360 <_Unwind_Find_FDE+0xcc>
+    4045040c:	17ffffea 	b	404503b4 <_Unwind_Find_FDE+0x120>
+    40450410:	aa1503e1 	mov	x1, x21
+    40450414:	17ffffc6 	b	4045032c <_Unwind_Find_FDE+0x98>
+    40450418:	d2800001 	mov	x1, #0x0                   	// #0
+    4045041c:	7101405f 	cmp	w2, #0x50
+    40450420:	54fff860 	b.eq	4045032c <_Unwind_Find_FDE+0x98>  // b.none
+    40450424:	97fee060 	bl	404085a4 <abort>
+
+Disassembly of section .vector:

@@ -1,0 +1,53 @@
+{
+  "state": {
+    "running_revision": "usb-readonly-20260910",
+    "boot": "RAM",
+    "firmware_sha256": "a40d6068de181146973eda4a4fede21183210e5714339354f58fa3779e583374",
+    "smp_cpus": 8,
+    "usb_storage_enabled": true,
+    "usb_new_node": "/dev/sda",
+    "usb_first_sector_read_passed": true,
+    "usb_sector_size": 512,
+    "usb_sectors": 60555264,
+    "usb_repeated_crc32": "b1241e76",
+    "usb_media_written": false,
+    "filesystem_mounted": false,
+    "usb_vid_pid_recorded": false,
+    "full_identity_bound_acceptance": false,
+    "wifi_connected": true,
+    "ip": "10.3.0.214",
+    "gateway_ping": "5/5",
+    "wireless_hold_seconds": 30,
+    "ble_service_running": true,
+    "ble_connected": false,
+    "ble_disconnect": "Test client intentionally disconnected",
+    "receive_rejects_before": 1,
+    "receive_rejects_after": 1,
+    "serial_observer_running": false,
+    "model_loaded": false,
+    "agent_deployed": false,
+    "audio_hardware_tested": false,
+    "microphone_connection": "User explicitly confirmed MIC connector",
+    "emmc_written": false,
+    "evidence_directory": "evidence/usb-readonly-20260910",
+    "limits": [
+      "Finite LBA0 two-read/close test; no filesystem or model load",
+      "VID/PID absent from enumeration output; strict identity parser acceptance not claimed",
+      "Wireless recovery with USB host idle, not concurrent USB bulk load stress",
+      "One cumulative RX reject retained; cause not diagnosed, no zero-reject acceptance",
+      "C++ concurrent cold exceptions and full audio integration unresolved"
+    ]
+  },
+  "recorded_utc": "2026-09-10T09:02:52.011197+00:00",
+  "hashes": {
+    "ramload-progress.txt": "20e5d874d6f0fbda03473cc2607e8786a0c29281ef724980566f576795f6a6e6",
+    "affinity-boot.json": "a981f4e5599fb80bcaacbe2e149909c27f37edee66d693cbc535815523eb68bf",
+    "before.bin": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+    "start.bin": "c66c21a26cc9406631c76e9b2a1058e42d225f4ba50a51edb3876d1c020bf96c",
+    "enumeration-wait.bin": "5e4a13934c684f43bf238019481235e0e93b73edb58bbb4bc70c9c5fe49ccadd",
+    "after.bin": "8472489be5e51416d9f874c8e26aa7e47697769bf42377bc79f45110ef8c003b",
+    "read.bin": "ea78185d878f5287135faea1d3fd4b7bc9ab336d2723e7df2ed3151c6c19b229",
+    "ble-wireless.jsonl": "63875b1e3322288ee6db683f1ebf5f0adac3f567545f9625978db77440d475d0",
+    "gateway.json": "0bcfeaab0480452ecc11792942372ead73de94f34e63d2a55684d0fdf94377ca"
+  }
+}

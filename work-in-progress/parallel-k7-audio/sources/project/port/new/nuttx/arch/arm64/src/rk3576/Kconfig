@@ -1,0 +1,64 @@
+#
+# Rockchip RK3576 initial UART0 / single-core BSP
+#
+
+if ARCH_CHIP_RK3576
+
+menu "Rockchip RK3576 Peripheral Selection"
+
+config RK3576_UART0
+	bool "Bootloader-initialized UART0"
+	default y
+	select 16550_UART
+	select 16550_UART0
+	select SERIAL_UART_ARCH_MMIO
+	---help---
+		Use DW APB UART0 at 0x2ad40000.  The initial K7 configuration
+		preserves bootloader pinmux, clocks, baud divisor and FIFO setup.
+		UART0 preserves the bootloader console configuration.
+
+config RK3576_UART6
+	bool "K7 UART6 M0 at fixed 115200 8N1"
+	depends on ARCH_BOARD_KICKPI_K7
+	select 16550_UART
+	select 16550_UART1
+	select SERIAL_UART_ARCH_MMIO
+	---help---
+		Physical UART6 is mapped to generic 16550 slot 1 (/dev/ttyS1).
+		Initialize clocks, reset and GPIO4_A4/A6 pinmux explicitly.
+		Requires the K7 flat-build bootloader handoff and fixed baud.
+
+config RK3576_USB_DIAG
+	bool "K7 read-only USB-A register diagnostics"
+	depends on ARCH_BOARD_KICKPI_K7 && BUILD_FLAT
+	default n
+	---help---
+		Map the USB-A DWC3 register block and PMU for the k7usb app.
+		This does not initialize USB or change clocks, power, or pinmux.
+
+config RK3576_USBHOST
+	bool "K7 USB2 host bring-up"
+	depends on USBHOST_RK3576_XHCI && ARCH_BOARD_KICKPI_K7 && BUILD_FLAT
+	select RK3576_USB_DIAG
+	default n
+
+config RK3576_NPU_DIAG
+	bool "K7 guarded read-only NPU register probe"
+	depends on RK3576_USB_DIAG && ARCH_BOARD_KICKPI_K7 && BUILD_FLAT
+	default n
+	---help---
+		Map both NPU cores and their MMU status registers for k7npu.
+		Does not initialize the NPU, allocate DMA buffers or run inference.
+
+config RK3576_MODEL_ARENA
+	bool "K7 dedicated 1GiB CPU model arena (experimental)"
+	depends on ARCH_BOARD_KICKPI_K7 && BUILD_FLAT
+	default n
+	---help---
+		Maps 0x60000000..0xa0000000 as a separate explicit CPU heap.
+		Never changes the primary heap or DMA allocator. Enable only
+		for the audited 4GB K7 handoff; not a general DDR autodetector.
+
+endmenu
+
+endif # ARCH_CHIP_RK3576

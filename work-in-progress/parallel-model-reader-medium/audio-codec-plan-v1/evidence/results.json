@@ -1,0 +1,38 @@
+[
+  {
+    "check": "Reference field algebra against all 256 old byte values; not hardware RMW or readback authorization",
+    "checks": 2048,
+    "passed": true
+  },
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wconversion",
+      "-Wshadow",
+      "-pedantic",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\include",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\src\\codec_txn.c",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\tests\\test_codec.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\audio-codec-plan-v1\\evidence\\engine-tests.exe"
+    ],
+    "timeout_seconds": 30,
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\audio-codec-plan-v1\\evidence\\engine-tests.exe"
+    ],
+    "timeout_seconds": 15,
+    "returncode": 0,
+    "stdout": "candidate_c_checks=2270 failures=0; simulation only; hardware plan NOT_READY\n",
+    "stderr": ""
+  }
+]

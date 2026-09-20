@@ -1,0 +1,89 @@
+{
+  "commands": [
+    {
+      "command": [
+        "C:\\Program Files\\Python36\\python.exe",
+        "-B",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\test_audit_elf.py"
+      ],
+      "exit_code": 0,
+      "output": ".\r\n----------------------------------------------------------------------\r\nRan 1 test in 0.004s\r\n\r\nOK\r\n"
+    },
+    {
+      "command": [
+        "C:\\Program Files\\Python36\\python.exe",
+        "-B",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audit_elf.py",
+        "E:\\openvela\\VelaVision\\artifacts\\cxx-tls-20260910\\nuttx"
+      ],
+      "exit_code": 1,
+      "output": "{\r\n  \"elf\": \"E:\\\\openvela\\\\VelaVision\\\\artifacts\\\\cxx-tls-20260910\\\\nuttx\",\r\n  \"sha256\": \"8f05f77a611aa7c2940aa139521595dcd534b7030b7992f295d17afb2e0e7a3a\",\r\n  \"checks\": {\r\n    \"eh_frame_present\": false,\r\n    \"lsda_consolidated_nonempty\": false,\r\n    \"no_orphan_lsda\": false,\r\n    \"registration_symbol\": true,\r\n    \"first_initializer_is_unwind_registration\": false\r\n  },\r\n  \"records\": {\r\n    \"cie\": 0,\r\n    \"fde\": 0\r\n  },\r\n  \"first_initializer\": \"0x404543f4\",\r\n  \"passed\": false,\r\n  \"hardware_tested\": false,\r\n  \"limitations\": [\r\n    \"No startup call-order proof\",\r\n    \"No full DWARF/FDE PC coverage proof\",\r\n    \"No registration call disassembly proof\",\r\n    \"No runtime exception proof\"\r\n  ]\r\n}\r\n"
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "--ignore-space-change",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\candidate.patch"
+      ],
+      "exit_code": 1,
+      "output": "error: patch failed: board/kickpi_k7/scripts/dramboot.ld:50\nerror: board/kickpi_k7/scripts/dramboot.ld: patch does not apply\nerror: patch failed: board/kickpi_k7/src/kickpi_k7_appinit.c:24\nerror: board/kickpi_k7/src/kickpi_k7_appinit.c: patch does not apply\n"
+    },
+    {
+      "command": [
+        "readelf",
+        "-SW",
+        "E:\\openvela\\VelaVision\\artifacts\\cxx-tls-20260910\\nuttx"
+      ],
+      "exit_code": 0,
+      "output": "There are 55 section headers, starting at offset 0xde57b8:\r\n\r\nSection Headers:\r\n  [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al\r\n  [ 0]                   NULL            0000000000000000 000000 000000 00      0   0  0\r\n  [ 1] .text             PROGBITS        0000000040400000 010000 0d990c 00  AX  0   0 16\r\n  [ 2] .init_section     INIT_ARRAY      00000000404da000 0ea000 000008 08  WA  0   0  8\r\n  [ 3] .vector           PROGBITS        00000000404db000 0eb000 001000 00  AX  0   0 2048\r\n  [ 4] .rodata           NOTE            00000000404dc000 0ec000 139000 00   A  0   0 16\r\n  [ 5] .gcc_except_table._ZNSt3__114__thread_proxyINS_5tupleIJNS_10unique_ptrINS_15__thread_structENS_14default_deleteIS3_EEEEZN12_GLOBAL__N_15probeEvEUlvE_EEEEEPvSA_ PROGBITS        0000000040615000 225000 00000c 00   A  0   0  1\r\n  [ 6] .gcc_except_table.k7cxx_main PROGBITS        000000004061500c 22500c 000090 00   A  0   0  4\r\n  [ 7] .gcc_except_table._ZNSt3__16chrono12system_clock3nowEv PROGBITS        000000004061509c 22509c 000004 00   A  0   0  1\r\n  [ 8] .gcc_except_table._ZNSt3__16chrono12steady_clock3nowEv PROGBITS        00000000406150a0 2250a0 000004 00   A  0   0  1\r\n  [ 9] .gcc_except_table._ZNSt3__118condition_variable10notify_oneEv PROGBITS        00000000406150a4 2250a4 000004 00   A  0   0  1\r\n  [10] .gcc_except_table._ZNSt3__118condition_variable10notify_allEv PROGBITS        00000000406150a8 2250a8 000004 00   A  0   0  1\r\n  [11] .gcc_except_table._ZNSt3__118condition_variable15__do_timed_waitERNS_11unique_lockINS_5mutexEEENS_6chrono10time_pointINS5_12system_clockENS5_8durationIxNS_5ratioILl1ELl1000000000EEEEEEE PROGBITS        00000000406150ac 2250ac 000004 00   A  0   0  1\r\n  [12] .gcc_except_table._ZNSt3__118condition_variableD2Ev PROGBITS        00000000406150b0 2250b0 000004 00   A  0   0  1\r\n  [13] .gcc_except_table._ZNSt3__15mutex6unlockEv PROGBITS        00000000406150b4 2250b4 000004 00   A  0   0  1\r\n  [14] .gcc_except_table._ZNSt3__15mutexD2Ev PROGBITS        00000000406150b8 2250b8 000004 00   A  0   0  1\r\n  [15] .gcc_except_table._Znwm PROGBITS        00000000406150bc 2250bc 000008 00   A  0   0  1\r\n  [16] .gcc_except_table._ZNSt11logic_errorC2EPKc PROGBITS        00000000406150c4 2250c4 00000c 00   A  0   0  1\r\n  [17] .gcc_except_table._ZNSt13runtime_errorC2ERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE PROGBITS        00000000406150d0 2250d0 00000c 00   A  0   0  1\r\n  [18] .gcc_except_table._ZNSt13runtime_errorC2EPKc PROGBITS        00000000406150dc 2250dc 00000c 00   A  0   0  1\r\n  [19] .gcc_except_table._ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE6__initEPKcm PROGBITS        00000000406150e8 2250e8 00000c 00   A  0   0  1\r\n  [20] .gcc_except_table._ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE21__grow_by_and_replaceEmmmmmmPKc PROGBITS        00000000406150f4 2250f4 00000d 00   A  0   0  1\r\n  [21] .gcc_except_table._ZNKSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE7compareEmmPKcm PROGBITS        0000000040615101 225101 00000e 00   A  0   0  1\r\n  [22] .gcc_except_table._ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm PROGBITS        000000004061510f 22510f 00000e 00   A  0   0  1\r\n  [23] .gcc_except_table._ZNSt3__112system_error6__initERKNS_10error_codeENS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEE PROGBITS        000000004061511d 22511d 000012 00   A  0   0  1\r\n  [24] .gcc_except_table._ZNSt3__112system_errorC2ENS_10error_codeEPKc PROGBITS        000000004061512f 22512f 000016 00   A  0   0  1\r\n  [25] .gcc_except_table._ZNSt3__120__throw_system_errorEiPKc PROGBITS        0000000040615145 225145 00000c 00   A  0   0  1\r\n  [26] .gcc_except_table._ZNSt3__119__thread_local_dataEv PROGBITS        0000000040615151 225151 000010 00   A  0   0  1\r\n  [27] .gcc_except_table._ZNSt3__119__thread_struct_impD2Ev PROGBITS        0000000040615161 225161 000004 00   A  0   0  1\r\n  [28] .gcc_except_table._ZN10__cxxabiv112_GLOBAL__N_119InitByteGlobalMutexINS0_11LibcppMutexENS0_13LibcppCondVarEL_ZNS0_12GlobalStaticIS2_E8instanceEEL_ZNS4_IS3_E8instanceEELPFjvE0EE9LockGuardD2Ev PROGBITS        0000000040615165 225165 000004 00   A  0   0  1\r\n  [29] .gcc_except_table.__cxa_guard_acquire PROGBITS        0000000040615169 225169 000013 00   A  0   0  1\r\n  [30] .gcc_except_table._ZSt11__terminatePFvvE PROGBITS        000000004061517c 22517c 000010 00   A  0   0  4\r\n  [31] .gcc_except_table._ZSt9terminatev PROGBITS        000000004061518c 22518c 000004 00   A  0   0  1\r\n  [32] .gcc_except_table.__cxa_allocate_exception PROGBITS        0000000040615190 225190 000008 00   A  0   0  1\r\n  [33] .gcc_except_table.__cxa_free_exception PROGBITS        0000000040615198 225198 000004 00   A  0   0  1\r\n  [34] .gcc_except_table.__cxa_begin_catch PROGBITS        000000004061519c 22519c 000004 00   A  0   0  1\r\n  [35] .gcc_except_table.__cxa_decrement_exception_refcount PROGBITS        00000000406151a0 2251a0 000004 00   A  0   0  1\r\n  [36] .gcc_except_table._ZN12_GLOBAL__N_115fallback_mallocEm PROGBITS        00000000406151a4 2251a4 000013 00   A  0   0  1\r\n  [37] .gcc_except_table._ZN10__cxxabiv128__aligned_free_with_fallbackEPv PROGBITS        00000000406151b7 2251b7 000008 00   A  0   0  1\r\n  [38] .data             PROGBITS        0000000040616000 226000 002300 00  WA  0   0 256\r\n  [39] .bss              NOBITS          0000000040619000 228300 30b000 00  WA  0   0 4096\r\n  [40] .initstack        NOBITS          0000000040924000 228300 018000 00  WA  0   0 16\r\n  [41] .comment          PROGBITS        0000000000000000 228300 000012 01  MS  0   0  1\r\n  [42] .debug_line       PROGBITS        0000000000000000 228312 1a6a24 00      0   0  1\r\n  [43] .debug_line_str   PROGBITS        0000000000000000 3ced36 012441 01  MS  0   0  1\r\n  [44] .debug_info       PROGBITS        0000000000000000 3e1177 4ed35f 00      0   0  1\r\n  [45] .debug_abbrev     PROGBITS        0000000000000000 8ce4d6 0a80aa 00      0   0  1\r\n  [46] .debug_aranges    PROGBITS        0000000000000000 976580 015560 00      0   0 16\r\n  [47] .debug_str        PROGBITS        0000000000000000 98bae0 10fe23 01  MS  0   0  1\r\n  [48] .debug_loclists   PROGBITS        0000000000000000 a9b903 1a59ef 00      0   0  1\r\n  [49] .debug_rnglists   PROGBITS        0000000000000000 c412f2 036862 00      0   0  1\r\n  [50] .debug_macro      PROGBITS        0000000000000000 c77b54 0ffdbc 00      0   0  1\r\n  [51] .debug_frame      PROGBITS        0000000000000000 d77910 027c80 00      0   0  8\r\n  [52] .symtab           SYMTAB          0000000000000000 d9f590 0338d0 18     53 6860  8\r\n  [53] .strtab           STRTAB          0000000000000000 dd2e60 011f57 00      0   0  1\r\n  [54] .shstrtab         STRTAB          0000000000000000 de4db7 000a01 00      0   0  1\r\nKey to Flags:\r\n  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),\r\n  L (link order), O (extra OS processing required), G (group), T (TLS),\r\n  C (compressed), x (unknown), o (OS specific), E (exclude),\r\n  D (mbind), p (processor specific)\r\n"
+    },
+    {
+      "command": [
+        "readelf",
+        "-p",
+        ".comment",
+        "E:\\openvela\\VelaVision\\artifacts\\cxx-tls-20260910\\nuttx"
+      ],
+      "exit_code": 0,
+      "output": "\r\nString dump of section '.comment':\r\n  [     0]  GCC: (GNU) 13.4.0\r\n\r\n"
+    },
+    {
+      "command": [
+        "objdump",
+        "-d",
+        "--disassemble=lib_cxx_initialize",
+        "E:\\openvela\\VelaVision\\artifacts\\cxx-tls-20260910\\nuttx"
+      ],
+      "exit_code": 1,
+      "output": "\r\nE:\\openvela\\VelaVision\\artifacts\\cxx-tls-20260910\\nuttx:     file format elf64-little\r\n\r\nobjdump: can't disassemble for architecture UNKNOWN!\r\n\r\n"
+    }
+  ],
+  "input_sha256": {
+    "README.md": "a74ee3ad636bb13d14f65b65ecf78da758d8634892eb62c99e77a7c8729da38b",
+    "project-manifest.json": "17ce20db892d9650241f9b0a1172aad5202f4699ce3d98697d13e72e9c5dee25",
+    "docs/\u4ee3\u7801\u65e5\u5fd7\u5bf9\u5e94\u8868.md": "ef304b25afd1972acd3b3647a918274c45b852c4ded11011f2796972dc1f1700",
+    "app/k7cxx/k7cxx_main.cxx": "257aa044c8f9d7b9f978ae3059fa05bb351710b605a0a7f7af7dc2802b77dae5",
+    "board/kickpi_k7/CMakeLists.txt": "6a0238b8d7f65ec8dfc7ab716c89083268e490c2d4c8870d13e17913a60acb73",
+    "board/kickpi_k7/src/CMakeLists.txt": "2d12d6c41cec67b80847aeb90320306acd5c47338999ef8836226eeac39be271",
+    "board/kickpi_k7/scripts/dramboot.ld": "0bede22683d0e22a7553a67e91adad4145cfebfcf0d1496c5282cfb2c95aa29a",
+    "board/kickpi_k7/src/kickpi_k7_appinit.c": "cd8777e2afef6d55714e6fe96df9acacce47351d1df41c7c53e316ba762b9f24",
+    "artifacts/cxx-tls-20260910/nuttx": "8f05f77a611aa7c2940aa139521595dcd534b7030b7992f295d17afb2e0e7a3a",
+    "artifacts/cxx-tls-20260910/.config": "6184592e30e33ed0c07d93a6bf9870258001cda4b635daba423c0dd2ad3832a6"
+  },
+  "output_sha256": {
+    "audit_elf.py": "fdaa3d5017634c7403e86a45bec9f7da23b65343c0b431da8844c891942e2841",
+    "baseline-audit.json": "db4382a6716f5a05b9fcbe35d371dd3d28235141779eb9c0c6c952c14b92478d",
+    "candidate-dramboot.ld": "cdedfce4b36bbaa2a4afc01b8d6f4cead1acd3c021dad74a7ab849cb2b3ee0cc",
+    "candidate-kickpi_k7_appinit.c": "3cb855d7c9d4a03f7e57e7c1da6a2ba77255f2eb6acac8c2f4509aac5386d201",
+    "candidate.patch": "ce28ae85d3528ec2499cba10fcb168be60cacd31bade40eeea3f214b79a2d377",
+    "collect_evidence.py": "074d69852c551639a7f776d7fdf46acd9b1511095e02147565f3f5ff6fc91ce7",
+    "HANDOFF.md": "4c178acb7a1697ca7d724a1c9f2c464de688b73514764dad6e9331df5b720642",
+    "input-source-hashes.json": "ed82f3cc322471634e075a753567c4a137614da8c5f780b2017145a04d99bdb0",
+    "prepare_candidate.py": "6c4921c6e882fef6fb6f37a296f1be7b0f663f750947040fdf8f929cce66c38f",
+    "test_audit_elf.py": "db28f2875039dc3d87e560c577876c22b3700bddc84924d7c7f29fbae40ed146"
+  },
+  "candidate_compiled": false,
+  "hardware_tested": false
+}

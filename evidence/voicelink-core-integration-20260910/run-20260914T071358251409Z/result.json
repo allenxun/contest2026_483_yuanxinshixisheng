@@ -1,0 +1,114 @@
+{
+  "hardware_tested": false,
+  "scope": "formal C++ core, simulated audio/Wi-Fi",
+  "source_before": {
+    "app\\voicelink\\include\\voicelink\\controller.hpp": "f56383abee6ac0df2a64adff8d2fe48aa7df5af8d03fad71d0af56b71040127c",
+    "app\\voicelink\\include\\voicelink\\parsers.hpp": "8297ec7d2daa6de9a8032ee4c7aba4d937efc5f002ce54d4d3ab79fbb9f69b64",
+    "app\\voicelink\\include\\voicelink\\ports.hpp": "5bbd12bd9565b9971fe4610a7a0339a1c6081c31a776cc590241c3b57f8b5bd8",
+    "app\\voicelink\\include\\voicelink\\speech_pcm.hpp": "dc050bf2219b32ecad9a8e3d4fd9247c8520bce167a4ca14081adb73f4d251c2",
+    "app\\voicelink\\include\\voicelink\\spoken_ssid.hpp": "8a838d05825fa4a1cada9dc657d1998cecc7bea7ec4cd0d247a4756a669bd33e",
+    "app\\voicelink\\include\\voicelink\\types.hpp": "0bf5d131c7744a74bbd8eedd65d4da6ea89be015f4c165d04dbf47e5d5399002",
+    "app\\voicelink\\include\\voicelink\\voice_loop.hpp": "efb43dfcd150a84d9f4163bf339881f356d208d63d52cfc35dc2f78d64eaec84",
+    "app\\voicelink\\src\\core.cpp": "d83e1df93a0407933914e7514d02ef2ae51314dc2e63f01bcdf73d5efc38ce5a",
+    "app\\voicelink\\src\\generated\\k7_prompt_assets_generated.hpp": "50a015f39a2dee0ae785874831a58bab51e0013ff7a187dda9bbe638793eff3a",
+    "app\\voicelink\\src\\k7voice_main.cpp": "41768df52e5c3726fa7a4ccf5c745c6531a648bb7f078f395d5a18933554a239",
+    "app\\voicelink\\src\\native_asr_runtime.cpp": "7e4a9a4fe9ba0b93efc82481a5570cb5a0ea39ffeabee13c053ca650648dd7e6",
+    "app\\voicelink\\src\\native_speech_output.hpp": "5f2d8fc5911b9432c151d0d34515d6ddb049364c1e6c2bc382a8b6ee23a42866",
+    "app\\voicelink\\src\\native_tls_selftest.cpp": "4efa1789d0a468fcb2704e00646b419818cfe82a7f94348c94999db97d3f1186",
+    "app\\voicelink\\src\\native_tts_runtime.cpp": "fbd586a547a327a05f85a4efade7d6bfae02bbe4b2ec1ff88c986632ea33ff63",
+    "app\\voicelink\\src\\parsers.cpp": "5a1bf39bce75394178f42c5d85ebbe49e5ed8c67ac245ff4b186d5178b6d31fe",
+    "app\\voicelink\\src\\prompt_asset_output.hpp": "92d54469b0afb2243304f7befe0782bbb4a0ad2026659b3658f6cdb6f971484a",
+    "app\\voicelink\\src\\speech_runtime_gate.cpp": "1a83fe177d4ffcfdcaf188c9d6467f7888282f6eca0cf6699e2d40cf5c0e51a4",
+    "app\\voicelink\\src\\tts_assets.hpp": "22523ad91a6f6d4d4467a31cdc1d418793b59b83ff957e13101e32b106c3bebe",
+    "app\\voicelink\\src\\ui_connect.hpp": "fd4e3902c5acde353f6c4ccec241d590d48bbeb467eebf488a5ef0fae8fb4b20",
+    "app\\voicelink\\src\\voice_loop.cpp": "cc1e8d8a34695eafb08577c93462ae089e02ec943a00f26deb47ef1e2fafaeed",
+    "app\\voicelink\\src\\voice_wifi_adapter.cpp": "04031a8e96ee93833190c4a46c0f714fd64cacaf9e724b357b2e4461ce8c6887",
+    "app\\voicelink\\src\\voice_wifi_adapter.hpp": "f1684f8d2cc0c735811ba88ad93794ccd1f36d694a1c70bcddfb18659752a263",
+    "app\\voicelink\\tests\\test_flow.cpp": "6f2f8e34011a4971d718e73af2fe2515fab653701866d0011479d51fea7b1c65"
+  },
+  "steps": [
+    {
+      "name": "compile-O0",
+      "argv": [
+        "D:/software/mingw64/mingw64/bin/g++.exe",
+        "-std=c++17",
+        "-O0",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-IE:\\openvela\\VelaVision\\app\\voicelink\\include",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\core.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\parsers.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\tests\\test_flow.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260914T071358251409Z\\flow-O0.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "run-O0",
+      "argv": [
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260914T071358251409Z\\flow-O0.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "compile-O2",
+      "argv": [
+        "D:/software/mingw64/mingw64/bin/g++.exe",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-IE:\\openvela\\VelaVision\\app\\voicelink\\include",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\core.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\parsers.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\tests\\test_flow.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260914T071358251409Z\\flow-O2.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "run-O2",
+      "argv": [
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260914T071358251409Z\\flow-O2.exe"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "passed": true,
+  "source_after": {
+    "app\\voicelink\\include\\voicelink\\controller.hpp": "f56383abee6ac0df2a64adff8d2fe48aa7df5af8d03fad71d0af56b71040127c",
+    "app\\voicelink\\include\\voicelink\\parsers.hpp": "8297ec7d2daa6de9a8032ee4c7aba4d937efc5f002ce54d4d3ab79fbb9f69b64",
+    "app\\voicelink\\include\\voicelink\\ports.hpp": "5bbd12bd9565b9971fe4610a7a0339a1c6081c31a776cc590241c3b57f8b5bd8",
+    "app\\voicelink\\include\\voicelink\\speech_pcm.hpp": "dc050bf2219b32ecad9a8e3d4fd9247c8520bce167a4ca14081adb73f4d251c2",
+    "app\\voicelink\\include\\voicelink\\spoken_ssid.hpp": "8a838d05825fa4a1cada9dc657d1998cecc7bea7ec4cd0d247a4756a669bd33e",
+    "app\\voicelink\\include\\voicelink\\types.hpp": "0bf5d131c7744a74bbd8eedd65d4da6ea89be015f4c165d04dbf47e5d5399002",
+    "app\\voicelink\\include\\voicelink\\voice_loop.hpp": "efb43dfcd150a84d9f4163bf339881f356d208d63d52cfc35dc2f78d64eaec84",
+    "app\\voicelink\\src\\core.cpp": "d83e1df93a0407933914e7514d02ef2ae51314dc2e63f01bcdf73d5efc38ce5a",
+    "app\\voicelink\\src\\generated\\k7_prompt_assets_generated.hpp": "50a015f39a2dee0ae785874831a58bab51e0013ff7a187dda9bbe638793eff3a",
+    "app\\voicelink\\src\\k7voice_main.cpp": "41768df52e5c3726fa7a4ccf5c745c6531a648bb7f078f395d5a18933554a239",
+    "app\\voicelink\\src\\native_asr_runtime.cpp": "7e4a9a4fe9ba0b93efc82481a5570cb5a0ea39ffeabee13c053ca650648dd7e6",
+    "app\\voicelink\\src\\native_speech_output.hpp": "5f2d8fc5911b9432c151d0d34515d6ddb049364c1e6c2bc382a8b6ee23a42866",
+    "app\\voicelink\\src\\native_tls_selftest.cpp": "4efa1789d0a468fcb2704e00646b419818cfe82a7f94348c94999db97d3f1186",
+    "app\\voicelink\\src\\native_tts_runtime.cpp": "fbd586a547a327a05f85a4efade7d6bfae02bbe4b2ec1ff88c986632ea33ff63",
+    "app\\voicelink\\src\\parsers.cpp": "5a1bf39bce75394178f42c5d85ebbe49e5ed8c67ac245ff4b186d5178b6d31fe",
+    "app\\voicelink\\src\\prompt_asset_output.hpp": "92d54469b0afb2243304f7befe0782bbb4a0ad2026659b3658f6cdb6f971484a",
+    "app\\voicelink\\src\\speech_runtime_gate.cpp": "1a83fe177d4ffcfdcaf188c9d6467f7888282f6eca0cf6699e2d40cf5c0e51a4",
+    "app\\voicelink\\src\\tts_assets.hpp": "22523ad91a6f6d4d4467a31cdc1d418793b59b83ff957e13101e32b106c3bebe",
+    "app\\voicelink\\src\\ui_connect.hpp": "fd4e3902c5acde353f6c4ccec241d590d48bbeb467eebf488a5ef0fae8fb4b20",
+    "app\\voicelink\\src\\voice_loop.cpp": "cc1e8d8a34695eafb08577c93462ae089e02ec943a00f26deb47ef1e2fafaeed",
+    "app\\voicelink\\src\\voice_wifi_adapter.cpp": "04031a8e96ee93833190c4a46c0f714fd64cacaf9e724b357b2e4461ce8c6887",
+    "app\\voicelink\\src\\voice_wifi_adapter.hpp": "f1684f8d2cc0c735811ba88ad93794ccd1f36d694a1c70bcddfb18659752a263",
+    "app\\voicelink\\tests\\test_flow.cpp": "6f2f8e34011a4971d718e73af2fe2515fab653701866d0011479d51fea7b1c65"
+  },
+  "source_unchanged": true
+}

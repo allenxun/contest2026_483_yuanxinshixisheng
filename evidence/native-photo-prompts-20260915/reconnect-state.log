@@ -1,0 +1,37 @@
+k7host camera
+camera connected=0 committed=0 descriptor_bytes=613
+IF 0 alt=0 class=0e subclass=01 endpoints=1
+ UVC version=0100
+ video EP=81 transfer=3 packet=16 transactions=1 interval=6
+IF 1 alt=0 class=0e subclass=02 endpoints=0
+ frame subtype=7 index=1 width=1920 height=1080
+ frame subtype=7 index=2 width=1280 height=720
+ frame subtype=7 index=3 width=800 height=600
+ frame subtype=7 index=4 width=640 height=480
+ frame subtype=7 index=5 width=1920 height=1080
+ frame subtype=5 index=1 width=1280 height=720
+ frame subtype=5 index=2 width=640 height=480
+IF 1 alt=1 class=0e subclass=02 endpoints=1
+ video EP=82 transfer=1 packet=1024 transactions=3 interval=1
+IF 1 alt=2 class=0e subclass=02 endpoints=1
+ video EP=82 transfer=1 packet=880 transactions=3 interval=1
+IF 1 alt=3 class=0e subclass=02 endpoints=1
+ video EP=82 transfer=1 packet=1024 transactions=2 interval=1
+IF 1 alt=4 class=0e subclass=02 endpoints=1
+ video EP=82 transfer=1 packet=800 transactions=2 interval=1
+IF 1 alt=5 class=0e subclass=02 en class=0e subclass=02 endpoints=1
+ video EP=82 transfer=1 packet=512 transactions=1 interval=1
+IF 2 alt=0 class=01 subclass=01 endpoints=0
+IF 3 alt=0 class=01 subclass=02 endpoints=0
+IF 3 alt=1 class=01 subclass=02 endpoints=1
+Use probe, then snapshot, burst or stream (one capture attempt per boot).
+nsh> [K
+k7radio provision-status
+PROV registered=1 connected=1 subscribed=1 busy=0 session=3 commands=1 notify_queued=4 errors=0 connects=2 disconnects=1 reads=18 input_bytes=0
+PROV last command=2 id=5 session=3 ret=0 notify_ret=0
+nsh> [K
+k7cloud radio-status
+K7CLOUD radio_generation=0 wifi=0 ipv4_ready=0
+K7CLOUD ipv4=0.0.0.0
+K7CLOUD platform_gates=unverified cloud_ready=0 network_request=disabled
+nsh> [K

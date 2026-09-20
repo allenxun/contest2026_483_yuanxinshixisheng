@@ -1,0 +1,138 @@
+{
+  "records": [
+    {
+      "name": "iconv-compile",
+      "command": [
+        "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-gcc",
+        "-DCJSON_NESTING_LIMIT=4",
+        "-D__NuttX__",
+        "-I/home/swl/openvela/apps/include",
+        "-I/dev/shm/velavision_audio_sound_20260910/apps/include",
+        "-I/home/swl/openvela/nuttx/wireless/bluetooth",
+        "-I/home/swl/openvela/apps/examples/k7radio/hostap",
+        "-I/home/swl/openvela/apps/examples/k7radio/hostap/utils",
+        "-I/home/swl/openvela/apps/frameworks/security/include",
+        "-isystem",
+        "/home/swl/openvela/nuttx/include",
+        "-isystem",
+        "/dev/shm/velavision_audio_sound_20260910/include",
+        "-march=armv8-a",
+        "-mcpu=cortex-a53",
+        "-Os",
+        "-fno-strict-aliasing",
+        "-fno-omit-frame-pointer",
+        "-D_LDBL_EQ_DBL",
+        "-fno-common",
+        "-Wall",
+        "-Wshadow",
+        "-Wundef",
+        "-Wno-attributes",
+        "-Wno-unknown-pragmas",
+        "-Werror",
+        "-Wstrict-prototypes",
+        "-Wno-psabi",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-g3",
+        "-fdiagnostics-color=always",
+        "-fmacro-prefix-map=/home/swl/openvela/nuttx=",
+        "-fmacro-prefix-map=/home/swl/openvela/apps=",
+        "-fmacro-prefix-map=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7=",
+        "-fmacro-prefix-map=/home/swl/openvela/nuttx/arch/arm64/src/rk3576=",
+        "-DCONFIG_ALLOW_MIT_COMPONENTS=1",
+        "-c",
+        "/dev/shm/velavision-ort-session-20260911/config-attempt9/lib_iconv.c",
+        "-o",
+        "/dev/shm/velavision-ort-session-20260911/config-attempt9/iconv.o"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "iconv-archive",
+      "command": [
+        "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-ar",
+        "rcs",
+        "/dev/shm/velavision-ort-session-20260911/config-attempt9/libk7_iconv.a",
+        "/dev/shm/velavision-ort-session-20260911/config-attempt9/iconv.o"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "nuttx-cmake",
+      "mode": "reverse dry-run verified earlier patch",
+      "patch_sha256": "3cc801c2cdd5c9c03a2f2f1413791d8014228bf87041fdae82aabee20af21697",
+      "exit_code": 0
+    },
+    {
+      "name": "flatbuffers",
+      "mode": "reverse dry-run verified earlier patch",
+      "patch_sha256": "736e61748485ab857951a8b6999a9067713524f41b6f39f71df11b4127f8785e",
+      "exit_code": 0
+    },
+    {
+      "name": "protobuf",
+      "mode": "reverse dry-run verified earlier patch",
+      "patch_sha256": "7f9145c049a27693469200d64dc7940fe371b9221284753f513a68b06ef94e00",
+      "exit_code": 0
+    },
+    {
+      "name": "onnx",
+      "mode": "reverse dry-run verified earlier patch",
+      "patch_sha256": "07a44703387f158f0fe83940a0519dede87d02b5483f63983bb15662a07742d8",
+      "exit_code": 0
+    },
+    {
+      "name": "exclude-native-dynamic-provider",
+      "before_sha256": "17c838003562edbb50e0021cf6a5e8163aa306a046ec6845cdf00aa41f7f697a",
+      "after_sha256": "89897fccedde31e297355cd27b8e26191ba40081a3418bc99b6047296959afa5"
+    },
+    {
+      "name": "reduce-ops",
+      "command": [
+        "python3",
+        "/dev/shm/velavision-ort-session-20260911/ort/tools/ci_build/reduce_op_kernels.py",
+        "/dev/shm/velavision-ort-session-20260911/add-only.config",
+        "--cmake_build_dir",
+        "/dev/shm/velavision-ort-session-20260911/build",
+        "--is_extended_minimal_build_or_higher"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "configure",
+      "command": [
+        "/dev/shm/cmake-3.28.3-linux-x86_64/bin/cmake",
+        "-S",
+        "/dev/shm/velavision-ort-session-20260911/ort/cmake",
+        "-B",
+        "/dev/shm/velavision-ort-session-20260911/build",
+        "-G",
+        "Ninja",
+        "-C",
+        "/dev/shm/velavision-ort-session-20260911/initial-cache.cmake",
+        "-DCMAKE_TOOLCHAIN_FILE=/dev/shm/velavision-ort-session-20260911/session-toolchain.cmake",
+        "-DCMAKE_BUILD_TYPE=MinSizeRel",
+        "-DIconv_INCLUDE_DIR=/home/swl/openvela/nuttx/include",
+        "-DIconv_LIBRARY=/dev/shm/velavision-ort-session-20260911/config-attempt9/libk7_iconv.a",
+        "-DONNX_CUSTOM_PROTOC_EXECUTABLE=/dev/shm/velavision-ort-session-20260911/sources/protoc_linux_x64/bin/protoc",
+        "-Donnxruntime_USE_PREINSTALLED_EIGEN=ON",
+        "-Deigen_SOURCE_PATH=/dev/shm/velavision-ort-env3-20260911/eigen",
+        "-DFETCHCONTENT_SOURCE_DIR_ABSEIL_CPP=/dev/shm/velavision-ort-session-20260911/sources/abseil_cpp",
+        "-DFETCHCONTENT_SOURCE_DIR_DATE=/dev/shm/velavision-ort-session-20260911/sources/date",
+        "-DFETCHCONTENT_SOURCE_DIR_SAFEINT=/dev/shm/velavision-ort-session-20260911/sources/safeint",
+        "-DFETCHCONTENT_SOURCE_DIR_GOOGLE_NSYNC=/dev/shm/velavision-ort-session-20260911/sources/google_nsync",
+        "-DFETCHCONTENT_SOURCE_DIR_FLATBUFFERS=/dev/shm/velavision-ort-session-20260911/sources/flatbuffers",
+        "-DFETCHCONTENT_SOURCE_DIR_MP11=/dev/shm/velavision-ort-session-20260911/sources/mp11",
+        "-DFETCHCONTENT_SOURCE_DIR_ONNX=/dev/shm/velavision-ort-session-20260911/sources/onnx",
+        "-DFETCHCONTENT_SOURCE_DIR_PROTOBUF=/dev/shm/velavision-ort-session-20260911/sources/protobuf",
+        "-DFETCHCONTENT_SOURCE_DIR_RE2=/dev/shm/velavision-ort-session-20260911/sources/re2",
+        "-DFETCHCONTENT_SOURCE_DIR_UTF8_RANGE=/dev/shm/velavision-ort-session-20260911/sources/utf8_range",
+        "-DFETCHCONTENT_SOURCE_DIR_GSL=/dev/shm/velavision-ort-session-20260911/sources/microsoft_gsl",
+        "-DFETCHCONTENT_SOURCE_DIR_NLOHMANN_JSON=/dev/shm/velavision-ort-session-20260911/sources/json"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "linked": false,
+  "model_run": false
+}

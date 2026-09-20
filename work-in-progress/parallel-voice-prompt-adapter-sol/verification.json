@@ -1,0 +1,57 @@
+{
+  "scope": "host-only fixed prompt playback adapter candidate",
+  "hardware_tested": false,
+  "board_played": false,
+  "formal_source_modified": false,
+  "sdk_modified": false,
+  "central_logs_modified": false,
+  "compiler": "g++.exe x86_64-posix-seh-rev2 12.2.0",
+  "tests": {
+    "o0": {
+      "exit_code": 0,
+      "stdout": "PASS 6/6: short I/O, cancel, busy, write cleanup, cleanup failure, missing resource",
+      "binary_bytes": 153805,
+      "binary_sha256": "493c48e920fb17728f633b77cf039e5244d3dfbb4d4b894ce0d268a8d79aac15"
+    },
+    "o2": {
+      "exit_code": 0,
+      "stdout": "PASS 6/6: short I/O, cancel, busy, write cleanup, cleanup failure, missing resource",
+      "binary_bytes": 91403,
+      "binary_sha256": "7bd457ae7918cabbbeb2e93e8d0803ea545400cac338b59ea5775d95440e88ec"
+    }
+  },
+  "prompt_assets": {
+    "directory": "../provisioning-fixed-prompts-20260911/pcm16k",
+    "count": 22,
+    "total_bytes": 2456108,
+    "manifest_hash_mismatches": 0,
+    "board_played": false,
+    "human_intelligibility_checked": false
+  },
+  "files": {
+    "voice_prompt_adapter.hpp": {
+      "bytes": 2146,
+      "sha256": "33271883c1c5aec1aef0a2479b471a013062a38ccb6b8cc3045e0fe3934bdf2d"
+    },
+    "voice_prompt_adapter.cpp": {
+      "bytes": 6544,
+      "sha256": "f8ee23fd2adf0014ba436c5f15eee89a2bbddab9831a4649c69dbf39b62b54ef"
+    },
+    "test_voice_prompt_adapter.cpp": {
+      "bytes": 5067,
+      "sha256": "c001759468b30e92e46d2101d52843f56d1bde171d423c58bce4dee6d2261cb2"
+    },
+    "CMakeLists.txt": {
+      "bytes": 441,
+      "sha256": "4b9b2089ff9c0b217882ac86278d1cc3c38cf4e4294e3e961e9d8b8feea88223"
+    },
+    "README.md": {
+      "bytes": 6006,
+      "sha256": "12e0b2b686d964193f408601f037e2f8651fb171f05bbaf27e88575802ad48cc"
+    },
+    "test-results.txt": {
+      "bytes": 1350,
+      "sha256": "ab56fc7e3743fa15f6d1d37d5a8810b2c3d6343f133a034c7b43d6544c3f0855"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+[Unit]
+Description=VelaVision K7 private LAN speech transport
+After=network-online.target velavision-speech.service
+Wants=network-online.target velavision-speech.service
+
+[Service]
+User=bool
+Group=bool
+WorkingDirectory=/home/bool/velavision-speech/releases/20260915T034307Z
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/home/bool/velavision-speech/venv/bin/python -m host.streaming_asr.board_bridge --host 10.3.3.170 --port 8001 --service http://127.0.0.1:8000
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+UMask=0077
+IPAddressDeny=any
+IPAddressAllow=localhost
+IPAddressAllow=10.3.0.214/32
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,142 @@
+[
+  {
+    "name": "build-machine",
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+      "-std=c++17",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-finput-charset=UTF-8",
+      "-fexec-charset=UTF-8",
+      "-I",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\include",
+      "-I",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\vendor",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\tests\\test_machine.cpp",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\evidence\\run-20260910T035038187188Z\\machine.exe"
+    ],
+    "exit": 0,
+    "expected": 0,
+    "timeout": false,
+    "seconds": 0.6399999999994179,
+    "peak_private_bytes": 1048576
+  },
+  {
+    "name": "mock-machine",
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\evidence\\run-20260910T035038187188Z\\machine.exe"
+    ],
+    "exit": 0,
+    "expected": 0,
+    "timeout": false,
+    "seconds": 0.14100000000325963,
+    "peak_private_bytes": 401408
+  },
+  {
+    "name": "build-broker",
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-I",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\include",
+      "-c",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\src\\wifi_broker.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\evidence\\run-20260910T035038187188Z\\broker.o"
+    ],
+    "exit": 0,
+    "expected": 0,
+    "timeout": false,
+    "seconds": 0.17199999999138527,
+    "peak_private_bytes": 1024000
+  },
+  {
+    "name": "build-wifi",
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+      "-std=c++17",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-finput-charset=UTF-8",
+      "-fexec-charset=UTF-8",
+      "-I",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\include",
+      "-I",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\vendor",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\tests\\test_wifi.cpp",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\evidence\\run-20260910T035038187188Z\\broker.o",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\evidence\\run-20260910T035038187188Z\\wifi.exe"
+    ],
+    "exit": 0,
+    "expected": 0,
+    "timeout": false,
+    "seconds": 0.5,
+    "peak_private_bytes": 1056768
+  },
+  {
+    "name": "mock-wifi",
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\evidence\\run-20260910T035038187188Z\\wifi.exe"
+    ],
+    "exit": 0,
+    "expected": 0,
+    "timeout": false,
+    "seconds": 0.125,
+    "peak_private_bytes": 397312
+  },
+  {
+    "name": "build-real",
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+      "-std=c++17",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-finput-charset=UTF-8",
+      "-fexec-charset=UTF-8",
+      "-I",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\include",
+      "-I",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\vendor",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\src\\demo.cpp",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\src\\audio.cpp",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\evidence\\run-20260910T035038187188Z\\broker.o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime\\runtime\\sherpa-onnx-v1.12.14-win-x64-shared\\lib\\sherpa-onnx-c-api.lib",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\evidence\\run-20260910T035038187188Z\\demo.exe"
+    ],
+    "exit": 0,
+    "expected": 0,
+    "timeout": false,
+    "seconds": 1.687000000005355,
+    "peak_private_bytes": 1081344
+  },
+  {
+    "name": "real-release",
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\evidence\\run-20260910T035038187188Z\\demo.exe",
+      "E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models",
+      "E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\test_wavs\\0.wav",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voice-orchestrator\\evidence\\run-20260910T035038187188Z\\real-release.wav",
+      "release",
+      "0",
+      "example"
+    ],
+    "exit": 3,
+    "expected": 0,
+    "timeout": false,
+    "seconds": 0.1879999999946449,
+    "peak_private_bytes": 1949696
+  }
+]

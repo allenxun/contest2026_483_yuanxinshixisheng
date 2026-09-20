@@ -1,0 +1,38 @@
+[
+  {
+    "command": [
+      "D:/software/mingw64/mingw64/bin/g++.exe",
+      "-std=c++17",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pthread",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\native-tts-runtime-20260913\\include",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9",
+      "E:\\openvela\\VelaVision\\work-in-progress\\native-tts-runtime-20260913\\native_tts_runtime.cpp",
+      "E:\\openvela\\VelaVision\\work-in-progress\\native-tts-runtime-20260913\\test_runtime.cpp",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\native-tts-runtime-20260913\\test-O0.exe"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "D:/software/mingw64/mingw64/bin/g++.exe",
+      "-std=c++17",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pthread",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\native-tts-runtime-20260913\\include",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9",
+      "E:\\openvela\\VelaVision\\work-in-progress\\native-tts-runtime-20260913\\native_tts_runtime.cpp",
+      "E:\\openvela\\VelaVision\\work-in-progress\\native-tts-runtime-20260913\\test_runtime.cpp",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\native-tts-runtime-20260913\\test-O2.exe"
+    ],
+    "exit_code": 0
+  }
+]

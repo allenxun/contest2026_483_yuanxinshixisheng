@@ -1,0 +1,132 @@
+{
+  "identity": {
+    "model_identity": null,
+    "agent_task": "/root/mcu_contract",
+    "session_uuid": null
+  },
+  "status": "frozen offline candidate",
+  "hardware_accessed": false,
+  "integrated": false,
+  "passed_tests": 22,
+  "evidence": "evidence-20260910T065849603780Z/result.json",
+  "known_failure": "evidence-20260910T065830828583Z/build.stderr.raw",
+  "incomplete": [
+    "CAN unsupported",
+    "device ACK/sequence/state unsupported",
+    "no real transport",
+    "no STM32/openvela build or hardware test",
+    "PID/PWM arithmetic simulation only"
+  ],
+  "outputs": [
+    {
+      "path": "can-audit.json",
+      "bytes": 224,
+      "sha256": "cc583149734a72a499264968cb3de5156faf9b1b9b8a3f64df24b4a79b52f456"
+    },
+    {
+      "path": "contract.py",
+      "bytes": 6719,
+      "sha256": "e37607d2017eed4b774134375fde1291aca79a79db06eba769a035aee8928909"
+    },
+    {
+      "path": "evidence-20260910T065830828583Z\\build.stderr.raw",
+      "bytes": 794,
+      "sha256": "7c15bf4c11ce849c4012ec78422ca0c39e1eb901960facb5a5cba529de9734af"
+    },
+    {
+      "path": "evidence-20260910T065830828583Z\\build.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence-20260910T065830828583Z\\inputs.json",
+      "bytes": 3543,
+      "sha256": "f98af16b9ff68b52c8bb33aea2112ed9806080e347745e86521316e8b303b838"
+    },
+    {
+      "path": "evidence-20260910T065830828583Z\\pack_oracle.c",
+      "bytes": 946,
+      "sha256": "bb96abe3848b6af8189c406d82428cd1f83d6b28f7e6a92d33500de291d31dd1"
+    },
+    {
+      "path": "evidence-20260910T065830828583Z\\result.json",
+      "bytes": 982,
+      "sha256": "e258a8585029e24255b26a33e65d503062d52ffdd9790bd17566648747f8beb7"
+    },
+    {
+      "path": "evidence-20260910T065830828583Z\\unittest.stderr.raw",
+      "bytes": 1936,
+      "sha256": "ab8cd20fa2f478368e817cfbbf2ac3cb8baf310e1fd3f9120bc78656f48731f2"
+    },
+    {
+      "path": "evidence-20260910T065830828583Z\\unittest.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence-20260910T065849603780Z\\build.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence-20260910T065849603780Z\\build.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence-20260910T065849603780Z\\inputs.json",
+      "bytes": 3543,
+      "sha256": "f98af16b9ff68b52c8bb33aea2112ed9806080e347745e86521316e8b303b838"
+    },
+    {
+      "path": "evidence-20260910T065849603780Z\\oracle.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence-20260910T065849603780Z\\oracle.stdout.raw",
+      "bytes": 120,
+      "sha256": "c89736eefd08a1d30aba3c61d14b9e3f5f05be9310f9d8f7e3f789b8190c1932"
+    },
+    {
+      "path": "evidence-20260910T065849603780Z\\pack_oracle.c",
+      "bytes": 948,
+      "sha256": "eace61831b3981bfa9ddff627fa6b6f68ce2423cf8754e9fcfaf38294e309af3"
+    },
+    {
+      "path": "evidence-20260910T065849603780Z\\pack_oracle.exe",
+      "bytes": 77102,
+      "sha256": "19ab7ffc640824dc2138a5f6700fe3abeca933790bdc39b8999928ecb5c2c4b5"
+    },
+    {
+      "path": "evidence-20260910T065849603780Z\\result.json",
+      "bytes": 1199,
+      "sha256": "c039811267393d7564a7d73b769b026d297fa5d56da66926452fbd2b5e2c1823"
+    },
+    {
+      "path": "evidence-20260910T065849603780Z\\unittest.stderr.raw",
+      "bytes": 1936,
+      "sha256": "3c89ed300c5fc9955e70ce5b65ecc7f2137328131e3ff5210a9df09cc6867ca7"
+    },
+    {
+      "path": "evidence-20260910T065849603780Z\\unittest.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 5950,
+      "sha256": "20af890e08e08e799e55c218a9f184e9b6fd1292e3362dbced9de63559471243"
+    },
+    {
+      "path": "run_tests.py",
+      "bytes": 3735,
+      "sha256": "15c40066ea02c718fbef210a1e1ab7fd9560f80ad57536e0762ecb080f0d4e2b"
+    },
+    {
+      "path": "test_contract.py",
+      "bytes": 5247,
+      "sha256": "adb5138fe0934fb1f2b261a9f9da7e2a6d13287b3f2f5869200ea9b340481ed3"
+    }
+  ]
+}

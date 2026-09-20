@@ -1,0 +1,21 @@
+2026-09-13T21:45:19+08:00
+gcc -std=c11 -O0 -Wall -Wextra -Werror -pedantic: PASS all 12 groups
+gcc -std=c11 -O2 -Wall -Wextra -Werror -pedantic: PASS all 12 groups
+
+Groups:
+PASS asr_success_and_redaction
+PASS tts_success
+PASS strict_responses
+PASS limits_and_validation
+PASS cancel_and_timeout
+PASS output_not_partially_committed
+PASS v25_request_profiles
+PASS v25_unicode_asr_response
+PASS v25_tts_base64_wav_response
+PASS v25_strict_rejections
+PASS v25_capacity_and_wav_boundaries
+PASS v25_integrated_redaction
+
+ASan/UBSan: unavailable because the installed MinGW toolchain does not carry
+the sanitizer runtime libraries; not counted as a pass.
+No network request was made and no credential was read or stored.

@@ -1,0 +1,6 @@
+nsync::nsync_cv_wait(nsync::nsync_cv_s_*, nsync::nsync_mu_s_*)
+nsync::nsync_mu_lock(nsync::nsync_mu_s_*)
+nsync::nsync_cv_signal(nsync::nsync_cv_s_*)
+nsync::nsync_mu_unlock(nsync::nsync_mu_s_*)
+nsync::nsync_cv_wait_with_deadline(nsync::nsync_cv_s_*, nsync::nsync_mu_s_*, timespec, nsync::nsync_note_s_*)
+localeconv

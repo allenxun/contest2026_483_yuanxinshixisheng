@@ -1,0 +1,20 @@
+{
+  "directory": "work-in-progress\\parallel-model-reader-medium\\voice-scan-adapter-v1",
+  "status": "HOST_TESTED_CANDIDATE_NOT_INTEGRATED",
+  "outputs_sha256": "c6aa891a1f47d090de2f2cd925186e1798a0a10578b42fc99cedbbb287f21852",
+  "inputs_sha256": "642e027022837829c31a9428a1079317b3bb5bdbf8b326622dde25bed7144259",
+  "handoff_sha256": "ca3a00ad9b0ca28ad06339ae3d3d836f67b8acae17b2f1a33280cd55869902ac",
+  "tests": {
+    "each_optimization": [
+      "O0",
+      "O2"
+    ],
+    "scan_adapter_checks": 4239,
+    "original_dispatch_targeted": 929,
+    "original_dispatch_pthread": 44589,
+    "original_broker": 10826,
+    "per_process_timeout_seconds": 30
+  },
+  "hardware_backend": "Not supplied; injected mocks in tests only",
+  "source_changes": "own directory only; no formal source/SDK/device/log modification"
+}

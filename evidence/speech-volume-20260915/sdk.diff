@@ -1,0 +1,60 @@
+--- sdk/app/k7sound/k7sound_main.c
++++ app/k7sound/k7sound_main.c
+@@ -23,6 +23,8 @@
+ static uint32_t loop_capture[512];
+ static struct dl_result loop_result;
+ static unsigned captured_frames;
++/* Spoken audio only; cues retain their explicit maximum profile. */
++static unsigned speech_gain_db = 18;
+ static unsigned captured_bits;
+ static bool capture_usable;
+ static bool playing, amp_ready, data_held, reset_fault;
+@@ -283,9 +285,9 @@
+   if (recording) { captured_frames = 0; captured_bits = 0; capture_usable = false; }
+   unsigned frames = pause250 ? 128 : 3200;
+   if (speech) frames = listen_frames ? listen_frames : speech_frames;
+-  /* Generated TTS peaks below full scale and remained too quiet at +18 dB.
+-   * Use the codec's audited 0 dB attenuation setting for speech playback. */
+-  unsigned gain_db = speech ? 24 : (maximum ? 24 : 0);
++  /* Spoken volume is separate from the maximum audible capture cue. */
++  unsigned gain_db = speech ? (cued ? 24 : speech_gain_db) : (maximum ? 24 : 0);
++  if (speech && !cued) maximum = gain_db == 24;
+   if (replay)
+     {
+       if (!capture_usable || !captured_frames || captured_frames > 48000 || captured_bits != 32) goto invalid;
+@@ -377,7 +379,13 @@
+   enum kd_adc_variant variant = pga24 ? KD_ADC_PGA24 : common ? KD_ADC_COMMON_NORMAL : (vmid ? KD_ADC_VMID_50K : KD_ADC_BASELINE);
+   if (!rc) rc = kd_prepare_adc_variant(&codec, sample16 ? 16 : 32, variant, now_ms(NULL) + 3000);
+   /* Explicit DAC attenuation comparison only; no PCM scaling or OUT2 change. */
+-  if (!rc && maximum) rc = kd_set_playback_max(&codec, now_ms(NULL) + 100);
++  if (!rc && speech && !cued)
++    {
++      /* Keep the same analog output path; 18 means 6 dB below the tested max. */
++      rc = kd_set_playback_max(&codec, now_ms(NULL) + 100);
++      if (!rc && gain_db < 24) rc = kd_set_playback_gain(&codec, gain_db, now_ms(NULL) + 100);
++    }
++  else if (!rc && maximum) rc = kd_set_playback_max(&codec, now_ms(NULL) + 100);
+   else if (!rc && gain_db) rc = kd_set_playback_gain(&codec, gain_db, now_ms(NULL) + 100);
+   if (!rc && recording) rc = delay_ms(NULL, 1000, now_ms(NULL) + 1100);
+   printf("SOUND codec_prepare=%d state=%u\n", rc, codec.state);
+@@ -542,6 +550,20 @@
+ 
+ int main(int argc, char **argv)
+ {
++  if ((argc == 2 || argc == 3) && !strcmp(argv[1], "speech-volume"))
++    {
++      unsigned long gain = 0;
++      if (argc == 3)
++        {
++          char *end;errno = 0;gain = strtoul(argv[2], &end, 10);
++          if (errno || !argv[2][0] || *end || gain > 24 || gain % 6) return 1;
++        }
++      if (pthread_mutex_trylock(&owner)) return 1;
++      if (argc == 3) speech_gain_db = (unsigned)gain;
++      printf("SOUND speech_gain_db=%u cue_gain_db=24 next_playback=1\n", speech_gain_db);
++      pthread_mutex_unlock(&owner);
++      return 0;
++    }
+   return sound_run(argc, argv, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL);
+ }
+ 

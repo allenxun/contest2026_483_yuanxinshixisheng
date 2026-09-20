@@ -1,0 +1,18 @@
+--- snapshot/Kconfig
++++ main-current/Kconfig
+@@ -59,6 +59,15 @@
+ 		Never changes the primary heap or DMA allocator. Enable only
+ 		for the audited 4GB K7 handoff; not a general DDR autodetector.
+ 
++config RK3576_SMP_DIAG
++	bool "Experimental K7 two-A53 SMP diagnostic"
++	depends on ARCH_BOARD_KICKPI_K7 && BUILD_FLAT && EXPERIMENTAL
++	select ARCH_HAVE_MULTICPU
++	default n
++	---help---
++		Enables the guarded two-A53 diagnostic build, not eight-core support.
++		Existing peripheral drivers are not certified for SMP.
++
+ endmenu
+ 
+ endif # ARCH_CHIP_RK3576

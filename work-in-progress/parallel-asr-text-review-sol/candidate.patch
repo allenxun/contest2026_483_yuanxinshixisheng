@@ -1,0 +1,30 @@
+diff --git a/app/voicelink/src/native_asr_runtime.cpp b/app/voicelink/src/native_asr_runtime.cpp
+--- a/app/voicelink/src/native_asr_runtime.cpp
++++ b/app/voicelink/src/native_asr_runtime.cpp
+@@
+ namespace {
++constexpr unsigned kMaxMicrophoneFrames = 48000;
+@@
+-  const size_t length = std::strlen(source);
+-  if (length >= capacity) return -ENOSPC;
++  size_t length = 0;
++  while (length < capacity && source[length]) ++length;
++  if (length == capacity) return -ENOSPC;
+@@
+-  if (pthread_mutex_trylock(&asr_gate)) {
+-    std::puts("ASR_INFER busy");
+-    return -EBUSY;
++  const int lock_error = pthread_mutex_trylock(&asr_gate);
++  if (lock_error) {
++    if (lock_error == EBUSY) std::puts("ASR_INFER busy");
++    else std::printf("ASR_INFER gate_error=%d\n", lock_error);
++    return -lock_error;
+@@
+-      recorded.reset(new float[48000]);
+-      if (k7sound_copy_mono(recorded.get(), 48000, &frames))
+-        throw std::runtime_error("no completed microphone recording");
++      recorded.reset(new float[kMaxMicrophoneFrames]);
++      const int capture_error =
++          k7sound_copy_mono(recorded.get(), kMaxMicrophoneFrames, &frames);
++      if (capture_error) return capture_error;
++      if (!frames || frames > kMaxMicrophoneFrames) return -EOVERFLOW;

@@ -1,0 +1,45 @@
+{
+  "delivery_id": "cold-failure-v1",
+  "files": [
+    {
+      "path": "ANALYSIS.md",
+      "bytes": 9941,
+      "sha256": "99864f8528a620b0089cdfb80c52a152adf497cc31a8b87f72611e1269481428"
+    },
+    {
+      "path": "collect.py",
+      "bytes": 1330,
+      "sha256": "4c7ab41943e0b8e29aad286cb2db6cf1f339f2df2ec64a6b359d43e550a3495c"
+    },
+    {
+      "path": "diagnostics-inputs.json",
+      "bytes": 2617,
+      "sha256": "98ff144e5c5b0bfa7bf51dbe21b6dff15640a345f429679b6f27ffa22703db60"
+    },
+    {
+      "path": "evidence.json",
+      "bytes": 1827,
+      "sha256": "e671fa1d04a8c73ebfcbc65309263c0a408a858249205507d188dbe324b9e4a0"
+    },
+    {
+      "path": "frames.txt",
+      "bytes": 2333824,
+      "sha256": "1bff0f80176d3e8b0867942feb7cad6795db8ea166758d83b735034dcab59b3c"
+    },
+    {
+      "path": "symbols.txt",
+      "bytes": 641105,
+      "sha256": "638a89956f071acb2e167958a34c1d1c6d6882d9371720ea5a955defbbfbc84a"
+    }
+  ],
+  "input_manifest": [
+    "evidence.json",
+    "diagnostics-inputs.json"
+  ],
+  "cause_established": false,
+  "abort_location": "uw_init_context_1 callsite 0x404dafbc; two incoming abort conditions not distinguished at runtime",
+  "normal_join_proven": false,
+  "hardware_access": false,
+  "patch_applied": false,
+  "pending": "single-worker cold and complete preheat then two workers; optional branch-specific diagnostics by parent"
+}

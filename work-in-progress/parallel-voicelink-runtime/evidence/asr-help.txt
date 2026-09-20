@@ -1,0 +1,128 @@
+D:\a\sherpa-onnx\sherpa-onnx\sherpa-onnx\csrc\parse-options.cc:PrintUsage:413 
+
+Usage:
+
+(1) Streaming transducer
+
+  ./bin/sherpa-onnx \
+    --tokens=/path/to/tokens.txt \
+    --encoder=/path/to/encoder.onnx \
+    --decoder=/path/to/decoder.onnx \
+    --joiner=/path/to/joiner.onnx \
+    --provider=cpu \
+    --num-threads=2 \
+    --decoding-method=greedy_search \
+    /path/to/foo.wav [bar.wav foobar.wav ...]
+
+(2) Streaming zipformer2 CTC
+
+  wget -q https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13.tar.bz2
+  tar xvf sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13.tar.bz2
+
+  ./bin/sherpa-onnx \
+    --debug=1 \
+    --zipformer2-ctc-model=./sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13/ctc-epoch-20-avg-1-chunk-16-left-128.onnx \
+    --tokens=./sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13/tokens.txt \
+    ./sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13/test_wavs/DEV_T0000000000.wav \
+    ./sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13/test_wavs/DEV_T0000000001.wav \
+    ./sherpa-onnx-streaming-zipformer-ctc-multi-zh-hans-2023-12-13/test_wavs/DEV_T0000000002.wav
+
+(3) Streaming paraformer
+
+  wget https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-streaming-paraformer-bilingual-zh-en.tar.bz2
+  tar xvf sherpa-onnx-streaming-paraformer-bilingual-zh-en.tar.bz2
+
+  ./bin/sherpa-onnx \
+    --tokens=./sherpa-onnx-streaming-paraformer-bilingual-zh-en/tokens.txt \
+    --paraformer-encoder=./sherpa-onnx-streaming-paraformer-bilingual-zh-en/encoder.onnx \
+    --paraformer-decoder=./sherpa-onnx-streaming-paraformer-bilingual-zh-en/decoder.onnx \
+    ./sherpa-onnx-streaming-paraformer-bilingual-zh-en/test_wavs/0.wav
+
+Note: It supports decoding multiple files in batches
+
+Default value for num_threads is 2.
+Valid values for decoding_method: greedy_search (default), modified_beam_search.
+Valid values for provider: cpu (default), cuda, coreml.
+foo.wav should be of single channel, 16-bit PCM encoded wave file; its
+sampling rate can be arbitrary and does not need to be 16kHz.
+
+Please refer to
+https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html
+for a list of pre-trained models to download.
+
+Options:
+  --lodr-backoff-id           : ID of the backoff in the LODR FST. -1 means autodetect (int, default = -1)
+  --trt-timing-cache-path     : Set path for storing timing cache. (string, default = ".")
+  --paraformer-encoder        : Path to encoder.onnx of paraformer. (string, default = "")
+  --decoder                   : Path to decoder.onnx (string, default = "")
+  --high-freq                 : High cutoff frequency for mel bins (if <= 0, offset from Nyquist) (float, default = -400)
+  --feat-dim                  : Feature dimension. Must match the one expected by the model. Not used by whisper and CED models (int, default = 80)
+  --trt-detailed-build-log    : Enable detailed logging of build steps. (bool, default = false)
+  --hr-lexicon                : Path to lexicon.txt used by HomophoneReplacer. (string, default = "")
+  --lodr-fst                  : Path to LODR FST model. (string, default = "")
+  --warm-up                   : Number of warm-up to run the onnxruntimeValid vales are: zipformer2 (int, default = 0)
+  --provider                  : Specify a provider to use: cpu, cuda, coreml (string, default = "cpu")
+  --sample-rate               : Sampling rate of the input waveform. Note: You can have a different sample rate for the input waveform. We will do resampling inside the feature extractor (int, default = 16000)
+  --lm-shallow-fusion         : Boolean whether to use shallow fusion or rescore. (bool, default = true)
+  --low-freq                  : Low cutoff frequency for mel bins (float, default = 20)
+  --dither                    : Dithering constant (0.0 means no dither). By default the audio samples are in range [-1,+1], so 0.00003 is a good value, equivalent to the default 1.0 from kaldi (float, default = 0)
+  --lm-num-threads            : Number of threads to run the neural network of LM model (int, default = 1)
+  --rule2-min-trailing-silence : This endpointing rule2 requires duration of trailing silence in seconds) to be >= this value. (float, default = 1.2)
+  --trt-engine-cache-path     : Set path to store cached TensorRT engines. (string, default = ".")
+  --encoder                   : Path to encoder.onnx (string, default = "")
+  --lm                        : Path to LM model. (string, default = "")
+  --joiner                    : Path to joiner.onnx (string, default = "")
+  --paraformer-decoder        : Path to decoder.onnx of paraformer. (string, default = "")
+  --ctc-max-active            : Decoder max active states.  Larger->slower; more accurate (int, default = 3000)
+  --wenet-ctc-model           : Path to CTC model.onnx from WeNet. Please see https://github.com/k2-fsa/sherpa-onnx/pull/425 (string, default = "")
+  --wenet-ctc-chunk-size      : Chunk size after subsampling used for decoding. (int, default = 16)
+  --trt-engine-cache-enable   : Enable caching of TensorRT engines. (bool, default = true)
+  --wenet-ctc-num-left-chunks : Number of left chunks after subsampling used for decoding. (int, default = 4)
+  --zipformer2-ctc-model      : Path to CTC model.onnx. See also https://github.com/k2-fsa/icefall/pull/1413 (string, default = "")
+  --nemo-ctc-model            : Path to CTC model.onnx from NeMo. Please see https://github.com/k2-fsa/sherpa-onnx/pull/843 (string, default = "")
+  --rule2-must-contain-nonsilence : If True, for this endpointing rule2 to apply there must be nonsilence in the best-path traceback. For decoding, a non-blank token is considered as non-silence (bool, default = true)
+  --t-one-ctc-model           : Path to CTC model.onnx from T-one. Please see https://github.com/k2-fsa/sherpa-onnx/pull/2571 (string, default = "")
+  --tokens                    : Path to tokens.txt (string, default = "")
+  --rule2-min-utterance-length : This endpointing rule2 requires utterance-length (in seconds) to be >= this value. (float, default = 0)
+  --cuda-cudnn-conv-algo-search : CuDNN convolution algrorithm search (int, default = 1)
+  --hr-dict-dir               : The dict directory for jieba used by HomophoneReplacer (string, default = "")
+  --lm-provider               : Specify a provider to LM model use: cpu, cuda, coreml (string, default = "cpu")
+  --trt-max-workspace-size    : Set TensorRT EP GPU memory usage limit. (int64, default = 2147483647)
+  --trt-max-partition-iterations : Limit partitioning iterations for model conversion. (int, default = 10)
+  --blank-penalty             : The penalty applied on blank symbol during decoding. Note: It is a positive value. Increasing value will lead to lower deletion at the costof higher insertions. Currently only applicable for transducer models. (float, default = 0)
+  --trt-min-subgraph-size     : Set minimum size for subgraphs in partitioning. (int, default = 5)
+  --max-active-paths          : beam size used in modified beam search. (int, default = 4)
+  --trt-fp16-enable           : Enable FP16 precision for faster performance. (bool, default = true)
+  --trt-timing-cache-enable   : Enable use of timing cache to speed up builds. (bool, default = true)
+  --bpe-vocab                 : The vocabulary generated by google's sentencepiece program. It is a file has two columns, one is the token, the other is the log probability, you can get it from the directory where your bpe model is generated. Only used when hotwords provided and the modeling unit is bpe or cjkchar+bpe (string, default = "")
+  --trt-dump-subgraphs        : Dump optimized subgraphs for debugging. (bool, default = false)
+  --device                    : GPU device index for CUDA and Trt EP (int, default = 0)
+  --num-threads               : Number of threads to run the neural network (int, default = 1)
+  --debug                     : true to print model information while loading it. (bool, default = false)
+  --modeling-unit             : The modeling unit of the model, commonly used units are bpe, cjkchar, cjkchar+bpe, etc. Currently, it is needed only when hotwords are provided, we need it to encode the hotwords into token sequence. (string, default = "cjkchar")
+  --hr-rule-fsts              : Fst files for HomophoneReplacer. If there are multiple, they are separated by a comma. E.g., a.fst,b.fst,c.fst (string, default = "")
+  --lodr-scale                : LODR scale. (float, default = 0.01)
+  --model-type                : Specify it to reduce model initialization time. Valid values are: conformer, lstm, zipformer, zipformer2, wenet_ctc, nemo_ctc. All other values lead to loading the model twice. (string, default = "")
+  --rule1-must-contain-nonsilence : If True, for this endpointing rule1 to apply there must be nonsilence in the best-path traceback. For decoding, a non-blank token is considered as non-silence (bool, default = false)
+  --rule1-min-trailing-silence : This endpointing rule1 requires duration of trailing silence in seconds) to be >= this value. (float, default = 2.4)
+  --rule1-min-utterance-length : This endpointing rule1 requires utterance-length (in seconds) to be >= this value. (float, default = 0)
+  --enable-endpoint           : True to enable endpoint detection. False to disable it. (bool, default = true)
+  --rule3-must-contain-nonsilence : If True, for this endpointing rule3 to apply there must be nonsilence in the best-path traceback. For decoding, a non-blank token is considered as non-silence (bool, default = false)
+  --rule3-min-trailing-silence : This endpointing rule3 requires duration of trailing silence in seconds) to be >= this value. (float, default = 0)
+  --rule3-min-utterance-length : This endpointing rule3 requires utterance-length (in seconds) to be >= this value. (float, default = 20)
+  --lm-scale                  : LM scale. (float, default = 0.5)
+  --ctc-graph                 : Path to H.fst, HL.fst, or HLG.fst (string, default = "")
+  --hotwords-score            : The bonus score for each token in context word/phrase. Used only when decoding_method is modified_beam_search (float, default = 1.5)
+  --hotwords-file             : The file containing hotwords, one words/phrases per line, For example: HELLO WORLD你好世界 (string, default = "")
+  --decoding-method           : decoding method,now support greedy_search and modified_beam_search. (string, default = "greedy_search")
+  --temperature-scale         : Temperature scale for confidence computation in decoding. (float, default = 2)
+  --rule-fsts                 : If not empty, it specifies fsts for inverse text normalization. If there are multiple fsts, they are separated by a comma. (string, default = "")
+  --rule-fars                 : If not empty, it specifies fst archives for inverse text normalization. If there are multiple archives, they are separated by a comma. (string, default = "")
+  --reset-encoder             : True to reset encoder_state on an endpoint after empty segment.Done in `Reset()` method, after an endpoint was detected. (bool, default = false)
+
+Standard options:
+  --config                    : Configuration file to read (this option may be repeated) (string, default = "")
+  --help                      : Print out usage message (bool, default = false)
+  --print-args                : Print the command line arguments (to stderr) (bool, default = true)
+
+

@@ -1,0 +1,45 @@
+{"stage": "before", "seconds": 0.030999999988125637, "prompt": true, "passed": true}
+free
+      total       used       free    maxused    maxfree  nused  nfree name
+  116809728      22464  116787264      23200  116787264    135      1 Umem
+nsh> [K
+{"stage": "add", "seconds": 60.0, "prompt": false, "passed": false}
+k7voice ort-add &
+k7voice [11:100]
+nsh> [KORT_ADD BEGIN api
+ORT_ADD END api
+ORT_ADD BEGIN env
+ORT_ADD END env
+ORT_ADD BEGIN options
+ORT_ADD END options
+ORT_ADD BEGIN intra
+ORT_ADD END intra
+ORT_ADD BEGIN inter
+ORT_ADD END inter
+ORT_ADD BEGIN sequential
+ORT_ADD END sequential
+ORT_ADD BEGIN optimization
+ORT_ADD END optimization
+ORT_ADD BEGIN session
+
+{"stage": "after", "seconds": 0.046999999991385266, "prompt": true, "passed": true}
+free
+      total       used       free    maxused    maxfree  nused  nfree name
+  116809728    3653440  113156288    3654176  113156080  40597      3 Umem
+nsh> [K
+{"stage": "tasks", "seconds": 1.2030000000086147, "prompt": true, "passed": true}
+ps
+  PID GROUP CPU(AFFINITY)   PRI POLICY   TYPE    NPX STATE    EVENT     SIGMASK            STACK    USED FILLED COMMAND
+    0     0 000(0x00000001)   0 FIFO     Kthread   - Assigned           0000000000000000 0007952 0002672  33.6%  CPU0 IDLE
+    1     0 001(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU1 IDLE
+    2     0 002(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU2 IDLE
+    3     0 003(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU3 IDLE
+    4     0 004(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU4 IDLE
+    5     0 005(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU5 IDLE
+    6     0 006(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU6 IDLE
+    7     0 007(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU7 IDLE
+    8     0 ---(0x00000001) 192 RR       Kthread   - Waiting  Semaphore 0000000000000000 0007888 0001088  13.7%  hpwork 0x40dfeac0 0x40dfeb48
+    9     0 ---(0x00000001) 100 RR       Kthread   - Waiting  Semaphore 0000000000000000 0007888 0001088  13.7%  lpwork 0x40dfea00 0x40dfea88
+   10    10 000(0x00000001) 100 RR       Task      - Running            0000000000000000 0007920 0003760  47.4%  nsh_main
+   11    11 ---(0x00000001) 100 RR       Task      - Ready              0000000000000000 0130784 0008528   6.5%  k7voice ort-add
+nsh> [K

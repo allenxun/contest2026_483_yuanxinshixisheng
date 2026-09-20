@@ -1,0 +1,10 @@
+{
+  "command": "k7emmc blockcheck",
+  "prompt_returned": true,
+  "lines": [
+    "EMMC filesystem_signature partition=cache signature=ext-family mounted=0",
+    "EMMC filesystem_signature partition=userdata signature=unknown mounted=0",
+    "EMMC blockcheck rc=0 readonly_geometry=PASS rejected_write=PASS partition_translation=PASS storage_writes=0"
+  ],
+  "storage_writes": false
+}

@@ -1,0 +1,58 @@
+[
+  {
+    "command": [
+      "D:/software/mingw64/mingw64/bin/gcc.exe",
+      "-std=c11",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wconversion",
+      "-Wshadow",
+      "-pedantic",
+      "codec_duplex.c",
+      "test_pga.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\audio-input-root\\test-pga-O0.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\audio-input-root\\test-pga-O0.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "gain checks=2678 PASS (mock GPIO/I2C only)\nPGA24 checks=13186 PASS; mocks only, acoustic quality not tested\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "D:/software/mingw64/mingw64/bin/gcc.exe",
+      "-std=c11",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wconversion",
+      "-Wshadow",
+      "-pedantic",
+      "codec_duplex.c",
+      "test_pga.c",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\audio-input-root\\test-pga-O2.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\audio-input-root\\test-pga-O2.exe"
+    ],
+    "exit_code": 0,
+    "stdout": "gain checks=2678 PASS (mock GPIO/I2C only)\nPGA24 checks=13186 PASS; mocks only, acoustic quality not tested\n",
+    "stderr": ""
+  }
+]

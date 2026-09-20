@@ -1,0 +1,30 @@
+{
+  "state": {
+    "running_revision": "audio-io-b-20260910",
+    "boot": "RAM",
+    "firmware_sha256": "bceb70f23e66bd2994e2801434b4f7b5a7e25c5672317c583c8040244588d850",
+    "smp_cpus": 8,
+    "audio_i2c_codec_read_passed": true,
+    "audio_recording_tested": false,
+    "audio_playback_tested": false,
+    "wifi_connected": false,
+    "ble_connected": false,
+    "ble_service_running": true,
+    "wireless_verification": "Windows BLE client failed DeviceNotFound twice; no true connect success this image",
+    "emmc_written": false,
+    "serial_observer_running": false
+  },
+  "probe_evidence": "k7audiohw-codec-probe-20260910-182510.json",
+  "read_registers": {
+    "0": "06",
+    "1": "5c",
+    "2": "c3"
+  },
+  "repeated_reads": 2,
+  "not_proved": [
+    "unique chip silicon identity",
+    "codec programming",
+    "record/playback",
+    "wireless restoration"
+  ]
+}

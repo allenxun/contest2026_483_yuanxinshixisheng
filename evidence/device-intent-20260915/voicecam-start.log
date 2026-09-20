@@ -1,0 +1,15 @@
+k7host start
+K7 Combo mode before=00000110
+K7 Combo mode after=00000104
+K7 host: DWC3=5533300a GCTL=30c11004 xHCI=01100020 PHY=00008a00
+K7 PHY: USB2=00101408 PIPE=010c0002 PHP=00000189
+K7 host start result=0; run 'k7host camera' after enumeration.
+K7 root port 0: reg=23400420 PORTSC=000006e1
+nsh> [K
+[CPU0] k7-usb-a: port 1: device attached at high speed, 480Mbps
+[CPU0] K7 HUB: addr=1 ports=4 speed=3
+k7host camera
+camera connected=0 committed=0 descriptor_bytes=0
+Use probe, then snapshot, burst or stream (one capture attempt per boot).
+nsh> [KRADIO Wi-Fi RX type=2 id=4 seq=567 len=70
+

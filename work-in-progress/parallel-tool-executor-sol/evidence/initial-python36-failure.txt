@@ -1,0 +1,9 @@
+Initial reproduction attempt failed before compilation because the workspace default
+Python is 3.6 and subprocess.run() does not support capture_output in that version.
+
+Observed exception:
+TypeError: __init__() got an unexpected keyword argument 'capture_output'
+
+The runner was changed to stdout=subprocess.PIPE and stderr=subprocess.PIPE.
+This is a host runner compatibility failure, not a compiler, test, device, or tool
+execution result.

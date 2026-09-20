@@ -1,0 +1,234 @@
+--- a/fs/fat/fs_fat32util.c
++++ b/fs/fat/fs_fat32util.c
+@@ -473,6 +473,10 @@
+ 
+ int fat_mount(struct fat_mountpt_s *fs, bool writeable)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  writeable = false;
++#endif
++
+   FAR struct inode *inode;
+   struct geometry geo;
+   int ret;
+@@ -750,6 +754,11 @@
+ int fat_hwwrite(struct fat_mountpt_s *fs, uint8_t *buffer, off_t sector,
+                 unsigned int nsectors)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)buffer; (void)sector; (void)nsectors; 
++  return -EROFS;
++#else
++
+   int ret = -ENODEV;
+   if (fs && fs->fs_blkdriver)
+     {
+@@ -771,6 +780,8 @@
+     }
+ 
+   return ret;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -947,6 +958,11 @@
+ int fat_putcluster(struct fat_mountpt_s *fs, uint32_t clusterno,
+                    off_t nextcluster)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)clusterno; (void)nextcluster; 
++  return -EROFS;
++#else
++
+   /* Verify that the cluster number is within range.  Zero erases the
+    * cluster.
+    */
+@@ -1102,6 +1118,8 @@
+     }
+ 
+   return -EINVAL;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -1114,6 +1132,11 @@
+ 
+ int fat_removechain(struct fat_mountpt_s *fs, uint32_t cluster)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)cluster; 
++  return -EROFS;
++#else
++
+   int32_t nextcluster;
+   int    ret;
+ 
+@@ -1153,6 +1176,8 @@
+     }
+ 
+   return OK;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -1169,6 +1194,11 @@
+ 
+ int32_t fat_extendchain(struct fat_mountpt_s *fs, uint32_t cluster)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)cluster; 
++  return -EROFS;
++#else
++
+   off_t    startsector;
+   uint32_t newcluster;
+   uint32_t startcluster;
+@@ -1316,6 +1346,8 @@
+   /* Return then number of the new cluster that was added to the chain */
+ 
+   return newcluster;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -1430,6 +1462,11 @@
+ 
+ int fat_dirtruncate(struct fat_mountpt_s *fs, FAR uint8_t *direntry)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)direntry; 
++  return -EROFS;
++#else
++
+   unsigned int startcluster;
+   uint32_t writetime;
+   off_t savesector;
+@@ -1477,6 +1514,8 @@
+   /* Make sure that the directory is still in the cache */
+ 
+   return fat_fscacheread(fs, savesector);
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -1494,6 +1533,11 @@
+ int fat_dirshrink(struct fat_mountpt_s *fs, FAR uint8_t *direntry,
+                   off_t length)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)direntry; (void)length; 
++  return -EROFS;
++#else
++
+   off_t clustersize;
+   off_t remaining;
+   uint32_t writetime;
+@@ -1579,6 +1623,8 @@
+     }
+ 
+   return OK;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -1592,6 +1638,11 @@
+ int fat_dirextend(FAR struct fat_mountpt_s *fs, FAR struct fat_file_s *ff,
+                   off_t length)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)ff; (void)length; 
++  return -EROFS;
++#else
++
+   int32_t cluster;
+   off_t remaining;
+   off_t pos;
+@@ -1751,6 +1802,8 @@
+ 
+   ff->ff_size = length;
+   return OK;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -1763,6 +1816,10 @@
+ 
+ int fat_fscacheflush(struct fat_mountpt_s *fs)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  return fs->fs_dirty ? -EROFS : OK;
++#else
++
+   int ret;
+ 
+   /* Check if the fs_buffer is dirty.  In this case, we will write back the
+@@ -1805,6 +1862,8 @@
+     }
+ 
+   return OK;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -1863,6 +1922,11 @@
+ 
+ int fat_ffcacheflush(struct fat_mountpt_s *fs, struct fat_file_s *ff)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs;
++  return (ff->ff_bflags & (FFBUFF_DIRTY | FFBUFF_MODIFIED)) ? -EROFS : OK;
++#else
++
+   int ret;
+ 
+   /* Check if the ff_buffer is dirty.  In this case, we will write back the
+@@ -1887,6 +1951,8 @@
+     }
+ 
+   return OK;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -1981,6 +2047,10 @@
+ 
+ int fat_updatefsinfo(struct fat_mountpt_s *fs)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  return (fs->fs_dirty || fs->fs_fsidirty) ? -EROFS : OK;
++#else
++
+   int ret;
+ 
+   /* Flush the fs_buffer if it is dirty */
+@@ -2018,6 +2088,8 @@
+     }
+ 
+   return ret;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -2111,10 +2183,12 @@
+     }
+ 
+   fs->fs_fsifreecount = nfreeclusters;
++#ifndef CONFIG_FAT_FORCE_READONLY
+   if (fs->fs_type == FSTYPE_FAT32)
+     {
+       fs->fs_fsidirty = true;
+     }
++#endif
+ 
+   return OK;
+ }

@@ -1,0 +1,167 @@
+{
+  "passed": true,
+  "scope": "Windows host; simulated backend; no hardware/SDK/network calls",
+  "session_id": "01a0892e-2964-7ec3-bd76-9ab4937980cb",
+  "cwd": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-service",
+  "runs": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "--version"
+      ],
+      "name": "compiler",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-Iinclude",
+        "-c",
+        "src/wifi_broker.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-service\\evidence\\run-20260910T031034243645Z\\broker.o"
+      ],
+      "name": "core-build",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-Iinclude",
+        "tests/test_broker.c",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-service\\evidence\\run-20260910T031034243645Z\\broker.o",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-service\\evidence\\run-20260910T031034243645Z\\test_broker.exe"
+      ],
+      "name": "broker-build",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-service\\evidence\\run-20260910T031034243645Z\\test_broker.exe"
+      ],
+      "name": "broker-test",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.EXE",
+        "-std=c++17",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-Iinclude",
+        "-Iinput/work-in-progress/parallel-voicelink/include",
+        "tests/test_adapter.cpp",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-service\\evidence\\run-20260910T031034243645Z\\broker.o",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-service\\evidence\\run-20260910T031034243645Z\\test_adapter.exe"
+      ],
+      "name": "adapter-build",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-service\\evidence\\run-20260910T031034243645Z\\test_adapter.exe"
+      ],
+      "name": "adapter-test",
+      "exit_code": 0
+    }
+  ],
+  "inputs": [
+    {
+      "path": "app/k7radio/prov_wifi.inc",
+      "source_unchanged": true,
+      "snapshot_unchanged": true
+    },
+    {
+      "path": "app/k7radio/prov_service.inc",
+      "source_unchanged": true,
+      "snapshot_unchanged": true
+    },
+    {
+      "path": "app/k7radio/prov_protocol.h",
+      "source_unchanged": true,
+      "snapshot_unchanged": true
+    },
+    {
+      "path": "app/k7radio/prov_protocol.c",
+      "source_unchanged": true,
+      "snapshot_unchanged": true
+    },
+    {
+      "path": "app/k7radio/wifi_ip_service.inc",
+      "source_unchanged": true,
+      "snapshot_unchanged": true
+    },
+    {
+      "path": "docs/VoiceLink\u4ea4\u63a5\u63a5\u6536\u4e0e\u96c6\u6210\u987a\u5e8f_20260910.md",
+      "source_unchanged": true,
+      "snapshot_unchanged": true
+    },
+    {
+      "path": "work-in-progress/parallel-voicelink/HANDOFF.md",
+      "source_unchanged": true,
+      "snapshot_unchanged": true
+    },
+    {
+      "path": "work-in-progress/parallel-voicelink/include/voicelink/ports.hpp",
+      "source_unchanged": true,
+      "snapshot_unchanged": true
+    },
+    {
+      "path": "work-in-progress/parallel-voicelink/include/voicelink/types.hpp",
+      "source_unchanged": true,
+      "snapshot_unchanged": true
+    }
+  ],
+  "before": {
+    "src/wifi_broker.c": "70ac3eb2c9c8f1f87ee430d02cfbdff8483ac8a3d3f95b28a2e85716c39e01b6",
+    "include/voicelink_adapter.hpp": "3601618ce28b50ebbec83347b73b1811ed22861d1b7bc7126efd0882680a0af6",
+    "include/wifi_broker.h": "f0ff97135098ea02fedcc9c759445ded1b10b0c991e3fe42af89214473f54178",
+    "tests/test_adapter.cpp": "eca819d4d7d4d0e5d440b6872c2b99d242966e08a4394f9dded33d774947f047",
+    "tests/test_broker.c": "db97fa500a98f931279b258b79942c87f159fa024d05c3b550ea1483d1211cf7",
+    "input/app/k7radio/prov_protocol.c": "787bc2df12dbbed5fee8730fbdba565671537f3ae2d106260518bc75b88953c3",
+    "input/app/k7radio/prov_protocol.h": "0e783ee9dbecfa9a9344297075d9f28843581c52db07f6797a3b0914972fde08",
+    "input/app/k7radio/prov_service.inc": "342bc2fe77ab4c5f8a83e9546d0c269bf210f8dff06cc7f9aa848e5283c34539",
+    "input/app/k7radio/prov_wifi.inc": "11b6f349e7a2b14b7b7ac1506dd2c97258aa6c972f62a23b60aa54f3f67e7919",
+    "input/app/k7radio/wifi_ip_service.inc": "6fddac4cbe25b5edcc9cea8e2df8a9628e649255fb6ea4b7b453d831bd686bea",
+    "input/docs/VoiceLink\u4ea4\u63a5\u63a5\u6536\u4e0e\u96c6\u6210\u987a\u5e8f_20260910.md": "9426071f55348b8e5e0eba45f1e5bc8887a348d52e2c90fcd24bb03d7e0010f9",
+    "input/work-in-progress/parallel-voicelink/HANDOFF.md": "5480d3889a4d87baf3ad0229c9fe54eeb26705dfa14a4bac1ce2af3fb73d22f6",
+    "input/work-in-progress/parallel-voicelink/include/voicelink/ports.hpp": "5650730338584784cf6fa352043a9a8b6897ff137027fa441e64f6da5dd36be2",
+    "input/work-in-progress/parallel-voicelink/include/voicelink/types.hpp": "51b508d9988d0c1b5b601248eee8867adc7670f4ed40aa06218692ddba12d3a0"
+  },
+  "after": {
+    "src/wifi_broker.c": "70ac3eb2c9c8f1f87ee430d02cfbdff8483ac8a3d3f95b28a2e85716c39e01b6",
+    "include/voicelink_adapter.hpp": "3601618ce28b50ebbec83347b73b1811ed22861d1b7bc7126efd0882680a0af6",
+    "include/wifi_broker.h": "f0ff97135098ea02fedcc9c759445ded1b10b0c991e3fe42af89214473f54178",
+    "tests/test_adapter.cpp": "eca819d4d7d4d0e5d440b6872c2b99d242966e08a4394f9dded33d774947f047",
+    "tests/test_broker.c": "db97fa500a98f931279b258b79942c87f159fa024d05c3b550ea1483d1211cf7",
+    "input/app/k7radio/prov_protocol.c": "787bc2df12dbbed5fee8730fbdba565671537f3ae2d106260518bc75b88953c3",
+    "input/app/k7radio/prov_protocol.h": "0e783ee9dbecfa9a9344297075d9f28843581c52db07f6797a3b0914972fde08",
+    "input/app/k7radio/prov_service.inc": "342bc2fe77ab4c5f8a83e9546d0c269bf210f8dff06cc7f9aa848e5283c34539",
+    "input/app/k7radio/prov_wifi.inc": "11b6f349e7a2b14b7b7ac1506dd2c97258aa6c972f62a23b60aa54f3f67e7919",
+    "input/app/k7radio/wifi_ip_service.inc": "6fddac4cbe25b5edcc9cea8e2df8a9628e649255fb6ea4b7b453d831bd686bea",
+    "input/docs/VoiceLink\u4ea4\u63a5\u63a5\u6536\u4e0e\u96c6\u6210\u987a\u5e8f_20260910.md": "9426071f55348b8e5e0eba45f1e5bc8887a348d52e2c90fcd24bb03d7e0010f9",
+    "input/work-in-progress/parallel-voicelink/HANDOFF.md": "5480d3889a4d87baf3ad0229c9fe54eeb26705dfa14a4bac1ce2af3fb73d22f6",
+    "input/work-in-progress/parallel-voicelink/include/voicelink/ports.hpp": "5650730338584784cf6fa352043a9a8b6897ff137027fa441e64f6da5dd36be2",
+    "input/work-in-progress/parallel-voicelink/include/voicelink/types.hpp": "51b508d9988d0c1b5b601248eee8867adc7670f4ed40aa06218692ddba12d3a0"
+  },
+  "runner_sha256": "e62193b39d3fb3ce3a12181799ba328afb66514986a3709a98710ad13eeadf20"
+}

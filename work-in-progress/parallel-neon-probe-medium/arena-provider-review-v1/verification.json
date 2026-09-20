@@ -1,0 +1,68 @@
+{
+  "scope": "read-only identities and existing evidence; no compilation/execution",
+  "comparisons": [
+    {
+      "left": "port/new/nuttx/arch/arm64/src/rk3576/rk3576_model_arena.c",
+      "right": "work-in-progress/parallel-model-reader-medium/model-arena-provider-v1/input/arena/rk3576_model_arena.c",
+      "identical": true
+    },
+    {
+      "left": "port/new/nuttx/include/nuttx/mm/k7_model_arena.h",
+      "right": "work-in-progress/parallel-model-reader-medium/model-arena-provider-v1/input/nuttx/mm/k7_model_arena.h",
+      "identical": true
+    },
+    {
+      "left": "work-in-progress/parallel-model-reader-medium/model-arena-buft-v1/k7_host_buft.cpp",
+      "right": "work-in-progress/parallel-model-reader-medium/model-arena-provider-v1/input/buft/k7_host_buft.cpp",
+      "identical": true
+    },
+    {
+      "left": "work-in-progress/parallel-model-reader-medium/model-arena-buft-v1/k7_host_buft.h",
+      "right": "work-in-progress/parallel-model-reader-medium/model-arena-provider-v1/input/buft/k7_host_buft.h",
+      "identical": true
+    }
+  ],
+  "existing_tests": [
+    {
+      "path": "work-in-progress/parallel-model-reader-medium/model-arena-buft-v1/evidence/host-tests.json",
+      "existing_commands": 7,
+      "returncodes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "independently_rerun": false
+    },
+    {
+      "path": "work-in-progress/parallel-model-reader-medium/model-arena-provider-v1/evidence/host-tests.json",
+      "existing_commands": 20,
+      "returncodes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "independently_rerun": false
+    }
+  ]
+}

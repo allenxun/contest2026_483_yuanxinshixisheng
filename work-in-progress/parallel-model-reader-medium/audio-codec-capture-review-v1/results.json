@@ -1,0 +1,34 @@
+[
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wconversion",
+      "-Wshadow",
+      "-pedantic",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\include",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\src\\codec_txn.c",
+      "capture_reference.c",
+      "test_reference.c",
+      "-o",
+      "test_reference.exe"
+    ],
+    "timeout_seconds": 30,
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\audio-codec-capture-review-v1\\test_reference.exe"
+    ],
+    "timeout_seconds": 15,
+    "returncode": 0,
+    "stdout": "PASS reference plan rejected KC_NOT_READY; zero callbacks; owner/id unchanged; LIN2/RIN2 and S16 fields checked. No hardware execution.\n",
+    "stderr": ""
+  }
+]

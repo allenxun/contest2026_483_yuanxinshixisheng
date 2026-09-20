@@ -1,0 +1,115 @@
+{
+  "device_sectors": 61079552,
+  "bytes": 31272730624,
+  "partitions": [
+    {
+      "name": "security",
+      "first": 8192,
+      "last": 16383,
+      "sectors": 8192,
+      "bytes": 4194304
+    },
+    {
+      "name": "uboot",
+      "first": 16384,
+      "last": 24575,
+      "sectors": 8192,
+      "bytes": 4194304
+    },
+    {
+      "name": "trust",
+      "first": 24576,
+      "last": 32767,
+      "sectors": 8192,
+      "bytes": 4194304
+    },
+    {
+      "name": "misc",
+      "first": 32768,
+      "last": 40959,
+      "sectors": 8192,
+      "bytes": 4194304
+    },
+    {
+      "name": "dtbo",
+      "first": 40960,
+      "last": 49151,
+      "sectors": 8192,
+      "bytes": 4194304
+    },
+    {
+      "name": "vbmeta",
+      "first": 49152,
+      "last": 51199,
+      "sectors": 2048,
+      "bytes": 1048576
+    },
+    {
+      "name": "boot",
+      "first": 51200,
+      "last": 182271,
+      "sectors": 131072,
+      "bytes": 67108864
+    },
+    {
+      "name": "recovery",
+      "first": 182272,
+      "last": 378879,
+      "sectors": 196608,
+      "bytes": 100663296
+    },
+    {
+      "name": "backup",
+      "first": 378880,
+      "last": 1165311,
+      "sectors": 786432,
+      "bytes": 402653184
+    },
+    {
+      "name": "cache",
+      "first": 1165312,
+      "last": 1951743,
+      "sectors": 786432,
+      "bytes": 402653184
+    },
+    {
+      "name": "metadata",
+      "first": 1951744,
+      "last": 2082815,
+      "sectors": 131072,
+      "bytes": 67108864
+    },
+    {
+      "name": "frp",
+      "first": 2082816,
+      "last": 2083839,
+      "sectors": 1024,
+      "bytes": 524288
+    },
+    {
+      "name": "baseparameter",
+      "first": 2083840,
+      "last": 2085887,
+      "sectors": 2048,
+      "bytes": 1048576
+    },
+    {
+      "name": "super",
+      "first": 2085888,
+      "last": 8459263,
+      "sectors": 6373376,
+      "bytes": 3263168512
+    },
+    {
+      "name": "userdata",
+      "first": 8459264,
+      "last": 61079487,
+      "sectors": 52620224,
+      "bytes": 26941554688
+    }
+  ],
+  "inter_partition_gaps": [],
+  "filesystems_identified": false,
+  "write_authorized": false,
+  "note": "No filesystem probing/mounting or storage modification; no start/end free-space inference"
+}

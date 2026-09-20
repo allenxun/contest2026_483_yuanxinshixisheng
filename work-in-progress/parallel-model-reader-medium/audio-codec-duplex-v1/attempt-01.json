@@ -1,0 +1,23 @@
+[
+  {
+    "command": [
+      "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+      "-std=c11",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wconversion",
+      "-Wshadow",
+      "-pedantic",
+      "codec_duplex.c",
+      "test_duplex.c",
+      "-o",
+      "testO0.exe"
+    ],
+    "timeout_seconds": 30,
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "test_duplex.c: In function 'ready':\ntest_duplex.c:20:2: error: this 'if' clause does not guard... [-Werror=misleading-indentation]\n   20 |  if(m->codec)assert(kd_prepare(m->codec,bits,d)==-EBUSY);return hit(m);\n      |  ^~\ntest_duplex.c:20:58: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'\n   20 |  if(m->codec)assert(kd_prepare(m->codec,bits,d)==-EBUSY);return hit(m);\n      |                                                          ^~~~~~\ncc1.exe: all warnings being treated as errors\n"
+  }
+]

@@ -1,0 +1,178 @@
+{
+  "commands": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "gcc.EXE (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O0",
+        "adapter.c",
+        "test_adapter.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-adapter-v1\\adapter-O0.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-adapter-v1\\adapter-O0.exe"
+      ],
+      "exit_code": 0,
+      "output": "PASS 15 adapter lifecycle/mock-register checks; hardware unavailable\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "adapter.c",
+        "test_adapter.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-adapter-v1\\adapter-O2.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-adapter-v1\\adapter-O2.exe"
+      ],
+      "exit_code": 0,
+      "output": "PASS 15 adapter lifecycle/mock-register checks; hardware unavailable\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O0",
+        "rk3x_registers.c",
+        "test_registers.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-adapter-v1\\registers-O0.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-adapter-v1\\registers-O0.exe"
+      ],
+      "exit_code": 0,
+      "output": "PASS register model: TX/RX/NAK/STOP/line hold/version5; no MMIO device\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "rk3x_registers.c",
+        "test_registers.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-adapter-v1\\registers-O2.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-adapter-v1\\registers-O2.exe"
+      ],
+      "exit_code": 0,
+      "output": "PASS register model: TX/RX/NAK/STOP/line hold/version5; no MMIO device\n"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "E:\\openvela\\VelaVision\\app\\k7radio\\k7radio_main.c",
+      "sha256": "2689320622bdab40d07a73254f1536bcb053aec5d5226fe556b1f70e7b4775c6",
+      "bytes": 61436
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\include\\codec_txn.h",
+      "sha256": "deeabcb109d1ece3aa6326fa7b9339ade9bf48f34e1b4e45d6a58bb1460d9b9b",
+      "bytes": 4256
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-codec\\CONTRACT.md",
+      "sha256": "4c7a738480882179a357b4f97564f23bc7d080e5cb15f8a799a37cf8bde3c319",
+      "bytes": 6179
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-audio\\HARDWARE.md",
+      "sha256": "2e0bcd5c0c72859f4333e8f8f66225b77427f919a615799eed992c2fc2264294",
+      "bytes": 5345
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-audio\\sources\\kernel-6.1\\arch\\arm64\\boot\\dts\\rockchip\\rk3576.dtsi",
+      "sha256": "5fb33e4dd095b0dfd5c3a8788651c232b577c095bf8a7de48240de935172fc38",
+      "bytes": 159883
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-k7-audio\\sources\\kernel-6.1\\arch\\arm64\\boot\\dts\\rockchip\\rk3576-pinctrl.dtsi",
+      "sha256": "ee38caf7142eb3cbdd6d29347b1fcdeba4ba3b8abaddb87a341c49c144f61bbc",
+      "bytes": 116043
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\evidence\\audio-sdk-extra-20260910\\inputs.json",
+      "sha256": "27e54f22270956ddd1665a3acf12cbf869cd7e19a1e35fe77342ac4866acceef",
+      "bytes": 1971
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\evidence\\audio-sdk-extra-20260910\\kernel-6.1\\drivers\\clk\\rockchip\\clk-rk3576.c",
+      "sha256": "5a3bf56f31f1144bcc97c87aa854c13a4bddbb5aa77b0d3490fc932db61916f5",
+      "bytes": 86821
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\evidence\\audio-sdk-extra-20260910\\kernel-6.1\\drivers\\i2c\\busses\\i2c-rk3x.c",
+      "sha256": "67b6eb49cdb0838bcd00e58021847461fe4b7fa4142f15f3de3ac59ac9b17bb5",
+      "bytes": 47514
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\evidence\\audio-sdk-extra-20260910\\kernel-6.1\\drivers\\pinctrl\\pinctrl-rockchip.c",
+      "sha256": "35cc1fa662b24b4945ed78aa5338e5943e153c7c602e12d1fe7a292a2e79274c",
+      "bytes": 159543
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\evidence\\audio-sdk-extra-20260910\\kernel-6.1\\drivers\\pinctrl\\pinctrl-rockchip.h",
+      "sha256": "cabe1d278a5e8262491a4c8d06a54c9a2b972f3b7eeed84e9d4ab4396bf20fe8",
+      "bytes": 12372
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\evidence\\audio-sdk-extra-20260910\\kernel-6.1\\include\\dt-bindings\\clock\\rockchip,rk3576-cru.h",
+      "sha256": "94778832f7455e484aef23a04f75f4730db0811e270b8ad29628cf1077296257",
+      "bytes": 33774
+    },
+    {
+      "path": "E:\\openvela\\VelaVision\\evidence\\audio-sdk-extra-20260910\\kernel-6.1\\include\\dt-bindings\\power\\rk3576-power.h",
+      "sha256": "8460759d217e8027fbded78ea01b770d90463d0af62c06d53811851ca79b3d91",
+      "bytes": 689
+    }
+  ],
+  "mode": "host simulation only",
+  "hardware_ready": false,
+  "device_access": false
+}

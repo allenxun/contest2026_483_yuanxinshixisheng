@@ -1,0 +1,128 @@
+
+nsh> [Kk7sound tone-max
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=00060300 ien=00000000 gpi50
+SOUND platform_result=0 version=23073576 repair=fdffffff ack001
+SOUND mclkout before=0000001f after=0000001d
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=0 settle_ms=0
+SOUND playback_gain_db=24 dac_attenuation_db=0 maximum=1
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=000000SOUND slot_mask offset=50 value=00000000
+SOUND slot_mask offset=54 value=00000000
+SOUND slot_mask offset=58 value=00000000
+SOUND pio=0 frames=3200 polls=174625 stop=0 held=0 max_fifo=16
+SOUND fifo first=00104104 last=00000000 TXCR=00400fff RXCR=00000fff FSCR=0101f03f CKR=00000018
+SOUND codec reg=00 value=36
+SOUND codec reg=01 value=60
+SOUND codec reg=02 value=00
+SOUND codec reg=03 value=00
+SOUND codec reg=04 value=0c
+SOUND codec reg=05 value=00
+SOUND codec reg=06 value=00
+SOUND codec reg=07 value=7c
+SOUND codec reg=08 value=00
+SOUND codec reg=09 value=44
+SOUND codec reg=0a value=f0
+SOUND codec reg=0b value=82
+SOUND codec reg=0c value=10
+SOUND codec reg=0d value=02
+SOUND codec reg=0f value=24
+SOUND codec reg=17 value=20
+SOUND codec reg=18 value=02
+SOUND codec reg=19 value=02
+SOUND codec reg=1a value=00
+SOUND codec reg=1b value=00
+SOUND codec reg=27 value=b8
+SOUND codec reg=2a value=b8
+SOUND codec reg=2b value=80
+SOUND codec reg=30 value=21
+SOUND codec reg=31 value=21
+SOUND input pull=00005515 schmitt=000000ff path=0000e4e4 gpio_high=50397 transitions=0 samples=50397
+SOUND pad ticks=480004 max_gap=42 counter_hz=24000000 complete=1
+SOUND pad channel=0 high=24764 changes=37870
+SOUND pad channel=1 high=24900 changes=40918
+SOUND pad channel=2 high=25213 changes=640
+SOUND pad channel=3 high=50397 changes=0
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [Kk7sound capture-pga24-grouped 48000
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=000603io_input=034d3050
+SOUND platform_result=0 version=23073576 repair=fdffffff ack=00000001 idle=00000001
+SOUND mclkout before=0000001f after=0000001d
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=24 settle_ms=1000
+SOUND playback_gain_db=0 dac_attenuation_db=24 maximum=0
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=000000fset=48 value=00000000
+SOUND slot_mask offset=4c value=00000000ask offset=58 value=00000000
+SOUND pio=0 frames=48000 polls=229grouped words=768000 mismatches=0
+SOUND fifo first=00000000 las01f03f CKR=00000018
+SOUND trace start=382989761 end=385989804 s=0
+SOUND trace_init index=3 value=000000e4 rc=0
+SOUND trace_inrc=0,0,0
+SOUND trace_word index=1 us=382989831 before=00041040 82989833 before=00041040 word=ffffffff after=00041000 rc=0,0,0
+ord=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=5 u rc=0,0,0
+SOUND trace_word index=7 us=382989842 before=000000000000 rc=0,0,0
+SOUND trace_word index=8 us=382989861 before=0004ndex=9 us=382989863 before=00041040 word=00000000 after=00041040before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND traord index=12 us=382989868 before=00041000 word=ffffffff after=0000040000 rc=0,0,0
+SOUND trace_word index=14 us=382989871 before
+SOUND trace_word index=15 us=382989873 before=00000000 word=00 trace_word index=16 us=382989893 before=00041041 word=ffffffff 82989896 before=00041040 word=ffffffff after=00041000 rc=0,0,0
+d index=19 us=382989898 before=00041000 word=00000000 after=000400 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word indexND trace_word index=22 us=382989903 before=00040000 word=fffffff
+SOUND trace_word index=24 us=382989924 before=00041041 word=fff040 rc=0,0,0
+SOUND trace_word index=25 us=382989926 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=26 us=382989927 before=00041040 word=ffffffff after=00041000 rc=0,0,0
+SOUND trace_word index0000000 after=00041000 rc=0,0,0
+SOUND trace_word index=28 us=382989931 before=00041000 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=29 us=382989932 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=30 us=382989934 before=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND trace_word index=31 us=382989936 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND codec reg=00 value=36
+SOUND codec reg=01 value=60
+SOUND codec reg=02 value=00
+SOUND codec reg=03 value=00
+SOUND codec reg=04 value=0c
+SOUND codec reg=05 value=00
+SOUND codec reg=06 value=00
+SOUND codec reg=07 value=7c
+SOUND codec reg=08 value=00
+SOUND codec reg=09 value=88
+SOUND codec reg=0a value=f0
+SOUND codec reg=0b value=82
+SOUND codec reg=0c value=10
+SOUND codec reg=0d value=02
+SOUND codec reg=0f value=20
+SOUND codec reg=17 value=20
+SOUND codec reg=18 value=02
+SOUND codec reg=19 value=06
+SOUND codec reg=1a value=30
+SOUND codec reg=1b value=30
+SOUND codec reg=27 value=b8
+SOUND codec reg=2a value=b8
+SOUND codec reg=2b value=80
+SOUND codec reg=30 value=14
+SOUND codec reg=31 value=14
+SOUND input pull=00005515 schmitt=000000ff path=000000e4 gpio_high=50374 transitions=0 samples=50374
+SOUND pad ticks=480004 max_gap=35 counter_hz=24000000 complete=1
+SOUND pad channel=0 high=24813 changes=37784
+SOUND pad channel=1 high=25192 changes=40920
+SOUND pad channel=2 high=25249 changes=640
+SOUND pad channel=3 high=50374 changes=0
+SOUND pcm left_min=-368557824 left_max=532485376 left_nonzero=48000 right_min=-524263680 right_max=362373376 right_nonzero=48000
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [Kk7voice flow-mic-wake
+TLS_CHECK PASS workers=2 destructors=2 main_value=123
+ASR_INFER BEGIN recognizer
+ASR_INFER chunk=1 elapsed=22.146
+ASR_INFER chunk=2 elapsed=23.436
+ASR_INFER chunk=3 elapsed=24.778
+ASR_INFER chunk=4 elapsed=26.042
+ASR_INFER chunk=5 elapsed=27.193
+ASR_INFER RESULT seconds=27.195 text=有声音你好彭蜜拉
+ASR_STORAGE peak=467932084 live=0 records=1264 failures=0 reason=0
+VOICE_FLOW wake_text=有声音你好彭蜜拉 bytes=24
+VOIC

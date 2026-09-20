@@ -1,0 +1,17 @@
+test_integrity.c:9:13:change_file	64	static
+D:/software/mingw64/mingw64/x86_64-w64-mingw32/include/stdio.h:368:5:printf	80	static
+D:/software/mingw64/mingw64/x86_64-w64-mingw32/include/stdio.h:357:5:fprintf.constprop	64	static
+D:/software/mingw64/mingw64/x86_64-w64-mingw32/include/stdio.h:290:5:sscanf.constprop	64	static
+test_integrity.c:26:12:unhex	96	static
+input/formal/model_reader.c:50:12:checked_size	128	static
+input/formal/model_reader.c:33:5:mr_close	64	static
+input/formal/model_reader.c:128:5:mr_seek	64	static
+input/formal/model_reader.c:83:5:mr_open	192	static
+input/formal/model_reader.c:140:5:mr_read_exact	112	static
+model_integrity.c:19:5:mi_is_ready	8	static
+model_integrity.c:20:5:mi_close	64	static
+model_integrity.c:68:5:mi_read	64	static
+model_integrity.c:73:5:mi_seek	64	static
+test_integrity.c:15:6:mi_test_event	48	static
+model_integrity.c:28:5:mi_verify_open	240	static
+test_integrity.c:31:5:main	4448	static

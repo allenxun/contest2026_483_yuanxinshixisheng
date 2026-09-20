@@ -1,0 +1,32 @@
+{
+  "scope": "synthetic",
+  "evidence_origin": "synthetic",
+  "node": "/dev/sda",
+  "vid": "1234",
+  "pid": "5678",
+  "run_id": "SYNTHETIC-RUN-1",
+  "ordered_phases": [
+    "before",
+    "start",
+    "after",
+    "read"
+  ],
+  "identity_reviewed": true,
+  "reviewer": "synthetic test fixture",
+  "source_sha256": "3edce97911733e7da202c58b1e9f9f4bdbfe8ccfeaaeb3c079d434f2f881cc6f",
+  "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "capture_sha256": {
+    "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+    "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+    "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+    "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+  },
+  "enumeration_evidence": {
+    "path": "enumeration.txt",
+    "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+  },
+  "build_evidence": {
+    "path": "build.txt",
+    "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+  }
+}

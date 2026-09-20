@@ -1,0 +1,39 @@
+{
+  "entry": "0x40400000",
+  "memory_end": "0x4129a000",
+  "memory_bytes": 15310848,
+  "ram_end": "0x48200000",
+  "sha256": "967bea4cef6b9bf220d019ed8c06bb424eb33c40ff3e0f13af8eb15de539cb4f",
+  "unwind": {
+    "elf": "E:\\openvela\\VelaVision\\artifacts\\voice-ort-trace-20260911\\nuttx",
+    "sha256": "00dd91d84845e812dc2017c821daa0a224b59dec4fe4a6c6db21f56333624373",
+    "checks": {
+      "eh_frame_present": true,
+      "lsda_consolidated_nonempty": true,
+      "no_orphan_lsda": true,
+      "valid_records_terminal_zero_no_hidden_records": true,
+      ".eh_frame_readonly_file_load": true,
+      ".eh_frame_inside_rodata_mmu_range": true,
+      ".gcc_except_table_readonly_file_load": true,
+      ".gcc_except_table_inside_rodata_mmu_range": true,
+      "registration_symbol": true,
+      "first_initializer_is_unwind_registration": true,
+      "start_symbol_exact": true,
+      "end_symbol_exact": true
+    },
+    "records": {
+      "cie": 2,
+      "fde": 17477
+    },
+    "first_initializer": "0x4044c9fc",
+    "passed": true,
+    "hardware_tested": false,
+    "limitations": [
+      "No startup call-order proof",
+      "No full DWARF/FDE PC coverage proof",
+      "No registration call disassembly proof",
+      "No runtime exception proof"
+    ]
+  },
+  "hardware_tested": false
+}

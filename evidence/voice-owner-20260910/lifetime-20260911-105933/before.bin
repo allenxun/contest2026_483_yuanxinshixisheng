@@ -1,0 +1,21 @@
+ps
+  PID GROUP CPU(AFFINITY)   PRI POLICY   TYPE    NPX STATE    EVENT     SIGMASK            STACK    USED FILLED COMMAND
+    0     0 000(0x00000001)   0 FIFO     Kthread   - Assigned           0000000000000000 0007952 0001072  13.4%  CPU0 IDLE
+    1     0 001(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU1 IDLE
+    2     0 002(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU2 IDLE
+    3     0 003(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU3 IDLE
+    4     0 004(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU4 IDLE
+    5     0 005(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU5 IDLE
+    6     0 006(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU6 IDLE
+    7     0 007(0x00000001)   0 FIFO     Kthread   - Running            0000000000000000 0007952 0000096   1.2%  CPU7 IDLE
+    8     0 ---(0x00000001) 192 RR       Kthread   - Waiting  Semaphore 0000000000000000 0007888 0001088  13.7%  hpwork 0x4066fac0 0x4066fb48
+    9     0 ---(0x00000001) 100 RR       Kthread   - Waiting  Semaphore 0000000000000000 0007888 0001088  13.7%  lpwork 0x4066fa00 0x4066fa88
+   10    10 000(0x00000001) 100 RR       Task      - Running            0000000000000000 0007920 0003760  47.4%  nsh_main
+   13     0 ---(0x00000001)  95 RR       Kthread   - Waiting  Semaphore 0000000000000000 0003824 0001232  32.2%  skw_bt_tx
+   14     0 ---(0x00000001)  90 RR       Kthread   - Waiting  Signal    0000000000000000 0003824 0002640  69.0%  skw_radio_rx
+   15     0 ---(0x00000001) 100 RR       Kthread   - Waiting  MQ empty  0000000000000000 0003824 0002752  71.9%  BT_HCI_Tx
+   27     0 ---(0x00000001)  85 RR       Kthread   - Waiting  Semaphore 0000000000000000 0007920 0005040  63.6%  k7_provision
+   29    29 ---(0x00000001)  90 RR       Task      - Waiting  Semaphore 0000000000000000 0016112 0001104   6.8%  k7_wifi_svc
+   30    29 ---(0x00000001)  90 RR       pthread   - Waiting  Semaphore 0000000000000000 0016144 0001408   8.7%  k7_wifi_svc 0x404a9148 0
+   31    29 ---(0x00000001)  90 RR       pthread   - Waiting  Signal    0000000000000000 0016144 0001552   9.6%  k7_wifi_svc 0x404a4ba0 0
+nsh> [K

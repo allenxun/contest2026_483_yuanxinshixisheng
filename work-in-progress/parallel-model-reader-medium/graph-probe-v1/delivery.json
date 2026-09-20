@@ -1,0 +1,139 @@
+{
+  "utc": "2026-09-10T07:35:10Z",
+  "status": "real checked ggml CPU graph host tested; NuttX integration pending",
+  "weights": false,
+  "hardware_tested": false,
+  "affinity_integrated": false,
+  "files": [
+    {
+      "path": "evidence\\attempt-01-missing-header.json",
+      "bytes": 1498,
+      "sha256": "afe5aaf9045851a488a61c89d89497b0370fa9f1a8a92dfe0aee916583ab171a"
+    },
+    {
+      "path": "evidence\\graph_probe.exe",
+      "bytes": 1048457,
+      "sha256": "d3fe29927d3a50dd1c8169a265aa3a5a3130ba7c25cd083170d2c5f7b6953cd6"
+    },
+    {
+      "path": "evidence\\graph_probe.o",
+      "bytes": 3994,
+      "sha256": "54c1f863dbc40dd6a9ffcc5829a505d6bab3303edf9c57161016a9787f39ea64"
+    },
+    {
+      "path": "evidence\\graph_probe.su",
+      "bytes": 199,
+      "sha256": "bae9992f7223a487597c7e05d59678926a70b324e2bf44abeee1eda3f34338ca"
+    },
+    {
+      "path": "evidence\\graph_probe_main.o",
+      "bytes": 3389,
+      "sha256": "34373b51e7880ed1fd6ce36cff2de9cc02d14967952bc8504f51819dab9c6ea5"
+    },
+    {
+      "path": "evidence\\graph_probe_main.su",
+      "bytes": 243,
+      "sha256": "e7ea5817681cf9aa13a60146fbaa5095d471baa776df3665d57e7a9ef4828115"
+    },
+    {
+      "path": "evidence\\graph_probe_test.o",
+      "bytes": 4228,
+      "sha256": "a6a8f780b3ae72b2d1a220d4bb77493d84c280986560c1f618755c8ad7304155"
+    },
+    {
+      "path": "evidence\\graph_probe_test.su",
+      "bytes": 236,
+      "sha256": "d20ee47642ff2819a070d21bac99c84803e78a5b1e6d84a256a576aaa9f3444c"
+    },
+    {
+      "path": "evidence\\host-tests.json",
+      "bytes": 15607,
+      "sha256": "f714ccd8620cb4cfeecf24bd95b64a147fa589c74c542d8998500a93094e8363"
+    },
+    {
+      "path": "evidence\\input-hashes.json",
+      "bytes": 6230,
+      "sha256": "8f2dab3864cb7ac1db2173c5eb7c291466dfbd95aca417e8c8d9a2a05b9ff851"
+    },
+    {
+      "path": "evidence\\test_graph_probe.exe",
+      "bytes": 1049282,
+      "sha256": "66a6a891652e23f2df03dc2d00c2b66db292f737d903ad85dfe22a3f4e7f9391"
+    },
+    {
+      "path": "evidence\\test_graph_probe.o",
+      "bytes": 4255,
+      "sha256": "22cc0cca6342f7caa852db903fd931198e2a077ef09cdd11c3d0727ff495c51a"
+    },
+    {
+      "path": "evidence\\test_graph_probe.su",
+      "bytes": 278,
+      "sha256": "bf3ad5aa3ab2597dedc78ac75d9ffd8fdf171b9fc8e82f12ddfc7f1a7e4b68df"
+    },
+    {
+      "path": "graph_probe.c",
+      "bytes": 5845,
+      "sha256": "0d5f3f2c2b95de2d9bccb2429916adf732ad8ee757f1851a3241f1f763456c97"
+    },
+    {
+      "path": "graph_probe.h",
+      "bytes": 1784,
+      "sha256": "9419f00da7c44374b2acf6e1724af7ae89f739b5c86cef071385958da8c3f789"
+    },
+    {
+      "path": "graph_probe_main.c",
+      "bytes": 1930,
+      "sha256": "be51765abf83a199dce765961363fc3bf44a9501c68033e6d96cd981f11116db"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 3876,
+      "sha256": "4af81e9d4fa4c2d4bd31cdfa03b76f940542436d570314f89ca42403458df6e9"
+    },
+    {
+      "path": "input\\include\\ggml-alloc.h",
+      "bytes": 3011,
+      "sha256": "8344c5eb56ce9d0e0d45e1ef59846e0dcd0e4f84eb9bb68a6126252247bc0338"
+    },
+    {
+      "path": "input\\include\\ggml-backend.h",
+      "bytes": 19929,
+      "sha256": "760b374e1e1d80a854b4d5385006b36d82e544e43281b5a070d6c895dc301252"
+    },
+    {
+      "path": "input\\include\\ggml-cpu.h",
+      "bytes": 6908,
+      "sha256": "3f43c5f58ff276bf1c3dc16609c5433aeb0c5333427a538cb8d1555c0ce5619e"
+    },
+    {
+      "path": "input\\include\\ggml-pool-safe.h",
+      "bytes": 1917,
+      "sha256": "1c318a45655a8fbd14dfe8393c142114510102a117f95a26e24a775a037ad775"
+    },
+    {
+      "path": "input\\include\\ggml.h",
+      "bytes": 83713,
+      "sha256": "517b4e03f24089b454223541be264f9e0cae640e5383a045c1221402cf81e01a"
+    },
+    {
+      "path": "NUTTX-INTEGRATION.md",
+      "bytes": 2493,
+      "sha256": "11a8a72a02277691ede598e168466a51c48ef04a49fbfa6ad1eec6904d73cf37"
+    },
+    {
+      "path": "run_tests.py",
+      "bytes": 2189,
+      "sha256": "98b1260c6145c4484177db848ae172010e6044c2d27b1da3c7c8fe60e08bac8d"
+    },
+    {
+      "path": "seal_delivery.py",
+      "bytes": 2161,
+      "sha256": "535caefeab174d98b532539f39993603e454bb426f14fb5a0dc456f5c0974ad8"
+    },
+    {
+      "path": "test_graph_probe.c",
+      "bytes": 1839,
+      "sha256": "9eb9718e44e7aef9149d424a76416a29ba78541d74546b63f48356b168df1c8c"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "arena_provider": "MOCK tiny aligned array, NOT k7_model_alloc",
+  "backend": "real frozen ggml borrowed CPU wrapper",
+  "results": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "--version"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "g++.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-IE:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-b0\\vendor\\llama.cpp-74d4f5b041ad837153b0e90fc864b8290e01d8d5\\ggml\\include",
+        "arena_buffer_lease.cpp",
+        "test_lease.cpp",
+        "-Wl,--start-group",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-cpu.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-base.a",
+        "-Wl,--end-group",
+        "-pthread",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\model-arena-plan-v1\\evidence\\test_lease.exe"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\model-arena-plan-v1\\evidence\\test_lease.exe"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS real ggml borrowed-buffer wrapper; mock arena provider only; budget/fail/alignment/pairing/idempotence\n",
+      "stderr": ""
+    }
+  ]
+}

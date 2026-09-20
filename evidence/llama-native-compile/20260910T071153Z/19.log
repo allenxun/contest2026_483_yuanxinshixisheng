@@ -1,0 +1,430 @@
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-cpu.h:4,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/include/llama.h:5,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:3,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.cpp:1:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/ggml/include/ggml-backend.h:336:119: warning: 'ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t, ggml_cgraph*)' hides constructor for 'struct ggml_backend_graph_copy' [-Wshadow]
+  336 |     GGML_API struct ggml_backend_graph_copy ggml_backend_graph_copy(ggml_backend_t backend, struct ggml_cgraph * graph);
+      |                                                                                                                       ^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h: In constructor 'llama_adapter_lora_weight::llama_adapter_lora_weight(ggml_tensor*, ggml_tensor*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:58:62: warning: declaration of 'b' shadows a member of 'llama_adapter_lora_weight' [-Wshadow]
+   58 |     llama_adapter_lora_weight(ggml_tensor * a, ggml_tensor * b) : a(a), b(b) {}
+      |                                                ~~~~~~~~~~~~~~^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:48:19: note: shadowed declaration is here
+   48 |     ggml_tensor * b = nullptr;
+      |                   ^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:58:45: warning: declaration of 'a' shadows a member of 'llama_adapter_lora_weight' [-Wshadow]
+   58 |     llama_adapter_lora_weight(ggml_tensor * a, ggml_tensor * b) : a(a), b(b) {}
+      |                               ~~~~~~~~~~~~~~^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:47:19: note: shadowed declaration is here
+   47 |     ggml_tensor * a = nullptr;
+      |                   ^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h: In constructor 'llama_adapter_lora_weight::llama_adapter_lora_weight(ggml_tensor*, ggml_tensor*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:58:62: warning: declaration of 'b' shadows a member of 'llama_adapter_lora_weight' [-Wshadow]
+   58 |     llama_adapter_lora_weight(ggml_tensor * a, ggml_tensor * b) : a(a), b(b) {}
+      |                                                ~~~~~~~~~~~~~~^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:48:19: note: shadowed declaration is here
+   48 |     ggml_tensor * b = nullptr;
+      |                   ^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:58:45: warning: declaration of 'a' shadows a member of 'llama_adapter_lora_weight' [-Wshadow]
+   58 |     llama_adapter_lora_weight(ggml_tensor * a, ggml_tensor * b) : a(a), b(b) {}
+      |                               ~~~~~~~~~~~~~~^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:47:19: note: shadowed declaration is here
+   47 |     ggml_tensor * a = nullptr;
+      |                   ^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h: In constructor 'llama_adapter_lora_weight::llama_adapter_lora_weight(ggml_tensor*, ggml_tensor*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:58:62: warning: declaration of 'b' shadows a member of 'llama_adapter_lora_weight' [-Wshadow]
+   58 |     llama_adapter_lora_weight(ggml_tensor * a, ggml_tensor * b) : a(a), b(b) {}
+      |                                                ~~~~~~~~~~~~~~^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:48:19: note: shadowed declaration is here
+   48 |     ggml_tensor * b = nullptr;
+      |                   ^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:58:45: warning: declaration of 'a' shadows a member of 'llama_adapter_lora_weight' [-Wshadow]
+   58 |     llama_adapter_lora_weight(ggml_tensor * a, ggml_tensor * b) : a(a), b(b) {}
+      |                               ~~~~~~~~~~~~~~^
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.h:47:19: note: shadowed declaration is here
+   47 |     ggml_tensor * a = nullptr;
+      |                   ^
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model.h:4,
+                 from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-adapter.cpp:5:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h: In constructor 'LLM_TN::LLM_TN(llm_arch)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:401:21: warning: declaration of 'arch' shadows a member of 'LLM_TN' [-Wshadow]
+  401 |     LLM_TN(llm_arch arch) : arch(arch) {}
+      |            ~~~~~~~~~^~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-arch.h:403:14: note: shadowed declaration is here
+  403 |     llm_arch arch;
+      |              ^~~~
+In file included from /home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-model.h:5:
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_pos::llm_graph_input_pos(int64_t)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:93:33: warning: declaration of 'n_pos_per_token' shadows a member of 'llm_graph_input_pos' [-Wshadow]
+   93 |     llm_graph_input_pos(int64_t n_pos_per_token) : n_pos_per_token(n_pos_per_token) {}
+      |                         ~~~~~~~~^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:100:19: note: shadowed declaration is here
+  100 |     const int64_t n_pos_per_token = 1;
+      |                   ^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_pos::llm_graph_input_pos(int64_t)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:93:33: warning: declaration of 'n_pos_per_token' shadows a member of 'llm_graph_input_pos' [-Wshadow]
+   93 |     llm_graph_input_pos(int64_t n_pos_per_token) : n_pos_per_token(n_pos_per_token) {}
+      |                         ~~~~~~~~^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:100:19: note: shadowed declaration is here
+  100 |     const int64_t n_pos_per_token = 1;
+      |                   ^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_pos::llm_graph_input_pos(int64_t)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:93:33: warning: declaration of 'n_pos_per_token' shadows a member of 'llm_graph_input_pos' [-Wshadow]
+   93 |     llm_graph_input_pos(int64_t n_pos_per_token) : n_pos_per_token(n_pos_per_token) {}
+      |                         ~~~~~~~~^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:100:19: note: shadowed declaration is here
+  100 |     const int64_t n_pos_per_token = 1;
+      |                   ^~~~~~~~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_pos_bucket::llm_graph_input_pos_bucket(const llama_hparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:105:54: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_pos_bucket' [-Wshadow]
+  105 |     llm_graph_input_pos_bucket(const llama_hparams & hparams) : hparams(hparams) {}
+      |                                ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:112:27: note: shadowed declaration is here
+  112 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_pos_bucket::llm_graph_input_pos_bucket(const llama_hparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:105:54: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_pos_bucket' [-Wshadow]
+  105 |     llm_graph_input_pos_bucket(const llama_hparams & hparams) : hparams(hparams) {}
+      |                                ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:112:27: note: shadowed declaration is here
+  112 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_pos_bucket::llm_graph_input_pos_bucket(const llama_hparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:105:54: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_pos_bucket' [-Wshadow]
+  105 |     llm_graph_input_pos_bucket(const llama_hparams & hparams) : hparams(hparams) {}
+      |                                ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:112:27: note: shadowed declaration is here
+  112 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_pos_bucket_kv::llm_graph_input_pos_bucket_kv(const llama_hparams&, const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:119:44: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_pos_bucket_kv' [-Wshadow]
+  119 |             const llama_kv_cache_unified * kv_self) : hparams(hparams), kv_self(kv_self) {}
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:127:36: note: shadowed declaration is here
+  127 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:118:35: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_pos_bucket_kv' [-Wshadow]
+  118 |             const llama_hparams & hparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:126:27: note: shadowed declaration is here
+  126 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_pos_bucket_kv::llm_graph_input_pos_bucket_kv(const llama_hparams&, const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:119:44: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_pos_bucket_kv' [-Wshadow]
+  119 |             const llama_kv_cache_unified * kv_self) : hparams(hparams), kv_self(kv_self) {}
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:127:36: note: shadowed declaration is here
+  127 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:118:35: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_pos_bucket_kv' [-Wshadow]
+  118 |             const llama_hparams & hparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:126:27: note: shadowed declaration is here
+  126 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_pos_bucket_kv::llm_graph_input_pos_bucket_kv(const llama_hparams&, const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:119:44: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_pos_bucket_kv' [-Wshadow]
+  119 |             const llama_kv_cache_unified * kv_self) : hparams(hparams), kv_self(kv_self) {}
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:127:36: note: shadowed declaration is here
+  127 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:118:35: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_pos_bucket_kv' [-Wshadow]
+  118 |             const llama_hparams & hparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:126:27: note: shadowed declaration is here
+  126 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_out_ids::llm_graph_input_out_ids(const llama_hparams&, const llama_cparams&, int32_t)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:135:21: warning: declaration of 'n_outputs' shadows a member of 'llm_graph_input_out_ids' [-Wshadow]
+  135 |             int32_t n_outputs) : hparams(hparams), cparams(cparams), n_outputs(n_outputs) {}
+      |             ~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:145:19: note: shadowed declaration is here
+  145 |     const int32_t n_outputs;
+      |                   ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:134:35: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_out_ids' [-Wshadow]
+  134 |             const llama_cparams & cparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:143:27: note: shadowed declaration is here
+  143 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:133:35: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_out_ids' [-Wshadow]
+  133 |             const llama_hparams & hparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:142:27: note: shadowed declaration is here
+  142 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_out_ids::llm_graph_input_out_ids(const llama_hparams&, const llama_cparams&, int32_t)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:135:21: warning: declaration of 'n_outputs' shadows a member of 'llm_graph_input_out_ids' [-Wshadow]
+  135 |             int32_t n_outputs) : hparams(hparams), cparams(cparams), n_outputs(n_outputs) {}
+      |             ~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:145:19: note: shadowed declaration is here
+  145 |     const int32_t n_outputs;
+      |                   ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:134:35: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_out_ids' [-Wshadow]
+  134 |             const llama_cparams & cparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:143:27: note: shadowed declaration is here
+  143 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:133:35: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_out_ids' [-Wshadow]
+  133 |             const llama_hparams & hparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:142:27: note: shadowed declaration is here
+  142 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_out_ids::llm_graph_input_out_ids(const llama_hparams&, const llama_cparams&, int32_t)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:135:21: warning: declaration of 'n_outputs' shadows a member of 'llm_graph_input_out_ids' [-Wshadow]
+  135 |             int32_t n_outputs) : hparams(hparams), cparams(cparams), n_outputs(n_outputs) {}
+      |             ~~~~~~~~^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:145:19: note: shadowed declaration is here
+  145 |     const int32_t n_outputs;
+      |                   ^~~~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:134:35: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_out_ids' [-Wshadow]
+  134 |             const llama_cparams & cparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:143:27: note: shadowed declaration is here
+  143 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:133:35: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_out_ids' [-Wshadow]
+  133 |             const llama_hparams & hparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:142:27: note: shadowed declaration is here
+  142 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_mean::llm_graph_input_mean(const llama_cparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:150:48: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_mean' [-Wshadow]
+  150 |     llm_graph_input_mean(const llama_cparams & cparams) : cparams(cparams) {}
+      |                          ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:157:27: note: shadowed declaration is here
+  157 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_mean::llm_graph_input_mean(const llama_cparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:150:48: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_mean' [-Wshadow]
+  150 |     llm_graph_input_mean(const llama_cparams & cparams) : cparams(cparams) {}
+      |                          ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:157:27: note: shadowed declaration is here
+  157 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_mean::llm_graph_input_mean(const llama_cparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:150:48: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_mean' [-Wshadow]
+  150 |     llm_graph_input_mean(const llama_cparams & cparams) : cparams(cparams) {}
+      |                          ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:157:27: note: shadowed declaration is here
+  157 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_cls::llm_graph_input_cls(const llama_cparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:162:47: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_cls' [-Wshadow]
+  162 |     llm_graph_input_cls(const llama_cparams & cparams) : cparams(cparams) {}
+      |                         ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:169:27: note: shadowed declaration is here
+  169 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_cls::llm_graph_input_cls(const llama_cparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:162:47: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_cls' [-Wshadow]
+  162 |     llm_graph_input_cls(const llama_cparams & cparams) : cparams(cparams) {}
+      |                         ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:169:27: note: shadowed declaration is here
+  169 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_cls::llm_graph_input_cls(const llama_cparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:162:47: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_cls' [-Wshadow]
+  162 |     llm_graph_input_cls(const llama_cparams & cparams) : cparams(cparams) {}
+      |                         ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:169:27: note: shadowed declaration is here
+  169 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_s_copy::llm_graph_input_s_copy(const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:174:59: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_s_copy' [-Wshadow]
+  174 |     llm_graph_input_s_copy(const llama_kv_cache_unified * kv_self) : kv_self(kv_self) {}
+      |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:181:36: note: shadowed declaration is here
+  181 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_s_copy::llm_graph_input_s_copy(const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:174:59: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_s_copy' [-Wshadow]
+  174 |     llm_graph_input_s_copy(const llama_kv_cache_unified * kv_self) : kv_self(kv_self) {}
+      |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:181:36: note: shadowed declaration is here
+  181 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_s_copy::llm_graph_input_s_copy(const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:174:59: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_s_copy' [-Wshadow]
+  174 |     llm_graph_input_s_copy(const llama_kv_cache_unified * kv_self) : kv_self(kv_self) {}
+      |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:181:36: note: shadowed declaration is here
+  181 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_s_mask::llm_graph_input_s_mask(const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:186:59: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_s_mask' [-Wshadow]
+  186 |     llm_graph_input_s_mask(const llama_kv_cache_unified * kv_self) : kv_self(kv_self) {}
+      |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:193:36: note: shadowed declaration is here
+  193 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_s_mask::llm_graph_input_s_mask(const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:186:59: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_s_mask' [-Wshadow]
+  186 |     llm_graph_input_s_mask(const llama_kv_cache_unified * kv_self) : kv_self(kv_self) {}
+      |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:193:36: note: shadowed declaration is here
+  193 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_s_mask::llm_graph_input_s_mask(const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:186:59: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_s_mask' [-Wshadow]
+  186 |     llm_graph_input_s_mask(const llama_kv_cache_unified * kv_self) : kv_self(kv_self) {}
+      |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:193:36: note: shadowed declaration is here
+  193 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_cross_embd::llm_graph_input_cross_embd(const llama_cross*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:199:33: warning: declaration of 'cross' shadows a member of 'llm_graph_input_cross_embd' [-Wshadow]
+  199 |             const llama_cross * cross) : cross(cross) {}
+      |             ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:206:25: note: shadowed declaration is here
+  206 |     const llama_cross * cross;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_cross_embd::llm_graph_input_cross_embd(const llama_cross*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:199:33: warning: declaration of 'cross' shadows a member of 'llm_graph_input_cross_embd' [-Wshadow]
+  199 |             const llama_cross * cross) : cross(cross) {}
+      |             ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:206:25: note: shadowed declaration is here
+  206 |     const llama_cross * cross;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_cross_embd::llm_graph_input_cross_embd(const llama_cross*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:199:33: warning: declaration of 'cross' shadows a member of 'llm_graph_input_cross_embd' [-Wshadow]
+  199 |             const llama_cross * cross) : cross(cross) {}
+      |             ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:206:25: note: shadowed declaration is here
+  206 |     const llama_cross * cross;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_attn_no_cache::llm_graph_input_attn_no_cache(const llama_hparams&, const llama_cparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:211:88: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_attn_no_cache' [-Wshadow]
+  211 |     llm_graph_input_attn_no_cache(const llama_hparams & hparams, const llama_cparams & cparams) :
+      |                                                                  ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:225:27: note: shadowed declaration is here
+  225 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:211:57: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_attn_no_cache' [-Wshadow]
+  211 |     llm_graph_input_attn_no_cache(const llama_hparams & hparams, const llama_cparams & cparams) :
+      |                                   ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:224:27: note: shadowed declaration is here
+  224 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_attn_no_cache::llm_graph_input_attn_no_cache(const llama_hparams&, const llama_cparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:211:88: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_attn_no_cache' [-Wshadow]
+  211 |     llm_graph_input_attn_no_cache(const llama_hparams & hparams, const llama_cparams & cparams) :
+      |                                                                  ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:225:27: note: shadowed declaration is here
+  225 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:211:57: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_attn_no_cache' [-Wshadow]
+  211 |     llm_graph_input_attn_no_cache(const llama_hparams & hparams, const llama_cparams & cparams) :
+      |                                   ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:224:27: note: shadowed declaration is here
+  224 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_attn_no_cache::llm_graph_input_attn_no_cache(const llama_hparams&, const llama_cparams&)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:211:88: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_attn_no_cache' [-Wshadow]
+  211 |     llm_graph_input_attn_no_cache(const llama_hparams & hparams, const llama_cparams & cparams) :
+      |                                                                  ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:225:27: note: shadowed declaration is here
+  225 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:211:57: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_attn_no_cache' [-Wshadow]
+  211 |     llm_graph_input_attn_no_cache(const llama_hparams & hparams, const llama_cparams & cparams) :
+      |                                   ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:224:27: note: shadowed declaration is here
+  224 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_attn_kv_unified::llm_graph_input_attn_kv_unified(const llama_hparams&, const llama_cparams&, const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:233:44: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_attn_kv_unified' [-Wshadow]
+  233 |             const llama_kv_cache_unified * kv_self) :
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:253:36: note: shadowed declaration is here
+  253 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:232:35: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_attn_kv_unified' [-Wshadow]
+  232 |             const llama_cparams & cparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:251:27: note: shadowed declaration is here
+  251 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:231:35: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_attn_kv_unified' [-Wshadow]
+  231 |             const llama_hparams & hparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:250:27: note: shadowed declaration is here
+  250 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_attn_kv_unified::llm_graph_input_attn_kv_unified(const llama_hparams&, const llama_cparams&, const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:233:44: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_attn_kv_unified' [-Wshadow]
+  233 |             const llama_kv_cache_unified * kv_self) :
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:253:36: note: shadowed declaration is here
+  253 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:232:35: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_attn_kv_unified' [-Wshadow]
+  232 |             const llama_cparams & cparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:251:27: note: shadowed declaration is here
+  251 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:231:35: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_attn_kv_unified' [-Wshadow]
+  231 |             const llama_hparams & hparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:250:27: note: shadowed declaration is here
+  250 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_attn_kv_unified::llm_graph_input_attn_kv_unified(const llama_hparams&, const llama_cparams&, const llama_kv_cache_unified*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:233:44: warning: declaration of 'kv_self' shadows a member of 'llm_graph_input_attn_kv_unified' [-Wshadow]
+  233 |             const llama_kv_cache_unified * kv_self) :
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:253:36: note: shadowed declaration is here
+  253 |     const llama_kv_cache_unified * kv_self;
+      |                                    ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:232:35: warning: declaration of 'cparams' shadows a member of 'llm_graph_input_attn_kv_unified' [-Wshadow]
+  232 |             const llama_cparams & cparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:251:27: note: shadowed declaration is here
+  251 |     const llama_cparams & cparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:231:35: warning: declaration of 'hparams' shadows a member of 'llm_graph_input_attn_kv_unified' [-Wshadow]
+  231 |             const llama_hparams & hparams,
+      |             ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:250:27: note: shadowed declaration is here
+  250 |     const llama_hparams & hparams;
+      |                           ^~~~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_attn_cross::llm_graph_input_attn_cross(const llama_cross*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:258:52: warning: declaration of 'cross' shadows a member of 'llm_graph_input_attn_cross' [-Wshadow]
+  258 |     llm_graph_input_attn_cross(const llama_cross * cross) : cross(cross) {}
+      |                                ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:268:25: note: shadowed declaration is here
+  268 |     const llama_cross * cross = nullptr;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_attn_cross::llm_graph_input_attn_cross(const llama_cross*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:258:52: warning: declaration of 'cross' shadows a member of 'llm_graph_input_attn_cross' [-Wshadow]
+  258 |     llm_graph_input_attn_cross(const llama_cross * cross) : cross(cross) {}
+      |                                ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:268:25: note: shadowed declaration is here
+  268 |     const llama_cross * cross = nullptr;
+      |                         ^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h: In constructor 'llm_graph_input_attn_cross::llm_graph_input_attn_cross(const llama_cross*)':
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:258:52: warning: declaration of 'cross' shadows a member of 'llm_graph_input_attn_cross' [-Wshadow]
+  258 |     llm_graph_input_attn_cross(const llama_cross * cross) : cross(cross) {}
+      |                                ~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/swl/openvela/work/llama-native-20260910T071153Z/vendor/src/llama-graph.h:268:25: note: shadowed declaration is here
+  268 |     const llama_cross * cross = nullptr;
+      |                         ^~~~~

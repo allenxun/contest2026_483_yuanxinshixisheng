@@ -1,0 +1,3551 @@
+{
+  "available_before": 1296420864,
+  "keep": [
+    "velavision_voice_tls_20260911",
+    "velavision_wifi_arp_20260909"
+  ],
+  "root": "/home/swl/openvela/cmake_out",
+  "scope": "Remove complete obsolete CMake/Ninja build trees only. Sources, models, SDK, project mirror, logs and current voice/Wi-Fi builds stay.",
+  "target_count": 149,
+  "targets": [
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 51009,
+          "sha256": "06f4b04e095996103ae20937a16ad76c4207b43216144967cc18e001c534b474"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17080,
+          "sha256": "57024120579e59e4fa11e7097f833dc38ffc900f4b83b6f18610271c24048a0f"
+        },
+        "build.ninja": {
+          "bytes": 4595170,
+          "sha256": "fea9906d6b34fe11249ed4971d611c3458e21af7ecc6129a7425eb83f828c97f"
+        },
+        "nuttx.bin": {
+          "bytes": 307200,
+          "sha256": "535f4727afb652e77cd40b03d375d4e3ecb2ce0afa8ad14790f5b4f532130756"
+        }
+      },
+      "mtime_ns": 1788426800300688901,
+      "name": "kickpi_k7_nsh",
+      "path": "/home/swl/openvela/cmake_out/kickpi_k7_nsh"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 50984,
+          "sha256": "89d0e3febe05cbe68522c3ee3316d52e5cc7edcb0679e62535b654c0a6c04764"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17049,
+          "sha256": "8f8c06191f4fc3e7bf78efef9ae1b9f530fe0971da7774f4d1b685348f8ff2b6"
+        },
+        "build.ninja": {
+          "bytes": 7229701,
+          "sha256": "92522754e7108e2137e7818934c23a8ab3240160f564cef99e79eeb7209c9e9c"
+        },
+        "nuttx": {
+          "bytes": 3691480,
+          "sha256": "1ce97f6366755c5d6f00101767123d5e16c69b3137375908470473b082b1cc3a"
+        },
+        "nuttx.bin": {
+          "bytes": 182728,
+          "sha256": "ee8bd4912f6f112014d9fca12aa318d96aebb5ff729789c12f6f7cdfdfaadf17"
+        }
+      },
+      "mtime_ns": 1788428439728996590,
+      "name": "rk3576_bringup",
+      "path": "/home/swl/openvela/cmake_out/rk3576_bringup"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 51452,
+          "sha256": "dda1e402faa5fe550c4b72381ec0b17a82557a27b916281ef2cea3f49830ecf0"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17044,
+          "sha256": "593e261536f465df12c0c7a4bf72db5a753a18af69c1abe00874a3e2e23d2fbe"
+        },
+        "build.ninja": {
+          "bytes": 7222141,
+          "sha256": "976243f79a2b42276573e6ef4cdda18f4b17a28884b522d524a49b10ee2e3fc6"
+        },
+        "nuttx": {
+          "bytes": 3692584,
+          "sha256": "c37c94b23c865bdda89b67bae5539dc1c0c4237c77a0155e9ed9e0ffb4f6e66f"
+        },
+        "nuttx.bin": {
+          "bytes": 182984,
+          "sha256": "257e1ae34d78c3ff5996646bd28a8dc3ef982206bf973a08a42b9d83366dd966"
+        }
+      },
+      "mtime_ns": 1788437563847115897,
+      "name": "rk3576_gimbal",
+      "path": "/home/swl/openvela/cmake_out/rk3576_gimbal"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 51612,
+          "sha256": "429bd7ff15f3477483880400c5475d100c85add63bc650a3e24e0b61a0f14ff5"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17074,
+          "sha256": "2965ff48ea98903b24ce2ddc6502f29f8cd37bfca734b7e1c37b789572594152"
+        },
+        "build.ninja": {
+          "bytes": 7313127,
+          "sha256": "2833cc3e0ee9e18b8d98dd4c516a7b3950ab680a00cca1d70a8f81f20344dde2"
+        },
+        "nuttx": {
+          "bytes": 3808200,
+          "sha256": "019be7e198583eab9dc003238a96ddddaf36eada9975acc0c8d8f3cf55e19f01"
+        },
+        "nuttx.bin": {
+          "bytes": 195312,
+          "sha256": "baba87bc9d122cdfd991afe373cb237394bdf6a6928b0580ceee6391b56387b2"
+        }
+      },
+      "mtime_ns": 1788437728682662926,
+      "name": "rk3576_gimbal_uart6",
+      "path": "/home/swl/openvela/cmake_out/rk3576_gimbal_uart6"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17067,
+          "sha256": "5e519d10daf570c6153af5b9966f23c3517e26909308d3fb2e5a2b63a4a32566"
+        },
+        "build.ninja": {
+          "bytes": 7416051,
+          "sha256": "d8b808718f56e9bca3d58e444f40eaa0d63c1ff6d14c0d42f77dc42290916286"
+        },
+        "nuttx": {
+          "bytes": 6325496,
+          "sha256": "73fd98f3a4ed69ea24737d09882a119ad137a2b9def231afceacde80a69df39d"
+        },
+        "nuttx.bin": {
+          "bytes": 744488,
+          "sha256": "9a62b773ef8bc21df878595c5092baf7a7994d49b08e2d6de24eb624e287de19"
+        }
+      },
+      "mtime_ns": 1788602492964965725,
+      "name": "rk3576_link_bulk",
+      "path": "/home/swl/openvela/cmake_out/rk3576_link_bulk"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17087,
+          "sha256": "78ff30d987f03128e8cabc4990637598e6c82aa484b71f4237febf710c1f8bb7"
+        },
+        "build.ninja": {
+          "bytes": 7474539,
+          "sha256": "ee35e62f451794bb2f2fb1113c80b2b02ebcd1bd8b98e3f3f52b464fceab515a"
+        },
+        "nuttx": {
+          "bytes": 6327168,
+          "sha256": "844e530c2bef23fab1a19834675778e701e077013bc68b6a8fb829f7485cf457"
+        },
+        "nuttx.bin": {
+          "bytes": 744488,
+          "sha256": "792897e518f394a2303b335ff3ffaf3825a28191ac290c20d307989ce7293c1b"
+        }
+      },
+      "mtime_ns": 1788603015938996975,
+      "name": "rk3576_link_bulkdiag",
+      "path": "/home/swl/openvela/cmake_out/rk3576_link_bulkdiag"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17092,
+          "sha256": "9de806ee436ee064200683762b4fbc6b80a6f63522fe7982057fb833d852749c"
+        },
+        "build.ninja": {
+          "bytes": 7489161,
+          "sha256": "1bf38304ddae1460ca8ea2e637fb579aed4ef7f731ed0744826d18ea5fb6b988"
+        },
+        "nuttx": {
+          "bytes": 6327832,
+          "sha256": "5925cc1fb2f8587c8ea9dfeb1d77676477cce21b158a1503392952ca006e152f"
+        },
+        "nuttx.bin": {
+          "bytes": 744488,
+          "sha256": "4ba47f1e581192be5a4d392c1e86308c902ed61bec104e85daecfe44f392c5af"
+        }
+      },
+      "mtime_ns": 1788603595033839858,
+      "name": "rk3576_link_bulkorder",
+      "path": "/home/swl/openvela/cmake_out/rk3576_link_bulkorder"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17062,
+          "sha256": "f71436c3b51078fc128fca799ada645f0ee8d851c105ae427a97b695b5a159af"
+        },
+        "build.ninja": {
+          "bytes": 7401429,
+          "sha256": "dd6f25c4c54a905f9798f63fdd429f442a6fcb3576479c4dccebacb0dba5328e"
+        },
+        "nuttx": {
+          "bytes": 6314112,
+          "sha256": "1e9beb8d8d7f73aa26679a7e93c441f866ac90a73619a54fd0156566563a04aa"
+        },
+        "nuttx.bin": {
+          "bytes": 744488,
+          "sha256": "4ce225ae1594121f304bdd0831dffc12968ca1709f1e5135193d8f980650baa7"
+        }
+      },
+      "mtime_ns": 1788599626543827319,
+      "name": "rk3576_link_ep0",
+      "path": "/home/swl/openvela/cmake_out/rk3576_link_ep0"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17087,
+          "sha256": "fc6f94bedcee177a18ef5b79e4b41c792489bd49f6307c860d2e156824176b8b"
+        },
+        "build.ninja": {
+          "bytes": 7474539,
+          "sha256": "ec12785f4b4002831eb83c247905781c00de245da04d1b34c23340a6f43b6cfc"
+        },
+        "nuttx": {
+          "bytes": 6314856,
+          "sha256": "32b6b053988993555a519695f4efa16a16c91728dc3ef5405a611fbb9dd8b0d5"
+        },
+        "nuttx.bin": {
+          "bytes": 744488,
+          "sha256": "3db257aae5b3fae72278b968285a351e4b1cbe7d04e9ad0edb4272131f87a9d4"
+        }
+      },
+      "mtime_ns": 1788600033299629983,
+      "name": "rk3576_link_ep0_diag",
+      "path": "/home/swl/openvela/cmake_out/rk3576_link_ep0_diag"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17082,
+          "sha256": "67e67baa1d3d57d1c5a22be74eab9bb587936540a36e83b5ab61eda14afe55ac"
+        },
+        "build.ninja": {
+          "bytes": 7459917,
+          "sha256": "673a4e55d1554e504f380358325f43e2abe07f69c420d686131f278e8516b237"
+        },
+        "nuttx": {
+          "bytes": 6317760,
+          "sha256": "8ab806cdcef55d71009129e427eea7c0cc7eadc1788d207e98abdc4f0d7eb0d3"
+        },
+        "nuttx.bin": {
+          "bytes": 744488,
+          "sha256": "96e4d275ade417457caad4d126487eb9b56d1c87d4fcd0fd2ff85c482277a5ff"
+        }
+      },
+      "mtime_ns": 1788600390289049971,
+      "name": "rk3576_link_ep0_phy",
+      "path": "/home/swl/openvela/cmake_out/rk3576_link_ep0_phy"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17092,
+          "sha256": "e1f16d42d3efc30aecae113543e7f7bcf606d992af949a61275555919adff19a"
+        },
+        "build.ninja": {
+          "bytes": 7489161,
+          "sha256": "03daa396916899d2f70628155b5dc222d5f19236aefd77b2298f35fcf9b780f7"
+        },
+        "nuttx": {
+          "bytes": 6321160,
+          "sha256": "097616140ea8299ebb73a91446e748a997cdf2eee0bb6b586fe4fb64ed2e2e72"
+        },
+        "nuttx.bin": {
+          "bytes": 744488,
+          "sha256": "392260687f27c73bcaf6516ec7b7c6c21c16abdd0d6399c6352a2b7f3c5a4a2f"
+        }
+      },
+      "mtime_ns": 1788601685457990810,
+      "name": "rk3576_link_ep0_reset",
+      "path": "/home/swl/openvela/cmake_out/rk3576_link_ep0_reset"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17092,
+          "sha256": "8abd6ab98982aa74305e094ae475ff615a607c7150a34203dba8ec06630ca6e7"
+        },
+        "build.ninja": {
+          "bytes": 7489161,
+          "sha256": "fe85eb41b617988d1d8759dad21aec8a5f48ab59e74c8db345147854dd6393ed"
+        },
+        "nuttx": {
+          "bytes": 6320064,
+          "sha256": "aa14b338f16940fe49a40165a7e2c91b9051cce0e8fdae91d205f28fac0d989e"
+        },
+        "nuttx.bin": {
+          "bytes": 744488,
+          "sha256": "a91dca02998d95bf60102ecc9d5b0e5af795e7e22aa3f8d8ffefcae92d7e7e3e"
+        }
+      },
+      "mtime_ns": 1788600855136545506,
+      "name": "rk3576_link_ep0_trace",
+      "path": "/home/swl/openvela/cmake_out/rk3576_link_ep0_trace"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53242,
+          "sha256": "2fca78b4d1dae3c4e4172f1123a2247209996894543912661d410d31c34b4794"
+        },
+        "nuttx": {
+          "bytes": 7694176,
+          "sha256": "697771061fb1b0cc587797ea7c1b13d3da734bd9567b9982ee38032bf0bd671a"
+        },
+        "nuttx.bin": {
+          "bytes": 1756288,
+          "sha256": "a31d052c95b9fdb1e5256a5013308e41ee372604dee6b52733ce336eecefbe4a"
+        }
+      },
+      "mtime_ns": 1788782994298689624,
+      "name": "rk3576_npu_mmutest",
+      "path": "/home/swl/openvela/cmake_out/rk3576_npu_mmutest"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53217,
+          "sha256": "ad83a7e51f37468becd9b77504c18dd651f6c22fddb2ce758c172adea607803c"
+        },
+        "nuttx": {
+          "bytes": 7675856,
+          "sha256": "fa4d4c9eb5420f0968cc23aa79c9a94d4b3a8fb536b3b1b08ded4fd89e81c3a3"
+        },
+        "nuttx.bin": {
+          "bytes": 1752192,
+          "sha256": "3232d151da1ed4fe036e8db58c241e80f3f1de6600db5596121d2d71d73c48c0"
+        }
+      },
+      "mtime_ns": 1788781915564125919,
+      "name": "rk3576_npu_probe",
+      "path": "/home/swl/openvela/cmake_out/rk3576_npu_probe"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53267,
+          "sha256": "20a221c5caa3c0617eb2e97d36887b6da11d1014e0b245ff5d61a87672c3db6b"
+        },
+        "nuttx": {
+          "bytes": 7726928,
+          "sha256": "94972f382bcca0bbbfb52ca743d11933ad64b5e013c843476325822571729794"
+        },
+        "nuttx.bin": {
+          "bytes": 1768576,
+          "sha256": "bc8f6524d8346ea5fa0b2257aa8b174dd5aafd057fc888d69422fd11f59bda64"
+        }
+      },
+      "mtime_ns": 1788831401811354569,
+      "name": "rk3576_npu_raw_done",
+      "path": "/home/swl/openvela/cmake_out/rk3576_npu_raw_done"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53267,
+          "sha256": "20a221c5caa3c0617eb2e97d36887b6da11d1014e0b245ff5d61a87672c3db6b"
+        },
+        "nuttx": {
+          "bytes": 7726944,
+          "sha256": "a78f8fcce713478761c0844c361dbea8d1d859068e7b158ad87f5a3eef70d11d"
+        },
+        "nuttx.bin": {
+          "bytes": 1768576,
+          "sha256": "48a91115cc87e3b2935f1c048d2c802315055814386e4e2a4be8fe0eddacef78"
+        }
+      },
+      "mtime_ns": 1788830939129370667,
+      "name": "rk3576_npu_raw_mask",
+      "path": "/home/swl/openvela/cmake_out/rk3576_npu_raw_mask"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53267,
+          "sha256": "20a221c5caa3c0617eb2e97d36887b6da11d1014e0b245ff5d61a87672c3db6b"
+        },
+        "nuttx": {
+          "bytes": 7735056,
+          "sha256": "d411e5f893dbb94d0e0a825da72680f1e11f10a553be7b243db09bac5a8f21ac"
+        },
+        "nuttx.bin": {
+          "bytes": 1772672,
+          "sha256": "e87b25b826754c05912eb27ca11b910c767fee7e9556740f9ab0a2911d54bda0"
+        }
+      },
+      "mtime_ns": 1788831826130180825,
+      "name": "rk3576_npu_raw_repeat",
+      "path": "/home/swl/openvela/cmake_out/rk3576_npu_raw_repeat"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53267,
+          "sha256": "20a221c5caa3c0617eb2e97d36887b6da11d1014e0b245ff5d61a87672c3db6b"
+        },
+        "nuttx": {
+          "bytes": 7726936,
+          "sha256": "b81cdccfc0b652dbc48cf34102148815dd7fe12319aa7bb68c065c846180a6cb"
+        },
+        "nuttx.bin": {
+          "bytes": 1768576,
+          "sha256": "843924dbbd7a0d8b0fa1bac8365a45334601370f1c60be9df4ba30ad1714b9cc"
+        }
+      },
+      "mtime_ns": 1788830372805239316,
+      "name": "rk3576_npu_raw_status",
+      "path": "/home/swl/openvela/cmake_out/rk3576_npu_raw_status"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53267,
+          "sha256": "20a221c5caa3c0617eb2e97d36887b6da11d1014e0b245ff5d61a87672c3db6b"
+        },
+        "nuttx": {
+          "bytes": 7735968,
+          "sha256": "05be244ad19d9787cb3f63db3d0184966a6ddb565d3b8a9789753f090eef7484"
+        },
+        "nuttx.bin": {
+          "bytes": 1772672,
+          "sha256": "4eceb18e2b0c4445fd0e159986d3daabd81943235e150966e0b427139c5ca72e"
+        }
+      },
+      "mtime_ns": 1788832410709360169,
+      "name": "rk3576_npu_raw_vendor",
+      "path": "/home/swl/openvela/cmake_out/rk3576_npu_raw_vendor"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53267,
+          "sha256": "20a221c5caa3c0617eb2e97d36887b6da11d1014e0b245ff5d61a87672c3db6b"
+        },
+        "nuttx": {
+          "bytes": 7725712,
+          "sha256": "5edf50f4f4411e4c85eea78ffe9d76296e65b7e10527e9be174d2178acc475ce"
+        },
+        "nuttx.bin": {
+          "bytes": 1768576,
+          "sha256": "49a12bc78d670b1f1f00332d33f54d1caff4857a9e2a635413f607406292ee78"
+        }
+      },
+      "mtime_ns": 1788784282457994196,
+      "name": "rk3576_npu_rawtest",
+      "path": "/home/swl/openvela/cmake_out/rk3576_npu_rawtest"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53192,
+          "sha256": "152a97e3f72e509feb0a50170b928cdee3215398b038d4bbb797572b8ce178b1"
+        },
+        "nuttx": {
+          "bytes": 7674352,
+          "sha256": "dcfe400993c823496b65d5d2df4abdf5550c9151195b85e5196afb52fbfdb577"
+        },
+        "nuttx.bin": {
+          "bytes": 1752192,
+          "sha256": "bb4c3abe129d7f5f4e13b79aef7f054ef05af04dfa9bfb8f795c0c90f7a6b5cb"
+        }
+      },
+      "mtime_ns": 1788781128065764463,
+      "name": "rk3576_npu_status",
+      "path": "/home/swl/openvela/cmake_out/rk3576_npu_status"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17067,
+          "sha256": "0f4a7263ff66249ac0de0e2ddfc855ff8653819ea6a781e493af52ab94d6548c"
+        },
+        "build.ninja": {
+          "bytes": 7412935,
+          "sha256": "fa2f4b0d79ca4e8c36bb56fbfb881f19277523fcce4612c3eee5940ff15695e4"
+        },
+        "nuttx": {
+          "bytes": 6284512,
+          "sha256": "bb0285cc4c53a029c30e734182068b77f2f5cff9d14dd91508aad31bf0aa29d2"
+        },
+        "nuttx.bin": {
+          "bytes": 740392,
+          "sha256": "fcf451eec5a9d774547f51738ace054a0fadd9960d76b20c001068ad77e6256a"
+        }
+      },
+      "mtime_ns": 1788597496498245381,
+      "name": "rk3576_otg_probe",
+      "path": "/home/swl/openvela/cmake_out/rk3576_otg_probe"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17097,
+          "sha256": "6dc9a1d58fb8f2cc09d758263a9b29fef622a16ea420ef6c5455752374bad4b6"
+        },
+        "build.ninja": {
+          "bytes": 7500631,
+          "sha256": "8ccc012b01fe5f60440a619c60fba38e9886763bceaa9228b748a3169f0f3bf4"
+        },
+        "nuttx": {
+          "bytes": 6286384,
+          "sha256": "5144d8fc5e0262907953fb731b2aac7405a6db6097eb108acbf543843f0d1e37"
+        },
+        "nuttx.bin": {
+          "bytes": 740392,
+          "sha256": "5bdc8065d86ec4fd72b37abd9365c0809e39d81a4161b5fbd52afed0acd19933"
+        }
+      },
+      "mtime_ns": 1788597904953589824,
+      "name": "rk3576_otg_probe_paced",
+      "path": "/home/swl/openvela/cmake_out/rk3576_otg_probe_paced"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17087,
+          "sha256": "c1b14754b5bdcdfde862e56e17561087fa0fd82440ab9b4796663faef8487562"
+        },
+        "build.ninja": {
+          "bytes": 7471399,
+          "sha256": "7484dffcd6d3af71bfc63c2d6c128ff83978ad4458b50a87e2666f2da71f61a9"
+        },
+        "nuttx": {
+          "bytes": 6283336,
+          "sha256": "ddfe04eb94f4fcbde5e7f575decdafdf487060e1d2b10c562627eb1ca3643813"
+        },
+        "nuttx.bin": {
+          "bytes": 740392,
+          "sha256": "1c0626cec49b01d66846fcf2c5465e85a4c71867e9c15bd494a005ac28351d78"
+        }
+      },
+      "mtime_ns": 1788596650642323501,
+      "name": "rk3576_preview_async",
+      "path": "/home/swl/openvela/cmake_out/rk3576_preview_async"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53294,
+          "sha256": "f465613303a24db9a5203112f431d273d1a29d8815131a1a9f7f04bd33157fb8"
+        },
+        "nuttx": {
+          "bytes": 7756488,
+          "sha256": "c0e0440552abc59482fb68de6235e2fdca579c2541fe8ad4d3244fde46f7ef24"
+        },
+        "nuttx.bin": {
+          "bytes": 1772672,
+          "sha256": "95a58d1b968c51b0c12d2c1538f86c045433a706de50526a8e95fe5615cd774b"
+        }
+      },
+      "mtime_ns": 1788835235461415094,
+      "name": "rk3576_radio_id",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 3997536,
+          "sha256": "569d36bfc5c2ec230cc490b4c40aff05a5e1022d5f071cc7845bdc3fa2845b79"
+        },
+        "nuttx.bin": {
+          "bytes": 240600,
+          "sha256": "4840da882c7183b4efa77f25157a02949da4c5ba7947bcaccbdbf91f434d53ad"
+        }
+      },
+      "mtime_ns": 1788835935936848254,
+      "name": "rk3576_radio_id02",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id02"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 3998424,
+          "sha256": "afc796171b5801c3b654f430cbced15c271b0db308e72589f66d283f270de203"
+        },
+        "nuttx.bin": {
+          "bytes": 240600,
+          "sha256": "32f669f6bd9b4027076a853d0c3527e9502ac714495aa685ab6695f9b991516f"
+        }
+      },
+      "mtime_ns": 1788836036152375544,
+      "name": "rk3576_radio_id03",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id03"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 3998424,
+          "sha256": "9c30e25cdd6e8cec33a5eae35900f11a99ddd70fbc420e9d5ebfb8d5e3bfc184"
+        },
+        "nuttx.bin": {
+          "bytes": 240600,
+          "sha256": "91ffdf4449009487ec3a6bb01d05eefe8dd53e0e188ee74ffe7a888ea413181c"
+        }
+      },
+      "mtime_ns": 1788836267878366219,
+      "name": "rk3576_radio_id04",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id04"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4005808,
+          "sha256": "ff8ef5566e5de68895b6ba0e2bafb24babda590c56ef994386f89df2b2912039"
+        },
+        "nuttx.bin": {
+          "bytes": 240600,
+          "sha256": "5c0867ef6ccb5f871900bcf0efdf4e00c90f076cc428c0cbdd72df36be07f986"
+        }
+      },
+      "mtime_ns": 1788836995073416141,
+      "name": "rk3576_radio_id05",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id05"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4011752,
+          "sha256": "dc58003348fa584df600d7b591e5c3f4bdd2927741222fd89788b92a8cddf745"
+        },
+        "nuttx.bin": {
+          "bytes": 244696,
+          "sha256": "ca03b1ed19943145e8845cb9abfa053b8902cb4fde08437a2e949c09f39cc498"
+        }
+      },
+      "mtime_ns": 1788837204815896049,
+      "name": "rk3576_radio_id06",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id06"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4011824,
+          "sha256": "c8f8be5f2972c4d331224c28e798cbe1d4765414fbf2e1b31b3133630e2e5560"
+        },
+        "nuttx.bin": {
+          "bytes": 244696,
+          "sha256": "7bc558c4601190d23cb714fddba67231edc64771d2cf882858559ea5d4707d15"
+        }
+      },
+      "mtime_ns": 1788837667330196438,
+      "name": "rk3576_radio_id07",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id07"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4017568,
+          "sha256": "bbf3a2e7c4b28a270b86e63f7ae27d04b798f474e56c7d226cf04699806d6269"
+        },
+        "nuttx.bin": {
+          "bytes": 244696,
+          "sha256": "7088d527f26564420df0c3714dab933968d1385eb275510c2ff9f9257776fdd1"
+        }
+      },
+      "mtime_ns": 1788837851055803904,
+      "name": "rk3576_radio_id08",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id08"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4020768,
+          "sha256": "55292f596ab161c96e6414e2ad6bb4620abf0e7c2aab4c8a53e7e72161bc2b5d"
+        },
+        "nuttx.bin": {
+          "bytes": 244696,
+          "sha256": "11886116f43bc9e5dadc23292202e7ea6344408e3a0a24259a1c0dd8da888ce1"
+        }
+      },
+      "mtime_ns": 1788838564353612646,
+      "name": "rk3576_radio_id09",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id09"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4021792,
+          "sha256": "7126275032011cee5c23fedfe6b24991f9fbde21cc117864368a4b447718dcbc"
+        },
+        "nuttx.bin": {
+          "bytes": 244696,
+          "sha256": "a15b6ded1183a6faa5adda5c64c47845ba2f31706bc01aea6f274d545e8c2d38"
+        }
+      },
+      "mtime_ns": 1788839799255103655,
+      "name": "rk3576_radio_id10",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id10"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4022296,
+          "sha256": "6a45d1f5bc6525024ee0ddc18ec12581400f49697c46b956dcd6de1988de939d"
+        },
+        "nuttx.bin": {
+          "bytes": 244696,
+          "sha256": "b5940e8b931a107f610f044290099339ad5ce4f8e2307e8b065e54b8eb0c7f25"
+        }
+      },
+      "mtime_ns": 1788840311946928993,
+      "name": "rk3576_radio_id11",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id11"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4023592,
+          "sha256": "fa2914596a7686bbf3f8bd0232804d401b681d5c8e56f581c04ff511fe5289d2"
+        },
+        "nuttx.bin": {
+          "bytes": 244696,
+          "sha256": "8b3a1e2e530b6a8258959cae812f8deacffc572fd62178889c3e3f046e092b3e"
+        }
+      },
+      "mtime_ns": 1788840515683548018,
+      "name": "rk3576_radio_id12",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id12"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4024928,
+          "sha256": "c4773a2c8a36fb725b057c2e808ca343fbccb3a9214296dfb34532b2dc79e86f"
+        },
+        "nuttx.bin": {
+          "bytes": 244696,
+          "sha256": "241dde1a3e4629aa49caf58fb41d78eb826d32e010a326d58c15b69f832de222"
+        }
+      },
+      "mtime_ns": 1788860164918906516,
+      "name": "rk3576_radio_id13",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id13"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4069968,
+          "sha256": "fb562784471bd9737169a0cce9d61a350daafab8a09e2146aecff6d2459740b2"
+        },
+        "nuttx.bin": {
+          "bytes": 248792,
+          "sha256": "4a296d4c9741fe7e376b14e547f489301c50ba6e09670eba632329519ecdd5a3"
+        }
+      },
+      "mtime_ns": 1788860538166678630,
+      "name": "rk3576_radio_id14",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id14"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4096808,
+          "sha256": "33c178a6d7b59e57f21e03cff5f614de6ec7fed05705a1f0bdb81b0e79400e15"
+        },
+        "nuttx.bin": {
+          "bytes": 256984,
+          "sha256": "3315b8cb088951de541234054583ffbf72c16e80709d219e09f85f290c726c99"
+        }
+      },
+      "mtime_ns": 1788861433751366425,
+      "name": "rk3576_radio_id15",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id15"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4096808,
+          "sha256": "c1058dbf2e38acaaf617709e6357b112cfa89ba5c55a4e9ae70b0127724b4d10"
+        },
+        "nuttx.bin": {
+          "bytes": 256984,
+          "sha256": "224c563de82d54c1404f3f5ba49c093eae8647134968959db071f1b8efe7dbf4"
+        }
+      },
+      "mtime_ns": 1788861583176678042,
+      "name": "rk3576_radio_id16",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id16"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4098016,
+          "sha256": "f510e5aa7545d832c6693e978ac8c82031f4df24c4a470edce06e53b2000406e"
+        },
+        "nuttx.bin": {
+          "bytes": 256984,
+          "sha256": "dd8b2dca8c47046ab5553d5ce58397749d839146a4c41bd1e5e51a62be6ba02d"
+        }
+      },
+      "mtime_ns": 1788862047332876679,
+      "name": "rk3576_radio_id17",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id17"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4098696,
+          "sha256": "1b20c25fed7eb381e5a4fb320c8fb53e01f624d527cf466d69c128f3028b9d5f"
+        },
+        "nuttx.bin": {
+          "bytes": 256984,
+          "sha256": "15901dbc0847bc4e510db780759ea1ba4a3338766ab39b3667fdd0b9f372ff84"
+        }
+      },
+      "mtime_ns": 1788862249454957614,
+      "name": "rk3576_radio_id18",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id18"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4099376,
+          "sha256": "63e45713c9038e04b9c900cfae3c8e95656ff0760340cd6ea08238ca9e63283a"
+        },
+        "nuttx.bin": {
+          "bytes": 256984,
+          "sha256": "17f810f8ec2e288b284f6f0001d9720e2188099b2a4736b63fd4d64947c08197"
+        }
+      },
+      "mtime_ns": 1788862537117072766,
+      "name": "rk3576_radio_id19",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id19"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4099368,
+          "sha256": "04b483131d0b392888c6a8bbe29538f7d8d78bc2b4c2197d16cde57915d51c09"
+        },
+        "nuttx.bin": {
+          "bytes": 256984,
+          "sha256": "a8675a1a5a15a7ae75198e00b141b49e4c235836a96f5e4c96e14d7e0fdeafc1"
+        }
+      },
+      "mtime_ns": 1788862796968622184,
+      "name": "rk3576_radio_id20",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id20"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4111792,
+          "sha256": "3a60bcbba6e0ebc2f7d49440d8170b304f7ae06f508156637996f66e7072bb37"
+        },
+        "nuttx.bin": {
+          "bytes": 261080,
+          "sha256": "f9de0335520424f8e5e4f1eea77f454c9bca39e7cb9687bd8de35d1d834e4129"
+        }
+      },
+      "mtime_ns": 1788863356351992236,
+      "name": "rk3576_radio_id21",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id21"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "nuttx": {
+          "bytes": 4119688,
+          "sha256": "f9fbf3f3ff1cdfe7e33da97babee318ece211fec131ea4a66fae38464327444e"
+        },
+        "nuttx.bin": {
+          "bytes": 261080,
+          "sha256": "8ca4488f52ab930d21bd98163cb4bda130a7af3df73a1e8023ada3247b2906b7"
+        }
+      },
+      "mtime_ns": 1788864099785347430,
+      "name": "rk3576_radio_id22",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id22"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59312,
+          "sha256": "39f605ca3b92206e95122a126d001e1474596f031a835aa49e4c41a1f7a3bf3c"
+        },
+        "nuttx": {
+          "bytes": 5365728,
+          "sha256": "78d1426d8df925d5ea0bc1c4dfc2d6d9e5e433bd10da3a18696c1ad1a594b7c2"
+        },
+        "nuttx.bin": {
+          "bytes": 354664,
+          "sha256": "413b9b89df9bed4c7dca0a55ea3b4fcd702a533d19461731b8e8be63e1301758"
+        }
+      },
+      "mtime_ns": 1788865110881747446,
+      "name": "rk3576_radio_id23",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id23"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59312,
+          "sha256": "39f605ca3b92206e95122a126d001e1474596f031a835aa49e4c41a1f7a3bf3c"
+        },
+        "nuttx": {
+          "bytes": 5367328,
+          "sha256": "53cd0495902f0277b2223215e7a771ebace83b22b58727b7bbd7d8c15e03aea2"
+        },
+        "nuttx.bin": {
+          "bytes": 354664,
+          "sha256": "efa592d4437bb8ac0c49fc249ec0475c0682c32a273ffbd37e7278f35a01a07f"
+        }
+      },
+      "mtime_ns": 1788865833976698419,
+      "name": "rk3576_radio_id24",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id24"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59312,
+          "sha256": "39f605ca3b92206e95122a126d001e1474596f031a835aa49e4c41a1f7a3bf3c"
+        },
+        "nuttx": {
+          "bytes": 5388056,
+          "sha256": "2652726e29f0a8048418bec204e60973e1a6492cd5c1ada9f5f90c31b3e4cec5"
+        },
+        "nuttx.bin": {
+          "bytes": 358808,
+          "sha256": "5b22500dd055036b05c7df6af2cd9aaca1742ec935166972495e3fe548104cec"
+        }
+      },
+      "mtime_ns": 1788866275880273508,
+      "name": "rk3576_radio_id25",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id25"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59312,
+          "sha256": "39f605ca3b92206e95122a126d001e1474596f031a835aa49e4c41a1f7a3bf3c"
+        },
+        "nuttx": {
+          "bytes": 5403920,
+          "sha256": "55c79f699bf2f894b792f574e4ead1327ad7d9f305a468bf1b63905b4fec10d7"
+        },
+        "nuttx.bin": {
+          "bytes": 358808,
+          "sha256": "f19f043b99649bdca024248ca9c5d3b4a01a72053792f4ba17c63df1a3a61bd3"
+        }
+      },
+      "mtime_ns": 1788867640921135347,
+      "name": "rk3576_radio_id26",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id26"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59312,
+          "sha256": "39f605ca3b92206e95122a126d001e1474596f031a835aa49e4c41a1f7a3bf3c"
+        },
+        "nuttx": {
+          "bytes": 5405088,
+          "sha256": "1c0a90bccb9fa1574f20a08e14c4351ab814d6df813b28f8d5e508305363e077"
+        },
+        "nuttx.bin": {
+          "bytes": 358808,
+          "sha256": "49ba032aa2bb0c5b1e1916eefbdb4dafa91e95a43d1d6be253da2de3d41631d7"
+        }
+      },
+      "mtime_ns": 1788868476169398657,
+      "name": "rk3576_radio_id27",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id27"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59348,
+          "sha256": "fbb971691c4aaf4e7945d0e3072bc2a7187d1e88fcf6183e7fef73d041d3868b"
+        },
+        "nuttx": {
+          "bytes": 5406264,
+          "sha256": "b4049249018084c873a63c2dc800e87b42514f21fc4fa5a89f0326d00b71edd7"
+        },
+        "nuttx.bin": {
+          "bytes": 358808,
+          "sha256": "15846a3c3d290864b8eb4e80b299e83cc48b5c75bee1e7859cd4549c5191fa1e"
+        }
+      },
+      "mtime_ns": 1788869070004276176,
+      "name": "rk3576_radio_id28",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id28"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59337,
+          "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+        },
+        "nuttx": {
+          "bytes": 5404992,
+          "sha256": "d32213cc43bb387534eee5ca779f8446f1c34d12c42d53324ae1278dd5b9cf38"
+        },
+        "nuttx.bin": {
+          "bytes": 358808,
+          "sha256": "a5457ca4959264e0a7055202c6d62a9f5f734f18b8a7ee4f3b2cca1bf447bc21"
+        }
+      },
+      "mtime_ns": 1788869487155274965,
+      "name": "rk3576_radio_id29",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id29"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59337,
+          "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+        },
+        "nuttx": {
+          "bytes": 5405096,
+          "sha256": "aa0eca8bc19b4abbc390a7d9057c77d0765dab9717bd7069712cb6e7aae0688d"
+        },
+        "nuttx.bin": {
+          "bytes": 358808,
+          "sha256": "5fc5adc8b40dec432d427b41c77f4b15860dc290d66c0a354916f9c0170f7d43"
+        }
+      },
+      "mtime_ns": 1788869876332668646,
+      "name": "rk3576_radio_id30",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id30"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59337,
+          "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+        },
+        "nuttx": {
+          "bytes": 5428416,
+          "sha256": "bf7cc69de6e1d8d94d8a7da48ea9e09e50473118cf9d19222a19c98dfd367683"
+        },
+        "nuttx.bin": {
+          "bytes": 362904,
+          "sha256": "e3a244b1299fe38d1bd7af1a93dd5ccbca88d95a425dac8e6a2c7e3bc883deae"
+        }
+      },
+      "mtime_ns": 1788917027460204128,
+      "name": "rk3576_radio_id31",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id31"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59337,
+          "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+        },
+        "nuttx": {
+          "bytes": 5437984,
+          "sha256": "93398e40fbc039c8fdd3d0c1232616dae9aa6d047a222f4767bc883563725c04"
+        },
+        "nuttx.bin": {
+          "bytes": 362912,
+          "sha256": "774ed90a764abc8173c4ac1c4640d11c34158c4e4d2d4f83179f7b4584b47704"
+        }
+      },
+      "mtime_ns": 1788918348300196421,
+      "name": "rk3576_radio_id32",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id32"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59337,
+          "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+        },
+        "nuttx": {
+          "bytes": 5702920,
+          "sha256": "fe05ca8b0e330312a7af2787455af444b9524eb08c829a2495ec121a89d46131"
+        },
+        "nuttx.bin": {
+          "bytes": 400208,
+          "sha256": "2413f8b5e506ef2cd0225bfe65790a43f1c2e69cd66be0cc6cc5bd22feb14440"
+        }
+      },
+      "mtime_ns": 1788919305950620160,
+      "name": "rk3576_radio_id33",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id33"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59337,
+          "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+        },
+        "nuttx": {
+          "bytes": 5703200,
+          "sha256": "cfed3be9496623c81260fbc50cbdd2156477d241486c30c9655b0d3ffacef114"
+        },
+        "nuttx.bin": {
+          "bytes": 400208,
+          "sha256": "f219580e01a4b4758c5e0e7f04e1f2f45ba862e26ff2da56215ccb5874561c77"
+        }
+      },
+      "mtime_ns": 1788919915814814245,
+      "name": "rk3576_radio_id34",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id34"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59337,
+          "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+        },
+        "nuttx": {
+          "bytes": 5703272,
+          "sha256": "91f3128577a75fddd6e951bd58875ec51c3bd1080946015bb51a3f03e459cd4f"
+        },
+        "nuttx.bin": {
+          "bytes": 400208,
+          "sha256": "f2689abe40058fe9fc8bd29504b358eb678d04004eb9b0b682b7154fe913dbba"
+        }
+      },
+      "mtime_ns": 1788920332754542789,
+      "name": "rk3576_radio_id35",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id35"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59337,
+          "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+        },
+        "nuttx": {
+          "bytes": 5704696,
+          "sha256": "ccce291be681e126d132195b178bd1d50718ecdc6370a7f724807a45d5a76175"
+        },
+        "nuttx.bin": {
+          "bytes": 400208,
+          "sha256": "8d53a8cd62b09bea20c4d2d4905c31fe14a0277f0c600914f59a3d189839ab56"
+        }
+      },
+      "mtime_ns": 1788921064724257872,
+      "name": "rk3576_radio_id36",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radio_id36"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59348,
+          "sha256": "fbb971691c4aaf4e7945d0e3072bc2a7187d1e88fcf6183e7fef73d041d3868b"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17025,
+          "sha256": "ed01630630402f92d4f9b84b0567b2b225585abf6f78176c5d64dac3d04e7a0a"
+        },
+        "build.ninja": {
+          "bytes": 7873559,
+          "sha256": "9b1520a2612093cf965913d2cc553c2b12eb7670ed018b1416ada9f863e7d949"
+        },
+        "nuttx": {
+          "bytes": 5406264,
+          "sha256": "b4049249018084c873a63c2dc800e87b42514f21fc4fa5a89f0326d00b71edd7"
+        },
+        "nuttx.bin": {
+          "bytes": 358808,
+          "sha256": "15846a3c3d290864b8eb4e80b299e83cc48b5c75bee1e7859cd4549c5191fa1e"
+        }
+      },
+      "mtime_ns": 1788869069998276099,
+      "name": "rk3576_radiohost_acl_build",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radiohost_acl_build"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59312,
+          "sha256": "39f605ca3b92206e95122a126d001e1474596f031a835aa49e4c41a1f7a3bf3c"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16999,
+          "sha256": "975a2b613b655d700eb5544afcfb46eb815d6670f7d17447edba4bd1b839b907"
+        },
+        "build.ninja": {
+          "bytes": 5102576,
+          "sha256": "38fc857a99923c100271bf37e452c155ad7e158812d695dceb126381372bcf4e"
+        },
+        "nuttx": {
+          "bytes": 5405088,
+          "sha256": "1c0a90bccb9fa1574f20a08e14c4351ab814d6df813b28f8d5e508305363e077"
+        },
+        "nuttx.bin": {
+          "bytes": 358808,
+          "sha256": "49ba032aa2bb0c5b1e1916eefbdb4dafa91e95a43d1d6be253da2de3d41631d7"
+        }
+      },
+      "mtime_ns": 1788868476163398548,
+      "name": "rk3576_radiohost_build",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radiohost_build"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59337,
+          "sha256": "402b44c1a989b17660cb22bbb8db3b26b0f0f3bb6a69210ac1aaa60a540d36aa"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17031,
+          "sha256": "c81e68494d5230a8b59e92c683154624ddadc61616a0e834ab7e33fcc87a009c"
+        },
+        "build.ninja": {
+          "bytes": 5149623,
+          "sha256": "2b54ac960b7a418dec6e1fbcf8b3be0062c438966d73df079b5c48ce44eadfbe"
+        },
+        "nuttx": {
+          "bytes": 5704696,
+          "sha256": "ccce291be681e126d132195b178bd1d50718ecdc6370a7f724807a45d5a76175"
+        },
+        "nuttx.bin": {
+          "bytes": 400208,
+          "sha256": "8d53a8cd62b09bea20c4d2d4905c31fe14a0277f0c600914f59a3d189839ab56"
+        }
+      },
+      "mtime_ns": 1788921064717257916,
+      "name": "rk3576_radiohost_sdio_build",
+      "path": "/home/swl/openvela/cmake_out/rk3576_radiohost_sdio_build"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17067,
+          "sha256": "f8d79f3ed17d2fc90e3941f75dab785d41e2b3664997534a71622d81e38258b3"
+        },
+        "build.ninja": {
+          "bytes": 7411377,
+          "sha256": "2aba10333525d794c27512c0870b0b4860188c197d6b037badd6c2cfe5c9f1ab"
+        },
+        "nuttx": {
+          "bytes": 6275776,
+          "sha256": "0016a277db943a6300e27021976fe7aa05277324ccb308da713e6bcb370a0433"
+        },
+        "nuttx.bin": {
+          "bytes": 740392,
+          "sha256": "a272755a977a457cb0f1bcb31eeee3f98056d5650e49c0447833d40cf4697568"
+        }
+      },
+      "mtime_ns": 1788595807008999467,
+      "name": "rk3576_uartbench",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uartbench"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17082,
+          "sha256": "f24a40ba31887ae1f082c340b1eff4cd46daff00210c619fc0f95879b8fc5c3e"
+        },
+        "build.ninja": {
+          "bytes": 7463035,
+          "sha256": "a96fa9c34003d5d1668c28999553814ceaf2e6f8279daae20063ba47704e1f0f"
+        },
+        "nuttx": {
+          "bytes": 6347072,
+          "sha256": "f8bdfba135e3edbe4bf0980b4131ecdf427dff73ac8679225125ef34075a3912"
+        },
+        "nuttx.bin": {
+          "bytes": 748632,
+          "sha256": "b989e4952c90f4df6aa8c143544ef8f73d66fe7eb40b3de091c8a012d478f969"
+        }
+      },
+      "mtime_ns": 1788746744463973698,
+      "name": "rk3576_usb_axisclip",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_axisclip"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 6353920,
+          "sha256": "6eb95a05717b133b61224897cb39f0dd7719d8575b8e4814c44e1d1b2cd96ddd"
+        },
+        "nuttx.bin": {
+          "bytes": 748632,
+          "sha256": "2561f4976c1f7dd20c0357dae42cbe3ee1b38b78195a41fb4436b2e83ce2396a"
+        }
+      },
+      "mtime_ns": 1788764700121265824,
+      "name": "rk3576_usb_calibrated_follow",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_calibrated_follow"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 6349792,
+          "sha256": "6f1975e9b693b61fcef1d4ee7b65b7fd6c3302bca3f1f3bd647c52ce9bc36f32"
+        },
+        "nuttx.bin": {
+          "bytes": 748632,
+          "sha256": "e1f935e2c5d7247665584ce327eaa15ed567c9ddde45bf32c4c213008afd026b"
+        }
+      },
+      "mtime_ns": 1788753030372765914,
+      "name": "rk3576_usb_linux_control",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_linux_control"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 6350312,
+          "sha256": "9db5a53d9dcbfba4664477a68607b55e7fab54f6ceafcc5e3dcd8a6694c9cb2c"
+        },
+        "nuttx.bin": {
+          "bytes": 748632,
+          "sha256": "8431548b7e937a7bd500b672b942a05514f5e7d1c8fa6cc80fc4ce429953b304"
+        }
+      },
+      "mtime_ns": 1788760656137480870,
+      "name": "rk3576_usb_manual_calibration",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_manual_calibration"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 6350384,
+          "sha256": "e978a794f469976b2a1c027cbc4ee0b7fa37ba7431287065cf3fa195eb72b2b7"
+        },
+        "nuttx.bin": {
+          "bytes": 748632,
+          "sha256": "32f3b6c6ee443f8e90d83a6935a6e909e4999c992db69445cda70d2eaf70b98e"
+        }
+      },
+      "mtime_ns": 1788761799945306548,
+      "name": "rk3576_usb_manual_calibration_v2",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_manual_calibration_v2"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 6351568,
+          "sha256": "fd1d71033c3e9bebeb5690c06410d4e928727b8f5eca545e1ac63758b43791af"
+        },
+        "nuttx.bin": {
+          "bytes": 748632,
+          "sha256": "cb78a43b3789304528ca7be2e9a3361babcba6d80a2994981c8cdec192c2feec"
+        }
+      },
+      "mtime_ns": 1788762610748971870,
+      "name": "rk3576_usb_manual_calibration_v3",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_manual_calibration_v3"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 7666088,
+          "sha256": "0d7179a420d99a9f286d0d2008a7ecb414208734fa46b714fda2efe402fe222a"
+        },
+        "nuttx.bin": {
+          "bytes": 1752192,
+          "sha256": "83a4e37a6ab086286e39315b97474813314400864133c2cc6c7dcd5295c718bd"
+        }
+      },
+      "mtime_ns": 1788773318299537646,
+      "name": "rk3576_usb_photo",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_photo"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 7666704,
+          "sha256": "9b5022f497b127253798988a8c17ba1d980583b493050ff849275003806a8d9c"
+        },
+        "nuttx.bin": {
+          "bytes": 1752192,
+          "sha256": "b0630247350f462cfcdebc1a0e2cb800dc0d09661eefb7c155482494c9fd2d68"
+        }
+      },
+      "mtime_ns": 1788774252968497252,
+      "name": "rk3576_usb_photo02",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_photo02"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 7666704,
+          "sha256": "9f08f9039fe22a2bb5fabc63c52c8dcbdb1341cd4b9f63d9f4018aabd994d4a9"
+        },
+        "nuttx.bin": {
+          "bytes": 1752192,
+          "sha256": "36e4b997ad4b7a22a880e7b1c1d8bc911b62b470e2b92b281bee5a2823a0dad6"
+        }
+      },
+      "mtime_ns": 1788775605243754079,
+      "name": "rk3576_usb_photo07",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_photo07"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 7666704,
+          "sha256": "e2ce1a511eed93c8a23c9efd045e3911bac1ae49f050007adbe9b0045a8762dc"
+        },
+        "nuttx.bin": {
+          "bytes": 1752192,
+          "sha256": "5d7730d830e92e7b38e1674521e0795ce76be961aace5fb14f2d922189ba1565"
+        }
+      },
+      "mtime_ns": 1788778455397524654,
+      "name": "rk3576_usb_photo_direction",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_photo_direction"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53316,
+          "sha256": "f94d8ec92b1a0485759392c4586555743c47afec38983ac295d29c47d24c7b5f"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17081,
+          "sha256": "0c5416a004215d589ac0ef0d19fdfc35a75abd2c7dff416139479c1bdbab1d71"
+        },
+        "build.ninja": {
+          "bytes": 4783075,
+          "sha256": "54966050b03f569411234392a7972ad9c5946b62df5fba78b1aa9ed9e7cab7a9"
+        },
+        "nuttx": {
+          "bytes": 4119688,
+          "sha256": "f9fbf3f3ff1cdfe7e33da97babee318ece211fec131ea4a66fae38464327444e"
+        },
+        "nuttx.bin": {
+          "bytes": 261080,
+          "sha256": "8ca4488f52ab930d21bd98163cb4bda130a7af3df73a1e8023ada3247b2906b7"
+        }
+      },
+      "mtime_ns": 1788864099778347412,
+      "name": "rk3576_usb_response",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_response"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 6347936,
+          "sha256": "b379e7dcc8b74c18e373b3ffef67d3b0ae9184787b1dff0e9047f4b6c3c19940"
+        },
+        "nuttx.bin": {
+          "bytes": 748632,
+          "sha256": "ea1790aef4c5adc9645701d715868cb2f3a81ac8eebac499dc00e51a78af9ea8"
+        }
+      },
+      "mtime_ns": 1788752104426538260,
+      "name": "rk3576_usb_response_baseline",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_response_baseline"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17067,
+          "sha256": "8fcbd91fe9a5d7a4a29fce6d4cf6063bbb9d1c532feb51e776a09994ba773a7a"
+        },
+        "build.ninja": {
+          "bytes": 7419151,
+          "sha256": "bd1e41a159a7e9f2535c7921280ade6259e562ff81eb7b8c01c5cba8565e1944"
+        },
+        "nuttx": {
+          "bytes": 6345824,
+          "sha256": "c7a1c5a2ed2174e75ad7dd5a272e2034cc5017904a8467b58ba23de5a7b0219b"
+        },
+        "nuttx.bin": {
+          "bytes": 748632,
+          "sha256": "742155c6c4e55745cd48da91fd4f54280aa752728e153d3cd69f9f5707636b93"
+        }
+      },
+      "mtime_ns": 1788604425634423730,
+      "name": "rk3576_usb_video",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_video"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17092,
+          "sha256": "83b467d899fd0ffd2ec4942474e28dd668d4f58abdb5e1757db99a95627d32a6"
+        },
+        "build.ninja": {
+          "bytes": 7492291,
+          "sha256": "4e6bf6795831e4228c4c294c9b0bb6bd80b3513b2cf343a65748b80eb1198c1a"
+        },
+        "nuttx": {
+          "bytes": 6346736,
+          "sha256": "f4b965b8f51158328c442aa0f39d6966b315d9eba7475d791bf04dee3d424c1b"
+        },
+        "nuttx.bin": {
+          "bytes": 748632,
+          "sha256": "d4810651248aa1143411ea06665b54a866a9c0841338fec768e6c179169792db"
+        }
+      },
+      "mtime_ns": 1788605296085069016,
+      "name": "rk3576_usb_video_32ms",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_video_32ms"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 6353920,
+          "sha256": "c592c9d211112165567dae6004dbd6541afe06cec24a1e1e9d2e6b214b4ec57e"
+        },
+        "nuttx.bin": {
+          "bytes": 748632,
+          "sha256": "4dbfecf73d82c858993f5a18a2c7fcdfd2bd43cec5cc87cd74758bc891826fbc"
+        }
+      },
+      "mtime_ns": 1788766426515875735,
+      "name": "rk3576_usb_xcenter_follow",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_xcenter_follow"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "nuttx": {
+          "bytes": 6348488,
+          "sha256": "45c743849f39cb6d38e682e1bac79949770bc6c0c8e530939d0f5ad6b2dd53f7"
+        },
+        "nuttx.bin": {
+          "bytes": 748632,
+          "sha256": "a02e2ccbaeffec0cc3da9229956b5a9dd2b1620c0a105d49f48b5fb82c4cc146"
+        }
+      },
+      "mtime_ns": 1788752169823836403,
+      "name": "rk3576_usb_yedge",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usb_yedge"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 51661,
+          "sha256": "312ed994d359475b7a145aa76bae6108fa01842178acb7de946a67d889878edd"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17057,
+          "sha256": "6dc0f0a84a509ebd42a669380735498afec656412005bdf70bff9573d5a1ef09"
+        },
+        "build.ninja": {
+          "bytes": 7250695,
+          "sha256": "f21edf0f1aa42ddfce884ab8456f845d01d197772230cb2a13ea7ac79b00a448"
+        },
+        "nuttx": {
+          "bytes": 3817248,
+          "sha256": "342a3b94f5642263e3e4786b567f70f193f4b670669099a228e99b63681f30dc"
+        },
+        "nuttx.bin": {
+          "bytes": 195312,
+          "sha256": "08c01e3336e0d3469e7c61f1e30df36843bb6dd21ac34373a7e233a2058688cc"
+        }
+      },
+      "mtime_ns": 1788440234121358954,
+      "name": "rk3576_usbdiag",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usbdiag"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 52871,
+          "sha256": "ec8cc6fc7a0a8d8ac1f4cf61a6bb4c2f594216c236ddfd0da5c2c4e79e6ef767"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17057,
+          "sha256": "b6330d5b1fc4cbeec6eb3d7e686976188ddfea3c78e2bec6177b8574501ea831"
+        },
+        "build.ninja": {
+          "bytes": 7276479,
+          "sha256": "60371e400ea4b5e19aceee15d72db1e3daab0c015fc811a443313224fd4316f1"
+        }
+      },
+      "mtime_ns": 1788485995045997340,
+      "name": "rk3576_usbenum",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usbenum"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 52944,
+          "sha256": "a7a8406a2d3f107313f7bb6b53c5e8cc9a5d6c90a8796a71298b42644646cb3e"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17072,
+          "sha256": "20340010ae005096aac8fcfcd0a02358e9be79a8709c7af523892a6a80e54725"
+        },
+        "build.ninja": {
+          "bytes": 7321368,
+          "sha256": "7da5b1daa5f3a8e686f934e20ec51cc8678c74ca87206a6d5a80f49c57572a0a"
+        },
+        "nuttx": {
+          "bytes": 4151736,
+          "sha256": "e6c7e01553bff3bab195434d93d318a12f229f7a72a4b450565b1f9ab8c4cfca"
+        },
+        "nuttx.bin": {
+          "bytes": 228384,
+          "sha256": "eac1cb86c922936fa86a8af928ec2992b6966de1b93e7f66455a7be6a78c7fa5"
+        }
+      },
+      "mtime_ns": 1788486248972820089,
+      "name": "rk3576_usbenum_v2",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usbenum_v2"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 52933,
+          "sha256": "1b1e47083cc44b1ccf937a65c2c7d0fc0c8262ad91ed179541ff2558640e89fd"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17072,
+          "sha256": "6f1996d194b52bda23a90a136fba243b0264b7ef1f911e9e6077fcbeb642d85b"
+        },
+        "build.ninja": {
+          "bytes": 7321368,
+          "sha256": "d54abd0032feea088bb11c2026259c1789b0cc0bd3eb1fb8ba1ef08c23d64788"
+        },
+        "nuttx": {
+          "bytes": 4182328,
+          "sha256": "5a1540f69213e1d9e0755cb82a44d916abe55936700c4cfeaae99243f2e03a2a"
+        },
+        "nuttx.bin": {
+          "bytes": 257056,
+          "sha256": "1cbc19fa967cdb647e25f58ee4839c7c4be994c1a59296032970f5c39e9fd0a6"
+        }
+      },
+      "mtime_ns": 1788487626352315651,
+      "name": "rk3576_usbenum_v3",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usbenum_v3"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17072,
+          "sha256": "716bfcfbaf6e02872ab25b000f069c61782406a584b7deabd1bab4803a3d6132"
+        },
+        "build.ninja": {
+          "bytes": 7321368,
+          "sha256": "5c458742cdf739f0d5c50024e419d1d9e3c19745eff8a4e69b554ff256366459"
+        },
+        "nuttx": {
+          "bytes": 4198728,
+          "sha256": "40adb9cc15ff812eec738cb9ee1ed0c32188cebba8e1d3f4386af7d44543a209"
+        },
+        "nuttx.bin": {
+          "bytes": 265248,
+          "sha256": "4f5a7bb18f90d6422fc5bd21fe3b64182a4c917acf677672dc5fdc590ebf4db2"
+        }
+      },
+      "mtime_ns": 1788488071793302885,
+      "name": "rk3576_usbenum_v4",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usbenum_v4"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17072,
+          "sha256": "ada8fd80e420baac83f9c2d5bab768e56c3545176c62b0fe2f153359fba8f194"
+        },
+        "build.ninja": {
+          "bytes": 7321368,
+          "sha256": "db84c87c8b3f34deb11be8e4791aa9a241efd6924201121dcbf6e190be319836"
+        },
+        "nuttx": {
+          "bytes": 4200632,
+          "sha256": "eded858383eef3daa3e8dea12b42f78b3ca16e3273b98fa30b45fc81ff3cc20f"
+        },
+        "nuttx.bin": {
+          "bytes": 265248,
+          "sha256": "b8d280f8a4b4a2a9fc0df0ed364560deb92c704a95e368f0a25bdfc8746c213f"
+        }
+      },
+      "mtime_ns": 1788488509547087889,
+      "name": "rk3576_usbenum_v5",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usbenum_v5"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53054,
+          "sha256": "dd23385ac1fef2a4657f2e09f74b40948b541fffce7840291ec31d42a71d76b8"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17072,
+          "sha256": "357d2aec0eaef0a3a98a79d828dd039bec45ede81778fffd8012761c375b9236"
+        },
+        "build.ninja": {
+          "bytes": 7321368,
+          "sha256": "a0e10e0417e03b660afbdcd4eedb4a4bf80f345d26388d5da4bf185976fa0b24"
+        },
+        "nuttx": {
+          "bytes": 4202000,
+          "sha256": "0bb1fa07699e53b70c8f1da2b0b1a4fb3d038cf9cd164fef1a8c99ff86fa6215"
+        },
+        "nuttx.bin": {
+          "bytes": 265248,
+          "sha256": "7d0d21d3f2bec63fde4926d63c0c7bdad908cb944f0b3603674186858a22ce2d"
+        }
+      },
+      "mtime_ns": 1788488812195456599,
+      "name": "rk3576_usbenum_v6",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usbenum_v6"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17072,
+          "sha256": "41568f8e26a8fa9c3b251edabd4f7c688968d0a60d9e155d99ad5117faf9eef1"
+        },
+        "build.ninja": {
+          "bytes": 7321368,
+          "sha256": "b8f073b48cdfd6bbf5a842d3a3131206c2fc2f34835d59174e770dd1bd8711be"
+        },
+        "nuttx": {
+          "bytes": 4202008,
+          "sha256": "286832bab3bd11aa8d74c7f1397540e98194d7a5d756f0ae8d158f5bcc734701"
+        },
+        "nuttx.bin": {
+          "bytes": 265248,
+          "sha256": "6be693f9f3126961e9192027e09506e46dcf7608c85355128daea8f0e0fa34bd"
+        }
+      },
+      "mtime_ns": 1788488981787949118,
+      "name": "rk3576_usbenum_v7",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usbenum_v7"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17072,
+          "sha256": "d917a5a5fc00fae274277ee6885ab314815b760e066761831cab29afc4ddccb0"
+        },
+        "build.ninja": {
+          "bytes": 7321368,
+          "sha256": "567076ad2fd332b4a38aa993754a367a12aa98f5e39b660ba4c898e10d998b29"
+        },
+        "nuttx": {
+          "bytes": 4203120,
+          "sha256": "063c07648140dfe1a165a33322b1e5eb76261ccf762af839a7999118d144d6ff"
+        },
+        "nuttx.bin": {
+          "bytes": 265248,
+          "sha256": "d191dc3da506269e51d271a30df5559707270fdd66272c1b0fc34fd5ce931c2a"
+        }
+      },
+      "mtime_ns": 1788490163882987282,
+      "name": "rk3576_usbenum_v8",
+      "path": "/home/swl/openvela/cmake_out/rk3576_usbenum_v8"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17057,
+          "sha256": "a22a2e296b72339dd0e071b718941e6d3733b4135db5c455a523069bc069be41"
+        },
+        "build.ninja": {
+          "bytes": 7277916,
+          "sha256": "963be337db8decdaee5deae6e53ee87bc2601ad353789365b9b51c818a2e56a4"
+        },
+        "nuttx": {
+          "bytes": 4210480,
+          "sha256": "40a3f4bad6620266dd273e465fe18eb5b29ab2b719777fa49889e1d852b73903"
+        },
+        "nuttx.bin": {
+          "bytes": 265248,
+          "sha256": "b67e6480102d8fdc7d2a62716a3eacc4ec8a61b98faa1031880ddcede1ef8587"
+        }
+      },
+      "mtime_ns": 1788491047198230058,
+      "name": "rk3576_uvc_v10",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v10"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17057,
+          "sha256": "0980bef732b359a01078299f1635d8f11a9dd7ad89c1d44bbf68ec57d1c6ca3f"
+        },
+        "build.ninja": {
+          "bytes": 7277916,
+          "sha256": "b50b83ad0d4eaeb4d75469d5687355320cc65c2945347efc966714b21c7c50e1"
+        },
+        "nuttx": {
+          "bytes": 4230480,
+          "sha256": "3c5af4d77b6ba22334c1f0385b88f1f432473c0a7aaa42d38237c4b980bb93e3"
+        },
+        "nuttx.bin": {
+          "bytes": 269344,
+          "sha256": "cd182f520c7c8f73140a82b0317e3bfcf70a9573eb5038756890484a6ad96ba9"
+        }
+      },
+      "mtime_ns": 1788491327468382161,
+      "name": "rk3576_uvc_v11",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v11"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17057,
+          "sha256": "42c3374c81f4426014d0a8bcf3ea3955464c5f5a5c91100826cbb933ce9830c1"
+        },
+        "build.ninja": {
+          "bytes": 7277916,
+          "sha256": "b4ca485c7394e905f233a7a2448017eb6274c09bb89e9aec2cce84d548bd1782"
+        },
+        "nuttx": {
+          "bytes": 4235456,
+          "sha256": "37d483cc50380db2ff03b0da04eb84fac669735f0d75bce7b35a677d85780cae"
+        },
+        "nuttx.bin": {
+          "bytes": 269344,
+          "sha256": "e75f871e80cca0e51e2e26435b7f7cf52a17af2268b08c4b5cfa2ef21515c303"
+        }
+      },
+      "mtime_ns": 1788491930169748666,
+      "name": "rk3576_uvc_v12",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v12"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17057,
+          "sha256": "5ce9321a905774a0c208f2b7a016175e27ef4d6852ba33703f33b3bbde72f36d"
+        },
+        "build.ninja": {
+          "bytes": 7277916,
+          "sha256": "126304efef964d1365130caba66e086aa10e71c1adc0c109e8ba0c2acc711e2d"
+        },
+        "nuttx": {
+          "bytes": 4235912,
+          "sha256": "42eef4c92c6ea27988dab991c87c87de2422456f065249fae4008b20341b6a84"
+        },
+        "nuttx.bin": {
+          "bytes": 269344,
+          "sha256": "f51ae873c65447ff82b18aeed6e30999602545daf5f667e6eb95a0da6a5756a5"
+        }
+      },
+      "mtime_ns": 1788492152897264499,
+      "name": "rk3576_uvc_v13",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v13"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17057,
+          "sha256": "2cadbe68cf67594fe65bf7f600c9a73a072d018e5adf9c8a94d7346e1b6ea221"
+        },
+        "build.ninja": {
+          "bytes": 7277916,
+          "sha256": "22733db1fe3ce5d5ac2e902cf9ea57437df640a585c8636e493cf7ddbc866d22"
+        },
+        "nuttx": {
+          "bytes": 4237208,
+          "sha256": "89ccb480ac2d2b43b8493b03f1d59a57e4dd5aec88efa70a3ddb80ddce0b297c"
+        },
+        "nuttx.bin": {
+          "bytes": 269344,
+          "sha256": "0570d39b7310f70513c5ae4d31e5617344956fc6a3e161b4bc839cffb3127536"
+        }
+      },
+      "mtime_ns": 1788507677387977781,
+      "name": "rk3576_uvc_v14",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v14"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17057,
+          "sha256": "7bf0f16357cf70cbd51e593faea7c5516ed4cfb7d803f7a9df4753b0ff5f682a"
+        },
+        "build.ninja": {
+          "bytes": 7277916,
+          "sha256": "e767c139f81ec3f378aa4b5010e3eb4723b55d8af07bfeeabbfa79b7de6a8544"
+        },
+        "nuttx": {
+          "bytes": 4244944,
+          "sha256": "1f32b7cd4e09c7cc4c9195dd35e5a1dec96599482ae77f01cbaff6e85e048c1d"
+        },
+        "nuttx.bin": {
+          "bytes": 269344,
+          "sha256": "bd1c07990b5481c6ac1da32ba8a286f2c05adc14ae63c7c34b7c9cd6b60e9dfe"
+        }
+      },
+      "mtime_ns": 1788509146856893823,
+      "name": "rk3576_uvc_v15",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v15"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17057,
+          "sha256": "84431cae85f899efaa55089c08ee2b0f15a6b432dcfc1351729845f4179f9081"
+        },
+        "build.ninja": {
+          "bytes": 7277916,
+          "sha256": "e99d216205336635e0d6a672875205b7a297c5b6a8f8824be2a9ed079d861c8a"
+        },
+        "nuttx": {
+          "bytes": 4262736,
+          "sha256": "cc25ce3dfe1204e717147c341c12312f77017fa3e390056bd5a65213b4bd0670"
+        },
+        "nuttx.bin": {
+          "bytes": 273440,
+          "sha256": "fd80fc9e86d43db2f8d0ccdc2e44f43b3424a102234ebf19def35db0d88ec497"
+        }
+      },
+      "mtime_ns": 1788510286292996595,
+      "name": "rk3576_uvc_v16",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v16"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17057,
+          "sha256": "d167c863828d50a374d8d02b40bad0604b530bcb7ddc264a9f5fc3962471be89"
+        },
+        "build.ninja": {
+          "bytes": 7277916,
+          "sha256": "d0bb7a07914349b4f0e366b6db5b44d4145af5f58b5395154f2965c20ad5d93a"
+        },
+        "nuttx": {
+          "bytes": 4262904,
+          "sha256": "844b6d54af7c5ea7e4cd22cd7780784210471e0e80193e18378531fec94e4a4b"
+        },
+        "nuttx.bin": {
+          "bytes": 273440,
+          "sha256": "128ad292c382adab0f3b60df246ba853c423b12a92e1c3b94cf78a5a11dae93c"
+        }
+      },
+      "mtime_ns": 1788510817789218867,
+      "name": "rk3576_uvc_v17",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v17"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53084,
+          "sha256": "63bc5d457e55900b3c6360267343205995832d6dbd91775c487e29d7ea728d56"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17057,
+          "sha256": "c878e79f4b42d986e36fddcf0f50012801239aaaed0bfc680b58f7779549c0e8"
+        },
+        "build.ninja": {
+          "bytes": 7373264,
+          "sha256": "28ae0fb3acf525fcd1b726450abead9760e79a0b72052d835b9ca2af425e8d87"
+        }
+      },
+      "mtime_ns": 1788512011822743897,
+      "name": "rk3576_uvc_v18",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v18"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53106,
+          "sha256": "ce8e1ef754ecd40674836c8c4044ef358f6442e5809b0e090c54280d728f1856"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17082,
+          "sha256": "010590d2b7bc51dfbba25c114e86936df1196c5575146b7489da9c2332809d50"
+        },
+        "build.ninja": {
+          "bytes": 7447568,
+          "sha256": "528660642fd620241aad81ace1792e85fc56d56e6cfa86014b6c495856d85445"
+        },
+        "nuttx": {
+          "bytes": 5208440,
+          "sha256": "bc9863a2a6932dd8a9ca3bd797a34f21c7be58abec1ebd40480475add0878753"
+        },
+        "nuttx.bin": {
+          "bytes": 396320,
+          "sha256": "3f45e5833ea2b298db214623ede05974d8773f8594f2c77b1b10b189eacc9241"
+        }
+      },
+      "mtime_ns": 1788512275201903061,
+      "name": "rk3576_uvc_v18_jpeg",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v18_jpeg"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53106,
+          "sha256": "ce8e1ef754ecd40674836c8c4044ef358f6442e5809b0e090c54280d728f1856"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17082,
+          "sha256": "bba0a412bf8408ed07f7b60da79d6106f5ffb5980fdb4b55fcfa51e2b04df5b8"
+        },
+        "build.ninja": {
+          "bytes": 7449115,
+          "sha256": "aa3a1385aba6df305395db7655b684fd681a0e824b2c86d077693d780962396a"
+        },
+        "nuttx": {
+          "bytes": 5315896,
+          "sha256": "87b9bef5c5718f1e3bc7a738c081439092477e1c5287e03e1e1bff135d6bd838"
+        },
+        "nuttx.bin": {
+          "bytes": 400416,
+          "sha256": "56e13ea41590e0d99c0b6c79409df434ae6b548fb60b5aa054c5fb98f1be74cd"
+        }
+      },
+      "mtime_ns": 1788513934115351603,
+      "name": "rk3576_uvc_v19_live",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v19_live"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53137,
+          "sha256": "feddfee402a2bd32433439fbc04504ab821f16d3a3fd9c6d821933f5eec3ca27"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17082,
+          "sha256": "c10ccf984d2ac166c8f22b71b767ab5adad34435e6e1305302d75c39909c5a37"
+        },
+        "build.ninja": {
+          "bytes": 7450672,
+          "sha256": "379b8db417ac9efb6d1ceae3306feceaf2ccc22f3af1c7d84902ac0f2da96777"
+        },
+        "nuttx": {
+          "bytes": 5732920,
+          "sha256": "89f588b1e91a5696c7511c3465a5692c93e476a8bb5eced857cc4fdba40689a4"
+        },
+        "nuttx.bin": {
+          "bytes": 650272,
+          "sha256": "947b0bca0fced72b79a43b21fd7da8c87b9557c91a558969b1f1d75e1a55d2c6"
+        }
+      },
+      "mtime_ns": 1788515778278371337,
+      "name": "rk3576_uvc_v20_face",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v20_face"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53137,
+          "sha256": "feddfee402a2bd32433439fbc04504ab821f16d3a3fd9c6d821933f5eec3ca27"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17092,
+          "sha256": "7ca8c2dc4dd9413a2f6d9e2910e551175040a376cd2531a357b7e6a2443ff5ce"
+        },
+        "build.ninja": {
+          "bytes": 7479882,
+          "sha256": "a6c01a6bcd80639d7a7aa655c542d1f026abea26571694db05789dbc51a32c91"
+        },
+        "nuttx": {
+          "bytes": 5733240,
+          "sha256": "52da0a16a56f5dfb8c8542c53fada48975530766c7bc4a0d6e95a7ad93cb2d1d"
+        },
+        "nuttx.bin": {
+          "bytes": 650272,
+          "sha256": "b55e1eb45674ebe868fd8e5a3da57fd57c0f6f4628cce4410a91d2c37586624a"
+        }
+      },
+      "mtime_ns": 1788516160035604928,
+      "name": "rk3576_uvc_v20_latest",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v20_latest"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "273f9433a0cc76101bff2da16e89b4abaeed70c2a8119089c2376335590b70b5"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17087,
+          "sha256": "097fb45415d5e64c2060ad63e6e9b18cf82e3d649f864b326afc686699f0f6b1"
+        },
+        "build.ninja": {
+          "bytes": 7468283,
+          "sha256": "b9ab295a3c4066509d7c7fc7b40826b0a10547d2ab99c66bf6ae480abcb09b98"
+        },
+        "nuttx": {
+          "bytes": 5761728,
+          "sha256": "1970b07001d1a0c2ce007792a299152c3a12d6f0185545964f51cf2383474849"
+        },
+        "nuttx.bin": {
+          "bytes": 654376,
+          "sha256": "9859eccb9827330c294882fe8c56032aa9259964e6cfbc105feaca9bb82dd5fe"
+        }
+      },
+      "mtime_ns": 1788519848096640304,
+      "name": "rk3576_uvc_v21_track",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v21_track"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "273f9433a0cc76101bff2da16e89b4abaeed70c2a8119089c2376335590b70b5"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17087,
+          "sha256": "99565a7a7a57c3b05b64171c6936baa4345738e415c266bd9796f48c0dc2a663"
+        },
+        "build.ninja": {
+          "bytes": 7468283,
+          "sha256": "bc2628d38d64555f6087f45d28e97bb43b26e592b2a8914d3f36fd69f8c215a5"
+        },
+        "nuttx": {
+          "bytes": 5763240,
+          "sha256": "bc57b75544a7f710cd31c48e6321844e170bc13137b06881cd80b88c47f56f7b"
+        },
+        "nuttx.bin": {
+          "bytes": 654376,
+          "sha256": "bfa8215053bd61189d5f3ca859da843ee718620625229fe7788211bd001d8624"
+        }
+      },
+      "mtime_ns": 1788524136173441430,
+      "name": "rk3576_uvc_v22_guard",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v22_guard"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17117,
+          "sha256": "ca45cd7f4b8c94b66238d114951a8b0199bc4cf9a731ddcca86cd6a5a82f5338"
+        },
+        "build.ninja": {
+          "bytes": 7555943,
+          "sha256": "afbf4849feb2d17b6f3183ae44f83bd3889aab635bd268cf1c34d793270f9b35"
+        },
+        "nuttx": {
+          "bytes": 5763224,
+          "sha256": "a094e648d09b85ab98b466a9d69fada595f8b0387a65972e96b49ee8fa277519"
+        },
+        "nuttx.bin": {
+          "bytes": 654376,
+          "sha256": "0ea4167bac3ccb9aa381b7a9c4f2f4b90676142290002afc3e574ae17719d5b5"
+        }
+      },
+      "mtime_ns": 1788524506628216124,
+      "name": "rk3576_uvc_v22_guard_final",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v22_guard_final"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17097,
+          "sha256": "1fa86f69dcbe246e64c73e98225b6ddb6c0f460a328208341ccc43cbf079480f"
+        },
+        "build.ninja": {
+          "bytes": 7499055,
+          "sha256": "aa04c4e205e1e0e37cee02e435a41a8e724920ee53fd4f21bedbc7a79434d3f7"
+        },
+        "nuttx": {
+          "bytes": 5767584,
+          "sha256": "517ff94c9431b63d6c2914cbb7f83caebcff42c63c3423d46550c71296667d17"
+        },
+        "nuttx.bin": {
+          "bytes": 654376,
+          "sha256": "3625d7feeb66b858cbec2810a5cd0eb1d96301bd029759a713f1a57718f58f00"
+        }
+      },
+      "mtime_ns": 1788593414151619288,
+      "name": "rk3576_uvc_v23_preview",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v23_preview"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17127,
+          "sha256": "76e6ed7d131515e15cdb4bcebe0c5d7c6671f22fd512f5557c2e9c3dd6a82f54"
+        },
+        "build.ninja": {
+          "bytes": 7586733,
+          "sha256": "cb9fd961b7322fd1569e3ffc71f09293a8ffbb15a38700252126e657cedf3e99"
+        },
+        "nuttx": {
+          "bytes": 5767912,
+          "sha256": "4410e36c26f9e368913081c111058b31b74932ce73a72203e3d24091bf4d92a9"
+        },
+        "nuttx.bin": {
+          "bytes": 654376,
+          "sha256": "19f1243a9cd6947a166b5447bcb6e64dacbd13dc66f16fc69282b083f9a21a62"
+        }
+      },
+      "mtime_ns": 1788593997693283339,
+      "name": "rk3576_uvc_v23_preview_paced",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v23_preview_paced"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53168,
+          "sha256": "4807f51434687307e74ca1006ab98d69c6b52dcaf9a7202bde7a3859e4e5e8dc"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17127,
+          "sha256": "944855071b78e9737f8ecbc29d1f3346d8568075ae577f59a057071814df7c5f"
+        },
+        "build.ninja": {
+          "bytes": 7586733,
+          "sha256": "471a9dbe9d2606e97dc706679a0860388cff336a018341fc00454792ae24ed74"
+        },
+        "nuttx": {
+          "bytes": 6274896,
+          "sha256": "c8a4cfa8e930f1a8e794fb114b2726e3706c6791778ca3cfa539d3ce0f27267d"
+        },
+        "nuttx.bin": {
+          "bytes": 740392,
+          "sha256": "0dbea1a8eeb8657b8fd657e8c5780f2f2f7e2b027611157eccd2657a41e95544"
+        }
+      },
+      "mtime_ns": 1788594484285662295,
+      "name": "rk3576_uvc_v23_preview_thumb",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v23_preview_thumb"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 53065,
+          "sha256": "7de4f5a26ad7c5f0952778319767a654d87384496af9beede8b35795e94ec6c2"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17052,
+          "sha256": "f5f2ee670174bcd577da40bd40eb4657696c3e9a2ff3c92dca7aedd8012455b1"
+        },
+        "build.ninja": {
+          "bytes": 7263432,
+          "sha256": "716041a53c398eec0eb45be84f298c94e2316ad864528b00c43f371f43a1633b"
+        },
+        "nuttx": {
+          "bytes": 4210608,
+          "sha256": "ff75055616da25b6ab4e4820a92e6e12e2417e116eef3154b6fb9b0803884eac"
+        },
+        "nuttx.bin": {
+          "bytes": 265248,
+          "sha256": "e45d98c32627183ac3c7a45060341024e89d8533bbc59bfbb5d24541a74ff78a"
+        }
+      },
+      "mtime_ns": 1788490862475617505,
+      "name": "rk3576_uvc_v9",
+      "path": "/home/swl/openvela/cmake_out/rk3576_uvc_v9"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 105353,
+          "sha256": "d6baebbe77421ba86e4993057e8b6f8d61afaebaa618c5c2320695a981857ba3"
+        },
+        "CMakeCache.txt": {
+          "bytes": 22668,
+          "sha256": "1f7c9c9fbff7cd3f294dc3fd363a8663b08cd35dfc8544a805a79ec4bcce2e49"
+        },
+        "build.ninja": {
+          "bytes": 16898194,
+          "sha256": "a22c56748639338ca24b193c179b4543404b8936aa5ae1af21e9041de97beb05"
+        },
+        "nuttx": {
+          "bytes": 60143040,
+          "sha256": "2de26cf7225108ffcf02f69d30d573fa86d7dc70121560c8b32a5b7956be6856"
+        },
+        "nuttx.bin": {
+          "bytes": 6852608,
+          "sha256": "0d4db3240a3559897c6d8882836d58f1032b7928787ba0fa7240210ec26640ab"
+        }
+      },
+      "mtime_ns": 1788427655096329809,
+      "name": "vela_goldfish-arm64-v8a-ap",
+      "path": "/home/swl/openvela/cmake_out/vela_goldfish-arm64-v8a-ap"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64294,
+          "sha256": "b2f548049b64bd5916bbf956bf120fb341b0b572faac842068eb5b503a31ed6a"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16772,
+          "sha256": "2efa124aa65d9ed5336bbed1a358681a47f4b72e179293fde26686e4bee3afbc"
+        },
+        "build.ninja": {
+          "bytes": 5631079,
+          "sha256": "254c55eb68c7ac79958e7cb6039de88149cecdcf372216f5a51a1f4d14dedd01"
+        },
+        "nuttx": {
+          "bytes": 18083424,
+          "sha256": "1e055be62aada87d2840c766288b5be0ac0ae66c904f37efea11d8fa3c6b3ff7"
+        },
+        "nuttx.bin": {
+          "bytes": 2503784,
+          "sha256": "b240f9448c682ce4017fbcf3405681c421b31ddb8afc7491a15535d0a8457b46"
+        }
+      },
+      "mtime_ns": 1789028331113811443,
+      "name": "velavision_arena_provider_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_arena_provider_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64532,
+          "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17269,
+          "sha256": "45c9f92b9359ac6c5da53472485995efa187e05598f99cf94e178d438b057002"
+        },
+        "build.ninja": {
+          "bytes": 8534379,
+          "sha256": "24f80ba0d7adee4abbaa7a7ed6819f23f96b352202e0829d1e03aea233cdcb03"
+        },
+        "nuttx": {
+          "bytes": 42399792,
+          "sha256": "99c0003d58060626a6e34390e8dceb8d59fc637d0586f466106bb6e334b85f6e"
+        },
+        "nuttx.bin": {
+          "bytes": 15263088,
+          "sha256": "d802b88da7c984ea4e69b05d2f9a37c6bb22cd9441100aaa100ee586e7a81582"
+        }
+      },
+      "mtime_ns": 1789125047853162739,
+      "name": "velavision_audio_pause_20260911",
+      "path": "/home/swl/openvela/cmake_out/velavision_audio_pause_20260911"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64532,
+          "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17259,
+          "sha256": "5f3ec361669be18c0e99a508167977eace23e01c27f7a8343bc2a4ebcf377cd9"
+        },
+        "build.ninja": {
+          "bytes": 8502247,
+          "sha256": "abed3dc829b2114816e436231a37227839feaf059391e5395ee16716a3eb14cb"
+        },
+        "nuttx": {
+          "bytes": 42409080,
+          "sha256": "b05a2af61719a31ca25d17046eb578c8914d3e779c1cff93cc647822b72e57f5"
+        },
+        "nuttx.bin": {
+          "bytes": 15263088,
+          "sha256": "d85e0dd943f239a55ec06cddc1fed5dadda7a8856d8cf306d75f4366c4dfbfcc"
+        }
+      },
+      "mtime_ns": 1789133414206774289,
+      "name": "velavision_audio_s16_20260911",
+      "path": "/home/swl/openvela/cmake_out/velavision_audio_s16_20260911"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64201,
+          "sha256": "aa733f809db3a81cea5ac344f865efe70f65c3c9126aefd462029615041bc843"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16716,
+          "sha256": "af32869976b62203845c5c4f2b371b976dfbf007460d88cb490ec476af99f260"
+        },
+        "build.ninja": {
+          "bytes": 5486409,
+          "sha256": "3f0c089f56b95185e7b9128c256822dc2e7197624dc5d6a4f7bca86523f00cab"
+        },
+        "nuttx": {
+          "bytes": 15379248,
+          "sha256": "aeed298960d61435e381a4f4323dbf5b08e1b1503fc97161ae821d0dfc29d19c"
+        },
+        "nuttx.bin": {
+          "bytes": 2225016,
+          "sha256": "b2637df1113a6a329ebc05331a37934a7bf7f7d275bdcf9fc2239af7a0a949a5"
+        }
+      },
+      "mtime_ns": 1789025481978171301,
+      "name": "velavision_cxx_eh_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_cxx_eh_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64178,
+          "sha256": "95d1929109bb74d904a716dd77d08d301dc73c8d68072e79ab1e4cab83585f6e"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16744,
+          "sha256": "2cbb51a14e24d2d1c327ccf4cfa47617d2634a420ff95ef26a1ee5b8cc5d3d08"
+        },
+        "build.ninja": {
+          "bytes": 5519660,
+          "sha256": "641187407912ef5d8a07b100a1a9a4e299662fb1a5179688c4c15197ade474cd"
+        },
+        "nuttx": {
+          "bytes": 15338016,
+          "sha256": "aa79dc67606f1a109bf420870810bedd34653274eb9881bb788280bc84545d80"
+        },
+        "nuttx.bin": {
+          "bytes": 2224896,
+          "sha256": "7942257fa0f53f68dc08f62daac031918ac449c80c66b8d699732e3c5f241492"
+        }
+      },
+      "mtime_ns": 1789024551762406322,
+      "name": "velavision_cxx_locale_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_cxx_locale_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64175,
+          "sha256": "69bbdbb7c3ef08f8bd6b49b4ad75072ff65481b4ee1854bc6e90d1faa554b979"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16737,
+          "sha256": "c5ee48dd8cf68a05803ea1c5286fc87a2c61b38250ae36b4f984e9bc19ac5641"
+        },
+        "build.ninja": {
+          "bytes": 5485702,
+          "sha256": "895382de3ea68019e3a5992e9c0639c76b024332df43434160a75c94ab555eb5"
+        }
+      },
+      "mtime_ns": 1789021447697565552,
+      "name": "velavision_cxx_probe_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_cxx_probe_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64175,
+          "sha256": "6184592e30e33ed0c07d93a6bf9870258001cda4b635daba423c0dd2ad3832a6"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16723,
+          "sha256": "2ff04a6ecd788af49fcfa4783c318af25ee5dc41174d6874c342618ea2f63f4c"
+        },
+        "build.ninja": {
+          "bytes": 5468182,
+          "sha256": "53c2ce8c783709eaa5928094f1fd9bfb2f340d7d65ab7f2e01bad99472c5292b"
+        },
+        "nuttx": {
+          "bytes": 14574968,
+          "sha256": "8f05f77a611aa7c2940aa139521595dcd534b7030b7992f295d17afb2e0e7a3a"
+        },
+        "nuttx.bin": {
+          "bytes": 2196224,
+          "sha256": "8561f8ac9cd974d832f6f04dd813ab72558b25071405ab8565780f4454e9e8cd"
+        }
+      },
+      "mtime_ns": 1789021576098148185,
+      "name": "velavision_cxx_tls_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_cxx_tls_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64175,
+          "sha256": "6184592e30e33ed0c07d93a6bf9870258001cda4b635daba423c0dd2ad3832a6"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16744,
+          "sha256": "8b7d4cfbdaceb013bef3689d857f1a454dad9c27c9518037e98e9c4bf24b43d6"
+        },
+        "build.ninja": {
+          "bytes": 5497855,
+          "sha256": "4ba3feef7d523879eb34f6494cc5616a1dbb2c3c71631aa80ae604f9eb7e222e"
+        },
+        "nuttx": {
+          "bytes": 14638736,
+          "sha256": "493d3246afabf1734f28cc1c1dbf3b5cfe786235fa4cfbc3f154c1bed5e71da2"
+        },
+        "nuttx.bin": {
+          "bytes": 2208512,
+          "sha256": "369a710d03ce2407a0cffe56f3042cd3884e195c11bf0cd33075ad84ec03c7d2"
+        }
+      },
+      "mtime_ns": 1789022703270690494,
+      "name": "velavision_cxx_unwind_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_cxx_unwind_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64268,
+          "sha256": "5813ed80d45d38f65e40f96be6b16a374e3cc25a947353d7ff1b7a5507aa09ec"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16744,
+          "sha256": "3e708d9b1622d8389a0ffed3e1579d261a11b436f8868231d61268f4743b878b"
+        },
+        "build.ninja": {
+          "bytes": 5536952,
+          "sha256": "863ee23d032adbdc3907f11969370881f369c317c9eea03e295de9ce58744bca"
+        },
+        "nuttx": {
+          "bytes": 15419904,
+          "sha256": "a83ae79abbebb02ebf21c46c76d07577f6a48b535727ec99b1ce185b83206180"
+        },
+        "nuttx.bin": {
+          "bytes": 2229232,
+          "sha256": "bc1ec4b367e5eb46f3f629ef69658aae316cbb938f0eb4627b22d39f9cecdf29"
+        }
+      },
+      "mtime_ns": 1789026808196446568,
+      "name": "velavision_eh_control_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_eh_control_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 63136,
+          "sha256": "fc6516e57126de3ccc3ce39314d4c19217138eea4f41b5bbac20577b4156c7b3"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16744,
+          "sha256": "aed45bc88f5c4fd2b4cce319b31d85febdac781c04c3f6d7523495c75d086c7a"
+        },
+        "build.ninja": {
+          "bytes": 5343585,
+          "sha256": "dd2b1b7f379eb36383ff6e93d5140954c1accc59ad4ac493c51e943368bb18ef"
+        },
+        "nuttx": {
+          "bytes": 11678920,
+          "sha256": "e1aaec7561599003db75ce744fbf11ba7f6960ca01af961868a0936f0eddd070"
+        },
+        "nuttx.bin": {
+          "bytes": 2085120,
+          "sha256": "c06c79e13187f8e88244c8d8db151135f1bbcdf6d11faecbeeae3e8f6e7bffda"
+        }
+      },
+      "mtime_ns": 1789010782508663274,
+      "name": "velavision_emmc_block_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_emmc_block_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 63136,
+          "sha256": "fc6516e57126de3ccc3ce39314d4c19217138eea4f41b5bbac20577b4156c7b3"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16731,
+          "sha256": "8afb7113ae9cbf9ceee9a65b0173f9c060fcb8405626e6995244b77b14597494"
+        },
+        "build.ninja": {
+          "bytes": 8096499,
+          "sha256": "3e12b20ee045dabafee457b2294bba47ef4faa29bdcea47082a073012f25ca78"
+        },
+        "nuttx": {
+          "bytes": 11645192,
+          "sha256": "21fd36eff0ca41771554698b35a24782d149145b76c00bb0473695378a0fcbd4"
+        },
+        "nuttx.bin": {
+          "bytes": 2081024,
+          "sha256": "e6fe8084941e23c2a2f628e2e4228be42e5b6ffde409372c5f6816eaaeff7e1f"
+        }
+      },
+      "mtime_ns": 1789009760765753466,
+      "name": "velavision_emmc_gpt_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_emmc_gpt_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 63136,
+          "sha256": "fc6516e57126de3ccc3ce39314d4c19217138eea4f41b5bbac20577b4156c7b3"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16766,
+          "sha256": "e12f3aaad143300c9ff5e9cf902e73a9948769ba0e911385deec3f18a977bf08"
+        },
+        "build.ninja": {
+          "bytes": 8171934,
+          "sha256": "3e509f40b03943c18f380e7ce36707d8070f590f25f2efa9e242401efbef1022"
+        },
+        "nuttx": {
+          "bytes": 11627936,
+          "sha256": "a8f91e1c7bf3ed6820dfbb0d8fe6410fde82c7fca11c95bef2e72501cbe00d1e"
+        },
+        "nuttx.bin": {
+          "bytes": 2076928,
+          "sha256": "fd1462a94c3fad9692cbdd6e3d9fe3bbfb4f4920220eb12997b1a22a201881fe"
+        }
+      },
+      "mtime_ns": 1789009022474601048,
+      "name": "velavision_emmc_readonly_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_emmc_readonly_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 63184,
+          "sha256": "b5ca34613ab197385ec7bcba74d12977740150a894f8f3b27ec8dfc6519f47a6"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16731,
+          "sha256": "317ecaed85de773add0d7843b067237c8d94b0b6e341d7b509fac4040c423175"
+        },
+        "build.ninja": {
+          "bytes": 8108885,
+          "sha256": "6ecd2703a976b9b16ddbb3e45c818e8f1402393c22965c02165ea4b9b366a068"
+        },
+        "nuttx": {
+          "bytes": 11764960,
+          "sha256": "1e875c64744cb6e162f5a82015c1892721b7ddc7747a0db4d5fc57d7cdd7226f"
+        },
+        "nuttx.bin": {
+          "bytes": 2089240,
+          "sha256": "06320f4b86326ea91d682fb6192dad5c64f7893279f9d73ed57490f80b9fe10b"
+        }
+      },
+      "mtime_ns": 1789012091982504041,
+      "name": "velavision_emmc_vfs_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_emmc_vfs_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64714,
+          "sha256": "d54a4c99a3a9ac2432ce9e01567dc8ddc16a765ee9ed5962c690d9b470a356bd"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16758,
+          "sha256": "018995afe342fe57016bbb23784dff99a6f73b95898b5cf6e9246d43ef460c73"
+        },
+        "build.ninja": {
+          "bytes": 5633311,
+          "sha256": "bd9076c509dff31c0f2839893e35fc5916f76fab5facda7032e48d5a381efd6e"
+        },
+        "nuttx": {
+          "bytes": 18365576,
+          "sha256": "a78227c8bec656c41cd0c4d1205feb24be652d21bcd9316fc0e016e344196c67"
+        },
+        "nuttx.bin": {
+          "bytes": 2528440,
+          "sha256": "8522d8dbaa7a0258b3a1c0a2bac5f85795de1b59ccb96bbfb482741b385b90f1"
+        }
+      },
+      "mtime_ns": 1789032076080990280,
+      "name": "velavision_fat_readonly_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_fat_readonly_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64227,
+          "sha256": "83bb6bd40da0e9316281d4e32e3218bf4d61d1f7268b79153c07ec857b602c7c"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16744,
+          "sha256": "5180c777cdd82669d6de9827f678c85851d9b55e19afe0d83055f808759aac9d"
+        },
+        "build.ninja": {
+          "bytes": 5573785,
+          "sha256": "823c31971e2837a4d9b428547f5500c2ad64a16f3fc7abc82c06fbed3108506a"
+        },
+        "nuttx": {
+          "bytes": 18022536,
+          "sha256": "27080e9429ad5e9ec5cd96afc600ae2b526f54f24caf1cf88b3cf784a4f5f5d4"
+        },
+        "nuttx.bin": {
+          "bytes": 2491360,
+          "sha256": "6b68dbff8afcd866f8d6e806885f209bd71dcf6e8cd8379b3bd40d768d8ea27b"
+        }
+      },
+      "mtime_ns": 1789026011826995658,
+      "name": "velavision_graph_core_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_graph_core_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59456,
+          "sha256": "2ae3a990b60bfb025717d87e6766ae80a02899a64002a3b8f0fe7acb85717791"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16744,
+          "sha256": "4fa27641b071df933646cc78a58920e99e10c2c87daa06347355f5a258a7e914"
+        },
+        "build.ninja": {
+          "bytes": 5159773,
+          "sha256": "d84d39a732691299b7993c12596be0cf67e52a6d53bd1e05eaad37052516b2c4"
+        },
+        "nuttx": {
+          "bytes": 9380344,
+          "sha256": "c38cd44b75f97b81e2bc3d9f8b18492d661bec2a4f946b5c76d27f71365cb341"
+        },
+        "nuttx.bin": {
+          "bytes": 1915896,
+          "sha256": "4b01824d429f19eb978cac67865d4b9fc7b409dba097022c48991bfea3cf2842"
+        }
+      },
+      "mtime_ns": 1788938158086611186,
+      "name": "velavision_integrated_20260909",
+      "path": "/home/swl/openvela/cmake_out/velavision_integrated_20260909"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 63111,
+          "sha256": "0dcf5e09c8a3c16ced332fb50e04b90a537267ec4669dbd56c02c1a377e2a448"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16752,
+          "sha256": "f599b061ad395f5bff42c537658ee65e2cb730cbe62fba0c71932397b35cbbbd"
+        },
+        "build.ninja": {
+          "bytes": 8125258,
+          "sha256": "f08e27395e57559c5f9bd47264c215536531d6eb0d88c1ba2cd27a2932d1a5aa"
+        },
+        "nuttx": {
+          "bytes": 11583248,
+          "sha256": "a411e3fd3b6257328164b36e77e0821bd01ca9d5388a72478aee89a14934815e"
+        },
+        "nuttx.bin": {
+          "bytes": 2072672,
+          "sha256": "8ed6d36770de6fa251065f6ee4a30b5d44d4efe8581d43f22932b97423c6b969"
+        }
+      },
+      "mtime_ns": 1789006248168272294,
+      "name": "velavision_model_arena_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_model_arena_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64189,
+          "sha256": "5a62f0f6f9f8807d6d9de87a04308d3450ae333ce02c2707c17cf05ed844a0a9"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16751,
+          "sha256": "7143e1c32e552c354202c0347a955a8b59177314e2f97adb0ae72a05a353d0e5"
+        },
+        "build.ninja": {
+          "bytes": 5518989,
+          "sha256": "ee901690b65919d02017dbd527cc2f76b98dc760ffb945c952a5a7968e3fa2b1"
+        },
+        "nuttx": {
+          "bytes": 14668792,
+          "sha256": "d86d239177ef0395edba82258fd21d3fd22146884b504c0717ffae91e2002b54"
+        },
+        "nuttx.bin": {
+          "bytes": 2212608,
+          "sha256": "7fa95ddfeeee2de9d832cbf7cf10a440c5fef158b0a11811deeee6b885cc2b75"
+        }
+      },
+      "mtime_ns": 1789023390458690680,
+      "name": "velavision_neon_file64_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_neon_file64_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64200,
+          "sha256": "9fe0547b5310e21d7239d840639c320779abce2f3825c6709c4b423af6b8024d"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16737,
+          "sha256": "321947d0c15461daa1378a45c1b599e1b16d23f8d6ecddd27fd5a6ec82a61434"
+        },
+        "build.ninja": {
+          "bytes": 5499167,
+          "sha256": "0c0a1258f5fe74df2032cec9c66a8e0fd662d5f75c979381621c0288e5540d94"
+        },
+        "nuttx": {
+          "bytes": 14657848,
+          "sha256": "f66085c895cc6a800fa27144dc142ab37f326060b6b29953cad93710de76a066"
+        },
+        "nuttx.bin": {
+          "bytes": 2212608,
+          "sha256": "5ba0ce351dbe411e9463d6ae2adb9e3465de84b16a918672b5339b08995faf64"
+        }
+      },
+      "mtime_ns": 1789023072056210789,
+      "name": "velavision_neon_gate_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_neon_gate_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59493,
+          "sha256": "a30851fab7c5f95ef0a924ac103185bd832b07aac13bd317b31d84fa883365b0"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16760,
+          "sha256": "ce7aaffd6d89e8e560e45ee23ad5543cb9002624c5eb0cbc9bfc8291d8f0c41f"
+        },
+        "build.ninja": {
+          "bytes": 7968261,
+          "sha256": "3ad8d895b20a4f48d6d8568f7ce6620130bffd3d7a9ec373fe236c3061972dfe"
+        },
+        "nuttx": {
+          "bytes": 9386464,
+          "sha256": "5395dcc1fd14c4ee2b481d0c908d3275d25ddfa7669a9d42dae591fd6631899e"
+        },
+        "nuttx.bin": {
+          "bytes": 1915896,
+          "sha256": "b22d8cd9baeecd0894176064a764f3c49ddb8fdef36e9314cc9e7a008b9344be"
+        }
+      },
+      "mtime_ns": 1788938262231451479,
+      "name": "velavision_phone_pairing_20260909",
+      "path": "/home/swl/openvela/cmake_out/velavision_phone_pairing_20260909"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59493,
+          "sha256": "a30851fab7c5f95ef0a924ac103185bd832b07aac13bd317b31d84fa883365b0"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16740,
+          "sha256": "e35b874dd2934f9409210a17c49b1f2dceb61263ef1377802ad2aed3da6c35cf"
+        },
+        "build.ninja": {
+          "bytes": 7907641,
+          "sha256": "f86190e453ce832afe243a77582059dce0ba7a1d479b7e302cf0beb80bbedc58"
+        },
+        "nuttx": {
+          "bytes": 9387296,
+          "sha256": "d5ca48d3d7cc45dc55b7ca9ecfb25606c91230a2ad569602e391b1269a784802"
+        },
+        "nuttx.bin": {
+          "bytes": 1915896,
+          "sha256": "a615790446aba99a8ee1252e55de5ec83c9b5902772b94a103fff06e18118ae2"
+        }
+      },
+      "mtime_ns": 1788940267620410104,
+      "name": "velavision_phone_rpa_20260909",
+      "path": "/home/swl/openvela/cmake_out/velavision_phone_rpa_20260909"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 51646,
+          "sha256": "0a46cb9e1ab673c703f6c55e7188c6a3c2933c2a7c65a0bfddb4d059ea8e2c41"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16737,
+          "sha256": "1bc54f1948a3382905b492b7b6897df769ba571a531e041024c6ca401807ab38"
+        },
+        "build.ninja": {
+          "bytes": 4736027,
+          "sha256": "fd30c801806bc3e6c5a147796a4ae5ba2264833682997527b0b414385b7715ca"
+        },
+        "nuttx": {
+          "bytes": 4158496,
+          "sha256": "23ebe33d7020da4fe207b3e1d7eee343f167356ef95e3a3a555592189fda593d"
+        },
+        "nuttx.bin": {
+          "bytes": 215584,
+          "sha256": "2c04978c6d34289ce5153f916654a7e017d9bf93dadf9b6c604d05e13e6341b7"
+        }
+      },
+      "mtime_ns": 1789015383142232573,
+      "name": "velavision_smp_cross_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_smp_cross_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 51523,
+          "sha256": "9d87dc2ada92fffd227cbae9ad753fcb2395c6e4255d437ce7bc1be22d50128e"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16730,
+          "sha256": "552882050f8fd70426f85f7e6010523208c6d1cbe967b12eb2f2fbfc5232a8f1"
+        },
+        "build.ninja": {
+          "bytes": 4727241,
+          "sha256": "5dee79e048271013c588579c5cc59ff7c5435ed9b5a012f00d3bd307775aaf30"
+        },
+        "nuttx": {
+          "bytes": 4155712,
+          "sha256": "a9ae3ecde61e46916b5ed0291f28ddb88d3fa207394a282ffeeea49dd4e20632"
+        },
+        "nuttx.bin": {
+          "bytes": 215520,
+          "sha256": "dd3ed6787024a0794fdca1cfa7526f27ffc1bb5c71dd02c3b24242b910f34aaf"
+        }
+      },
+      "mtime_ns": 1789013384447162712,
+      "name": "velavision_smp_diag_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_smp_diag_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 51646,
+          "sha256": "03cfe4510b15f1b5ae0be77250d5f5e37fe1d8fd4cf842494aa38aa7a1bb7ff5"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16737,
+          "sha256": "f7473f6c9695ef835cab610ace4e7e0f79a0481ac7d9429837637fef87a982b0"
+        },
+        "build.ninja": {
+          "bytes": 4736027,
+          "sha256": "d3e1cbea0f2949e137e5235de3f309a5288200fbc4b05a163b07ee137f6ce88a"
+        },
+        "nuttx": {
+          "bytes": 4154296,
+          "sha256": "91cb92778fd291a91a765438cfeddfc3515e79821ebe678d55d46d39fe68977f"
+        },
+        "nuttx.bin": {
+          "bytes": 215584,
+          "sha256": "ea93ea6341dcfdf14c889f1faff8f2d8d037b62bf23e51409ff376d3e2fd90f4"
+        }
+      },
+      "mtime_ns": 1789015604471382060,
+      "name": "velavision_smp_eight_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_smp_eight_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 51646,
+          "sha256": "c9e91a747f02058b7a1e2c3de3404abba6eb631b19cb47927750a1c8090c9915"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16730,
+          "sha256": "bde1ae958f731cf324067177cd756ed8ec386c3cb3e50b47888f32deb7766975"
+        },
+        "build.ninja": {
+          "bytes": 4727241,
+          "sha256": "2afc6c6a86269ba6673d3797b0fdf024d3300d708650ff7d866c4e83c7b0951c"
+        },
+        "nuttx": {
+          "bytes": 4158120,
+          "sha256": "f3e127c9ecf2bc953b18853fca7679afcb7cc4fd968af8c01bd02049b3a74b11"
+        },
+        "nuttx.bin": {
+          "bytes": 215520,
+          "sha256": "67f80b46a321f60821e72646c5bb4e95724608caf938ddb1f78a7707d380fd73"
+        }
+      },
+      "mtime_ns": 1789015001035773053,
+      "name": "velavision_smp_four_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_smp_four_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 63535,
+          "sha256": "c3541cdfac78b4b89c1afd27de731c76bad46152da7650fb70d8737a15607f76"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16730,
+          "sha256": "8d85ea3b2730de384913492f4aeab8a2d38ef96fa678bc8fd91be506a22e77e2"
+        },
+        "build.ninja": {
+          "bytes": 5360264,
+          "sha256": "fba3998e497b114589dcf9019a57cfb2924c37cb16b9b2a2dc5b6efd20b978ff"
+        },
+        "nuttx": {
+          "bytes": 12474040,
+          "sha256": "6741f196e6203995535fa9ed4109e8006ac3d4c0c4f93222fb8dbdc99c37e327"
+        },
+        "nuttx.bin": {
+          "bytes": 2142576,
+          "sha256": "71a304da79909a7759fce2dad208883b8ee5cc6b7c54a4d16126a1801922855a"
+        }
+      },
+      "mtime_ns": 1789018646183019099,
+      "name": "velavision_smp_load_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_smp_load_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 51646,
+          "sha256": "431f13cf54587108fc9d69b1f7f2047c3f00c413cffe75361b9fc502ec9a613e"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16737,
+          "sha256": "654b7550ca81c0c1f7cf7ca854e0054a55cb974cc7c3aad91ed40d11a677c05c"
+        },
+        "build.ninja": {
+          "bytes": 4736027,
+          "sha256": "bca86cc5c67c0d9a9dc9bea93586ee3ceecfc3f9ac01d181a6aacfd983f01312"
+        },
+        "nuttx": {
+          "bytes": 4158592,
+          "sha256": "f1cf4584dc178b7dde6cf72864f2b16ae1c89db083b3e00c2fc5867e8bf23ef5"
+        },
+        "nuttx.bin": {
+          "bytes": 215520,
+          "sha256": "6e0b476de25e9bba9d0c2c9bb56610fd5d7105981969c260e9a42072e3da01c6"
+        }
+      },
+      "mtime_ns": 1789013816434693078,
+      "name": "velavision_smp_reset_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_smp_reset_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 63510,
+          "sha256": "d7f8f7945e2628a737f31f4cfd3c8a480e5f61cdbb4d8eb9f842fe9a702614ca"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16751,
+          "sha256": "2993b18b58b6300416dba53789bca1ad0f8d97027caac4e79ffd111c03761754"
+        },
+        "build.ninja": {
+          "bytes": 5382907,
+          "sha256": "4c650d9d423e649adf95d3261db2ad6e4eacbab180139affbc6ecbd69cd42269"
+        },
+        "nuttx": {
+          "bytes": 12461864,
+          "sha256": "235878407f85efd6ed1631c4b98a16757f184229b7d260e8f248804d91643648"
+        },
+        "nuttx.bin": {
+          "bytes": 2142576,
+          "sha256": "231a918af35da359305099689ed1a3d2a2ed40ca2b9c8cac1a788d1706c45569"
+        }
+      },
+      "mtime_ns": 1789016764188549355,
+      "name": "velavision_smp_service_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_smp_service_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64382,
+          "sha256": "7310e9dc6ebc9f5866caa9eb134e3f478b8ab1a4229137809522f7b34f1af341"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16758,
+          "sha256": "ea72185df3bd25f2c0b1989112fb6ce01bc6874f5e256b6d3d6a701a355b0c37"
+        },
+        "build.ninja": {
+          "bytes": 5618837,
+          "sha256": "40ef051980ccdad2afeb6f9abc659733a9f1017a376a0c38127e4307f5689180"
+        },
+        "nuttx": {
+          "bytes": 18181520,
+          "sha256": "a0bafc30267c061323980e8603fa3085a4279402d0aee26ffdeab771ab439cb9"
+        },
+        "nuttx.bin": {
+          "bytes": 2507936,
+          "sha256": "a40d6068de181146973eda4a4fede21183210e5714339354f58fa3779e583374"
+        }
+      },
+      "mtime_ns": 1789030184158159198,
+      "name": "velavision_usb_readonly_20260910",
+      "path": "/home/swl/openvela/cmake_out/velavision_usb_readonly_20260910"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64532,
+          "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17253,
+          "sha256": "6c59e927e493f06771943704614c2c7d90d6b9edb2d23734c4d862ec0b2fcf6a"
+        },
+        "build.ninja": {
+          "bytes": 8646757,
+          "sha256": "3d85332c8acd183806f84ac1df3ff5a4a9f487f982c09495a6835f75cd536a77"
+        },
+        "nuttx": {
+          "bytes": 41871784,
+          "sha256": "eb6ae533dacdd36d61e59d5b126bfbf66206015f64b3939a35e58ca022752307"
+        },
+        "nuttx.bin": {
+          "bytes": 14685504,
+          "sha256": "00aa03c4294d2c801c465c9ca12c5838c5efe73e755285bf826e3e70f5396fc0"
+        }
+      },
+      "mtime_ns": 1789116494399365066,
+      "name": "velavision_voice_asr_capacity_20260911",
+      "path": "/home/swl/openvela/cmake_out/velavision_voice_asr_capacity_20260911"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64532,
+          "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17248,
+          "sha256": "c74375df96b09f8ecf96c4a70cf0645490685da298a5ea44a1770edf217fbcfd"
+        },
+        "build.ninja": {
+          "bytes": 8630691,
+          "sha256": "747cc80559bf2709e4bf50b5d4b6a5e2d1040a9325097249d7f7d3064b4dc918"
+        },
+        "nuttx": {
+          "bytes": 41871752,
+          "sha256": "fcfdbc328b975017df77c698a67f6c5231c1240fb30f801c96b1d96549e379bb"
+        },
+        "nuttx.bin": {
+          "bytes": 14685504,
+          "sha256": "3dc9221c5b7783aef5322bd3c3c48bf5367c2bb0f441b4134042bd8b63afcac2"
+        }
+      },
+      "mtime_ns": 1789117151452031214,
+      "name": "velavision_voice_asr_encoder_20260911",
+      "path": "/home/swl/openvela/cmake_out/velavision_voice_asr_encoder_20260911"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64532,
+          "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17318,
+          "sha256": "9d84da801deba5b9895c22f4c65cf69622d05ec7c697f7e486abff13809e2cd9"
+        },
+        "build.ninja": {
+          "bytes": 8678977,
+          "sha256": "74c8841ec048cd40d1d5a5820ced02c4563ce4f853aa4e0dbf37213f54b7165e"
+        },
+        "nuttx": {
+          "bytes": 42404640,
+          "sha256": "2c6d4f5e1a83cf8c0d1b77b131ac94a571b47bad8d77af7a601a1a68a256fd86"
+        },
+        "nuttx.bin": {
+          "bytes": 15262992,
+          "sha256": "83368443fc123cd303795c9f37a04ff4ecc750e63619787bf30c5e1a100e3ebf"
+        }
+      },
+      "mtime_ns": 1789133865494353928,
+      "name": "velavision_voice_asr_microphone_20260911",
+      "path": "/home/swl/openvela/cmake_out/velavision_voice_asr_microphone_20260911"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64532,
+          "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17229,
+          "sha256": "6964937e2a11c97d9810cc9a56c44486d8af10197b2424a4402e6b839d4c1f93"
+        },
+        "build.ninja": {
+          "bytes": 8598550,
+          "sha256": "54221cdbbd76ebc049e360043803ee764a16f2013d973263151bae896bd46928"
+        },
+        "nuttx": {
+          "bytes": 41871240,
+          "sha256": "c2396f3770e0de85eb9a6fcfbc45a3c6b853bfa4e622d54abb0d3040bf0ddb0b"
+        },
+        "nuttx.bin": {
+          "bytes": 14685504,
+          "sha256": "c8f58b202842032ea155d877fb91003df70c2480039b93851a2e10c98c9da9ca"
+        }
+      },
+      "mtime_ns": 1789115241289295687,
+      "name": "velavision_voice_asr_model_20260911",
+      "path": "/home/swl/openvela/cmake_out/velavision_voice_asr_model_20260911"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64532,
+          "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17260,
+          "sha256": "56a9b970b259a9ba64df7e0869cb9d5658b5f2a3490b76979a78f8197a64efaa"
+        },
+        "build.ninja": {
+          "bytes": 8678886,
+          "sha256": "f8be41cc93a55ff02fe98577e0169d3935f1a7f1c2d701a83426c1bc229a54ac"
+        },
+        "nuttx": {
+          "bytes": 42388344,
+          "sha256": "de9e3253dba7c6fb7610695dab5c6e403ea040666120fffdea59c6f1151bdbca"
+        },
+        "nuttx.bin": {
+          "bytes": 15258896,
+          "sha256": "b98b29e8f365cdc61c07cc8bcdf704aec48758bf4db5f1a14fa7dfc027e946f1"
+        }
+      },
+      "mtime_ns": 1789119071376183330,
+      "name": "velavision_voice_asr_recognizer_20260911",
+      "path": "/home/swl/openvela/cmake_out/velavision_voice_asr_recognizer_20260911"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64532,
+          "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17156,
+          "sha256": "22fe466a635edb81b1db1d49a19dc90b0c4c2b993654ff0446ead0268e429f3a"
+        },
+        "build.ninja": {
+          "bytes": 8614501,
+          "sha256": "3623d64d2ea5bd3940000e29e8f0aa150b57d81c24b34fcc6106a5837f5e1e65"
+        },
+        "nuttx": {
+          "bytes": 34863520,
+          "sha256": "d9f25e3c1033932836b068b383b138abccdf3430fc479385aa3d3e5df6ad877d"
+        },
+        "nuttx.bin": {
+          "bytes": 10514736,
+          "sha256": "8cf15cd2c372427063b9a2027418ec7d0de09cc60b139c0feb1a6a975bb2e667"
+        }
+      },
+      "mtime_ns": 1789114086876016668,
+      "name": "velavision_voice_memset_fix_20260911",
+      "path": "/home/swl/openvela/cmake_out/velavision_voice_memset_fix_20260911"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64532,
+          "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17139,
+          "sha256": "6a09e97a5c66f173557ae97a6866bb3d7696da5097394f4c92843b65ef2676e1"
+        },
+        "build.ninja": {
+          "bytes": 8566301,
+          "sha256": "3a5b55cc72aebb9372b231ee698a33e8cc60b353d3d0b014a8c6d8b14c391372"
+        },
+        "nuttx": {
+          "bytes": 34863392,
+          "sha256": "b84aed64b247e0375302449ea5f87b55de4aa912fc7a94d3d6c8092f24a70144"
+        },
+        "nuttx.bin": {
+          "bytes": 10514736,
+          "sha256": "522047a5f8d6197ea0285227e581f3bce06e04ed23fb101af3dadc61b4f6fdd2"
+        }
+      },
+      "mtime_ns": 1789103165512932853,
+      "name": "velavision_voice_ort_add_20260911",
+      "path": "/home/swl/openvela/cmake_out/velavision_voice_ort_add_20260911"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 64532,
+          "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+        },
+        "CMakeCache.txt": {
+          "bytes": 17151,
+          "sha256": "6b8435ac757616db0dfa7d9b04ebd4ef977ce1f6ccab23d534a34e476163280d"
+        },
+        "build.ninja": {
+          "bytes": 8598435,
+          "sha256": "3baa0a5fb1bb8be70251bf90fb36a307f7ce61e62e32d8397a8a0ff4f21338c0"
+        },
+        "nuttx": {
+          "bytes": 34863472,
+          "sha256": "00dd91d84845e812dc2017c821daa0a224b59dec4fe4a6c6db21f56333624373"
+        },
+        "nuttx.bin": {
+          "bytes": 10514736,
+          "sha256": "967bea4cef6b9bf220d019ed8c06bb424eb33c40ff3e0f13af8eb15de539cb4f"
+        }
+      },
+      "mtime_ns": 1789107231223393115,
+      "name": "velavision_voice_ort_trace_20260911",
+      "path": "/home/swl/openvela/cmake_out/velavision_voice_ort_trace_20260911"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 59493,
+          "sha256": "a30851fab7c5f95ef0a924ac103185bd832b07aac13bd317b31d84fa883365b0"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16739,
+          "sha256": "3f61b67e34044ab1b6c05b654863420dcb2ec7966e8f57a1cf50927505f0b167"
+        },
+        "build.ninja": {
+          "bytes": 5203080,
+          "sha256": "25060cf90e9ffb45a4534a921a58bc22cf32e7bc2292cb87df22f8529f068a8c"
+        },
+        "nuttx": {
+          "bytes": 10046280,
+          "sha256": "06322da4155eb8a2fdb64c1272542e49de4b25d67dac67a420a77931abbdd7f7"
+        },
+        "nuttx.bin": {
+          "bytes": 1965048,
+          "sha256": "7fa486ff14e144c7cd59c1bd77897aafb155689ae15c4aff14e6bf35925a72bb"
+        }
+      },
+      "mtime_ns": 1788941964372824293,
+      "name": "velavision_wifi_auth_20260909",
+      "path": "/home/swl/openvela/cmake_out/velavision_wifi_auth_20260909"
+    },
+    {
+      "key_files": {
+        ".config": {
+          "bytes": 63058,
+          "sha256": "d4bae467167821fa0debac89620783b3fe1db12088a7c98e9cbf532def12c4a9"
+        },
+        "CMakeCache.txt": {
+          "bytes": 16723,
+          "sha256": "53f1d3616eac547656ef07cea1418832791d3c384a9d2635bd2da8631f074f6b"
+        },
+        "build.ninja": {
+          "bytes": 5294702,
+          "sha256": "e049fb9d81d279fc9801178d4ce4b4c2bc080088254e5ea45b9364d16fbd1ab2"
+        },
+        "nuttx": {
+          "bytes": 11549224,
+          "sha256": "56c033a00bb95bab173ec65da3b6490adfdcf90248f0389708c3b720ed45a454"
+        },
+        "nuttx.bin": {
+          "bytes": 2068528,
+          "sha256": "73c73e2c60165a0e0f19ab760625d3ed8a7dad24eecf61693e9551428f3ff0f3"
+        }
+      },
+      "mtime_ns": 1788955962913750232,
+      "name": "velavision_wifi_ip_20260909",
+      "path": "/home/swl/openvela/cmake_out/velavision_wifi_ip_20260909"
+    }
+  ]
+}

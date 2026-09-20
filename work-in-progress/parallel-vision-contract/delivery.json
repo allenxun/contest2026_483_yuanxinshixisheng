@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "candidate": "parallel-vision-contract",
+  "status": "frozen_for_readonly_review",
+  "generated_utc": "2026-09-10T06:59:58.6103097Z",
+  "agent_identity": "/root/vision_contract",
+  "coordinator": "/root",
+  "context_session_id": "01a0892e-2964-7ec3-bd76-9ab4937980cb",
+  "independent_agent_session_uuid": null,
+  "identity_basis": "Collaboration NEW_TASK and environment context; no UUID inferred",
+  "hardware_access": false,
+  "model_inference": false,
+  "formal_source_changed": false,
+  "central_logs_changed": false,
+  "inputs": "evidence/20260910T065939638226Z/inputs.json",
+  "verification": "evidence/20260910T065939638226Z/result.json",
+  "test_checks": 2236,
+  "replay_frames": 1000,
+  "first_failure_preserved": "evidence/20260910T065810321594Z/result.json",
+  "native_supported": [
+    "face existing output adapter"
+  ],
+  "native_unsupported": [
+    "body",
+    "instrument"
+  ],
+  "legacy_pc": "postprocessed device_bbox/device_score adaptation only; not inference",
+  "unfinished": [
+    "formal integration",
+    "frame_id ordering/dedup stream epoch gate",
+    "cross-clock conversion",
+    "body/native instrument model",
+    "real image accuracy",
+    "board compilation and hardware acceptance",
+    "central authentic log collection by coordinator"
+  ],
+  "outputs": [
+    {
+      "path": "evidence/20260910T065810321594Z/inputs.json",
+      "bytes": 4207,
+      "sha256": "d2968251f43289d63a3de898abf40c2bb91cf82ecde556c942f9047a4d1b0994"
+    },
+    {
+      "path": "evidence/20260910T065810321594Z/result.json",
+      "bytes": 1801,
+      "sha256": "96b4b35f2eb027d4262e94f5698be29201672711378beb40b74eade415c4c692"
+    },
+    {
+      "path": "evidence/20260910T065810321594Z/test_contract.exe",
+      "bytes": 92535,
+      "sha256": "a6903d4e334d239e950602446e4eda64fd6f0aa7c22e75cd1977bfb449ea5d4f"
+    },
+    {
+      "path": "evidence/20260910T065824535948Z/inputs.json",
+      "bytes": 4207,
+      "sha256": "d2968251f43289d63a3de898abf40c2bb91cf82ecde556c942f9047a4d1b0994"
+    },
+    {
+      "path": "evidence/20260910T065824535948Z/result.json",
+      "bytes": 1838,
+      "sha256": "b8753cfc7a7206d1b47951de5adb6f000e1d3a9b3addf469641a6efdb715c9ed"
+    },
+    {
+      "path": "evidence/20260910T065824535948Z/test_contract.exe",
+      "bytes": 93047,
+      "sha256": "1b57f6f4977a5e308e05cac3c59af47bf07d668eb006d9fd1939a19ace2e036f"
+    },
+    {
+      "path": "evidence/20260910T065939638226Z/inputs.json",
+      "bytes": 4988,
+      "sha256": "3c3e585838c4301af37e7162a64dd59c34ec675f1cd9fdc35865b48eaa2d7521"
+    },
+    {
+      "path": "evidence/20260910T065939638226Z/result.json",
+      "bytes": 1838,
+      "sha256": "677a0562e8829a3b8f8e9d7eb1a2051dcc5fff7269fead4650aaf6cb65766b7b"
+    },
+    {
+      "path": "evidence/20260910T065939638226Z/test_contract.exe",
+      "bytes": 93047,
+      "sha256": "23e76bc9eb06e339d4756780382981dde5862243a402b5d49d96e0be151c9e52"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 6498,
+      "sha256": "02312449c6ee600327dbc920e82a2b123c32cf843c0b8d103ea9fcad923e0dda"
+    },
+    {
+      "path": "run_tests.py",
+      "bytes": 3230,
+      "sha256": "de8b7c0983df636128ca9ae34b28ba7f0acc231e3939fd4fb622efc2f4c80a86"
+    },
+    {
+      "path": "test_contract.c",
+      "bytes": 5086,
+      "sha256": "c32b73c11d23653c52cd3d8230ebfcbca04312c274c9eb05a828c5e89e451c6e"
+    },
+    {
+      "path": "vision_contract.c",
+      "bytes": 3924,
+      "sha256": "4643f2232737872d265a53c95152398c1ccf60685ec25c3af03e389969738b22"
+    },
+    {
+      "path": "vision_contract.h",
+      "bytes": 2345,
+      "sha256": "5a14fa5c5a144398df9db3a47c1419da896c9be8bd970655367fbdfc5f0684b1"
+    }
+  ],
+  "hash_scope": "All delivered files except delivery.json itself; delivery hash supplied externally"
+}

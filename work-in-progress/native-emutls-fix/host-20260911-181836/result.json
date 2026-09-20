@@ -1,0 +1,69 @@
+{
+  "results": [
+    {
+      "tag": "O0",
+      "command": [
+        "gcc",
+        "-std=gnu11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7_TLS_HOST_TEST",
+        "-O0",
+        "/home/swl/openvela/work/native-emutls-fix/emutls.c",
+        "/home/swl/openvela/work/native-emutls-fix/test_emutls.c",
+        "-o",
+        "/home/swl/openvela/work/native-emutls-fix/host-20260911-181836/O0"
+      ],
+      "compile_exit": 0,
+      "run_exit": 0
+    },
+    {
+      "tag": "O2",
+      "command": [
+        "gcc",
+        "-std=gnu11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7_TLS_HOST_TEST",
+        "-O2",
+        "/home/swl/openvela/work/native-emutls-fix/emutls.c",
+        "/home/swl/openvela/work/native-emutls-fix/test_emutls.c",
+        "-o",
+        "/home/swl/openvela/work/native-emutls-fix/host-20260911-181836/O2"
+      ],
+      "compile_exit": 0,
+      "run_exit": 0
+    },
+    {
+      "tag": "asan",
+      "command": [
+        "gcc",
+        "-std=gnu11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DK7_TLS_HOST_TEST",
+        "-O1",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "/home/swl/openvela/work/native-emutls-fix/emutls.c",
+        "/home/swl/openvela/work/native-emutls-fix/test_emutls.c",
+        "-o",
+        "/home/swl/openvela/work/native-emutls-fix/host-20260911-181836/asan"
+      ],
+      "compile_exit": 0,
+      "run_exit": 0
+    }
+  ],
+  "sources": {
+    "emutls.c": "3979328d984fb4050f65cd9569dcd4ca422c63f3d77c70e0340fb4b0a5ef4f47",
+    "test_emutls.c": "03fa3753fc84020480ac892e2ae9e55e86ac5d6a7cd9c389a0480f8757979429"
+  },
+  "passed": true,
+  "board_verified": false
+}

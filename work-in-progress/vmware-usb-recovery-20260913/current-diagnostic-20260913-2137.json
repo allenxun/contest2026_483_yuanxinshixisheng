@@ -1,0 +1,78 @@
+{
+    "schema":  "velavision.vmware-usb-readonly-diagnostic.v1",
+    "timestamp":  "2026-09-13T21:33:02.0602910+08:00",
+    "constraints":  {
+                        "device_io":  false,
+                        "service_changes":  false,
+                        "process_changes":  false,
+                        "driver_changes":  false,
+                        "vmx_changes":  false,
+                        "host_or_guest_reboot":  false
+                    },
+    "host":  {
+                 "vmware_service":  {
+                                        "found":  true,
+                                        "status":  "Running",
+                                        "start_type":  "Automatic"
+                                    },
+                 "vmware_processes":  [
+                                          {
+                                              "name":  "vmware",
+                                              "pid":  33540,
+                                              "start_time":  "2026-09-13T16:59:18.2706215+08:00",
+                                              "path_visible":  false
+                                          },
+                                          {
+                                              "name":  "vmware-vmx",
+                                              "pid":  32096,
+                                              "start_time":  "2026-09-13T16:59:22.3176178+08:00",
+                                              "path_visible":  false
+                                          },
+                                          {
+                                              "name":  "vmware-usbarbitrator64",
+                                              "pid":  43632,
+                                              "start_time":  null,
+                                              "path_visible":  false
+                                          }
+                                      ],
+                 "vmrun_path":  "D:\\software\\VM\\vmrun.exe",
+                 "vmrun_list":  {
+                                    "available":  true,
+                                    "exit_code":  0,
+                                    "output":  "Total running VMs: 1\nD:\\VMware\\Ubuntu 64 位\\Ubuntu 64 位.vmx"
+                                },
+                 "connected_usb":  {
+                                       "available":  true,
+                                       "exit_code":  0,
+                                       "output":  "Microsoft PnP Utility\n\nInstance ID:                USB\\Vid_0E0F\u0026Pid_0001\\5\u00265f5591a\u00260\u00267\nDevice Description:         VMware USB Device\nClass Name:                 USB\nClass GUID:                 {36fc9e60-c465-11cf-8056-444553540000}\nManufacturer Name:          VMware, Inc.\nStatus:                     Started\nDriver Name:                oem38.inf\n\nInstance ID:                USB\\VID_09DA\u0026PID_2268\\5\u00265f5591a\u00260\u00269\nDevice Description:         USB Composite Device\nClass Name:                 USB\nClass GUID:                 {36fc9e60-c465-11cf-8056-444553540000}\nManufacturer Name:          (Standard USB Host Controller)\nStatus:                     Started\nDriver Name:                usb.inf\n\nInstance ID:                PCI\\VEN_8086\u0026DEV_7A60\u0026SUBSYS_377E17AA\u0026REV_11\\3\u002611583659\u00261\u0026A0\nDevice Description:         Intel(R) USB 3.20 eXtensible Host Controller - 1.20 (Microsoft)\nClass Name:                 USB\nClass GUID:                 {36fc9e60-c465-11cf-8056-444553540000}\nManufacturer Name:          Generic USB xHCI Host Controller\nStatus:                     Started\nDriver Name:                usbxhci.inf\n\nInstance ID:                USB\\ROOT_HUB30\\4\u00261280c552\u00260\u00260\nDevice Description:         USB Root Hub (USB 3.0)\nClass Name:                 USB\nClass GUID:                 {36fc9e60-c465-11cf-8056-444553540000}\nManufacturer Name:          (Standard USB HUBs)\nStatus:                     Started\nDriver Name:                usbhub3.inf"
+                                   },
+                 "connected_ports":  {
+                                         "available":  true,
+                                         "exit_code":  0,
+                                         "output":  "Microsoft PnP Utility\n\nNo devices were found on the system."
+                                     },
+                 "problem_43":  {
+                                    "available":  true,
+                                    "exit_code":  0,
+                                    "output":  "Microsoft PnP Utility\n\nNo devices were found on the system."
+                                }
+             },
+    "guest":  {
+                  "attempted":  true,
+                  "available":  true,
+                  "exit_code":  0,
+                  "output":  "hostname=swl-virtual-machine\nvmtools=12.3.5.46049 (build-22544099)\nusb_begin\nBus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub\nBus 002 Device 009: ID 1a86:7523 QinHeng Electronics CH340 serial converter\nBus 002 Device 004: ID 0e0f:0008 VMware, Inc. Virtual Bluetooth Adapter\nBus 002 Device 003: ID 0e0f:0002 VMware, Inc. Virtual USB Hub\nBus 002 Device 002: ID 0e0f:0003 VMware, Inc. Virtual Mouse\nBus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub\nusb_end\ntty_begin\ncrw-rw-rw- 1 root dialout 188, 0  9月 13 21:28 /dev/ttyUSB0\ntty_end\nholders_begin\nholders_end\nudev_begin\nDEVPATH=/devices/pci0000:00/0000:00:11.0/0000:02:00.0/usb2/2-2/2-2.2/2-2.2:1.0/ttyUSB0/tty/ttyUSB0\nDEVNAME=/dev/ttyUSB0\nMAJOR=188\nMINOR=0\nSUBSYSTEM=tty\nUSEC_INITIALIZED=12289924670\nID_BUS=usb\nID_VENDOR_ID=1a86\nID_MODEL_ID=7523\nID_PCI_CLASS_FROM_DATABASE=Serial bus controller\nID_PCI_SUBCLASS_FROM_DATABASE=USB controller\nID_PCI_INTERFACE_FROM_DATABASE=UHCI\nID_VENDOR_FROM_DATABASE=QinHeng Electronics\nID_MODEL_FROM_DATABASE=CH340 serial converter\nID_VENDOR=1a86\nID_VENDOR_ENC=1a86\nID_MODEL=USB_Serial\nID_MODEL_ENC=USB\\x20Serial\nID_REVISION=0264\nID_SERIAL=1a86_USB_Serial\nID_TYPE=generic\nID_USB_INTERFACES=:ff0102:\nID_USB_INTERFACE_NUM=00\nID_USB_DRIVER=ch341\nID_USB_CLASS_FROM_DATABASE=Vendor Specific Class\nID_PATH=pci-0000:02:00.0-usb-0:2.2:1.0\nID_PATH_TAG=pci-0000_02_00_0-usb-0_2_2_1_0\nID_MM_CANDIDATE=1\nDEVLINKS=/dev/serial/by-path/pci-0000:02:00.0-usb-0:2.2:1.0-port0 /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0\nTAGS=:systemd:\nCURRENT_TAGS=:systemd:\nudev_end\nsysfs_begin\nauthorized=1\nidVendor=1a86\nidProduct=7523\npower/control=on\npower/runtime_status=active\nsysfs_end\nkernel_begin\n9月 13 19:27:50 swl-virtual-machine kernel: usb 2-2.2: failed to receive control message: -110\n9月 13 19:27:50 swl-virtual-machine kernel: ch341-uart ttyUSB0: failed to read modem status: -110\n9月 13 19:28:59 swl-virtual-machine kernel: usb 2-2.2: failed to send control message: -110\n9月 13 19:29:01 swl-virtual-machine kernel: usb 2-2.2: failed to send control message: -110\n9月 13 19:29:02 swl-virtual-machine kernel: usb 2-2.2: failed to receive control message: -110\n9月 13 19:29:02 swl-virtual-machine kernel: ch341-uart ttyUSB0: failed to read modem status: -110\n9月 13 19:33:04 swl-virtual-machine kernel: usb 1-1: new high-speed USB device number 9 using ehci-pci\n9月 13 19:33:04 swl-virtual-machine kernel: usb 1-1: New USB device found, idVendor=18d1, idProduct=4d00, bcdDevice= 2.23\n9月 13 19:33:04 swl-virtual-machine kernel: usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3\n9月 13 19:33:04 swl-virtual-machine kernel: usb 1-1: Product: USB download gadget\n9月 13 19:33:04 swl-virtual-machine kernel: usb 1-1: Manufacturer: Rockchip\n9月 13 19:33:04 swl-virtual-machine kernel: usb 1-1: SerialNumber: f71a9d152132db55\n9月 13 19:33:27 swl-virtual-machine kernel: usb 1-1: USB disconnect, device number 9\n9月 13 20:06:24 swl-virtual-machine kernel: usb 2-2.2: failed to send control message: -110\n9月 13 20:06:26 swl-virtual-machine kernel: usb 2-2.2: failed to send control message: -110\n9月 13 20:06:28 swl-virtual-machine kernel: usb 2-2.2: failed to receive control message: -110\n9月 13 20:06:28 swl-virtual-machine kernel: ch341-uart ttyUSB0: failed to read modem status: -110\n9月 13 20:06:52 swl-virtual-machine kernel: usb 2-2.2: USB disconnect, device number 6\n9月 13 20:06:52 swl-virtual-machine kernel: ch341-uart ttyUSB0: ch341-uart converter now disconnected from ttyUSB0\n9月 13 20:06:52 swl-virtual-machine kernel: ch341 2-2.2:1.0: device disconnected\n9月 13 20:06:57 swl-virtual-machine kernel: usb 2-2.2: new full-speed USB device number 7 using uhci_hcd\n9月 13 20:06:58 swl-virtual-machine kernel: usb 2-2.2: New USB device found, idVendor=1a86, idProduct=7523, bcdDevice= 2.64\n9月 13 20:06:58 swl-virtual-machine kernel: usb 2-2.2: New USB device strings: Mfr=0, Product=2, SerialNumber=0\n9月 13 20:06:58 swl-virtual-machine kernel: usb 2-2.2: Product: USB Serial\n9月 13 20:06:58 swl-virtual-machine kernel: ch341 2-2.2:1.0: ch341-uart converter detected\n9月 13 20:06:58 swl-virtual-machine kernel: usb 2-2.2: ch341-uart converter now attached to ttyUSB0\n9月 13 20:07:38 swl-virtual-machine kernel: usb 1-1: new high-speed USB device number 10 using ehci-pci\n9月 13 20:07:38 swl-virtual-machine kernel: usb 1-1: New USB device found, idVendor=18d1, idProduct=4d00, bcdDevice= 2.23\n9月 13 20:07:38 swl-virtual-machine kernel: usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3\n9月 13 20:07:38 swl-virtual-machine kernel: usb 1-1: Product: USB download gadget\n9月 13 20:07:38 swl-virtual-machine kernel: usb 1-1: Manufacturer: Rockchip\n9月 13 20:07:38 swl-virtual-machine kernel: usb 1-1: SerialNumber: f71a9d152132db55\n9月 13 20:07:55 swl-virtual-machine kernel: usb 1-1: USB disconnect, device number 10\n9月 13 20:09:45 swl-virtual-machine kernel: usb 1-1: new high-speed USB device number 11 using ehci-pci\n9月 13 20:09:45 swl-virtual-machine kernel: usb 1-1: New USB device found, idVendor=18d1, idProduct=4d00, bcdDevice= 2.23\n9月 13 20:09:45 swl-virtual-machine kernel: usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3\n9月 13 20:09:45 swl-virtual-machine kernel: usb 1-1: Product: USB download gadget\n9月 13 20:09:45 swl-virtual-machine kernel: usb 1-1: Manufacturer: Rockchip\n9月 13 20:09:45 swl-virtual-machine kernel: usb 1-1: SerialNumber: f71a9d152132db55\n9月 13 20:11:07 swl-virtual-machine kernel: usb 1-1: USB disconnect, device number 11\n9月 13 20:12:03 swl-virtual-machine kernel: usb 1-1: new high-speed USB device number 12 using ehci-pci\n9月 13 20:12:03 swl-virtual-machine kernel: usb 1-1: New USB device found, idVendor=18d1, idProduct=4d00, bcdDevice= 2.23\n9月 13 20:12:03 swl-virtual-machine kernel: usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3\n9月 13 20:12:03 swl-virtual-machine kernel: usb 1-1: Product: USB download gadget\n9月 13 20:12:03 swl-virtual-machine kernel: usb 1-1: Manufacturer: Rockchip\n9月 13 20:12:03 swl-virtual-machine kernel: usb 1-1: SerialNumber: f71a9d152132db55\n9月 13 20:12:21 swl-virtual-machine kernel: usb 1-1: USB disconnect, device number 12\n9月 13 20:18:23 swl-virtual-machine kernel: usb 2-2.2: USB disconnect, device number 7\n9月 13 20:18:23 swl-virtual-machine kernel: ch341-uart ttyUSB0: ch341-uart converter now disconnected from ttyUSB0\n9月 13 20:18:23 swl-virtual-machine kernel: ch341 2-2.2:1.0: device disconnected\n9月 13 20:18:46 swl-virtual-machine kernel: usb 2-2.2: new full-speed USB device number 8 using uhci_hcd\n9月 13 20:18:46 swl-virtual-machine kernel: usb 2-2.2: New USB device found, idVendor=1a86, idProduct=7523, bcdDevice= 2.64\n9月 13 20:18:46 swl-virtual-machine kernel: usb 2-2.2: New USB device strings: Mfr=0, Product=2, SerialNumber=0\n9月 13 20:18:46 swl-virtual-machine kernel: usb 2-2.2: Product: USB Serial\n9月 13 20:18:46 swl-virtual-machine kernel: ch341 2-2.2:1.0: ch341-uart converter detected\n9月 13 20:18:46 swl-virtual-machine kernel: usb 2-2.2: ch341-uart converter now attached to ttyUSB0\n9月 13 20:20:26 swl-virtual-machine kernel: usb 2-2.2: USB disconnect, device number 8\n9月 13 20:20:26 swl-virtual-machine kernel: ch341-uart ttyUSB0: ch341-uart converter now disconnected from ttyUSB0\n9月 13 20:20:26 swl-virtual-machine kernel: ch341 2-2.2:1.0: device disconnected\n9月 13 20:24:19 swl-virtual-machine kernel: usb 2-2.2: new full-speed USB device number 9 using uhci_hcd\n9月 13 20:24:19 swl-virtual-machine kernel: usb 2-2.2: New USB device found, idVendor=1a86, idProduct=7523, bcdDevice= 2.64\n9月 13 20:24:19 swl-virtual-machine kernel: usb 2-2.2: New USB device strings: Mfr=0, Product=2, SerialNumber=0\n9月 13 20:24:19 swl-virtual-machine kernel: usb 2-2.2: Product: USB Serial\n9月 13 20:24:19 swl-virtual-machine kernel: ch341 2-2.2:1.0: ch341-uart converter detected\n9月 13 20:24:19 swl-virtual-machine kernel: usb 2-2.2: ch341-uart converter now attached to ttyUSB0\n9月 13 20:27:19 swl-virtual-machine kernel: usb 1-1: new high-speed USB device number 13 using ehci-pci\n9月 13 20:27:19 swl-virtual-machine kernel: usb 1-1: New USB device found, idVendor=18d1, idProduct=4d00, bcdDevice= 2.23\n9月 13 20:27:19 swl-virtual-machine kernel: usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3\n9月 13 20:27:19 swl-virtual-machine kernel: usb 1-1: Product: USB download gadget\n9月 13 20:27:19 swl-virtual-machine kernel: usb 1-1: Manufacturer: Rockchip\n9月 13 20:27:19 swl-virtual-machine kernel: usb 1-1: SerialNumber: f71a9d152132db55\n9月 13 20:28:13 swl-virtual-machine kernel: usb 1-1: USB disconnect, device number 13\n9月 13 20:53:45 swl-virtual-machine kernel: usb 2-2.2: failed to send control message: -110\n9月 13 20:53:47 swl-virtual-machine kernel: usb 2-2.2: failed to send control message: -110\n9月 13 20:53:49 swl-virtual-machine kernel: usb 2-2.2: failed to receive control message: -110\n9月 13 20:53:49 swl-virtual-machine kernel: ch341-uart ttyUSB0: failed to read modem status: -110\n9月 13 21:08:29 swl-virtual-machine kernel: usb 2-2.2: failed to send control message: -110\n9月 13 21:08:31 swl-virtual-machine kernel: usb 2-2.2: failed to send control message: -110\n9月 13 21:08:33 swl-virtual-machine kernel: usb 2-2.2: failed to receive control message: -110\n9月 13 21:08:33 swl-virtual-machine kernel: ch341-uart ttyUSB0: failed to read modem status: -110\nkernel_end"
+              },
+    "signals":  {
+                    "vmware_service_running":  true,
+                    "vmware_proxy_connected":  true,
+                    "host_ch340_connected":  false,
+                    "host_fastboot_connected":  false,
+                    "host_problem_43_present":  false,
+                    "guest_ch340_present":  true,
+                    "guest_fastboot_present":  false,
+                    "guest_usb_timeout_seen":  true
+                },
+    "classification":  "ch340_transport_timeout_beyond_udev",
+    "next_action":  "The guest owns CH340 but kernel control transfers time out. Reconnect the exact CH340 device through VMware or physically re-enumerate it; udev and permissions are already past this layer."
+}

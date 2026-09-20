@@ -1,0 +1,65 @@
+--- a/app/k7sound/duplex.c
++++ b/app/k7sound/duplex.c
+@@ -68,12 +68,13 @@
+  return rc;
+ }
+ static int run_route(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+- uint32_t*capture,unsigned capacity,unsigned frames,int route,int numbered,unsigned rx_lanes,int guarded,struct dl_result*r)
++ uint32_t*capture,unsigned capacity,unsigned frames,int route,int numbered,unsigned rx_lanes,int guarded,int same_input,struct dl_result*r)
+ {
+  uint32_t v,t,x,mask,value,rxvalue,pathmask;unsigned i;uint64_t now;
+  int rc=-5,clocks_attempted=0,path_saved=0,rx_saved=0,ready=0;
+  if(!r)return -22;
+  memset(r,0,sizeof(*r));
++ if(same_input&&(!guarded||rx_lanes!=2||!numbered||route!=DL_ROUTE_DEFAULT))return r->result=-22;
+  if(guarded&&rx_lanes!=2)return r->result=-22;
+  if(rx_lanes!=1&&rx_lanes!=2)return r->result=-22;
+  if(rx_lanes==2&&(!numbered||frames!=128||route!=DL_ROUTE_DEFAULT))return r->result=-22;
+@@ -81,6 +82,7 @@
+  if(route!=DL_ROUTE_DEFAULT&&route!=DL_ROUTE_RX_ALL_SDI0)return r->result=-22;
+  if(route==DL_ROUTE_RX_ALL_SDI0&&frames!=128)return r->result=-22;
+  pathmask=route==DL_ROUTE_RX_ALL_SDI0?0x00fcff03u:0x00fc0303u;
++ if(same_input)pathmask|=SAI_RX_PATH_MASK(1); /* path1 -> SDI0 */
+  if(!p||!p->read||!p->write||!p->us||!p->amp_low||!capture||
+     frames<8||frames>DL_MAX_FRAMES||capacity<2*frames)return r->result=-22;
+  if(!prepared||!common||mclk!=4096000)return r->result=-38;
+@@ -170,19 +172,23 @@
+ 
+ int dl_run(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+  uint32_t*capture,unsigned capacity,unsigned frames,struct dl_result*r)
+-{return run_route(p,prepared,common,mclk,capture,capacity,frames,DL_ROUTE_DEFAULT,0,1,0,r);}
++{return run_route(p,prepared,common,mclk,capture,capacity,frames,DL_ROUTE_DEFAULT,0,1,0,0,r);}
+ int dl_run_route(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+  uint32_t*capture,unsigned capacity,unsigned frames,int route,struct dl_result*r)
+-{return run_route(p,prepared,common,mclk,capture,capacity,frames,route,0,1,0,r);}
++{return run_route(p,prepared,common,mclk,capture,capacity,frames,route,0,1,0,0,r);}
+ 
+ int dl_run_numbered(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+  uint32_t*capture,unsigned capacity,struct dl_result*r)
+-{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,1,0,r);}
++{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,1,0,0,r);}
+ 
+ int dl_run_numbered_rx2(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+  uint32_t*capture,unsigned capacity,struct dl_result*r)
+-{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,2,0,r);}
++{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,2,0,0,r);}
+ 
+ int dl_run_numbered_rx2_guard(const struct dl_port*p,int prepared,int common,uint32_t mclk,
+  uint32_t*capture,unsigned capacity,struct dl_result*r)
+-{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,2,1,r);}
++{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,2,1,0,r);}
++
++int dl_run_numbered_rx2_guard_same(const struct dl_port*p,int prepared,int common,uint32_t mclk,
++ uint32_t*capture,unsigned capacity,struct dl_result*r)
++{return run_route(p,prepared,common,mclk,capture,capacity,128,DL_ROUTE_DEFAULT,1,2,1,1,r);}
+--- a/app/k7sound/duplex.h
++++ b/app/k7sound/duplex.h
+@@ -51,4 +51,8 @@
+  * unexpected banks/depth reject. Other entry points keep original readiness. */
+ int dl_run_numbered_rx2_guard(const struct dl_port *,int,int,uint32_t,uint32_t *,unsigned,
+  struct dl_result *);
++/* One-variable follow-up to guarded RX2: PATH[11:10]=0, path1 takes
++ * SDI0 like path0. Other routes/configs unchanged; old bits restored. */
++int dl_run_numbered_rx2_guard_same(const struct dl_port *,int,int,uint32_t,uint32_t *,unsigned,
++ struct dl_result *);
+ #endif

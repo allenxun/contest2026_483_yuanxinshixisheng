@@ -1,0 +1,233 @@
+{
+  "commands": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "gcc.EXE (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\mock-replay.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\mock-replay.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\mock-replay.exe"
+      ],
+      "exit_code": 0,
+      "output": "PASS 31 real candidate function replay groups; mock transport only\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-E",
+        "-P",
+        "-DCONFIG_USBHOST=1",
+        "-DCONFIG_SCHED_WORKQUEUE=1",
+        "-DCONFIG_USBHOST_NPREALLOC=4",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\default-original.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\default-original.i"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE",
+        "-E",
+        "-P",
+        "-DCONFIG_USBHOST=1",
+        "-DCONFIG_SCHED_WORKQUEUE=1",
+        "-DCONFIG_USBHOST_NPREALLOC=4",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\default-candidate.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\default-candidate.i"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "--unsafe-paths",
+        "--directory=E:/openvela/VelaVision/work-in-progress/parallel-cxx-unwind-medium/usb-msc-checked-v2/patch-base",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\candidate.patch"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "inputs": [
+    {
+      "path": "evidence\\usb-storage-inputs-20260910\\inputs.json",
+      "sha256": "eedf8265d61ff8e3b0f69c426f0ebdc42aaca5723c90ad42c340144eb3ea11ed",
+      "bytes": 1679
+    },
+    {
+      "path": "evidence\\usb-storage-inputs-20260910\\nuttx\\drivers\\usbhost\\usbhost_storage.c",
+      "sha256": "c08bb003a9bc2b1aabfb3e8327d8d7f9824e656b1f9f7d22c96b55f174e8b88f",
+      "bytes": 72363
+    },
+    {
+      "path": "evidence\\usb-storage-inputs-20260910\\nuttx\\drivers\\usbhost\\Kconfig",
+      "sha256": "839c6edf8e5518ddf9c0b6b626f4777f7cecde823e10c07b7a8186c859d6bf77",
+      "bytes": 23356
+    },
+    {
+      "path": "port\\new\\nuttx\\drivers\\usbhost\\usbhost_xhci_rk3576.c",
+      "sha256": "12241a277ac6a2b8616c392e2dc01808c39467f0fb8482ee31453319de981b71",
+      "bytes": 195603
+    }
+  ],
+  "candidate": {
+    "path": "work-in-progress\\parallel-cxx-unwind-medium\\usb-msc-checked-v2\\candidate\\drivers\\usbhost\\usbhost_storage.c",
+    "sha256": "0fdaaccfee3f36c03a82b66e718e14d759976d071a0b29963173adb48a6f273f",
+    "bytes": 81482
+  },
+  "extracted_functions": [
+    {
+      "name": "usbhost_getle16",
+      "start_line": 1610,
+      "sha256": "c494b2c176ca246b2e57e3046b71d0aa18f5d9f8691b41700ed691088d12713b"
+    },
+    {
+      "name": "usbhost_getbe16",
+      "start_line": 1629,
+      "sha256": "599ad65b9b49552e5652a271a4cb721e669f3221dd1b1d62457899ac5a35fb6c"
+    },
+    {
+      "name": "usbhost_getle32",
+      "start_line": 1692,
+      "sha256": "9d74cf0e4e7cd7c3b20159fc84d6dc01a827899216f0eaf4d5ec84e5b1706409"
+    },
+    {
+      "name": "usbhost_getbe32",
+      "start_line": 1716,
+      "sha256": "9d1f2cc475335a4a805392efdc95d1e03b02ad3f539229f1f790a6b141fd1252"
+    },
+    {
+      "name": "usbhost_putle16",
+      "start_line": 1649,
+      "sha256": "07547fda52290980b6bf1f3592ce2132acc73a9484c9678dac56362ae276ff05"
+    },
+    {
+      "name": "usbhost_putbe16",
+      "start_line": 1670,
+      "sha256": "c2702067e7435af35f81ef080fe4b2a7c20772c7f4ffc5b6b018b5cc0eb1822e"
+    },
+    {
+      "name": "usbhost_putle32",
+      "start_line": 1739,
+      "sha256": "6f33ddf1724900e1074be06ac22cea923c22b918f8f604efb4ce10dd82b4acde"
+    },
+    {
+      "name": "usbhost_putbe32",
+      "start_line": 1762,
+      "sha256": "584681c02eae2161a073aee401546b3b2cef7e2d320e92db525b018b03d53824"
+    },
+    {
+      "name": "usbhost_requestsensecbw",
+      "start_line": 527,
+      "sha256": "df6adf5168c3d982f7d398376862092833c94a7d17bbaf070e08a82c4cdf7bfe"
+    },
+    {
+      "name": "usbhost_testunitreadycbw",
+      "start_line": 546,
+      "sha256": "1dfe9821ec29c3435ac34ac3836822fccbc223d0ad0349ffc62a2c6909fca76f"
+    },
+    {
+      "name": "usbhost_readcapacitycbw",
+      "start_line": 559,
+      "sha256": "53ac31d1fed064d713f427ac10bbd72799bf36a089a10f1313f06f409d64b795"
+    },
+    {
+      "name": "usbhost_inquirycbw",
+      "start_line": 577,
+      "sha256": "d1ccda67cc2e1eb715f1c97bc9aebba9c7f2fb2f9daa40ccc850368d95a935ee"
+    },
+    {
+      "name": "usbhost_readcbw",
+      "start_line": 596,
+      "sha256": "eaf215ab92d8c527bf2cfbc67b9aa5f00e48b72cedbdea868c415246ac67f293"
+    },
+    {
+      "name": "usbhost_cbwalloc",
+      "start_line": 1845,
+      "sha256": "a0ab820906a981363cb6486df6848a6ccfc3cac8a89f585219959a76ec4e9b57"
+    },
+    {
+      "name": "usbhost_bot_failed",
+      "start_line": 657,
+      "sha256": "593898136cff0f33c0221eb9bf96171c76d2fad1fd3ab395dfc770add1292a93"
+    },
+    {
+      "name": "usbhost_checked_command",
+      "start_line": 664,
+      "sha256": "c9c438f61f34b15998394f89bf47c0964a1ebf63ac65cf1636f7b4673f12c911"
+    },
+    {
+      "name": "usbhost_checked_capacity",
+      "start_line": 712,
+      "sha256": "2fca1713435d98cf82c2a163cd8972b4d83e5497ec3d1e75fbbcf66403aa25c6"
+    },
+    {
+      "name": "usbhost_checked_read",
+      "start_line": 749,
+      "sha256": "338d8671c936032ea134732e89e1242e222d7b51a191c9ac39382bb0499a93e9"
+    },
+    {
+      "name": "usbhost_testunitready",
+      "start_line": 843,
+      "sha256": "36cb06e8e2cf8463272cabbdb27d288ff6e06994d6eaba2478c3cc8ffdc10f6c"
+    },
+    {
+      "name": "usbhost_requestsense",
+      "start_line": 894,
+      "sha256": "78820c1181d2850d6ef50e6e6eb162760c2db9cde3ad7be2f8edb980bfd4a512"
+    },
+    {
+      "name": "usbhost_readcapacity",
+      "start_line": 952,
+      "sha256": "caf60008d1e97fd405abe0fd88aa6f631adc026b0e605e25b434506645488abc"
+    },
+    {
+      "name": "usbhost_inquiry",
+      "start_line": 1011,
+      "sha256": "697692d8eb9e04f26c5b7907819f951ac0eea607771b5dd87127102491977726"
+    },
+    {
+      "name": "usbhost_read",
+      "start_line": 2207,
+      "sha256": "f736dde98c65a684b01ec283583b1cc60a4c8fb0cd8e9208bd4aa8e16a621122"
+    },
+    {
+      "name": "usbhost_write",
+      "start_line": 2325,
+      "sha256": "60729b6228298bcde94160d159aa499fcdd9c0104d207745932c151ae3c14a19"
+    },
+    {
+      "name": "usbhost_geometry",
+      "start_line": 2436,
+      "sha256": "bb0f7fd27c9ec5ada84b2facd10c76829021a35112a19137c63431500a782afe"
+    }
+  ],
+  "default_off_tokens_equal": true,
+  "scope": "real candidate function replay with mock ABI and transfer; not full NuttX TU or hardware"
+}

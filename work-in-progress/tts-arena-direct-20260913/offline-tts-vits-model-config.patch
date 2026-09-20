@@ -1,0 +1,15 @@
+--- a/sherpa-onnx/csrc/offline-tts-vits-model-config.cc
++++ b/sherpa-onnx/csrc/offline-tts-vits-model-config.cc
+@@
+-  if (!FileExists(model)) {
++#ifdef K7_TTS_NATIVE_STORAGE
++  if (model != "k7ram:tts") {
++    SHERPA_ONNX_LOGE("native VITS model must use the exact k7ram:tts sentinel");
++    return false;
++  }
++#else
++  if (!FileExists(model)) {
+     SHERPA_ONNX_LOGE("--vits-model: '%s' does not exist", model.c_str());
+     return false;
+   }
++#endif

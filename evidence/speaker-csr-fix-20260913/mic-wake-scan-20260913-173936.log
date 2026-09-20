@@ -1,0 +1,104 @@
+
+nsh> [Kk7sound tone-max
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_e=00000001
+SOUND mclkout before=0000001f after=0000001d
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=0 settle_ms=0
+SOUND playback_gain_db=24 dac_attenuation_db=0 maximum=1
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=00000000
+SOUND slot_mask offset=44 value=00000000
+SOUND slot_mask offset=48 value=00000000
+SOUND slot_mask offset=4c value=00000000
+SOUND slot_mask offset=50 value=00000000
+SOUND slot_mask offset=54 value=00000000
+SOUND slot0000
+SOUND pio=0 frames=3200 polls=174626 stop=0 held=0 max_fifo=16
+SOUND fifo first=00104104 fff RXCR=00700fff FSCR=0101f03f CKR=00000018
+SOUND codec reg=000
+SOUND codec reg=06 value=00
+SOUND codec reg=07 value=7c
+SOUcodec reg=08 value=00
+SOUND codec reg=09 value=44
+SOUND codec lue=82
+SOUND codec reg=0c value=10
+SOUND codec reg=0d value=02D codec reg=19 value=02
+SOUND codec reg=1a value=00
+SOUND code=2a value=b8
+SOUND codec reg=2b value=80
+SOUND codec reg=30 value=21
+SOUND codec reg=31 value=21
+SOUND input pull=00005515 schmitt=000000ff path=000000e4 gpio_high=50360 transitions=0 samples=50360
+SOUND pad ticks=480004 max_gap=35 counter_hz=24000000 complete=1
+SOUND pad channel=0 high=24666 changes=37735
+SOUND pad channel=1 high=25050 changes=40919
+SOUND pad channel=2 high=25190 changes=640
+SOUND pad channel=3 high=50360 changes=0
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [Kk7sound capture-pga24-grouped 48000
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 souro_input=014d3050
+SOUND platform_result=0 version=23073576 repair=fdffffff ack=00000001 idle=00000001
+SOUND mclkout before=0000001f after=0000001d
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=24 settle_ms=1000
+SOUND playback_gain_db=0 dac_attenuation_db=24 maximum=0
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=000000UND slot_mask offset=48 value=00000000
+SOUND slot_mask offset=400000000
+SOUND pio=0 frames=48000 polls=2291849 stop=0 held=0 mD trace start=570291768 end=573291867 started=1 count=32
+SOUND =3 value=000000e4 rc=0
+SOUND trace_init index=4 value=00000000 0,0,0
+SOUND trace_word index=1 us=570291895 before=00041040 wor000 after=00041040 rc=0,0,0
+SOUND trace_word index=2 us=5702918d index=3 us=570291898 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=4 us=570291900 before=00041000 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=5 us=570291901 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=6 us=570291903 before=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND trace_word index=7 us=570291905 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=8 us=57word=ffffffff after=00041040 rc=0,0,0
+SOUND trace_word index=9 SOUND trace_word index=11 us=570291928 before=00041000 word=0000=00041000 rc=0,0,0
+SOUND trace_word index=12 us=570291930 befor word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=1ffff after=00000000 rc=0,0,0
+SOUND trace_word index=15 us=570291935 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=16 us=570291955 before=00041041 word=ffffffff after=00041040 rc=0,0,0
+SOUND trace_word index=17 us=570291956 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND tr rc=0,0,0
+SOUND trace_word index=19 us=570291960 before=000410070291961 before=00041000 word=ffffffff after=00040000 rc=0,0,0
+=ffffffff after=00000000 rc=0,0,0
+SOUND trace_word index=23 us=1040 rc=0,0,0
+SOUND trace_word index=25 us=570291988 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=26 us=570291989 before=00041040 word=ffffffff after=00041000 rc=0,0,0
+SOUND trace_word index=27 us=570291991 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=28 us=570291992 before=00041000 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=29 us=570291994 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=30 us=570291996 before=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND trace_word index=31 us=570291998 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND codec reg=00 value=36
+SOUND codec reg=01 value=60
+SOUND codec reg=02 value=00
+SOUND codec reg=03 value=00
+SOUND codec reg=04 value=0c
+SOUND codec reg=05 value=00
+SOUND codec reg=06 value=00
+SOUND codec reg=07 value=7c
+SOUND codec reg=08 valuND codec reg=0d value=02
+SOUND codec reg=0f value=20
+SOUND codD codec reg=1b value=30
+SOUND codec reg=27 value=b8
+SOUND code0000e4 gpio_high=50380 transitions=0 samples=50380
+SOUND pad ti high=24768 changes=37804
+SOUND pad channel=1 high=25015 changex=378879232 left_nonzero=47999 right_min=-373166080 right_max=32SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [Kk7voice flow-mic-wake
+TLS_CHECK PASS workers=2 destructors=2 main_value=123
+ASR_INFER BEGIN recognizer
+ASR_INFER chunk=1 elapsed=22.046
+ASR_INFER chunk=2 elapsed=23.398
+ASR_INFER chunk=3 elapsed=24.739
+ASR_INFER chunk=4 elapsed=26.064
+ASR_INFER chunk=5 elapsed=27.383
+ASR_INFER RESULT seconds=27.385 text=我喷杯了你好 open bear 你好 open beil
+ASR_STORAGE peak=468194236 live=0 records=1264 failures=0 reason=0
+VOICE_FLOW wake_text=我喷杯了你好 open bear 你好 ope [K
+nsh> [K

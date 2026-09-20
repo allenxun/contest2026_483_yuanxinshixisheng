@@ -1,0 +1,23 @@
+k7radio TRACK q=31238 s=4 dx=0.0 dy=0.0 x=-35 y=-1 tx=209 age=90861
+host-status
+RADIO host_mode=1 fault=0 tx=493 ACK=493 RX=1043
+RADIO empty_slots=8
+nsh> [KTRACK q=31239 s=4 dx=0.0 dy=0.0 x=-35 y=-1 tx=209 age=142424
+ifconfig
+bnep0	Link encap:UNSPEC at DOWN mtu -9
+	inet addr:0.0.0.0 DRaddr:0.0.0.0 Mask:0.0.0.0
+
+wlan0	Link encap:Ethernet HWaddr 60:000
+	inet addr:10.3.0.214 DRaddr:10.3.0.1 Mask:255.255.252.0
+
+  Frg: 0000
+  Checksum   0000  0000  0000  0000
+  TCP               0000  ----  ----  0000
+Sent         080c  080a  0002  000TRACK q=31393 s=4 dx=0.0 dy=0.0 x=-35 y=-1 tx=209 age=87886
+neTRACK q=31540 s=4 dx=0.0 dy=0.0 x=-35 y=-1 tx=209 age=88341
+tstat
+nsh: netstat: command not found
+nsh> [KTRACK q=31542 s=4 dx=0.0 dy=0.0 x=-35 y=-1 tx=209 age=107958
+ping -c 2 10.3.1.1TRACK q=31692 s=4 dx=0.0 dy=0.0 x=-35 y=-1 tx=209 age=106113
+25
+PING 10.3.1.125 56 bytes of data

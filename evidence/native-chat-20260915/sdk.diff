@@ -1,0 +1,148 @@
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -22,6 +22,7 @@
+ #include <sched.h>
+ #endif
+ 
++int k7sound_play_prompt_tone(void);
+ int k7sound_speak_mono16(const int16_t *, unsigned, unsigned);
+ int k7sound_speak_mono16_cancel(const int16_t *,unsigned,int (*)(void *),void *);
+ #include "board_voice_prompts.inc"
+@@ -141,16 +142,18 @@
+   return NULL;
+ }
+ 
+-static int asr(int fd,enum k7_voice_intent *intent)
++static int asr(int fd,enum k7_voice_intent *intent,int chat)
+ {
+   struct live *p=calloc(1,sizeof(*p));pthread_t capture,receiver;
+   pthread_attr_t attr;unsigned char audio[644];char ready[256];
+   uint32_t seq=0,count=0;int rc,have_rx=0,have_capture=0;
+   if(!p)return -ENOMEM;
+   p->fd=fd;
+-  rc=transfer(fd,(void *)"K7S1A",5,1);
++  rc=transfer(fd,(void *)(chat?"K7S1B":"K7S1A"),5,1);
+   if(!rc)rc=json_event(fd,ready,sizeof(ready));
+   if(!rc && !strstr(ready,"\"type\": \"ready\""))rc=-EIO;
++  if(rc){free(p);return rc;}
++  if(chat)rc=k7sound_play_prompt_tone();
+   if(rc){free(p);return rc;}
+   rc=pthread_attr_init(&attr);if(rc){free(p);return -rc;}
+   rc=pthread_attr_setstacksize(&attr,32768);
+@@ -201,9 +204,13 @@
+ static int tts(int fd, const char *phrase, int prompt)
+ {
+   unsigned char kind;uint32_t size=0;
+-  int rc=transfer(fd,(void *)(prompt?"K7S1P":"K7S1T"),5,1);void *pcm=NULL;
++  int rc=transfer(fd,(void *)(prompt==2?"K7S1C":prompt?"K7S1P":"K7S1T"),5,1);void *pcm=NULL;
+   if(!rc)rc=send_packet(fd,'T',(void *)phrase,strlen(phrase));
+   if(!rc)rc=header(fd,&kind,&size);
++  unsigned waits=0;
++  while(!rc && prompt==2 && kind=='W' && !size && waits++<20)
++    rc=header(fd,&kind,&size);
++  if(!rc && prompt==2 && kind=='N' && !size)return 0;
+   if(!rc && (kind!='D'||!size||size>960000||size%2))rc=-EINVAL;
+   if(!rc){pcm=malloc(size);if(!pcm)rc=-ENOMEM;}
+   if(!rc)rc=transfer(fd,pcm,size,0);
+@@ -217,6 +224,7 @@
+ {
+   const char *phrase = NULL;
+   if (!strcmp(mode,"tts-test")) phrase="联网成功";
++  else if (!strcmp(mode,"chat-reply")) phrase="reply";
+   else if (strcmp(mode,"asr-live"))
+     {
+       for (unsigned int i=0;i<sizeof(k7_voice_prompts)/sizeof(k7_voice_prompts[0]);i++)
+@@ -228,7 +236,7 @@
+       if(atomic_load(&device_busy))return -EBUSY;
+       if(pthread_mutex_trylock(&audio_owner))return -EBUSY;
+       int fd=connect_server(ip),rc=fd;
+-      if(fd>=0){rc=asr(fd,NULL);close(fd);}
++      if(fd>=0){rc=asr(fd,NULL,0);close(fd);}
+       pthread_mutex_unlock(&audio_owner);return rc;
+     }
+   if(pthread_mutex_trylock(&audio_owner))return -EBUSY;
+@@ -245,7 +253,7 @@
+       pthread_mutex_lock(&tts_lock);tts_fd=fd;
+       int cancelled=atomic_load(&tts_cancelled);
+       pthread_mutex_unlock(&tts_lock);
+-      rc=cancelled?-ECANCELED:tts(fd,phrase,strcmp(mode,"tts-test")!=0);
++      rc=cancelled?-ECANCELED:tts(fd,phrase,!strcmp(mode,"chat-reply")?2:strcmp(mode,"tts-test")!=0);
+     }
+   else if(atomic_load(&tts_cancelled))rc=-ECANCELED;
+   pthread_mutex_lock(&tts_lock);
+@@ -286,7 +294,7 @@
+   if(epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;goto done;}
+   if(pthread_mutex_trylock(&audio_owner))goto done;
+   int fd=connect_server(ip);rc=fd;
+-  if(fd>=0){rc=asr(fd,&intent);close(fd);}
++  if(fd>=0){rc=asr(fd,&intent,0);close(fd);}
+   pthread_mutex_unlock(&audio_owner);
+   if(rc)goto done;
+   if(epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;goto done;}
+@@ -377,3 +385,34 @@
+   atomic_store(&device_loop_busy,false);
+   printf("K7CLOUD device loop_done=%d\n",rc);return rc;
+ }
++
++/* Native ownership of capture/reply/next round. No backend text is dispatched
++ * as a motion command. Stop invalidates the epoch and shuts down waiting TTS. */
++int k7cloud_chat_loop(const char *ip,unsigned rounds)
++{
++  if(!rounds || rounds>300)return -EINVAL;
++  bool expected=false;
++  if(!atomic_compare_exchange_strong(&device_loop_busy,&expected,true))return -EBUSY;
++  expected=false;
++  if(!atomic_compare_exchange_strong(&device_busy,&expected,true))
++    {atomic_store(&device_loop_busy,false);return -EBUSY;}
++  unsigned epoch=atomic_load(&device_epoch);int rc=0;
++  for(unsigned round=0;round<rounds;round++)
++    {
++      if(epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;break;}
++      if(pthread_mutex_trylock(&audio_owner)){rc=-EBUSY;break;}
++      printf("K7CLOUD chat listening round=%u\n",round+1);
++      int fd=connect_server(ip);rc=fd;
++      if(fd>=0){rc=asr(fd,NULL,1);close(fd);}
++      pthread_mutex_unlock(&audio_owner);
++      if(rc)break;
++      if(epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;break;}
++      puts("K7CLOUD chat answering");
++      rc=board_speech("chat-reply",ip,&epoch);
++      if(rc)break;
++      usleep(250000);
++    }
++  atomic_store(&device_busy,false);
++  atomic_store(&device_loop_busy,false);
++  printf("K7CLOUD chat loop_done=%d\n",rc);return rc;
++}
+--- sdk/app/k7agent/cloud/src/k7cloud_main.c
++++ app/k7agent/cloud/src/k7cloud_main.c
+@@ -21,6 +21,7 @@
+ int k7cloud_board_speech(const char *mode, const char *ip);
+ int k7cloud_tts_control(int stop);
+ int k7cloud_device_once(const char *ip);
++int k7cloud_chat_loop(const char *ip,unsigned rounds);
+ int k7cloud_device_loop(const char *ip,unsigned rounds);
+ int k7cloud_device_stop(void);
+ #endif
+@@ -37,6 +38,7 @@
+ #endif
+ #ifdef K7CLOUD_SPEECH_ORCHESTRATOR
+   puts("       k7cloud speech-status");
++  puts("       k7cloud chat-loop <gateway-ip> <rounds:1..300>");
+   puts("       k7cloud capture-stream-check");
+ #endif
+ #ifdef K7CLOUD_RADIO_READINESS
+@@ -159,11 +161,11 @@
+ {
+ #ifdef K7CLOUD_SPEECH_ORCHESTRATOR
+   if(argc==2 && !strcmp(argv[1],"device-stop"))return k7cloud_device_stop()?1:0;
+-  if(argc==4 && !strcmp(argv[1],"device-loop"))
++  if(argc==4 && (!strcmp(argv[1],"device-loop") || !strcmp(argv[1],"chat-loop")))
+     {
+       char *end;errno=0;unsigned long rounds=strtoul(argv[3],&end,10);
+       if(errno||!argv[3][0]||*end||rounds<1||rounds>300)return 1;
+-      return k7cloud_device_loop(argv[2],(unsigned)rounds)?1:0;
++      return (!strcmp(argv[1],"chat-loop")?k7cloud_chat_loop(argv[2],(unsigned)rounds):k7cloud_device_loop(argv[2],(unsigned)rounds))?1:0;
+     }
+   if(argc==3 && !strcmp(argv[1],"device-once"))
+     return k7cloud_device_once(argv[2]) ? 1 : 0;

@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "duration_seconds": 5.047000000005937,
+  "workers": [
+    {
+      "id": 0,
+      "cpu": 4,
+      "batches": 35565,
+      "peer_progress": 1138046,
+      "errors": 0
+    },
+    {
+      "id": 1,
+      "cpu": 4,
+      "batches": 35565,
+      "peer_progress": 1138046,
+      "errors": 0
+    },
+    {
+      "id": 2,
+      "cpu": 5,
+      "batches": 35565,
+      "peer_progress": 1138065,
+      "errors": 0
+    },
+    {
+      "id": 3,
+      "cpu": 5,
+      "batches": 35636,
+      "peer_progress": 1138066,
+      "errors": 0
+    }
+  ],
+  "scope": "CPU4/5 D8-D15 low64 across yielded peer progress, not all SIMD state or LLM",
+  "model_tested": false
+}

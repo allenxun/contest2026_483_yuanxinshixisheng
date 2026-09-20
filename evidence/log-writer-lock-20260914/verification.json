@@ -1,0 +1,20 @@
+{
+  "scope": "log tools only; isolated synthetic regression",
+  "test_command": "python -X utf8 -m unittest test_log_writer_coordination test_log_export_core test_auto_collect_logs test_log_daily -v",
+  "test_count": 13,
+  "exit_code": 0,
+  "windows_contention_reproduced_before_fix": true,
+  "before_fix_failure": "PermissionError reading locked byte before msvcrt.locking",
+  "windows_contention_passed_after_fix": true,
+  "official_validator_modified": false,
+  "official_validator_run_on_real_logs": false,
+  "public_logs_modified": false,
+  "watcher_started_or_stopped": false,
+  "real_credentials_used": false,
+  "remaining_boundaries": [
+    "Existing resident watcher must be restarted by the coordinating agent to load changed code",
+    "Direct official-validator invocation does not acquire project writer lock",
+    "Byte-range lock retains bounded Windows retry behavior",
+    "Multi-file updates are not a crash-atomic transaction"
+  ]
+}

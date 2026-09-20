@@ -1,0 +1,196 @@
+{
+  "utc": "2026-09-10T08:43:48.497258+00:00",
+  "scope": "Unintegrated explicit FAT read-only candidate; selected real C functions with mock block device; no target execution",
+  "files": [
+    {
+      "path": "candidate/fat/fs_fat32.c",
+      "bytes": 85609,
+      "sha256": "4b9d2a85491bef56e499f0362d01e05c557799db68b0d7e8bd67027874b6ddf9"
+    },
+    {
+      "path": "candidate/fat/fs_fat32.h",
+      "bytes": 56695,
+      "sha256": "70375300307e0036c754297230c5d80a5512bf58aa680ae2ac365d4f8d791eb5"
+    },
+    {
+      "path": "candidate/fat/fs_fat32attrib.c",
+      "bytes": 5615,
+      "sha256": "126df583c5eeb18f6b3c94cdb7d80642e5b8ab261fe1e6ed16e72bf5fc582459"
+    },
+    {
+      "path": "candidate/fat/fs_fat32dirent.c",
+      "bytes": 96594,
+      "sha256": "2cb3dfec0c3005ebcf283108e9646241339dd3724f0091d0f79f7bb6e6285338"
+    },
+    {
+      "path": "candidate/fat/fs_fat32util.c",
+      "bytes": 64451,
+      "sha256": "95427b12c07ebd03dec924dcad60fa990a654979c39885af1afda4828e788843"
+    },
+    {
+      "path": "candidate/fat/Kconfig",
+      "bytes": 10311,
+      "sha256": "b7c915935aea6a28d56358055e69fa56094a2c2e19bec46ee3d65a415a58ba7b"
+    },
+    {
+      "path": "evidence/attempt-01-function-extractor.json",
+      "bytes": 1881,
+      "sha256": "a3ec3e010328127712c3850cae0be5333e4005f5065354b20434fc8a8d54f1b3"
+    },
+    {
+      "path": "evidence/default_candidate.exe",
+      "bytes": 79821,
+      "sha256": "c07c2dc9ea550ee2e0ac2036faa008752eab3bdea7a961e48d0e02d088e43e1d"
+    },
+    {
+      "path": "evidence/default_original.exe",
+      "bytes": 79801,
+      "sha256": "d5930c7978f9eaec4210c2b427351006e4aaaae038543184b3391555d894dbd2"
+    },
+    {
+      "path": "evidence/guarded-functions.json",
+      "bytes": 2433,
+      "sha256": "6669821a74bde4edbea5e28af34693433de260cbdf97982b73ed33a7f77e7b91"
+    },
+    {
+      "path": "evidence/host-tests.json",
+      "bytes": 493114,
+      "sha256": "2f9ab65529302108db078e3fab8d51c154a5b6349bf1da59543dc36b676ea68e"
+    },
+    {
+      "path": "evidence/input-hashes.json",
+      "bytes": 9202,
+      "sha256": "53519097732747fd726b995e07daa7a634c3defddce4b53308773b967f7a7cfa"
+    },
+    {
+      "path": "evidence/patch-fs_fat32.c.diff",
+      "bytes": 5172,
+      "sha256": "6e740b3948d7c5dbc5d5119b6ad75f1d969c1874890a8e663bd861289b819941"
+    },
+    {
+      "path": "evidence/patch-fs_fat32attrib.c.diff",
+      "bytes": 744,
+      "sha256": "042ad3fb1c1dbb9e09d2edcc80c70f6ea1a0f32ab1e197657ae476ff8b9dc6b6"
+    },
+    {
+      "path": "evidence/patch-fs_fat32dirent.c.diff",
+      "bytes": 2788,
+      "sha256": "b7338321712f2a9d80cc1566f745ed1407aceaeabf70e14536532aef25dcf3a8"
+    },
+    {
+      "path": "evidence/patch-fs_fat32util.c.diff",
+      "bytes": 5080,
+      "sha256": "2e50665536a5a7891f65cfee2595fb4cef59ae7abc63e51d0a9a685097627f66"
+    },
+    {
+      "path": "evidence/patch-Kconfig.diff",
+      "bytes": 639,
+      "sha256": "95776a42d5524c525226434b3b3ab5391fa813287fe729660cb6017c399fb5d1"
+    },
+    {
+      "path": "evidence/selected_indirect.exe",
+      "bytes": 91119,
+      "sha256": "9dc5d4a76c7c4c8db8fa72fb5efcb52e69a113960960b44b97ed4e98d9aafc50"
+    },
+    {
+      "path": "evidence/selected_ro.exe",
+      "bytes": 91119,
+      "sha256": "24edea1c21260427d83723d9e95310861932a4e678861a7583259fb6e2bf265f"
+    },
+    {
+      "path": "fat-force-readonly.patch",
+      "bytes": 14423,
+      "sha256": "1a115eca3a017a4f0b480cdb363f038108c52f48ee2c676393a41933191d171d"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 6887,
+      "sha256": "685d5118b5987d040e9e934612b4012738ce6ee71668d505dfb9470bfbcb9f28"
+    },
+    {
+      "path": "input/fat/fs_fat32.c",
+      "bytes": 80927,
+      "sha256": "b0535ba0063f21df481dd63d7acb119443e0579a6bcb4cbc05ce7b2bf48214f3"
+    },
+    {
+      "path": "input/fat/fs_fat32.h",
+      "bytes": 55578,
+      "sha256": "abd38bc82efe7df1b8832201354c52c560ff6a61df15fe7c464dc61f601f1cc1"
+    },
+    {
+      "path": "input/fat/fs_fat32attrib.c",
+      "bytes": 5206,
+      "sha256": "73ca278e7c567814380e311b9fcd8aa0ac8444d3f2e0ef265a232ca94b087de2"
+    },
+    {
+      "path": "input/fat/fs_fat32dirent.c",
+      "bytes": 92674,
+      "sha256": "15cbd508592c69cce05c6d938c9c920db5548aefc49ed2aed472bf0ffe41720b"
+    },
+    {
+      "path": "input/fat/fs_fat32util.c",
+      "bytes": 61019,
+      "sha256": "b13ce7aedda3bd4b93d0ecd405ecfde8036fc9b52cc21bf25000c31a3dc766c5"
+    },
+    {
+      "path": "input/fat/Kconfig",
+      "bytes": 9655,
+      "sha256": "9d3b8db3906de0f356dffaba408f27f24b5e2ac680596ba94c214f83f9aaaf16"
+    },
+    {
+      "path": "prepare_candidate.py",
+      "bytes": 4522,
+      "sha256": "dd7bbf5dcd8bce195915595d20a171fb8f13f99e8a5f2c2f9540463a1809328a"
+    },
+    {
+      "path": "run_tests.py",
+      "bytes": 5498,
+      "sha256": "90fe9826f199ea670fb4936348654dea6a79589f5dd65ae1469b803aeb269975"
+    },
+    {
+      "path": "seal_delivery.py",
+      "bytes": 1859,
+      "sha256": "53f9199c272b2cb8ef78a95360904c96c091883b7fcfd2b4e65545392dea26a6"
+    },
+    {
+      "path": "tests/candidate-preprocess.c",
+      "bytes": 5412,
+      "sha256": "f086a45ff1683df06cc1746a26a87aee83fd395a4e1e7b2f0179fc6bc5667bfc"
+    },
+    {
+      "path": "tests/compat.h",
+      "bytes": 4302,
+      "sha256": "1ca7b84d3cdab30191409a3a3818f6dc55bacc255f81354e404eb2a91753c654"
+    },
+    {
+      "path": "tests/default_candidate.c",
+      "bytes": 7541,
+      "sha256": "5e603e4447efe00a929dcd83fd65080170757bd3bb8b67db0bb18e3499356e06"
+    },
+    {
+      "path": "tests/default_checks.py",
+      "bytes": 2831,
+      "sha256": "14a5244b61d96784efc54edc48890080381a1f89eafd764eb2cb69e75d87aef2"
+    },
+    {
+      "path": "tests/default_original.c",
+      "bytes": 7346,
+      "sha256": "2f6b0e85a714c0ea7afbb3483d019397b86c120dd104365a9038c4141c74235d"
+    },
+    {
+      "path": "tests/original-preprocess.c",
+      "bytes": 5195,
+      "sha256": "74ed424e8cfa11c3fc993796db0fecc56fbbc3f3b86eeb05af6e49fb3420e99f"
+    },
+    {
+      "path": "tests/readonly-preprocess.c",
+      "bytes": 5412,
+      "sha256": "f086a45ff1683df06cc1746a26a87aee83fd395a4e1e7b2f0179fc6bc5667bfc"
+    },
+    {
+      "path": "tests/selected_ro.c",
+      "bytes": 89014,
+      "sha256": "dc4851e1ec69d4263df6a819c6c76143f2f926e16fc9a6d251d39d5c7cd14656"
+    }
+  ]
+}

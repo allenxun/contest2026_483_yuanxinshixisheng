@@ -1,0 +1,268 @@
+{
+  "exit_code": 0,
+  "command": [
+    "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-g++",
+    "CMakeFiles/nuttx.dir/arch/arm64/src/common/arm64_head.S.o",
+    "CMakeFiles/nuttx.dir/empty.cxx.o",
+    "CMakeFiles/nuttx.dir/empty.c.o",
+    "/dev/shm/velavision-ort-session-20260911/link-attempt2/session.o",
+    "--entry=__start",
+    "-nostdlib",
+    "-Wl,--gc-sections",
+    "-Wl,-cref,-Map=/dev/shm/velavision-ort-session-20260911/firmware-link1/nuttx.map",
+    "-Wl,--print-memory-usage",
+    "-Wl,--no-warn-rwx-segments",
+    "-T/dev/shm/velavision_audio_sound_20260910/dramboot.ld.tmp",
+    "-Wl,--undefined=k7_ort_add_probe",
+    "-o",
+    "/dev/shm/velavision-ort-session-20260911/firmware-link1/nuttx",
+    "-Wl,--start-group",
+    "apps/system/nsh/libapps_nsh.a",
+    "apps/system/nsh/libapps_sh.a",
+    "apps/system/ping/libapps_ping.a",
+    "apps/wireless/bluetooth/btsak/libapps_bt.a",
+    "apps/examples/gimbal/libapps_gimbal.a",
+    "apps/examples/hello/libapps_hello.a",
+    "apps/examples/k7arena/libapps_k7arena.a",
+    "apps/examples/k7audio/libapps_k7audio.a",
+    "apps/examples/k7cxx/libapps_k7cxx.a",
+    "apps/examples/k7eh/libapps_k7eh.a",
+    "apps/examples/k7emmc/libapps_k7emmc.a",
+    "apps/examples/k7graph/libapps_k7graph.a",
+    "apps/examples/k7host/libapps_k7host.a",
+    "apps/examples/k7load/libapps_k7load.a",
+    "apps/examples/k7mem/libapps_k7mem.a",
+    "apps/examples/k7neon/libapps_k7neon.a",
+    "apps/examples/k7npu/libapps_k7npu.a",
+    "apps/examples/k7radio/libapps_k7radio.a",
+    "apps/examples/k7smp/libapps_k7smp.a",
+    "apps/examples/k7sound/libapps_k7sound.a",
+    "apps/examples/k7storage/libapps_k7storage.a",
+    "apps/examples/k7usb/libapps_k7usb.a",
+    "apps/examples/voicelink/libapps_k7voice.a",
+    "apps/libapps.a",
+    "apps/external/android/libandroid.a",
+    "apps/external/libjpeg-turbo/libturbojpeg-static.a",
+    "apps/builtin/libapps_builtin.a",
+    "libs/libxx/libcxx/liblibcxx.a",
+    "libs/libxx/libcxxabi/liblibcxxabi.a",
+    "arch/libarch.a",
+    "binfmt/libbinfmt.a",
+    "drivers/libdrivers.a",
+    "fs/libfs.a",
+    "libs/libc/libc.a",
+    "mm/libmm.a",
+    "net/libnet.a",
+    "sched/libsched.a",
+    "wireless/libwireless.a",
+    "boards/libboard.a",
+    "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/../lib/gcc/aarch64-none-elf/13.4.0/libgcc.a",
+    "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/../lib/gcc/aarch64-none-elf/13.4.0/../../../../aarch64-none-elf/lib/libm.a",
+    "-Wl,--end-group"
+  ],
+  "base_firmware_sha256": "bfb023f13279bb7b2bae84ac9e0102386c904a977fa00538257400ab0bfd7708",
+  "runtime_sha256": "bad4bf018ef10914394d3114e5a869574f89665c5cf52e0f242ac73ecbbbf183",
+  "inputs": [
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/CMakeFiles/nuttx.dir/arch/arm64/src/common/arm64_head.S.o",
+      "sha256": "ca6dee2d737a6b3031af42e4340f761855daf20d393b689bef969d3d2681c61f"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/CMakeFiles/nuttx.dir/empty.cxx.o",
+      "sha256": "42b0837f714aa03f592cdd64d7d13a2de7eca6117e5a7a5852ceb58fb3cce07a"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/CMakeFiles/nuttx.dir/empty.c.o",
+      "sha256": "e771adab1bb35c943f461620999c6c4190ed315a88e6cdf54f04a3b30917ceec"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/system/nsh/libapps_nsh.a",
+      "sha256": "4a367d72c26f6c830c244ea799ddf70632907525b770b65cea44c874309b924a"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/system/nsh/libapps_sh.a",
+      "sha256": "7c219a1ac88f5d0f0c59de1a01f2bb9fd79485f88588d7c5f7515973b140c330"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/system/ping/libapps_ping.a",
+      "sha256": "39f7d5832e73c27efeb1ee9aa8013cd62981f4707d2df907a7ca6072bb8ad982"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/wireless/bluetooth/btsak/libapps_bt.a",
+      "sha256": "960c23734daa4af03a85223fc0ca2e295922026139478f81d218e6fac0ff9ddb"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/gimbal/libapps_gimbal.a",
+      "sha256": "6b515c19c9138ee54a8041a661a601f01c9c81498e34e821f5534fc75aac4b6c"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/hello/libapps_hello.a",
+      "sha256": "abc7df0bc90c0176fd2d99cdab9f222886d15cf44d7ab16774578ad51cc4371b"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7arena/libapps_k7arena.a",
+      "sha256": "1a2bbdca8c83805e1fc55152c192e161d39b561f4cd83ecebc7b5e4acd98a6aa"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7audio/libapps_k7audio.a",
+      "sha256": "ff4f240a9757f2353a6852ee32ca5a4c81861353330110203117ca0d59baa834"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7cxx/libapps_k7cxx.a",
+      "sha256": "855bc8d44a38934df9c4161692e0777c5760bd89b4ae3c0181fdcf40fb9c576f"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7eh/libapps_k7eh.a",
+      "sha256": "8f1cbe90792bc77a5ef3f50408f749e35f1a88021f0362f04c310c929d747877"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7emmc/libapps_k7emmc.a",
+      "sha256": "4dc5ca51f2ccbfa78ba43c595e4af5a1ffdbd9d7b06896209720e7f2c9611398"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7graph/libapps_k7graph.a",
+      "sha256": "260851d6e247fd0649cf1f6ddb8f5fb8a84bad2fbec16325ab5f61e35bdbd5ef"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7host/libapps_k7host.a",
+      "sha256": "4949fb13acf165d7e68b115f29507b0b214be79cc03bdad6f65dc83270ca5618"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7load/libapps_k7load.a",
+      "sha256": "444254bf380f40a2e1cac0af821ea2a62013cc4782d3c386a9c48a9e3aa3074a"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7mem/libapps_k7mem.a",
+      "sha256": "e425501fc3bafb32fcc9b283ad60bbb9b6f23f006e37884af8ce3471ce3b698f"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7neon/libapps_k7neon.a",
+      "sha256": "fb46dc18047b31c7a2756851e5d600db18bb2fbedcf49741ebc3ffc70d3aaea8"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7npu/libapps_k7npu.a",
+      "sha256": "a8d8c9ad357db995f794cbf8b4508c14ed2a68a4fff1d8ad1ccd4696d57e6000"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7radio/libapps_k7radio.a",
+      "sha256": "aadce2cccaa85a64d1aae30febb2bcc71034c47b119c90ca365ed43b01517b7d"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7smp/libapps_k7smp.a",
+      "sha256": "8ce066ee5a2317a11f0c7f43c040a5404ac4d090856721b4d18e5eac3a0c74c4"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7sound/libapps_k7sound.a",
+      "sha256": "3fadd4cc2adde10d57975d7fdb75a8ceb6b977968f748541e6774c8a6f298842"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7storage/libapps_k7storage.a",
+      "sha256": "0e22cf9ed1463c6912cbfd1f8c2fdbb3e711e2034a5f775c4d6c88b54b46237d"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/k7usb/libapps_k7usb.a",
+      "sha256": "f6c8d2615a1d876c7ab3945664dc8db09aad9cae2e21103e9c733dd644e4e23b"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/examples/voicelink/libapps_k7voice.a",
+      "sha256": "e91a1c6481f82596e4979c4ce2e42e2237190f99ed5d6d4ddd5535c63a028d7d"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/libapps.a",
+      "sha256": "57bfaea7b57b3535dff55944ea6da2890fb72036c15f3d407ba37f775e676d92"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/external/android/libandroid.a",
+      "sha256": "0d6f2985462df6e26747e65439e8a78feb8449ea9e0f86395e7938205a179fcf"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/external/libjpeg-turbo/libturbojpeg-static.a",
+      "sha256": "39486a24ee6cf9ae82cfa2ddebf778e3e57b010041c7e6026714cf00b08587ec"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/apps/builtin/libapps_builtin.a",
+      "sha256": "4ac2e50dcbb1e00d85ff461a152fcd8801ca4bbc1919a73fceef797dec14508a"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/libs/libxx/libcxx/liblibcxx.a",
+      "sha256": "7a7ac9f398e3c1a7bec1c7c37305b641fc863161bf8a4d519703bd6490cd8a64"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/libs/libxx/libcxxabi/liblibcxxabi.a",
+      "sha256": "156aed523296025149cd7a337d06a8785a8657ca21c4c1820f6f2f4df3c85da4"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/arch/libarch.a",
+      "sha256": "ab594c7f25c5678fb64e03504181c316a42216ffefd37c67fc32335247334745"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/binfmt/libbinfmt.a",
+      "sha256": "f8911a2a01596cdf920b330c6c93d607806b5933aa138a686d596798e16b7ac5"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/drivers/libdrivers.a",
+      "sha256": "f8d39e2616d2b7f4a8251155dae3e021f6f2152c87ea4c37adbdc4ecf4485244"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/fs/libfs.a",
+      "sha256": "233142e3026760140c28b2c12a3e6ccb0fe2144eccb131b0fde1cd0be118e5ff"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/libs/libc/libc.a",
+      "sha256": "7ee32a4f4fbd74e22bbd5f73070ed786061e7f618c174f76c45ea1e96255fb8e"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/mm/libmm.a",
+      "sha256": "2b35c974457587ddb3f15f63ef06a7eb70565f1e9675ec88809ba7491664813e"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/net/libnet.a",
+      "sha256": "c3303e272a5ff49a71e2201424c1a84df48013e6ec584eac3c5edb14fb2fb972"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/sched/libsched.a",
+      "sha256": "c8d41cc277cef646972b0c32abb9a2d29f84033b7a61c2b19f82221981c2ac94"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/wireless/libwireless.a",
+      "sha256": "e96e72e8edcafbe5cb480985b2a17595060ab79b50b8dfe58dcff4cb5b50fd9c"
+    },
+    {
+      "path": "/dev/shm/velavision_audio_sound_20260910/boards/libboard.a",
+      "sha256": "1fd93b7d0f15ce4580f301e6ab3f813438343f9861e7aea61cc34e8459953489"
+    },
+    {
+      "path": "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/../lib/gcc/aarch64-none-elf/13.4.0/libgcc.a",
+      "sha256": "70cf6fa3db4cdad31d53959fd1d89f9b4264df773c27f11f68fd84705b6fcfc8"
+    },
+    {
+      "path": "/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/../lib/gcc/aarch64-none-elf/13.4.0/../../../../aarch64-none-elf/lib/libm.a",
+      "sha256": "fc7dc72354a5b5d0fc5b2e47831bdb3dae179ae9349677f2fde3205e1095008d"
+    }
+  ],
+  "board_loaded": false,
+  "model_run": false,
+  "command_registered": false,
+  "elf_sha256": "2fcbf3412712f530a44757012195086ff4706a0951fd050d31d62a127bdbb3a8",
+  "loads": [
+    {
+      "start": "0x40400000",
+      "end": "0x40b27000",
+      "file_bytes": 7499776,
+      "memory_bytes": 7499776
+    },
+    {
+      "start": "0x40b27000",
+      "end": "0x40dfe000",
+      "file_bytes": 2977792,
+      "memory_bytes": 2977792
+    },
+    {
+      "start": "0x40dfe000",
+      "end": "0x4129a000",
+      "file_bytes": 37168,
+      "memory_bytes": 4833280
+    }
+  ],
+  "memory_end": "0x4129a000"
+}

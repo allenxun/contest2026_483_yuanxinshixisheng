@@ -1,0 +1,13 @@
+command: powershell -NoProfile -ExecutionPolicy Bypass -File .\run_host_tests.ps1
+working_directory: E:\openvela\VelaVision\work-in-progress\parallel-dns-client-sol
+compiler: D:\software\mingw64\mingw64\bin\gcc.exe
+result:
+PASS dns_client_tests=9
+PASS dns_client_tests=9
+exit_code: 0
+
+additional_adapter_host_check:
+gcc -std=c11 -Wall -Wextra -Werror -pedantic -D_POSIX_C_SOURCE=200809L -DCONFIG_NETDB_DNSCLIENT_SEND_TIMEOUT=1 -DCONFIG_NETDB_DNSCLIENT_RECV_TIMEOUT=1 -DCONFIG_NETDB_DNSCLIENT_RETRIES=1 -Iinclude -c src/vv_dns_nuttx.c -o out/vv_dns_nuttx_hostcheck.o
+result: not compiled on Windows because this MinGW installation has no netdb.h
+exit_code: 1
+interpretation: expected host toolchain limitation; ARM64/NuttX adapter compilation remains incomplete

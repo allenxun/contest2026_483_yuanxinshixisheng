@@ -1,0 +1,75 @@
+
+/home/swl/openvela/cmake_out/velavision_cxx_eh_20260910/nuttx:     file format elf64-littleaarch64
+
+
+Disassembly of section .text:
+
+00000000404dafc0 <_Unwind_RaiseException_Phase2>:
+    404dafc0:	d11043ff 	sub	sp, sp, #0x410
+    404dafc4:	a9007bfd 	stp	x29, x30, [sp]
+    404dafc8:	910003fd 	mov	x29, sp
+    404dafcc:	a90153f3 	stp	x19, x20, [sp, #16]
+    404dafd0:	aa0003f4 	mov	x20, x0
+    404dafd4:	aa0103f3 	mov	x19, x1
+    404dafd8:	a9025bf5 	stp	x21, x22, [sp, #32]
+    404dafdc:	aa0203f6 	mov	x22, x2
+    404dafe0:	d2800035 	mov	x21, #0x1                   	// #1
+    404dafe4:	f9001bf7 	str	x23, [sp, #48]
+    404dafe8:	14000014 	b	404db038 <_Unwind_RaiseException_Phase2+0x78>
+    404dafec:	350005e0 	cbnz	w0, 404db0a8 <_Unwind_RaiseException_Phase2+0xe8>
+    404daff0:	f941f3e5 	ldr	x5, [sp, #992]
+    404daff4:	52800041 	mov	w1, #0x2                   	// #2
+    404daff8:	52800017 	mov	w23, #0x0                   	// #0
+    404daffc:	b4000165 	cbz	x5, 404db028 <_Unwind_RaiseException_Phase2+0x68>
+    404db000:	f9400282 	ldr	x2, [x20]
+    404db004:	aa1303e4 	mov	x4, x19
+    404db008:	aa1403e3 	mov	x3, x20
+    404db00c:	52800020 	mov	w0, #0x1                   	// #1
+    404db010:	d63f00a0 	blr	x5
+    404db014:	71001c1f 	cmp	w0, #0x7
+    404db018:	540003a0 	b.eq	404db08c <_Unwind_RaiseException_Phase2+0xcc>  // b.none
+    404db01c:	7100201f 	cmp	w0, #0x8
+    404db020:	54000441 	b.ne	404db0a8 <_Unwind_RaiseException_Phase2+0xe8>  // b.any
+    404db024:	35000517 	cbnz	w23, 404db0c4 <_Unwind_RaiseException_Phase2+0x104>
+    404db028:	910006b5 	add	x21, x21, #0x1
+    404db02c:	910103e1 	add	x1, sp, #0x40
+    404db030:	aa1303e0 	mov	x0, x19
+    404db034:	97fffa1c 	bl	404d98a4 <uw_update_context>
+    404db038:	910103e1 	add	x1, sp, #0x40
+    404db03c:	aa1303e0 	mov	x0, x19
+    404db040:	97fffe41 	bl	404da944 <uw_frame_state_for>
+    404db044:	f9418a63 	ldr	x3, [x19, #784]
+    404db048:	f941a261 	ldr	x1, [x19, #832]
+    404db04c:	f9400e82 	ldr	x2, [x20, #24]
+    404db050:	cb41fc61 	sub	x1, x3, x1, lsr #63
+    404db054:	eb01005f 	cmp	x2, x1
+    404db058:	54fffca1 	b.ne	404dafec <_Unwind_RaiseException_Phase2+0x2c>  // b.any
+    404db05c:	35000260 	cbnz	w0, 404db0a8 <_Unwind_RaiseException_Phase2+0xe8>
+    404db060:	f941f3e5 	ldr	x5, [sp, #992]
+    404db064:	b4000305 	cbz	x5, 404db0c4 <_Unwind_RaiseException_Phase2+0x104>
+    404db068:	f9400282 	ldr	x2, [x20]
+    404db06c:	aa1303e4 	mov	x4, x19
+    404db070:	aa1403e3 	mov	x3, x20
+    404db074:	528000c1 	mov	w1, #0x6                   	// #6
+    404db078:	52800097 	mov	w23, #0x4                   	// #4
+    404db07c:	52800020 	mov	w0, #0x1                   	// #1
+    404db080:	d63f00a0 	blr	x5
+    404db084:	71001c1f 	cmp	w0, #0x7
+    404db088:	54fffca1 	b.ne	404db01c <_Unwind_RaiseException_Phase2+0x5c>  // b.any
+    404db08c:	f90002d5 	str	x21, [x22]
+    404db090:	a9407bfd 	ldp	x29, x30, [sp]
+    404db094:	a94153f3 	ldp	x19, x20, [sp, #16]
+    404db098:	a9425bf5 	ldp	x21, x22, [sp, #32]
+    404db09c:	f9401bf7 	ldr	x23, [sp, #48]
+    404db0a0:	911043ff 	add	sp, sp, #0x410
+    404db0a4:	d65f03c0 	ret
+    404db0a8:	a9407bfd 	ldp	x29, x30, [sp]
+    404db0ac:	52800040 	mov	w0, #0x2                   	// #2
+    404db0b0:	a94153f3 	ldp	x19, x20, [sp, #16]
+    404db0b4:	a9425bf5 	ldp	x21, x22, [sp, #32]
+    404db0b8:	f9401bf7 	ldr	x23, [sp, #48]
+    404db0bc:	911043ff 	add	sp, sp, #0x410
+    404db0c0:	d65f03c0 	ret
+    404db0c4:	97fcb538 	bl	404085a4 <abort>
+
+Disassembly of section .vector:

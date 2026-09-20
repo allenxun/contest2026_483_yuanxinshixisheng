@@ -1,0 +1,27 @@
+{
+  "revision": "audio-mmu-20260910",
+  "sha256": "886137227992f07ff1a32ff3662d4de2c799d1baa6fa15238bbba75cfbed2638",
+  "mmu": {
+    "cpu": 0,
+    "reads": 3,
+    "output_pa": "0x2a610000",
+    "device_ngnrne": true,
+    "identity": true,
+    "access_flag": true,
+    "raw": "mmu-20260911-093323.bin",
+    "limits": "Current EL1 page tables and stable registers; not independent TLB/stage2 attestation"
+  },
+  "wifi": {
+    "auth_route": "private serial diagnostic",
+    "wpa2": true,
+    "dhcp_ip": "10.3.0.214",
+    "gateway_sent": 5,
+    "gateway_received": 5
+  },
+  "ble": {
+    "service_registered": true,
+    "client_connected": false,
+    "gatt_tested": false
+  },
+  "audio_noise_fixed": false
+}

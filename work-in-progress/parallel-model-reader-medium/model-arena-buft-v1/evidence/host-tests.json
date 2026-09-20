@@ -1,0 +1,120 @@
+{
+  "utc": "2026-09-10T08:02:03Z",
+  "provider": "fake tiny aligned arena; not K7 hardware",
+  "ggml": "real frozen b5046 libraries",
+  "results": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "--version"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "g++.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-Iinput/include",
+        "-c",
+        "k7_host_buft.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\model-arena-buft-v1\\evidence\\k7_host_buft.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-Iinput/include",
+        "k7_host_buft.cpp",
+        "test_buft.cpp",
+        "-Wl,--start-group",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-cpu.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-base.a",
+        "-Wl,--end-group",
+        "-pthread",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\model-arena-buft-v1\\evidence\\production.exe"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\model-arena-buft-v1\\evidence\\production.exe"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS direct real buft: CPU host support, overflow, padding budget, two buffers, busy owner, zero dummy\nPASS provider OOM/misalignment + test-build wrapper exception rollback, then recovery\nPASS real ggml context: three tensor buffers, set/get, aggregate free and zero ownership\nPASS real ctx multi-buffer partial rollback fail_at=2 budget=512\nPASS real ctx multi-buffer partial rollback fail_at=0 budget=256\n",
+      "stderr": "alloc_tensor_range: failed to allocate K7_ARENA_HOST buffer of size 128\nalloc_tensor_range: failed to allocate K7_ARENA_HOST buffer of size 128\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-Iinput/include",
+        "-DK7_BUFT_TESTING",
+        "k7_host_buft.cpp",
+        "test_buft.cpp",
+        "-Wl,--start-group",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-cpu.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-base.a",
+        "-Wl,--end-group",
+        "-pthread",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\model-arena-buft-v1\\evidence\\injected.exe"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\model-arena-buft-v1\\evidence\\injected.exe"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS direct real buft: CPU host support, overflow, padding budget, two buffers, busy owner, zero dummy\nPASS provider OOM/misalignment + test-build wrapper exception rollback, then recovery\nPASS real ggml context: three tensor buffers, set/get, aggregate free and zero ownership\nPASS real ctx multi-buffer partial rollback fail_at=2 budget=512\nPASS real ctx multi-buffer partial rollback fail_at=0 budget=256\n",
+      "stderr": "alloc_tensor_range: failed to allocate K7_ARENA_HOST buffer of size 128\nalloc_tensor_range: failed to allocate K7_ARENA_HOST buffer of size 128\n"
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\nm.exe",
+        "-g",
+        "--defined-only",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\model-arena-buft-v1\\evidence\\k7_host_buft.o"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "0000000000000000 R .refptr._ZSt7nothrow\n0000000000000000 R _ZTISt9bad_alloc\n0000000000000000 R _ZTISt9exception\n0000000000000000 R _ZTSSt9bad_alloc\n0000000000000000 R _ZTSSt9exception\n0000000000000350 T k7_buft_create\n00000000000004c0 T k7_buft_destroy\n0000000000000530 T k7_buft_get_stats\n0000000000000310 T k7_buft_round_bytes\n",
+      "stderr": ""
+    }
+  ]
+}

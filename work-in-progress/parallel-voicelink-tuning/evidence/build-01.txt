@@ -1,0 +1,8 @@
+src/probe.cpp: In function 'std::string text(const SherpaOnnxOnlineRecognizer*, const SherpaOnnxOnlineStream*)':
+src/probe.cpp:34:3: error: this 'if' clause does not guard... [-Werror=misleading-indentation]
+   34 |   if(!result || !result->text)throw std::runtime_error("null result");return result->text;
+      |   ^~
+src/probe.cpp:34:71: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
+   34 |   if(!result || !result->text)throw std::runtime_error("null result");return result->text;
+      |                                                                       ^~~~~~
+cc1plus.exe: all warnings being treated as errors

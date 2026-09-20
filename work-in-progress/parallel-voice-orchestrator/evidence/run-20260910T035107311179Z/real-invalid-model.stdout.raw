@@ -1,0 +1,11 @@
+sherpa=1.12.14 sha=26aa2fa9
+mark=wav_loaded ms=1
+event tx=1 op=1 kind=0 ok=1 released=0
+mark=asr_load_begin ms=2
+event tx=1 op=2 kind=1 ok=0 released=0
+worker_error=asr load
+mark=release_complete ms=18
+event tx=1 op=3 kind=4 ok=1 released=1
+transcript=
+reply=
+outcome=4

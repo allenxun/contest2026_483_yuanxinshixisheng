@@ -1,0 +1,63 @@
+{
+  "revision": "phone-rpa-20260909",
+  "hardware_tested": false,
+  "address_tests": {
+    "exit_code": 0,
+    "output": "PASS: both roles preserve on-air address/type after identity resolution; first pairing unchanged\n"
+  },
+  "build_exit_code": 0,
+  "artifacts": {
+    "nuttx.bin": {
+      "bytes": 1915896,
+      "sha256": "a615790446aba99a8ee1252e55de5ec83c9b5902772b94a103fff06e18118ae2"
+    },
+    "nuttx": {
+      "bytes": 9387296,
+      "sha256": "d5ca48d3d7cc45dc55b7ca9ecfb25606c91230a2ad569602e391b1269a784802"
+    },
+    ".config": {
+      "bytes": 59493,
+      "sha256": "a30851fab7c5f95ef0a924ac103185bd832b07aac13bd317b31d84fa883365b0"
+    }
+  },
+  "sources": {
+    "app/k7radio/CMakeLists.txt": "e785049fb03198cf45408f7f40776ca72b697c8326878453ffb172a2b2dfb4f2",
+    "app/k7radio/COPYING": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+    "app/k7radio/Kconfig": "ff10583c86c9a4ae02e7c37a8cef5fcc8205cf3c2e7772beb5f04fde2031e474",
+    "app/k7radio/Make.defs": "b19a78521a0ca8b132a4fb6301d09c2f06d9ef7cc51ecbd455ebe7f576ae1dba",
+    "app/k7radio/Makefile": "0327165cf4572085338318389466010bd81d5c9b71a2d21cc1f5de2fcce39a9c",
+    "app/k7radio/cJSON.c": "cf9e08c8524c17406a0d430a47376080aebcdc8e851f7de24d277be61973eaeb",
+    "app/k7radio/cJSON.h": "dd689a2905ad7c4c1d15556f1c7b9ce5cfdf9c8a78e4224ffb4a04d01d050f5f",
+    "app/k7radio/k7radio_main.c": "1ac9f3b28441ef1d0f22426b2cadc85a0d464d977465340118abab33421812aa",
+    "app/k7radio/prov_protocol.c": "cbdf0569cefe7c0e91766f14898e4fe56180aa3a049ad9d14bc16d0ea9faf2a0",
+    "app/k7radio/prov_protocol.h": "0e783ee9dbecfa9a9344297075d9f28843581c52db07f6797a3b0914972fde08",
+    "app/k7radio/prov_service.inc": "56ffa8f505b67e9fa6c87b659940cfcf69991324b48b78717112d070815ae1c7",
+    "app/k7radio/skw_bt.c": "84e6c81e31339149281b67f8eaab14b5736cfe784efaf64b2c96a54bfd72d3f2",
+    "app/k7radio/skw_bt.h": "dae6d9d4a57e8a579a0053343e153e14e3bfd763b7e7805b13d06e7972723e3c",
+    "app/k7radio/skw_bus.c": "1d22090f5d61a422c2eb5dfc68bb93ffaee37d99d544588b15f459d4f818bd10",
+    "app/k7radio/skw_dw.c": "9cb2b99c0d4c2908ebb41169e7c9a0083565baa4a5b724ec56fc27f62b595858",
+    "app/k7radio/skw_dw.h": "73f23020808ffc4f9b4668d7f5fa35e775710d12fa7f14b653c1d6a96ec3a6a7",
+    "app/k7radio/skw_eapol_queue.h": "c7a48eef2e802b46bfce15dae97431f51a663552ce34e8f78320db6af8b62726",
+    "app/k7radio/skw_native.h": "28985b1fbb80f66441b845e7b509725808fcbb572798b6e214a562dabde43e40",
+    "app/k7radio/skw_packet.c": "893317055c054a75a0c37e8728646727758266a9d282e7e02c1187d2e8207643",
+    "app/k7radio/skw_rk3576.c": "c23de6076c091e4957a32ed8623cf15f56e8a28cf510da084704e4235b59d056",
+    "app/k7radio/skw_rk3576.h": "1751ad2ce2b68cae51ba9b68b39cc5531d5065e5411c1dbcedfe16aa4bf40a9d",
+    "app/k7radio/skw_wifi_bss.h": "b62a485c6bd2e196d2b48fd9dd83268011a0ecd6a7de7e346de8c6afea9f69a5",
+    "app/k7radio/skw_wifi_diag.h": "7c0d88bf3f136565a79963ae4e5d6d6c9c984a2697829192e6368f74d6dc6d35",
+    "app/k7radio/skw_wifi_eapol.h": "a47dd63ad16302ca04c66a63dfcc0a898c491e508acbaced10d67fcfcb78e22a",
+    "app/k7radio/skw_wifi_join.h": "db3188786f03be33b50e88035620e81e1c52f62ff5387b95d1a89f0723a2b362",
+    "app/k7radio/skw_wpa_transport.c": "e5fc6004af3f71f389e3b3396e0ddee2f67d06bc8fb03fb880a181a8cc4189de",
+    "app/k7radio/skw_wpa_transport.h": "7184dd151065ff2a5b167ec5abfbd7ed8a4e4ec589cfb1d460ffc8e9a7661f9c",
+    "app/k7radio/wifi_assoc_probe.inc": "1522ef902c91b61f1ca664033a8555d2dca548d080315f9bf3e3bb8804334585",
+    "app/k7radio/wifi_join_probe.inc": "a58b96ad022ec00f599f856d2a12dd51dc7c937f141a5a27c87d116e5b22315d",
+    "port/tracked/nuttx/wireless/bluetooth/Kconfig": "74c602f90935805619a5ff676fae54cb358d2f6d41b42f96c53a7574f179cde1",
+    "port/tracked/nuttx/wireless/bluetooth/bt_att.c": "6e5562e8fb6f29c937b208e2872ca18be934fcc8495dd8782206b01e55880f0d",
+    "port/tracked/nuttx/wireless/bluetooth/bt_buf.c": "3b617b1a08bdc9bd248c268c5b3c12c4962d11f51a9b91354b745e494e74a486",
+    "port/tracked/nuttx/wireless/bluetooth/bt_conn.h": "0499abfb8927b063888b0e452472902b82ed278bb8f820dbf33d7743f4734aa1",
+    "port/tracked/nuttx/wireless/bluetooth/bt_hcicore.c": "82cae2c5a52891943ba67eea59a7accc0fe7fe96f532ee041b71587658353ed6",
+    "port/tracked/nuttx/wireless/bluetooth/bt_keys.c": "093b36366c9ff806c0f477ebbd436a27a12e45dc04fec8b098864af6876c03d6",
+    "port/tracked/nuttx/wireless/bluetooth/bt_l2cap.c": "45ae95ad28b0b7a469e09dcc01b7b45afd685808f21e4203813646738ede9742",
+    "port/tracked/nuttx/wireless/bluetooth/bt_smp.c": "c457d074e77a246578cf9222e7de9a6b6e619f8ebd5de5fcf209e525ab7a9470",
+    "board/kickpi_k7/configs/velavision_integrated_local/defconfig": "98ab2ae7a22c3ec031a56ba0ac067da55c35e69b23b708f92b9657bf84f3ed0e"
+  }
+}

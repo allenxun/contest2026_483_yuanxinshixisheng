@@ -1,0 +1,15 @@
+✔ UTF-8 JSONL handles every fragment width and combined messages (1.9586ms)
+✔ decoder reset removes disconnected partial frame and bounds malformed input (1.0139ms)
+✔ uni adapter discovers, subscribes, reads encryption, scans, and bounds writes (1.4899ms)
+✔ disconnection cancels partial command; late old error cannot reject new request (0.516ms)
+✔ incomplete scan response is not presented as success (0.3228ms)
+✔ scan page keeps passwords disabled with advertised connect=false (0.6036ms)
+✔ scan page keeps passwords disabled with advertised connect=true (0.2566ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65.1251

@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "prompt_returned": true,
+  "elapsed_seconds": 0.031000000002677552,
+  "error": null,
+  "rows": [
+    {
+      "result": 0,
+      "init_raw": 0,
+      "before": 1073741056,
+      "after": 1073741056,
+      "peak": 32768,
+      "checked": 8192,
+      "mismatches": 0,
+      "allocations": 1,
+      "releases": 1,
+      "live": 0,
+      "errors": 0,
+      "quarantine": 0,
+      "range": 1,
+      "returned": 1,
+      "limit": 1048576,
+      "weights": 0
+    }
+  ],
+  "scope": "Real K7 arena plus ggml set/get only; 32KiB normal payload, no graph computation/model/OOM/full-DDR test",
+  "on_timeout": "Observer stops reading; no forced task deletion or speculative resource cleanup"
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "command": "",
+    "output": "\r\nnsh> \u001b[K"
+  },
+  {
+    "command": "k7radio ble-status",
+    "output": "k7radio ble-status\r\nRADIO BLE name=VelaVision K7 connected=0 handle=17 ACL_RX=44 ACL_TX_queued=68\r\nRADIO BLE history connections=1 disconnections=1 last_reason=19 encrypt_status=0 encrypted=0\r\nRADIO ble-status ret=0\r\nnsh> \u001b[K"
+  },
+  {
+    "command": "k7radio wifi-status",
+    "output": "k7radio wifi-status\r\nWIFI status active=0 wifi_connected=0 ip=none gateway=none result=-125\r\nWIFI netdev rx=112 tx=8 dropped=0\r\nWIFI ARP rx_request=0 rx_reply=2 tx_request=1 tx_reply=0 wait_ms=250 retries=5\r\nWIFI AMSDU complete=0 subframes=0 rejected=0\r\nnsh> \u001b[K"
+  }
+]

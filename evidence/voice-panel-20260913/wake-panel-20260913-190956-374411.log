@@ -1,0 +1,558 @@
+
+nsh> [Kk7sound capture-cued 48000
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=00060300 ien=00000000 gpio_version=010219c8 gpio_input=014d3050
+SOUND platform_result=0 version=23073576 repair=fdffffff ack=00000001 idle=00000001
+SOUND mclkout before=0000001f after=0000001d
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=24 settle_ms=1000
+SOUND playback_gain_db=24 dac_attenuation_db=0 maximum=1
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=00000000
+SOUND slot_mask offset=4c value=00000000
+SOUND slot_mask offset=50 value=00000000
+SOUND slot_mask offset=54 value=00000000e frames=3200 stop=0 held=0 end_us=298152300 capture_start_us=298184991
+SOUND pio=0 frames=48000 polls=2293232 stop=0 held=0 max_fifo=4
+SOUND grouped words=768000 mismatches=0
+SOUND fifo first=00000000 last=00000000 TXCR=00400fff RXCR=00700fff FSCR=0101f03f CKR=00000018
+SOUND trace start=298184991 end=301185049 started=1 count=32
+SOUND trace_init index=0 value=00000000 rc=0
+SOUND trace_init index=1 value=00000002 rc=0
+SOUND trace_init index=2 value=00700fff rc=0
+SOUND trace_init index=3 value=000000e4 rc=0
+SOUND trace_init index=4 value=00000000 rc=0
+SOUND trace_init index=5 value=0000000b rc=0
+SOUND trace_word index=0 us=298185076 before=00041041 word=ffe85400 after=00041040 rc=0,0,0
+SOUND trace_word index=1 us=290,0,0
+SOUND trace_word index=2 us=298185079 before=00041040 wor0 rc=0,0,0
+SOUND trace_word index=4 us=298185083 before=0004100040000 rc=0,0,0
+SOUND trace_word index=5 us=298185084 before=0000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=6 us=298185086 before=00040000 word=ffe85400 after=00000000 rc=0,0,0
+SOUND trace_word index=7 us=298185088 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=8 us=298185106 before=00041041 word=0018c800 after=00041040 rc=0,0,0
+SOUND trace_word index=9 us=298185108 before=00041040 word=0000 us=298185110 before=00041040 word=0018c800 after=00041000 rc=0,0,0
+SOUND trace_word index=11 us=298185111 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=12 us=298185113 before=00041000 word=0018c800 after=00040000 rc=0,0,0
+SOUND trace_word index=13 us=298185114 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=14 us=298185116 before=00040000 word=0018c800 after=00000000 rc=0,0,0
+SOUND trace_word index=15 us=298185118 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=16 us=298185138 before=00041041 word=ffe69f00 after=00041040 rc=0,0,0
+SOUND trace_word index=17 us=298185139 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=18 us=298185141 before=00041040 word=ffe69f00 after=00041000 rc=0,0,0
+SOUND trace_word index=19 us=298185142 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=20 us=298185144 before=00041000 word=ffe69f00 after=00040000 rc=0,0,0
+SOUND trace_word index=21 us=298185146 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=22 us=298185147 before=00040000 word=ffe69f00 after=00000000 rc=0,0,0
+SOUND trace_word index=23 us=298185149 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=24 us=298185169 before=00041041 word=00196d00 after=00041040 rc=0,0,0
+SOUND trace_word index=25 us=298185170 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=26 us=298185172 before=00041040 word=00196d00 after=00041000 rc=0,0,0
+SOUND trace_word index=27 us=298185174 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=28 us=298185176 before=00041000 word=00196d00 after=00040000 rc=0,0,0
+SOUND trace_word index=29 us=298185177 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=30 us=298185179 before=00040000 word=00196d00 after=00000000 rc=0,0,0
+SOUND trace_word index=31 us=298185181 before=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND codec reg=00 value=36
+SOUND codec reg=01 value=60
+SOUND codec reg=02 value=00
+SOUND codec reg=03 value=00
+SOUND codec reg=04 value=0c
+SOUND codec reg=05 value=00
+SOUND codec reg=06 value=00
+SOUND codec reg=07 value=7c
+SOUND codec reg=08 value=00
+SOUND codec reg=09 value=88
+SOUND codec reg=0a value=f0
+SOUND codec reg=0b value=82
+SOUND codec reg=0c value=10
+SOUND codec reg=0d value=02
+SOUND codec reg=0f value=20
+SOUND codec reg=17 value=20
+SOUND codec reg=18 value=02
+SOUND codec reg=19 value=06
+SOUND codec reg=1a value=00
+SOUND codec reg=1b value=00
+SOUND codec reg=27 value=b8
+SOUND codec reg=2a value=b8
+SOUND codec reg=2b value=80
+SOUND codec reg=30 value=21
+SOUND codec reg=31 value=21
+SOUND input pull=00005515 schmitt=000000ff path=000000e4 gpio_high=18956 transitions=3679 samples=50000
+SOUND pad ticks=480004 max_gap=35 counter_hz=24000000 complete=1
+SOUND pad channel=0 high=24842 changes=36290
+SOUND pad channel=1 high=24812 changes=40919
+SOUND pad channel=2 high=25029 changes=640
+SOUND pad channel=3 high=18956 changes=3679
+SOUND pcm left_min=-169005056 left_max=191603456 left_nonzero=48000 right_min=-188717568 right_max=165851648 right_nonzero=48000
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [Kk7voice flow-mic-wake
+TLS_CHECK PASS workers=2 destructors=2 main_value=123
+ASR_INFER BEGIN recognizer
+ASR_INFER chunk=1 elapsed=21.978
+ASR_INFER chunk=2 elapsed=23.286
+ASR_INFER chunk=3 elapsed=24.634
+ASR_INFER chunk=4 elapsed=25.958
+ASR_INFER chunk=5 elapsed=27.108
+ASR_INFER RESULT seconds=27.110 bytes=24
+ASR_STORAGE peak=468101988 live=0 records=1264 failures=0 reason=0
+VOICE_FLOW wake_text=你好联网你好联网 bytes=24
+VOICE_PROMPT 你好，我是 openvela，开始为你配置网络
+RADIO Wi-Fi RX type=1 id=2 seq=1 len=522
+RADIO Wi-Fi cmd=2 seq=1 ack=1 status=0 response=512 ret=0
+RADIO Wi-Fi version protocoRADIO Wi-Fi RX type=1 id=1 seq=2 len=244
+RADIO Wi-Fi cmd=1 seq=2 ack=1 status=0 response=234 ret=0
+RADIO Wi-Fi chip-info bytes: bf 1f 00 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00 1f 08 63 01 00 00 0f 00 ff 00 00 00 ff 00 00 00 32 10 90 03 fe ff fe ff 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 60 48 9c b5 17 1c 0c 02 04 0b 16 0c 12 18 24 30 48 60 6c 00 00 00 1f 00 00 00 0c 00 00 01 32 30 32 35 30 36 31 31 2d 30 31 3a 0 00 00 00 00 00 00 00 72 65 76 33 36 34 30 33 00 00 00 00 00 000 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+RADIO Wi-Fi RX type=1 id=50 seq=3 len=10
+RADIO Wi-Fi cmd=50 seq=3 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi calibration seq=0 bytes=512 end=0 ret=0
+RADIO Wi-Fi RX type=1 id=50 seq=4 len=10
+RADIO Wi-Fi cmd=50 seq=4 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi calibration seq=1 bytes=512 end=0 ret=0
+RADIO Wi-Fi RX type=1 id=50 seq=5 len=10
+RADIO Wi-Fi cmd=50 seq=5 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi calibration seq=2 bytes=512 end=0 ret=0
+RADIO Wi-Fi RX type=1 id=50 seq=6 len=10
+RADIO Wi-Fi cmd=50 seq=6 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi calibration seq=3 bytes=512 end=0 ret=0
+RADIO Wi-Fi RX type=1 id=50 seq=7 len=10
+RADIO Wi-Fi cmd=50 seq=7 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi calibration seq=4 bytes=324 end=1 ret=0
+RADIO Wi-Fi RX type=1 id=3 seq=8 len=10
+RADIO Wi-Fi cmd=3 seq=8 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=5 seq=9 len=10
+RADIO Wi-Fi cmd=5 seq=9 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=2 id=11 seq=1 len=348
+RADIO Wi-Fi AP 1 band=0 channel=1 RSSI=-49 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=2 len=346
+RADIO Wi-Fi AP 2 band=0 channel=1 RSSI=-50 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=3 len=341
+RADIO Wi-Fi AP 3 band=0 channel=1 RSSI=-50 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=4 len=335
+RADIO Wi-Fi AP 4 band=0 channel=1 RSSI=-83 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=5 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=6 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=7 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=8 len=348
+RADIO Wi-Fi AP 5 band=0 channel=1 RSSI=-83 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=9 len=346
+RADIO Wi-Fi AP 6 band=0 channel=1 RSSI=-84 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=10 len=341
+RADIO Wi-Fi RX type=2 id=11 seq=11 len=348
+RADIO Wi-Fi AP 7 band=0 channel=1 RSSI=-74 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=12 len=346
+RADIO Wi-Fi AP 8 band=0 channel=1 RSSI=-73 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=13 len=341
+RADIO Wi-Fi AP 9 band=0 channel=1 RSSI=-73 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=14 len=348
+RADIO Wi-Fi RX type=2 id=11 seq=15 len=346
+RADIO Wi-Fi RX type=2 id=11 seq=16 len=341
+RADIO Wi-Fi RX type=2 id=11 seq=17 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=18 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=19 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=20 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=21 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=22 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=23 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=24 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=25 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=26 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=27 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=28 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=29 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=30 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=31 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=32 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=33 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=34 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=35 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=36 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=37 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=38 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=39 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=40 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=41 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=42 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=43 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=44 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=45 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=46 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=47 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=48 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=49 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=50 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=51 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=52 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=53 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=54 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=55 len=348
+RADIO Wi-Fi AP 10 band=0 channel=5 RSSI=-81 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=56 len=346
+RADIO Wi-Fi AP 11 band=0 channel=5 RSSI=-80 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=57 len=341nel=5 RSSI=-80 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=58 len=348
+RADIO Wi-Fi AP 13 band=0 channel=5 RSSI=-72 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=59 len=346
+RADIO Wi-Fi AP 14 band=0 channel=5 RSSI=-72 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=60 len=341
+RADIO Wi-Fi AP 15 band=0 channel=5 RSSI=-72 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=61 len=346
+RADIO Wi-Fi AP 16 band=0 channel=5 RSSI=-89 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=62 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=63 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=64 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=65 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=66 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=67 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=68 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=69 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=70 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=71 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=72 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=73 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=74 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=75 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=76 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=77 len=341
+RADIO Wi-Fi RX type=2 id=11 seq=78 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=79 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=80 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=81 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=82 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=83 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=84 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=85 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=86 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=87 len=348
+RADIO Wi-Fi AP 17 band=0 channel=9 RSSI=-78 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=88 len=346
+RADIO Wi-Fi AP 18 band=0 channel=9 RSSI=-76 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=89 len=341I=-77 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=90 len=348
+RADIO Wi-Fi AP 20 band=0 channel=9 RSSI=-86 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=91 len=346
+RADIO Wi-Fi AP 21 band=0 channel=9 RSSI=-85 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=92 len=341
+RADIO Wi-Fi AP 22 band=0 channel=9 RSSI=-85 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=93 len=348
+RADIO Wi-Fi AP 23 band=0 channel=9 RSSI=-75 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=94 len=346
+RADIO Wi-Fi AP 24 band=0 channel=9 RSSI=-75 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=95 len=341
+RADIO Wi-Fi AP 25 band=0 channel=9 RSSI=-75 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=96 len=348
+RADIO Wi-Fi AP 26 band=0 channel=9 RSSI=-81 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=97 len=346
+RADIO Wi-Fi AP 27 band=0 channel=9 RSSI=-80 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=98 len=341el=9 RSSI=-81 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=99 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=100 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=101 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=102 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=103 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=104 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=105 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=106 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=107 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=108 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=109 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=110 len=346
+RADIO Wi-Fi RX type=2 id=11 seq=111 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=112 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=113 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=114 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=115 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=116 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=117 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=118 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=119 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=120 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=121 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=122 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=123 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=124 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=125 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=126 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=127 len=348
+RADIO Wi-Fi AP 29 band=0 channel=13 RSSI=-76 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=128 len=346
+RADIO Wi-Fi AP 30 band=0 channel=13 RSSI=-76 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=129 len=341
+RADIO Wi-Fi AP 31 band=0 channel=13 RSSI=-76 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=130 len=348
+RADIO Wi-Fi AP 32 band=0 channel=13 RSSI=-59 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=131 len=346
+RADIO Wi-Fi AP 33 band=0 channel=13 RSSI=-59 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=132 len=341
+RADIO Wi-Fi AP 34 band=0 channel=13 RSSI=-59 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=133 len=348
+RADIO Wi-Fi AP 35 band=0 channel=13 RSSI=-84 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=134 len=346
+RADIO Wi-Fi AP 36 band=0 channel=13 RSSI=-82 SSID=Lansee_auto
+RADIO Wi-Fi RX type=2 id=11 seq=135 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=136 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=137 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=138 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=139 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=140 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=141 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=142 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=143 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=144 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=145 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=146 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=147 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=148 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=149 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=150 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=151 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=152 lRADIO Wi-Fi RX type=2 id=11 seq=153 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=154 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=155 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=156 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=157 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=158 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=159 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=160 len=335
+RADIO Wi-Fi AP 37 band=0 channel=13 RSSI=-84 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=161 len=348
+RADIO Wi-Fi RX type=2 id=11 seq=162 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=163 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=164 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=165 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=166 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=167 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=168 len=348
+RADIO Wi-Fi RX type=2 id=11 seq=169 len=346
+RADIO Wi-Fi RX type=2 id=11 seq=170 len=341
+RADIO Wi-Fi RX type=2 id=11 seq=171 len=342
+RADIO Wi-Fi RX type=2 id=11 seq=172 len=340
+RADIO Wi-Fi RX type=2 id=11 seq=173 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=174 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=175 len=335
+RADIO Wi-Fi RX type=2 id=11 seq=176 len=358
+RADIO Wi-Fi AP 38 band=1 channel=36 RSSI=-87 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=177 len=358
+RADIO Wi-Fi AP 39 band=1 channel=36 RSSI=-86 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=178 len=351
+RADIO Wi-Fi AP 40 band=1 channel=36 RSSI=-87 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=179 len=358
+RADIO Wi-Fi AP 41 band=1 channel=36 RSSI=-69 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=180 len=351
+RADIO Wi-Fi AP 42 band=1 channel=36 RSSI=-69 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=181 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=182 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=183 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=184 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=185 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=186 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=187 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=188 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=189 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=190 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=191 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=192 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=193 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=194 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=195 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=196 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=197 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=198 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=199 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=200 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=201 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=202 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=203 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=204 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=205 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=206 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=207 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=208 len=358
+RADIO Wi-Fi AP 43 band=1 channel=44 RSSI=-55 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=209 len=351
+RADIO Wi-Fi AP 44 band=1 channel=44 RRADIO Wi-Fi RX type=2 id=11 seq=210 len=351
+RADIO Wi-Fi AP 45 band=1 channel=44 RSSI=-90 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=211 len=358
+RADIO Wi-Fi AP 46 band=1 channel=44 RSSI=-73 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=212 len=351
+RADIO Wi-Fi AP 47 band=1 channel=44 RSSI=-73 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=213 len=358
+RADIO Wi-Fi AP 48 band=1 channel=44 RSSI=-78 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=214 len=351
+RADIO Wi-Fi AP 49 band=1 channel=44 RSSI=-78 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=215 len=358
+RADIO Wi-Fi AP 50 band=1 channel=44 RSSI=-80 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=216 len=351
+RADIO Wi-Fi AP 51 band=1 channel=44 RSSI=-80 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=217 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=218 len=352
+RADIO Wi-Fi AP 52 band=1 channel=44 RSSI=-81 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=219 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=220 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=221 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=222 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=223 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=224 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=225 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=226 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=227 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=228 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=229 len=352
+RADIO Wi-Fi AP 53 band=1 channel=44 RSSI=-75 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=230 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=231 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=232 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=233 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=234 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=235 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=236 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=237 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=238 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=239 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=240 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=241 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=242 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=243 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=244 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=245 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=246 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=247 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=248 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=249 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=250 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=251 len=352
+RADIO Wi-Fi AP 54 band=1 channel=44 RSSI=-90 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=252 len=352
+RADIO Wi-Fi RX type=2 id=11 seq=253 len=345
+RADIO Wi-Fi RX type=2 id=11 seq=254 len=345
+RADIO Wi-Fi AP 55 band=1 channel=44 RSSI=-77 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=255 len=345
+RADIO Wi-Fi AP 56 band=1 channel=44 RSSI=-80 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=256 len=350
+RADIO Wi-Fi AP 57 band=1 channel=149 RSSI=-74 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=257 len=343
+RADIO Wi-Fi AP 58 band=1 channel=149 RSSI=-74 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=258 len=350
+RADIO Wi-Fi AP 59 band=1 channel=149 RSSI=-82 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=259 len=343
+RADIO Wi-Fi AP 60 band=1 channel=149 RSSI=-86 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=260 len=350
+RADIO Wi-Fi AP 61 band=1 channel=149 RSSI=-92 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=261 len=343
+RADIO Wi-Fi AP 62 band=1 channel=149 RSSI=-92 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=262 len=350
+RADIO Wi-Fi AP 63 band=1 channel=149 RSSI=-87 SSID=Lansee_vistor
+RADIO Wi-Fi RX type=2 id=11 seq=263 len=343
+RADIO Wi-Fi AP 64 band=1 channel=149 RSSI=-87 SSID=Lansee
+RADIO Wi-Fi RX type=2 id=11 seq=264 len=350
+RADIO Wi-Fi RX type=2 id=11 seq=265 len=343
+RADIO Wi-Fi RX type=2 id=11 seq=266 len=350
+RADIO Wi-Fi RX type=2 id=11 seq=267 len=343
+RADIO Wi-Fi RX type=2 id=11 seq=268 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=269 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=270 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=271 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=272 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=273 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=274 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=275 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=276 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=277 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=278 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=279 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=280 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=281 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=282 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=283 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=284 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=285 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=286 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=287 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=288 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=289 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=290 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=291 len=350
+RADIO Wi-Fi RX type=2 id=11 seq=292 len=343
+RADIO Wi-Fi RX type=2 id=11 seq=293 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=294 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=295 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=296 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=297 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=298 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=299 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=300 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=301 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=302 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=303 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=304 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=305 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=306 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=307 len=350
+RADIO Wi-Fi RX type=2 id=11 seq=308 len=343
+RADIO Wi-Fi RX type=2 id=11 seq=309 len=350
+RADIO Wi-Fi RX type=2 id=11 seq=310 len=343
+RADIO Wi-Fi RX type=2 id=11 seq=311 len=350
+RADIO Wi-Fi RX type=2 id=11 seq=312 len=343
+RADIO Wi-Fi RX type=2 id=11 seq=313 len=350
+RADIO Wi-Fi RX type=2 id=11 seq=314 len=343
+RADIO Wi-Fi RX type=2 id=11 seq=315 len=350
+RADIO Wi-Fi RX type=2 id=11 seq=316 len=343
+RADIO Wi-Fi RX type=2 id=11 seq=317 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=318 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=319 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=320 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=321 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=322 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=323 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=324 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=325 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=326 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=327 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=328 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=329 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=330 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=331 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=332 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=333 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=334 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=335 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=336 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=337 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=338 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=339 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=340 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=341 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=342 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=343 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=344 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=345 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=346 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=347 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=348 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=349 len=350
+RADIO Wi-Fi RX type=2 id=11 seq=350 len=343
+RADIO Wi-Fi RX type=2 id=11 seq=351 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=352 len=343
+RADIO Wi-Fi RX type=2 id=11 seq=353 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=354 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=355 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=356 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=357 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=358 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=359 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=360 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=361 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=362 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=363 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=364 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=365 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=366 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=367 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=368 len=337
+RADIO Wi-Fi RX type=2 id=11 seq=369 len=344
+RADIO Wi-Fi RX type=2 id=11 seq=370 len=337
+RADIO Wi-Fi RX type=2 id=0 seq=371 len=8
+RADIO Wi-Fi RX type=1 id=4 seq=10 len=10
+RADIO Wi-Fi cmd=4 seq=10 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi passivVOICE_PROMPT 发现以下网络。网络一，Lansee。网络二，Lansee_vistor。网络三，Lansee_auto。请选择网络。VOICE_FLOW mic_state=2 grammar=1 count=3
+nsh> [K

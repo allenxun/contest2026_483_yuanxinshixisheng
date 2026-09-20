@@ -1,0 +1,41 @@
+{
+  "commands": [
+    {
+      "name": "build",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-mcu-contract\\evidence-20260910T065849603780Z\\pack_oracle.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-mcu-contract\\evidence-20260910T065849603780Z\\pack_oracle.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "oracle",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-mcu-contract\\evidence-20260910T065849603780Z\\pack_oracle.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "unittest",
+      "command": [
+        "C:\\Users\\pc2025\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "-v",
+        "test_contract"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "c_source_pack_parity": true,
+  "changed_inputs": [],
+  "passed": true,
+  "scope": "offline Windows host only; no hardware, ACK, CAN or actuator validation"
+}

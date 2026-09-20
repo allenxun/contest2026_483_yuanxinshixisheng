@@ -1,0 +1,103 @@
+{
+  "revision": "audio-gain-20260910",
+  "firmware_sha256": "0a68990a8b36f3e38154959a5ed33f209d0bf5a6c6a825f36ae2c06959246f9f",
+  "observations": [
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6914048,
+        "sha256": "0a68990a8b36f3e38154959a5ed33f209d0bf5a6c6a825f36ae2c06959246f9f"
+      },
+      "command": "k7sound capture 48000",
+      "prompt": true,
+      "elapsed_seconds": 4.187000000005355,
+      "raw_sha256": "bcb661af5f14228cbb57b0288c196def3ab39cdfcdfaed47ee274f220effaf5d",
+      "raw": "k7sound-capture-48000-20260910-202120.bin"
+    },
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6914048,
+        "sha256": "0a68990a8b36f3e38154959a5ed33f209d0bf5a6c6a825f36ae2c06959246f9f"
+      },
+      "command": "k7sound replay-max",
+      "prompt": true,
+      "elapsed_seconds": 3.2030000000086147,
+      "raw_sha256": "c269a4e4e74f804a87d79ff3043ca286cc74cf82936224f42b6d3273a97e65ff",
+      "raw": "k7sound-replay-max-20260910-202132.bin"
+    },
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6914048,
+        "sha256": "0a68990a8b36f3e38154959a5ed33f209d0bf5a6c6a825f36ae2c06959246f9f"
+      },
+      "command": "k7sound replay-max",
+      "prompt": true,
+      "elapsed_seconds": 3.2039999999979045,
+      "raw_sha256": "79b97c761d714bf6aae617c6fb93b5d6fc42cd245a1660609cd53a1ef0a86e99",
+      "raw": "k7sound-replay-max-20260910-202206.bin"
+    },
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6914048,
+        "sha256": "0a68990a8b36f3e38154959a5ed33f209d0bf5a6c6a825f36ae2c06959246f9f"
+      },
+      "command": "k7sound dump",
+      "prompt": true,
+      "elapsed_seconds": 7.577999999994063,
+      "raw_sha256": "b256c5983a155675ff3f067159f526986bc87dfeb548f1821a6fdc69fc6d2a45",
+      "raw": "k7sound-dump-20260910-202148.bin"
+    },
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6914048,
+        "sha256": "0a68990a8b36f3e38154959a5ed33f209d0bf5a6c6a825f36ae2c06959246f9f"
+      },
+      "command": "k7sound replay 24",
+      "prompt": true,
+      "elapsed_seconds": 3.2189999999973224,
+      "raw_sha256": "131b6b8c283df5db0f27a97f734d53614fb8074c2b33db693bab62b7bd2282da",
+      "raw": "k7sound-replay-24-20260910-202449.bin"
+    },
+    {
+      "image": {
+        "entry": "0x40400000",
+        "memory_bytes": 6914048,
+        "sha256": "0a68990a8b36f3e38154959a5ed33f209d0bf5a6c6a825f36ae2c06959246f9f"
+      },
+      "command": "k7sound replay-max",
+      "prompt": true,
+      "elapsed_seconds": 3.2030000000086147,
+      "raw_sha256": "93d8beaa8a3577497a0c7e3c0c2a03148b03717566505c703a3be87c3d59a00f",
+      "raw": "k7sound-replay-max-20260910-202524.bin"
+    }
+  ],
+  "max_registers_confirmed": true,
+  "human_feedback": "听的清楚但是有一些杂声；后续补充：而且要仔细听才能听清楚说什么",
+  "voice_playback_passed": false,
+  "microphone_audio_passed": false,
+  "periodic_zero_samples_unresolved": true,
+  "captured_frames": 48000,
+  "capture_seconds_measured": 3.000052,
+  "extraction": "voice-max-first/extraction.json",
+  "board_state": {
+    "console": "NSH",
+    "audio_stopped": true,
+    "amp_low": true,
+    "radio_started": false,
+    "serial_observer_running": false
+  },
+  "basic_record_and_board_replay_confirmed": true,
+  "acceptance_scope": "Recorded voice is audible and identifiable with effort, with noise. Clear usable voice not accepted.",
+  "lower_volume_comparison": {
+    "report": "k7sound-replay-24-20260910-202332.json",
+    "dac_db": 0,
+    "out2_db": -15,
+    "human_feedback": "pending"
+  },
+  "last_playback": "Maximum volume at user request; 48000 frames, result/stop0, amplifier off at completion",
+  "clear_voice_accepted": false
+}

@@ -1,0 +1,2 @@
+同句柄填入持久模型缓冲区并SHA256校验。调用者先分配模型池存储；成功只表示字节和文件关闭通过，不表示模型语义合法或Session可创建。保持MR_POSIX_TRUSTED_FILES默认关闭，待真实只读普通文件挂载政策核实后才接入。
+20项主机真实文件测试在O0/O2均通过，故障通过MR_TESTING注入，未部署；真实NuttX ARM64编译通过。完整命令见evidence/result.json，原生证据见主仓evidence/native-buffer-loader-compile-20260911。取消仅在分块边界检查，不承诺可中断存储驱动内部阻塞。

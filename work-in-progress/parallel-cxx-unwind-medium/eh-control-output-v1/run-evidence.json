@@ -1,0 +1,10 @@
+{
+  "command": [
+    "C:\\Program Files\\Python36\\python.exe",
+    "-B",
+    "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\eh-control-output-v1\\test_accept_output.py"
+  ],
+  "exit_code": 0,
+  "output": "PASS frozen-command-2\nPASS frozen-command-3\nPASS frozen-command-4\nPASS frozen-command-5\nPASS frozen-command-7\nPASS frozen-command-9\nPASS frozen-command-10\nPASS frozen-command-12\nPASS frozen-command-14\nPASS missing-preheat\nPASS late-preheat\nPASS missing-worker\nPASS missing-final\nPASS missing-begin\nPASS duplicate-worker\nPASS duplicate-preheat\nPASS duplicate-begin\nPASS duplicate-final\nPASS wrong-worker-id\nPASS wrong-caught\nPASS wrong-cleaned\nPASS wrong-errors\nPASS wrong-created\nPASS wrong-joined\nPASS wrong-requested-cpu\nPASS wrong-cpu-mismatch\nPASS fail-final\nPASS crash-after-pass\nPASS duplicate-field\nPASS truncated-field\nPASS early-final\nPASS interleaved\nPASS unexpected-record\nPASS wrong-mode\nPASS single-unexpected-preheat\nPASS host-not-target\nPASS synthetic-target-good\nPASS synthetic-target-wrong-cpu\nPASS target-not-host\nPASS serial-background-and-crlf\nPASS bad-clock\ncases=41 cli=2 all_passed=True hardware_tested=False\n",
+  "hardware_tested": false
+}

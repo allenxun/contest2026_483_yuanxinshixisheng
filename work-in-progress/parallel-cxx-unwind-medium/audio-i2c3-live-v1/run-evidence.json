@@ -1,0 +1,59 @@
+{
+  "scope": "synthetic host C only",
+  "results": [
+    {
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O0",
+        "live.c",
+        "i2c3_timing.c",
+        "test_live.c",
+        "-o",
+        "test-O0.exe"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-live-v1\\test-O0.exe"
+      ],
+      "exit_code": 0,
+      "stdout": "timing clkdiv=000e000e con=00051200\r\nPASS actual live C: TX RX NAK data-timeout STOP-timeout cleanup frozen-clock busy lines GPIO; synthetic only\r\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "gcc",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "live.c",
+        "i2c3_timing.c",
+        "test_live.c",
+        "-o",
+        "test-O2.exe"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\audio-i2c3-live-v1\\test-O2.exe"
+      ],
+      "exit_code": 0,
+      "stdout": "timing clkdiv=000e000e con=00051200\r\nPASS actual live C: TX RX NAK data-timeout STOP-timeout cleanup frozen-clock busy lines GPIO; synthetic only\r\n",
+      "stderr": ""
+    }
+  ]
+}

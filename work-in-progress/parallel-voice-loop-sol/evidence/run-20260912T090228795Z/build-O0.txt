@@ -1,0 +1,84 @@
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:103:13: error: expected ')' before 'config'
+  103 |   Rig(Config config = {}) : controller(tts, wifi, clock), loop(controller, capture, asr, clock, config) {}
+      |      ~      ^~~~~~~
+      |             )
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:103:25: error: expected unqualified-id before ')' token
+  103 |   Rig(Config config = {}) : controller(tts, wifi, clock), loop(controller, capture, asr, clock, config) {}
+      |                         ^
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp: In function 'void securedSuccess()':
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:126:7: error: use of deleted function 'Rig::Rig()'
+  126 |   Rig r; enterPassword(r);
+      |       ^
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note: 'Rig::Rig()' is implicitly deleted because the default definition would be ill-formed:
+   99 | struct Rig {
+      |        ^~~
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: error: no matching function for call to 'voicelink::Controller::Controller()'
+In file included from E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\include/voice_loop.hpp:3,
+                 from E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:1:
+E:\openvela\VelaVision\app\voicelink\include/voicelink/controller.hpp:12:3: note: candidate: 'voicelink::Controller::Controller(voicelink::TtsPort&, voicelink::WifiPort&, voicelink::ClockPort&, voicelink::Config)'
+   12 |   Controller(TtsPort& tts, WifiPort& wifi, ClockPort& clock, Config config = {});
+      |   ^~~~~~~~~~
+E:\openvela\VelaVision\app\voicelink\include/voicelink/controller.hpp:12:3: note:   candidate expects 4 arguments, 0 provided
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: error: no matching function for call to 'voice_loop::Loop::Loop()'
+   99 | struct Rig {
+      |        ^~~
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\include/voice_loop.hpp:63:3: note: candidate: 'voice_loop::Loop::Loop(voicelink::Controller&, voice_loop::CapturePort&, voice_loop::AsrPort&, voicelink::ClockPort&, voice_loop::Config)'
+   63 |   Loop(voicelink::Controller& controller, CapturePort& capture, AsrPort& asr,
+      |   ^~~~
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\include/voice_loop.hpp:63:3: note:   candidate expects 5 arguments, 0 provided
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp: In function 'void openNetwork()':
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:136:7: error: use of deleted function 'Rig::Rig()'
+  136 |   Rig r; r.wifi.aps = {{"Cafe", -10, false}};
+      |       ^
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp: In function 'void scanFailureAndCancel()':
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:145:7: error: use of deleted function 'Rig::Rig()'
+  145 |   Rig r; r.wifi.scan_terminal = ScanStatus::Failed;
+      |       ^
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:148:7: error: use of deleted function 'Rig::Rig()'
+  148 |   Rig c; CHECK(c.loop.start()); c.asr.hold = true; c.readyForSpeech(); c.tick();
+      |       ^
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp: In function 'void timeoutsAndClock()':
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:154:23: error: no matching function for call to 'Rig::Rig(<brace-enclosed initializer list>)'
+  154 |   Rig r({5, 7, 1, 512}); r.capture.hold = true;
+      |                       ^
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note: candidate: 'Rig::Rig()' (deleted)
+   99 | struct Rig {
+      |        ^~~
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note:   candidate expects 0 arguments, 1 provided
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note: candidate: 'Rig::Rig(const Rig&)' (deleted)
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note:   no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const Rig&'
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note: candidate: 'Rig::Rig(Rig&&)' (deleted)
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note:   no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'Rig&&'
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:157:24: error: no matching function for call to 'Rig::Rig(<brace-enclosed initializer list>)'
+  157 |   Rig a({20, 5, 1, 512}); a.asr.hold = true;
+      |                        ^
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note: candidate: 'Rig::Rig()' (deleted)
+   99 | struct Rig {
+      |        ^~~
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note:   candidate expects 0 arguments, 1 provided
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note: candidate: 'Rig::Rig(const Rig&)' (deleted)
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note:   no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const Rig&'
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note: candidate: 'Rig::Rig(Rig&&)' (deleted)
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note:   no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'Rig&&'
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:160:7: error: use of deleted function 'Rig::Rig()'
+  160 |   Rig c; CHECK(c.loop.start()); c.readyForSpeech(); c.clock.now = 0; c.loop.tick();
+      |       ^
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp: In function 'void staleAndConnectionFailure()':
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:165:7: error: use of deleted function 'Rig::Rig()'
+  165 |   Rig r; r.asr.hold = true; r.asr.stale_once = true;
+      |       ^
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:169:7: error: use of deleted function 'Rig::Rig()'
+  169 |   Rig f; enterPassword(f); f.wifi.connect_terminal = ConnectStatus::WrongPassword;
+      |       ^
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp: In function 'void invalidTextAndEnd()':
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:178:23: error: no matching function for call to 'Rig::Rig(<brace-enclosed initializer list>)'
+  178 |   Rig r({20, 20, 1, 8}); CHECK(r.loop.start()); r.asr.texts.push_back("文本内容超过限制");
+      |                       ^
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note: candidate: 'Rig::Rig()' (deleted)
+   99 | struct Rig {
+      |        ^~~
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note:   candidate expects 0 arguments, 1 provided
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note: candidate: 'Rig::Rig(const Rig&)' (deleted)
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note:   no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const Rig&'
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note: candidate: 'Rig::Rig(Rig&&)' (deleted)
+E:\openvela\VelaVision\work-in-progress\parallel-voice-loop-sol\tests\test_voice_loop.cpp:99:8: note:   no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'Rig&&'

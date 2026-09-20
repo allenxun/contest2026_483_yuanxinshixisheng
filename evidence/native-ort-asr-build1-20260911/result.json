@@ -1,0 +1,25 @@
+{
+  "exit_code": 0,
+  "timeout": false,
+  "seconds": 1844.5345657419966,
+  "command": [
+    "/dev/shm/cmake-3.28.3-linux-x86_64/bin/cmake",
+    "--build",
+    "/home/swl/openvela/work/native-ort-asr-20260911/build",
+    "--target",
+    "onnxruntime_session",
+    "onnxruntime_mlas",
+    "onnxruntime_framework",
+    "onnxruntime_optimizer",
+    "onnxruntime_providers",
+    "onnxruntime_graph",
+    "onnxruntime_util",
+    "onnxruntime_common",
+    "onnxruntime_flatbuffers",
+    "nsync_cpp",
+    "-j4"
+  ],
+  "linked": false,
+  "model_run": false,
+  "config_sha256": "bb38ba17b65b76433c18c69e7ed5c7669fbe8f69e01aaa7b44bbad0c9448c056"
+}

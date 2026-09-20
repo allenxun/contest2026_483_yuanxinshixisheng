@@ -1,0 +1,431 @@
+--- a/drivers/usbhost/usbhost_storage.c
++++ b/drivers/usbhost/usbhost_storage.c
+@@ -116,6 +116,10 @@
+   /* The remainder of the fields are provide to the mass storage class */
+ 
+   char                    sdchar;       /* Character identifying the /dev/sd[n] device */
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  bool                    bot_failed;   /* Latched until a new instance */
++  uint32_t                next_tag;
++#endif
+   volatile bool           disconnected; /* TRUE: Device has been disconnected */
+   uint8_t                 ifno;         /* Interface number */
+   int16_t                 crefs;        /* Reference count on the driver instance */
+@@ -646,6 +650,154 @@
+  *
+  ****************************************************************************/
+ 
++#ifdef CONFIG_USBHOST_MSC_READONLY
++/* Caller serializes with priv->lock, or is the unpublished connect path.
++ * Never restart a partially issued BOT transaction. A new class instance
++ * after re-enumeration is required after a transport/protocol failure. */
++static int usbhost_bot_failed(FAR struct usbhost_state_s *priv)
++{
++  priv->bot_failed = true;
++  uerr("MSC checked BOT failed; re-enumeration required\n");
++  return -EIO;
++}
++
++static int usbhost_checked_command(FAR struct usbhost_state_s *priv,
++                                  FAR struct usbmsc_cbw_s *cbw,
++                                  FAR uint8_t *data, size_t datalen,
++                                  bool allow_not_ready)
++{
++  FAR struct usbhost_hubport_s *hport = priv->usbclass.hport;
++  uint32_t tag;
++  ssize_t nbytes;
++
++  if (priv->disconnected || priv->bot_failed)
++    {
++      return -ENODEV;
++    }
++
++  /* cbw, data and the received CSW may share tbuffer. Save before IN. */
++
++  tag = usbhost_getle32(cbw->tag);
++  nbytes = DRVR_TRANSFER(hport->drvr, priv->bulkout,
++                        (FAR uint8_t *)cbw, USBMSC_CBW_SIZEOF);
++  if (nbytes != USBMSC_CBW_SIZEOF)
++    {
++      return usbhost_bot_failed(priv);
++    }
++
++  if (datalen != 0)
++    {
++      nbytes = DRVR_TRANSFER(hport->drvr, priv->bulkin, data, datalen);
++      if (nbytes != (ssize_t)datalen)
++        {
++          return usbhost_bot_failed(priv);
++        }
++    }
++
++  nbytes = DRVR_TRANSFER(hport->drvr, priv->bulkin,
++                        priv->tbuffer, USBMSC_CSW_SIZEOF);
++  if (nbytes != USBMSC_CSW_SIZEOF ||
++      usbhost_getle32(priv->tbuffer) != UINT32_C(0x53425355) ||
++      usbhost_getle32(priv->tbuffer + 4) != tag ||
++      usbhost_getle32(priv->tbuffer + 8) != 0 ||
++      (priv->tbuffer[12] != 0 &&
++       !(allow_not_ready && priv->tbuffer[12] == 1)))
++    {
++      return usbhost_bot_failed(priv);
++    }
++
++  return OK;
++}
++
++static int usbhost_checked_capacity(FAR struct usbhost_state_s *priv)
++{
++  FAR struct usbmsc_cbw_s *cbw;
++  uint8_t response[8];
++  uint32_t last;
++  uint32_t blocksize;
++  int ret;
++
++  cbw = usbhost_cbwalloc(priv);
++  if (!cbw)
++    {
++      return -ENOMEM;
++    }
++
++  usbhost_readcapacitycbw(cbw);
++  /* xHCI's DMA bounce path handles this small caller-owned buffer. */
++
++  ret = usbhost_checked_command(priv, cbw, response, sizeof(response), false);
++  if (ret < 0)
++    {
++      return ret;
++    }
++
++  last = usbhost_getbe32(response);
++  blocksize = usbhost_getbe32(response + 4);
++  if (last == UINT32_MAX ||
++      (blocksize != 512 && blocksize != 1024 &&
++       blocksize != 2048 && blocksize != 4096))
++    {
++      return usbhost_bot_failed(priv);
++    }
++
++  priv->nblocks = last + 1;
++  priv->blocksize = blocksize;
++  return OK;
++}
++
++static ssize_t usbhost_checked_read(FAR struct inode *inode,
++                                   FAR unsigned char *buffer,
++                                   blkcnt_t startsector,
++                                   unsigned int nsectors)
++{
++  FAR struct usbhost_state_s *priv = inode->i_private;
++  FAR struct usbmsc_cbw_s *cbw;
++  int ret = nxmutex_lock(&priv->lock);
++
++  if (ret < 0)
++    {
++      return ret;
++    }
++
++  if (priv->disconnected || priv->bot_failed)
++    {
++      ret = -ENODEV;
++    }
++  else if (buffer == NULL || priv->blocksize == 0 ||
++           startsector < 0 || (uint64_t)startsector > UINT32_MAX ||
++           (uint64_t)startsector >= priv->nblocks || nsectors == 0 ||
++           nsectors > UINT16_MAX ||
++           nsectors > priv->nblocks - (uint64_t)startsector ||
++           nsectors > 4096u / priv->blocksize)
++    {
++      ret = -EINVAL;
++    }
++  else
++    {
++      cbw = usbhost_cbwalloc(priv);
++      if (!cbw)
++        {
++          ret = -ENOMEM;
++        }
++      else
++        {
++          usbhost_readcbw(startsector, priv->blocksize, nsectors, cbw);
++          ret = usbhost_checked_command(priv, cbw, buffer,
++                                        priv->blocksize * nsectors, false);
++          if (ret == OK)
++            {
++              ret = nsectors;
++            }
++        }
++    }
++
++  nxmutex_unlock(&priv->lock);
++  return ret;
++}
++#endif
++
++
+ static inline int usbhost_maxlunreq(FAR struct usbhost_state_s *priv)
+ {
+   FAR struct usb_ctrlreq_s *req = (FAR struct usb_ctrlreq_s *)priv->tbuffer;
+@@ -670,6 +822,12 @@
+   hport = priv->usbclass.hport;
+ 
+   ret = DRVR_CTRLIN(hport->drvr, hport->ep0, req, priv->tbuffer);
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  if (ret < 0 && ret != -EPERM)
++    {
++      return usbhost_bot_failed(priv);
++    }
++#endif
+   if (ret < 0)
+     {
+       /* Devices that do not support multiple LUNs may stall this command.
+@@ -684,6 +842,17 @@
+ 
+ static inline int usbhost_testunitready(FAR struct usbhost_state_s *priv)
+ {
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  FAR struct usbmsc_cbw_s *cbw = usbhost_cbwalloc(priv);
++  if (!cbw)
++    {
++      return -ENOMEM;
++    }
++
++  usbhost_testunitreadycbw(cbw);
++  return usbhost_checked_command(priv, cbw, priv->tbuffer, 0, true);
++#else
++
+   FAR struct usbhost_hubport_s *hport;
+   FAR struct usbmsc_cbw_s *cbw;
+   ssize_t nbytes;
+@@ -718,10 +887,23 @@
+     }
+ 
+   return nbytes < 0 ? (int)nbytes : OK;
++
++#endif
+ }
+ 
+ static inline int usbhost_requestsense(FAR struct usbhost_state_s *priv)
+ {
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  FAR struct usbmsc_cbw_s *cbw = usbhost_cbwalloc(priv);
++  if (!cbw)
++    {
++      return -ENOMEM;
++    }
++
++  usbhost_requestsensecbw(cbw);
++  return usbhost_checked_command(priv, cbw, priv->tbuffer, SCSIRESP_FIXEDSENSEDATA_SIZEOF, false);
++#else
++
+   FAR struct usbhost_hubport_s *hport;
+   FAR struct usbmsc_cbw_s *cbw;
+   ssize_t nbytes;
+@@ -763,10 +945,16 @@
+     }
+ 
+   return nbytes < 0 ? (int)nbytes : OK;
++
++#endif
+ }
+ 
+ static inline int usbhost_readcapacity(FAR struct usbhost_state_s *priv)
+ {
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  return usbhost_checked_capacity(priv);
++#else
++
+   FAR struct usbhost_hubport_s *hport;
+   FAR struct usbmsc_cbw_s *cbw;
+   FAR struct scsiresp_readcapacity10_s *resp;
+@@ -816,10 +1004,23 @@
+     }
+ 
+   return nbytes < 0 ? (int)nbytes : OK;
++
++#endif
+ }
+ 
+ static inline int usbhost_inquiry(FAR struct usbhost_state_s *priv)
+ {
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  FAR struct usbmsc_cbw_s *cbw = usbhost_cbwalloc(priv);
++  if (!cbw)
++    {
++      return -ENOMEM;
++    }
++
++  usbhost_inquirycbw(cbw);
++  return usbhost_checked_command(priv, cbw, priv->tbuffer, SCSIRESP_INQUIRY_SIZEOF, false);
++#else
++
+   FAR struct usbhost_hubport_s *hport;
+   FAR struct usbmsc_cbw_s *cbw;
+   ssize_t nbytes;
+@@ -868,6 +1069,8 @@
+     }
+ 
+   return nbytes < 0 ? (int)nbytes : OK;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -1224,6 +1427,12 @@
+ 
+   uinfo("Get max LUN\n");
+   ret = usbhost_maxlunreq(priv);
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  if (ret < 0)
++    {
++      goto checked_done;
++    }
++#endif
+ 
+   for (retries = 0; retries < USBHOST_MAX_RETRIES; retries++)
+     {
+@@ -1333,6 +1542,9 @@
+       ret = register_blockdriver(devname, &g_bops, 0, priv);
+     }
+ 
++#ifdef CONFIG_USBHOST_MSC_READONLY
++checked_done:
++#endif
+   /* Decrement the reference count.  We incremented the reference count
+    * above so that usbhost_destroy() could not be called.  We now have to
+    * be concerned about asynchronous modification of crefs because the block
+@@ -1642,6 +1854,9 @@
+   cbw = (FAR struct usbmsc_cbw_s *)priv->tbuffer;
+   memset(cbw, 0, sizeof(struct usbmsc_cbw_s));
+   usbhost_putle32(cbw->signature, USBMSC_CBW_SIGNATURE);
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  usbhost_putle32(cbw->tag, ++priv->next_tag);
++#endif
+   return cbw;
+ }
+ 
+@@ -1902,7 +2117,11 @@
+    */
+ 
+   flags = spin_lock_irqsave(&priv->spinlock);
+-  if (priv->disconnected)
++  if (priv->disconnected
++#ifdef CONFIG_USBHOST_MSC_READONLY
++      || priv->bot_failed
++#endif
++     )
+     {
+       /* No... the block driver is no longer bound to the class.  That means
+        * that the USB storage device is no longer connected.  Refuse any
+@@ -1988,6 +2207,10 @@
+ static ssize_t usbhost_read(FAR struct inode *inode, unsigned char *buffer,
+                             blkcnt_t startsector, unsigned int nsectors)
+ {
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  return usbhost_checked_read(inode, buffer, startsector, nsectors);
++#else
++
+   FAR struct usbhost_state_s *priv;
+   FAR struct usbhost_hubport_s *hport;
+   ssize_t nbytes = 0;
+@@ -2086,6 +2309,8 @@
+   /* On success, return the number of blocks read */
+ 
+   return nbytes < 0 ? (int)nbytes : nsectors;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -2101,6 +2326,14 @@
+                              FAR const unsigned char *buffer,
+                              blkcnt_t startsector, unsigned int nsectors)
+ {
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  (void)inode;
++  (void)buffer;
++  (void)startsector;
++  (void)nsectors;
++  return -EROFS;
++#else
++
+   FAR struct usbhost_state_s *priv;
+   FAR struct usbhost_hubport_s *hport;
+   ssize_t nbytes;
+@@ -2189,6 +2422,8 @@
+   /* On success, return the number of blocks written */
+ 
+   return nbytes < 0 ? (int)nbytes : nsectors;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -2201,6 +2436,38 @@
+ static int usbhost_geometry(FAR struct inode *inode,
+                             FAR struct geometry *geometry)
+ {
++#ifdef CONFIG_USBHOST_MSC_READONLY
++  FAR struct usbhost_state_s *priv = inode->i_private;
++  int ret;
++  if (geometry == NULL)
++    {
++      return -EINVAL;
++    }
++
++  ret = nxmutex_lock(&priv->lock);
++  if (ret < 0)
++    {
++      return ret;
++    }
++
++  memset(geometry, 0, sizeof(*geometry));
++  if (priv->disconnected || priv->bot_failed)
++    {
++      ret = -ENODEV;
++    }
++  else
++    {
++      geometry->geo_available = true;
++      geometry->geo_writeenabled = false;
++      geometry->geo_nsectors = priv->nblocks;
++      geometry->geo_sectorsize = priv->blocksize;
++      ret = OK;
++    }
++
++  nxmutex_unlock(&priv->lock);
++  return ret;
++#else
++
+   FAR struct usbhost_state_s *priv;
+   int ret = -EINVAL;
+ 
+@@ -2241,6 +2508,8 @@
+     }
+ 
+   return ret;
++
++#endif
+ }
+ 
+ /****************************************************************************
+--- a/drivers/usbhost/Kconfig
++++ b/drivers/usbhost/Kconfig
+@@ -129,6 +129,17 @@
+ 	depends on !BULK_DISABLE
+ 	---help---
+ 		Enable support for the mass storage class driver.
++
++config USBHOST_MSC_READONLY
++	bool "Checked read-only USB MSC diagnostic mode"
++	default n
++	depends on USBHOST_MSC
++	---help---
++		Reject block writes, report read-only geometry and restrict READ10 to
++		4 KiB with checked capacity and exact BOT response lengths. Transport
++		or protocol errors disable this class instance until re-enumeration.
++		This conservative mode applies to all MSC instances; it does not add
++		BOT reset recovery or support for read-only FAT mounts.
+ 
+ config USBHOST_MSC_NOTIFIER
+ 	bool "Support USB Mass Storage notifications"

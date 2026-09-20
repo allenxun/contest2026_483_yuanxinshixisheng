@@ -1,0 +1,99 @@
+
+/home/swl/openvela/cmake_out/velavision_cxx_eh_20260910/nuttx:     file format elf64-littleaarch64
+
+
+Disassembly of section .text:
+
+00000000404db494 <_Unwind_RaiseException>:
+    404db494:	d13043ff 	sub	sp, sp, #0xc10
+    404db498:	a9007bfd 	stp	x29, x30, [sp]
+    404db49c:	910003fd 	mov	x29, sp
+    404db4a0:	d50320ff 	xpaclri
+    404db4a4:	a90107e0 	stp	x0, x1, [sp, #16]
+    404db4a8:	913043e1 	add	x1, sp, #0xc10
+    404db4ac:	a9020fe2 	stp	x2, x3, [sp, #32]
+    404db4b0:	aa1e03e2 	mov	x2, x30
+    404db4b4:	a90353f3 	stp	x19, x20, [sp, #48]
+    404db4b8:	aa0003f3 	mov	x19, x0
+    404db4bc:	910303e0 	add	x0, sp, #0xc0
+    404db4c0:	a9045bf5 	stp	x21, x22, [sp, #64]
+    404db4c4:	a90563f7 	stp	x23, x24, [sp, #80]
+    404db4c8:	a9066bf9 	stp	x25, x26, [sp, #96]
+    404db4cc:	a90773fb 	stp	x27, x28, [sp, #112]
+    404db4d0:	6d0827e8 	stp	d8, d9, [sp, #128]
+    404db4d4:	6d092fea 	stp	d10, d11, [sp, #144]
+    404db4d8:	6d0a37ec 	stp	d12, d13, [sp, #160]
+    404db4dc:	6d0b3fee 	stp	d14, d15, [sp, #176]
+    404db4e0:	97fffe34 	bl	404dadb0 <uw_init_context_1>
+    404db4e4:	911203e0 	add	x0, sp, #0x480
+    404db4e8:	910303e1 	add	x1, sp, #0xc0
+    404db4ec:	d2807802 	mov	x2, #0x3c0                 	// #960
+    404db4f0:	97fcba29 	bl	40409d94 <memcpy>
+    404db4f4:	1400000d 	b	404db528 <_Unwind_RaiseException+0x94>
+    404db4f8:	350004e2 	cbnz	w2, 404db594 <_Unwind_RaiseException+0x100>
+    404db4fc:	f945f3e5 	ldr	x5, [sp, #3040]
+    404db500:	b40000e5 	cbz	x5, 404db51c <_Unwind_RaiseException+0x88>
+    404db504:	f9400262 	ldr	x2, [x19]
+    404db508:	d63f00a0 	blr	x5
+    404db50c:	7100181f 	cmp	w0, #0x6
+    404db510:	54000460 	b.eq	404db59c <_Unwind_RaiseException+0x108>  // b.none
+    404db514:	7100201f 	cmp	w0, #0x8
+    404db518:	540003e1 	b.ne	404db594 <_Unwind_RaiseException+0x100>  // b.any
+    404db51c:	912103e1 	add	x1, sp, #0x840
+    404db520:	911203e0 	add	x0, sp, #0x480
+    404db524:	97fff8e0 	bl	404d98a4 <uw_update_context>
+    404db528:	912103e1 	add	x1, sp, #0x840
+    404db52c:	911203e0 	add	x0, sp, #0x480
+    404db530:	97fffd05 	bl	404da944 <uw_frame_state_for>
+    404db534:	2a0003e2 	mov	w2, w0
+    404db538:	52800021 	mov	w1, #0x1                   	// #1
+    404db53c:	911203e4 	add	x4, sp, #0x480
+    404db540:	aa1303e3 	mov	x3, x19
+    404db544:	2a0103e0 	mov	w0, w1
+    404db548:	7100145f 	cmp	w2, #0x5
+    404db54c:	54fffd61 	b.ne	404db4f8 <_Unwind_RaiseException+0x64>  // b.any
+    404db550:	d2800004 	mov	x4, #0x0                   	// #0
+    404db554:	2a0203e0 	mov	w0, w2
+    404db558:	a9407bfd 	ldp	x29, x30, [sp]
+    404db55c:	a94107e0 	ldp	x0, x1, [sp, #16]
+    404db560:	a9420fe2 	ldp	x2, x3, [sp, #32]
+    404db564:	a94353f3 	ldp	x19, x20, [sp, #48]
+    404db568:	a9445bf5 	ldp	x21, x22, [sp, #64]
+    404db56c:	a94563f7 	ldp	x23, x24, [sp, #80]
+    404db570:	a9466bf9 	ldp	x25, x26, [sp, #96]
+    404db574:	a94773fb 	ldp	x27, x28, [sp, #112]
+    404db578:	6d4827e8 	ldp	d8, d9, [sp, #128]
+    404db57c:	6d492fea 	ldp	d10, d11, [sp, #144]
+    404db580:	6d4a37ec 	ldp	d12, d13, [sp, #160]
+    404db584:	6d4b3fee 	ldp	d14, d15, [sp, #176]
+    404db588:	913043ff 	add	sp, sp, #0xc10
+    404db58c:	8b2463ff 	add	sp, sp, x4
+    404db590:	d65f03c0 	ret
+    404db594:	52800062 	mov	w2, #0x3                   	// #3
+    404db598:	17ffffee 	b	404db550 <_Unwind_RaiseException+0xbc>
+    404db59c:	f943cbe4 	ldr	x4, [sp, #1936]
+    404db5a0:	910303e1 	add	x1, sp, #0xc0
+    404db5a4:	f943e3e3 	ldr	x3, [sp, #1984]
+    404db5a8:	d2807802 	mov	x2, #0x3c0                 	// #960
+    404db5ac:	911203e0 	add	x0, sp, #0x480
+    404db5b0:	cb43fc83 	sub	x3, x4, x3, lsr #63
+    404db5b4:	a9010e7f 	stp	xzr, x3, [x19, #16]
+    404db5b8:	97fcb9f7 	bl	40409d94 <memcpy>
+    404db5bc:	912103e2 	add	x2, sp, #0x840
+    404db5c0:	911203e1 	add	x1, sp, #0x480
+    404db5c4:	aa1303e0 	mov	x0, x19
+    404db5c8:	97fffe7e 	bl	404dafc0 <_Unwind_RaiseException_Phase2>
+    404db5cc:	2a0003e2 	mov	w2, w0
+    404db5d0:	71001c1f 	cmp	w0, #0x7
+    404db5d4:	54fffbe1 	b.ne	404db550 <_Unwind_RaiseException+0xbc>  // b.any
+    404db5d8:	911203e1 	add	x1, sp, #0x480
+    404db5dc:	910303e0 	add	x0, sp, #0xc0
+    404db5e0:	97fff54c 	bl	404d8b10 <uw_install_context_1>
+    404db5e4:	aa0003e4 	mov	x4, x0
+    404db5e8:	f943cbe0 	ldr	x0, [sp, #1936]
+    404db5ec:	f943cfe1 	ldr	x1, [sp, #1944]
+    404db5f0:	97ffffa8 	bl	404db490 <_Unwind_DebugHook>
+    404db5f4:	f90007a1 	str	x1, [x29, #8]
+    404db5f8:	17ffffd7 	b	404db554 <_Unwind_RaiseException+0xc0>
+
+Disassembly of section .vector:

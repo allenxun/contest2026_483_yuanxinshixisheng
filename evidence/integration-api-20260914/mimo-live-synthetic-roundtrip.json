@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-09-14T17:27:45.7628024+08:00",
+  "endpoint": "https://token-plan-cn.xiaomimimo.com/v1/chat/completions",
+  "auth": "Authorization Bearer (credential omitted)",
+  "tts": {
+    "bytes": 53804,
+    "model": "mimo-v2.5-tts",
+    "elapsed_ms": 1173,
+    "bits_per_sample": 16,
+    "sample_rate_hz": 24000,
+    "text": "你好联网",
+    "voice": "白桦",
+    "sha256": "db541a7ca572fefbf60cc94333c896ccb0d90a1f1a74830d3ac2e6f61087db6d",
+    "channels": 1,
+    "container": "wav"
+  },
+  "asr": {
+    "transcript": "你好，林老。",
+    "elapsed_ms": 706,
+    "language": "zh",
+    "input": "same synthetic TTS WAV",
+    "model": "mimo-v2.5-asr"
+  },
+  "credential_recorded": false
+}

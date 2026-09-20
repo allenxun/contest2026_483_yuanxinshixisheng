@@ -1,0 +1,16 @@
+Collecting onnx==1.17.0
+  Downloading onnx-1.17.0-cp312-cp312-win_amd64.whl.metadata (16 kB)
+Collecting psutil==6.1.1
+  Downloading psutil-6.1.1-cp37-abi3-win_amd64.whl.metadata (23 kB)
+Collecting numpy>=1.20 (from onnx==1.17.0)
+  Downloading numpy-2.5.3-cp312-cp312-win_amd64.whl.metadata (6.6 kB)
+Collecting protobuf>=3.20.2 (from onnx==1.17.0)
+  Downloading protobuf-7.36.1-cp310-abi3-win_amd64.whl.metadata (595 bytes)
+Downloading onnx-1.17.0-cp312-cp312-win_amd64.whl (14.5 MB)
+   ---------------------------------------- 14.5/14.5 MB 6.3 MB/s eta 0:00:00
+Downloading psutil-6.1.1-cp37-abi3-win_amd64.whl (254 kB)
+Downloading numpy-2.5.3-cp312-cp312-win_amd64.whl (12.6 MB)
+   ---------------------------------------- 12.6/12.6 MB 14.6 MB/s eta 0:00:00
+Downloading protobuf-7.36.1-cp310-abi3-win_amd64.whl (456 kB)
+Installing collected packages: psutil, protobuf, numpy, onnx
+Successfully installed numpy-2.5.3 onnx-1.17.0 protobuf-7.36.1 psutil-6.1.1

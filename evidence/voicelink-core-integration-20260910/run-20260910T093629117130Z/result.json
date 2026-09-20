@@ -1,0 +1,82 @@
+{
+  "hardware_tested": false,
+  "scope": "formal C++ core, simulated audio/Wi-Fi",
+  "source_before": {
+    "app\\voicelink\\include\\voicelink\\controller.hpp": "43440be365fa4b9e262ea04d668c76261bb86db29e6d96ed9fbf5a1fa7f45d7d",
+    "app\\voicelink\\include\\voicelink\\parsers.hpp": "5205f1e9e1d95386789054e4d1bd07762874e2edaae2453399d75cecd0cf764a",
+    "app\\voicelink\\include\\voicelink\\ports.hpp": "5bbd12bd9565b9971fe4610a7a0339a1c6081c31a776cc590241c3b57f8b5bd8",
+    "app\\voicelink\\include\\voicelink\\types.hpp": "5f4b0ccc8e16f0264342ffed3c6273831d79cd16477748437e1d22f4bed28c86",
+    "app\\voicelink\\src\\core.cpp": "e5723690ce771a14df3113db13face803d8494ee891117ab79b76bb061cf60cb",
+    "app\\voicelink\\src\\parsers.cpp": "914a9a6734d9e442eca9e34acf3c8811a98b6a7af2d18f72d2b7b1192f1ae8ce",
+    "app\\voicelink\\tests\\test_flow.cpp": "a8543cb3409f4ca569c7017208efb419e99ff18dc3b56ce4fbbcb604dc0844f2"
+  },
+  "steps": [
+    {
+      "name": "compile-O0",
+      "argv": [
+        "D:/software/mingw64/mingw64/bin/g++.exe",
+        "-std=c++17",
+        "-O0",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-IE:\\openvela\\VelaVision\\app\\voicelink\\include",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\core.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\parsers.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\tests\\test_flow.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260910T093629117130Z\\flow-O0.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "run-O0",
+      "argv": [
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260910T093629117130Z\\flow-O0.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "compile-O2",
+      "argv": [
+        "D:/software/mingw64/mingw64/bin/g++.exe",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-IE:\\openvela\\VelaVision\\app\\voicelink\\include",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\core.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\src\\parsers.cpp",
+        "E:\\openvela\\VelaVision\\app\\voicelink\\tests\\test_flow.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260910T093629117130Z\\flow-O2.exe"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "run-O2",
+      "argv": [
+        "E:\\openvela\\VelaVision\\evidence\\voicelink-core-integration-20260910\\run-20260910T093629117130Z\\flow-O2.exe"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "passed": true,
+  "source_after": {
+    "app\\voicelink\\include\\voicelink\\controller.hpp": "43440be365fa4b9e262ea04d668c76261bb86db29e6d96ed9fbf5a1fa7f45d7d",
+    "app\\voicelink\\include\\voicelink\\parsers.hpp": "5205f1e9e1d95386789054e4d1bd07762874e2edaae2453399d75cecd0cf764a",
+    "app\\voicelink\\include\\voicelink\\ports.hpp": "5bbd12bd9565b9971fe4610a7a0339a1c6081c31a776cc590241c3b57f8b5bd8",
+    "app\\voicelink\\include\\voicelink\\types.hpp": "5f4b0ccc8e16f0264342ffed3c6273831d79cd16477748437e1d22f4bed28c86",
+    "app\\voicelink\\src\\core.cpp": "e5723690ce771a14df3113db13face803d8494ee891117ab79b76bb061cf60cb",
+    "app\\voicelink\\src\\parsers.cpp": "914a9a6734d9e442eca9e34acf3c8811a98b6a7af2d18f72d2b7b1192f1ae8ce",
+    "app\\voicelink\\tests\\test_flow.cpp": "a8543cb3409f4ca569c7017208efb419e99ff18dc3b56ce4fbbcb604dc0844f2"
+  },
+  "source_unchanged": true
+}

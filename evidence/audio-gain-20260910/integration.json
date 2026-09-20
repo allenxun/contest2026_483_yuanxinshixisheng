@@ -1,0 +1,27 @@
+{
+  "revision": "audio-gain-20260910",
+  "firmware_sha256": "0a68990a8b36f3e38154959a5ed33f209d0bf5a6c6a825f36ae2c06959246f9f",
+  "elf_sha256": "a09434851a822a4df12a72e63c469ff2d10f6aa26483bc271e689705b47697c8",
+  "change": "Explicit DAC gain levels and legal maximum output; original capture/PIO unchanged",
+  "max_registers": {
+    "1a": "00",
+    "1b": "00",
+    "30": "21",
+    "31": "21"
+  },
+  "max_dac_db": 0,
+  "max_out2_db": 4.5,
+  "unit_tests": "Candidate frozen O0/O2 original1309 + gain/max5832 checks each; mocks only",
+  "candidate_manifests": [
+    "gain-candidate-delivery.json",
+    "maxvolume-candidate-delivery.json"
+  ],
+  "hardware_tested": false,
+  "sources": {
+    "k7sound_main.c": "7038be5c22cdfe2ef71abf74530edb7f2029b5673d92a80fac4e942c8ff2d8c1",
+    "codec_duplex.c": "1e95c356cee39815404df43991420b44c3f4acb804c28b702f994065bf579200",
+    "codec_duplex.h": "ade5a141e796aa67ec8d87551785c8f1be17524cc46a96c729478e1aafa7f7ea",
+    "pio.c": "c7b7a883f2c02df6e1e12ade45603f2e2d17671704ea8a313e7c1a6bacda0289",
+    "pio.h": "df44059ec82979d9bbea22807b0147bb95bb7136fca9a7c9925eb6d854b546e6"
+  }
+}

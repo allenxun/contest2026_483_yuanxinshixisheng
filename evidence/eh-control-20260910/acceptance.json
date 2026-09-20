@@ -1,0 +1,77 @@
+{
+  "recorded_utc": "2026-09-10T08:14:45.160533+00:00",
+  "control_firmware_sha256": "bc1ec4b367e5eb46f3f629ef69658aae316cbb938f0eb4627b22d39f9cecdf29",
+  "modes": {
+    "single": {
+      "mode": "single",
+      "passed": true,
+      "prompt_returned": true,
+      "elapsed_seconds": 0.031000000002677552,
+      "error": null,
+      "workers": [
+        {
+          "worker": 0,
+          "caught": 1,
+          "cleaned": 3,
+          "errors": 0,
+          "cpu": 5,
+          "requested_cpu": 5,
+          "cpu_mismatch": 0,
+          "first_begin": 317976004582,
+          "first_end": 317976071957
+        }
+      ],
+      "preheat_pass": false,
+      "joined_summary": true,
+      "scope": "One fresh-boot control, not general concurrent unwinder safety or overlap proof",
+      "on_failure": "No forced task deletion/free; preserve output and restore baseline"
+    },
+    "warm1": {
+      "mode": "warm1",
+      "passed": true,
+      "prompt_returned": true,
+      "elapsed_seconds": 0.03200000000651926,
+      "error": null,
+      "workers": [
+        {
+          "worker": 0,
+          "caught": 1,
+          "cleaned": 3,
+          "errors": 0,
+          "cpu": 4,
+          "requested_cpu": 4,
+          "cpu_mismatch": 0,
+          "first_begin": 38529006416,
+          "first_end": 38529046374
+        },
+        {
+          "worker": 1,
+          "caught": 1,
+          "cleaned": 3,
+          "errors": 0,
+          "cpu": 5,
+          "requested_cpu": 5,
+          "cpu_mismatch": 0,
+          "first_begin": 38529007874,
+          "first_end": 38529046957
+        }
+      ],
+      "preheat_pass": true,
+      "joined_summary": true,
+      "scope": "One fresh-boot control, not general concurrent unwinder safety or overlap proof",
+      "on_failure": "No forced task deletion/free; preserve output and restore baseline"
+    }
+  },
+  "cold_two_worker_prior_passed": false,
+  "general_thread_safety_proven": false,
+  "interpretation": "Single first throw and fully preheated dual workers pass; narrows focus to first shared initialization, not exact branch proof",
+  "hashes": {
+    "single\\runtime.bin": "62ccfcee52b76b649bee74dc19bdc6d46325199197bff9a188b27a4d09f55d04",
+    "warm1\\runtime.bin": "d5f45b1100e5dbfeb691c2a59e5c67c543c60367252c62ba8ec0b94c4da89581",
+    "ramload-progress.txt": "c32ff6c0540fbd9432b7853516b0aa3f77cb8e7a1dd5c2275d71e716f319f46b",
+    "warm1-ramload-progress.txt": "22bc9493e857ea68e5ca859fd4fa18e15b25ee9aec856dc3dd152a930acdad40",
+    "recovery\\ramload-progress.txt": "3c8605a1f580f0533ebedec7221d9e1c153b83b746ea17b8f1cd68ec5151ebc1",
+    "recovery\\ble-wireless.jsonl": "8642b6507a651abf2b3784fb325346d4a04fd4c901eb14b03698036d5af86cad",
+    "recovery\\gateway.json": "46fd07661d47d0a74b8482b4a71c20f38f335ba9840cf232d365da35c7b12d4b"
+  }
+}

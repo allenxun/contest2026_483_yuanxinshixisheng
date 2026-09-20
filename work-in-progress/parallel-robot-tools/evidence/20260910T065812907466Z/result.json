@@ -1,0 +1,89 @@
+{
+  "scope": "host fake backend only; no hardware or model calls",
+  "commands": [
+    {
+      "argv": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "--version"
+      ],
+      "timeout_seconds": 10,
+      "timed_out": false,
+      "exit_code": 0,
+      "elapsed_seconds": 0.0,
+      "stdout": "0.stdout",
+      "stderr": "0.stderr"
+    },
+    {
+      "argv": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O0",
+        "-I",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-robot-tools\\include",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-robot-tools\\tests\\test_dispatcher.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-robot-tools\\evidence\\20260910T065812907466Z\\tests-O0.exe"
+      ],
+      "timeout_seconds": 60,
+      "timed_out": false,
+      "exit_code": 0,
+      "elapsed_seconds": 0.4220000000059372,
+      "stdout": "1.stdout",
+      "stderr": "1.stderr"
+    },
+    {
+      "argv": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-robot-tools\\evidence\\20260910T065812907466Z\\tests-O0.exe"
+      ],
+      "timeout_seconds": 10,
+      "timed_out": false,
+      "exit_code": 0,
+      "elapsed_seconds": 0.10899999999674037,
+      "stdout": "2.stdout",
+      "stderr": "2.stderr"
+    },
+    {
+      "argv": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-I",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-robot-tools\\include",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-robot-tools\\tests\\test_dispatcher.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-robot-tools\\evidence\\20260910T065812907466Z\\tests-O2.exe"
+      ],
+      "timeout_seconds": 60,
+      "timed_out": false,
+      "exit_code": 0,
+      "elapsed_seconds": 0.7350000000005821,
+      "stdout": "3.stdout",
+      "stderr": "3.stderr"
+    },
+    {
+      "argv": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-robot-tools\\evidence\\20260910T065812907466Z\\tests-O2.exe"
+      ],
+      "timeout_seconds": 10,
+      "timed_out": false,
+      "exit_code": 0,
+      "elapsed_seconds": 0.10899999999674037,
+      "stdout": "4.stdout",
+      "stderr": "4.stderr"
+    }
+  ],
+  "passed": true,
+  "source_sha256": {
+    "include\\dispatcher.hpp": "a777ad1f9861ab0292859867a54a154f2115b7dbfe515d0ee3dbc89417a02f85",
+    "tests\\test_dispatcher.cpp": "dcdb264f06451782babe25de9884ff8b3846c6e381b78983e0b9bf0d2bbfe329",
+    "scripts\\run.py": "ac883489df8f9164769d903fb1c10e278185c9c2bf43e4b6268e526ff8d02791"
+  }
+}

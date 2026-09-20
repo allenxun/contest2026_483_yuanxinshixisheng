@@ -1,0 +1,77 @@
+{
+  "status": "pass",
+  "romfs_sha256": "8b30719c6a7d1b424676bb1b6ea950b1dfdeeeb0601531c8e49742d0387a7c0f",
+  "model_offset": "0x730",
+  "model_bytes": 31190816,
+  "model_sha256": "97084af57de4135fc9217851386b1f6d511ae22eba01d9c5d9edf04f0e2adc63",
+  "arena": [
+    "0x60000000",
+    "0x80000000"
+  ],
+  "asr_peak_bytes_previous_board": 468101988,
+  "asr_headroom_bytes_at_previous_peak": 68768924,
+  "compile_commands": [
+    [
+      "g++",
+      "-D_stdcall=__stdcall",
+      "-D_Frees_ptr_opt_=",
+      "-std=c++17",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-c",
+      "E:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913\\compile_storage.cpp",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913\\compile_storage.o",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913\\test_include",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\native-asr-recognizer",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\include\\onnxruntime\\core\\session"
+    ],
+    [
+      "g++",
+      "-D_stdcall=__stdcall",
+      "-D_Frees_ptr_opt_=",
+      "-std=c++17",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-c",
+      "E:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913\\compile_asr_storage.cpp",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913\\compile_asr_storage.o",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913\\test_include",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\native-asr-recognizer",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\include\\onnxruntime\\core\\session"
+    ],
+    [
+      "g++",
+      "-D_stdcall=__stdcall",
+      "-D_Frees_ptr_opt_=",
+      "-std=c++17",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-c",
+      "E:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913\\speech_runtime_gate.cpp",
+      "-o",
+      "E:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913\\speech_runtime_gate.o",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\tts-arena-direct-20260913\\test_include",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\native-asr-recognizer",
+      "-IE:\\openvela\\VelaVision\\work-in-progress\\native-voice-sources\\onnxruntime-8f5c79cb63f09ef1302e85081093a3fe4da1bc7d\\include\\onnxruntime\\core\\session"
+    ]
+  ],
+  "compile_exit_codes": [
+    0,
+    0,
+    0
+  ],
+  "stderr": [
+    "",
+    "",
+    ""
+  ],
+  "board_tested": false
+}

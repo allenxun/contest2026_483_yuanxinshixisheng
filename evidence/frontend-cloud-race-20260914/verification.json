@@ -1,0 +1,26 @@
+{
+  "result": "PASS",
+  "tests": 32,
+  "new_regressions": 6,
+  "fixes": [
+    "Discard async probe/report/scan results after disconnect/dispose/new probe",
+    "Close gates while refreshing and confirm board DHCP/IP via status",
+    "Require injected current-device internet evidence; App health reachability defaults closed"
+  ],
+  "real_device_tested": false,
+  "backend_mutations": false,
+  "board_gate_integration_tested": false,
+  "limits": [
+    "No verified continuous disconnect push; caller must schedule refreshConnectivity",
+    "Cannot cancel an already dispatched reportOnline callback; backend device session/heartbeat remains authority",
+    "No ASR/TTS paths in live business OpenAPI at recheck",
+    "App speech adapter is not proof of K7 microphone-to-cloud audio completion"
+  ],
+  "files": {
+    "frontend/整机联网语音适配器.mjs": "1ddf3d426fdf11c2f110a830730e8a5cf4d421c9631c8ae1272205cce453d10a",
+    "frontend/整机BLE与云端语音拼接示例.mjs": "55aa486b2be72cd19f8c18fd3d31cbdd8af823f45c941ddfdd36a51ce9f52efd",
+    "frontend/test-online-speech-adapter.mjs": "072387f694d564242bba75ea75ff260ebc6700f81332247e74b6e1efa35b94bd",
+    "frontend/test-speech-http-client.mjs": "d5ad78b54187a2f1fcbd0000fb14c5956708c81d99025661927f01827a04cdf2",
+    "frontend/联网与云端语音前端接口.md": "96580b79937b8c238b5c85fe129120a6a5a82eca7ab5576652c25a0cf43c0dcf"
+  }
+}

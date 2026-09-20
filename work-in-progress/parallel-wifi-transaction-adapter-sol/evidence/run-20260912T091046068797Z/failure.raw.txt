@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "work-in-progress\parallel-wifi-transaction-adapter-sol\run_tests.py", line 86, in <module>
+    main()
+  File "work-in-progress\parallel-wifi-transaction-adapter-sol\run_tests.py", line 59, in main
+    build_output = run(command, run_dir / f"build-{optimization}.raw.txt")
+  File "work-in-progress\parallel-wifi-transaction-adapter-sol\run_tests.py", line 25, in run
+    stderr=subprocess.STDOUT, encoding="utf-8", errors="replace"
+  File "C:\Program Files\Python36\lib\subprocess.py", line 403, in run
+    with Popen(*popenargs, **kwargs) as process:
+TypeError: __init__() got an unexpected keyword argument 'text'

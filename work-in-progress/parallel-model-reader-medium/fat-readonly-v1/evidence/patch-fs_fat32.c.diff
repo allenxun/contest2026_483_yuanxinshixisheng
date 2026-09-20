@@ -1,0 +1,206 @@
+--- a/fs/fat/fs_fat32.c
++++ b/fs/fat/fs_fat32.c
+@@ -170,6 +170,14 @@
+ static int fat_open(FAR struct file *filep, FAR const char *relpath,
+                     int oflags, mode_t mode)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  if ((oflags & O_ACCMODE) != O_RDONLY ||
++      (oflags & (O_CREAT | O_TRUNC | O_APPEND | O_EXCL)) != 0)
++    {
++      return -EROFS;
++    }
++#endif
++
+   struct fat_dirinfo_s dirinfo;
+   FAR struct inode *inode;
+   FAR struct fat_mountpt_s *fs;
+@@ -501,6 +509,11 @@
+ static int fat_zero_cluster(FAR struct fat_mountpt_s *fs, int cluster,
+                             int start, int end)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)fs; (void)cluster; (void)start; (void)end; 
++  return -EROFS;
++#else
++
+   FAR uint8_t *buf;
+   int zero_len = fs->fs_hwsectorsize - (start & (fs->fs_hwsectorsize - 1));
+   off_t i;
+@@ -551,6 +564,8 @@
+   lib_put_tempbuffer(buf);
+ 
+   return ret;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -972,6 +987,11 @@
+ static ssize_t fat_write(FAR struct file *filep, FAR const char *buffer,
+                          size_t buflen)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)filep; (void)buffer; (void)buflen; 
++  return -EROFS;
++#else
++
+   FAR struct inode *inode;
+   FAR struct fat_mountpt_s *fs;
+   FAR struct fat_file_s *ff;
+@@ -1211,6 +1231,8 @@
+ errout_with_lock:
+   nxmutex_unlock(&fs->fs_lock);
+   return ret;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -1384,6 +1406,20 @@
+ 
+ static int fat_sync(FAR struct file *filep)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  FAR struct fat_file_s *ff = filep->f_priv;
++  FAR struct fat_mountpt_s *fs = filep->f_inode->i_private;
++  int ret;
++  if ((ff->ff_bflags & UMOUNT_FORCED) != 0) return -EPIPE;
++  ret = nxmutex_lock(&fs->fs_lock);
++  if (ret < 0) return ret;
++  ret = fat_checkmount(fs);
++  if (ret == OK && ((ff->ff_bflags & (FFBUFF_DIRTY | FFBUFF_MODIFIED)) != 0 ||
++                    fs->fs_dirty || fs->fs_fsidirty)) ret = -EROFS;
++  nxmutex_unlock(&fs->fs_lock);
++  return ret;
++#else
++
+   FAR struct inode *inode;
+   FAR struct fat_mountpt_s *fs;
+   FAR struct fat_file_s *ff;
+@@ -1495,6 +1531,8 @@
+ errout_with_lock:
+   nxmutex_unlock(&fs->fs_lock);
+   return ret;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -1836,6 +1874,11 @@
+ 
+ static int fat_truncate(FAR struct file *filep, off_t length)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)filep; (void)length; 
++  return -EROFS;
++#else
++
+   FAR struct inode *inode;
+   FAR struct fat_mountpt_s *fs;
+   FAR struct fat_file_s *ff;
+@@ -1963,6 +2006,8 @@
+ errout_with_lock:
+   nxmutex_unlock(&fs->fs_lock);
+   return ret;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -2253,7 +2298,11 @@
+    * by this block driver.
+    */
+ 
++#ifdef CONFIG_FAT_FORCE_READONLY
++  ret = fat_mount(fs, false);
++#else
+   ret = fat_mount(fs, true);
++#endif
+   if (ret != 0)
+     {
+       nxmutex_destroy(&fs->fs_lock);
+@@ -2437,6 +2486,11 @@
+ 
+ static int fat_unlink(FAR struct inode *mountpt, FAR const char *relpath)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)mountpt; (void)relpath; 
++  return -EROFS;
++#else
++
+   FAR struct fat_mountpt_s *fs;
+   int ret;
+ 
+@@ -2474,6 +2528,8 @@
+ 
+   nxmutex_unlock(&fs->fs_lock);
+   return ret;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -2486,6 +2542,11 @@
+ static int fat_mkdir(FAR struct inode *mountpt, FAR const char *relpath,
+                      mode_t mode)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)mountpt; (void)relpath; (void)mode; 
++  return -EROFS;
++#else
++
+   FAR struct fat_mountpt_s *fs;
+   FAR struct fat_dirinfo_s dirinfo;
+   FAR uint8_t *direntry;
+@@ -2700,6 +2761,8 @@
+ errout_with_lock:
+   nxmutex_unlock(&fs->fs_lock);
+   return ret;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -2711,6 +2774,11 @@
+ 
+ static int fat_rmdir(FAR struct inode *mountpt, FAR const char *relpath)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)mountpt; (void)relpath; 
++  return -EROFS;
++#else
++
+   FAR struct fat_mountpt_s *fs;
+   int ret;
+ 
+@@ -2748,6 +2816,8 @@
+ 
+   nxmutex_unlock(&fs->fs_lock);
+   return ret;
++
++#endif
+ }
+ 
+ /****************************************************************************
+@@ -2760,6 +2830,11 @@
+ static int fat_rename(FAR struct inode *mountpt, FAR const char *oldrelpath,
+                       FAR const char *newrelpath)
+ {
++#ifdef CONFIG_FAT_FORCE_READONLY
++  (void)mountpt; (void)oldrelpath; (void)newrelpath; 
++  return -EROFS;
++#else
++
+   FAR struct fat_mountpt_s *fs;
+   FAR struct fat_dirinfo_s dirinfo;
+   FAR struct fat_dirseq_s dirseq;
+@@ -2902,6 +2977,8 @@
+ errout_with_lock:
+   nxmutex_unlock(&fs->fs_lock);
+   return ret;
++
++#endif
+ }
+ 
+ /****************************************************************************

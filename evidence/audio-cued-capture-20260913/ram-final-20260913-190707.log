@@ -1,0 +1,111 @@
+usb device is high-speed
+usb de=> crc32 40c00800 6e9d570
+crc32 for 40c00800 ... 47a9dd6f ==> 121b163f
+=> crc32 90000000 44b0310
+crc32 for 90000000 ... 944b030f ==> 2af64aa7
+=> crc32 86000000 3e7da30
+crc32 for 86000000 ... 89e7da2f ==> b5f7ae2d
+=> cp.b 40c00800 80000000 400000
+=> cp.b 41000800 80400000 400000
+=> cp.b 41400800 80800000 400000
+=> cp.b 41800800 80c00000 400000
+=> cp.b 41c00800 81000000 400000
+=> cp.b 42000800 81400000 400000
+=> cp.b 42400800 81800000 400000
+=> cp.b 42800800 81c00000 400000
+=> cp.b 42c00800 82000000 400000
+=> cp.b 43000800 82400000 400000
+=> cp.b 43400800 82800000 400000
+=> cp.b 43800800 82c00000 400000
+=> cp.b 43c00800 83000000 400000
+=> cp.b 44000800 83400000 400000
+=> cp.b 44400800 83800000 400000
+=> cp.b 44800800 83c00000 400000
+=> cp.b 44c00800 84000000 400000
+=> cp.b 45000800 84400000 400000
+=> cp.b 45400800 84800000 400000
+=> cp.b 45800800 84c00000 400000
+=> cp.b 45c00800 85000000 400000
+=> cp.b 46000800 85400000 400000
+=> cp.b 46400800 85800000 400000
+=> cp.b 46800800 85c00000 400000
+=> crc32 80000000 9e7da30
+crc32 for 80000000 ... 89e7da2f ==> b20f998f
+=> cp.b 46c00800 40400000 400000
+=> cp.b 47000800 40800000 400000
+=> cp.b 47400800 40c00000 400000
+=> cp.b 47800800 41000000 29d570
+=> crc32 40400000 e9d570
+crc32 for 40400000 ... 4129d56f ==> 9f844a24
+=> md.l 48300000 1
+48300000: edfe0dd0                               ....
+=> booti 40400000 - 48300000
+Fdt Ramdisk skip relocation
+## Flattened Device Tree blob at 0x48300000
+   Booting using the fdt blob at 0x48300000
+   Using Device Tree in place at 0000000048300000, end 0000000048326532
+No resource file: logo_kernel.bmp
+VP0 fail to load kernel logo
+## reserved-memory:
+  ramoops@40110000: addr=40110000 size=e0000
+Adding bank: 0x40200000 - 0x48400000 (size: 0x08200000)
+Addi 0x40000000)
+Total: 133000.343/133352.776 ms
+
+Starting kernel ...
+
+- Ready to Boot Primary CPU
+RK3576 HCR_EL2=0000000008000032
+RK3576 SCTLR_EL1=0000000030d00800
+- Boot from EL2
+- Boot from EL1
+- Boot to C runtime for OS Initialize
+[CPU0] arm64_chip_boot: RK3576: MMU enabled
+[CPU0] rk3576_uart6_initialize: UART6 M0: 115200 8N1, internal loopback PASS, IRQ114 ttyS1
+I/TC: Secondary CPU 1 initializing
+I/TC: Secondary CPU 1 switching to normal world boot
+
+NutI/TC: Secondary CPU 4 inalizing
+o-  RBI/TC: Secondary CPU 2 switching to normal world binitializing
+eU-y c toR
+eonaRd Bd KI/TC: Secondary CPU 3 switcld boot
+Cyoo 3Pt5Ut o7
+S6 I/TC: Secondary CPU 6 initializing
+ world boot
+LeC 2cHyoCP =RUt0n0do_ 0 
+ERBCLI/TC: Secondary CPUing to normal world boot
+7S0Ra00e6dK0y3 00cHo00 5nC70t0o60d0R  d6E0=00
+00  LC00H1R0P=
+CK03UR00R_00K05
+0030E7005LR600702K 006S=0030C50 30007T00SL00C63R0 0d2T0d_HL0
+E00R0C80_L0R810E0_R0L0=0KE00L1302=005
+7-0=00
+ 0-0600B000 0 oS0000B0o00C0o0Tot0000 t3L
+f0RR 00fd0K_r3oE03r00do00L5m 00781m0 6=E000080LE S20L0000
+2C0
+0T-
+
+L0 0-
+RR_ 0BoK0EB3o0oLot15=t73  0060 dff0S0rr00ooCm8Tm0 0L0RE 00L0_EE3
+L220Ld
+1- =000Bo
+8000ot00 0f0
+-r00o m3Bo 0dot0E L02f8r00
+om
+ E-L 2Bo
+ot from EL2
+hell (NSH)
+nsh> [K- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot from EL1- 
+Boot from EL1
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtim-e  fBooor tO St oI Cni triuanltiizmee 
+for OS Initialize

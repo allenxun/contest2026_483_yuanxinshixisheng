@@ -1,0 +1,22 @@
+sherpa=1.12.14 sha=26aa2fa9
+mark=wav_loaded ms=1
+event tx=1 op=1 kind=0 ok=1 released=0
+mark=asr_load_begin ms=23
+mark=asr_loaded ms=2486
+mark=asr_finished ms=3045
+event tx=1 op=2 kind=1 ok=1 released=0
+mark=release_complete ms=3081
+event tx=1 op=3 kind=4 ok=1 released=1
+mark=example_task_finished ms=3094
+event tx=1 op=4 kind=2 ok=1 released=0
+mark=release_complete ms=3109
+event tx=1 op=5 kind=4 ok=1 released=1
+mark=tts_load_begin ms=3125
+mark=tts_loaded ms=6174
+mark=tts_finished ms=6316
+event tx=1 op=6 kind=3 ok=1 released=0
+mark=release_complete ms=6353
+event tx=1 op=7 kind=4 ok=1 released=1
+transcript=昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三
+reply=模拟网络连接成功。
+outcome=1

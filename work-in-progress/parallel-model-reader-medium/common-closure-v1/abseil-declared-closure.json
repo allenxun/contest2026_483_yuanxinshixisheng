@@ -1,0 +1,1163 @@
+{
+  "roots": [
+    "base",
+    "city",
+    "core_headers",
+    "fixed_array",
+    "flags",
+    "flat_hash_map",
+    "flat_hash_set",
+    "hash",
+    "inlined_vector",
+    "low_level_hash",
+    "node_hash_map",
+    "node_hash_set",
+    "optional",
+    "raw_hash_set",
+    "raw_logging_internal",
+    "span",
+    "str_format",
+    "strings",
+    "synchronization",
+    "throw_delegate",
+    "time"
+  ],
+  "closure": {
+    "algorithm": {
+      "file": "abseil-cpp-20240116.0/absl/algorithm/CMakeLists.txt",
+      "line": 17,
+      "deps": [
+        "config"
+      ],
+      "block": "\n  NAME\n    algorithm\n  HDRS\n    \"algorithm.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n  PUBLIC\n"
+    },
+    "algorithm_container": {
+      "file": "abseil-cpp-20240116.0/absl/algorithm/CMakeLists.txt",
+      "line": 42,
+      "deps": [
+        "algorithm",
+        "core_headers",
+        "meta",
+        "nullability"
+      ],
+      "block": "\n  NAME\n    algorithm_container\n  HDRS\n    \"container.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::algorithm\n    absl::core_headers\n    absl::meta\n    absl::nullability\n  PUBLIC\n"
+    },
+    "any_invocable": {
+      "file": "abseil-cpp-20240116.0/absl/functional/CMakeLists.txt",
+      "line": 17,
+      "deps": [
+        "base_internal",
+        "config",
+        "core_headers",
+        "type_traits",
+        "utility"
+      ],
+      "block": "\n  NAME\n    any_invocable\n  SRCS\n    \"internal/any_invocable.h\"\n  HDRS\n    \"any_invocable.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base_internal\n    absl::config\n    absl::core_headers\n    absl::type_traits\n    absl::utility\n  PUBLIC\n"
+    },
+    "atomic_hook": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 20,
+      "deps": [
+        "config",
+        "core_headers"
+      ],
+      "block": "\n  NAME\n    atomic_hook\n  HDRS\n    \"internal/atomic_hook.h\"\n  DEPS\n    absl::config\n    absl::core_headers\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n"
+    },
+    "bad_optional_access": {
+      "file": "abseil-cpp-20240116.0/absl/types/CMakeLists.txt",
+      "line": 185,
+      "deps": [
+        "config",
+        "raw_logging_internal"
+      ],
+      "block": "\n  NAME\n    bad_optional_access\n  HDRS\n    \"bad_optional_access.h\"\n  SRCS\n    \"bad_optional_access.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::raw_logging_internal\n  PUBLIC\n"
+    },
+    "bad_variant_access": {
+      "file": "abseil-cpp-20240116.0/absl/types/CMakeLists.txt",
+      "line": 200,
+      "deps": [
+        "config",
+        "raw_logging_internal"
+      ],
+      "block": "\n  NAME\n    bad_variant_access\n  HDRS\n    \"bad_variant_access.h\"\n  SRCS\n    \"bad_variant_access.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::raw_logging_internal\n  PUBLIC\n"
+    },
+    "base": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 215,
+      "deps": [
+        "atomic_hook",
+        "base_internal",
+        "config",
+        "core_headers",
+        "dynamic_annotations",
+        "log_severity",
+        "nullability",
+        "raw_logging_internal",
+        "spinlock_wait",
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    base\n  HDRS\n    \"call_once.h\"\n    \"casts.h\"\n    \"internal/cycleclock.h\"\n    \"internal/cycleclock_config.h\"\n    \"internal/low_level_scheduling.h\"\n    \"internal/per_thread_tls.h\"\n    \"internal/spinlock.h\"\n    \"internal/sysinfo.h\"\n    \"internal/thread_identity.h\"\n    \"internal/tsan_mutex_interface.h\"\n    \"internal/unscaledcycleclock.h\"\n    \"internal/unscaledcycleclock_config.h\"\n  SRCS\n    \"internal/cycleclock.cc\"\n    \"internal/spinlock.cc\"\n    \"internal/sysinfo.cc\"\n    \"internal/thread_identity.cc\"\n    \"internal/unscaledcycleclock.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n    $<$<BOOL:${LIBRT}>:-lrt>\n    $<$<BOOL:${MINGW}>:-ladvapi32>\n  DEPS\n    absl::atomic_hook\n    absl::base_internal\n    absl::config\n    absl::core_headers\n    absl::dynamic_annotations\n    absl::log_severity\n    absl::nullability\n    absl::raw_logging_internal\n    absl::spinlock_wait\n    absl::type_traits\n    Threads::Threads\n  PUBLIC\n"
+    },
+    "base_internal": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 199,
+      "deps": [
+        "config",
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    base_internal\n  HDRS\n    \"internal/hide_ptr.h\"\n    \"internal/identity.h\"\n    \"internal/inline_variable.h\"\n    \"internal/invoke.h\"\n    \"internal/scheduling_mode.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::type_traits\n"
+    },
+    "bits": {
+      "file": "abseil-cpp-20240116.0/absl/numeric/CMakeLists.txt",
+      "line": 17,
+      "deps": [
+        "core_headers"
+      ],
+      "block": "\n  NAME\n    bits\n  HDRS\n    \"bits.h\"\n    \"internal/bits.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::core_headers\n  PUBLIC\n"
+    },
+    "charset": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 96,
+      "deps": [
+        "core_headers",
+        "string_view"
+      ],
+      "block": "\n  NAME\n    charset\n  HDRS\n    charset.h\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::core_headers\n    absl::string_view\n  PUBLIC\n"
+    },
+    "city": {
+      "file": "abseil-cpp-20240116.0/absl/hash/CMakeLists.txt",
+      "line": 131,
+      "deps": [
+        "config",
+        "core_headers",
+        "endian"
+      ],
+      "block": "\n  NAME\n    city\n  HDRS\n    \"internal/city.h\"\n  SRCS\n    \"internal/city.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n    absl::endian\n"
+    },
+    "civil_time": {
+      "file": "abseil-cpp-20240116.0/absl/time/CMakeLists.txt",
+      "line": 45,
+      "deps": [],
+      "block": "\n  NAME\n    civil_time\n  HDRS\n    \"internal/cctz/include/cctz/civil_time.h\"\n    \"internal/cctz/include/cctz/civil_time_detail.h\"\n  SRCS\n  \"internal/cctz/src/civil_time_detail.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n"
+    },
+    "common_policy_traits": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 565,
+      "deps": [
+        "meta"
+      ],
+      "block": "\n  NAME\n    common_policy_traits\n  HDRS\n    \"internal/common_policy_traits.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::meta\n  PUBLIC\n"
+    },
+    "compressed_tuple": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 92,
+      "deps": [
+        "utility"
+      ],
+      "block": "\n  NAME\n    compressed_tuple\n  HDRS\n    \"internal/compressed_tuple.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::utility\n  PUBLIC\n"
+    },
+    "config": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 134,
+      "deps": [],
+      "block": "\n  NAME\n    config\n  HDRS\n    \"config.h\"\n    \"options.h\"\n    \"policy_checks.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  PUBLIC\n"
+    },
+    "container_common": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 694,
+      "deps": [
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    container_common\n  HDRS\n    \"internal/common.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::type_traits\n"
+    },
+    "container_memory": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 429,
+      "deps": [
+        "config",
+        "memory",
+        "type_traits",
+        "utility"
+      ],
+      "block": "\n  NAME\n    container_memory\n  HDRS\n    \"internal/container_memory.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::memory\n    absl::type_traits\n    absl::utility\n  PUBLIC\n"
+    },
+    "cord": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 966,
+      "deps": [
+        "base",
+        "config",
+        "cord_internal",
+        "cordz_functions",
+        "cordz_info",
+        "cordz_update_scope",
+        "cordz_update_tracker",
+        "core_headers",
+        "crc32c",
+        "crc_cord_state",
+        "endian",
+        "function_ref",
+        "inlined_vector",
+        "nullability",
+        "optional",
+        "raw_logging_internal",
+        "span",
+        "strings",
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    cord\n  HDRS\n    \"cord.h\"\n    \"cord_buffer.h\"\n  SRCS\n    \"cord.cc\"\n    \"cord_analysis.cc\"\n    \"cord_analysis.h\"\n    \"cord_buffer.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::config\n    absl::cord_internal\n    absl::cordz_functions\n    absl::cordz_info\n    absl::cordz_update_scope\n    absl::cordz_update_tracker\n    absl::core_headers\n    absl::crc32c\n    absl::crc_cord_state\n    absl::endian\n    absl::function_ref\n    absl::inlined_vector\n    absl::nullability\n    absl::optional\n    absl::raw_logging_internal\n    absl::span\n    absl::strings\n    absl::type_traits\n  PUBLIC\n"
+    },
+    "cord_internal": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 681,
+      "deps": [
+        "base_internal",
+        "compressed_tuple",
+        "config",
+        "container_memory",
+        "core_headers",
+        "crc_cord_state",
+        "endian",
+        "inlined_vector",
+        "layout",
+        "raw_logging_internal",
+        "strings",
+        "throw_delegate",
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    cord_internal\n  HDRS\n    \"internal/cord_data_edge.h\"\n    \"internal/cord_internal.h\"\n    \"internal/cord_rep_btree.h\"\n    \"internal/cord_rep_btree_navigator.h\"\n    \"internal/cord_rep_btree_reader.h\"\n    \"internal/cord_rep_crc.h\"\n    \"internal/cord_rep_consume.h\"\n    \"internal/cord_rep_flat.h\"\n  SRCS\n    \"internal/cord_internal.cc\"\n    \"internal/cord_rep_btree.cc\"\n    \"internal/cord_rep_btree_navigator.cc\"\n    \"internal/cord_rep_btree_reader.cc\"\n    \"internal/cord_rep_crc.cc\"\n    \"internal/cord_rep_consume.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base_internal\n    absl::compressed_tuple\n    absl::config\n    absl::container_memory\n    absl::core_headers\n    absl::crc_cord_state\n    absl::endian\n    absl::inlined_vector\n    absl::layout\n    absl::raw_logging_internal\n    absl::strings\n    absl::throw_delegate\n    absl::type_traits\n"
+    },
+    "cordz_functions": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 746,
+      "deps": [
+        "config",
+        "core_headers",
+        "exponential_biased",
+        "raw_logging_internal"
+      ],
+      "block": "\n  NAME\n    cordz_functions\n  HDRS\n    \"internal/cordz_functions.h\"\n  SRCS\n    \"internal/cordz_functions.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n    absl::exponential_biased\n    absl::raw_logging_internal\n"
+    },
+    "cordz_handle": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 790,
+      "deps": [
+        "base",
+        "config",
+        "raw_logging_internal",
+        "synchronization"
+      ],
+      "block": "\n  NAME\n    cordz_handle\n  HDRS\n    \"internal/cordz_handle.h\"\n  SRCS\n    \"internal/cordz_handle.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::config\n    absl::raw_logging_internal\n    absl::synchronization\n"
+    },
+    "cordz_info": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 824,
+      "deps": [
+        "base",
+        "config",
+        "cord_internal",
+        "cordz_functions",
+        "cordz_handle",
+        "cordz_statistics",
+        "cordz_update_tracker",
+        "core_headers",
+        "inlined_vector",
+        "raw_logging_internal",
+        "span",
+        "stacktrace",
+        "synchronization",
+        "time"
+      ],
+      "block": "\n  NAME\n    cordz_info\n  HDRS\n    \"internal/cordz_info.h\"\n  SRCS\n    \"internal/cordz_info.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::config\n    absl::cord_internal\n    absl::cordz_functions\n    absl::cordz_handle\n    absl::cordz_statistics\n    absl::cordz_update_tracker\n    absl::core_headers\n    absl::inlined_vector\n    absl::span\n    absl::raw_logging_internal\n    absl::stacktrace\n    absl::synchronization\n    absl::time\n"
+    },
+    "cordz_statistics": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 775,
+      "deps": [
+        "config",
+        "cordz_update_tracker",
+        "core_headers",
+        "synchronization"
+      ],
+      "block": "\n  NAME\n    cordz_statistics\n  HDRS\n    \"internal/cordz_statistics.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n    absl::cordz_update_tracker\n    absl::synchronization\n"
+    },
+    "cordz_update_scope": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 933,
+      "deps": [
+        "config",
+        "cord_internal",
+        "cordz_info",
+        "cordz_update_tracker",
+        "core_headers"
+      ],
+      "block": "\n  NAME\n    cordz_update_scope\n  HDRS\n    \"internal/cordz_update_scope.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::cord_internal\n    absl::cordz_info\n    absl::cordz_update_tracker\n    absl::core_headers\n"
+    },
+    "cordz_update_tracker": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 719,
+      "deps": [
+        "config"
+      ],
+      "block": "\n  NAME\n    cordz_update_tracker\n  HDRS\n    \"internal/cordz_update_tracker.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n"
+    },
+    "core_headers": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 160,
+      "deps": [
+        "config"
+      ],
+      "block": "\n  NAME\n    core_headers\n  HDRS\n    \"attributes.h\"\n    \"const_init.h\"\n    \"macros.h\"\n    \"optimization.h\"\n    \"port.h\"\n    \"thread_annotations.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n  PUBLIC\n"
+    },
+    "crc32c": {
+      "file": "abseil-cpp-20240116.0/absl/crc/CMakeLists.txt",
+      "line": 54,
+      "deps": [
+        "config",
+        "core_headers",
+        "crc_cpu_detect",
+        "crc_internal",
+        "endian",
+        "non_temporal_memcpy",
+        "prefetch",
+        "str_format",
+        "strings"
+      ],
+      "block": "\n  NAME\n    crc32c\n  HDRS\n    \"crc32c.h\"\n    \"internal/crc32c.h\"\n    \"internal/crc_memcpy.h\"\n  SRCS\n    \"crc32c.cc\"\n    \"internal/crc32c_inline.h\"\n    \"internal/crc_memcpy_fallback.cc\"\n    \"internal/crc_memcpy_x86_arm_combined.cc\"\n    \"internal/crc_non_temporal_memcpy.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::crc_cpu_detect\n    absl::crc_internal\n    absl::non_temporal_memcpy\n    absl::config\n    absl::core_headers\n    absl::endian\n    absl::prefetch\n    absl::str_format\n    absl::strings\n"
+    },
+    "crc_cord_state": {
+      "file": "abseil-cpp-20240116.0/absl/crc/CMakeLists.txt",
+      "line": 149,
+      "deps": [
+        "config",
+        "crc32c",
+        "strings"
+      ],
+      "block": "\n  NAME\n    crc_cord_state\n  HDRS\n    \"internal/crc_cord_state.h\"\n  SRCS\n    \"internal/crc_cord_state.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::crc32c\n    absl::config\n    absl::strings\n"
+    },
+    "crc_cpu_detect": {
+      "file": "abseil-cpp-20240116.0/absl/crc/CMakeLists.txt",
+      "line": 16,
+      "deps": [
+        "base",
+        "config"
+      ],
+      "block": "\n  NAME\n    crc_cpu_detect\n  HDRS\n    \"internal/cpu_detect.h\"\n  SRCS\n    \"internal/cpu_detect.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::config\n"
+    },
+    "crc_internal": {
+      "file": "abseil-cpp-20240116.0/absl/crc/CMakeLists.txt",
+      "line": 31,
+      "deps": [
+        "bits",
+        "config",
+        "core_headers",
+        "crc_cpu_detect",
+        "endian",
+        "memory",
+        "prefetch",
+        "raw_logging_internal"
+      ],
+      "block": "\n  NAME\n    crc_internal\n  HDRS\n    \"internal/crc.h\"\n    \"internal/crc32_x86_arm_combined_simd.h\"\n  SRCS\n    \"internal/crc.cc\"\n    \"internal/crc_internal.h\"\n    \"internal/crc_x86_arm_combined.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::crc_cpu_detect\n    absl::config\n    absl::core_headers\n    absl::endian\n    absl::prefetch\n    absl::raw_logging_internal\n    absl::memory\n    absl::bits\n"
+    },
+    "debugging_internal": {
+      "file": "abseil-cpp-20240116.0/absl/debugging/CMakeLists.txt",
+      "line": 172,
+      "deps": [
+        "config",
+        "core_headers",
+        "dynamic_annotations",
+        "errno_saver",
+        "raw_logging_internal"
+      ],
+      "block": "\n  NAME\n    debugging_internal\n  HDRS\n    \"internal/address_is_readable.h\"\n    \"internal/elf_mem_image.h\"\n    \"internal/vdso_support.h\"\n  SRCS\n    \"internal/address_is_readable.cc\"\n    \"internal/elf_mem_image.cc\"\n    \"internal/vdso_support.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::core_headers\n    absl::config\n    absl::dynamic_annotations\n    absl::errno_saver\n    absl::raw_logging_internal\n"
+    },
+    "demangle_internal": {
+      "file": "abseil-cpp-20240116.0/absl/debugging/CMakeLists.txt",
+      "line": 194,
+      "deps": [
+        "base",
+        "core_headers"
+      ],
+      "block": "\n  NAME\n    demangle_internal\n  HDRS\n    \"internal/demangle.h\"\n  SRCS\n    \"internal/demangle.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::core_headers\n  PUBLIC\n"
+    },
+    "dynamic_annotations": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 146,
+      "deps": [
+        "config"
+      ],
+      "block": "\n  NAME\n    dynamic_annotations\n  HDRS\n    \"dynamic_annotations.h\"\n  SRCS\n    \"internal/dynamic_annotations.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n  PUBLIC\n"
+    },
+    "endian": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 467,
+      "deps": [
+        "base",
+        "config",
+        "core_headers",
+        "nullability"
+      ],
+      "block": "\n  NAME\n    endian\n  HDRS\n    \"internal/endian.h\"\n    \"internal/unaligned_access.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::config\n    absl::core_headers\n    absl::nullability\n  PUBLIC\n"
+    },
+    "errno_saver": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 33,
+      "deps": [
+        "config"
+      ],
+      "block": "\n  NAME\n    errno_saver\n  HDRS\n    \"internal/errno_saver.h\"\n  DEPS\n    absl::config\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n"
+    },
+    "exponential_biased": {
+      "file": "abseil-cpp-20240116.0/absl/profiling/CMakeLists.txt",
+      "line": 40,
+      "deps": [
+        "config",
+        "core_headers"
+      ],
+      "block": "\n  NAME\n    exponential_biased\n  SRCS\n    \"internal/exponential_biased.cc\"\n  HDRS\n    \"internal/exponential_biased.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n"
+    },
+    "fast_type_id": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 677,
+      "deps": [
+        "config"
+      ],
+      "block": "\n  NAME\n    fast_type_id\n  HDRS\n    \"internal/fast_type_id.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::config\n"
+    },
+    "fixed_array": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 121,
+      "deps": [
+        "algorithm",
+        "compressed_tuple",
+        "config",
+        "core_headers",
+        "dynamic_annotations",
+        "memory",
+        "throw_delegate"
+      ],
+      "block": "\n  NAME\n    fixed_array\n  HDRS\n   \"fixed_array.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::compressed_tuple\n    absl::algorithm\n    absl::config\n    absl::core_headers\n    absl::dynamic_annotations\n    absl::throw_delegate\n    absl::memory\n  PUBLIC\n"
+    },
+    "flags": {
+      "file": "abseil-cpp-20240116.0/absl/flags/CMakeLists.txt",
+      "line": 201,
+      "deps": [
+        "base",
+        "config",
+        "core_headers",
+        "flags_commandlineflag",
+        "flags_config",
+        "flags_internal",
+        "flags_reflection",
+        "strings"
+      ],
+      "block": "\n  NAME\n    flags\n  HDRS\n    \"declare.h\"\n    \"flag.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::config\n    absl::flags_commandlineflag\n    absl::flags_config\n    absl::flags_internal\n    absl::flags_reflection\n    absl::base\n    absl::core_headers\n    absl::strings\n"
+    },
+    "flags_commandlineflag": {
+      "file": "abseil-cpp-20240116.0/absl/flags/CMakeLists.txt",
+      "line": 114,
+      "deps": [
+        "config",
+        "fast_type_id",
+        "flags_commandlineflag_internal",
+        "optional",
+        "strings"
+      ],
+      "block": "\n  NAME\n    flags_commandlineflag\n  SRCS\n    \"commandlineflag.cc\"\n  HDRS\n    \"commandlineflag.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::config\n    absl::fast_type_id\n    absl::flags_commandlineflag_internal\n    absl::optional\n    absl::strings\n"
+    },
+    "flags_commandlineflag_internal": {
+      "file": "abseil-cpp-20240116.0/absl/flags/CMakeLists.txt",
+      "line": 97,
+      "deps": [
+        "config",
+        "dynamic_annotations",
+        "fast_type_id"
+      ],
+      "block": "\n  NAME\n    flags_commandlineflag_internal\n  SRCS\n    \"internal/commandlineflag.cc\"\n  HDRS\n    \"internal/commandlineflag.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::config\n    absl::dynamic_annotations\n    absl::fast_type_id\n"
+    },
+    "flags_config": {
+      "file": "abseil-cpp-20240116.0/absl/flags/CMakeLists.txt",
+      "line": 54,
+      "deps": [
+        "config",
+        "core_headers",
+        "flags_path_util",
+        "flags_program_name",
+        "strings",
+        "synchronization"
+      ],
+      "block": "\n  NAME\n    flags_config\n  SRCS\n    \"usage_config.cc\"\n  HDRS\n    \"config.h\"\n    \"usage_config.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::config\n    absl::flags_path_util\n    absl::flags_program_name\n    absl::core_headers\n    absl::strings\n    absl::synchronization\n"
+    },
+    "flags_internal": {
+      "file": "abseil-cpp-20240116.0/absl/flags/CMakeLists.txt",
+      "line": 176,
+      "deps": [
+        "base",
+        "config",
+        "flags_commandlineflag",
+        "flags_commandlineflag_internal",
+        "flags_config",
+        "flags_marshalling",
+        "meta",
+        "synchronization",
+        "utility"
+      ],
+      "block": "\n  NAME\n    flags_internal\n  SRCS\n    \"internal/flag.cc\"\n  HDRS\n    \"internal/flag.h\"\n    \"internal/sequence_lock.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::base\n    absl::config\n    absl::flags_commandlineflag\n    absl::flags_commandlineflag_internal\n    absl::flags_config\n    absl::flags_marshalling\n    absl::synchronization\n    absl::meta\n    absl::utility\n  PUBLIC\n"
+    },
+    "flags_marshalling": {
+      "file": "abseil-cpp-20240116.0/absl/flags/CMakeLists.txt",
+      "line": 75,
+      "deps": [
+        "config",
+        "core_headers",
+        "int128",
+        "log_severity",
+        "optional",
+        "str_format",
+        "strings"
+      ],
+      "block": "\n  NAME\n    flags_marshalling\n  SRCS\n    \"marshalling.cc\"\n  HDRS\n    \"marshalling.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n    absl::log_severity\n    absl::int128\n    absl::optional\n    absl::strings\n    absl::str_format\n"
+    },
+    "flags_path_util": {
+      "file": "abseil-cpp-20240116.0/absl/flags/CMakeLists.txt",
+      "line": 18,
+      "deps": [
+        "config",
+        "strings"
+      ],
+      "block": "\n  NAME\n    flags_path_util\n  HDRS\n    \"internal/path_util.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::config\n    absl::strings\n  PUBLIC\n"
+    },
+    "flags_private_handle_accessor": {
+      "file": "abseil-cpp-20240116.0/absl/flags/CMakeLists.txt",
+      "line": 134,
+      "deps": [
+        "config",
+        "flags_commandlineflag",
+        "flags_commandlineflag_internal",
+        "strings"
+      ],
+      "block": "\n  NAME\n    flags_private_handle_accessor\n  SRCS\n    \"internal/private_handle_accessor.cc\"\n  HDRS\n    \"internal/private_handle_accessor.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::config\n    absl::flags_commandlineflag\n    absl::flags_commandlineflag_internal\n    absl::strings\n"
+    },
+    "flags_program_name": {
+      "file": "abseil-cpp-20240116.0/absl/flags/CMakeLists.txt",
+      "line": 34,
+      "deps": [
+        "config",
+        "core_headers",
+        "flags_path_util",
+        "strings",
+        "synchronization"
+      ],
+      "block": "\n  NAME\n    flags_program_name\n  SRCS\n    \"internal/program_name.cc\"\n  HDRS\n    \"internal/program_name.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n    absl::flags_path_util\n    absl::strings\n    absl::synchronization\n  PUBLIC\n"
+    },
+    "flags_reflection": {
+      "file": "abseil-cpp-20240116.0/absl/flags/CMakeLists.txt",
+      "line": 152,
+      "deps": [
+        "config",
+        "flags_commandlineflag",
+        "flags_config",
+        "flags_private_handle_accessor",
+        "flat_hash_map",
+        "no_destructor",
+        "strings",
+        "synchronization"
+      ],
+      "block": "\n  NAME\n    flags_reflection\n  SRCS\n    \"reflection.cc\"\n  HDRS\n    \"reflection.h\"\n    \"internal/registry.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::config\n    absl::flags_commandlineflag\n    absl::flags_private_handle_accessor\n    absl::flags_config\n    absl::strings\n    absl::synchronization\n    absl::flat_hash_map\n    absl::no_destructor\n"
+    },
+    "flat_hash_map": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 280,
+      "deps": [
+        "algorithm_container",
+        "container_memory",
+        "core_headers",
+        "hash_function_defaults",
+        "memory",
+        "raw_hash_map"
+      ],
+      "block": "\n  NAME\n    flat_hash_map\n  HDRS\n    \"flat_hash_map.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::container_memory\n    absl::core_headers\n    absl::hash_function_defaults\n    absl::raw_hash_map\n    absl::algorithm_container\n    absl::memory\n  PUBLIC\n"
+    },
+    "flat_hash_set": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 317,
+      "deps": [
+        "algorithm_container",
+        "container_memory",
+        "core_headers",
+        "hash_function_defaults",
+        "memory",
+        "raw_hash_set"
+      ],
+      "block": "\n  NAME\n    flat_hash_set\n  HDRS\n    \"flat_hash_set.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::container_memory\n    absl::hash_function_defaults\n    absl::raw_hash_set\n    absl::algorithm_container\n    absl::core_headers\n    absl::memory\n  PUBLIC\n"
+    },
+    "function_ref": {
+      "file": "abseil-cpp-20240116.0/absl/functional/CMakeLists.txt",
+      "line": 81,
+      "deps": [
+        "any_invocable",
+        "base_internal",
+        "core_headers",
+        "meta"
+      ],
+      "block": "\n  NAME\n    function_ref\n  SRCS\n    \"internal/function_ref.h\"\n  HDRS\n    \"function_ref.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base_internal\n    absl::core_headers\n    absl::any_invocable\n    absl::meta\n  PUBLIC\n"
+    },
+    "graphcycles_internal": {
+      "file": "abseil-cpp-20240116.0/absl/synchronization/CMakeLists.txt",
+      "line": 18,
+      "deps": [
+        "base",
+        "base_internal",
+        "config",
+        "core_headers",
+        "malloc_internal",
+        "raw_logging_internal"
+      ],
+      "block": "\n  NAME\n    graphcycles_internal\n  HDRS\n    \"internal/graphcycles.h\"\n  SRCS\n    \"internal/graphcycles.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::base_internal\n    absl::config\n    absl::core_headers\n    absl::malloc_internal\n    absl::raw_logging_internal\n"
+    },
+    "hash": {
+      "file": "abseil-cpp-20240116.0/absl/hash/CMakeLists.txt",
+      "line": 17,
+      "deps": [
+        "bits",
+        "city",
+        "config",
+        "core_headers",
+        "endian",
+        "fixed_array",
+        "function_ref",
+        "int128",
+        "low_level_hash",
+        "meta",
+        "optional",
+        "strings",
+        "utility",
+        "variant"
+      ],
+      "block": "\n  NAME\n    hash\n  HDRS\n    \"hash.h\"\n  SRCS\n    \"internal/hash.cc\"\n    \"internal/hash.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::bits\n    absl::city\n    absl::config\n    absl::core_headers\n    absl::endian\n    absl::fixed_array\n    absl::function_ref\n    absl::meta\n    absl::int128\n    absl::strings\n    absl::optional\n    absl::variant\n    absl::utility\n    absl::low_level_hash\n  PUBLIC\n"
+    },
+    "hash_function_defaults": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 461,
+      "deps": [
+        "config",
+        "cord",
+        "hash",
+        "strings"
+      ],
+      "block": "\n  NAME\n    hash_function_defaults\n  HDRS\n    \"internal/hash_function_defaults.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::cord\n    absl::hash\n    absl::strings\n  PUBLIC\n"
+    },
+    "hash_policy_traits": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 539,
+      "deps": [
+        "common_policy_traits",
+        "meta"
+      ],
+      "block": "\n  NAME\n    hash_policy_traits\n  HDRS\n    \"internal/hash_policy_traits.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::common_policy_traits\n    absl::meta\n  PUBLIC\n"
+    },
+    "hashtable_debug_hooks": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 637,
+      "deps": [
+        "config"
+      ],
+      "block": "\n  NAME\n    hashtable_debug_hooks\n  HDRS\n    \"internal/hashtable_debug_hooks.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n  PUBLIC\n"
+    },
+    "hashtablez_sampler": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 591,
+      "deps": [
+        "base",
+        "config",
+        "exponential_biased",
+        "raw_logging_internal",
+        "sample_recorder",
+        "synchronization",
+        "time"
+      ],
+      "block": "\n  NAME\n    hashtablez_sampler\n  HDRS\n    \"internal/hashtablez_sampler.h\"\n  SRCS\n    \"internal/hashtablez_sampler.cc\"\n    \"internal/hashtablez_sampler_force_weak_definition.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::config\n    absl::exponential_biased\n    absl::raw_logging_internal\n    absl::sample_recorder\n    absl::synchronization\n    absl::time\n"
+    },
+    "inlined_vector": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 188,
+      "deps": [
+        "algorithm",
+        "core_headers",
+        "inlined_vector_internal",
+        "memory",
+        "throw_delegate",
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    inlined_vector\n  HDRS\n   \"inlined_vector.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::algorithm\n    absl::core_headers\n    absl::inlined_vector_internal\n    absl::throw_delegate\n    absl::memory\n    absl::type_traits\n  PUBLIC\n"
+    },
+    "inlined_vector_internal": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 171,
+      "deps": [
+        "compressed_tuple",
+        "config",
+        "core_headers",
+        "memory",
+        "span",
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    inlined_vector_internal\n  HDRS\n   \"internal/inlined_vector.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::compressed_tuple\n    absl::config\n    absl::core_headers\n    absl::memory\n    absl::span\n    absl::type_traits\n  PUBLIC\n"
+    },
+    "int128": {
+      "file": "abseil-cpp-20240116.0/absl/numeric/CMakeLists.txt",
+      "line": 44,
+      "deps": [
+        "bits",
+        "config",
+        "core_headers"
+      ],
+      "block": "\n  NAME\n    int128\n  HDRS\n    \"int128.h\"\n  SRCS\n    \"int128.cc\"\n    \"int128_have_intrinsic.inc\"\n    \"int128_no_intrinsic.inc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n    absl::bits\n  PUBLIC\n"
+    },
+    "kernel_timeout_internal": {
+      "file": "abseil-cpp-20240116.0/absl/synchronization/CMakeLists.txt",
+      "line": 37,
+      "deps": [
+        "base",
+        "config",
+        "core_headers",
+        "raw_logging_internal",
+        "time"
+      ],
+      "block": "\n  NAME\n    kernel_timeout_internal\n  HDRS\n    \"internal/kernel_timeout.h\"\n  SRCS\n    \"internal/kernel_timeout.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::config\n    absl::core_headers\n    absl::raw_logging_internal\n    absl::time\n"
+    },
+    "layout": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 781,
+      "deps": [
+        "config",
+        "core_headers",
+        "debugging_internal",
+        "meta",
+        "span",
+        "strings",
+        "utility"
+      ],
+      "block": "\n  NAME\n    layout\n  HDRS\n    \"internal/layout.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n    absl::debugging_internal\n    absl::meta\n    absl::strings\n    absl::span\n    absl::utility\n  PUBLIC\n"
+    },
+    "log_severity": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 44,
+      "deps": [
+        "config",
+        "core_headers"
+      ],
+      "block": "\n  NAME\n    log_severity\n  HDRS\n    \"log_severity.h\"\n  SRCS\n    \"log_severity.cc\"\n  DEPS\n    absl::config\n    absl::core_headers\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n"
+    },
+    "low_level_hash": {
+      "file": "abseil-cpp-20240116.0/absl/hash/CMakeLists.txt",
+      "line": 159,
+      "deps": [
+        "config",
+        "endian",
+        "int128",
+        "prefetch"
+      ],
+      "block": "\n  NAME\n    low_level_hash\n  HDRS\n    \"internal/low_level_hash.h\"\n  SRCS\n    \"internal/low_level_hash.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::endian\n    absl::int128\n    absl::prefetch\n"
+    },
+    "malloc_internal": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 178,
+      "deps": [
+        "base",
+        "base_internal",
+        "config",
+        "core_headers",
+        "dynamic_annotations",
+        "raw_logging_internal"
+      ],
+      "block": "\n  NAME\n    malloc_internal\n  HDRS\n    \"internal/direct_mmap.h\"\n    \"internal/low_level_alloc.h\"\n  SRCS\n    \"internal/low_level_alloc.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::base_internal\n    absl::config\n    absl::core_headers\n    absl::dynamic_annotations\n    absl::raw_logging_internal\n    Threads::Threads\n"
+    },
+    "memory": {
+      "file": "abseil-cpp-20240116.0/absl/memory/CMakeLists.txt",
+      "line": 17,
+      "deps": [
+        "core_headers",
+        "meta"
+      ],
+      "block": "\n  NAME\n    memory\n  HDRS\n    \"memory.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::core_headers\n    absl::meta\n  PUBLIC\n"
+    },
+    "meta": {
+      "file": "abseil-cpp-20240116.0/absl/meta/CMakeLists.txt",
+      "line": 46,
+      "deps": [
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    meta\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::type_traits\n  PUBLIC\n"
+    },
+    "no_destructor": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 58,
+      "deps": [
+        "config"
+      ],
+      "block": "\n  NAME\n    no_destructor\n  HDRS\n    \"no_destructor.h\"\n  DEPS\n    absl::config\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n"
+    },
+    "node_hash_map": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 357,
+      "deps": [
+        "algorithm_container",
+        "container_memory",
+        "core_headers",
+        "hash_function_defaults",
+        "memory",
+        "node_slot_policy",
+        "raw_hash_map"
+      ],
+      "block": "\n  NAME\n    node_hash_map\n  HDRS\n    \"node_hash_map.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::container_memory\n    absl::core_headers\n    absl::hash_function_defaults\n    absl::node_slot_policy\n    absl::raw_hash_map\n    absl::algorithm_container\n    absl::memory\n  PUBLIC\n"
+    },
+    "node_hash_set": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 393,
+      "deps": [
+        "algorithm_container",
+        "core_headers",
+        "hash_function_defaults",
+        "memory",
+        "node_slot_policy",
+        "raw_hash_set"
+      ],
+      "block": "\n  NAME\n    node_hash_set\n  HDRS\n    \"node_hash_set.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::core_headers\n    absl::hash_function_defaults\n    absl::node_slot_policy\n    absl::raw_hash_set\n    absl::algorithm_container\n    absl::memory\n  PUBLIC\n"
+    },
+    "node_slot_policy": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 650,
+      "deps": [
+        "config"
+      ],
+      "block": "\n  NAME\n    node_slot_policy\n  HDRS\n    \"internal/node_slot_policy.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n  PUBLIC\n"
+    },
+    "non_temporal_arm_intrinsics": {
+      "file": "abseil-cpp-20240116.0/absl/crc/CMakeLists.txt",
+      "line": 96,
+      "deps": [
+        "config"
+      ],
+      "block": "\n  NAME\n    non_temporal_arm_intrinsics\n  HDRS\n    \"internal/non_temporal_arm_intrinsics.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n"
+    },
+    "non_temporal_memcpy": {
+      "file": "abseil-cpp-20240116.0/absl/crc/CMakeLists.txt",
+      "line": 108,
+      "deps": [
+        "config",
+        "core_headers",
+        "non_temporal_arm_intrinsics"
+      ],
+      "block": "\n  NAME\n    non_temporal_memcpy\n  HDRS\n    \"internal/non_temporal_memcpy.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::non_temporal_arm_intrinsics\n    absl::config\n    absl::core_headers\n"
+    },
+    "nullability": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 69,
+      "deps": [
+        "core_headers",
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    nullability\n  HDRS\n    \"nullability.h\"\n  SRCS\n    \"internal/nullability_impl.h\"\n  DEPS\n    absl::core_headers\n    absl::type_traits\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n"
+    },
+    "numeric_representation": {
+      "file": "abseil-cpp-20240116.0/absl/numeric/CMakeLists.txt",
+      "line": 90,
+      "deps": [
+        "config"
+      ],
+      "block": "\n  NAME\n    numeric_representation\n  HDRS\n    \"internal/representation.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n  PUBLIC\n"
+    },
+    "optional": {
+      "file": "abseil-cpp-20240116.0/absl/types/CMakeLists.txt",
+      "line": 164,
+      "deps": [
+        "bad_optional_access",
+        "base_internal",
+        "config",
+        "core_headers",
+        "memory",
+        "nullability",
+        "type_traits",
+        "utility"
+      ],
+      "block": "\n  NAME\n    optional\n  HDRS\n    \"optional.h\"\n  SRCS\n    \"internal/optional.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::bad_optional_access\n    absl::base_internal\n    absl::config\n    absl::core_headers\n    absl::memory\n    absl::nullability\n    absl::type_traits\n    absl::utility\n  PUBLIC\n"
+    },
+    "prefetch": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 702,
+      "deps": [
+        "config",
+        "core_headers"
+      ],
+      "block": "\n  NAME\n    prefetch\n  HDRS\n    \"prefetch.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n"
+    },
+    "raw_hash_map": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 677,
+      "deps": [
+        "config",
+        "container_memory",
+        "core_headers",
+        "raw_hash_set",
+        "throw_delegate"
+      ],
+      "block": "\n  NAME\n    raw_hash_map\n  HDRS\n    \"internal/raw_hash_map.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::container_memory\n    absl::core_headers\n    absl::raw_hash_set\n    absl::throw_delegate\n  PUBLIC\n"
+    },
+    "raw_hash_set": {
+      "file": "abseil-cpp-20240116.0/absl/container/CMakeLists.txt",
+      "line": 706,
+      "deps": [
+        "bits",
+        "compressed_tuple",
+        "config",
+        "container_common",
+        "container_memory",
+        "core_headers",
+        "dynamic_annotations",
+        "endian",
+        "hash",
+        "hash_policy_traits",
+        "hashtable_debug_hooks",
+        "hashtablez_sampler",
+        "memory",
+        "meta",
+        "optional",
+        "prefetch",
+        "raw_logging_internal",
+        "utility"
+      ],
+      "block": "\n  NAME\n    raw_hash_set\n  HDRS\n    \"internal/raw_hash_set.h\"\n  SRCS\n    \"internal/raw_hash_set.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::bits\n    absl::compressed_tuple\n    absl::config\n    absl::container_common\n    absl::container_memory\n    absl::core_headers\n    absl::dynamic_annotations\n    absl::endian\n    absl::hash\n    absl::hash_policy_traits\n    absl::hashtable_debug_hooks\n    absl::hashtablez_sampler\n    absl::memory\n    absl::meta\n    absl::optional\n    absl::prefetch\n    absl::raw_logging_internal\n    absl::utility\n  PUBLIC\n"
+    },
+    "raw_logging_internal": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 97,
+      "deps": [
+        "atomic_hook",
+        "config",
+        "core_headers",
+        "errno_saver",
+        "log_severity"
+      ],
+      "block": "\n  NAME\n    raw_logging_internal\n  HDRS\n    \"internal/raw_logging.h\"\n  SRCS\n    \"internal/raw_logging.cc\"\n  DEPS\n    absl::atomic_hook\n    absl::config\n    absl::core_headers\n    absl::errno_saver\n    absl::log_severity\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n"
+    },
+    "sample_recorder": {
+      "file": "abseil-cpp-20240116.0/absl/profiling/CMakeLists.txt",
+      "line": 15,
+      "deps": [
+        "base",
+        "synchronization"
+      ],
+      "block": "\n  NAME\n    sample_recorder\n  HDRS\n    \"internal/sample_recorder.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::synchronization\n"
+    },
+    "span": {
+      "file": "abseil-cpp-20240116.0/absl/types/CMakeLists.txt",
+      "line": 106,
+      "deps": [
+        "algorithm",
+        "core_headers",
+        "nullability",
+        "throw_delegate",
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    span\n  HDRS\n    \"span.h\"\n  SRCS\n    \"internal/span.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::algorithm\n    absl::core_headers\n    absl::nullability\n    absl::throw_delegate\n    absl::type_traits\n  PUBLIC\n"
+    },
+    "spinlock_wait": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 115,
+      "deps": [
+        "base_internal",
+        "core_headers",
+        "errno_saver"
+      ],
+      "block": "\n  NAME\n    spinlock_wait\n  HDRS\n    \"internal/spinlock_wait.h\"\n  SRCS\n    \"internal/spinlock_akaros.inc\"\n    \"internal/spinlock_linux.inc\"\n    \"internal/spinlock_posix.inc\"\n    \"internal/spinlock_wait.cc\"\n    \"internal/spinlock_win32.inc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base_internal\n    absl::core_headers\n    absl::errno_saver\n"
+    },
+    "stacktrace": {
+      "file": "abseil-cpp-20240116.0/absl/debugging/CMakeLists.txt",
+      "line": 19,
+      "deps": [
+        "config",
+        "core_headers",
+        "debugging_internal",
+        "dynamic_annotations",
+        "raw_logging_internal"
+      ],
+      "block": "\n  NAME\n    stacktrace\n  HDRS\n    \"stacktrace.h\"\n    \"internal/stacktrace_aarch64-inl.inc\"\n    \"internal/stacktrace_arm-inl.inc\"\n    \"internal/stacktrace_config.h\"\n    \"internal/stacktrace_emscripten-inl.inc\"\n    \"internal/stacktrace_generic-inl.inc\"\n    \"internal/stacktrace_powerpc-inl.inc\"\n    \"internal/stacktrace_riscv-inl.inc\"\n    \"internal/stacktrace_unimplemented-inl.inc\"\n    \"internal/stacktrace_win32-inl.inc\"\n    \"internal/stacktrace_x86-inl.inc\"\n  SRCS\n    \"stacktrace.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    $<$<BOOL:${EXECINFO_LIBRARY}>:${EXECINFO_LIBRARY}>\n  DEPS\n    absl::debugging_internal\n    absl::config\n    absl::core_headers\n    absl::dynamic_annotations\n    absl::raw_logging_internal\n  PUBLIC\n"
+    },
+    "str_format": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 468,
+      "deps": [
+        "config",
+        "core_headers",
+        "nullability",
+        "span",
+        "str_format_internal",
+        "string_view"
+      ],
+      "block": "\n  NAME\n    str_format\n  HDRS\n    \"str_format.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n    absl::nullability\n    absl::span\n    absl::str_format_internal\n    absl::string_view\n  PUBLIC\n"
+    },
+    "str_format_internal": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 486,
+      "deps": [
+        "bits",
+        "config",
+        "core_headers",
+        "fixed_array",
+        "inlined_vector",
+        "int128",
+        "numeric_representation",
+        "span",
+        "strings",
+        "type_traits",
+        "utility"
+      ],
+      "block": "\n  NAME\n    str_format_internal\n  HDRS\n    \"internal/str_format/arg.h\"\n    \"internal/str_format/bind.h\"\n    \"internal/str_format/checker.h\"\n    \"internal/str_format/constexpr_parser.h\"\n    \"internal/str_format/extension.h\"\n    \"internal/str_format/float_conversion.h\"\n    \"internal/str_format/output.h\"\n    \"internal/str_format/parser.h\"\n  SRCS\n    \"internal/str_format/arg.cc\"\n    \"internal/str_format/bind.cc\"\n    \"internal/str_format/extension.cc\"\n    \"internal/str_format/float_conversion.cc\"\n    \"internal/str_format/output.cc\"\n    \"internal/str_format/parser.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::bits\n    absl::strings\n    absl::config\n    absl::core_headers\n    absl::fixed_array\n    absl::inlined_vector\n    absl::numeric_representation\n    absl::type_traits\n    absl::utility\n    absl::int128\n    absl::span\n"
+    },
+    "string_view": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 17,
+      "deps": [
+        "base",
+        "config",
+        "core_headers",
+        "nullability",
+        "throw_delegate"
+      ],
+      "block": "\n  NAME\n    string_view\n  HDRS\n    string_view.h\n  SRCS\n    string_view.cc\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::config\n    absl::core_headers\n    absl::nullability\n    absl::throw_delegate\n  PUBLIC\n"
+    },
+    "strings": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 35,
+      "deps": [
+        "base",
+        "bits",
+        "charset",
+        "config",
+        "core_headers",
+        "endian",
+        "int128",
+        "memory",
+        "nullability",
+        "raw_logging_internal",
+        "string_view",
+        "strings_internal",
+        "throw_delegate",
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    strings\n  HDRS\n    \"ascii.h\"\n    \"charconv.h\"\n    \"escaping.h\"\n    \"has_absl_stringify.h\"\n    \"internal/damerau_levenshtein_distance.h\"\n    \"internal/string_constant.h\"\n    \"internal/has_absl_stringify.h\"\n    \"match.h\"\n    \"numbers.h\"\n    \"str_cat.h\"\n    \"str_join.h\"\n    \"str_replace.h\"\n    \"str_split.h\"\n    \"strip.h\"\n    \"substitute.h\"\n  SRCS\n    \"ascii.cc\"\n    \"charconv.cc\"\n    \"escaping.cc\"\n    \"internal/charconv_bigint.cc\"\n    \"internal/charconv_bigint.h\"\n    \"internal/charconv_parse.cc\"\n    \"internal/charconv_parse.h\"\n    \"internal/damerau_levenshtein_distance.cc\"\n    \"internal/memutil.cc\"\n    \"internal/memutil.h\"\n    \"internal/stringify_sink.h\"\n    \"internal/stringify_sink.cc\"\n    \"internal/stl_type_traits.h\"\n    \"internal/str_join_internal.h\"\n    \"internal/str_split_internal.h\"\n    \"match.cc\"\n    \"numbers.cc\"\n    \"str_cat.cc\"\n    \"str_replace.cc\"\n    \"str_split.cc\"\n    \"substitute.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::string_view\n    absl::strings_internal\n    absl::base\n    absl::bits\n    absl::charset\n    absl::config\n    absl::core_headers\n    absl::endian\n    absl::int128\n    absl::memory\n    absl::nullability\n    absl::raw_logging_internal\n    absl::throw_delegate\n    absl::type_traits\n  PUBLIC\n"
+    },
+    "strings_internal": {
+      "file": "abseil-cpp-20240116.0/absl/strings/CMakeLists.txt",
+      "line": 122,
+      "deps": [
+        "config",
+        "core_headers",
+        "endian",
+        "raw_logging_internal",
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    strings_internal\n  HDRS\n    \"internal/escaping.cc\"\n    \"internal/escaping.h\"\n    \"internal/ostringstream.h\"\n    \"internal/resize_uninitialized.h\"\n    \"internal/utf8.h\"\n  SRCS\n    \"internal/ostringstream.cc\"\n    \"internal/utf8.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n    absl::endian\n    absl::raw_logging_internal\n    absl::type_traits\n"
+    },
+    "symbolize": {
+      "file": "abseil-cpp-20240116.0/absl/debugging/CMakeLists.txt",
+      "line": 62,
+      "deps": [
+        "base",
+        "config",
+        "core_headers",
+        "debugging_internal",
+        "demangle_internal",
+        "dynamic_annotations",
+        "malloc_internal",
+        "raw_logging_internal",
+        "strings"
+      ],
+      "block": "\n  NAME\n    symbolize\n  HDRS\n    \"symbolize.h\"\n    \"internal/symbolize.h\"\n  SRCS\n    \"symbolize.cc\"\n    \"symbolize_darwin.inc\"\n    \"symbolize_elf.inc\"\n    \"symbolize_emscripten.inc\"\n    \"symbolize_unimplemented.inc\"\n    \"symbolize_win32.inc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  LINKOPTS\n    ${ABSL_DEFAULT_LINKOPTS}\n    $<$<BOOL:${MINGW}>:-ldbghelp>\n  DEPS\n    absl::debugging_internal\n    absl::demangle_internal\n    absl::base\n    absl::config\n    absl::core_headers\n    absl::dynamic_annotations\n    absl::malloc_internal\n    absl::raw_logging_internal\n    absl::strings\n  PUBLIC\n"
+    },
+    "synchronization": {
+      "file": "abseil-cpp-20240116.0/absl/synchronization/CMakeLists.txt",
+      "line": 69,
+      "deps": [
+        "atomic_hook",
+        "base",
+        "base_internal",
+        "config",
+        "core_headers",
+        "dynamic_annotations",
+        "graphcycles_internal",
+        "kernel_timeout_internal",
+        "malloc_internal",
+        "raw_logging_internal",
+        "stacktrace",
+        "symbolize",
+        "time"
+      ],
+      "block": "\n  NAME\n    synchronization\n  HDRS\n    \"barrier.h\"\n    \"blocking_counter.h\"\n    \"internal/create_thread_identity.h\"\n    \"internal/futex.h\"\n    \"internal/futex_waiter.h\"\n    \"internal/per_thread_sem.h\"\n    \"internal/pthread_waiter.h\"\n    \"internal/sem_waiter.h\"\n    \"internal/stdcpp_waiter.h\"\n    \"internal/waiter.h\"\n    \"internal/waiter_base.h\"\n    \"internal/win32_waiter.h\"\n    \"mutex.h\"\n    \"notification.h\"\n  SRCS\n    \"barrier.cc\"\n    \"blocking_counter.cc\"\n    \"internal/create_thread_identity.cc\"\n    \"internal/futex_waiter.cc\"\n    \"internal/per_thread_sem.cc\"\n    \"internal/pthread_waiter.cc\"\n    \"internal/sem_waiter.cc\"\n    \"internal/stdcpp_waiter.cc\"\n    \"internal/waiter_base.cc\"\n    \"internal/win32_waiter.cc\"\n    \"notification.cc\"\n    \"mutex.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::graphcycles_internal\n    absl::kernel_timeout_internal\n    absl::atomic_hook\n    absl::base\n    absl::base_internal\n    absl::config\n    absl::core_headers\n    absl::dynamic_annotations\n    absl::malloc_internal\n    absl::raw_logging_internal\n    absl::stacktrace\n    absl::symbolize\n    absl::time\n    Threads::Threads\n  PUBLIC\n"
+    },
+    "throw_delegate": {
+      "file": "abseil-cpp-20240116.0/absl/base/CMakeLists.txt",
+      "line": 259,
+      "deps": [
+        "config",
+        "raw_logging_internal"
+      ],
+      "block": "\n  NAME\n    throw_delegate\n  HDRS\n    \"internal/throw_delegate.h\"\n  SRCS\n    \"internal/throw_delegate.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::raw_logging_internal\n"
+    },
+    "time": {
+      "file": "abseil-cpp-20240116.0/absl/time/CMakeLists.txt",
+      "line": 17,
+      "deps": [
+        "base",
+        "civil_time",
+        "core_headers",
+        "int128",
+        "raw_logging_internal",
+        "strings",
+        "time_zone"
+      ],
+      "block": "\n  NAME\n    time\n  HDRS\n    \"civil_time.h\"\n    \"clock.h\"\n    \"time.h\"\n  SRCS\n    \"civil_time.cc\"\n    \"clock.cc\"\n    \"duration.cc\"\n    \"format.cc\"\n    \"internal/get_current_time_chrono.inc\"\n    \"internal/get_current_time_posix.inc\"\n    \"time.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base\n    absl::civil_time\n    absl::core_headers\n    absl::int128\n    absl::raw_logging_internal\n    absl::strings\n    absl::time_zone\n  PUBLIC\n"
+    },
+    "time_zone": {
+      "file": "abseil-cpp-20240116.0/absl/time/CMakeLists.txt",
+      "line": 57,
+      "deps": [],
+      "block": "\n  NAME\n    time_zone\n  HDRS\n    \"internal/cctz/include/cctz/time_zone.h\"\n    \"internal/cctz/include/cctz/zone_info_source.h\"\n  SRCS\n    \"internal/cctz/src/time_zone_fixed.cc\"\n    \"internal/cctz/src/time_zone_fixed.h\"\n    \"internal/cctz/src/time_zone_format.cc\"\n    \"internal/cctz/src/time_zone_if.cc\"\n    \"internal/cctz/src/time_zone_if.h\"\n    \"internal/cctz/src/time_zone_impl.cc\"\n    \"internal/cctz/src/time_zone_impl.h\"\n    \"internal/cctz/src/time_zone_info.cc\"\n    \"internal/cctz/src/time_zone_info.h\"\n    \"internal/cctz/src/time_zone_libc.cc\"\n    \"internal/cctz/src/time_zone_libc.h\"\n    \"internal/cctz/src/time_zone_lookup.cc\"\n    \"internal/cctz/src/time_zone_posix.cc\"\n    \"internal/cctz/src/time_zone_posix.h\"\n    \"internal/cctz/src/tzfile.h\"\n    \"internal/cctz/src/zone_info_source.cc\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    Threads::Threads\n    # TODO(#1495): Use $<LINK_LIBRARY:FRAMEWORK,CoreFoundation> once our\n    # minimum CMake version >= 3.24\n    $<$<PLATFORM_ID:Darwin>:-Wl,-framework,CoreFoundation>\n"
+    },
+    "type_traits": {
+      "file": "abseil-cpp-20240116.0/absl/meta/CMakeLists.txt",
+      "line": 17,
+      "deps": [
+        "config",
+        "core_headers"
+      ],
+      "block": "\n  NAME\n    type_traits\n  HDRS\n    \"type_traits.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::config\n    absl::core_headers\n  PUBLIC\n"
+    },
+    "utility": {
+      "file": "abseil-cpp-20240116.0/absl/utility/CMakeLists.txt",
+      "line": 17,
+      "deps": [
+        "base_internal",
+        "config",
+        "type_traits"
+      ],
+      "block": "\n  NAME\n    utility\n  HDRS\n    \"utility.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::base_internal\n    absl::config\n    absl::type_traits\n  PUBLIC\n"
+    },
+    "variant": {
+      "file": "abseil-cpp-20240116.0/absl/types/CMakeLists.txt",
+      "line": 245,
+      "deps": [
+        "bad_variant_access",
+        "base_internal",
+        "config",
+        "core_headers",
+        "type_traits",
+        "utility"
+      ],
+      "block": "\n  NAME\n    variant\n  HDRS\n    \"variant.h\"\n  SRCS\n    \"internal/variant.h\"\n  COPTS\n    ${ABSL_DEFAULT_COPTS}\n  DEPS\n    absl::bad_variant_access\n    absl::base_internal\n    absl::config\n    absl::core_headers\n    absl::type_traits\n    absl::utility\n  PUBLIC\n"
+    }
+  },
+  "missing": [],
+  "limitations": "Static declared graph includes conditionally compiled source entries; not configured target archive list or proven NuttX link."
+}

@@ -1,0 +1,337 @@
+{
+  "utc": "2026-09-10T08:15:09Z",
+  "target_run": false,
+  "ggml": "real fixed host libraries",
+  "arena_API": "mock symbols; address macros overridden only in host-mock header",
+  "results": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "--version"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "gcc.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-fstack-usage",
+        "-Iinput/include",
+        "-Iinput/buft",
+        "-I.",
+        "-Iinput",
+        "-c",
+        "k7_target_provider.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\target-header-shape-only.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-fstack-usage",
+        "-Iinput/include",
+        "-Iinput/buft",
+        "-I.",
+        "-Ihost-mock",
+        "-c",
+        "k7_target_provider.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-fstack-usage",
+        "-Iinput/include",
+        "-Iinput/buft",
+        "-I.",
+        "-Ihost-mock",
+        "-c",
+        "k7_arena_diagnostic.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\diagnostic.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-fstack-usage",
+        "-Iinput/include",
+        "-Iinput/buft",
+        "-I.",
+        "-DKAP_HOST_MAIN",
+        "-Ihost-mock",
+        "-c",
+        "k7_arena_provider_main.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\entry.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-fstack-usage",
+        "-Iinput/include",
+        "-Iinput/buft",
+        "-I.",
+        "-Ihost-mock",
+        "-c",
+        "host-mock/mock.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\mock.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-fstack-usage",
+        "-Iinput/include",
+        "-Iinput/buft",
+        "-I.",
+        "-Ihost-mock",
+        "-c",
+        "host-mock/test_provider.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\test.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-Iinput/include",
+        "-c",
+        "input/buft/k7_host_buft.cpp",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\buft.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\diagnostic.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\mock.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\buft.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\entry.o",
+        "-Wl,--start-group",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-cpu.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-base.a",
+        "-Wl,--end-group",
+        "-pthread",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_probe.exe"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\g++.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\diagnostic.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\mock.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\buft.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\test.o",
+        "-Wl,--start-group",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-cpu.a",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-llama-pool-safety\\evidence\\run-20260910T063440936377Z\\build\\llama\\ggml\\src\\ggml-base.a",
+        "-Wl,--end-group",
+        "-pthread",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_test.exe"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_probe.exe"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "arena_provider result=0 init_raw=0 before=1048576 after=1048576 peak=32768 checked=8192 mismatches=0 allocations=1 releases=1 live=0 errors=0 quarantine=0 range=1 returned=1 limit=1048576 weights=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_test.exe",
+        "0"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS mode=0 result=0 init_raw=0 checked=8192 before=1048576 after=1048576 peak=32768 live=0 quarantine=0 releases=1\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_test.exe",
+        "1"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS mode=1 result=5 init_raw=-12 checked=0 before=0 after=0 peak=0 live=0 quarantine=0 releases=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_test.exe",
+        "2"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS mode=2 result=12 init_raw=0 checked=0 before=1048576 after=1048576 peak=0 live=0 quarantine=0 releases=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_test.exe",
+        "3"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS mode=3 result=5 init_raw=0 checked=0 before=1048576 after=1015808 peak=32768 live=1 quarantine=1 releases=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_test.exe",
+        "4"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS mode=4 result=5 init_raw=0 checked=0 before=1048576 after=1015808 peak=32768 live=1 quarantine=1 releases=0\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_test.exe",
+        "5"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS mode=5 result=5 init_raw=0 checked=8192 before=1048576 after=1015808 peak=32768 live=0 quarantine=0 releases=1\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_test.exe",
+        "6"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS cap/alignment rejected before API; invalid state cannot restart\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_test.exe",
+        "7"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS exact 1MiB mock boundary, aggregate overflow denied, paired release\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\provider_test.exe",
+        "8"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS mismatched/double release never reaches target free\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\nm.exe",
+        "-u",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\evidence\\diagnostic.o"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "                 U ggml_backend_buffer_free\n                 U ggml_backend_buffer_get_base\n                 U ggml_backend_buffer_get_size\n                 U ggml_backend_buffer_get_type\n                 U ggml_backend_buft_alloc_buffer\n                 U ggml_backend_buft_get_alignment\n                 U ggml_backend_buft_get_alloc_size\n                 U ggml_backend_buft_get_max_size\n                 U ggml_backend_tensor_alloc\n                 U ggml_backend_tensor_get\n                 U ggml_backend_tensor_set\n                 U ggml_free\n                 U ggml_init\n                 U ggml_nbytes\n                 U ggml_new_tensor_2d\n                 U k7_buft_create\n                 U k7_buft_destroy\n                 U k7_buft_round_bytes\n                 U k7_model_available\n                 U kap_initialize\n                 U kap_live_slots\n                 U kap_provider\n                 U kap_range_valid\n",
+      "stderr": ""
+    }
+  ]
+}

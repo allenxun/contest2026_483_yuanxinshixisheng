@@ -1,0 +1,572 @@
+PDF_PAGE 781
+RK3576 TRM
+ Bit    Attr   Reset Value                                      Description
+                                mfifo_err
+                                DMALD
+                                1'b0: MFIFO contains sufficient space
+                                1'b1: MFIFO is too small to hold the data that DMALD requires
+12      RO    0x0               DMAST
+                                1'b0: MFIFO contains sufficient data
+                                1'b1: MFIFO is too small to store the data to enable DMAST to
+                                complete
+                                This fault is an imprecise abort.
+11:8    RO    0x0               reserved
+                                ch_rdwr_err
+                                to perform a secure read or secure write:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+7       RO    0x0               violating the security permissions
+                                1'b1: a DMA channel thread in the Non-secure state attempted to
+                                perform a secure read or secure write
+                                This fault is a precise abort.
+                                ch_periph_err
+                                DMASTP, or DMAFLUSHP with inappropriate security permissions:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+6       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFP to wait for a secure peripheral
+                                o DMALDP or DMASTP to notify a secure peripheral
+                                o DMAFLUSHP to flush a secure peripheral
+                                This fault is a precise abort.
+                                ch_event_err
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+5       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFE to wait for a secure event
+                                o DMASEV to create a secure event or secure interrupt
+                                This fault is a precise abort.
+4:2     RO    0x0               reserved
+                                operand_invalid
+                                valid for the configuration of the DMAC:
+1       RO    0x0               1'b0: valid operand
+                                1'b1: invalid operand
+                                This fault is a precise abort.
+                                undef_instr
+0       RO    0x0               1'b0: defined instruction
+                                1'b1: undefined instruction
+                                This fault is a precise abort.
+
+DMA_FTR1
+Address: Operational Base + offset (0x0044)
+ Bit    Attr   Reset Value                                      Description
+                                lockup_err
+                                1'b0: DMA channel has adequate resources
+31      RO    0x0               1'b1: DMA channel has locked-up because of insufficient
+                                resources
+                                This fault is an imprecise abort.
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 781
+PDF_PAGE 782
+RK3576 TRM
+ Bit    Attr  Reset Value                                       Description
+                                dbg_instr
+                                memory or from the debug interface:
+                                1'b0: instruction that generated an abort was read from system
+30      RO    0x0               memory
+                                1'b1: instruction that generated an abort was read from the
+                                debug interface
+                                This fault is an imprecise abort but the bit is only valid when a
+                                precise abort occurs.
+29:19 RO      0x000             reserved
+                                data_read_err
+                                thread performs a data read:
+18      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+                                data_write_err
+                                thread performs a data write:
+17      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+                                instr_fetch_err
+                                thread performs an instruction fetch:
+16      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is a precise abort.
+15:14 RO      0x0               reserved
+                                st_data_unavailable
+                                1'b0: MFIFO contains all the data to enable the DMAST to
+13      RO    0x0               complete
+                                1'b1: previous DMALDs have not put enough data in the MFIFO to
+                                enable the DMAST to complete
+                                This fault is a precise abort.
+                                mfifo_err
+                                DMALD
+                                1'b0: MFIFO contains sufficient space
+                                1'b1: MFIFO is too small to hold the data that DMALD requires
+12      RO    0x0               DMAST
+                                1'b0: MFIFO contains sufficient data
+                                1'b1: MFIFO is too small to store the data to enable DMAST to
+                                complete
+                                This fault is an imprecise abort.
+11:8    RO    0x0               reserved
+                                ch_rdwr_err
+                                to perform a secure read or secure write:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+7       RO    0x0               violating the security permissions
+                                1'b1: a DMA channel thread in the Non-secure state attempted to
+                                perform a secure read or secure write
+                                This fault is a precise abort.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 782
+PDF_PAGE 783
+RK3576 TRM
+ Bit    Attr   Reset Value                                      Description
+                                ch_periph_err
+                                DMASTP, or DMAFLUSHP with inappropriate security permissions:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+6       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFP to wait for a secure peripheral
+                                o DMALDP or DMASTP to notify a secure peripheral
+                                o DMAFLUSHP to flush a secure peripheral
+                                This fault is a precise abort.
+                                ch_event_err
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+5       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFE to wait for a secure event
+                                o DMASEV to create a secure event or secure interrupt
+                                This fault is a precise abort.
+4:2     RO    0x0               reserved
+                                operand_invalid
+                                valid for the configuration of the DMAC:
+1       RO    0x0               1'b0: valid operand
+                                1'b1: invalid operand
+                                This fault is a precise abort.
+                                undef_instr
+0       RO    0x0               1'b0: defined instruction
+                                1'b1: undefined instruction
+                                This fault is a precise abort.
+
+DMA_FTR2
+Address: Operational Base + offset (0x0048)
+ Bit    Attr   Reset Value                                      Description
+                                lockup_err
+                                1'b0: DMA channel has adequate resources
+31      RO    0x0               1'b1: DMA channel has locked-up because of insufficient
+                                resources
+                                This fault is an imprecise abort.
+                                dbg_instr
+                                memory or from the debug interface:
+                                1'b0: instruction that generated an abort was read from system
+30      RO    0x0               memory
+                                1'b1: instruction that generated an abort was read from the
+                                debug interface
+                                This fault is an imprecise abort but the bit is only valid when a
+                                precise abort occurs.
+29:19 RO      0x000             reserved
+                                data_read_err
+                                thread performs a data read:
+18      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+                                data_write_err
+                                thread performs a data write:
+17      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 783
+PDF_PAGE 784
+RK3576 TRM
+ Bit    Attr   Reset Value                                      Description
+                                instr_fetch_err
+                                thread performs an instruction fetch:
+16      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is a precise abort.
+15:14 RO      0x0               reserved
+                                st_data_unavailable
+                                1'b0: MFIFO contains all the data to enable the DMAST to
+13      RO    0x0               complete
+                                1'b1: previous DMALDs have not put enough data in the MFIFO to
+                                enable the DMAST to complete
+                                This fault is a precise abort.
+                                mfifo_err
+                                DMALD
+                                1'b0: MFIFO contains sufficient space
+                                1'b1: MFIFO is too small to hold the data that DMALD requires
+12      RO    0x0               DMAST
+                                1'b0: MFIFO contains sufficient data
+                                1'b1: MFIFO is too small to store the data to enable DMAST to
+                                complete
+                                This fault is an imprecise abort.
+11:8    RO    0x0               reserved
+                                ch_rdwr_err
+                                to perform a secure read or secure write:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+7       RO    0x0               violating the security permissions
+                                1'b1: a DMA channel thread in the Non-secure state attempted to
+                                perform a secure read or secure write
+                                This fault is a precise abort.
+                                ch_periph_err
+                                DMASTP, or DMAFLUSHP with inappropriate security permissions:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+6       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFP to wait for a secure peripheral
+                                o DMALDP or DMASTP to notify a secure peripheral
+                                o DMAFLUSHP to flush a secure peripheral
+                                This fault is a precise abort.
+                                ch_event_err
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+5       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFE to wait for a secure event
+                                o DMASEV to create a secure event or secure interrupt
+                                This fault is a precise abort.
+4:2     RO    0x0               reserved
+                                operand_invalid
+                                valid for the configuration of the DMAC:
+1       RO    0x0               1'b0: valid operand
+                                1'b1: invalid operand
+                                This fault is a precise abort.
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 784
+PDF_PAGE 785
+RK3576 TRM
+ Bit    Attr  Reset Value                                       Description
+                                undef_instr
+0       RO    0x0               1'b0: defined instruction
+                                1'b1: undefined instruction
+                                This fault is a precise abort.
+
+DMA_FTR3
+Address: Operational Base + offset (0x004C)
+ Bit    Attr  Reset Value                                       Description
+                                lockup_err
+                                1'b0: DMA channel has adequate resources
+31      RO    0x0               1'b1: DMA channel has locked-up because of insufficient
+                                resources
+                                This fault is an imprecise abort.
+                                dbg_instr
+                                memory or from the debug interface:
+                                1'b0: instruction that generated an abort was read from system
+30      RO    0x0               memory
+                                1'b1: instruction that generated an abort was read from the
+                                debug interface
+                                This fault is an imprecise abort but the bit is only valid when a
+                                precise abort occurs.
+29:19 RO      0x000             reserved
+                                data_read_err
+                                thread performs a data read:
+18      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+                                data_write_err
+                                thread performs a data write:
+17      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+                                instr_fetch_err
+                                thread performs an instruction fetch:
+16      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is a precise abort.
+15:14 RO      0x0               reserved
+                                st_data_unavailable
+                                1'b0: MFIFO contains all the data to enable the DMAST to
+13      RO    0x0               complete
+                                1'b1: previous DMALDs have not put enough data in the MFIFO to
+                                enable the DMAST to complete
+                                This fault is a precise abort.
+                                mfifo_err
+                                DMALD
+                                1'b0: MFIFO contains sufficient space
+                                1'b1: MFIFO is too small to hold the data that DMALD requires
+12      RO    0x0               DMAST
+                                1'b0: MFIFO contains sufficient data
+                                1'b1: MFIFO is too small to store the data to enable DMAST to
+                                complete
+                                This fault is an imprecise abort.
+11:8    RO    0x0               reserved
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 785
+PDF_PAGE 786
+RK3576 TRM
+ Bit    Attr   Reset Value                                      Description
+                                ch_rdwr_err
+                                to perform a secure read or secure write:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+7       RO    0x0               violating the security permissions
+                                1'b1: a DMA channel thread in the Non-secure state attempted to
+                                perform a secure read or secure write
+                                This fault is a precise abort.
+                                ch_periph_err
+                                DMASTP, or DMAFLUSHP with inappropriate security permissions:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+6       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFP to wait for a secure peripheral
+                                o DMALDP or DMASTP to notify a secure peripheral
+                                o DMAFLUSHP to flush a secure peripheral
+                                This fault is a precise abort.
+                                ch_event_err
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+5       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFE to wait for a secure event
+                                o DMASEV to create a secure event or secure interrupt
+                                This fault is a precise abort.
+4:2     RO    0x0               reserved
+                                operand_invalid
+                                valid for the configuration of the DMAC:
+1       RO    0x0               1'b0: valid operand
+                                1'b1: invalid operand
+                                This fault is a precise abort.
+                                undef_instr
+0       RO    0x0               1'b0: defined instruction
+                                1'b1: undefined instruction
+                                This fault is a precise abort.
+
+DMA_FTR4
+Address: Operational Base + offset (0x0050)
+ Bit    Attr   Reset Value                                      Description
+                                lockup_err
+                                1'b0: DMA channel has adequate resources
+31      RO    0x0               1'b1: DMA channel has locked-up because of insufficient
+                                resources
+                                This fault is an imprecise abort.
+                                dbg_instr
+                                memory or from the debug interface:
+                                1'b0: instruction that generated an abort was read from system
+30      RO    0x0               memory
+                                1'b1: instruction that generated an abort was read from the
+                                debug interface
+                                This fault is an imprecise abort but the bit is only valid when a
+                                precise abort occurs.
+29:19 RO      0x000             reserved
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 786
+PDF_PAGE 787
+RK3576 TRM
+ Bit    Attr  Reset Value                                       Description
+                                data_read_err
+                                thread performs a data read:
+18      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+                                data_write_err
+                                thread performs a data write:
+17      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+                                instr_fetch_err
+                                thread performs an instruction fetch:
+16      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is a precise abort.
+15:14 RO      0x0               reserved
+                                st_data_unavailable
+                                1'b0: MFIFO contains all the data to enable the DMAST to
+13      RO    0x0               complete
+                                1'b1: previous DMALDs have not put enough data in the MFIFO to
+                                enable the DMAST to complete
+                                This fault is a precise abort.
+                                mfifo_err
+                                DMALD
+                                1'b0: MFIFO contains sufficient space
+                                1'b1: MFIFO is too small to hold the data that DMALD requires
+12      RO    0x0               DMAST
+                                1'b0: MFIFO contains sufficient data
+                                1'b1: MFIFO is too small to store the data to enable DMAST to
+                                complete
+                                This fault is an imprecise abort.
+11:8    RO    0x0               reserved
+                                ch_rdwr_err
+                                to perform a secure read or secure write:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+7       RO    0x0               violating the security permissions
+                                1'b1: a DMA channel thread in the Non-secure state attempted to
+                                perform a secure read or secure write
+                                This fault is a precise abort.
+                                ch_periph_err
+                                DMASTP, or DMAFLUSHP with inappropriate security permissions:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+6       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFP to wait for a secure peripheral
+                                o DMALDP or DMASTP to notify a secure peripheral
+                                o DMAFLUSHP to flush a secure peripheral
+                                This fault is a precise abort.
+
+
+
+
+
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 787
+PDF_PAGE 788
+RK3576 TRM
+ Bit    Attr  Reset Value                                       Description
+                                ch_event_err
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+5       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFE to wait for a secure event
+                                o DMASEV to create a secure event or secure interrupt
+                                This fault is a precise abort.
+4:2     RO    0x0               reserved
+                                operand_invalid
+                                valid for the configuration of the DMAC:
+1       RO    0x0               1'b0: valid operand
+                                1'b1: invalid operand
+                                This fault is a precise abort.
+                                undef_instr
+0       RO    0x0               1'b0: defined instruction
+                                1'b1: undefined instruction
+                                This fault is a precise abort.
+
+DMA_FTR5
+Address: Operational Base + offset (0x0054)
+ Bit    Attr  Reset Value                                       Description
+                                lockup_err
+                                1'b0: DMA channel has adequate resources
+31      RO    0x0               1'b1: DMA channel has locked-up because of insufficient
+                                resources
+                                This fault is an imprecise abort.
+                                dbg_instr
+                                memory or from the debug interface:
+                                1'b0: instruction that generated an abort was read from system
+30      RO    0x0               memory
+                                1'b1: instruction that generated an abort was read from the
+                                debug interface
+                                This fault is an imprecise abort but the bit is only valid when a
+                                precise abort occurs.
+29:19 RO      0x000             reserved
+                                data_read_err
+                                thread performs a data read:
+18      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+                                data_write_err
+                                thread performs a data write:
+17      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is an imprecise abort.
+                                instr_fetch_err
+                                thread performs an instruction fetch:
+16      RO    0x0               1'b0: OKAY response
+                                1'b1: EXOKAY, SLVERR, or DECERR response
+                                This fault is a precise abort.
+15:14 RO      0x0               reserved
+
+
+
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 788
+PDF_PAGE 789
+RK3576 TRM
+ Bit    Attr   Reset Value                                      Description
+                                st_data_unavailable
+                                1'b0: MFIFO contains all the data to enable the DMAST to
+13      RO    0x0               complete
+                                1'b1: previous DMALDs have not put enough data in the MFIFO to
+                                enable the DMAST to complete
+                                This fault is a precise abort.
+                                mfifo_err
+                                DMALD
+                                1'b0: MFIFO contains sufficient space
+                                1'b1: MFIFO is too small to hold the data that DMALD requires
+12      RO    0x0               DMAST
+                                1'b0: MFIFO contains sufficient data
+                                1'b1: MFIFO is too small to store the data to enable DMAST to
+                                complete
+                                This fault is an imprecise abort.
+11:8    RO    0x0               reserved
+                                ch_rdwr_err
+                                to perform a secure read or secure write:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+7       RO    0x0               violating the security permissions
+                                1'b1: a DMA channel thread in the Non-secure state attempted to
+                                perform a secure read or secure write
+                                This fault is a precise abort.
+                                ch_periph_err
+                                DMASTP, or DMAFLUSHP with inappropriate security permissions:
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+6       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFP to wait for a secure peripheral
+                                o DMALDP or DMASTP to notify a secure peripheral
+                                o DMAFLUSHP to flush a secure peripheral
+                                This fault is a precise abort.
+                                ch_event_err
+                                1'b0: a DMA channel thread in the Non-secure state is not
+                                violating the security permissions
+5       RO    0x0               1'b1: a DMA channel thread in the Non-secure state attempted to
+                                execute either:
+                                o DMAWFE to wait for a secure event
+                                o DMASEV to create a secure event or secure interrupt
+                                This fault is a precise abort.
+4:2     RO    0x0               reserved
+                                operand_invalid
+                                valid for the configuration of the DMAC:
+1       RO    0x0               1'b0: valid operand
+                                1'b1: invalid operand
+                                This fault is a precise abort.
+                                undef_instr
+0       RO    0x0               1'b0: defined instruction
+                                1'b1: undefined instruction
+                                This fault is a precise abort.
+
+DMA_FTR6
+Address: Operational Base + offset (0x0058)
+
+
+
+
+
+Copyright 2024 © Rockchip Electronics Co., Ltd.                                                 789

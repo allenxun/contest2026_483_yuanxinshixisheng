@@ -1,0 +1,23 @@
+{
+  "revision": "speaker-csr-fix-20260913",
+  "firmware_sha256": "3421500574ee083204d3e797d1e8faf9126a76921621e561db3b10be408739ef",
+  "host_regression_passed": true,
+  "arm64_build_passed": true,
+  "ram_crc_verified": true,
+  "nsh_verified_by_followup": true,
+  "initial_boot_script_timed_out": true,
+  "playback_register_verified": true,
+  "audible_tone_confirmed_by_user": true,
+  "speech_replay_clear_confirmed_by_user": true,
+  "repeated_phrase_user_confirmed_spoken_multiple_times": true,
+  "wake_recognition_passed": false,
+  "voice_wifi_provisioning_passed": false,
+  "flash_written": false,
+  "gimbal_started": false,
+  "next_request": "User now selects hello-prefix wake plus start-network phrase; separate firmware in progress",
+  "limitations": [
+    "No long-term audio reliability claim",
+    "Serial output has dropped fragments; timeout retained as failed script result",
+    "No phone BLE connection or Wi-Fi connection validation in this run"
+  ]
+}

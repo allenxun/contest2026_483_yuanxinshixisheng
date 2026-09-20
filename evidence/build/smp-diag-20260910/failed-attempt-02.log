@@ -1,0 +1,28 @@
+{"result": "PASS", "source_files": 468, "changes": 1, "applied": true}
+-- NuttX Host Tools
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/swl/openvela/cmake_out/velavision_smp_diag_20260910/bin_host
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/swl/openvela/cmake_out/velavision_smp_diag_20260910
+[1/1092] cd /home/swl/openvela/cmake_out/velavision_smp_diag_20260910/libs/libc/misc && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E touch /home/swl/openvela/nuttx/libs/libc/misc/lib_utsname.c
+[2/1092] cd /home/swl/openvela/nuttx && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -DKCONFIG_CONFIG=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_smp_diag_local/defconfig -DNUTTX_DIR=/home/swl/openvela/nuttx -DCMAKE_BINARY_DIR=/home/swl/openvela/cmake_out/velavision_smp_diag_20260910 -P /home/swl/openvela/nuttx/cmake/nuttx_generate_dts.cmake
+[3/1092] Generating bin output directories
+[4/1092] Building ASM object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_fpu_func.S.o
+[5/1092] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_fpu.c.o
+[6/1092] Building C object arch/CMakeFiles/arch.dir/arm64/src/rk3576/rk3576_boot.c.o
+[7/1092] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_smpcall.c.o
+FAILED: arch/CMakeFiles/arch.dir/arm64/src/common/arm64_smpcall.c.o 
+/home/swl/openvela/prebuilts/gcc/linux-x86_64/aarch64-none-elf/bin/aarch64-none-elf-gcc -D__KERNEL__ -D__NuttX__ -I/home/swl/openvela/nuttx/arch/arm64/src/rk3576 -I/home/swl/openvela/nuttx/arch/arm64/src/common -I/home/swl/openvela/apps/frameworks/security/include -I/home/swl/openvela/nuttx/sched -isystem /home/swl/openvela/nuttx/include -isystem /home/swl/openvela/cmake_out/velavision_smp_diag_20260910/include -march=armv8-a -mcpu=cortex-a53 -Os -fno-strict-aliasing -fno-omit-frame-pointer -D_LDBL_EQ_DBL -fno-common -Wall -Wshadow -Wundef -Wno-attributes -Wno-unknown-pragmas -Werror -Wstrict-prototypes -Wno-psabi -ffunction-sections -fdata-sections -g3 -fdiagnostics-color=always -fmacro-prefix-map=/home/swl/openvela/nuttx= -fmacro-prefix-map=/home/swl/openvela/apps= -fmacro-prefix-map=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7= -fmacro-prefix-map=/home/swl/openvela/nuttx/arch/arm64/src/rk3576= -MD -MT arch/CMakeFiles/arch.dir/arm64/src/common/arm64_smpcall.c.o -MF arch/CMakeFiles/arch.dir/arm64/src/common/arm64_smpcall.c.o.d -o arch/CMakeFiles/arch.dir/arm64/src/common/arm64_smpcall.c.o -c /home/swl/openvela/nuttx/arch/arm64/src/common/arm64_smpcall.c
+/home/swl/openvela/nuttx/arch/arm64/src/common/arm64_smpcall.c: In function 'up_send_smp_sched':
+/home/swl/openvela/nuttx/arch/arm64/src/common/arm64_smpcall.c:99:3: error: implicit declaration of function 'up_trigger_irq' [-Werror=implicit-function-declaration]
+   99 |   up_trigger_irq(GIC_SMP_SCHED, (1 << cpu));
+      |   ^~~~~~~~~~~~~~
+cc1: all warnings being treated as errors
+[8/1092] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_checkstack.c.o
+[9/1092] Building C object arch/CMakeFiles/arch.dir/arm64/src/common/arm64_backtrace.c.o
+[10/1092] Building C object arch/CMakeFiles/arch.dir/arm64/src/rk3576/rk3576_serial.c.o
+[11/1092] Building ASM object arch/CMakeFiles/arch.dir/arm64/src/rk3576/rk3576_lowputc.S.o
+[12/1092] Building C object binfmt/CMakeFiles/binfmt.dir/binfmt_globals.c.o
+ninja: build stopped: subcommand failed.

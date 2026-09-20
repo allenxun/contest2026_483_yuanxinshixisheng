@@ -1,0 +1,22 @@
+config EXAMPLES_K7HOST
+	bool "K7 USB host enumeration command"
+	depends on RK3576_USBHOST
+
+config EXAMPLES_K7HOST_JPEG
+	bool "K7 retained camera JPEG decode diagnostic"
+	depends on EXAMPLES_K7HOST
+	select LIB_JPEG_TURBO
+
+config EXAMPLES_K7HOST_YUNET
+	bool "K7 fixed YuNet CPU face detection diagnostic"
+	depends on EXAMPLES_K7HOST_JPEG
+	help
+		Run hash-pinned YuNet FP32 weights on RGB160 camera frames.
+		Requires about 7 MB of CPU scratch memory; no NPU acceleration.
+
+config EXAMPLES_K7HOST_TRACK
+	bool "K7 bounded face-to-gimbal tracking"
+	depends on EXAMPLES_K7HOST_YUNET && EXAMPLES_GIMBAL
+	help
+		Explicit dry/run command with MCU target-unit limits and loss hold.
+		Shares exclusive UART ownership with manual gimbal commands.

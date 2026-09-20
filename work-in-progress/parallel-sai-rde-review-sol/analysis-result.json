@@ -1,0 +1,52 @@
+{
+  "all_input_hashes_match": true,
+  "mismatches": [],
+  "pause": {
+    "pause_us": 252,
+    "fifo_after_raw": "00082082",
+    "fifo_after_decoded": [
+      2,
+      2,
+      2,
+      2
+    ],
+    "all_four_banks_nonempty": true
+  },
+  "rxtrace": {
+    "trace_valid": true,
+    "first_eight_fifo_before": [
+      "00000002",
+      "00000001",
+      "00000080",
+      "00000040",
+      "00002000",
+      "00001000",
+      "00080000",
+      "00040000"
+    ],
+    "first_eight_words": [
+      "ffffffff",
+      "ffffffff",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000"
+    ]
+  },
+  "loopback": {
+    "transport_completed": true,
+    "periodic_zero_samples_unresolved": true
+  },
+  "linux_reference": {
+    "sets_rdl_16": true,
+    "toggles_rde": true,
+    "capture_rxdr_width_4": true,
+    "rdl_macro_is_n_minus_1": true
+  },
+  "s16_artifact_boundary": {
+    "board_result_present": false,
+    "raw_runtime_logs": []
+  }
+}

@@ -1,0 +1,15 @@
+LIBCLANG_PATH set to: /home/swl/openvela/prebuilts/rust/linux/extra_libs
+including vendor/infineon/boards/aurix/build/vendorsetup.sh
+including vendor/infineon/boards/aurix_tc3/build/vendorsetup.sh
+including vendor/openvela/boards/build/vendorsetup.sh
+[1/9] cd /home/swl/openvela/cmake_out/velavision_audio_s16_20260911/libs/libc/misc && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -E touch /home/swl/openvela/nuttx/libs/libc/misc/lib_utsname.c
+[2/9] Generating bin output directories
+[3/9] cd /home/swl/openvela/nuttx && /home/swl/openvela/prebuilts/tools/cmake/bin/cmake -DKCONFIG_CONFIG=/home/swl/openvela/nuttx/boards/arm64/rk3576/kickpi_k7/configs/velavision_audio_sound_local/defconfig -DNUTTX_DIR=/home/swl/openvela/nuttx -DCMAKE_BINARY_DIR=/home/swl/openvela/cmake_out/velavision_audio_s16_20260911 -P /home/swl/openvela/nuttx/cmake/nuttx_generate_dts.cmake
+[4/9] Linking C static library apps/examples/k7sound/libapps_k7sound.a
+[5/9] Building C object libs/libc/CMakeFiles/c.dir/misc/lib_utsname.c.o
+[6/9] Linking C static library libs/libc/libc.a
+[7/9] Linking CXX executable nuttx
+Memory region         Used Size  Region Size  %age Used
+            dram:      19588 KB       126 MB     15.18%
+[8/9] Generating nuttx.bin
+[9/9] Generating System.map

@@ -1,0 +1,426 @@
+{
+  "runs": [
+    {
+      "label": "memory-asr-1",
+      "mode": "asr",
+      "peak_private": 734707712,
+      "peak_working_set": 556605440,
+      "os_peak_working_set": 599093248,
+      "elapsed": 3.3761472000041977,
+      "marks": {
+        "baseline": 8.18e-05,
+        "asr_load_begin": 0.000125,
+        "asr_loaded": 2.44477,
+        "asr_begin": 2.44578,
+        "asr_first_nonempty": 2.51609,
+        "asr_final": 3.06315,
+        "all_released": 3.09828
+      },
+      "asr_load_seconds": 2.444645,
+      "first_output_seconds": 2.51609,
+      "post_release_private_median": 15912960,
+      "post_release_working_set_median": 24604672
+    },
+    {
+      "label": "memory-asr-2",
+      "mode": "asr",
+      "peak_private": 744239104,
+      "peak_working_set": 566845440,
+      "os_peak_working_set": 598687744,
+      "elapsed": 3.3538582000037422,
+      "marks": {
+        "baseline": 7.63e-05,
+        "asr_load_begin": 0.0001127,
+        "asr_loaded": 2.43884,
+        "asr_begin": 2.43975,
+        "asr_first_nonempty": 2.5022,
+        "asr_final": 3.02134,
+        "all_released": 3.05475
+      },
+      "asr_load_seconds": 2.4387273,
+      "first_output_seconds": 2.5022,
+      "post_release_private_median": 13996032,
+      "post_release_working_set_median": 23900160
+    },
+    {
+      "label": "memory-asr-3",
+      "mode": "asr",
+      "peak_private": 736833536,
+      "peak_working_set": 558026752,
+      "os_peak_working_set": 599609344,
+      "elapsed": 3.297753199993167,
+      "marks": {
+        "baseline": 8.04e-05,
+        "asr_load_begin": 0.0001152,
+        "asr_loaded": 2.36266,
+        "asr_begin": 2.3637,
+        "asr_first_nonempty": 2.43056,
+        "asr_final": 2.96731,
+        "all_released": 3.00079
+      },
+      "asr_load_seconds": 2.3625448,
+      "first_output_seconds": 2.43056,
+      "post_release_private_median": 16617472,
+      "post_release_working_set_median": 24166400
+    },
+    {
+      "label": "memory-both-1",
+      "mode": "both",
+      "peak_private": 1025736704,
+      "peak_working_set": 812912640,
+      "os_peak_working_set": 853344256,
+      "elapsed": 6.965815100003965,
+      "marks": {
+        "baseline": 8.13e-05,
+        "tts_load_begin": 0.0001159,
+        "tts_loaded": 3.10111,
+        "asr_load_begin": 3.10119,
+        "asr_loaded": 5.78901,
+        "tts_begin": 5.78907,
+        "tts_first_complete_audio": 5.96478,
+        "asr_begin": 5.96581,
+        "asr_first_nonempty": 6.03366,
+        "asr_final": 6.60763,
+        "all_released": 6.6798
+      },
+      "asr_load_seconds": 2.6878200000000003,
+      "tts_load_seconds": 3.1009941,
+      "first_output_seconds": 5.96478,
+      "post_release_private_median": 16273408,
+      "post_release_working_set_median": 25812992
+    },
+    {
+      "label": "memory-both-2",
+      "mode": "both",
+      "peak_private": 999727104,
+      "peak_working_set": 818135040,
+      "os_peak_working_set": 852889600,
+      "elapsed": 6.869286400004057,
+      "marks": {
+        "baseline": 7.42e-05,
+        "tts_load_begin": 0.0001084,
+        "tts_loaded": 3.05713,
+        "asr_load_begin": 3.05718,
+        "asr_loaded": 5.69603,
+        "tts_begin": 5.69608,
+        "tts_first_complete_audio": 5.87228,
+        "asr_begin": 5.87331,
+        "asr_first_nonempty": 5.93941,
+        "asr_final": 6.5112,
+        "all_released": 6.57963
+      },
+      "asr_load_seconds": 2.6388500000000006,
+      "tts_load_seconds": 3.0570216,
+      "first_output_seconds": 5.87228,
+      "post_release_private_median": 15695872,
+      "post_release_working_set_median": 25686016
+    },
+    {
+      "label": "memory-both-3",
+      "mode": "both",
+      "peak_private": 1007628288,
+      "peak_working_set": 828923904,
+      "os_peak_working_set": 852721664,
+      "elapsed": 6.969313699999475,
+      "marks": {
+        "baseline": 8.98e-05,
+        "tts_load_begin": 0.0001316,
+        "tts_loaded": 3.15487,
+        "asr_load_begin": 3.15494,
+        "asr_loaded": 5.70596,
+        "tts_begin": 5.70602,
+        "tts_first_complete_audio": 5.89501,
+        "asr_begin": 5.89615,
+        "asr_first_nonempty": 5.96876,
+        "asr_final": 6.59717,
+        "all_released": 6.66237
+      },
+      "asr_load_seconds": 2.5510200000000003,
+      "tts_load_seconds": 3.1547384,
+      "first_output_seconds": 5.89501,
+      "post_release_private_median": 17440768,
+      "post_release_working_set_median": 25018368
+    },
+    {
+      "label": "memory-sequential-1",
+      "mode": "sequential",
+      "peak_private": 750690304,
+      "peak_working_set": 572919808,
+      "os_peak_working_set": 599076864,
+      "elapsed": 7.028946699996595,
+      "marks": {
+        "baseline": 0.0001021,
+        "asr_load_begin": 0.0001485,
+        "asr_loaded": 2.6106,
+        "asr_begin": 2.61155,
+        "asr_first_nonempty": 2.67487,
+        "asr_final": 3.19997,
+        "asr_released": 3.23521,
+        "tts_load_begin": 3.49297,
+        "tts_loaded": 6.5307,
+        "tts_begin": 6.53077,
+        "tts_first_complete_audio": 6.70061,
+        "all_released": 6.72615
+      },
+      "asr_load_seconds": 2.6104515,
+      "tts_load_seconds": 3.0377300000000003,
+      "first_output_seconds": 2.67487,
+      "post_release_private_median": 17399808,
+      "post_release_working_set_median": 25866240
+    },
+    {
+      "label": "memory-sequential-2",
+      "mode": "sequential",
+      "peak_private": 770392064,
+      "peak_working_set": 592265216,
+      "os_peak_working_set": 599011328,
+      "elapsed": 6.766006000005291,
+      "marks": {
+        "baseline": 7.32e-05,
+        "asr_load_begin": 0.0001067,
+        "asr_loaded": 2.37017,
+        "asr_begin": 2.37114,
+        "asr_first_nonempty": 2.43615,
+        "asr_final": 3.02244,
+        "asr_released": 3.05753,
+        "tts_load_begin": 3.31382,
+        "tts_loaded": 6.28117,
+        "tts_begin": 6.28123,
+        "tts_first_complete_audio": 6.43653,
+        "all_released": 6.46148
+      },
+      "asr_load_seconds": 2.3700633,
+      "tts_load_seconds": 2.96735,
+      "first_output_seconds": 2.43615,
+      "post_release_private_median": 16674816,
+      "post_release_working_set_median": 26017792
+    },
+    {
+      "label": "memory-sequential-3",
+      "mode": "sequential",
+      "peak_private": 724549632,
+      "peak_working_set": 546668544,
+      "os_peak_working_set": 598245376,
+      "elapsed": 7.713208399989526,
+      "marks": {
+        "baseline": 0.0001158,
+        "asr_load_begin": 0.0001647,
+        "asr_loaded": 2.95771,
+        "asr_begin": 2.95869,
+        "asr_first_nonempty": 3.02281,
+        "asr_final": 3.58939,
+        "asr_released": 3.62903,
+        "tts_load_begin": 3.88711,
+        "tts_loaded": 7.19862,
+        "tts_begin": 7.19869,
+        "tts_first_complete_audio": 7.39026,
+        "all_released": 7.42365
+      },
+      "asr_load_seconds": 2.9575453,
+      "tts_load_seconds": 3.31151,
+      "first_output_seconds": 3.02281,
+      "post_release_private_median": 16617472,
+      "post_release_working_set_median": 25645056
+    },
+    {
+      "label": "memory-tts-1",
+      "mode": "tts",
+      "peak_private": 309174272,
+      "peak_working_set": 313262080,
+      "os_peak_working_set": 313602048,
+      "elapsed": 3.603816100003314,
+      "marks": {
+        "baseline": 9.24e-05,
+        "tts_load_begin": 0.0001345,
+        "tts_loaded": 3.08057,
+        "tts_begin": 3.08078,
+        "tts_first_complete_audio": 3.27596,
+        "all_released": 3.31364
+      },
+      "tts_load_seconds": 3.0804354999999997,
+      "first_output_seconds": 3.27596,
+      "post_release_private_median": 15187968,
+      "post_release_working_set_median": 23781376
+    },
+    {
+      "label": "memory-tts-2",
+      "mode": "tts",
+      "peak_private": 315346944,
+      "peak_working_set": 312696832,
+      "os_peak_working_set": 312881152,
+      "elapsed": 3.545675899993512,
+      "marks": {
+        "baseline": 9.65e-05,
+        "tts_load_begin": 0.0001395,
+        "tts_loaded": 3.04674,
+        "tts_begin": 3.04681,
+        "tts_first_complete_audio": 3.22424,
+        "all_released": 3.24923
+      },
+      "tts_load_seconds": 3.0466005,
+      "first_output_seconds": 3.22424,
+      "post_release_private_median": 14561280,
+      "post_release_working_set_median": 23810048
+    },
+    {
+      "label": "memory-tts-3",
+      "mode": "tts",
+      "peak_private": 303144960,
+      "peak_working_set": 310099968,
+      "os_peak_working_set": 310513664,
+      "elapsed": 3.7881156999937957,
+      "marks": {
+        "baseline": 9.58e-05,
+        "tts_load_begin": 0.0001358,
+        "tts_loaded": 3.28513,
+        "tts_begin": 3.2852,
+        "tts_first_complete_audio": 3.46885,
+        "all_released": 3.49474
+      },
+      "tts_load_seconds": 3.2849942000000003,
+      "first_output_seconds": 3.46885,
+      "post_release_private_median": 14446592,
+      "post_release_working_set_median": 23879680
+    }
+  ],
+  "summary": {
+    "asr": {
+      "peak_private": {
+        "min": 734707712,
+        "median": 736833536,
+        "max": 744239104
+      },
+      "peak_working_set": {
+        "min": 556605440,
+        "median": 558026752,
+        "max": 566845440
+      },
+      "os_peak_working_set": {
+        "min": 598687744,
+        "median": 599093248,
+        "max": 599609344
+      },
+      "asr_load_seconds": {
+        "min": 2.3625448,
+        "median": 2.4387273,
+        "max": 2.444645
+      },
+      "first_output_seconds": {
+        "min": 2.43056,
+        "median": 2.5022,
+        "max": 2.51609
+      },
+      "post_release_private_median": {
+        "min": 13996032,
+        "median": 15912960,
+        "max": 16617472
+      }
+    },
+    "tts": {
+      "peak_private": {
+        "min": 303144960,
+        "median": 309174272,
+        "max": 315346944
+      },
+      "peak_working_set": {
+        "min": 310099968,
+        "median": 312696832,
+        "max": 313262080
+      },
+      "os_peak_working_set": {
+        "min": 310513664,
+        "median": 312881152,
+        "max": 313602048
+      },
+      "tts_load_seconds": {
+        "min": 3.0466005,
+        "median": 3.0804354999999997,
+        "max": 3.2849942000000003
+      },
+      "first_output_seconds": {
+        "min": 3.22424,
+        "median": 3.27596,
+        "max": 3.46885
+      },
+      "post_release_private_median": {
+        "min": 14446592,
+        "median": 14561280,
+        "max": 15187968
+      }
+    },
+    "both": {
+      "peak_private": {
+        "min": 999727104,
+        "median": 1007628288,
+        "max": 1025736704
+      },
+      "peak_working_set": {
+        "min": 812912640,
+        "median": 818135040,
+        "max": 828923904
+      },
+      "os_peak_working_set": {
+        "min": 852721664,
+        "median": 852889600,
+        "max": 853344256
+      },
+      "asr_load_seconds": {
+        "min": 2.5510200000000003,
+        "median": 2.6388500000000006,
+        "max": 2.6878200000000003
+      },
+      "tts_load_seconds": {
+        "min": 3.0570216,
+        "median": 3.1009941,
+        "max": 3.1547384
+      },
+      "first_output_seconds": {
+        "min": 5.87228,
+        "median": 5.89501,
+        "max": 5.96478
+      },
+      "post_release_private_median": {
+        "min": 15695872,
+        "median": 16273408,
+        "max": 17440768
+      }
+    },
+    "sequential": {
+      "peak_private": {
+        "min": 724549632,
+        "median": 750690304,
+        "max": 770392064
+      },
+      "peak_working_set": {
+        "min": 546668544,
+        "median": 572919808,
+        "max": 592265216
+      },
+      "os_peak_working_set": {
+        "min": 598245376,
+        "median": 599011328,
+        "max": 599076864
+      },
+      "asr_load_seconds": {
+        "min": 2.3700633,
+        "median": 2.6104515,
+        "max": 2.9575453
+      },
+      "tts_load_seconds": {
+        "min": 2.96735,
+        "median": 3.0377300000000003,
+        "max": 3.31151
+      },
+      "first_output_seconds": {
+        "min": 2.43615,
+        "median": 2.67487,
+        "max": 3.02281
+      },
+      "post_release_private_median": {
+        "min": 16617472,
+        "median": 16674816,
+        "max": 17399808
+      }
+    }
+  }
+}

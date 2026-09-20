@@ -1,0 +1,38 @@
+--- a/cmake/CMakeLists.txt
++++ b/cmake/CMakeLists.txt
+@@ -526,7 +526,21 @@
+ find_package(Threads)
+ # On Windows we directly use Windows APIs to do the job
+ # Android NDK doesn't provide the iconv lib.
+-if(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
++option(K7_NUTTX_REDUCED_NO_STRING_NORMALIZER "Scoped reduced CPU probe without StringNormalizer/Iconv" OFF)
++if(K7_NUTTX_REDUCED_NO_STRING_NORMALIZER)
++  if(NOT CMAKE_SYSTEM_NAME STREQUAL "NuttX" OR NOT onnxruntime_REDUCED_OPS_BUILD)
++    message(FATAL_ERROR "Requires NuttX reduced-op build")
++  endif()
++  find_package(Python COMPONENTS Interpreter REQUIRED)
++  execute_process(COMMAND "${Python_EXECUTABLE}" -B
++    "${CMAKE_CURRENT_LIST_DIR}/k7_verify_no_string_normalizer.py"
++    "${CMAKE_BINARY_DIR}/op_reduction.generated/onnxruntime/core/providers/cpu/cpu_execution_provider.cc"
++    RESULT_VARIABLE k7_registration_result)
++  if(NOT k7_registration_result EQUAL 0)
++    message(FATAL_ERROR "Generated registration is absent or still references StringNormalizer")
++  endif()
++  set(ICONV_LIB "")
++elseif(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
+   find_package(Iconv REQUIRED)
+   set(ICONV_LIB Iconv::Iconv)
+ endif()
+--- a/cmake/onnxruntime_providers_cpu.cmake
++++ b/cmake/onnxruntime_providers_cpu.cmake
+@@ -144,6 +144,10 @@
+ if (onnxruntime_REDUCED_OPS_BUILD)
+   substitute_op_reduction_srcs(onnxruntime_providers_src)
+ endif()
++if(K7_NUTTX_REDUCED_NO_STRING_NORMALIZER)
++  list(REMOVE_ITEM onnxruntime_providers_src
++    "${ONNXRUNTIME_ROOT}/core/providers/cpu/text/string_normalizer.cc")
++endif()
+ onnxruntime_add_static_library(onnxruntime_providers ${onnxruntime_providers_src})
+ if (onnxruntime_REDUCED_OPS_BUILD)
+   add_op_reduction_include_dirs(onnxruntime_providers)

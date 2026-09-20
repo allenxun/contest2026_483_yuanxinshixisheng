@@ -1,0 +1,40 @@
+{
+  "files": {
+    "k7_target_provider.c": {
+      "source": "work-in-progress\\parallel-model-reader-medium\\model-arena-provider-v1\\k7_target_provider.c",
+      "sha256": "2b35a853fbe7b7e2dc3c67890523d00fb537c6b731145ab817ae39b4a1574683"
+    },
+    "k7_target_provider.h": {
+      "source": "work-in-progress\\parallel-model-reader-medium\\model-arena-provider-v1\\k7_target_provider.h",
+      "sha256": "1a64c8b17e5281fbe2fa630110b34e2765a1d7deb1e30bcf3c308bb050adc8a7"
+    },
+    "k7_arena_diagnostic.c": {
+      "source": "work-in-progress\\parallel-model-reader-medium\\provider-direct-v2\\k7_arena_diagnostic.c",
+      "sha256": "c05874a7ae3367efb394915a22d1c71f7f5aa2b88b4a5b355813601a2c98b835"
+    },
+    "k7_arena_diagnostic.h": {
+      "source": "work-in-progress\\parallel-model-reader-medium\\model-arena-provider-v1\\k7_arena_diagnostic.h",
+      "sha256": "2b6c367dca4ff05f0d4ca8144d29786b6cb31ae852974eb9e6a22b01892750a1"
+    },
+    "k7_arena_provider_main.c": {
+      "source": "work-in-progress\\parallel-model-reader-medium\\model-arena-provider-v1\\k7_arena_provider_main.c",
+      "sha256": "816f39a561226495646efc7fe85541d8f69ec331329f35c3a8522188a9bfe796"
+    },
+    "k7_host_buft.cpp": {
+      "source": "work-in-progress\\parallel-model-reader-medium\\model-arena-provider-v1\\input\\buft\\k7_host_buft.cpp",
+      "sha256": "de9c4a7b86e07d215486027a445f9e2ecb659e7d988881888444643d0d20d1dc"
+    },
+    "k7_host_buft.h": {
+      "source": "work-in-progress\\parallel-model-reader-medium\\model-arena-provider-v1\\input\\buft\\k7_host_buft.h",
+      "sha256": "2c61960a69fcd34067fbd6f12f97f5d791c29ec21d9118c16513b7fa71e2933a"
+    }
+  },
+  "candidate_delivery_sha256": "6dba7cf16503a240f9e85915bd3b7b76f73b9491b7f6ca87b0db2ea56013e9d2",
+  "hardware_tested": false,
+  "superseded_diagnostic": {
+    "source": "work-in-progress\\parallel-model-reader-medium\\model-arena-provider-v1\\k7_arena_diagnostic.c",
+    "sha256": "893c63eb919bc8eecd71fbe6c0008f10f20d8dcf9948aa99dbc3f9c2e1d3d3d9"
+  },
+  "direct_v2_delivery_sha256": "81c539c6474e06101522b79139945bb0b6b318f2f1f6921d78940ee568344bd6",
+  "reason": "Fixed single-buffer placement avoids unchecked upstream realloc helper"
+}

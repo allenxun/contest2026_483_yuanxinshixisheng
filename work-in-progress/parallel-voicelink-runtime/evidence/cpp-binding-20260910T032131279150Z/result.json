@@ -1,0 +1,18 @@
+{
+  "command": [
+    ".\\real_binding.exe",
+    "E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models",
+    "E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\test_wavs\\0.wav",
+    "evidence/tts-binding.wav"
+  ],
+  "cwd": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink-runtime",
+  "exit_code": 0,
+  "timed_out": false,
+  "elapsed_seconds": 6.982902499992633,
+  "sample_interval_seconds": 0.02,
+  "samples": 336,
+  "sampled_peak_rss_bytes": 812953600,
+  "sampled_peak_private_bytes": 1026174976,
+  "observed_os_peak_working_set_bytes": 854585344,
+  "method": "psutil Windows process memory_info polled every 20ms; single child process, not device/model-only memory; transient peaks may be missed"
+}

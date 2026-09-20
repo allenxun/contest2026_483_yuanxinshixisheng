@@ -1,0 +1,8 @@
+test.c: In function 'fetch':
+test.c:8:2: error: this 'if' clause does not guard... [-Werror=misleading-indentation]
+    8 |  if(fail)return -1;*v=pages[(pa-0x40400000)/4096][(pa%4096)/8];return 0;}
+      |  ^~
+test.c:8:20: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
+    8 |  if(fail)return -1;*v=pages[(pa-0x40400000)/4096][(pa%4096)/8];return 0;}
+      |                    ^
+cc1.exe: all warnings being treated as errors

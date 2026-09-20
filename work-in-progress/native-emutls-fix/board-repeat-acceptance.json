@@ -1,0 +1,21 @@
+{
+  "revision": "voice-tls-20260911",
+  "firmware_sha256": "86631d2091e9b5c2a155e2a83d28eeeebca860706d557264c667d4bf73a365df",
+  "consecutive_separate_tasks": 2,
+  "runs": [
+    {
+      "log": "probe-20260911-185540.log",
+      "sha256": "48ea027ba4ad95a1448b0b6fce64941861e66fb643f2b2257d15a27a7f887978",
+      "seconds": 42.25,
+      "text": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三"
+    },
+    {
+      "log": "probe-20260911-185642.log",
+      "sha256": "ef89b0430862bfbb96c521c37f4d46e91a83ce0b689029454016c5212e605c32",
+      "seconds": 42.074,
+      "text": "昨天是 monday today day is 礼拜二 the day after tomorrow 是星期三"
+    }
+  ],
+  "passed": true,
+  "scope": "Fixed WAV, full real ASR, task TLS isolation and worker destructors; not microphone accuracy, long stability or voice Wi-Fi acceptance"
+}

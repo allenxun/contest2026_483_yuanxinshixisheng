@@ -1,0 +1,15 @@
+
+nsh: ÝËÙÞØÆ: command not found
+nsh> [Kps
+  PID GROUP CPU(AFFINITY)   PRI POLICY   TYPE    NPX STATE    EVENT     SIGMASK            STACK    USED FILLED COMMAND
+    0     0 000(0x000000ff)   0 FIFO     Kthread   - Assigned           0000000000000000 0008144 0001072  13.1%  CPU0 IDLE
+    1     0 001(0x000000ff)   0 FIFO     Kthread   - Running            0000000000000000 0008144 0000096   1.1%  CPU1 IDLE
+    2     0 002(0x000000ff)   0 FIFO     Kthread   - Running            0000000000000000 0008144 0000096   1.1%  CPU2 IDLE
+    3     0 003(0x000000ff)   0 FIFO     Kthread   - Running            0000000000000000 0008144 0000096   1.1%  CPU3 IDLE
+    4     0 004(0x000000ff)   0 FIFO     Kthread   - Running            0000000000000000 0008144 0000096   1.1%  CPU4 IDLE
+    5     0 005(0x000000ff)   0 FIFO     Kthread   - Running            0000000000000000 0008144 0000096   1.1%  CPU5 IDLE
+    6     0 006(0x000000ff)   0 FIFO     Kthread   - Running            0000000000000000 0008144 0000096   1.1%  CPU6 IDLE
+    7     0 007(0x000000ff)   0 FIFO     Kthread   - Running            0000000000000000 0008144 0000096   1.1%  CPU7 IDLE
+    8     0 ---(0x000000ff) 192 RR       Kthread   - Waiting  Semaphore 0000000000000000 0008080 0001088  13.4%  hpwork 0x40434900 0x40434988
+    9     9 000(0x000000ff) 100 RR       Task      - Running            0000000000000000 0008112 0003664  45.1%  nsh_main
+nsh> [K

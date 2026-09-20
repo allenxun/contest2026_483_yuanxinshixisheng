@@ -1,0 +1,33 @@
+--- sdk/app/k7sound/k7sound_main.c
++++ app/k7sound/k7sound_main.c
+@@ -24,7 +24,7 @@
+ static struct dl_result loop_result;
+ static unsigned captured_frames;
+ /* Spoken audio only; cues retain their explicit maximum profile. */
+-static unsigned speech_gain_db = 16;
++static unsigned speech_gain_db = 10;
+ static unsigned captured_bits;
+ static bool capture_usable;
+ static bool playing, amp_ready, data_held, reset_fault;
+@@ -308,7 +308,7 @@
+         }
+       else if (replay || !strcmp(argv[1], "tone"))
+         {
+-          if (count > 24 || count % 6) goto invalid;
++          if (count > 24 || (!replay && count % 6)) goto invalid;
+           gain_db = (unsigned)count;
+         }
+       else goto invalid;
+@@ -380,9 +380,9 @@
+   enum kd_adc_variant variant = pga24 ? KD_ADC_PGA24 : common ? KD_ADC_COMMON_NORMAL : (vmid ? KD_ADC_VMID_50K : KD_ADC_BASELINE);
+   if (!rc) rc = kd_prepare_adc_variant(&codec, sample16 ? 16 : 32, variant, now_ms(NULL) + 3000);
+   /* Explicit DAC attenuation comparison only; no PCM scaling or OUT2 change. */
+-  if (!rc && speech && !cued)
+-    {
+-      /* Keep the same analog output path; 18 means 6 dB below the tested max. */
++  if (!rc && ((speech && !cued) || replay))
++    {
++      /* Replay and speech share OUT2 settings; gain only changes DAC attenuation. */
+       rc = kd_set_playback_max(&codec, now_ms(NULL) + 100);
+       if (!rc && gain_db < 24) rc = kd_set_playback_gain(&codec, gain_db, now_ms(NULL) + 100);
+     }

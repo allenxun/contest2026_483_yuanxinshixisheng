@@ -1,0 +1,27 @@
+{
+  "running_revision": "cxx-unwind-20260910",
+  "boot": "RAM",
+  "smp_cpus": 8,
+  "firmware_sha256": "369a710d03ce2407a0cffe56f3042cd3884e195c11bf0cd33075ad84ec03c7d2",
+  "cxx_runtime_probe_passed": true,
+  "off_t_bits": 32,
+  "pointer_bits": 64,
+  "concurrent_exception_tested": false,
+  "model_loaded": false,
+  "agent_deployed": false,
+  "wifi_connected": true,
+  "ip": "10.3.0.214",
+  "gateway_ping": "5/5",
+  "ble_service_running": true,
+  "ble_connected": false,
+  "ble_disconnect": "test client intentionally disconnected",
+  "wireless_hold_seconds": 30,
+  "amsdu_rejected": 0,
+  "emmc_written": false,
+  "emmc_reregistered_this_boot": false,
+  "evidence_directory": "evidence/cxx-unwind-20260910",
+  "limits": [
+    "Single main-thread exception before worker creation; no concurrent exception acceptance",
+    "No large-file, NEON workload, model or long-term wireless test on this revision"
+  ]
+}

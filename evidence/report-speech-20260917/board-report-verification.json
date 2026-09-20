@@ -1,0 +1,25 @@
+{
+  "board_result": 0,
+  "segments": 3,
+  "gateway_completed": true,
+  "gateway_duration_ms": 30843,
+  "mode": "mock-sse",
+  "human_audio_confirmation": true,
+  "taskId": "aa9c678f-c7b7-4e0c-a93e-05e6a071a389",
+  "board_evidence": [
+    "K7CLOUD report_started task=aa9c678f-c7b7-4e0c-a93e-05e6a071a389",
+    "K7CLOUD report_status {\"taskId\": \"aa9c678f-c7b7-4e0c-a93e-05e6a071a389\", \"status\": \"report_ready\", \"reportId\": \"c3966223-d547-415e-8552-fc83d00275ea\"}",
+    "SOUND playback_gain_db=10 dac_attenuation_db=14 maximum=0",
+    "SOUND timing direction=tx stream_start_us=533957151 result=0",
+    "K7CLOUD report_segment played=1 bytes=117760",
+    "SOUND playback_gain_db=10 dac_attenuation_db=14 maximum=0",
+    "SOUND timing direction=tx stream_start_us=542627150 result=0",
+    "K7CLOUD report_segment played=2 bytes=181760",
+    "SOUND playback_gain_db=10 dac_attenuation_db=14 maximum=0",
+    "SOUND timing direction=tx stream_start_us=553248148 result=0",
+    "K7CLOUD report_segment played=3 bytes=197120",
+    "K7CLOUD report_done result=0 segments=3 task=aa9c678f-c7b7-4e0c-a93e-05e6a071a389"
+  ],
+  "limitation": "Includes speech playback time; not first-audio latency. Wi-Fi RX -28 seen; repeated stability and stop validation pending.",
+  "human_feedback": "三段均听到，句间间隔可以"
+}

@@ -1,0 +1,687 @@
+[0/2] Re-checking globbed directories...
+[1/36] Generating cpp/internal/counter.c
+[2/36] Generating cpp/internal/common.c
+[3/36] Generating cpp/internal/cv.c
+[4/36] Generating cpp/internal/debug.c
+[5/36] Generating cpp/internal/dll.c
+[6/36] Generating cpp/internal/mu.c
+[7/36] Generating cpp/internal/mu_wait.c
+[8/36] Generating cpp/internal/note.c
+[9/36] Generating cpp/internal/once.c
+[10/36] Generating cpp/internal/sem_wait.c
+[11/36] Generating cpp/internal/time_internal.c
+[12/36] Generating cpp/internal/wait.c
+[13/36] Generating cpp/platform/c++11/src/nsync_semaphore_mutex.cc
+[14/36] Generating cpp/platform/posix/src/per_thread_waiter.c
+[15/36] Generating cpp/platform/c++11/src/yield.cc
+[16/36] Generating cpp/platform/c++11/src/nsync_panic.cc
+[17/36] Generating cpp/platform/c++11/src/time_rep_timespec.cc
+[18/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/counter.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/counter.c:17:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/counter.c:16:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/counter.c:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/counter.c:24:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/common.h:246: warning: "ASSERT" redefined
+  246 | #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+      | 
+In file included from /home/swl/openvela/nuttx/include/nuttx/sched.h:32,
+                 from /home/swl/openvela/nuttx/include/nuttx/tls.h:33,
+                 from /home/swl/openvela/nuttx/include/unistd.h:34,
+                 from /home/swl/openvela/nuttx/include/pthread.h:37,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__threading_support:41,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__mutex/mutex.h:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__condition_variable/condition_variable.h:16,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/mutex:192,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:29:
+/home/swl/openvela/nuttx/include/assert.h:135: note: this is the location of the previous definition
+  135 | #define ASSERT(f) _ASSERT(f, __ASSERT_FILE__, __ASSERT_LINE__)
+      | 
+[19/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/common.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/common.c:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/common.c:18:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/common.c:21:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/common.c:26:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/common.h:246: warning: "ASSERT" redefined
+  246 | #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+      | 
+In file included from /home/swl/openvela/nuttx/include/nuttx/sched.h:32,
+                 from /home/swl/openvela/nuttx/include/nuttx/tls.h:33,
+                 from /home/swl/openvela/nuttx/include/unistd.h:34,
+                 from /home/swl/openvela/nuttx/include/pthread.h:37,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__threading_support:41,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__mutex/mutex.h:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__condition_variable/condition_variable.h:16,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/mutex:192,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:29:
+/home/swl/openvela/nuttx/include/assert.h:135: note: this is the location of the previous definition
+  135 | #define ASSERT(f) _ASSERT(f, __ASSERT_FILE__, __ASSERT_LINE__)
+      | 
+[20/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/debug.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/debug.c:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/debug.c:18:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/debug.c:21:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/debug.c:25:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/common.h:246: warning: "ASSERT" redefined
+  246 | #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+      | 
+In file included from /home/swl/openvela/nuttx/include/nuttx/sched.h:32,
+                 from /home/swl/openvela/nuttx/include/nuttx/tls.h:33,
+                 from /home/swl/openvela/nuttx/include/unistd.h:34,
+                 from /home/swl/openvela/nuttx/include/pthread.h:37,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__threading_support:41,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__mutex/mutex.h:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__condition_variable/condition_variable.h:16,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/mutex:192,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:29:
+/home/swl/openvela/nuttx/include/assert.h:135: note: this is the location of the previous definition
+  135 | #define ASSERT(f) _ASSERT(f, __ASSERT_FILE__, __ASSERT_LINE__)
+      | 
+[21/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/cv.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/cv.c:17:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/cv.c:16:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/cv.c:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/cv.c:23:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/common.h:246: warning: "ASSERT" redefined
+  246 | #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+      | 
+In file included from /home/swl/openvela/nuttx/include/nuttx/sched.h:32,
+                 from /home/swl/openvela/nuttx/include/nuttx/tls.h:33,
+                 from /home/swl/openvela/nuttx/include/unistd.h:34,
+                 from /home/swl/openvela/nuttx/include/pthread.h:37,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__threading_support:41,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__mutex/mutex.h:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__condition_variable/condition_variable.h:16,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/mutex:192,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:29:
+/home/swl/openvela/nuttx/include/assert.h:135: note: this is the location of the previous definition
+  135 | #define ASSERT(f) _ASSERT(f, __ASSERT_FILE__, __ASSERT_LINE__)
+      | 
+[22/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/dll.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/dll.c:17:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/dll.c:16:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+[23/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/mu_wait.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/mu_wait.c:17:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/mu_wait.c:16:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/mu_wait.c:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/mu_wait.c:23:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/common.h:246: warning: "ASSERT" redefined
+  246 | #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+      | 
+In file included from /home/swl/openvela/nuttx/include/nuttx/sched.h:32,
+                 from /home/swl/openvela/nuttx/include/nuttx/tls.h:33,
+                 from /home/swl/openvela/nuttx/include/unistd.h:34,
+                 from /home/swl/openvela/nuttx/include/pthread.h:37,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__threading_support:41,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__mutex/mutex.h:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__condition_variable/condition_variable.h:16,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/mutex:192,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:29:
+/home/swl/openvela/nuttx/include/assert.h:135: note: this is the location of the previous definition
+  135 | #define ASSERT(f) _ASSERT(f, __ASSERT_FILE__, __ASSERT_LINE__)
+      | 
+[24/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/mu.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/mu.c:17:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/mu.c:16:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/mu.c:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/mu.c:23:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/common.h:246: warning: "ASSERT" redefined
+  246 | #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+      | 
+In file included from /home/swl/openvela/nuttx/include/nuttx/sched.h:32,
+                 from /home/swl/openvela/nuttx/include/nuttx/tls.h:33,
+                 from /home/swl/openvela/nuttx/include/unistd.h:34,
+                 from /home/swl/openvela/nuttx/include/pthread.h:37,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__threading_support:41,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__mutex/mutex.h:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__condition_variable/condition_variable.h:16,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/mutex:192,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:29:
+/home/swl/openvela/nuttx/include/assert.h:135: note: this is the location of the previous definition
+  135 | #define ASSERT(f) _ASSERT(f, __ASSERT_FILE__, __ASSERT_LINE__)
+      | 
+[25/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/note.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/note.c:17:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/note.c:16:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/note.c:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/note.c:23:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/common.h:246: warning: "ASSERT" redefined
+  246 | #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+      | 
+In file included from /home/swl/openvela/nuttx/include/nuttx/sched.h:32,
+                 from /home/swl/openvela/nuttx/include/nuttx/tls.h:33,
+                 from /home/swl/openvela/nuttx/include/unistd.h:34,
+                 from /home/swl/openvela/nuttx/include/pthread.h:37,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__threading_support:41,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__mutex/mutex.h:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__condition_variable/condition_variable.h:16,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/mutex:192,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:29:
+/home/swl/openvela/nuttx/include/assert.h:135: note: this is the location of the previous definition
+  135 | #define ASSERT(f) _ASSERT(f, __ASSERT_FILE__, __ASSERT_LINE__)
+      | 
+[26/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/once.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/once.c:17:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/once.c:16:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/once.c:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/once.c:23:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/common.h:246: warning: "ASSERT" redefined
+  246 | #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+      | 
+In file included from /home/swl/openvela/nuttx/include/nuttx/sched.h:32,
+                 from /home/swl/openvela/nuttx/include/nuttx/tls.h:33,
+                 from /home/swl/openvela/nuttx/include/unistd.h:34,
+                 from /home/swl/openvela/nuttx/include/pthread.h:37,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__threading_support:41,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__mutex/mutex.h:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__condition_variable/condition_variable.h:16,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/mutex:192,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:29:
+/home/swl/openvela/nuttx/include/assert.h:135: note: this is the location of the previous definition
+  135 | #define ASSERT(f) _ASSERT(f, __ASSERT_FILE__, __ASSERT_LINE__)
+      | 
+[27/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/sem_wait.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/sem_wait.c:17:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/sem_wait.c:16:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/sem_wait.c:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/sem_wait.c:23:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/common.h:246: warning: "ASSERT" redefined
+  246 | #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+      | 
+In file included from /home/swl/openvela/nuttx/include/nuttx/sched.h:32,
+                 from /home/swl/openvela/nuttx/include/nuttx/tls.h:33,
+                 from /home/swl/openvela/nuttx/include/unistd.h:34,
+                 from /home/swl/openvela/nuttx/include/pthread.h:37,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__threading_support:41,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__mutex/mutex.h:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__condition_variable/condition_variable.h:16,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/mutex:192,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:29:
+/home/swl/openvela/nuttx/include/assert.h:135: note: this is the location of the previous definition
+  135 | #define ASSERT(f) _ASSERT(f, __ASSERT_FILE__, __ASSERT_LINE__)
+      | 
+[28/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/time_internal.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/time_internal.c:17:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/time_internal.c:16:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/time_internal.c:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+[29/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/internal/wait.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/wait.c:17:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/wait.c:16:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/wait.c:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/internal/wait.c:23:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/common.h:246: warning: "ASSERT" redefined
+  246 | #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+      | 
+In file included from /home/swl/openvela/nuttx/include/nuttx/sched.h:32,
+                 from /home/swl/openvela/nuttx/include/nuttx/tls.h:33,
+                 from /home/swl/openvela/nuttx/include/unistd.h:34,
+                 from /home/swl/openvela/nuttx/include/pthread.h:37,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__threading_support:41,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__mutex/mutex.h:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__condition_variable/condition_variable.h:16,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/mutex:192,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:29:
+/home/swl/openvela/nuttx/include/assert.h:135: note: this is the location of the previous definition
+  135 | #define ASSERT(f) _ASSERT(f, __ASSERT_FILE__, __ASSERT_LINE__)
+      | 
+[30/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/platform/c++11/src/nsync_semaphore_mutex.cc.obj
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/platform/c++11/src/nsync_semaphore_mutex.cc:15:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:19:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:22:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/platform/c++11/src/nsync_semaphore_mutex.cc:37: warning: "ASSERT" redefined
+   37 | #define ASSERT(x) do { if (!(x)) { *(volatile int *)0 = 0; } } while (0)
+      | 
+In file included from /home/swl/openvela/nuttx/include/nuttx/sched.h:32,
+                 from /home/swl/openvela/nuttx/include/nuttx/tls.h:33,
+                 from /home/swl/openvela/nuttx/include/unistd.h:34,
+                 from /home/swl/openvela/nuttx/include/pthread.h:37,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__threading_support:41,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__mutex/mutex.h:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__condition_variable/condition_variable.h:16,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/mutex:192,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:29:
+/home/swl/openvela/nuttx/include/assert.h:135: note: this is the location of the previous definition
+  135 | #define ASSERT(f) _ASSERT(f, __ASSERT_FILE__, __ASSERT_LINE__)
+      | 
+[31/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/platform/posix/src/per_thread_waiter.c.obj
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/platform/posix/src/per_thread_waiter.c:15:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:19:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:22:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+[32/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/platform/c++11/src/yield.cc.obj
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/platform/c++11/src/yield.cc:15:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:19:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:22:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+[33/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/platform/c++11/src/time_rep_timespec.cc.obj
+In file included from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/platform/c++11/src/time_rep_timespec.cc:17:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/platform/c++11/src/time_rep_timespec.cc:16:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/platform/c++11/src/time_rep_timespec.cc:20:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+[34/36] Building CXX object _deps/google_nsync-build/CMakeFiles/nsync_cpp.dir/cpp/platform/c++11/src/nsync_panic.cc.obj
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/build/_deps/google_nsync-build/cpp/platform/c++11/src/nsync_panic.cc:15:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/gcc/compiler.h:19: warning: "UNUSED" redefined
+   19 | #define UNUSED __attribute__((unused))
+      | 
+In file included from /dev/shm/velavision_audio_sound_20260910/include/libcxx_config/__config_site:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/__config:13,
+                 from /dev/shm/velavision_audio_sound_20260910/include/libcxx/string.h:54,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/platform/c++11/platform.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:19:
+/home/swl/openvela/nuttx/include/nuttx/compiler.h:624: note: this is the location of the previous definition
+  624 | #    define UNUSED(a) ((void)(1 || &(a)))
+      | 
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu.h:20,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:18,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/internal/headers.h:22:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:23:5: warning: "NSYNC_ATOMIC_TYPECHECK" is not defined, evaluates to 0 [-Wundef]
+   23 | #if NSYNC_ATOMIC_TYPECHECK
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_atomic.h:33:7: warning: "NSYNC_ATOMIC_C11" is not defined, evaluates to 0 [-Wundef]
+   33 | #elif NSYNC_ATOMIC_C11
+      |       ^~~~~~~~~~~~~~~~
+In file included from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time.h:19,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_mu_wait.h:67,
+                 from /dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync.h:19:
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:36:5: warning: "NSYNC_USE_GPR_TIMESPEC" is not defined, evaluates to 0 [-Wundef]
+   36 | #if NSYNC_USE_GPR_TIMESPEC
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/dev/shm/velavision-ort-session-20260911/sources/google_nsync/public/nsync_time_internal.h:67:7: warning: "NSYNC_USE_DEBUG_TIME" is not defined, evaluates to 0 [-Wundef]
+   67 | #elif NSYNC_USE_DEBUG_TIME
+      |       ^~~~~~~~~~~~~~~~~~~~
+[35/36] Linking CXX static library _deps/google_nsync-build/libnsync_cpp.a

@@ -1,0 +1,33 @@
+{
+  "files": {
+    "buffer_compile.c": "d965cee3f17b18f667374178434b5b159387043931e237021d7a7a03525dd0ba",
+    "fixture.bin": "d37426b71db09954cacd4d2be0059f5dbd7ad5d32fc42ab0eeda4ed1a4e1bebc",
+    "fixture_hash.h": "d9c1e5e207fa5955a6bde9121b49cda2cc8e276bb3a002b207f69cc2983be26a",
+    "inputs.json": "16dbda1eb3c56c092f84b931c6b885dfdb8603e8a2b90c8f296f095d667468dc",
+    "model_buffer_loader.c": "d1f9e790d96fa287ae5493896dd7e6918cbebc6a0e782eb718da7a015778e1bb",
+    "model_buffer_loader.h": "0f3b710d4e2fbf4b60dada29faf4426e629d4516e6962d6f8c7d1b36cbf3f791",
+    "model_reader.c": "b8acd7d1e813f6a0b1135005d771004661c00ab403955bfe19830f452c9f207e",
+    "model_reader.h": "eaa679c7dea85e5269ef938ee689d023bb33bc0b5703ab799f618889a10fa38d",
+    "README.md": "382a3191ce83adac8a15b597a5c9260ebc17ad809927f9b2931419c66fdef560",
+    "sha256_namespace.h": "d91e2e7a3ffbdad5f320b0d55a14b22616215a060cc418556ac475ed7e788a32",
+    "sha256_vendor.c": "1f46f972af39a8ed6fb6d42888130051fbdba20fd761a6ace326106cbd82a920",
+    "test_loader.c": "19e6e050ad6f81a2c6ad881a98ab375b9baf6a65525d9d85528b371568e6afe7",
+    "evidence/compile-O0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/compile-O2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/result.json": "bce0bc5fe51da098cb12cb88a236b7f01a8f89465d7dde4987066025609fd785",
+    "evidence/test-O0.exe": "e1d028343bd62cd10f38257b34b1fb469e8b24ce789d5d41bcd011035de18673",
+    "evidence/test-O0.log": "764a30231c3e820c84bad020061f57966660be2192c2740a54a3c7775d7ff068",
+    "evidence/test-O2.exe": "9b7456a9a7c869a5d863030ab1f05f142631ccbc70b23b53d68031066afc69d9",
+    "evidence/test-O2.log": "764a30231c3e820c84bad020061f57966660be2192c2740a54a3c7775d7ff068",
+    "vendor/rotate-bits/package.json": "4627415dc3410ba88c7b1015875a717a2e23441972fef9b33d0539527b2760ba",
+    "vendor/rotate-bits/rotate-bits.h": "4a100f5e9b6bdc3e780bec38caeaec7f0edc87cf06b69b5bc1f87c2c867bdf23",
+    "vendor/sha256/package.json": "674f1b5d34a7eb827115875774222ce30d5c79cb59101477dc74a18e83cd8773",
+    "vendor/sha256/sha256.c": "ba7a8ea69ad125385db28ef17e77be4a09dfdc30bb9532c30b259baaf670129c",
+    "vendor/sha256/sha256.h": "6086b0330eafe9ddef74072738290bc268b2dcccae16bc6d6cde84dc7585ca07"
+  },
+  "host_scenarios_per_optimization": 20,
+  "native_compilation": "evidence/native-buffer-loader-compile-20260911/result.json",
+  "model_session_created": false,
+  "board_tested": false,
+  "scope": "No normal heap model copy; caller allocates retained buffer and preserves it through Session lifetime"
+}

@@ -1,0 +1,23 @@
+{
+  "revision": "smp-eight-20260910",
+  "diagnostic": "diagnostic-attempt04.json",
+  "firmware_sha256": "ea93ea6341dcfdf14c889f1faff8f2d8d037b62bf23e51409ff376d3e2fd90f4",
+  "cpu_count": 8,
+  "a53_count": 4,
+  "a72_count": 4,
+  "samples_per_cpu": 10000,
+  "shared_counter": 80000,
+  "mismatch": 0,
+  "sleep_errors": 0,
+  "software_reset_passed": true,
+  "peripheral_smp_tested": false,
+  "long_term_tested": false,
+  "emmc_written": false,
+  "failed_attempts": [
+    "diagnostic.json",
+    "diagnostic-attempt02.json",
+    "diagnostic-attempt03.json"
+  ],
+  "failure_cause": "Host scripts used 1800000 baud; immutable target config specifies 1500000. Corrected rate passed without reloading firmware.",
+  "prevention": "New console_baud helper checks immutable config hash and derives the rate; all four diagnostic build configs returned 1500000. No additional board test was run for this host-only helper change."
+}

@@ -1,0 +1,44 @@
+{
+  "stage": "wake-partial-built-not-loaded",
+  "passed": true,
+  "host_flow_test": {
+    "passed": true,
+    "evidence": "evidence/voicelink-core-integration-20260910/run-20260912T122301237955Z/result.json"
+  },
+  "prior_board_observation": {
+    "firmware": "voice-rule-provision-tlsrepeat-20260912",
+    "microphone_asr_text": "你好 open",
+    "repeated_tls_pass": true,
+    "model_storage_released": true,
+    "flow_completed": false,
+    "reason": "unattended later turns had no speech and the bounded session timed out",
+    "evidence": "evidence/voice-rule-wakepartial-20260912/voice-provision-20260912-201907.log"
+  },
+  "new_build": {
+    "elf_sha256": "6556620c304d2be3be55388c242f5e63280cbda261b42af8747ff111e181ed73",
+    "firmware_sha256": "f96ecdb89b13af582428494c0cc903e66061ede1e3e0ec419e7512a509fe46e5",
+    "payload_sha256": "12426051aa50132bcb2a8c4ed13cf9d1611aa01ca221c7eada09b1cce123a70d",
+    "payload_crc32": "2bbc24df",
+    "payload_bytes": 115987824,
+    "elf_audit_passed": true,
+    "flash_commands": false,
+    "source_hashes": {
+      "app/voicelink/src/parsers.cpp": "2f17045a8264a7aa77fcdba47a136faa6b17796d03ead67139a401093fbfc3af",
+      "app/voicelink/include/voicelink/parsers.hpp": "d6f4ebe01c9930c8a52b0f92eaa83313c8bfaa9af378fcc582ce35faafba42f7",
+      "app/voicelink/tests/test_flow.cpp": "3f6f0b45969079ce8bb8c576b590da279c67d080db2eb865033a7d142caeffbf",
+      "app/voicelink/src/native_tls_selftest.cpp": "4efa1789d0a468fcb2704e00646b419818cfe82a7f94348c94999db97d3f1186"
+    }
+  },
+  "new_firmware_board_tested": false,
+  "current_board_state": "U-Boot prompt",
+  "current_board_evidence": "evidence/voice-rule-wakepartial-20260912/current-uboot-prompt.log",
+  "blocker": "Windows VMware USB proxy entered Code 43 after OTG re-enumeration; Ubuntu VM and SSH were recovered by removing boot-time OTG autoconnect, but the new payload has not been transferred",
+  "next": "restart VMUSBArbService with an administrator token or physically replug OTG, attach 18d1:4d00 after Ubuntu boots, transfer payload, verify RAM/model/firmware CRCs, boot, and run the real voice flow",
+  "boundaries": {
+    "emmc_written": false,
+    "stm32_written": false,
+    "gimbal_started": false,
+    "remote_pushed": false,
+    "credentials_logged": false
+  }
+}

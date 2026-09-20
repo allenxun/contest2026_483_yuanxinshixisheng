@@ -1,0 +1,71 @@
+{
+  "delivery_id": "eh-control-v1",
+  "files": [
+    {
+      "path": "control-diff.patch",
+      "bytes": 6816,
+      "sha256": "ea856ab13f4af0fa4ff3c795ddb35c94221f0eca16895c9f3776acf01f7d91fb"
+    },
+    {
+      "path": "count.exe",
+      "bytes": 86487,
+      "sha256": "7197ec3a75eff7f4c42d8d460c987747f020de3bdf8e54a1742caa7b2832b13e"
+    },
+    {
+      "path": "fail0.exe",
+      "bytes": 83360,
+      "sha256": "faa74ba763a8dab8ef8083bd29172ae0a1d7de7490ccf13212fdb099a2f22b18"
+    },
+    {
+      "path": "fail1.exe",
+      "bytes": 86487,
+      "sha256": "89161c4a4a162c0a87334b2aa3f22e8d644236bad4e598a6a26a6dd4ab626118"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 4518,
+      "sha256": "ae2993f3622c2247f1c954ac4ffbf860a634b81d71db129abe51d075b9938d4c"
+    },
+    {
+      "path": "host-results.json",
+      "bytes": 13134,
+      "sha256": "8077e7fe5ad9a03319fa8e3e002480fbc141d80d77209d8de6b1f2590868fb88"
+    },
+    {
+      "path": "input.json",
+      "bytes": 338,
+      "sha256": "bd1ab64e90a80028fc05591375cbd37685b28246f09616221d8a9db943f6023e"
+    },
+    {
+      "path": "k7ehcontrol_main.cxx",
+      "bytes": 8531,
+      "sha256": "bdf264d28daa30fabfae810616975774123a91ae762e3c740eee8f3fdf6b9652"
+    },
+    {
+      "path": "normal.exe",
+      "bytes": 86487,
+      "sha256": "53377cc34fcd6bc1ad137f3a1377c316e15c0229c2321455cb2a4c769483cd61"
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 3171,
+      "sha256": "c491912fe357ff0668914839a7e0dc1c346f2e8eafb762e408ff3bca16cf675e"
+    },
+    {
+      "path": "run_host.py",
+      "bytes": 3368,
+      "sha256": "d6926e45a0eec1f47344a353c9e825fe4329060e8070f8637147620391f87266"
+    },
+    {
+      "path": "slow.exe",
+      "bytes": 86487,
+      "sha256": "d8211e70488a82881163f8b55198e4feca8665b38047dfd85dc304a3cef428ee"
+    }
+  ],
+  "input_manifest": "input.json",
+  "host_results": "host-results.json",
+  "target_compiled": false,
+  "hardware_tested": false,
+  "old_delivery_modified": false,
+  "scope": "single CPU5 and full preheat warm1 CPU4/5 one-round control probe"
+}

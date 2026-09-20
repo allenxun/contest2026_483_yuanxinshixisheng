@@ -1,0 +1,362 @@
+{
+  "model": "decoder",
+  "source": "E:\\openvela\\\u8bed\u97f3\u6a21\u5757\\openvela-voicelink\\models\\sherpa-onnx-streaming-paraformer-bilingual-zh-en\\decoder.int8.onnx",
+  "source_sha256": "f3cca9f77bb9d93c8fcbfb63ae617b6b1ee96818df3aa3b151c40658fe38594f",
+  "source_unchanged": true,
+  "output": "E:\\openvela\\VelaVision\\work-in-progress\\native-speech-ort-models1\\decoder.ort",
+  "output_bytes": 72024848,
+  "output_sha256": "0f58ca4bd77728d8e512b852eff58e9aeedd90cfa2016ae40379b4700a78da14",
+  "ort_version": "1.17.1",
+  "optimization": "ORT_DISABLE_ALL",
+  "providers": [
+    "CPUExecutionProvider"
+  ],
+  "seconds": 0.9219999999913853,
+  "io": {
+    "inputs": [
+      {
+        "name": "enc",
+        "shape": [
+          "batch_size",
+          "enc_length",
+          512
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "enc_len",
+        "shape": [
+          "batch_size"
+        ],
+        "type": "tensor(int32)"
+      },
+      {
+        "name": "acoustic_embeds",
+        "shape": [
+          "batch_size",
+          "token_length",
+          512
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "acoustic_embeds_len",
+        "shape": [
+          "batch_size"
+        ],
+        "type": "tensor(int32)"
+      },
+      {
+        "name": "in_cache_0",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_1",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_2",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_3",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_4",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_5",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_6",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_7",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_8",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_9",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_10",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_11",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_12",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_13",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_14",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "in_cache_15",
+        "shape": [
+          "batch_size",
+          512,
+          10
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "logits",
+        "shape": [
+          "Addlogits_dim_0",
+          "Addlogits_dim_1",
+          8404
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "sample_ids",
+        "shape": [
+          "ArgMaxsample_ids_dim_0",
+          "ArgMaxsample_ids_dim_1"
+        ],
+        "type": "tensor(int64)"
+      },
+      {
+        "name": "out_cache_0",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_0_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_1",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_1_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_2",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_2_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_3",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_3_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_4",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_4_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_5",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_5_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_6",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_6_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_7",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_7_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_8",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_8_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_9",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_9_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_10",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_10_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_11",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_11_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_12",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_12_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_13",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_13_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_14",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_14_dim_2"
+        ],
+        "type": "tensor(float)"
+      },
+      {
+        "name": "out_cache_15",
+        "shape": [
+          "batch_size",
+          512,
+          "Sliceout_cache_15_dim_2"
+        ],
+        "type": "tensor(float)"
+      }
+    ]
+  },
+  "host_conversion": true,
+  "numerical_comparison": false,
+  "board_loaded": false,
+  "board_inference": false
+}

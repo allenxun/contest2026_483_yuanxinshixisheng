@@ -1,0 +1,58 @@
+--- a/app/k7sound/pio.c
++++ b/app/k7sound/pio.c
+@@ -85,9 +85,21 @@
+   /* Keep external mclk running. Caller must allow >=2 BCLK before gating. */
+   return 0;
+ }
++/* Explicit opt-in vendor DIV-to-clock settling interval; no MMIO here. */
++static int clockwait20(const struct pio_port*p)
++{
++ uint64_t start=p->us(p->ctx),prev=start,now;unsigned i;
++ for(i=0;i<100000;i++){
++  now=p->us(p->ctx);
++  if(now<prev)return -5;
++  if(now-start>=20)return 0;
++  prev=now;
++ }
++ return -110;
++}
+ static int run(const struct pio_port*p,int prepared,uint32_t mclk,int tx,
+             uint32_t *capture,unsigned capacity,unsigned frames,struct pio_result*out,
+-            const uint32_t *source,unsigned source_words,int buffered)
++            const uint32_t *source,unsigned source_words,int buffered,int clockwait)
+ {
+   uint32_t v,div,word,mask,value;
+   uint64_t start,now;
+@@ -131,6 +143,7 @@
+   if(mod(p,SAI_INTCR,SAI_INTCR_TXUIE_MASK|SAI_INTCR_RXOIE_MASK,0))goto done;
+   if(mod(p,SAI_INTCR,SAI_INTCR_TXUIC|SAI_INTCR_RXOIC,
+          tx?SAI_INTCR_TXUIC:SAI_INTCR_RXOIC))goto done;
++  if(clockwait){int e=clockwait20(p);if(e){rc=e;goto done;}}
+   if(mod(p,SAI_XFER,SAI_XFER_CLK_MASK|SAI_XFER_FSS_MASK,
+          SAI_XFER_CLK_EN|SAI_XFER_FSS_EN))goto done;
+   start=p->us(p->ctx);
+@@ -203,8 +216,12 @@
+ }
+ int pio_run(const struct pio_port*p,int prepared,uint32_t mclk,int tx,
+             uint32_t *capture,unsigned capacity,unsigned frames,struct pio_result*out)
+-{return run(p,prepared,mclk,tx,capture,capacity,frames,out,NULL,0,0);}
++{return run(p,prepared,mclk,tx,capture,capacity,frames,out,NULL,0,0,0);}
+ int pio_play_buffer(const struct pio_port*p,int prepared,uint32_t mclk,
+                     const uint32_t *source,unsigned source_words,unsigned frames,
+                     struct pio_result*out)
+-{return run(p,prepared,mclk,1,NULL,0,frames,out,source,source_words,1);}
++{return run(p,prepared,mclk,1,NULL,0,frames,out,source,source_words,1,0);}
++
++int pio_run_clockwait(const struct pio_port*p,int prepared,uint32_t mclk,int tx,
++ uint32_t *capture,unsigned capacity,unsigned frames,struct pio_result*out)
++{return run(p,prepared,mclk,tx,capture,capacity,frames,out,NULL,0,0,1);}
+--- a/app/k7sound/pio.h
++++ b/app/k7sound/pio.h
+@@ -75,4 +75,7 @@
+  * Existing tone pio_run API/limits and all terminal logic remain unchanged. */
+ int pio_play_buffer(const struct pio_port *,int prepared,uint32_t actual_mclk,
+  const uint32_t *source,unsigned source_words,unsigned frames,struct pio_result *);
++/* Opt-in 20us bounded wait after DIV, immediately before CLK/FS enable. */
++int pio_run_clockwait(const struct pio_port *,int,uint32_t,int,
++ uint32_t *,unsigned,unsigned,struct pio_result *);
+ #endif

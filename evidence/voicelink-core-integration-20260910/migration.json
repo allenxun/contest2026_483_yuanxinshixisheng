@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-09-10T09:31:38.533427+00:00",
+  "source": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-voicelink",
+  "destination": "E:\\openvela\\VelaVision\\app\\voicelink",
+  "delivery_sha256": "8e317be74099d2e4a143bc085ee3651a1ccc479b35e29b5d78c1c66ab53a9487",
+  "files": {
+    "include/voicelink/types.hpp": "51b508d9988d0c1b5b601248eee8867adc7670f4ed40aa06218692ddba12d3a0",
+    "include/voicelink/ports.hpp": "5650730338584784cf6fa352043a9a8b6897ff137027fa441e64f6da5dd36be2",
+    "include/voicelink/controller.hpp": "96dc4fa5101cd69cd21429e9996c462031c12cd9258a1b34d5d0d1cf500f753b",
+    "include/voicelink/parsers.hpp": "5205f1e9e1d95386789054e4d1bd07762874e2edaae2453399d75cecd0cf764a",
+    "src/core.cpp": "90356d8ebb22cde21900643ce5f32092d734bb7489752951607f25450f71a2d2",
+    "src/parsers.cpp": "914a9a6734d9e442eca9e34acf3c8811a98b6a7af2d18f72d2b7b1192f1ae8ce"
+  },
+  "scope": "Core and rule parsers only; no old WAPI hooks or fake audio backend",
+  "firmware_integrated": false,
+  "hardware_tested": false
+}

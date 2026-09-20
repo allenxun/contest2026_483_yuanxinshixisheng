@@ -1,0 +1,30 @@
+{
+  "records": [
+    {
+      "time": "2026-09-10T02:19:04.250140+00:00",
+      "command": "k7mem status",
+      "output": "k7mem status\r\nMODEL DDR base=60000000 bytes=1073741824 free=0 initialized=0 cpu_only=1\r\nnsh> "
+    },
+    {
+      "time": "2026-09-10T02:19:04.297879+00:00",
+      "command": "free",
+      "output": "free\r\n      total       used       free    maxused    maxfree  nused  nfree name\r\n  126869496      15864  126853632      21552  126853632     27      1 Umem\r\nnsh> "
+    },
+    {
+      "time": "2026-09-10T02:19:04.438712+00:00",
+      "command": "k7mem test",
+      "output": "k7mem test\r\nMODEL DDR sparse_test=PASS allocation=402653184 page_samples=98304 passes=2 free_before=1073741104 free_after=1073741104\r\nnsh> "
+    },
+    {
+      "time": "2026-09-10T02:19:04.485568+00:00",
+      "command": "k7mem status",
+      "output": "k7mem status\r\nMODEL DDR base=60000000 bytes=1073741824 free=1073741104 initialized=1 cpu_only=1\r\nnsh> "
+    },
+    {
+      "time": "2026-09-10T02:19:04.533939+00:00",
+      "command": "free",
+      "output": "free\r\n      total       used       free    maxused    maxfree  nused  nfree name\r\n 1073741816        712 1073741104  402654720 1073741104      2      1 k7-model\r\n  126869496      15928  126853568      21616  126848560     28      2 Umem\r\nnsh> "
+    }
+  ],
+  "scope": "384MiB allocation; 98304 sparse pages, two patterns, cache clean/invalidate and free recovery; not all-byte 1GiB coverage"
+}

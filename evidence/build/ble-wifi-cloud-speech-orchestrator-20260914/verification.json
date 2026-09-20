@@ -1,0 +1,67 @@
+{
+  "revision": "ble-wifi-cloud-speech-orchestrator-20260914",
+  "checked_at": "2026-09-14T18:22:00+08:00",
+  "scope": "Compile-only ARM64 cloud speech CLI and link closure; no board load and no network request",
+  "build_directory": "/home/swl/openvela/cmake_out/velavision_cloud_speech_20260914_v2",
+  "build_exit_code": 0,
+  "build_steps_reported": 1809,
+  "scoped_sync": {
+    "mode": "22 exact files",
+    "check_result": "PASS",
+    "source_files": 22,
+    "changes_after_apply": 0,
+    "unrelated_unknown_change_preserved": "apps/examples/voicelink/src/native_asr_runtime.cpp"
+  },
+  "config": {
+    "sha256": "c9d99d6384c5f292d0e41bd72c45549286744f80e6f961862e77c6f99aea0e82",
+    "EXAMPLES_K7CLOUD": true,
+    "EXAMPLES_K7CLOUD_MIMO_V25": true,
+    "EXAMPLES_K7CLOUD_SPEECH_ORCHESTRATOR": true
+  },
+  "elf": {
+    "path": "/home/swl/openvela/cmake_out/velavision_cloud_speech_20260914_v2/nuttx",
+    "bytes": 22356160,
+    "sha256": "d7ea83cef03d4996efb7976ac9a76f48d9b9b72ee23350e30bbc42f357859782",
+    "global_symbols_verified": [
+      "k7cloud_main",
+      "mimo_v25_profile_init",
+      "cloud_speech_init",
+      "cloud_speech_is_ready",
+      "cloud_speech_mimo_adapter_ops"
+    ]
+  },
+  "firmware": {
+    "path": "/home/swl/openvela/cmake_out/velavision_cloud_speech_20260914_v2/nuttx.bin",
+    "bytes": 2778832,
+    "sha256": "865390c1e9080fd22ca722f63cdd49f07146a87e1df998c86e39d95d42375ef7"
+  },
+  "host_tests": {
+    "optimizations": ["O0", "O2"],
+    "dns_groups_each": 9,
+    "https_groups_each": 9,
+    "mimo_groups_each": 12,
+    "orchestrator_groups_each": 4,
+    "passed": true
+  },
+  "ninja_dry_run": {
+    "exit_code": 0,
+    "remaining_generated_steps": 3,
+    "note": "Only the configured bin-directory, DTS generation and utsname touch steps were listed."
+  },
+  "runtime": {
+    "offline_cli_only": true,
+    "radio_dhcp_events_wired": false,
+    "entropy_ready": false,
+    "trusted_time_ready": false,
+    "ca_ready": false,
+    "tcp_connector_ready": false,
+    "api_ready": false,
+    "token_saved": false,
+    "board_loaded": false,
+    "cloud_asr_board_tested": false,
+    "cloud_tts_board_tested": false
+  },
+  "flash_commands": false,
+  "emmc_written": false,
+  "remote_submission": false
+}

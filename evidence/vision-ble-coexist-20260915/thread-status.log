@@ -1,0 +1,21 @@
+cat /proc/52/status
+Name:       k7host
+Type:       pthread
+Group:      51
+CPU:        002(0x00000004)
+State:      Running
+Flags:      -
+Priority:   80
+Scheduler:  SCHED_FIFO
+SigMask:    0000000000000000
+nsh> [KTRACK q=2169 s=4 dx=0.0 dy=0.0 x=0 y=0 tx=0 age=110765
+
+TRACK q=2172 s=4 dx=0.0 dy=0.0 x=0 y=0 tx=0 age=98088
+TRACK q=2175 s=4 dx=0.0 dy=0.0 x=0 y=0 tx=0 age=85459
+TRACK q=2177 s=4 dx=0.0 dy=0.0 x=0 y=0 tx=0 age=104851
+TRACK q=2180 s=4 dx=0.0 dy=0.0 x=0 y=0 tx=0 age=92185
+TRACK q=2182 s=4 dx=0.0 dy=0.0 x=0 y=0 tx=0 age=111601
+cat /proc/53/status
+nsh: cat: Could not open /proc/53/status (is procfs mounted?)
+nsh: cat: open failed: 2
+nsh> [K

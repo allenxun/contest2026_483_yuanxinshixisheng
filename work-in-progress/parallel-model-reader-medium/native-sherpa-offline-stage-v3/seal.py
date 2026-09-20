@@ -1,0 +1,6 @@
+from pathlib import Path
+import hashlib,json
+p=Path(__file__).parent;root=p.parents[2];prev=p.parent/'native-sherpa-offline-stage-v1/sources/eigen';s=root/'work-in-progress/native-voice-sources/sherpa-onnx-26aa2fa93210376a89de3a65a1a4dd320c37f5e9'
+fs=[prev/'CMakeLists.txt',prev/'cmake/FindStandardMathLibrary.cmake',s/'cmake/eigen.cmake',root/'evidence/native-sherpa-asr-config1-20260911/CMakeConfigureLog.yaml'];(p/'inputs.json').write_text(json.dumps({str(f):hashlib.sha256(f.read_bytes()).hexdigest() for f in fs},indent=2))
+manifest=json.loads((p/'source-manifest.json').read_text());assert all(hashlib.sha256((p/n).read_bytes()).hexdigest()==v['sha256'] for n,v in manifest.items())
+outs={str(f.relative_to(p)):hashlib.sha256(f.read_bytes()).hexdigest() for f in p.rglob('*') if f.is_file() and f.name not in ('outputs.json','delivery.json')};(p/'outputs.json').write_text(json.dumps(outs,indent=2));d={'status':'CORRECTED_SOURCE_STAGE_EIGEN_CXX11_CACHE_TARGET_CONFIG_PENDING','outputs_sha256':hashlib.sha256((p/'outputs.json').read_bytes()).hexdigest(),'source_files':len(manifest)};(p/'delivery.json').write_text(json.dumps(d,indent=2));print(d);print(hashlib.sha256((p/'delivery.json').read_bytes()).hexdigest())

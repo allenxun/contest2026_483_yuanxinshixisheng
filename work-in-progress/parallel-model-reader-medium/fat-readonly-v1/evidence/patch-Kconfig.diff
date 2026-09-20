@@ -1,0 +1,19 @@
+--- a/fs/fat/Kconfig
++++ b/fs/fat/Kconfig
+@@ -11,6 +11,16 @@
+ 		Enable FAT filesystem support
+ 
+ if FS_FAT
++
++config FAT_FORCE_READONLY
++	bool "Force all FAT mounts read-only"
++	default n
++	---help---
++		Explicit storage-read diagnostic mode. Every FAT mount in this
++		firmware accepts read-only block geometry and rejects mutations.
++		No file times or FSInfo are written; the final hardware write
++		entry is denied. This does not rely on VFS MS_RDONLY propagation.
++		Leave disabled to retain the existing read/write FAT behavior.
+ 
+ config FAT_COMPUTE_FSINFO
+ 	bool "FAT compute free space in FSINFO at mount time"

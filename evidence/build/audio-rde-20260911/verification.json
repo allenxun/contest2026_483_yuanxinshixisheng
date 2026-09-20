@@ -1,0 +1,28 @@
+{
+  "build_exit_code": 0,
+  "build_kind": "incremental diagnostic from immutable audio-s16-20260911 build tree",
+  "sources": {
+    "app/k7sound/k7sound_main.c": "40ee448da83d0355fc45279794e2c326e314ddf139b6e27237070065a62713ad",
+    "app/k7sound/pio.c": "2cc9793de326b4b2b53d6bc0cc8bee5941211b3df06a921dd25763fa1c608796",
+    "app/k7sound/pio.h": "478374c0b30e9a156651292102eb7a501080db7a380490a4e5047fa71568e137"
+  },
+  "artifacts": {
+    "nuttx": {
+      "bytes": 42402640,
+      "sha256": "336d36109498eb71f6001edaea22769b5ba092810f8a62b00fd4991289f7c8fe"
+    },
+    "nuttx.bin": {
+      "bytes": 15263088,
+      "sha256": "b2aac75a43de4217bb210a09c4bf07f2686f4be6e5f1a421eff258c24099f43e"
+    },
+    ".config": {
+      "bytes": 64532,
+      "sha256": "f6138c7457c96b39a9cfb6db8592144543cd3814fa082a260b8da55540572d92"
+    }
+  },
+  "hardware_tested": true,
+  "limitations": [
+    "Incremental diagnostic build; use a fresh independent build for a production candidate",
+    "RDE and RDL changed together, so this run only rejects the combined setting as a fix"
+  ]
+}

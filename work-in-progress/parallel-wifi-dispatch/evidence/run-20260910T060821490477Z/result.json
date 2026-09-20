@@ -1,0 +1,163 @@
+{
+  "host_only": true,
+  "simulated_clock": true,
+  "process_timeout_seconds": 30,
+  "commands": [
+    {
+      "name": "compiler",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "--version"
+      ],
+      "returncode": 0,
+      "seconds": 0.014999999999417923,
+      "log": "compiler.log",
+      "log_sha256": "5314d84cfc088f9269b3c6cb9128ff00c0992586e79c81127fbd631a629e7fdc"
+    },
+    {
+      "name": "compile-O0",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-O0",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wshadow",
+        "-pedantic",
+        "-pthread",
+        "-I",
+        "include",
+        "src/wifi_broker.c",
+        "src/wifi_dispatch.c",
+        "tests/test_dispatch.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-dispatch\\evidence\\run-20260910T060821490477Z\\test-O0.exe"
+      ],
+      "returncode": 0,
+      "seconds": 0.32800000000861473,
+      "log": "compile-O0.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "test-O0",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-dispatch\\evidence\\run-20260910T060821490477Z\\test-O0.exe"
+      ],
+      "returncode": 0,
+      "seconds": 0.11000000000058208,
+      "log": "test-O0.log",
+      "log_sha256": "085fc9b197cd362a8d9b50958caa03dbae7f3bd78bf74ad7385d2ef8dd29f9f3"
+    },
+    {
+      "name": "compile-O2",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wshadow",
+        "-pedantic",
+        "-pthread",
+        "-I",
+        "include",
+        "src/wifi_broker.c",
+        "src/wifi_dispatch.c",
+        "tests/test_dispatch.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-dispatch\\evidence\\run-20260910T060821490477Z\\test-O2.exe"
+      ],
+      "returncode": 0,
+      "seconds": 0.5469999999913853,
+      "log": "compile-O2.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "test-O2",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-dispatch\\evidence\\run-20260910T060821490477Z\\test-O2.exe"
+      ],
+      "returncode": 0,
+      "seconds": 0.10900000001129229,
+      "log": "test-O2.log",
+      "log_sha256": "085fc9b197cd362a8d9b50958caa03dbae7f3bd78bf74ad7385d2ef8dd29f9f3"
+    },
+    {
+      "name": "compile-broker-regression",
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "include",
+        "src/wifi_broker.c",
+        "tests/test_broker.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-dispatch\\evidence\\run-20260910T060821490477Z\\broker-regression.exe"
+      ],
+      "returncode": 0,
+      "seconds": 0.4379999999946449,
+      "log": "compile-broker-regression.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "test-broker-regression",
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-wifi-dispatch\\evidence\\run-20260910T060821490477Z\\broker-regression.exe"
+      ],
+      "returncode": 0,
+      "seconds": 0.07799999999406282,
+      "log": "test-broker-regression.log",
+      "log_sha256": "6e16229dc3e361691eb14d26fd42d2c26c269b5d0b19438e7813271bd15946e3"
+    }
+  ],
+  "files": [
+    {
+      "path": "include\\wifi_broker.h",
+      "sha256": "f0ff97135098ea02fedcc9c759445ded1b10b0c991e3fe42af89214473f54178"
+    },
+    {
+      "path": "include\\wifi_dispatch.h",
+      "sha256": "4540fed3572874665a2992f52ea753131348224bb1fe67f030478116f3f437e3"
+    },
+    {
+      "path": "src\\wifi_broker.c",
+      "sha256": "d40649d873e99772a096d9804dc1b9018da0831efab88ea6a3f742bac0166dd0"
+    },
+    {
+      "path": "src\\wifi_dispatch.c",
+      "sha256": "961fb22218a1ce83f152e5c76ddca7bdcae23aa96f53d8c387c0e418f435abcb"
+    },
+    {
+      "path": "tests\\test_broker.c",
+      "sha256": "ed97b2b973a0e3c1978b8403dc1ddbc5bfe2323bd02c1533fe021fd2f7629eca"
+    },
+    {
+      "path": "tests\\test_dispatch.c",
+      "sha256": "913b5b394be13dbc7ccece7f46f507ac7b51f097a11c926f117ce0a6c6461dca"
+    },
+    {
+      "path": "scripts\\snapshot.py",
+      "sha256": "3c59fa628aa0fb152040e0dcdd3fb31cfa284dbbb5679623e0796603ab6d0e37"
+    },
+    {
+      "path": "scripts\\snapshot_extra.py",
+      "sha256": "8aa4676d730ba8e8d3f1f3619ab6fdd0e3ad7334924e07629074882f28b821c7"
+    },
+    {
+      "path": "scripts\\snapshot_regression.py",
+      "sha256": "1802baf025a412288f0c5d5acec31883717bc7d52972d5e34e656e360d23ed30"
+    },
+    {
+      "path": "scripts\\test.py",
+      "sha256": "90c296a87b722783dd590ccbf64d5bb5e1fdf81d62264aa2250087d2fe6def30"
+    }
+  ]
+}

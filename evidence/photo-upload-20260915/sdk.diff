@@ -1,0 +1,97 @@
+--- sdk/app/k7agent/cloud/src/board_speech_bridge.c
++++ app/k7agent/cloud/src/board_speech_bridge.c
+@@ -38,6 +38,8 @@
+ int k7_pipeline_voice_mode_status(unsigned int);
+ void k7_pipeline_halt(void);
+ int k7_photo_native_status(uint32_t *,unsigned *);
++#include "../../../k7host/k7_photo_store.h"
++int k7_photo_native_copy(uint32_t,unsigned,struct k7_photo_record *,void *,size_t);
+ #endif
+ extern uint64_t k7sound_clock_us(void);
+ static int playback_cancelled(void *arg) {(void)arg;return atomic_load(&tts_cancelled);}
+@@ -342,6 +344,64 @@
+   if(atomic_load(&device_loop_busy))return -EBUSY;
+   return device_round(ip,atomic_load(&device_epoch));
+ }
++/* Immutable snapshot first; no submission until all views and held mode agree. */
++static int photo_upload(const char *ip,unsigned command_epoch,uint32_t photo_epoch)
++{
++#if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
++  const size_t cap=1024*1024;unsigned char *images=malloc(3*cap);
++  struct k7_photo_record records[3];int rc=images?0:-ENOMEM,fd=-1;
++  static uint64_t boot_id;
++  if(!boot_id)boot_id=k7sound_clock_us();
++  for(unsigned i=0;!rc && i<3;i++)
++    rc=k7_photo_native_copy(photo_epoch,1u<<i,&records[i],images+i*cap,cap);
++  uint32_t current=0;unsigned mask=0;
++  if(!rc)rc=k7_photo_native_status(&current,&mask);
++  if(!rc && (current!=photo_epoch || mask!=7 || command_epoch!=atomic_load(&device_epoch)))rc=-ECANCELED;
++  if(!rc)rc=k7_pipeline_voice_mode_status(0);
++  if(!rc){fd=connect_server(ip);if(fd<0)rc=fd;}
++  if(!rc)
++    {
++      pthread_mutex_lock(&tts_lock);
++      if(tts_busy)rc=-EBUSY;
++      else{tts_busy=1;tts_fd=fd;atomic_store(&tts_cancelled,0);}
++      pthread_mutex_unlock(&tts_lock);
++      if(rc){close(fd);fd=-1;}
++    }
++  if(!rc)rc=transfer(fd,(void *)"K7S1U",5,1);
++  char capture_id[80];
++  snprintf(capture_id,sizeof(capture_id),"k7-%016" PRIx64 "-%" PRIu32,boot_id,photo_epoch);
++  if(!rc)rc=send_packet(fd,'M',capture_id,strlen(capture_id));
++  const unsigned char markers[3]={'F','L','R'};
++  for(unsigned i=0;!rc && i<3;i++)
++    {
++      uint32_t n=(uint32_t)records[i].bytes;
++      unsigned char h[5]={markers[i],n>>24,n>>16,n>>8,n};
++      if(command_epoch!=atomic_load(&device_epoch)){rc=-ECANCELED;break;}
++      rc=transfer(fd,h,5,1);
++      if(!rc)rc=transfer(fd,images+i*cap,n,1);
++    }
++  if(!rc)rc=k7_photo_native_status(&current,&mask);
++  if(!rc && (current!=photo_epoch || mask!=7 || command_epoch!=atomic_load(&device_epoch)))rc=-ECANCELED;
++  if(!rc)rc=k7_pipeline_voice_mode_status(0);
++  if(!rc)rc=send_packet(fd,'E',NULL,0);
++  unsigned char kind=0;uint32_t n=0;unsigned waits=0;char task[37]={0};
++  if(!rc)rc=header(fd,&kind,&n);
++  while(!rc && kind=='W' && n==0 && waits++<18)rc=header(fd,&kind,&n);
++  if(!rc && (kind!='K' || n!=36))rc=-EIO;
++  if(!rc)rc=transfer(fd,task,36,0);
++  if(fd>=0)
++    {
++      pthread_mutex_lock(&tts_lock);tts_fd=-1;tts_busy=0;pthread_mutex_unlock(&tts_lock);
++      close(fd);
++    }
++  free(images);
++  printf("K7CLOUD photo_upload epoch=%" PRIu32 " result=%d accepted=%d task=%s\n",photo_epoch,rc,!rc,rc?"":task);
++  return rc;
++#else
++  (void)ip;(void)command_epoch;(void)photo_epoch;return -ENOSYS;
++#endif
++}
++
+ static int photo_prompts(const char *ip,unsigned epoch,struct k7_photo_prompt_state *state)
+ {
+ #if defined(CONFIG_EXAMPLES_K7HOST_TRACK)
+@@ -351,6 +411,7 @@
+   if(k7_pipeline_voice_mode_status(2) && !(done==7 && !k7_pipeline_voice_mode_status(0)))return 0;
+   const char *keys[4];int n=k7_photo_prompt_plan(state,photo_epoch,done,keys);
+   if(n<0)return n;
++  if(!n)return 0;
+   for(int i=0;i<n;i++)
+     {
+       uint32_t current;unsigned mask;
+@@ -362,6 +423,12 @@
+       rc=board_speech(keys[i],ip,&epoch);if(rc)return rc;
+     }
+   *state=(struct k7_photo_prompt_state){photo_epoch,done};
++  if(done==7)
++    {
++      rc=photo_upload(ip,epoch,photo_epoch);
++      if(rc){board_speech("upload_failed",ip,&epoch);return rc;}
++      rc=board_speech("upload_accepted",ip,&epoch);if(rc)return rc;
++    }
+ #else
+   (void)ip;(void)epoch;(void)state;
+ #endif

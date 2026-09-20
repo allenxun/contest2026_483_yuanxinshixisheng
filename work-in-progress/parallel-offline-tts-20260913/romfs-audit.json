@@ -1,0 +1,61 @@
+{
+  "status": "pass",
+  "image": {
+    "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-offline-tts-20260913\\k7tts.romfs",
+    "bytes_registered": 33235968,
+    "romfs_superblock_bytes": 33235632,
+    "sector_bytes": 512,
+    "nsectors": 64914,
+    "sha256": "8b30719c6a7d1b424676bb1b6ea950b1dfdeeeb0601531c8e49742d0387a7c0f",
+    "crc32": "9efc1996",
+    "volume": "K7TTS"
+  },
+  "assets": {
+    "vits.ort": {
+      "bytes": 31190816,
+      "sha256": "97084af57de4135fc9217851386b1f6d511ae22eba01d9c5d9edf04f0e2adc63",
+      "mode_in_image": "0444"
+    },
+    "tokens.txt": {
+      "bytes": 1671,
+      "sha256": "50b45a7b7de1752fd3c7b4755661c285f1547f59186eca2281089a81307ad953",
+      "mode_in_image": "0444"
+    },
+    "lexicon.txt": {
+      "bytes": 2042943,
+      "sha256": "ab2e61d357551e7b24ddd965d924aca784c20165ff58c150794e539c6b5e9e35",
+      "mode_in_image": "0444"
+    }
+  },
+  "layout": {
+    "model_heap": [
+      "0x60000000",
+      "0x80000000"
+    ],
+    "asr_encoder_source": [
+      "0x80000000",
+      "0x89e7da30"
+    ],
+    "asr_decoder_source": [
+      "0x90000000",
+      "0x944b0310"
+    ],
+    "tts_romfs": [
+      "0x96000000",
+      "0x97fb2400"
+    ],
+    "tts_window_end": "0x98000000",
+    "window_slack_bytes": 318464,
+    "mmu_window_end": "0xa0000000"
+  },
+  "generator": {
+    "path": "/home/swl/openvela/prebuilts/build-tools/linux-x86_64/bin/genromfs",
+    "version": "0.5.2",
+    "sha256": "309c843dda9046ae6685f338a015c06337a748e1d60556523d627f83d018cc5c",
+    "command": "genromfs -f k7tts.romfs -d romfs-root -V K7TTS",
+    "repeat_image_identical": true
+  },
+  "host_verified": true,
+  "arm64_compiled_with_romfs": false,
+  "board_tested": false
+}

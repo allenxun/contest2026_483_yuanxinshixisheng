@@ -1,0 +1,705 @@
+{
+  "utc": "2026-09-10T07:23:21Z",
+  "platform": "Windows x86_64 MinGW; not NuttX",
+  "results": [
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "--version"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "gcc.exe (x86_64-posix-seh-rev2, Built by MinGW-W64 project) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O2",
+        "-fstack-usage",
+        "-Ivendor",
+        "-c",
+        "sha256_vendor.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\sha256_vendor.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O2",
+        "-fstack-usage",
+        "-Ivendor",
+        "-c",
+        "model_integrity.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\model_integrity.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O2",
+        "-fstack-usage",
+        "-Ivendor",
+        "-c",
+        "input/formal/model_reader.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\model_reader.o"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O2",
+        "-fstack-usage",
+        "-Ivendor",
+        "test_integrity.c",
+        "sha256_vendor.c",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O2",
+        "-fstack-usage",
+        "-Ivendor",
+        "production_probe.c",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\model_reader.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\model_integrity.o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\sha256_vendor.o",
+        "-o",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\production_probe.exe"
+      ],
+      "timeout_seconds": 30,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\software\\mingw64\\mingw64\\bin\\nm.exe",
+        "-g",
+        "--defined-only",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\sha256_vendor.o"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "0000000000001180 T mi_sha256_final\n0000000000001270 T mi_sha256_hash\n00000000000010f0 T mi_sha256_init\n0000000000001110 T mi_sha256_update\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\production_probe.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS production objects linked and executed, verified abc through gate\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "3",
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 3 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "56",
+        "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 56 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "1000000",
+        "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 1000000 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "1",
+        "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "4096",
+        "0",
+        "1",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 1 chunk 4096 initial position 1 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "55",
+        "463eb28e72f82e0a96c0a4cc53690c571281131f672aa229e0d45ae59b598b59",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 55 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "56",
+        "da2ae4d6b36748f2a318f23e7ab1dfdf45acdc9d049bd80e59de82a60895f562",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 56 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "63",
+        "29af2686fd53374a36b0846694cc342177e428d1647515f078784d69cdb9e488",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 63 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "64",
+        "fdeab9acf3710362bd2658cdc9a29e8f9c757fcf9811603a8c447cd1d9151108",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 64 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "65",
+        "4bfd2c8b6f1eec7a2afeb48b934ee4b2694182027e6d0fc075074f2fabb31781",
+        "1",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 65 chunk 1 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "65",
+        "4bfd2c8b6f1eec7a2afeb48b934ee4b2694182027e6d0fc075074f2fabb31781",
+        "63",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 65 chunk 63 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "65",
+        "4bfd2c8b6f1eec7a2afeb48b934ee4b2694182027e6d0fc075074f2fabb31781",
+        "64",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 65 chunk 64 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "65",
+        "4bfd2c8b6f1eec7a2afeb48b934ee4b2694182027e6d0fc075074f2fabb31781",
+        "65",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 65 chunk 65 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "65",
+        "4bfd2c8b6f1eec7a2afeb48b934ee4b2694182027e6d0fc075074f2fabb31781",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 65 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "4095",
+        "45de2924756389e3ccab98bdaacbef8a81cdeb651b59f916a6d6385b4f7b999d",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 4095 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "4096",
+        "d67c656e01756650d77717b0839985a056ec28ffe174601d690fc407a2ceffca",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 4096 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "4097",
+        "a16560d668b843fb3be99ace41dbd18471f342bd3255a1d21204b35e43f74436",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 4097 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "8192",
+        "25df2449b2e5a35fea14e02a7158e283801a1069c9f84631b9a9dacb2f809a7f",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 8192 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "8193",
+        "7e3691790cd64b19d4edb1a80e988214515abeb53aa0f34ffbfe4b4bf405d120",
+        "4096",
+        "0",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS scenario 0 length 8193 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "1",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 1 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "2",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 2 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "3",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 3 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "4",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 4 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "5",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 5 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "6",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 6 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "7",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 7 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "8",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 8 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "9",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 9 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "10",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 10 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "11",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 11 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "12",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS failure 12 revoked READY and closed exactly once\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "13",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS verified read state revoked on later seek error\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "0",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "4096",
+        "14",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS empty SHA vector; empty model rejected\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "15",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "LIMITATION observed: same-length mutation AFTER verification readable; immutable storage required\nPASS scenario 15 length 9000 chunk 4096 initial position 3 same handle restored\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "16",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS reverify occupied gate revokes prior READY and closes both handles\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\evidence\\test_integrity.exe",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\integrity-v1\\fixtures-n9ol537s\\fixture.bin",
+        "9000",
+        "4b81efbd205e7fb4e42bc0d72d9d7413642298735289d35a74c1755883bcc45c",
+        "4096",
+        "17",
+        "3",
+        "unused"
+      ],
+      "timeout_seconds": 15,
+      "returncode": 0,
+      "stdout": "PASS later read failure revokes READY and releases handle\n",
+      "stderr": ""
+    },
+    {
+      "fixture_cleanup": "temporary ordinary files removed",
+      "model_weights_accessed": false
+    }
+  ]
+}

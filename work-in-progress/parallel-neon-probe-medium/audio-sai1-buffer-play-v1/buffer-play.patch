@@ -1,0 +1,93 @@
+--- a/app/k7sound/pio.c
++++ b/app/k7sound/pio.c
+@@ -65,8 +65,9 @@
+   /* Keep external mclk running. Caller must allow >=2 BCLK before gating. */
+   return 0;
+ }
+-int pio_run(const struct pio_port*p,int prepared,uint32_t mclk,int tx,
+-            uint32_t *capture,unsigned capacity,unsigned frames,struct pio_result*out)
++static int run(const struct pio_port*p,int prepared,uint32_t mclk,int tx,
++            uint32_t *capture,unsigned capacity,unsigned frames,struct pio_result*out,
++            const uint32_t *source,unsigned source_words,int buffered)
+ {
+   uint32_t v,div,word,mask,value;
+   uint64_t start,now;
+@@ -75,9 +76,10 @@
+   memset(out,0,sizeof *out);
+   if(!p || !p->read || !p->write || !p->us || !p->clocks_started ||
+       !p->streams_started || !p->amp_off_fast ||
+-      (tx && (!p->amplitude || p->amplitude>PIO_MAX_AMPLITUDE)) ||
++      (tx && !buffered && (!p->amplitude || p->amplitude>PIO_MAX_AMPLITUDE)) ||
+       (tx!=0 && tx!=1) ||
+-      !frames || frames>PIO_FRAMES || (tx&&(frames<8||frames>3200)) ||
++      !frames || frames>PIO_FRAMES || (tx&&!buffered&&(frames<8||frames>3200)) ||
++      (buffered&&(!source||source_words<2*frames)) ||
+       (!tx && (!capture || capacity<2*frames)))return out->result=-22;
+   if(!prepared)return out->result=-38;
+   if(!mclk || mclk%1024000u || (div=mclk/1024000u)>4096)return out->result=-22;
+@@ -117,16 +119,16 @@
+   if(out->activation_result){rc=-5;goto done;}
+   if(now<start||now-start>=100000){rc=-110;goto done;}
+   if(tx) {
+-    unsigned i;
+-    for(i=0;i<16;i++){
+-      if(wr(p,SAI_TXDR,p->amplitude))goto done;
++    unsigned i,pre=frames<8?2*frames:16;
++    for(i=0;i<pre;i++){
++      if(wr(p,SAI_TXDR,buffered?source[i]:p->amplitude))goto done;
+       out->prefill_words++;
+     }
+     if(rd(p,SAI_TXFIFOLR,&v))goto done;
+     out->first_fifo_raw=out->last_fifo_raw=v;
+     out->max_fifo=pio_fifo_count(v);
+-    if(out->max_fifo!=16){rc=-71;goto done;}
+-    out->frames=8;
++    if(out->max_fifo!=pre){rc=-71;goto done;}
++    out->frames=pre/2;
+   }
+   if(mod(p,SAI_XFER,tx?SAI_XFER_TXS_MASK:SAI_XFER_RXS_MASK,
+          tx?SAI_XFER_TXS_EN:SAI_XFER_RXS_EN))goto done;
+@@ -150,8 +152,13 @@
+     if(tx&&v>16){rc=-71;goto done;}
+     if(out->frames==frames) { if(!tx || !v){rc=0;goto done;}continue; }
+     if(tx && v<=14) {
+-      word=(out->frames/32)%2 ? 0u-p->amplitude : p->amplitude;
+-      if(wr(p,SAI_TXDR,word)||wr(p,SAI_TXDR,word))goto done;
++      if(buffered) {
++        if(wr(p,SAI_TXDR,source[2*out->frames])||
++           wr(p,SAI_TXDR,source[2*out->frames+1]))goto done;
++      } else {
++        word=(out->frames/32)%2 ? 0u-p->amplitude : p->amplitude;
++        if(wr(p,SAI_TXDR,word)||wr(p,SAI_TXDR,word))goto done;
++      }
+       out->frames++;
+     } else if(!tx && v>=2) {
+       if(rd(p,SAI_RXDR,&capture[2*out->frames]) ||
+@@ -172,3 +179,10 @@
+   out->result=rc?rc:(out->amp_off_result?out->amp_off_result:out->stop_result);
+   return out->result;
+ }
++int pio_run(const struct pio_port*p,int prepared,uint32_t mclk,int tx,
++            uint32_t *capture,unsigned capacity,unsigned frames,struct pio_result*out)
++{return run(p,prepared,mclk,tx,capture,capacity,frames,out,NULL,0,0);}
++int pio_play_buffer(const struct pio_port*p,int prepared,uint32_t mclk,
++                    const uint32_t *source,unsigned source_words,unsigned frames,
++                    struct pio_result*out)
++{return run(p,prepared,mclk,1,NULL,0,frames,out,source,source_words,1);}
+--- a/app/k7sound/pio.h
++++ b/app/k7sound/pio.h
+@@ -49,4 +49,14 @@
+ int pio_run(const struct pio_port *,int prepared,uint32_t actual_mclk,
+  int playback,uint32_t *capture,unsigned capacity_words,unsigned frames,
+  struct pio_result *);
++/* Read-only rawPCM32 interleaved L,R buffer, frames1..48000; words>=2*frames.
++ * Caller owns immutable storage, nonoverlapping result/port, for full call.
++ * Exact words sent, no synthesis/zero padding/gain/format conversion; caller
++ * must pass only actual captured frames, not unused capacity. amplitude field
++ * does NOT attenuate this API. Root controls safe codec/amp gain. Hardware
++ * cannot prove source provenance; caller must retain real capture evidence.
++ * Short inputs prefill min(16,2*frames), exact FIFO sum must match that count.
++ * Existing tone pio_run API/limits and all terminal logic remain unchanged. */
++int pio_play_buffer(const struct pio_port *,int prepared,uint32_t actual_mclk,
++ const uint32_t *source,unsigned source_words,unsigned frames,struct pio_result *);
+ #endif

@@ -1,0 +1,43 @@
+{
+  "source": "mic-mono-channel-0.wav",
+  "live_board": false,
+  "result": {
+    "frames_sent": 150,
+    "frames_acknowledged": 150
+  },
+  "events": [
+    {
+      "type": "ready",
+      "frame_bytes": 640,
+      "frame_ms": 20,
+      "max_frames": 3000
+    },
+    {
+      "type": "partial",
+      "sentence_id": 760,
+      "revision": 1,
+      "text": ""
+    },
+    {
+      "type": "partial",
+      "sentence_id": 760,
+      "revision": 2,
+      "text": "开"
+    },
+    {
+      "type": "partial",
+      "sentence_id": 760,
+      "revision": 3,
+      "text": "开始"
+    },
+    {
+      "type": "final",
+      "sentence_id": 760,
+      "revision": 4,
+      "text": "开始测幅。"
+    },
+    {
+      "type": "completed"
+    }
+  ]
+}

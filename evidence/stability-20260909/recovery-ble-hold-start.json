@@ -1,0 +1,44 @@
+{
+  "temporary_arp": false,
+  "status_only": true,
+  "records": [
+    {
+      "time": "2026-09-09T11:59:15.678271+00:00",
+      "command": "k7radio wifi-status",
+      "lines": [
+        "WIFI status active=1 wifi_connected=1 ip=10.3.0.214 gateway=10.3.0.1 result=0",
+        "WIFI netdev rx=290 tx=21 dropped=0",
+        "WIFI AMSDU complete=1 subframes=3 rejected=0"
+      ]
+    },
+    {
+      "time": "2026-09-09T11:59:15.725614+00:00",
+      "command": "arp -i wlan0 -a 10.3.0.1",
+      "lines": []
+    },
+    {
+      "time": "2026-09-09T11:59:15.774506+00:00",
+      "command": "k7radio wifi-status",
+      "lines": [
+        "WIFI status active=1 wifi_connected=1 ip=10.3.0.214 gateway=10.3.0.1 result=0",
+        "WIFI netdev rx=290 tx=21 dropped=0",
+        "WIFI AMSDU complete=1 subframes=3 rejected=0"
+      ]
+    },
+    {
+      "time": "2026-09-09T11:59:15.822123+00:00",
+      "command": "k7radio ble-status",
+      "lines": [
+        "RADIO BLE name=VelaVision K7 connected=0 handle=17 ACL_RX=72 ACL_TX_queued=4764",
+        "RADIO BLE history connections=14 disconnections=14 last_reason=19 encrypt_status=0 encrypted=0"
+      ]
+    },
+    {
+      "time": "2026-09-09T11:59:15.868639+00:00",
+      "command": "free",
+      "lines": [
+        "126877688      72248  126805440      99248  126779232     54      5 Umem"
+      ]
+    }
+  ]
+}

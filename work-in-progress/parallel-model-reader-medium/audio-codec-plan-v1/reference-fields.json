@@ -1,0 +1,100 @@
+{
+  "executable_plan": false,
+  "reviews": 0,
+  "hardware_read_rules": [],
+  "fields": [
+    {
+      "name": "left_differential",
+      "reg": 10,
+      "field_mask": 192,
+      "field_value": 192,
+      "source": "work-in-progress/parallel-k7-codec/input/kernel-6.1/sound/soc/codecs/es8323.c",
+      "source_line": 151,
+      "evidence": "REFERENCE_ONLY",
+      "hardware_readback_allowed": false
+    },
+    {
+      "name": "right_differential",
+      "reg": 10,
+      "field_mask": 48,
+      "field_value": 48,
+      "source": "work-in-progress/parallel-k7-codec/input/kernel-6.1/sound/soc/codecs/es8323.c",
+      "source_line": 152,
+      "evidence": "REFERENCE_ONLY",
+      "hardware_readback_allowed": false
+    },
+    {
+      "name": "differential_line2",
+      "reg": 11,
+      "field_mask": 128,
+      "field_value": 128,
+      "source": "work-in-progress/parallel-k7-codec/input/kernel-6.1/sound/soc/codecs/es8323.c",
+      "source_line": 153,
+      "evidence": "REFERENCE_ONLY",
+      "hardware_readback_allowed": false
+    },
+    {
+      "name": "stereo_mux",
+      "reg": 11,
+      "field_mask": 24,
+      "field_value": 0,
+      "source": "work-in-progress/parallel-k7-codec/input/kernel-6.1/sound/soc/codecs/es8323.c",
+      "source_line": 156,
+      "evidence": "REFERENCE_ONLY",
+      "hardware_readback_allowed": false
+    },
+    {
+      "name": "capture_mute_on",
+      "reg": 15,
+      "field_mask": 4,
+      "field_value": 4,
+      "source": "work-in-progress/parallel-k7-codec/input/kernel-6.1/sound/soc/codecs/es8323.c",
+      "source_line": 199,
+      "evidence": "REFERENCE_ONLY",
+      "hardware_readback_allowed": false
+    },
+    {
+      "name": "capture_mute_off",
+      "reg": 15,
+      "field_mask": 4,
+      "field_value": 0,
+      "source": "work-in-progress/parallel-k7-codec/input/kernel-6.1/sound/soc/codecs/es8323.c",
+      "source_line": 199,
+      "evidence": "REFERENCE_ONLY",
+      "hardware_readback_allowed": false
+    },
+    {
+      "name": "adc_s16",
+      "reg": 12,
+      "field_mask": 28,
+      "field_value": 12,
+      "source": "work-in-progress/parallel-k7-codec/input/kernel-6.1/sound/soc/codecs/es8323.c",
+      "source_line": 605,
+      "evidence": "REFERENCE_ONLY",
+      "hardware_readback_allowed": false
+    },
+    {
+      "name": "dac_s16",
+      "reg": 23,
+      "field_mask": 56,
+      "field_value": 24,
+      "source": "work-in-progress/parallel-k7-codec/input/kernel-6.1/sound/soc/codecs/es8323.c",
+      "source_line": 606,
+      "evidence": "REFERENCE_ONLY",
+      "hardware_readback_allowed": false
+    }
+  ],
+  "clock_reference": {
+    "rate": 16000,
+    "mclk": 4096000,
+    "sr": 2,
+    "usb": 0,
+    "adc_reg": 13,
+    "dac_reg": 24,
+    "slot_profile_unmeasured": [
+      2,
+      16
+    ],
+    "bclk_request": 512000
+  }
+}

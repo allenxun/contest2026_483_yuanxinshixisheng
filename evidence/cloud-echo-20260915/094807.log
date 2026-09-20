@@ -1,0 +1,860 @@
+k7sound tone-max
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=00060300 ien=00000000 gpio_version=010219c8 gpio_input=014d3050
+SOUND platform_result=0 version=23073576 repair=fdffffff ack=00000001 idle=00000001
+SOUND mclkout before=0000001f after=0000001d
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=0 settle_ms=0
+SOUND playback_gain_db=24 dac_attenuation_db=0 maximum=1
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=00000000
+SOUND slot_mask offset=44 value=00000000
+SOUND slot_mask offset=48 value=00000000
+SOUND slot_mask offset=4c value=00000000
+SOUND slot_mask offset=50 value=00000000
+SOUND slot_mask offset=54 value=00000000
+SOUND slot_mask offset=58 value=00000000
+SOUND pio=0 frames=3200 polls=17fff RXCR=00700fff FSCR=0101f03f CKR=00000018
+SOUND codec reg=00 value=36
+SOUND codec reg=01 value=60
+SOUND codec reg=02 value=00
+SOUND codec reg=03 value=00
+SOUND codec reg=04 value=0c
+SOUND codec reg=05 value=00
+SOUND codec reg=06 value=00
+SOUND codec reg=07 value=7c
+SOUND codec reg=08 value=00
+SOUND codec reg=09 value=44
+SOUND codec reg=0a value=f0
+SOUND codec reg=0b value=82
+SOUND codec reg=0c value=10
+SOUND codec reg=0d value=dec reg=17 value=20
+SOUND codec reg=18 value=02
+SOUND codec reg=19 value=02
+SOUND codec reg=1a value=00
+SOUND codec reg=1b vg=2b value=80
+SOUND codec reg=30 value=21
+SOUND codec reg=31 v5 schmitt=000000ff path=000000e4 gpio_high=50145 transitions=0 samples=50145
+SOUND pad ticks=480004 max_gap=35 counter_hz=24000000 complete=1
+SOUND pad channel=0 high=24660 changes=36876
+SO25079 changes=640
+SOUND pad channel=3 high=50145 changes=0
+SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+nsh> [K
+ECHO_TIMING {"command": "tone-max", "command_ms": 478, "elapsed_ms": 478, "passed": true}
+k7cloud asr-live 10.3.1.125
+RADIO Wi-Fi RX type=1 id=15 seq=1851 len=10
+RADIO Wi-Fi cmd=15 seq=1851 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1852 len=10
+RADIO Wi-Fi cmd=15 seq=1852 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1853 len=10
+RADIO Wi-Fi cmd=15 seq=1853 ack=1 status=0 response=0 ret=0
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=00060300 ien=00000000 gpio_version=010219c8 gpio_input=014d3050
+SOUND platform_result=0 version=23073576 repair=fdffffff ack=00000001 idle=00000001
+SOUND mclkout before=0000001f after=0000001d
+RADIO Wi-Fi RX type=1 id=15 seq=1854 len=10
+RADIO Wi-Fi cmd=15 seq=1854 ack=1 status=0 response=0 ret=0
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=24 settle_ms=1000
+SOUND playback_gain_db=0 dac_attenuation_db=24 maximum=0
+RADIO Wi-Fi RX type=1 id=15 seq=1855 len=10
+RADIO Wi-Fi cmd=15 seq=1855 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1856 len=10
+RADIO Wi-Fi cmd=15 seq=1856 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1857 len=10
+RADIO Wi-Fi cmd=15 seq=1857 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1858 len=10
+RADIO Wi-Fi cmd=15 seq=1858 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1859 len=10
+RADIO Wi-Fi cmd=15 seq=1859 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1860 len=10
+RADIO Wi-Fi cmd=15 seq=1860 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1861 len=10
+RADIO Wi-Fi cmd=15 seq=1861 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1862 len=10
+RADIO Wi-Fi cmd=15 seq=1862 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1863 len=10
+RADIO Wi-Fi cmd=15 seq=1863 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1864 len=10
+RADIO Wi-Fi cmd=15 seq=1864 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1865 len=10
+RADIO Wi-Fi cmd=15 seq=1865 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1866 len=10
+RADIO Wi-Fi cmd=15 seq=1866 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1867 len=10
+RADIO Wi-Fi cmd=15 seq=1867 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1868 len=10
+RADIO Wi-Fi cmd=15 seq=1868 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1869 len=10
+RADIO Wi-Fi cmd=15 seq=1869 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1870 len=10
+RADIO Wi-Fi cmd=15 seq=1870 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1871 len=10
+RADIO Wi-Fi cmd=15 seq=1871 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1872 len=10
+RADIO Wi-Fi cmd=15 seq=1872 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1873 len=10
+RADIO Wi-Fi cmd=15 seq=1873 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1874 len=10
+RADIO Wi-Fi cmd=15 seq=1874 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1875 len=10
+RADIO Wi-Fi cmd=15 seq=1875 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1876 len=10
+RADIO Wi-Fi cmd=15 seq=1876 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1877 len=10
+RADIO Wi-Fi cmd=15 seq=1877 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1878 len=10
+RADIO Wi-Fi cmd=15 seq=1878 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1879 len=10
+RADIO Wi-Fi cmd=15 seq=1879 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1880 len=10
+RADIO Wi-Fi cmd=15 seq=1880 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1881 len=10
+RADIO Wi-Fi cmd=15 seq=1881 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1882 len=10
+RADIO Wi-Fi cmd=15 seq=1882 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1883 len=10
+RADIO Wi-Fi cmd=15 seq=1883 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1884 len=10
+RADIO Wi-Fi cmd=15 seq=1884 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1885 len=10
+RADIO Wi-Fi cmd=15 seq=1885 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1886 len=10
+RADIO Wi-Fi cmd=15 seq=1886 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1887 len=10
+RADIO Wi-Fi cmd=15 seq=1887 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1888 len=10
+RADIO Wi-Fi cmd=15 seq=1888 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1889 len=10
+RADIO Wi-Fi cmd=15 seq=1889 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1890 len=10
+RADIO Wi-Fi cmd=15 seq=1890 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1891 len=10
+RADIO Wi-Fi cmd=15 seq=1891 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1892 len=10
+RADIO Wi-Fi cmd=15 seq=1892 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1893 len=10
+RADIO Wi-Fi cmd=15 seq=1893 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1894 len=10
+RADIO Wi-Fi cmd=15 seq=1894 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1895 len=10
+RADIO Wi-Fi cmd=15 seq=1895 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1896 len=10
+RADIO Wi-Fi cmd=15 seq=1896 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1897 len=10
+RADIO Wi-Fi cmd=15 seq=1897 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1898 len=10
+RADIO Wi-Fi cmd=15 seq=1898 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1899 len=10
+RADIO Wi-Fi cmd=15 seq=1899 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1900 len=10
+RADIO Wi-Fi cmd=15 seq=1900 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1901 len=10
+RADIO Wi-Fi cmd=15 seq=1901 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1902 len=10
+RADIO Wi-Fi cmd=15 seq=1902 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1903 len=10
+RADIO Wi-Fi cmd=15 seq=1903 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1904 len=10
+RADIO Wi-Fi cmd=15 seq=1904 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1905 len=10
+RADIO Wi-Fi cmd=15 seq=1905 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1906 len=10
+RADIO Wi-Fi cmd=15 seq=1906 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1907 len=10
+RADIO Wi-Fi cmd=15 seq=1907 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1908 len=10
+RADIO Wi-Fi cmd=15 seq=1908 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1909 len=10
+RADIO Wi-Fi cmd=15 seq=1909 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1910 len=10
+RADIO Wi-Fi cmd=15 seq=1910 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1911 len=10
+RADIO Wi-Fi cmd=15 seq=1911 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1912 len=10
+RADIO Wi-Fi cmd=15 seq=1912 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1913 len=10
+RADIO Wi-Fi cmd=15 seq=1913 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1914 len=10
+RADIO Wi-Fi cmd=15 seq=1914 ack=1 status=0 response=0 ret=0
+K7CLOUD asr partial_received=1
+RADIO Wi-Fi RX type=1 id=15 seq=1915 len=10
+RADIO Wi-Fi cmd=15 seq=1915 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1916 len=10
+RADIO Wi-Fi cmd=15 seq=1916 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1917 len=10
+RADIO Wi-Fi cmd=15 seq=1917 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1918 len=10
+RADIO Wi-Fi cmd=15 seq=1918 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1919 len=10
+RADIO Wi-Fi cmd=15 seq=1919 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1920 len=10
+RADIO Wi-Fi cmd=15 seq=1920 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1921 len=10
+RADIO Wi-Fi cmd=15 seq=1921 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1922 len=10
+RADIO Wi-Fi cmd=15 seq=1922 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1923 len=10
+RADIO Wi-Fi cmd=15 seq=1923 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1924 len=10
+RADIO Wi-Fi cmd=15 seq=1924 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1925 len=10
+RADIO Wi-Fi cmd=15 seq=1925 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1926 len=10
+RADIO Wi-Fi cmd=15 seq=1926 ack=1 status=0 response=0 ret=0
+K7CLOUD asr partial_received=1
+RADIO Wi-Fi RX type=1 id=15 seq=1927 len=10
+RADIO Wi-Fi cmd=15 seq=1927 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1928 len=10
+RADIO Wi-Fi cmd=15 seq=1928 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1929 len=10
+RADIO Wi-Fi cmd=15 seq=1929 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1930 len=10
+RADIO Wi-Fi cmd=15 seq=1930 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1931 len=10
+RADIO Wi-Fi cmd=15 seq=1931 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1932 len=10
+RADIO Wi-Fi cmd=15 seq=1932 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1933 len=10
+RADIO Wi-Fi cmd=15 seq=1933 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1934 len=10
+RADIO Wi-Fi cmd=15 seq=1934 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1935 len=10
+RADIO Wi-Fi cmd=15 seq=1935 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1936 len=10
+RADIO Wi-Fi cmd=15 seq=1936 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1937 len=10
+RADIO Wi-Fi cmd=15 seq=1937 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1938 len=10
+RADIO Wi-Fi cmd=15 seq=1938 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1939 len=10
+RADIO Wi-Fi cmd=15 seq=1939 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1940 len=10
+RADIO Wi-Fi cmd=15 seq=1940 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1941 len=10
+RADIO Wi-Fi cmd=15 seq=1941 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1942 len=10
+RADIO Wi-Fi cmd=15 seq=1942 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1943 len=10
+RADIO Wi-Fi cmd=15 seq=1943 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1944 len=10
+RADIO Wi-Fi cmd=15 seq=1944 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1945 len=10
+RADIO Wi-Fi cmd=15 seq=1945 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1946 len=10
+RADIO Wi-Fi cmd=15 seq=1946 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1947 len=10
+RADIO Wi-Fi cmd=15 seq=1947 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1948 len=10
+RADIO Wi-Fi cmd=15 seq=1948 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1949 len=10
+RADIO Wi-Fi cmd=15 seq=1949 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1950 len=10
+RADIO Wi-Fi cmd=15 seq=1950 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1951 len=10
+RADIO Wi-Fi cmd=15 seq=1951 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1952 len=10
+RADIO Wi-Fi cmd=15 seq=1952 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1953 len=10
+RADIO Wi-Fi cmd=15 seq=1953 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1954 len=10
+RADIO Wi-Fi cmd=15 seq=1954 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1955 len=10
+RADIO Wi-Fi cmd=15 seq=1955 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1956 len=10
+RADIO Wi-Fi cmd=15 seq=1956 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1957 len=10
+RADIO Wi-Fi cmd=15 seq=1957 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1958 len=10
+RADIO Wi-Fi cmd=15 seq=1958 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1959 len=10
+RADIO Wi-Fi cmd=15 seq=1959 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1960 len=10
+RADIO Wi-Fi cmd=15 seq=1960 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1961 len=10
+RADIO Wi-Fi cmd=15 seq=1961 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1962 len=10
+RADIO Wi-Fi cmd=15 seq=1962 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1963 len=10
+RADIO Wi-Fi cmd=15 seq=1963 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1964 len=10
+RADIO Wi-Fi cmd=15 seq=1964 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1965 len=10
+RADIO Wi-Fi cmd=15 seq=1965 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1966 len=10
+RADIO Wi-Fi cmd=15 seq=1966 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1967 len=10
+RADIO Wi-Fi cmd=15 seq=1967 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1968 len=10
+RADIO Wi-Fi cmd=15 seq=1968 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1969 len=10
+RADIO Wi-Fi cmd=15 seq=1969 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1970 len=10
+RADIO Wi-Fi cmd=15 seq=1970 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1971 len=10
+RADIO Wi-Fi cmd=15 seq=1971 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1972 len=10
+RADIO Wi-Fi cmd=15 seq=1972 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1973 len=10
+RADIO Wi-Fi cmd=15 seq=1973 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1974 len=10
+RADIO Wi-Fi cmd=15 seq=1974 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1975 len=10
+RADIO Wi-Fi cmd=15 seq=1975 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1976 len=10
+RADIO Wi-Fi cmd=15 seq=1976 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1977 len=10
+RADIO Wi-Fi cmd=15 seq=1977 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1978 len=10
+RADIO Wi-Fi cmd=15 seq=1978 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1979 len=10
+RADIO Wi-Fi cmd=15 seq=1979 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1980 len=10
+RADIO Wi-Fi cmd=15 seq=1980 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1981 len=10
+RADIO Wi-Fi cmd=15 seq=1981 ack=1 status=0 response=0 ret=0
+K7CLOUD asr partial_received=1
+RADIO Wi-Fi RX type=1 id=15 seq=1982 len=10
+RADIO Wi-Fi cmd=15 seq=1982 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1983 len=10
+RADIO Wi-Fi cmd=15 seq=1983 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1984 len=10
+RADIO Wi-Fi cmd=15 seq=1984 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1985 len=10
+RADIO Wi-Fi cmd=15 seq=1985 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1986 len=10
+RADIO Wi-Fi cmd=15 seq=1986 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1987 len=10
+RADIO Wi-Fi cmd=15 seq=1987 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1988 len=10
+RADIO Wi-Fi cmd=15 seq=1988 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1989 len=10
+RADIO Wi-Fi cmd=15 seq=1989 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1990 len=10
+RADIO Wi-Fi cmd=15 seq=1990 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1991 len=10
+RADIO Wi-Fi cmd=15 seq=1991 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1992 len=10
+RADIO Wi-Fi cmd=15 seq=1992 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1993 len=10
+RADIO Wi-Fi cmd=15 seq=1993 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1994 len=10
+RADIO Wi-Fi cmd=15 seq=1994 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1995 len=10
+RADIO Wi-Fi cmd=15 seq=1995 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1996 len=10
+RADIO Wi-Fi cmd=15 seq=1996 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1997 len=10
+RADIO Wi-Fi cmd=15 seq=1997 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1998 len=10
+RADIO Wi-Fi cmd=15 seq=1998 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=1999 len=10
+RADIO Wi-Fi cmd=15 seq=1999 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2000 len=10
+RADIO Wi-Fi cmd=15 seq=2000 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2001 len=10
+RADIO Wi-Fi cmd=15 seq=2001 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2002 len=10
+RADIO Wi-Fi cmd=15 seq=2002 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2003 len=10
+RADIO Wi-Fi cmd=15 seq=2003 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2004 len=10
+RADIO Wi-Fi cmd=15 seq=2004 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2005 len=10
+RADIO Wi-Fi cmd=15 seq=2005 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2006 len=10
+RADIO Wi-Fi cmd=15 seq=2006 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2007 len=10
+RADIO Wi-Fi cmd=15 seq=2007 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2008 len=10
+RADIO Wi-Fi cmd=15 seq=2008 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2009 len=10
+RADIO Wi-Fi cmd=15 seq=2009 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2010 len=10
+RADIO Wi-Fi cmd=15 seq=2010 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2011 len=10
+RADIO Wi-Fi cmd=15 seq=2011 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2012 len=10
+RADIO Wi-Fi cmd=15 seq=2012 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2013 len=10
+RADIO Wi-Fi cmd=15 seq=2013 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2014 len=10
+RADIO Wi-Fi cmd=15 seq=2014 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2015 len=10
+RADIO Wi-Fi cmd=15 seq=2015 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2016 len=10
+RADIO Wi-Fi cmd=15 seq=2016 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2017 len=10
+RADIO Wi-Fi cmd=15 seq=2017 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2018 len=10
+RADIO Wi-Fi cmd=15 seq=2018 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2019 len=10
+RADIO Wi-Fi cmd=15 seq=2019 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2020 len=10
+RADIO Wi-Fi cmd=15 seq=2020 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2021 len=10
+RADIO Wi-Fi cmd=15 seq=2021 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2022 len=10
+RADIO Wi-Fi cmd=15 seq=2022 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2023 len=10
+RADIO Wi-Fi cmd=15 seq=2023 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2024 len=10
+RADIO Wi-Fi cmd=15 seq=2024 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2025 len=10
+RADIO Wi-Fi cmd=15 seq=2025 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2026 len=10
+RADIO Wi-Fi cmd=15 seq=2026 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2027 len=10
+RADIO Wi-Fi cmd=15 seq=2027 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2028 len=10
+RADIO Wi-Fi cmd=15 seq=2028 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2029 len=10
+RADIO Wi-Fi cmd=15 seq=2029 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2030 len=10
+RADIO Wi-Fi cmd=15 seq=2030 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2031 len=10
+RADIO Wi-Fi cmd=15 seq=2031 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2032 len=10
+RADIO Wi-Fi cmd=15 seq=2032 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2033 len=10
+RADIO Wi-Fi cmd=15 seq=2033 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2034 len=10
+RADIO Wi-Fi cmd=15 seq=2034 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2035 len=10
+RADIO Wi-Fi cmd=15 seq=2035 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2036 len=10
+RADIO Wi-Fi cmd=15 seq=2036 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2037 len=10
+RADIO Wi-Fi cmd=15 seq=2037 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2038 len=10
+RADIO Wi-Fi cmd=15 seq=2038 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2039 len=10
+RADIO Wi-Fi cmd=15 seq=2039 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2040 len=10
+RADIO Wi-Fi cmd=15 seq=2040 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2041 len=10
+RADIO Wi-Fi cmd=15 seq=2041 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2042 len=10
+RADIO Wi-Fi cmd=15 seq=2042 ack=1 status=0 response=0 ret=0
+K7CLOUD asr partial_received=1
+RADIO Wi-Fi RX type=1 id=15 seq=2043 len=10
+RADIO Wi-Fi cmd=15 seq=2043 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2044 len=10
+RADIO Wi-Fi cmd=15 seq=2044 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2045 len=10
+RADIO Wi-Fi cmd=15 seq=2045 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2046 len=10
+RADIO Wi-Fi cmd=15 seq=2046 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2047 len=10
+RADIO Wi-Fi cmd=15 seq=2047 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2048 len=10
+RADIO Wi-Fi cmd=15 seq=2048 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2049 len=10
+RADIO Wi-Fi cmd=15 seq=2049 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2050 len=10
+RADIO Wi-Fi cmd=15 seq=2050 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2051 len=10
+RADIO Wi-Fi cmd=15 seq=2051 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2052 len=10
+RADIO Wi-Fi cmd=15 seq=2052 ack=1 status=0 response=0 ret=0
+K7CLOUD asr final_received=1
+RADIO Wi-Fi RX type=1 id=15 seq=2053 len=10
+RADIO Wi-Fi cmd=15 seq=2053 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2054 len=10
+RADIO Wi-Fi cmd=15 seq=2054 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2055 len=10
+RADIO Wi-Fi cmd=15 seq=2055 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2056 len=10
+RADIO Wi-Fi cmd=15 seq=2056 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2057 len=10
+RADIO Wi-Fi cmd=15 seq=2057 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2058 len=10
+RADIO Wi-Fi cmd=15 seq=2058 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2059 len=10
+RADIO Wi-Fi cmd=15 seq=2059 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2060 len=10
+RADIO Wi-Fi cmd=15 seq=2060 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2061 len=10
+RADIO Wi-Fi cmd=15 seq=2061 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2062 len=10
+RADIO Wi-Fi cmd=15 seq=2062 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2063 len=10
+RADIO Wi-Fi cmd=15 seq=2063 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2064 len=10
+RADIO Wi-Fi cmd=15 seq=2064 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2065 len=10
+RADIO Wi-Fi cmd=15 seq=2065 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2066 len=10
+RADIO Wi-Fi cmd=15 seq=2066 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2067 len=10
+RADIO Wi-Fi cmd=15 seq=2067 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2068 len=10
+RADIO Wi-Fi cmd=15 seq=2068 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2069 len=10
+RADIO Wi-Fi cmd=15 seq=2069 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2070 len=10
+RADIO Wi-Fi cmd=15 seq=2070 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2071 len=10
+RADIO Wi-Fi cmd=15 seq=2071 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2072 len=10
+RADIO Wi-Fi cmd=15 seq=2072 ack=1 status=0 response=0 ret=0
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=00000000
+SOUND slot_mask offset=44 value=00000000
+SOUND slot_mask of value=00000000
+SOUND slot_mask offset=4c value=00000000
+SOUNDalue=00000000
+SOUND slot_mask offset=54 value=00000000
+SOUND s=0 held=0 max_fifo=4
+SOUND grouped words=768000 mismatches=0
+SOUND fifo first=00000000 last=00000000 TXCR=00400fff RXCR=00700fff FSCR=0101f03f CKR=00000018
+SOUND trace start=47061051732 end=47064051786 started=1 count=32RADIO Wi-Fi RX type=1 id=15 seq=2073 len=10
+
+RADIO Wi-Fi cmd=15 seq=2073 ack=1 status=0 response=0 ret=0
+SOUND trace_init index=0 value=00000000 rc=0
+SOUND trace_init index=1 value=00000002 rc=0
+SOUND trace_init index=2 value=00700fff rc=0
+SOUND trace_init index=3 value=000000e4 rc=0
+SOUND trace_init index=4 value=00000000 rc=0
+SOUND trace_init index=5 value=0000000b rc=0
+SOUND trace_word index=0 us=47061051812 before=00041041 word=ffffffff after=00041040 rc=0,0,0
+SOUND trace_word index=1 us=47061051814 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=2 us=47061051816 before=00041040 word=ffffffus=47061051817 before=00041000 word=00000000 after=00041000 rc=051820 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOU index=6 us=47061051822 before=00040000 word=ffffffff after=0000ord=00000000 after=00000000 rc=0,0,0
+SOUND trace_word index=8 us=47061051843 before=00041041 word=ffffffff after=00041040 rc=0,0,0
+SOUND trace_word index=9 us=47061051844 before=00041040 word=00000000 after=00041040 rc=0,0,0
+SOUND trace_word index=10 us=47061051846 before=00041040 word=ffffffff after=00041000 rc=0,0,0
+RADIO Wi-Fi RX type=1 id=15 seq=2074 len=10
+SOUND trace_word index=11 us=47061051848 before=00041000 word=00RADIO Wi-Fi cmd=15 seq=2074 ack=1 status=0 response=0 ret=0
+000000 after=00041000 rc=0,0,0
+SOUND trace_word index=12 us=47061051849 before=00041000 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=13 us=47061051851 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=14 us=47061051853 before=00040000 word=ffffffff after=00000SOUND trace_word index=15 us=47061051854 before=00000000 word=00us=47061051874 before=00041041 word=ffffffff after=00041040 rc=0040 word=ffffffff after=00041000 rc=0,0,0
+SOUND trace_word index=19 us=47061051879 before=00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_word index=20 us=47061051881 before=00041000 word=ffffffff after=00040000 rc=0,0,0
+SOUND trace_word index=21 us=47061051883 before=00040000 word=00000000 after=00040000 rc=0,0,0
+SOUND trace_word index=22 us=47061051884 before=00040000 word=ffffffff after=00000000=23 us=47061051886 before=00000000 word=00000000 after=00000000  index=25 us=47061051907 before=00041040 word=00000000 after=000race_word index=26 us=47061051909 before=00041040 word=ffffffff =00041000 word=00000000 after=00041000 rc=0,0,0
+SOUND trace_worfter=00040000 rc=0,0,0
+SOUND trace_word index=29 us=47061051914fore=00040000 word=ffffffff after=00000000 rc=0,0,0
+SOUND tracee=00000000 word=00000000 after=00000000 rc=0,0,0
+SOUND codec reec reg=02 value=00
+SOUND codec reg=03 value=00
+SOUND codec regg=09 value=88
+SOUND codec reg=0a value=f0
+SOUND codec reg=0b vUND codec reg=0c value=10
+SOUND codec reg=0d value=02
+SOUND co18 value=02
+SOUND codec reg=19 value=06
+SOUND codec reg=1a value=30
+SOUND codec reg=1b value=30
+SOUND codec reg=27 value=b8
+SOUND codec reg=2a value=b8
+SOUND codec reg=2b value=80
+SOUND codec reg=30 value=14
+SOUND codec reg=31 value=14
+SOUND input pull=00005515 schmitt=000000ff path=000000e4 gpio_high=50191 transitions=0 samples=50191
+SOUND pad ticks=480004 max_gap=14 counter_hz=24000000 complete=1
+SOUND pad channel=0 high=24674 changes=36921
+SOUND pad channel=1 high=25255 changes=40960
+SOUND pad channel=2 high=25128 changes=640
+SOUND pad channel=3 high=50191 changes=0
+SOUND pcm left_min=-219559168 left_max=209104640 left_nonzero=48000 right_min=-206083584 right_max=216093440 righSOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+RADIO Wi-Fi RX type=1 id=15 seq=2075 len=10
+RADIO Wi-Fi cmd=15 seq=2075 ack=1 status=0 response=0 ret=0
+K7CLOUD asr result=0 frames_sent=150 completed=1
+nsh> [KRADIO Wi-Fi RX type=1 id=15 seq=2076 len=10
+RADIO Wi-Fi cmd=15 seq=2076 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=
+ECHO_TIMING {"command": "asr-live", "command_ms": 4990, "elapsed_ms": 4990, "passed": true}
+2077 len=10
+RADIO Wi-Fi cmd=15 seq=2077 ack=1 status=0 response=0 ret=0
+k7cloud tRADIO Wi-Fi RX type=1 id=15 seq=2078 len=10
+RADIO Wi-Fi cmd=15 seq=2078 ack=1 status=0 response=0 ret=0
+ts-test 10.3.1.125
+RADIO Wi-Fi RX type=1 id=15 seq=2079 len=10
+RADIO Wi-Fi cmd=15 seq=2079 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2080 len=10
+RADIO Wi-Fi cmd=15 seq=2080 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2081 len=10
+RADIO Wi-Fi cmd=15 seq=2081 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2082 len=10
+RADIO Wi-Fi cmd=15 seq=2082 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2083 len=10
+RADIO Wi-Fi cmd=15 seq=2083 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2084 len=10
+RADIO Wi-Fi cmd=15 seq=2084 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2085 len=10
+RADIO Wi-Fi cmd=15 seq=2085 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2086 len=10
+RADIO Wi-Fi cmd=15 seq=2086 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2087 len=10
+RADIO Wi-Fi cmd=15 seq=2087 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2088 len=10
+RADIO Wi-Fi cmd=15 seq=2088 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2089 len=10
+RADIO Wi-Fi cmd=15 seq=2089 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2090 len=10
+RADIO Wi-Fi cmd=15 seq=2090 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2091 len=10
+RADIO Wi-Fi cmd=15 seq=2091 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2092 len=10
+RADIO Wi-Fi cmd=15 seq=2092 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2093 len=10
+RADIO Wi-Fi cmd=15 seq=2093 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2094 len=10
+RADIO Wi-Fi cmd=15 seq=2094 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2095 len=10
+RADIO Wi-Fi cmd=15 seq=2095 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2096 len=10
+RADIO Wi-Fi cmd=15 seq=2096 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2097 len=10
+RADIO Wi-Fi cmd=15 seq=2097 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2098 len=10
+RADIO Wi-Fi cmd=15 seq=2098 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2099 len=10
+RADIO Wi-Fi cmd=15 seq=2099 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2100 len=10
+RADIO Wi-Fi cmd=15 seq=2100 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2101 len=10
+RADIO Wi-Fi cmd=15 seq=2101 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2102 len=10
+RADIO Wi-Fi cmd=15 seq=2102 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2103 len=10
+RADIO Wi-Fi cmd=15 seq=2103 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2104 len=10
+RADIO Wi-Fi cmd=15 seq=2104 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2105 len=10
+RADIO Wi-Fi cmd=15 seq=2105 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2106 len=10
+RADIO Wi-Fi cmd=15 seq=2106 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2107 len=10
+RADIO Wi-Fi cmd=15 seq=2107 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2108 len=10
+RADIO Wi-Fi cmd=15 seq=2108 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2109 len=10
+RADIO Wi-Fi cmd=15 seq=2109 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2110 len=10
+RADIO Wi-Fi cmd=15 seq=2110 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2111 len=10
+RADIO Wi-Fi cmd=15 seq=2111 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2112 len=10
+RADIO Wi-Fi cmd=15 seq=2112 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2113 len=10
+RADIO Wi-Fi cmd=15 seq=2113 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2114 len=10
+RADIO Wi-Fi cmd=15 seq=2114 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2115 len=10
+RADIO Wi-Fi cmd=15 seq=2115 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2116 len=10
+RADIO Wi-Fi cmd=15 seq=2116 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2117 len=10
+RADIO Wi-Fi cmd=15 seq=2117 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2118 len=10
+RADIO Wi-Fi cmd=15 seq=2118 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2119 len=10
+RADIO Wi-Fi cmd=15 seq=2119 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2120 len=10
+RADIO Wi-Fi cmd=15 seq=2120 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2121 len=10
+RADIO Wi-Fi cmd=15 seq=2121 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2122 len=10
+RADIO Wi-Fi cmd=15 seq=2122 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2123 len=10
+RADIO Wi-Fi cmd=15 seq=2123 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2124 len=10
+RADIO Wi-Fi cmd=15 seq=2124 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2125 len=10
+RADIO Wi-Fi cmd=15 seq=2125 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2126 len=10
+RADIO Wi-Fi cmd=15 seq=2126 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2127 len=10
+RADIO Wi-Fi cmd=15 seq=2127 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2128 len=10
+RADIO Wi-Fi cmd=15 seq=2128 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2129 len=10
+RADIO Wi-Fi cmd=15 seq=2129 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2130 len=10
+RADIO Wi-Fi cmd=15 seq=2130 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2131 len=10
+RADIO Wi-Fi cmd=15 seq=2131 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2132 len=10
+RADIO Wi-Fi cmd=15 seq=2132 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2133 len=10
+RADIO Wi-Fi cmd=15 seq=2133 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2134 len=10
+RADIO Wi-Fi cmd=15 seq=2134 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2135 len=10
+RADIO Wi-Fi cmd=15 seq=2135 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2136 len=10
+RADIO Wi-Fi cmd=15 seq=2136 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2137 len=10
+RADIO Wi-Fi cmd=15 seq=2137 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2138 len=10
+RADIO Wi-Fi cmd=15 seq=2138 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2139 len=10
+RADIO Wi-Fi cmd=15 seq=2139 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2140 len=10
+RADIO Wi-Fi cmd=15 seq=2140 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2141 len=10
+RADIO Wi-Fi cmd=15 seq=2141 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2142 len=10
+RADIO Wi-Fi cmd=15 seq=2142 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2143 len=10
+RADIO Wi-Fi cmd=15 seq=2143 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2144 len=10
+RADIO Wi-Fi cmd=15 seq=2144 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2145 len=10
+RADIO Wi-Fi cmd=15 seq=2145 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2146 len=10
+RADIO Wi-Fi cmd=15 seq=2146 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2147 len=10
+RADIO Wi-Fi cmd=15 seq=2147 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2148 len=10
+RADIO Wi-Fi cmd=15 seq=2148 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2149 len=10
+RADIO Wi-Fi cmd=15 seq=2149 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2150 len=10
+RADIO Wi-Fi cmd=15 seq=2150 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2151 len=10
+RADIO Wi-Fi cmd=15 seq=2151 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2152 len=10
+RADIO Wi-Fi cmd=15 seq=2152 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2153 len=10
+RADIO Wi-Fi cmd=15 seq=2153 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2154 len=10
+RADIO Wi-Fi cmd=15 seq=2154 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2155 len=10
+RADIO Wi-Fi cmd=15 seq=2155 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2156 len=10
+RADIO Wi-Fi cmd=15 seq=2156 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2157 len=10
+RADIO Wi-Fi cmd=15 seq=2157 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2158 len=10
+RADIO Wi-Fi cmd=15 seq=2158 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2159 len=10
+RADIO Wi-Fi cmd=15 seq=2159 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2160 len=10
+RADIO Wi-Fi cmd=15 seq=2160 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2161 len=10
+RADIO Wi-Fi cmd=15 seq=2161 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2162 len=10
+RADIO Wi-Fi cmd=15 seq=2162 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2163 len=10
+RADIO Wi-Fi cmd=15 seq=2163 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2164 len=10
+RADIO Wi-Fi cmd=15 seq=2164 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2165 len=10
+RADIO Wi-Fi cmd=15 seq=2165 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2166 len=10
+RADIO Wi-Fi cmd=15 seq=2166 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2167 len=10
+RADIO Wi-Fi cmd=15 seq=2167 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2168 len=10
+RADIO Wi-Fi cmd=15 seq=2168 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2169 len=10
+RADIO Wi-Fi cmd=15 seq=2169 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2170 len=10
+RADIO Wi-Fi cmd=15 seq=2170 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2171 len=10
+RADIO Wi-Fi cmd=15 seq=2171 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2172 len=10
+RADIO Wi-Fi cmd=15 seq=2172 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2173 len=10
+RADIO Wi-Fi cmd=15 seq=2173 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2174 len=10
+RADIO Wi-Fi cmd=15 seq=2174 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2175 len=10
+RADIO Wi-Fi cmd=15 seq=2175 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2176 len=10
+RADIO Wi-Fi cmd=15 seq=2176 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2177 len=10
+RADIO Wi-Fi cmd=15 seq=2177 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2178 len=10
+RADIO Wi-Fi cmd=15 seq=2178 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2179 len=10
+RADIO Wi-Fi cmd=15 seq=2179 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2180 len=10
+RADIO Wi-Fi cmd=15 seq=2180 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2181 len=10
+RADIO Wi-Fi cmd=15 seq=2181 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2182 len=10
+RADIO Wi-Fi cmd=15 seq=2182 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2183 len=10
+RADIO Wi-Fi cmd=15 seq=2183 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2184 len=10
+RADIO Wi-Fi cmd=15 seq=2184 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2185 len=10
+RADIO Wi-Fi cmd=15 seq=2185 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2186 len=10
+RADIO Wi-Fi cmd=15 seq=2186 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2187 len=10
+RADIO Wi-Fi cmd=15 seq=2187 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2188 len=10
+RADIO Wi-Fi cmd=15 seq=2188 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2189 len=10
+RADIO Wi-Fi cmd=15 seq=2189 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2190 len=10
+RADIO Wi-Fi cmd=15 seq=2190 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2191 len=10
+RADIO Wi-Fi cmd=15 seq=2191 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2192 len=10
+RADIO Wi-Fi cmd=15 seq=2192 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2193 len=10
+RADIO Wi-Fi cmd=15 seq=2193 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2194 len=10
+RADIO Wi-Fi cmd=15 seq=2194 ack=1 status=0 response=0 ret=0
+RADIO Wi-Fi RX type=1 id=15 seq=2195 len=10
+RADIO Wi-Fi cmd=15 seq=2195 ack=1 status=0 response=0 ret=0
+AUDIO_IO reset12=00000000 gate11=00000000 gate12=00000000 gate18=00000000 mux=00000000 source=00000000
+AUDIO_IO con=00060300 ien=00000000 gpio_version=010219c8 gpio_input=014d3050
+SOUND platform_result=0 version=23073576 repair=fdffffff ack=00000001 idleRADIO Wi-Fi RX type=1 id=15 seq=2196 len=10
+RADIO Wi-Fi cmd=15 seq=2196 ack=1 status=0 response=0 ret=0
+SOUND codec_prepare=0 state=2
+SOUND adc_variant=0 settle_ms=0
+SOUND playback_gain_db=24 dac_attenuation_db=0 maximum=0
+SOUND experiment clear=0 reset=0 clockwait20=0
+SOUND slot_mask offset=3c value=00000000
+SOUND slot_mask offset=40 value=00000000
+SOUND slot_mask offset=44 value=00000000
+SOUND slot_mask offset=48 value=00000000
+SOUND slot_mask offset=4c value=00000000
+SOUND slot_mask offset=50 value=00000000
+SOUND slot_mask offset=54 value=00000000
+SOUND slot_mask offset=58 value=00000000
+SOUND pio=0 frames=32000 polls=1745372 stop=0 held=0 max_fifo=16
+SOUND fifo first=00104104 last=00000000 TXCR=00400fff RXCR=00700fff FSCR=0101f03f CKR=00000018
+SOUND codec reg=00 value=36
+SOUND codec reg=01 value=60
+SOUND codec reg=02 value=00
+SOUND codec reg=03 value=00
+SOUND codec reg=04 value=0c
+SOUND codec reg=05 value=00
+SOUND codec reg=06 value=00
+SOUND codec reg=07 value=7c
+SOUND codec reg=08 value=00
+SOUND codec reg=09 value=44
+SOUND codec reg=0a value=f0
+SOUND codec reg=0b value=82
+SOUND codec reg=0c value=10
+SOUND codec reg=0d value=02
+SOUND codec reg=0f value=24
+SOUND codec reg=17 value=20
+SOUND codec reg=18 value=02
+SOUND codec reg=19 value=02
+SOUND codec reg=1a value=00
+SOUND codec reg=1b value=00
+SOUND codec reg=27 value=b8
+SOUND codec reg=2a value=b8
+SOUND codec reg=2b value=80
+SOUND codec reg=30 value=14
+SOUND codec reg=31 value=14
+SOUND input pull=00005515 schmitt=000000ff path=000000e4 gpio_high=50153 transitions=0 samples=50153
+SOUOUND pad channel=0 high=24618 changes=36910
+SOUND pad channel=1SOUND result=0 codec_stop=0 platform_restore=0 i2c_restore=0 amp_low=1
+K7CLOUD tts result=0 pcm_bytes=64000
+nsh> [KRADIO Wi-Fi RX type=1 id=15 seq=2197 len=10
+RADIO Wi-Fi cmd=15 seq=2197 ack=1 status=0 response
+ECHO_TIMING {"command": "tts-test", "command_ms": 5319, "elapsed_ms": 10309, "passed": true}

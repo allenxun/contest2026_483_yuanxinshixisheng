@@ -1,0 +1,22 @@
+{
+  "command": [
+    "D:/software/mingw64/mingw64/bin/gcc.exe",
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-O2",
+    "E:\\openvela\\VelaVision\\app\\k7emmc\\gpt_readonly.c",
+    "E:\\openvela\\VelaVision\\app\\k7emmc\\test_gpt_readonly.c",
+    "-o",
+    "E:\\openvela\\VelaVision\\evidence\\emmc-source-review-20260910\\test_gpt_readonly.exe"
+  ],
+  "exit_code": 0,
+  "stdout": "PASS: GPT primary/backup CRC, entries CRC, bounds, unsupported counts, backup mismatch, overlap, read failure\n",
+  "hardware_accessed": false,
+  "sources": {
+    "gpt_readonly.c": "c5bb75041afeb07e2218e5f6e9071e4268f9425982b6d84dd20678ac15725597",
+    "gpt_readonly.h": "9f8a55621027c47ca6878229e28d51499ff6619c4211b0b6ee53c95b8de3037d",
+    "test_gpt_readonly.c": "34b8599583e51565c318b15b79847894081121f05a1137f099c0fff15921db2a"
+  }
+}

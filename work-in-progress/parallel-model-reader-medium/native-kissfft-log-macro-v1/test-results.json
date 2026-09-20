@@ -1,0 +1,68 @@
+[
+  {
+    "name": "original-debug",
+    "command": [
+      "D:/software/mingw64/mingw64/bin/gcc.exe",
+      "-E",
+      "-P",
+      "-Werror",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kissfft-log-macro-v1\\original-debug.c"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "candidate-debug",
+    "command": [
+      "D:/software/mingw64/mingw64/bin/gcc.exe",
+      "-E",
+      "-P",
+      "-Werror",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kissfft-log-macro-v1\\candidate-debug.c"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "conflicting-original-debug",
+    "command": [
+      "D:/software/mingw64/mingw64/bin/gcc.exe",
+      "-E",
+      "-P",
+      "-Werror",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kissfft-log-macro-v1\\conflicting-original-debug.c"
+    ],
+    "returncode": 1
+  },
+  {
+    "name": "original-release",
+    "command": [
+      "D:/software/mingw64/mingw64/bin/gcc.exe",
+      "-E",
+      "-P",
+      "-Werror",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kissfft-log-macro-v1\\original-release.c"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "candidate-release",
+    "command": [
+      "D:/software/mingw64/mingw64/bin/gcc.exe",
+      "-E",
+      "-P",
+      "-Werror",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kissfft-log-macro-v1\\candidate-release.c"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "conflicting-original-release",
+    "command": [
+      "D:/software/mingw64/mingw64/bin/gcc.exe",
+      "-E",
+      "-P",
+      "-Werror",
+      "E:\\openvela\\VelaVision\\work-in-progress\\parallel-model-reader-medium\\native-kissfft-log-macro-v1\\conflicting-original-release.c"
+    ],
+    "returncode": 1
+  }
+]

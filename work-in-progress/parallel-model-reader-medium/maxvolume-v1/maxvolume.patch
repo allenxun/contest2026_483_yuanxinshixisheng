@@ -1,0 +1,35 @@
+--- a/app/k7sound/codec_duplex.c
++++ b/app/k7sound/codec_duplex.c
+@@ -97,6 +97,20 @@
+  if(e && !tick(c,d))(void)c->io.amp(c->io.arg,false,d);
+  return finish(c,e);
+ }
++int kd_set_playback_max(struct kd_codec*c,uint64_t d){
++ int e;
++ if(!c)return -EINVAL;
++ if(c->busy || c->state!=KD_PREPARED)return -EBUSY;
++ e=begin(c,d);if(e)return finish(c,e);
++ c->amp_armed=false;
++ e=after(c,c->io.amp(c->io.arg,false,d),d);
++ if(!e)e=writev(c,0x1a,0x00,0xff,d);
++ if(!e)e=writev(c,0x1b,0x00,0xff,d);
++ if(!e)e=writev(c,0x30,0x21,0x3f,d);
++ if(!e)e=writev(c,0x31,0x21,0x3f,d);
++ if(e && !tick(c,d))(void)c->io.amp(c->io.arg,false,d);
++ return finish(c,e);
++}
+ static int activate(struct kd_codec*c,bool cap,bool play,bool immediate,uint64_t d){
+  int e;if(!c||(!cap&&!play))return -EINVAL;if(c->busy)return -EBUSY;
+  if(c->state!=KD_PREPARED && c->state!=KD_ACTIVE)return -EBUSY;
+--- a/app/k7sound/codec_duplex.h
++++ b/app/k7sound/codec_duplex.h
+@@ -31,6 +31,9 @@
+  * Does not unmute, enable amp, alter OUT2 or modify default init.
+  * Accepted operation failure -> FAULT; failed amp callback cannot prove LOW. */
+ int kd_set_playback_gain(struct kd_codec *,unsigned gain_db,uint64_t deadline);
++/* PREPARED only: DAC0dB and OUT2+4.5dB (max legal code33), no unmute.
++ * Same amp(false) physical LOW/readback contract and FAULT policy as gain. */
++int kd_set_playback_max(struct kd_codec *,uint64_t deadline);
+ /* Explicit independent experiments, from KD_OFF only; no automatic retry/ramp.
+  * BASELINE=00:36/01:60; COMMON_NORMAL=36/40; VMID_50K=35/60. */
+ int kd_prepare_adc_variant(struct kd_codec *,unsigned word_bits,enum kd_adc_variant,uint64_t deadline);

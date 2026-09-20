@@ -1,0 +1,42 @@
+[
+  {
+    "name": "sync-check",
+    "command": [
+      "python3",
+      "/home/swl/openvela/work/velavision-project/tools/sync_sdk.py",
+      "--sdk",
+      "/home/swl/openvela",
+      "--check"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "sync-apply",
+    "command": [
+      "python3",
+      "/home/swl/openvela/work/velavision-project/tools/sync_sdk.py",
+      "--sdk",
+      "/home/swl/openvela",
+      "--apply"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "command": [
+      "bash",
+      "-c",
+      "source build/envsetup.sh >/dev/null && cmake -S nuttx -B /home/swl/openvela/cmake_out/velavision_voice_ort_trace_20260911 -G Ninja -DBOARD_CONFIG=kickpi_k7:velavision_audio_sound_local -DK7VOICE_NATIVE_ORT_ADD=ON -DK7VOICE_ORT_OBJECT=/home/swl/openvela/work/native-ort-trace-runtime-20260911/runtime.o -DK7VOICE_ORT_OBJECT_SHA256=0bdcf4b379e86ecce6f8546f7c9ded050a829118cddac90588f76bb8d2206d54"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "command": [
+      "bash",
+      "-c",
+      "source build/envsetup.sh >/dev/null && cmake --build /home/swl/openvela/cmake_out/velavision_voice_ort_trace_20260911 -j4"
+    ],
+    "exit_code": 0
+  }
+]

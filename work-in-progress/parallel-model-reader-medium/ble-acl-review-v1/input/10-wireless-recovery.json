@@ -1,0 +1,20 @@
+{
+  "revision": "audio-route-20260910",
+  "firmware_sha256": "d84275e8e7576941b70fdd2bb9bd427eee8716435565c6acc40ebfd0634acee3",
+  "credential_transport": "private serial echo-off",
+  "wpa2_dhcp": true,
+  "ip": "10.3.0.214",
+  "gateway_sent": 5,
+  "gateway_received": 5,
+  "ble_gatt_passed": false,
+  "ble_error": "BleakError: Could not pair with device: FAILED",
+  "ble_elapsed_seconds": 9.453,
+  "board_after": "connected=1 handle=17 ACL_RX=0 encrypted=0; Windows client operation terminal",
+  "evidence": [
+    "wifi-auth-private.jsonl",
+    "wifi-gateway.json",
+    "ble-gatt-check.jsonl",
+    "after-ble-status.json"
+  ],
+  "long_stability_passed": false
+}

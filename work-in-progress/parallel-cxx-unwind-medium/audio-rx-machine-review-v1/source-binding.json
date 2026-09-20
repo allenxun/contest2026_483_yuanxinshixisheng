@@ -1,0 +1,50 @@
+[
+  {
+    "source": "artifacts/audio-mic-20260910/nuttx",
+    "frozen_sha256": "4b5ab4e9ec2000616e1fe7c25cb83a45b11501253c6469fc5c4c39de3fc93361",
+    "build_record_sha256": null,
+    "match": null
+  },
+  {
+    "source": "artifacts/audio-mic-20260910/.config",
+    "frozen_sha256": "80971b9ad0cae25a106ba0eaad1a46520afb0ead8a106a41325b027e3a949be2",
+    "build_record_sha256": null,
+    "match": null
+  },
+  {
+    "source": "app/k7sound/pio.c",
+    "frozen_sha256": "fead29c05a56986b95fb7fca55bfec5bc562ff6e932541eb1299c972f587fb4a",
+    "build_record_sha256": "fead29c05a56986b95fb7fca55bfec5bc562ff6e932541eb1299c972f587fb4a",
+    "match": true
+  },
+  {
+    "source": "app/k7sound/pio.h",
+    "frozen_sha256": "fc33200e739622a9e279efe5893c2ef77bfd6579510fb5319475fab04bf89b6d",
+    "build_record_sha256": "fc33200e739622a9e279efe5893c2ef77bfd6579510fb5319475fab04bf89b6d",
+    "match": true
+  },
+  {
+    "source": "app/k7sound/k7sound_main.c",
+    "frozen_sha256": "602b98d698ca64caf77ced716e838182dcd13dfa0a379003f593130e6c3226ca",
+    "build_record_sha256": "602b98d698ca64caf77ced716e838182dcd13dfa0a379003f593130e6c3226ca",
+    "match": true
+  },
+  {
+    "source": "app/k7sound/i2c_owner.inc",
+    "frozen_sha256": "86e94e1c77a4a28328be2faa4a34e7139ac364c3be922694cbfd98546abea65f",
+    "build_record_sha256": "86e94e1c77a4a28328be2faa4a34e7139ac364c3be922694cbfd98546abea65f",
+    "match": true
+  },
+  {
+    "source": "port/new/nuttx/arch/arm64/src/rk3576/rk3576_boot.c",
+    "frozen_sha256": "a31741dfc79871670a0474fc2f02b2d10cf0e146f8ad13422cf22f5b5df2a822",
+    "build_record_sha256": "a31741dfc79871670a0474fc2f02b2d10cf0e146f8ad13422cf22f5b5df2a822",
+    "match": true
+  },
+  {
+    "source": "port/new/nuttx/arch/arm64/include/rk3576/chip.h",
+    "frozen_sha256": "8fe7c9e012978e48fc2e265c1b25b9032b1cf18a0872bb691966f1287aa06606",
+    "build_record_sha256": "8fe7c9e012978e48fc2e265c1b25b9032b1cf18a0872bb691966f1287aa06606",
+    "match": true
+  }
+]

@@ -1,0 +1,42 @@
+{
+  "running_revision": "smp-load-20260910",
+  "boot": "RAM",
+  "smp_cpus": 8,
+  "firmware_sha256": "71a304da79909a7759fce2dad208883b8ee5cc6b7c54a4d16126a1801922855a",
+  "wifi_connected": true,
+  "ip": "10.3.0.214",
+  "ble_service_running": true,
+  "ble_connected": false,
+  "ble_disconnect": "Test client intentionally disconnected after monitored hold",
+  "default_service_affinity": "0x1",
+  "compute_cpus": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "compute_seconds_per_cpu": 60,
+  "compute_batches": 1412766,
+  "compute_errors": 0,
+  "gateway_ping": "45/45",
+  "gateway_replies_in_compute_interval": 45,
+  "ble_responses_in_compute_interval": 11,
+  "ble_response_ms_in_compute": {
+    "min": 172.0,
+    "max": 203.0
+  },
+  "compute_and_ble_ping_subtests_passed": true,
+  "strict_zero_rx_anomaly_passed": false,
+  "amsdu_rejected_before": 2,
+  "amsdu_rejected_after": 5,
+  "amsdu_rejected_delta_between_snapshots": 3,
+  "rx_anomaly_cause": "Unknown; snapshots also cover time outside compute, no causal attribution to A72 load",
+  "emmc_written": false,
+  "emmc_reregistered_this_boot": false,
+  "evidence_directory": "evidence/smp-load-20260910",
+  "limits": [
+    "Synthetic burst workload, not full CPU saturation or real LLM/ASR",
+    "No long-term, internet, Android/iOS, audio or whole-system acceptance",
+    "First coordinator attempt did not launch compute; background-prompt anchor failed and evidence retained"
+  ]
+}

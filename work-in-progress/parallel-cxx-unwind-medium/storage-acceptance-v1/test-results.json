@@ -1,0 +1,3199 @@
+{
+  "cases": [
+    {
+      "name": "valid-synthetic",
+      "synthetic": true,
+      "expected": true,
+      "result": {
+        "passed": true,
+        "scope": "synthetic",
+        "errors": [],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "close-failure",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: missing/wrong final command result"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "b7066546512359ba725ffebaac0619e7173c6999ebfb91c2dd5cd4805560ded2"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=-5 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "b7066546512359ba725ffebaac0619e7173c6999ebfb91c2dd5cd4805560ded2"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "missing-final",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: missing/wrong final command result",
+          "read: duplicate/missing command result",
+          "read: missing/duplicate summary"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {},
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "64c657b15cc456b3422c7b5caf21af832541ded4bb56891240d36ddc5cd041bd"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "64c657b15cc456b3422c7b5caf21af832541ded4bb56891240d36ddc5cd041bd"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "missing-prompt",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: missing terminal completion prompt",
+          "read: missing/wrong final command result",
+          "read: duplicate/missing command result",
+          "read: missing/duplicate summary"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {},
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "7ea7800439a9201284609af94b06c641421625d3e446d639c3d9b68783c7551a"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\n"
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "7ea7800439a9201284609af94b06c641421625d3e446d639c3d9b68783c7551a"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "missing-echo",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: missing/extraneous command echo",
+          "read: missing/duplicate summary"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {},
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "14559e30049e573a01dbd7ec1b4bdef39a6241ab2ef878cbfaa6c8154d24711f"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "USB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "14559e30049e573a01dbd7ec1b4bdef39a6241ab2ef878cbfaa6c8154d24711f"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "one-read",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: reads mismatch"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "1",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "89a3e1e3fd9096237a20a29367babe362bbfc9743e7f1d6e6c9a9a449f48e043"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=1 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "89a3e1e3fd9096237a20a29367babe362bbfc9743e7f1d6e6c9a9a449f48e043"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "mismatch-data",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: repeated mismatch"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "0",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "078f01602436b0fbf9267c881a0dc3ab36112e57bc19a3813e195784926eead7"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=0 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "078f01602436b0fbf9267c881a0dc3ab36112e57bc19a3813e195784926eead7"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "writable",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: readonly mismatch"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "0",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "3edd532d72c5ec1fe8c539154ca40ded2f51a06e76d119331c3b1e490643c453"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=0 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "3edd532d72c5ec1fe8c539154ca40ded2f51a06e76d119331c3b1e490643c453"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "wrong-node",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: node mismatch"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sdb",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "15cd8c89954b846de3fe813f99749f30752700d04178e30daff7a4a452f08c1b"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sdb sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "15cd8c89954b846de3fe813f99749f30752700d04178e30daff7a4a452f08c1b"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "wrong-lba",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: lba mismatch"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "1",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "d7190dd361164d9dbb80d2f258d53897d1e80bd403783aa06a9eee91e53a8d7b"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=1 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "d7190dd361164d9dbb80d2f258d53897d1e80bd403783aa06a9eee91e53a8d7b"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "bad-size",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: unsupported sector size"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "513",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "8eeaca0396dadf64fd5f55bfc91e6d1d0058333b6fcb046cb761e6006683fa30"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=513 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "8eeaca0396dadf64fd5f55bfc91e6d1d0058333b6fcb046cb761e6006683fa30"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "zero-capacity",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: invalid capacity"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "0",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "07fa2b2cb489429d115f85189c6f22b7aaef95d7db3de6819a2dbf1ee5132941"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=0 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "07fa2b2cb489429d115f85189c6f22b7aaef95d7db3de6819a2dbf1ee5132941"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "overflow-capacity",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: invalid capacity"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "4294967296",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "2ed8165859f86bc2ac6becf7595824ae0bf741c8665d9c1d36782e61afd0891b"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=4294967296 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "2ed8165859f86bc2ac6becf7595824ae0bf741c8665d9c1d36782e61afd0891b"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "bad-crc",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: invalid CRC32"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "1234",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "19d098d7fd92e838d42d7adbea3d30e899bfbb68d6c264dad4d6590ec21f8847"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=1234 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "19d098d7fd92e838d42d7adbea3d30e899bfbb68d6c264dad4d6590ec21f8847"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "duplicate-field",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: duplicate/missing field"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e01d1809b0ae7963699bf53daa5b45d7860204728f70c49fb4608c716f618fac"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e01d1809b0ae7963699bf53daa5b45d7860204728f70c49fb4608c716f618fac"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "fault-after-summary",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: fault/failure diagnostic"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "f52b13294653ca4e85867f8756eb1918a6fef47b1b0e1de85a577f5079a26ab1"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nCPU5 abort sched_dumpstack\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "f52b13294653ca4e85867f8756eb1918a6fef47b1b0e1de85a577f5079a26ab1"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "truncated-record",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: truncated/unknown USB protocol"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "594bcbea30c1fbfb05e9f104ab9ba44ba5cb0869899b2973b8267954aa270e11"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STOR\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "594bcbea30c1fbfb05e9f104ab9ba44ba5cb0869899b2973b8267954aa270e11"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "mount-attempted",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: missing/wrong final command result"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "d49540dbd9a248c6f1ec07a11e1c77bec759669d6d37939177e10662ae5c5b95"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=1\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "d49540dbd9a248c6f1ec07a11e1c77bec759669d6d37939177e10662ae5c5b95"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "old-read-mixed",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: mixed command/prompt",
+          "read: duplicate/missing command result",
+          "read: missing/duplicate summary"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {},
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "d45220e21305a8e14b884a22f6924d598f9b62852a09be4cb587d8b5638a6897"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nk7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "d45220e21305a8e14b884a22f6924d598f9b62852a09be4cb587d8b5638a6897"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "old-list-mixed",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "after: mixed command/prompt",
+          "after: duplicate/missing command result",
+          "after: malformed node list",
+          "after: malformed node list",
+          "after: missing/wrong nodes count",
+          "after: duplicate node"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "edb12bb3ff0085904273a11a03c7a945895feff2c80789bcf57727d17d3ea2f8",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nk7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "edb12bb3ff0085904273a11a03c7a945895feff2c80789bcf57727d17d3ea2f8",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "duplicate-node",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "after: duplicate node"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "d2477719d27c31441d3583e5afbb561636348863cb7b7273ac691f683461fba2",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=2\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "d2477719d27c31441d3583e5afbb561636348863cb7b7273ac691f683461fba2",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "wrong-node-count",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "after: missing/wrong nodes count"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "fea2239894bf24fe55905d53c5947fd55ebe5c932a201386b9dd4fa17982883a",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=2\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "fea2239894bf24fe55905d53c5947fd55ebe5c932a201386b9dd4fa17982883a",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "node-not-new",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "requested node is not the sole newly enumerated node"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "8472489be5e51416d9f874c8e26aa7e47697769bf42377bc79f45110ef8c003b",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "8472489be5e51416d9f874c8e26aa7e47697769bf42377bc79f45110ef8c003b",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "ambiguous-new-node",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "requested node is not the sole newly enumerated node"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "0f479e95ef76b0fd5b26085408e52c7f4c115fd797d8449a72330c3380c0ba55",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE node=/dev/sdb\r\nUSB_STORAGE nodes=2\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "0f479e95ef76b0fd5b26085408e52c7f4c115fd797d8449a72330c3380c0ba55",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "start-failed",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "start: missing/wrong final command result"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "c44cb288a6d89b9bb717fdadaa959d16ce20fc1a012e61ff6288fea3527bb5fc",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=-5 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "c44cb288a6d89b9bb717fdadaa959d16ce20fc1a012e61ff6288fea3527bb5fc",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "list-failed",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "before: missing/wrong final command result"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "544f0c0a15aabf17c767382cbb3d3581cda9c48583e6f0fbec008cd553a009c7",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=-5 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "544f0c0a15aabf17c767382cbb3d3581cda9c48583e6f0fbec008cd553a009c7",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "bad-utf8",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: invalid UTF-8/truncated bytes",
+          "read: missing/duplicate summary"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {},
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "1f5bbd01123db4b1148b2f3f5760fdb8abbfd3e9c03c49c7df040572cf648d31"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 \\xffcrc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "1f5bbd01123db4b1148b2f3f5760fdb8abbfd3e9c03c49c7df040572cf648d31"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "interleaved-record",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "read: interleaved/truncated protocol",
+          "read: missing/duplicate summary"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {},
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "5b4a7b66cca4d7868969285506f1ecea586b1d31c7ab7f8a254374dbd19cf0d3"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nDMA USB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "5b4a7b66cca4d7868969285506f1ecea586b1d31c7ab7f8a254374dbd19cf0d3"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "identity-capture_sha256",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "external identity capture hashes mismatch"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {},
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "identity-source_sha256",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "external source hash mismatch"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "identity-node",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "external identity node mismatch"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sdb",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "identity-vid",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "missing/invalid external VID/PID"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "identity-identity_reviewed",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "external identity review required"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": false,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "identity-ordered_phases",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "missing ordered run attestation"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "identity-enumeration_evidence",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "missing/mismatched enumeration_evidence"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {},
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    },
+    {
+      "name": "identity-build_evidence",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "synthetic",
+        "errors": [
+          "missing/mismatched build_evidence"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {}
+      }
+    },
+    {
+      "name": "synthetic-cannot-be-target",
+      "synthetic": true,
+      "expected": false,
+      "result": {
+        "passed": false,
+        "scope": "target",
+        "errors": [
+          "identity scope mismatch",
+          "evidence origin/scope mismatch"
+        ],
+        "node": "/dev/sda",
+        "read_summary": {
+          "node": "/dev/sda",
+          "sector_size": "512",
+          "sectors": "1000",
+          "readonly": "1",
+          "lba": "0",
+          "reads": "2",
+          "crc32": "12345678",
+          "repeated": "1",
+          "boot_signature": "1",
+          "exfat_oem": "0"
+        },
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "external_artifacts": [
+          {
+            "kind": "enumeration_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\enumeration.txt",
+            "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+          },
+          {
+            "kind": "build_evidence",
+            "path": "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\build.txt",
+            "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+          }
+        ],
+        "physical_identity_independently_proven": false,
+        "boot_freshness_independently_proven": false,
+        "target_test_performed_by_parser": false,
+        "raw_sector_equality_independently_proven": false,
+        "interpretation": "Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol."
+      },
+      "passed": true,
+      "captures": {
+        "before": "k7storage list\r\nUSB_STORAGE nodes=0\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> \u001b[K",
+        "start": "k7storage start\r\nK7 host: initializing\r\nUSB_STORAGE command=start result=0 mount_attempted=0\r\nnsh> ",
+        "after": "k7storage list\r\nUSB_STORAGE node=/dev/sda\r\nUSB_STORAGE nodes=1\r\nUSB_STORAGE command=list result=0 mount_attempted=0\r\nnsh> ",
+        "read": "k7storage read /dev/sda\r\nUSB_STORAGE read node=/dev/sda sector_size=512 sectors=1000 readonly=1 lba=0 reads=2 crc32=12345678 repeated=1 boot_signature=1 exfat_oem=0\r\nUSB_STORAGE command=read result=0 mount_attempted=0\r\nnsh> "
+      },
+      "identity": {
+        "scope": "synthetic",
+        "evidence_origin": "synthetic",
+        "node": "/dev/sda",
+        "vid": "1234",
+        "pid": "5678",
+        "run_id": "SYNTHETIC-RUN-1",
+        "ordered_phases": [
+          "before",
+          "start",
+          "after",
+          "read"
+        ],
+        "identity_reviewed": true,
+        "reviewer": "synthetic test fixture",
+        "source_sha256": "a3a13309f71306a16490a3a2410138b2219638cf76041f2826fea88a5a04d9a4",
+        "firmware_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "capture_sha256": {
+          "before": "7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1",
+          "start": "145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3",
+          "after": "8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f",
+          "read": "e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889"
+        },
+        "enumeration_evidence": {
+          "path": "enumeration.txt",
+          "sha256": "7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449"
+        },
+        "build_evidence": {
+          "path": "build.txt",
+          "sha256": "c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82"
+        }
+      }
+    }
+  ],
+  "cli": [
+    {
+      "command": [
+        "C:\\Program Files\\Python36\\python.exe",
+        "-B",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\accept_storage.py",
+        "--node",
+        "/dev/sda",
+        "--scope",
+        "synthetic",
+        "--identity",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\identity.json",
+        "--before",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\before.bin",
+        "--start",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\start.bin",
+        "--after",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\after.bin",
+        "--read",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\read.bin"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "output": "{\n  \"passed\": true,\n  \"scope\": \"synthetic\",\n  \"errors\": [],\n  \"node\": \"/dev/sda\",\n  \"read_summary\": {\n    \"node\": \"/dev/sda\",\n    \"sector_size\": \"512\",\n    \"sectors\": \"1000\",\n    \"readonly\": \"1\",\n    \"lba\": \"0\",\n    \"reads\": \"2\",\n    \"crc32\": \"12345678\",\n    \"repeated\": \"1\",\n    \"boot_signature\": \"1\",\n    \"exfat_oem\": \"0\"\n  },\n  \"capture_sha256\": {\n    \"before\": \"7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1\",\n    \"start\": \"145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3\",\n    \"after\": \"8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f\",\n    \"read\": \"e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889\"\n  },\n  \"external_artifacts\": [\n    {\n      \"kind\": \"enumeration_evidence\",\n      \"path\": \"E:\\\\openvela\\\\VelaVision\\\\work-in-progress\\\\parallel-cxx-unwind-medium\\\\storage-acceptance-v1\\\\synthetic\\\\enumeration.txt\",\n      \"sha256\": \"7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449\"\n    },\n    {\n      \"kind\": \"build_evidence\",\n      \"path\": \"E:\\\\openvela\\\\VelaVision\\\\work-in-progress\\\\parallel-cxx-unwind-medium\\\\storage-acceptance-v1\\\\synthetic\\\\build.txt\",\n      \"sha256\": \"c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82\"\n    }\n  ],\n  \"physical_identity_independently_proven\": false,\n  \"boot_freshness_independently_proven\": false,\n  \"target_test_performed_by_parser\": false,\n  \"raw_sector_equality_independently_proven\": false,\n  \"interpretation\": \"Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol.\"\n}\n",
+      "passed": true
+    },
+    {
+      "command": [
+        "C:\\Program Files\\Python36\\python.exe",
+        "-B",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\accept_storage.py",
+        "--node",
+        "/dev/sda",
+        "--scope",
+        "target",
+        "--identity",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\identity.json",
+        "--before",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\before.bin",
+        "--start",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\start.bin",
+        "--after",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\after.bin",
+        "--read",
+        "E:\\openvela\\VelaVision\\work-in-progress\\parallel-cxx-unwind-medium\\storage-acceptance-v1\\synthetic\\read.bin"
+      ],
+      "exit_code": 1,
+      "expected": 1,
+      "output": "{\n  \"passed\": false,\n  \"scope\": \"target\",\n  \"errors\": [\n    \"identity scope mismatch\",\n    \"evidence origin/scope mismatch\"\n  ],\n  \"node\": \"/dev/sda\",\n  \"read_summary\": {\n    \"node\": \"/dev/sda\",\n    \"sector_size\": \"512\",\n    \"sectors\": \"1000\",\n    \"readonly\": \"1\",\n    \"lba\": \"0\",\n    \"reads\": \"2\",\n    \"crc32\": \"12345678\",\n    \"repeated\": \"1\",\n    \"boot_signature\": \"1\",\n    \"exfat_oem\": \"0\"\n  },\n  \"capture_sha256\": {\n    \"before\": \"7ca73a569066a48a258d324ba130ab5fcd38806c4d946aa4e21da7b3acb9aac1\",\n    \"start\": \"145b10a3022166f7cddcb65e9b797937e0592f4892f6962a21ec20fbf22938a3\",\n    \"after\": \"8c887a3c44b193136c3d5170aa90f532c4ef707b61bf23d96b56aa13d2c65b4f\",\n    \"read\": \"e5f5eb7057914d3a65b8e3a694f6e000099762250dbf8c5a64cd5cdf282d4889\"\n  },\n  \"external_artifacts\": [\n    {\n      \"kind\": \"enumeration_evidence\",\n      \"path\": \"E:\\\\openvela\\\\VelaVision\\\\work-in-progress\\\\parallel-cxx-unwind-medium\\\\storage-acceptance-v1\\\\synthetic\\\\enumeration.txt\",\n      \"sha256\": \"7d5c152cf039c78f87c56d183567f0469f37118b4dbd9afcf4d4419c12402449\"\n    },\n    {\n      \"kind\": \"build_evidence\",\n      \"path\": \"E:\\\\openvela\\\\VelaVision\\\\work-in-progress\\\\parallel-cxx-unwind-medium\\\\storage-acceptance-v1\\\\synthetic\\\\build.txt\",\n      \"sha256\": \"c23d02890ed39a30480cbfe23d1d74d4402829d1431d78a43d08b8ef50455f82\"\n    }\n  ],\n  \"physical_identity_independently_proven\": false,\n  \"boot_freshness_independently_proven\": false,\n  \"target_test_performed_by_parser\": false,\n  \"raw_sector_equality_independently_proven\": false,\n  \"interpretation\": \"Output contract and externally reviewed evidence binding only; source code defines repeated=1 semantics. No nonce exists in this protocol.\"\n}\n",
+      "passed": true
+    }
+  ],
+  "all_passed": true,
+  "target_captures_tested": false
+}

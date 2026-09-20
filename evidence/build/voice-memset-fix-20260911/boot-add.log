@@ -1,0 +1,110 @@
+crc32 50000000 2f2c8
+crc32 for 50000000 ... 5002f2c7 ==> 8d81864c
+=> crc32 50100000 57108
+crc32 for 50100000 ... 50157107 ==> 876828ce
+=> crc32 50180000 25
+crc32 for 50180000 ... 50180024 ==> f2b828eb
+=> crc32 50190000 944
+crc32 for 50190000 ... 50190943 ==> 2e852f87
+=> booti 40400000 - 48300000
+Fdt Ramdisk skip relocation
+## Flattened Device Tree blob at 0x48300000
+   Booting using the fdt blob at 0x48300000
+   Using Device Tree in place at 0000000048300000, end 0000000048326532
+No resource file: logo_kernel.bmp
+VP0 fail to load kernel logo
+## reserved-memory:
+  ramoops@40110000: addr=40110000 size=e0000
+Adding bank: 0x40200000 - 0x48400000 (size: 0x08200000)
+Adding bank: 0x49400000 - 0x100000000 (size: 0xb6c00000)
+Adding bank: 0x100000000 - 0x140000000 (size: 0x40000000)
+Total: 94045.160/94397.751 ms
+
+Starting kernel ...
+
+- Ready to Boot Primary CPU
+RK3576 HCR_EL2=0000000008000032
+RK3576 SCTLR_EL1=0000000030d00800
+- Boot from EL2
+- Boot from EL1
+- Boot to C runtime for OS Initialize
+[CPU0] arm64_chip_boot: RK3576: MMU enabled
+[CPU0] rk3576_uart6_initialize: UART6 M0: 115200 8N1, internal loopback PASS, IRQ114 ttyS1
+I/TC: Secondary CPU 1 initializing
+I/TC: Secondary CPU 1 switching to normal world boot
+
+NuttI/TC: Secondary CPU 4 irmal world boot
+ R BeadoyoI/TC: Secondary CPU 5 initializing
+ tching to normal world boot
+e3d a5H d7CCRy6P  U_tHEI/TC: Seconching to normal world boot
+ER0KoL3o0e0a5t2I/TC: Secondary CPU 7o normal world boot
+ 0_ 0o0oEtC0LtPo00U 0 02S00B=o0
+eRo200c0t0  0
+5R67C0 _RtE6Po0SKUC L03 2BS50T=7
+oLC0RoT602RK tL0_0H ER
+35LCR_0S0K1eER7_cL0=36o1E0 507=0H0n00LC6d020 R0 00CS_0=C000PE000T0L0U2000L0=R000
+0_0R00033E000K
+d0300L15000Rd070K0=03800600000508 0H700000C06000
+0R0 0
+S_0-00-2C 0E00LB T2
+o0BL3=RRo00oKd00_ot0Et0 003 
+L8ffR105=07r0rKo6003o05m0 0m S0
+7000E6 C- 0E0 TLL0LS02CBR020T00
+o_E
+0L3ot0R0Ld_10E =0L0f
+0R801r00o=K003m05 00
+E070060L- 00 2B30SC00
+ooTd003Lt0 0Rdf8_r0E00oL08m1= 
+0E0-0L0 02B
+0o-0o 
+Bt0o0 fo0tr3 o0fd0ro0mm80  E0ELL22
+-
+
+ Boot from EL2
+ell (NSH)
+nsh> [K- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+k7voice ort-add &
+k7voice [11:100]
+nsh> [KORT_ADD BEGIN api
+ORT_ADD END api
+ORT_ADD BEGIN env
+- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot from EL1
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime for OS Initialize
+- Boot to C runtime - fBoro otO St Io nCit iraunltizieme 
+for OS Initialize
+ORT_ADD END env
+ORT_ADD BEGIN options
+ORT_ADD END options
+ORT_ADD BEGIN intra
+ORT_ADD END intra
+ORT_ADD BEGIN inter
+ORT_ADRT_ADD BEGIN optimization
+ORT_ADD END optimization
+ORT_ADD BEGORT_ADD END session
+ORT_ADD BEGIN memory
+ORT_ADD END memory
+ORT_ADD BEGIN input-a
+ORT_ADD END input-a
+ORT_ADD BEGIN input-b
+ORT_ADD END input-b
+ORT_ADD BEGIN run
+ORT_ADD END run
+ORT_ADD BEGIN shape
+ORT_ADD END shape
+ORT_ADD BEGIN type
+ORT_ADD END type
+ORT_ADD BEGIN count
+ORT_ADD END count
+ORT_ADD BEGIN data
+ORT_ADD END data
+ORT_ADD BEGIN cleanup
+ORT_ADD PASS values=11,22,33,44

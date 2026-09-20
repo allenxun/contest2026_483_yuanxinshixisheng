@@ -1,0 +1,40 @@
+{
+  "state": {
+    "running_revision": "arena-provider-20260910",
+    "boot": "RAM",
+    "smp_cpus": 8,
+    "firmware_sha256": "b240f9448c682ce4017fbcf3405681c421b31ddb8afc7491a15535d0a8457b46",
+    "arena_ggml_buffer_passed": true,
+    "arena_checked_values": 8192,
+    "arena_payload_bytes": 32768,
+    "model_loaded": false,
+    "agent_deployed": false,
+    "concurrent_cxx_cold_passed": false,
+    "wifi_connected": true,
+    "ip": "10.3.0.214",
+    "gateway_ping": "5/5",
+    "ble_service_running": true,
+    "ble_connected": false,
+    "wireless_hold_seconds": 30,
+    "ble_disconnect": "Test client intentionally disconnected",
+    "receive_rejects_before": 0,
+    "receive_rejects_after": 0,
+    "emmc_written": false,
+    "usb_storage_enabled": false,
+    "evidence_directory": "evidence/arena-provider-20260910",
+    "limits": [
+      "32KiB buffer set/get only, no graph or weights in this test",
+      "Not OOM, full DDR, model inference, long-term wireless or internet acceptance",
+      "Concurrent cold C++ exception failure remains unresolved"
+    ]
+  },
+  "recorded_utc": "2026-09-10T08:41:46.833623+00:00",
+  "hashes": {
+    "ramload-progress.txt": "d915352b595fcc4e775d1120099d0b2ba6ef7cea3b27859c4bb762d6b34acfdd",
+    "runtime.json": "91c0aae574f8f34abd4ecefa9b7f6f80ee0a785b2e061cb098f2e6352f3730fc",
+    "affinity-boot.json": "7b002b41c067c8065c25135d0425012487ef4eeaed453b3c918d53727f86b30d",
+    "ble-wireless.jsonl": "a0e1e28bb9f975351aaab77c3a17c7b018730e3dca3c4a009f28c4d363f76ed2",
+    "gateway.json": "014ac76cc59dbed1bdef88c8229c1b52ee0d28501b64fa03ae9abea21bab8cc9",
+    "integration.json": "9fcffcec1eddff191bb191ad8914f1cea76335c53e100525f1cfa8a5314b89c4"
+  }
+}

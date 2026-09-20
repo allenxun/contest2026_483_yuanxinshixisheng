@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/swl/openvela/work/native-sherpa-config2-20260911/driver/configure_config2.py", line 104, in <module>
+    main()
+  File "/home/swl/openvela/work/native-sherpa-config2-20260911/driver/configure_config2.py", line 72, in main
+    verify_sources(a.corrected, HERE / 'v3-source-manifest.json', {'kaldifst', 'openfst'})
+  File "/home/swl/openvela/work/native-sherpa-config2-20260911/driver/configure_config2.py", line 30, in verify_sources
+    raise ValueError('source mismatch: ' + str(p))
+ValueError: source mismatch: /home/swl/openvela/work/native-sherpa-config2-20260911/sources/kaldifst/.clang-format

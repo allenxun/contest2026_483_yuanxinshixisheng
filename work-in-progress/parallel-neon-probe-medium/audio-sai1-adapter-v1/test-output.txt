@@ -1,0 +1,6 @@
+COMMAND ['D:\\software\\mingw64\\mingw64\\bin\\gcc.EXE', '-std=c11', '-Wall', '-Wextra', '-Werror', '-pedantic', 'recipe.c', 'test.c', '-o', 'test.exe']
+EXIT 0
+COMMAND ['E:\\openvela\\VelaVision\\work-in-progress\\parallel-neon-probe-medium\\audio-sai1-adapter-v1\\test.exe']
+PASS: fixed recipe, mask bounds, exact clock division, invalid output preservation
+NOT_READY: no MMIO/DMA/codec/hardware executed
+EXIT 0

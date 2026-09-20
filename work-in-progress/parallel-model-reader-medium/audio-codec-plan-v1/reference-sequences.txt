@@ -1,0 +1,271 @@
+static int es8323_reset(struct snd_soc_component *component)
+{
+	snd_soc_component_write(component, ES8323_CONTROL1, 0x80);
+	return snd_soc_component_write(component, ES8323_CONTROL1, 0x00);
+}
+
+static int es8323_set_dai_fmt(struct snd_soc_dai *codec_dai, unsigned int fmt)
+{
+	struct snd_soc_component *component = codec_dai->component;
+	u8 iface = 0;
+	u8 adciface = 0;
+	u8 daciface = 0;
+
+	iface = snd_soc_component_read(component, ES8323_IFACE);
+	adciface = snd_soc_component_read(component, ES8323_ADC_IFACE);
+	daciface = snd_soc_component_read(component, ES8323_DAC_IFACE);
+
+	/* set master/slave audio interface */
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
+	case SND_SOC_DAIFMT_CBM_CFM:	/* MASTER MODE */
+		iface |= 0x80;
+		break;
+	case SND_SOC_DAIFMT_CBS_CFS:	/* SLAVE MODE */
+		iface &= 0x7F;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	/* interface format */
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
+	case SND_SOC_DAIFMT_I2S:
+		adciface &= 0xFC;
+		daciface &= 0xF9;
+		break;
+	case SND_SOC_DAIFMT_RIGHT_J:
+		break;
+	case SND_SOC_DAIFMT_LEFT_J:
+		break;
+	case SND_SOC_DAIFMT_DSP_A:
+		break;
+	case SND_SOC_DAIFMT_DSP_B:
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	/* clock inversion */
+	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
+	case SND_SOC_DAIFMT_NB_NF:
+		iface &= 0xDF;
+		adciface &= 0xDF;
+		daciface &= 0xBF;
+		break;
+	case SND_SOC_DAIFMT_IB_IF:
+		iface |= 0x20;
+		adciface |= 0x20;
+		daciface |= 0x40;
+		break;
+	case SND_SOC_DAIFMT_IB_NF:
+		iface |= 0x20;
+		adciface &= 0xDF;
+		daciface &= 0xBF;
+		break;
+	case SND_SOC_DAIFMT_NB_IF:
+		iface &= 0xDF;
+		adciface |= 0x20;
+		daciface |= 0x40;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	snd_soc_component_write(component, ES8323_IFACE, iface);
+	snd_soc_component_write(component, ES8323_ADC_IFACE, adciface);
+	snd_soc_component_write(component, ES8323_DAC_IFACE, daciface);
+
+	return 0;
+}
+
+static int es8323_pcm_hw_params(struct snd_pcm_substream *substream,
+				struct snd_pcm_hw_params *params,
+				struct snd_soc_dai *dai)
+{
+	struct snd_soc_component *component = dai->component;
+	struct es8323_priv *es8323 = snd_soc_component_get_drvdata(component);
+	u16 srate = snd_soc_component_read(component, ES8323_IFACE) & 0x80;
+	u16 adciface = snd_soc_component_read(component, ES8323_ADC_IFACE) & 0xE3;
+	u16 daciface = snd_soc_component_read(component, ES8323_DAC_IFACE) & 0xC7;
+	int coeff;
+	int i;
+
+	/* Validate supported sample rates that are autodetected from MCLK */
+	for (i = 0; i < NR_SUPPORTED_MCLK_LRCK_RATIOS; i++) {
+		const unsigned int ratio = supported_mclk_lrck_ratios[i];
+
+		if (es8323->sysclk % ratio != 0)
+			continue;
+		if (es8323->sysclk / ratio == params_rate(params))
+			break;
+	}
+	if (i == NR_SUPPORTED_MCLK_LRCK_RATIOS) {
+		dev_err(component->dev,
+			"Unsupported sample rate %dHz with %dHz MCLK\n",
+			params_rate(params), es8323->sysclk);
+		return -EINVAL;
+	}
+	coeff = get_coeff(es8323->sysclk, params_rate(params));
+	if (coeff < 0) {
+		coeff = get_coeff(es8323->sysclk / 2, params_rate(params));
+		srate |= 0x40;
+	}
+	if (coeff < 0) {
+		dev_err(component->dev,
+			"Unable to configure sample rate %dHz with %dHz MCLK\n",
+			params_rate(params), es8323->sysclk);
+		return coeff;
+	}
+
+	/* bit size */
+	switch (params_format(params)) {
+	case SNDRV_PCM_FORMAT_S16_LE:
+		adciface |= 0x000C;
+		daciface |= 0x0018;
+		break;
+	case SNDRV_PCM_FORMAT_S20_3LE:
+		adciface |= 0x0004;
+		daciface |= 0x0008;
+		break;
+	case SNDRV_PCM_FORMAT_S24_LE:
+		break;
+	case SNDRV_PCM_FORMAT_S32_LE:
+		adciface |= 0x0010;
+		daciface |= 0x0020;
+		break;
+	}
+
+	/* set iface & srate */
+	snd_soc_component_write(component, ES8323_DAC_IFACE, daciface);
+	snd_soc_component_write(component, ES8323_ADC_IFACE, adciface);
+
+	if (coeff >= 0) {
+		snd_soc_component_write(component, ES8323_IFACE, srate);
+		snd_soc_component_write(component, ES8323_ADCCONTROL5,
+					coeff_div[coeff].sr |
+					coeff_div[coeff].usb << 4);
+		snd_soc_component_write(component, ES8323_DACCONTROL2,
+					coeff_div[coeff].sr |
+					coeff_div[coeff].usb << 4);
+	}
+
+	return 0;
+}
+
+static int es8323_mute(struct snd_soc_dai *dai, int mute, int stream)
+{
+	return 0;
+}
+
+static int es8323_set_bias_level(struct snd_soc_component *component,
+				 enum snd_soc_bias_level level)
+{
+	struct es8323_priv *es8323 = snd_soc_component_get_drvdata(component);
+	int ret;
+
+	switch (level) {
+	case SND_SOC_BIAS_ON:
+		dev_dbg(component->dev, "%s on\n", __func__);
+		break;
+	case SND_SOC_BIAS_PREPARE:
+		dev_dbg(component->dev, "%s prepare\n", __func__);
+		if (IS_ERR(es8323->mclk))
+			break;
+		if (snd_soc_component_get_bias_level(component) == SND_SOC_BIAS_ON) {
+			clk_disable_unprepare(es8323->mclk);
+		} else {
+			ret = clk_prepare_enable(es8323->mclk);
+			if (ret)
+				return ret;
+		}
+		snd_soc_component_write(component, ES8323_ANAVOLMANAG, 0x7C);
+		snd_soc_component_write(component, ES8323_CHIPLOPOW1, 0x00);
+		snd_soc_component_write(component, ES8323_CHIPLOPOW2, 0x00);
+		snd_soc_component_write(component, ES8323_CHIPPOWER, 0x00);
+		snd_soc_component_write(component, ES8323_ADCPOWER, 0x59);
+		break;
+	case SND_SOC_BIAS_STANDBY:
+		dev_dbg(component->dev, "%s standby\n", __func__);
+		snd_soc_component_write(component, ES8323_ANAVOLMANAG, 0x7C);
+		snd_soc_component_write(component, ES8323_CHIPLOPOW1, 0x00);
+		snd_soc_component_write(component, ES8323_CHIPLOPOW2, 0x00);
+		snd_soc_component_write(component, ES8323_CHIPPOWER, 0x00);
+		snd_soc_component_write(component, ES8323_ADCPOWER, 0x59);
+		break;
+	case SND_SOC_BIAS_OFF:
+		dev_dbg(component->dev, "%s off\n", __func__);
+		snd_soc_component_write(component, ES8323_ADCPOWER, 0xFF);
+		snd_soc_component_write(component, ES8323_DACPOWER, 0xC0);
+		snd_soc_component_write(component, ES8323_CHIPLOPOW1, 0xFF);
+		snd_soc_component_write(component, ES8323_CHIPLOPOW2, 0xFF);
+		snd_soc_component_write(component, ES8323_CHIPPOWER, 0xFF);
+		snd_soc_component_write(component, ES8323_ANAVOLMANAG, 0x7B);
+		break;
+	}
+	return 0;
+}
+
+static int es8323_probe(struct snd_soc_component *component)
+{
+	struct es8323_priv *es8323 = snd_soc_component_get_drvdata(component);
+	int ret = 0;
+
+	es8323->mclk = devm_clk_get(component->dev, "mclk");
+	if (IS_ERR(es8323->mclk)) {
+		dev_err(component->dev, "%s mclk is missing or invalid\n", __func__);
+		return PTR_ERR(es8323->mclk);
+	}
+	ret = clk_prepare_enable(es8323->mclk);
+	if (ret)
+		return ret;
+	es8323->component = component;
+
+	ret = es8323_reset(component);
+	if (ret < 0) {
+		dev_err(component->dev, "Failed to issue reset\n");
+		clk_disable_unprepare(es8323->mclk);
+		return ret;
+	}
+
+	snd_soc_component_write(component, 0x01, 0x60);
+	snd_soc_component_write(component, 0x02, 0xF3);
+	snd_soc_component_write(component, 0x02, 0xF0);
+	snd_soc_component_write(component, 0x2B, 0x80);
+	snd_soc_component_write(component, 0x00, 0x36);
+	snd_soc_component_write(component, 0x08, 0x00);
+	snd_soc_component_write(component, 0x04, 0x00);
+	snd_soc_component_write(component, 0x06, 0xC3);
+	snd_soc_component_write(component, 0x19, 0x02);
+	snd_soc_component_write(component, 0x09, 0x00);
+	snd_soc_component_write(component, 0x0A, 0x00);
+	snd_soc_component_write(component, 0x0B, 0x02);
+	snd_soc_component_write(component, 0x0C, 0x4C);
+	snd_soc_component_write(component, 0x0D, 0x02);
+	snd_soc_component_write(component, 0x10, 0x00);
+	snd_soc_component_write(component, 0x11, 0x00);
+	snd_soc_component_write(component, 0x12, 0xea);
+	snd_soc_component_write(component, 0x13, 0xc0);
+	snd_soc_component_write(component, 0x14, 0x05);
+	snd_soc_component_write(component, 0x15, 0x06);
+	snd_soc_component_write(component, 0x16, 0x53);
+
+	snd_soc_component_write(component, 0x17, 0x18);
+	snd_soc_component_write(component, 0x18, 0x02);
+	snd_soc_component_write(component, 0x1A, 0x00);
+	snd_soc_component_write(component, 0x1B, 0x00);
+	snd_soc_component_write(component, 0x27, 0xB8);
+	snd_soc_component_write(component, 0x2A, 0xB8);
+	snd_soc_component_write(component, 0x35, 0xA0);
+	usleep_range(18000, 20000);
+	snd_soc_component_write(component, 0x2E, 0x1E);
+	snd_soc_component_write(component, 0x2F, 0x1E);
+	snd_soc_component_write(component, 0x30, 0x1E);
+	snd_soc_component_write(component, 0x31, 0x1E);
+	snd_soc_component_write(component, 0x03, 0x09);
+	snd_soc_component_write(component, 0x02, 0x00);
+	usleep_range(18000, 20000);
+	snd_soc_component_write(component, 0x04, 0x3C);
+
+	es8323_set_bias_level(component, SND_SOC_BIAS_STANDBY);
+	return 0;
+}

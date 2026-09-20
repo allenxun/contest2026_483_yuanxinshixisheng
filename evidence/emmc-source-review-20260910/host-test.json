@@ -1,0 +1,23 @@
+{
+  "command": [
+    "D:\\software\\mingw64\\mingw64\\bin\\gcc.exe",
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-O2",
+    "E:\\openvela\\VelaVision\\app\\k7emmc\\sdhci_read.c",
+    "E:\\openvela\\VelaVision\\app\\k7emmc\\test_sdhci_read.c",
+    "-o",
+    "E:\\openvela\\VelaVision\\evidence\\emmc-source-review-20260910\\test_sdhci_read.exe"
+  ],
+  "stdout": "PASS: data, timeout/status disagreement, error, premature end, missing end, late error, clock wrap, mid-PIO timeout, invalid arguments\n",
+  "returncode": 0,
+  "hardware_tested": false,
+  "firmware_built": false,
+  "sha256": {
+    "app\\k7emmc\\sdhci_read.h": "7d64ae0b074ffbb34ad2c586bfbe1403ddcc81b65585627b593ba88ead11042b",
+    "app\\k7emmc\\sdhci_read.c": "89929fc6cde828b8909871225d1fbf75802cda5d4f8179c07bdef7af125652c4",
+    "app\\k7emmc\\test_sdhci_read.c": "1eeda01964d140c77b53c41f5852c6fee6fb9f0c0f12d21765b20e6d1bcaad78"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "scope": "identical fixed PCM transport/playback; excludes cloud synthesis and ASR",
+  "pcm_bytes": 64000,
+  "sha256": "e2be54ff962ad9c003226eab0f86265ec0e301b55b88e563ac352c099440a3ca",
+  "audio_ms": 2000.0,
+  "runs": [
+    {
+      "command_ms": 3987,
+      "success": true,
+      "host_enqueue_ms": 0,
+      "interval_ms": 0
+    },
+    {
+      "command_ms": 4405,
+      "success": true,
+      "host_enqueue_ms": 0,
+      "interval_ms": 5
+    },
+    {
+      "command_ms": 4269,
+      "success": true,
+      "host_enqueue_ms": 0,
+      "interval_ms": 0
+    },
+    {
+      "command_ms": 4170,
+      "success": true,
+      "host_enqueue_ms": 0,
+      "interval_ms": 5
+    }
+  ]
+}

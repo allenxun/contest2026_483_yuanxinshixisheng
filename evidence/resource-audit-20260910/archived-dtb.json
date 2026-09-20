@@ -1,0 +1,108 @@
+{
+  "source": "E:\\openvela\\\u65e0\u7ebf\u9002\u914d_2026-09-08\\factory-live-compare\\live-fdt.dtb",
+  "sha256": "01dbc569569db97891271221a9c282c7a4757b6fddbf265a1d5c4634b671bec4",
+  "memory_banks": [
+    {
+      "start": 1075838976,
+      "end": 1212153856,
+      "bytes": 136314880
+    },
+    {
+      "start": 1228931072,
+      "end": 4294967296,
+      "bytes": 3066036224
+    },
+    {
+      "start": 4294967296,
+      "end": 5368709120,
+      "bytes": 1073741824
+    }
+  ],
+  "described_bytes": 4276092928,
+  "exclusions": [
+    {
+      "start": 1207959552,
+      "end": 1208233984,
+      "bytes": 274432
+    },
+    {
+      "start": 1191182336,
+      "end": 1192640471,
+      "bytes": 1458135
+    },
+    {
+      "start": 1074855936,
+      "end": 1075773440,
+      "bytes": 917504
+    },
+    {
+      "start": 1075838976,
+      "end": 1210056704,
+      "bytes": 134217728,
+      "reason": "existing image/heap"
+    },
+    {
+      "start": 1210056704,
+      "end": 1228931072,
+      "bytes": 18874368,
+      "reason": "DTB and firmware gap"
+    },
+    {
+      "start": 1342177280,
+      "end": 1344274432,
+      "bytes": 2097152,
+      "reason": "radio staging"
+    },
+    {
+      "start": 1358954496,
+      "end": 1363148800,
+      "bytes": 4194304,
+      "reason": "loader snapshot"
+    },
+    {
+      "start": 4211081216,
+      "end": 4294967296,
+      "bytes": 83886080,
+      "reason": "conservative U-Boot high exclusion"
+    }
+  ],
+  "dynamic_reservations": [],
+  "candidate_ranges": [
+    {
+      "start": 1228931072,
+      "end": 1342177280,
+      "bytes": 113246208
+    },
+    {
+      "start": 1344274432,
+      "end": 1358954496,
+      "bytes": 14680064
+    },
+    {
+      "start": 1363148800,
+      "end": 4211081216,
+      "bytes": 2847932416
+    },
+    {
+      "start": 4294967296,
+      "end": 5368709120,
+      "bytes": 1073741824
+    }
+  ],
+  "activation_allowed": false,
+  "reason": "Archived DTB and conservative exclusions only; current handoff, DMA and allocator checks required",
+  "emmc": {
+    "compatible": [
+      "rockchip,rk3576-dwcmshc",
+      "rockchip,rk3588-dwcmshc"
+    ],
+    "registers": [
+      {
+        "start": 707985408,
+        "end": 708050944,
+        "bytes": 65536
+      }
+    ],
+    "bus_width": 8
+  }
+}
