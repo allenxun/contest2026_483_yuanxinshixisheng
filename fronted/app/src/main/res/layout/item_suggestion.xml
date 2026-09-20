@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- 建议项内容 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp">
+
+        <!-- 蓝色圆点（与小程序 suggestion-dot 16rpx=8dp 一致） -->
+        <View
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/bg_suggestion_dot" />
+
+        <!-- 建议内容 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <!-- 区域名（与小程序 suggestion-region 30rpx=15sp 一致） -->
+            <TextView
+                android:id="@+id/tvRegion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#3A6DF0"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="额头：" />
+
+            <!-- 建议描述（与小程序 suggestion-text 28rpx=14sp 一致） -->
+            <TextView
+                android:id="@+id/tvDescription"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="建议使用相应产品" />
+        </LinearLayout>
+
+        <!-- 箭头（与小程序 suggestion-arrow 32rpx=16sp 一致） -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="›"
+            android:textColor="#C0C0C8"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- 分割线（与小程序 border-bottom: 1rpx solid #f0f1f3 一致） -->
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="#F0F1F3" />
+
+</LinearLayout>

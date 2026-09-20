@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:layout_marginBottom="12dp"
+    android:alpha="0.4"
+    android:background="@drawable/gen_item_inactive_bg"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp">
+
+    <!-- 左侧圆点 -->
+    <View
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:layout_gravity="start|center_vertical"
+        android:background="@drawable/gen_item_dot" />
+
+    <!-- 步骤文字 -->
+    <TextView
+        android:id="@+id/tvStep"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:letterSpacing="0.05"
+        android:text="步骤"
+        android:textColor="#A58B7D"
+        android:textSize="15sp" />
+
+    <!-- 完成标记 -->
+    <TextView
+        android:id="@+id/tvCheck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:text="✓"
+        android:textColor="#4CAF50"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
+</FrameLayout>
