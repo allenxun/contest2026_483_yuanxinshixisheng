@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/skin-assessment-tasks",
+  "status": 400,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "photoVersion": "2"
+  },
+  "response_excerpt": "{\"requestId\": \"f4cff222-b05b-45c2-8339-76bb0b5967e8\", \"error\": {\"code\": \"INVALID_INPUT\", \"message\": \"photoVersion must be the bigint string \\\"1\\\" for a new task\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T163252Z-21bc4a75"
+}

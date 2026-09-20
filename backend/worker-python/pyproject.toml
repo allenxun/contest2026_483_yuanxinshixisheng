@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mvp-worker"
+version = "0.0.1"
+description = "MVP 后台异步任务 Worker（T12 async_jobs 消费端，Python 3.12）"
+requires-python = ">=3.12"
+# 版本锁定依据 .coordination/A/decisions.md：SQLAlchemy Core 2.x / psycopg 3.x / pydantic 2.x
+dependencies = [
+    "sqlalchemy>=2.0,<3.0",
+    "psycopg[binary]>=3.2,<4.0",
+    "pydantic>=2.7,<3.0",
+    # 契约 JSON Schema（backend/contracts/schemas/payload-*.json）校验，draft 2020-12
+    "jsonschema>=4.21,<5.0",
+    # 阿里云 OSS 经典 SDK（oss2.Auth/StsAuth/Bucket 最小面；版本锁定=官方核实 2.19.1）
+    "oss2==2.19.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

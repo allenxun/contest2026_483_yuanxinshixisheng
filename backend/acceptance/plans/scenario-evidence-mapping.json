@@ -1,0 +1,2176 @@
+[
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "云台测肤到云台护理的完整链路",
+    "req": "认证、测肤、报告、方案、当前核验、执行、次数同步、完成可串通；报告先于方案就绪时仍可查询",
+    "apis": "M2-A01、M3-A01、M3-A03、M3-A05、M4-A03、M4-A05、M4-A08",
+    "deps": "—",
+    "id": "SC-00-01",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B",
+      "C",
+      "D"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-05,CC-08,CC-09,CC-10）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-04,CD-05,CD-06）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 受理→worker analyze/enroll/plan.generate→T06 ready→C A03 准入(T07 SQL)→A05 记账→A08 进度→A06 收尾；切换控制端 T03 指针替换",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成（M1/M2/M5 端点 501）；真实设备/APP 联调待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "云台测肤后由 APP 查看并护理",
+    "req": "APP 获得成员查看授权后查询报告/方案，连接微晶并核验执行，护理结果归到同一成员与方案",
+    "apis": "M1-A01、M1-A02、M3-A04、M4-A01、M4-A02、M2-A04、M4-A03、M4-A05、M4-A09",
+    "deps": "—",
+    "id": "SC-00-02",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B",
+      "C",
+      "D"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-05,CC-08,CC-09,CC-10）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-04,CD-05,CD-06）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 受理→worker analyze/enroll/plan.generate→T06 ready→C A03 准入(T07 SQL)→A05 记账→A08 进度→A06 收尾；切换控制端 T03 指针替换",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成（M1/M2/M5 端点 501）；真实设备/APP 联调待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "切换控制端后继续累计进度",
+    "req": "原执行实际停止并对账关闭后，另一控制端登记新执行；成员与方案不变时沿用已有 K",
+    "apis": "M4-A03、M4-A05、M4-A06、M4-A08",
+    "deps": "D05",
+    "id": "SC-00-03",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-05,CC-08,CC-09,CC-10）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 受理→worker analyze/enroll/plan.generate→T06 ready→C A03 准入(T07 SQL)→A05 记账→A08 进度→A06 收尾；切换控制端 T03 指针替换",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成（M1/M2/M5 端点 501）；真实设备/APP 联调待办"
+  },
+  {
+    "prio": "P1",
+    "scope": "联调",
+    "title": "未绑定账号的云台独立使用",
+    "req": "匿名 APP 可配网；未绑定云台可独立认证和测肤；没有绑定账号时不发送 APP 异常通知",
+    "apis": "M2-A01、M3-A01、M3-A03、M5-A01",
+    "deps": "D01、D02",
+    "id": "SC-00-04",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B",
+      "D"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-04,CD-05,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 受理→worker analyze/enroll/plan.generate→T06 ready→C A03 准入(T07 SQL)→A05 记账→A08 进度→A06 收尾；切换控制端 T03 指针替换",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成（M1/M2/M5 端点 501）；真实设备/APP 联调待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "已登录 APP 查询后主动绑定未绑定云台",
+    "req": "联网成功先查询三种绑定状态，未绑定显示按钮；未点击不绑定，点击才绑定；联网与绑定结果分别显示",
+    "apis": "M2-A06、M5-A01",
+    "deps": "D01、D02",
+    "id": "SC-01-01",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "未登录 APP 协助联网",
+    "req": "配网可成功，不新增绑定、不登记通知目标、不向匿名使用者发通知；云台仍可认证",
+    "apis": "M2-A01、M2-A06、M5-A01",
+    "deps": "D01",
+    "id": "SC-01-02",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "未登录直接请求绑定或登记通知目标",
+    "req": "拒绝请求，不产生绑定/投递目标；不能伪造请求体账号绕过登录",
+    "apis": "M2-A06、M5-A01",
+    "deps": "D01",
+    "id": "SC-01-03",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "重复绑定同一账号",
+    "req": "返回同一绑定关系，不产生重复关系或重复业务副作用",
+    "apis": "M2-A06",
+    "deps": "D01",
+    "id": "SC-01-04",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "绑定已属于其他账号的云台",
+    "req": "拒绝直接覆盖，原绑定保持；不得转向新账号发异常通知",
+    "apis": "M2-A06",
+    "deps": "D01",
+    "id": "SC-01-05",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "绑定凭据无效或仅提交云台 ID",
+    "req": "拒绝绑定，不能凭任意 ID 建立访问关系",
+    "apis": "M2-A06",
+    "deps": "D01",
+    "id": "SC-01-06",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P1",
+    "scope": "联调",
+    "title": "联网成功但绑定失败",
+    "req": "明确展示绑定失败，不把联网成功等同绑定成功；重试不重复建立关系",
+    "apis": "M2-A06",
+    "deps": "D01",
+    "id": "SC-01-07",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "匿名配网遇到已有绑定云台",
+    "req": "不删除或替换原绑定，不给匿名使用者建通知目标；通知对象仍按原有效绑定确定",
+    "apis": "M2-A06、M5-A01",
+    "deps": "D01、D02",
+    "id": "SC-01-08",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "云台认证成功与凭据失败",
+    "req": "合法凭据取得正确云台上下文；无效凭据不登记可信在线，不创建护理执行",
+    "apis": "M2-A01",
+    "deps": "D01",
+    "id": "SC-01-09",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P1",
+    "scope": "后端",
+    "title": "心跳更新及重复/迟到上报",
+    "req": "合法心跳更新最近上报和已知状态；重复/旧上报不误改业务状态、不累计次数或释放占用",
+    "apis": "M2-A02",
+    "deps": "D03、D04",
+    "id": "SC-01-10",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D03、D04",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P1",
+    "scope": "联调",
+    "title": "单次心跳超时与持续离线",
+    "req": "单次超时不立即告警；达到配置判定条件才标记离线；客户端能区分未知/过期状态",
+    "apis": "M2-A02、M2-A03",
+    "deps": "D03",
+    "id": "SC-01-11",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D03",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "云台状态查询的访问范围",
+    "req": "绑定/合法访问主体能查；其他账号或云台不能只替换 ID 越权查询",
+    "apis": "M2-A03",
+    "deps": "D01",
+    "id": "SC-01-12",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "恢复联网和执行对账",
+    "req": "重连认证、补传并恢复心跳，不自动新建、启动或恢复护理执行",
+    "apis": "M2-A01、M2-A02、M4-A07、M4-A05",
+    "deps": "D05",
+    "id": "SC-01-13",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B",
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-09）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P1",
+    "scope": "联调",
+    "title": "登记或更新当前 APP 通知目标",
+    "req": "目标关联当前登录账号和安装实例，重复更新不重复登记；推送标识变化后使用有效目标",
+    "apis": "M5-A01",
+    "deps": "D02",
+    "id": "SC-01-14",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "云台异常通知绑定账号",
+    "req": "云台离线或上报可通知异常后，仅向其实际绑定账号的有效目标投递；无绑定时不投递",
+    "apis": "M2-A02、M5-A01",
+    "deps": "D02、D03",
+    "id": "SC-01-15",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02、D03",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P1",
+    "scope": "联调",
+    "title": "重复异常与投递失败重试",
+    "req": "按配置抑制重复提醒，失败有记录并可重试；重试前检查绑定、目标及异常状态",
+    "apis": "M5-A01",
+    "deps": "D02、D03",
+    "id": "SC-01-16",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02、D03",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "退出登录或切换账号后的通知归属",
+    "req": "旧账号在当前安装实例的目标失效，不能继续收到旧账号云台通知；新账号不继承旧账号权限",
+    "apis": "M5-A01",
+    "deps": "D02",
+    "id": "SC-01-17",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P1",
+    "scope": "联调",
+    "title": "已绑定但无有效推送目标或手机通知不可达",
+    "req": "不伪报手机已收到；故障状态仍可依法查询，记录投递结果或无法投递原因",
+    "apis": "M5-A01、M2-A03",
+    "deps": "D02",
+    "id": "SC-01-18",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D02",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "B 集成后：M2-A06 绑定原子校验/M2-A01 云台认证/M2-A02 心跳/M5-A01 通知目标归属与投递；M4-A05/A07 恢复对账重放",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成；SC-01-17 logout 通知代次待基线修复（见待修项②）"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "提交合法三视角测肤任务",
+    "req": "返回任务引用与处理中状态；任务绑定原云台，后续可查询",
+    "apis": "M3-A01、M3-A03",
+    "deps": "D06",
+    "id": "SC-02-01",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 三视角受理/去重冲突/归属校验/补拍版本幂等/算法失败终态；worker identify/enroll 真实调度",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D media.cleanup 周期接线待办；真实算法/OSS 待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "客户端身份及照片归属校验",
+    "req": "未认证云台、其他云台的照片引用或 APP 直接提交测肤均不能绕过范围限制",
+    "apis": "M3-A01",
+    "deps": "D01、D06",
+    "id": "SC-02-02",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D06",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 三视角受理/去重冲突/归属校验/补拍版本幂等/算法失败终态；worker identify/enroll 真实调度",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D media.cleanup 周期接线待办；真实算法/OSS 待办"
+  },
+  {
+    "prio": "P1",
+    "scope": "后端",
+    "title": "照片缺失或格式不合法",
+    "req": "返回可修正结果，不能生成看似完整的报告",
+    "apis": "M3-A01、M3-A03",
+    "deps": "D06",
+    "id": "SC-02-03",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 三视角受理/去重冲突/归属校验/补拍版本幂等/算法失败终态；worker identify/enroll 真实调度",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D media.cleanup 周期接线待办；真实算法/OSS 待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "测肤提交去重及内容冲突",
+    "req": "同标识同内容返回原任务；同标识不同内容冲突；先鉴权再返回已有任务",
+    "apis": "M3-A01",
+    "deps": "D04",
+    "id": "SC-02-04",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 三视角受理/去重冲突/归属校验/补拍版本幂等/算法失败终态；worker identify/enroll 真实调度",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D media.cleanup 周期接线待办；真实算法/OSS 待办"
+  },
+  {
+    "prio": "P1",
+    "scope": "集成",
+    "title": "照片质量不合格",
+    "req": "任务返回需补拍视角；未达到要求时不冒充报告就绪",
+    "apis": "M3-A03",
+    "deps": "D06",
+    "id": "SC-02-05",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 三视角受理/去重冲突/归属校验/补拍版本幂等/算法失败终态；worker identify/enroll 真实调度",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "D media.cleanup 周期接线待办；真实算法/OSS 待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "集成",
+    "title": "三视角不是同一人或匹配不确定",
+    "req": "不错误归到某个成员，不把不确定结果用于自动建档",
+    "apis": "M3-A01、M3-A03",
+    "deps": "D06",
+    "id": "SC-02-06",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 三视角受理/去重冲突/归属校验/补拍版本幂等/算法失败终态；worker identify/enroll 真实调度",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "D media.cleanup 周期接线待办；真实算法/OSS 待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "集成",
+    "title": "可靠匹配已有成员或可靠新成员",
+    "req": "已有成员正确关联；满足可靠新成员条件才建档；结果不会串到其他成员",
+    "apis": "M3-A03、M3-A05",
+    "deps": "D06",
+    "id": "SC-02-07",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 三视角受理/去重冲突/归属校验/补拍版本幂等/算法失败终态；worker identify/enroll 真实调度",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "D media.cleanup 周期接线待办；真实算法/OSS 待办"
+  },
+  {
+    "prio": "P1",
+    "scope": "后端",
+    "title": "补拍沿用原任务且保护照片归属",
+    "req": "新照片版本在原任务处理；可复用的旧照片引用受控；其他云台不能修改该任务",
+    "apis": "M3-A02、M3-A03",
+    "deps": "D06",
+    "id": "SC-02-08",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 三视角受理/去重冲突/归属校验/补拍版本幂等/算法失败终态；worker identify/enroll 真实调度",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D media.cleanup 周期接线待办；真实算法/OSS 待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "集成",
+    "title": "照片版本重复与旧结果迟到",
+    "req": "同版本同内容幂等，不同内容冲突；旧版本分析结果不能覆盖新版本",
+    "apis": "M3-A02、M3-A03",
+    "deps": "D04、D06",
+    "id": "SC-02-09",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D04、D06",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 三视角受理/去重冲突/归属校验/补拍版本幂等/算法失败终态；worker identify/enroll 真实调度",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "D media.cleanup 周期接线待办；真实算法/OSS 待办"
+  },
+  {
+    "prio": "P1",
+    "scope": "集成",
+    "title": "算法失败或超时",
+    "req": "任务体现处理中/待重试/失败等实际状态，不返回虚假成功；查询不自行触发新分析",
+    "apis": "M3-A03",
+    "deps": "D06、D07",
+    "id": "SC-02-10",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 三视角受理/去重冲突/归属校验/补拍版本幂等/算法失败终态；worker identify/enroll 真实调度",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "D media.cleanup 周期接线待办；真实算法/OSS 待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "测肤任务查询权限",
+    "req": "云台只取自己当前任务结果，不能获取已被替换任务；APP 在合法成员访问权且任务可靠归档后查看，不凭声明 ID 访问",
+    "apis": "M3-A03",
+    "deps": "D01",
+    "id": "SC-02-11",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 三视角受理/去重冲突/归属校验/补拍版本幂等/算法失败终态；worker identify/enroll 真实调度",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D media.cleanup 周期接线待办；真实算法/OSS 待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "报告列表与详情的成员隔离",
+    "req": "仅返回可访问成员报告；替换 memberId/reportId 不能访问他人数据",
+    "apis": "M3-A04、M3-A05",
+    "deps": "D01",
+    "id": "SC-03-01",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-04）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01→worker→M4-A01/A02 方案生成(plan.generate)→ready 冻结基线；C A03 消费 T06；M2-A04/A05 能力登记读取；白名单投影逐面校验",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D 大模型真实供应商待办；B 能力登记(M2-A04/A05)未集成；白名单/能力形状待契约冻结"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "APP 完整版与云台简版",
+    "req": "APP 按成员授权查报告；云台仅能取当前任务简版，不能调用历史列表或传 full 扩权",
+    "apis": "M3-A05",
+    "deps": "—",
+    "id": "SC-03-02",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-04）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01→worker→M4-A01/A02 方案生成(plan.generate)→ready 冻结基线；C A03 消费 T06；M2-A04/A05 能力登记读取；白名单投影逐面校验",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D 大模型真实供应商待办；B 能力登记(M2-A04/A05)未集成；白名单/能力形状待契约冻结"
+  },
+  {
+    "prio": "P1",
+    "scope": "集成",
+    "title": "报告就绪但方案尚未完成",
+    "req": "报告可立即查询；方案查询明确等待/生成中/失败/就绪，不阻塞报告展示",
+    "apis": "M3-A05、M4-A01、M4-A02",
+    "deps": "D07",
+    "id": "SC-03-03",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D07",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-04）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01→worker→M4-A01/A02 方案生成(plan.generate)→ready 冻结基线；C A03 消费 T06；M2-A04/A05 能力登记读取；白名单投影逐面校验",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "D 大模型真实供应商待办；B 能力登记(M2-A04/A05)未集成；白名单/能力形状待契约冻结"
+  },
+  {
+    "prio": "P1",
+    "scope": "集成",
+    "title": "微晶能力未齐及补齐后生成方案",
+    "req": "条件未齐显示等待；合法补齐后后台继续生成；同一能力版本重复上报不重复生成",
+    "apis": "M2-A04、M2-A05、M4-A01",
+    "deps": "D06、D07",
+    "id": "SC-03-04",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "B",
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-04）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01→worker→M4-A01/A02 方案生成(plan.generate)→ready 冻结基线；C A03 消费 T06；M2-A04/A05 能力登记读取；白名单投影逐面校验",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "D 大模型真实供应商待办；B 能力登记(M2-A04/A05)未集成；白名单/能力形状待契约冻结"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "能力登记不能篡改归属和占用",
+    "req": "合法观察被接收；伪造微晶标识、连接关系不能覆盖其他归属或抢占执行",
+    "apis": "M2-A04",
+    "deps": "D01、D06",
+    "id": "SC-03-05",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D06",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "M3-A01→worker→M4-A01/A02 方案生成(plan.generate)→ready 冻结基线；C A03 消费 T06；M2-A04/A05 能力登记读取；白名单投影逐面校验",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D 大模型真实供应商待办；B 能力登记(M2-A04/A05)未集成；白名单/能力形状待契约冻结"
+  },
+  {
+    "prio": "P1",
+    "scope": "后端",
+    "title": "读取已登记微晶能力",
+    "req": "检查访问范围，返回版本和更新时间；该结果不能替代端侧就绪及执行时占用检查",
+    "apis": "M2-A05",
+    "deps": "D01、D06",
+    "id": "SC-03-06",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D06",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "M3-A01→worker→M4-A01/A02 方案生成(plan.generate)→ready 冻结基线；C A03 消费 T06；M2-A04/A05 能力登记读取；白名单投影逐面校验",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D 大模型真实供应商待办；B 能力登记(M2-A04/A05)未集成；白名单/能力形状待契约冻结"
+  },
+  {
+    "prio": "P1",
+    "scope": "集成",
+    "title": "大模型成功、失败与非法方案结果",
+    "req": "有效结果校验后保存 N 与方案；超时、失败或不符合约束的结果不能变为可执行方案",
+    "apis": "M4-A01、M4-A02",
+    "deps": "D06、D07",
+    "id": "SC-03-07",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-04）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01→worker→M4-A01/A02 方案生成(plan.generate)→ready 冻结基线；C A03 消费 T06；M2-A04/A05 能力登记读取；白名单投影逐面校验",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "D 大模型真实供应商待办；B 能力登记(M2-A04/A05)未集成；白名单/能力形状待契约冻结"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "APP 查询本人方案与云台执行领取",
+    "req": "APP 查有权方案；云台只核验领取当前任务方案，不能查询或按人脸找回历史方案",
+    "apis": "M4-A01、M4-A02、M4-A03",
+    "deps": "D01",
+    "id": "SC-03-08",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C",
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-05,CC-11）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-04）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01→worker→M4-A01/A02 方案生成(plan.generate)→ready 冻结基线；C A03 消费 T06；M2-A04/A05 能力登记读取；白名单投影逐面校验",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D 大模型真实供应商待办；B 能力登记(M2-A04/A05)未集成；白名单/能力形状待契约冻结"
+  },
+  {
+    "prio": "P1",
+    "scope": "后端",
+    "title": "报告/方案/任务重复查询",
+    "req": "GET 不生成新任务、重分析、重生成方案、登记执行或累计次数",
+    "apis": "M3-A03、M3-A04、M3-A05、M4-A01、M4-A02",
+    "deps": "—",
+    "id": "SC-03-09",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-04）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01→worker→M4-A01/A02 方案生成(plan.generate)→ready 冻结基线；C A03 消费 T06；M2-A04/A05 能力登记读取；白名单投影逐面校验",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "D 大模型真实供应商待办；B 能力登记(M2-A04/A05)未集成；白名单/能力形状待契约冻结"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "同一成员核验通过且微晶就绪",
+    "req": "申请返回固定成员/控制端、本人方案与 N/K；端侧再次确认条件后才首次启动",
+    "apis": "M4-A03",
+    "deps": "D01、D06",
+    "id": "SC-04-01",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D06",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-03,CC-04,CC-06,CC-08）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A03 成员绑定/异成员/未绑定/能力 fail-closed/并发占用；M4-A04 恢复核验；M4-A05 记账；A07/A08 查询；T03 指针替换 TASK_REPLACED",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "真实人脸/云台连续性联调待办；B 未集成；OAS 13 待裁定（CC-11）"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "不同成员、不确定人脸或算法不可用",
+    "req": "明确不可执行，不返回原成员的可启动方案；算法失败不能按匹配成功处理",
+    "apis": "M4-A03",
+    "deps": "D06",
+    "id": "SC-04-02",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-03,CC-04,CC-06,CC-08）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A03 成员绑定/异成员/未绑定/能力 fail-closed/并发占用；M4-A04 恢复核验；M4-A05 记账；A07/A08 查询；T03 指针替换 TASK_REPLACED",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "真实人脸/云台连续性联调待办；B 未集成；OAS 13 待裁定（CC-11）"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "方案未就绪、已完成或能力不满足",
+    "req": "不登记可执行的新执行，返回实际不可执行原因",
+    "apis": "M4-A03",
+    "deps": "D06",
+    "id": "SC-04-03",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D06",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-03,CC-04,CC-06,CC-08）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A03 成员绑定/异成员/未绑定/能力 fail-closed/并发占用；M4-A04 恢复核验；M4-A05 记账；A07/A08 查询；T03 指针替换 TASK_REPLACED",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "真实人脸/云台连续性联调待办；B 未集成；OAS 13 待裁定（CC-11）"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "同一微晶同时收到两个控制端申请",
+    "req": "占用检查与登记原子执行，至多一个申请成功；APP 与云台不能同时控制该微晶",
+    "apis": "M4-A03",
+    "deps": "D05",
+    "id": "SC-04-04",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-03,CC-04,CC-06,CC-08）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A03 成员绑定/异成员/未绑定/能力 fail-closed/并发占用；M4-A04 恢复核验；M4-A05 记账；A07/A08 查询；T03 指针替换 TASK_REPLACED",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "真实人脸/云台连续性联调待办；B 未集成；OAS 13 待裁定（CC-11）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "重复申请及响应丢失后重试",
+    "req": "同请求返回原执行并体现当前状态；客户端不因重放成功响应二次启动，不确定时先对账",
+    "apis": "M4-A03、M4-A07",
+    "deps": "D04、D05",
+    "id": "SC-04-05",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D04、D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-03,CC-04,CC-06,CC-08）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A03 成员绑定/异成员/未绑定/能力 fail-closed/并发占用；M4-A04 恢复核验；M4-A05 记账；A07/A08 查询；T03 指针替换 TASK_REPLACED",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "真实人脸/云台连续性联调待办；B 未集成；OAS 13 待裁定（CC-11）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "身份连续时断网",
+    "req": "端侧确认仍是原使用者可继续，并缓存实际记录；后端不冒充已知离线期间次数",
+    "apis": "M4-A05、M4-A08",
+    "deps": "D06",
+    "id": "SC-04-06",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-03,CC-04,CC-06,CC-08）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A03 成员绑定/异成员/未绑定/能力 fail-closed/并发占用；M4-A04 恢复核验；M4-A05 记账；A07/A08 查询；T03 指针替换 TASK_REPLACED",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "真实人脸/云台连续性联调待办；B 未集成；OAS 13 待裁定（CC-11）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "追丢、换人或连续性失效",
+    "req": "端侧先暂停/停止，无网不恢复；重见人脸也不能跳过在线重新核验",
+    "apis": "M4-A04",
+    "deps": "D06",
+    "id": "SC-04-07",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-03,CC-04,CC-06,CC-08）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A03 成员绑定/异成员/未绑定/能力 fail-closed/并发占用；M4-A04 恢复核验；M4-A05 记账；A07/A08 查询；T03 指针替换 TASK_REPLACED",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "真实人脸/云台连续性联调待办；B 未集成；OAS 13 待裁定（CC-11）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "同人重新核验并恢复原执行",
+    "req": "仅原控制端、原执行可恢复且未完成时允许；沿用原方案和进度，已结束执行不重开",
+    "apis": "M4-A04",
+    "deps": "D05、D06",
+    "id": "SC-04-08",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05、D06",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-03,CC-04,CC-06,CC-08）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A03 成员绑定/异成员/未绑定/能力 fail-closed/并发占用；M4-A04 恢复核验；M4-A05 记账；A07/A08 查询；T03 指针替换 TASK_REPLACED",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "真实人脸/云台连续性联调待办；B 未集成；OAS 13 待裁定（CC-11）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "核验响应到达前再次换人",
+    "req": "客户端判定响应已不适用，不启动或恢复；重新走当前使用者核验",
+    "apis": "M4-A03、M4-A04",
+    "deps": "D06",
+    "id": "SC-04-09",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-03,CC-04,CC-06,CC-08）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A03 成员绑定/异成员/未绑定/能力 fail-closed/并发占用；M4-A04 恢复核验；M4-A05 记账；A07/A08 查询；T03 指针替换 TASK_REPLACED",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "真实人脸/云台连续性联调待办；B 未集成；OAS 13 待裁定（CC-11）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "换到另一成员后处理",
+    "req": "不继续原成员方案；确认旧执行停止并对账后，云台须为新成员重新测肤再登记执行；APP 可选有权方案，不混用历史方案",
+    "apis": "M4-A04、M4-A06、M4-A03",
+    "deps": "D05、D06",
+    "id": "SC-04-10",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05、D06",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-03,CC-04,CC-06,CC-08）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A03 成员绑定/异成员/未绑定/能力 fail-closed/并发占用；M4-A04 恢复核验；M4-A05 记账；A07/A08 查询；T03 指针替换 TASK_REPLACED",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "真实人脸/云台连续性联调待办；B 未集成；OAS 13 待裁定（CC-11）"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "人脸可靠匹配后建立查看关联",
+    "req": "仅在合法候选范围匹配，关联当前账号与正确成员；授权不等同护理启动许可",
+    "apis": "M1-A01",
+    "deps": "D01、D06",
+    "id": "SC-05-01",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D06",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "M4 侧撤销后 A01/A02/A07/A08/A09 统一 404、A05 最小 ack、A06 仍可收尾；M1-A01/A02/A03 待 B",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1 授权/撤销端点属 B 未集成；B 媒体策略未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "人脸无匹配、不确定或越出候选范围",
+    "req": "不授权、不新建成员、不提供全库人脸检索结果",
+    "apis": "M1-A01",
+    "deps": "D01、D06",
+    "id": "SC-05-02",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D06",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "M4 侧撤销后 A01/A02/A07/A08/A09 统一 404、A05 最小 ack、A06 仍可收尾；M1-A01/A02/A03 待 B",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1 授权/撤销端点属 B 未集成；B 媒体策略未集成"
+  },
+  {
+    "prio": "P1",
+    "scope": "后端",
+    "title": "永久授权和有效关系列表",
+    "req": "授权不因经过某个时长自动过期；列表仅返回当前账号未撤销的关系及关联标识",
+    "apis": "M1-A02",
+    "deps": "—",
+    "id": "SC-05-03",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "M4 侧撤销后 A01/A02/A07/A08/A09 统一 404、A05 最小 ack、A06 仍可收尾；M1-A01/A02/A03 待 B",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1 授权/撤销端点属 B 未集成；B 媒体策略未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "撤销本人关联及重复撤销",
+    "req": "关联失效；重复撤销视为完成；他人关联不能撤销",
+    "apis": "M1-A03",
+    "deps": "—",
+    "id": "SC-05-04",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "M4 侧撤销后 A01/A02/A07/A08/A09 统一 404、A05 最小 ack、A06 仍可收尾；M1-A01/A02/A03 待 B",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1 授权/撤销端点属 B 未集成；B 媒体策略未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "撤销后查询及重放旧授权请求",
+    "req": "拒绝该账号经报告、方案、进度、记录及执行详情读取该成员资料；旧登录/旧请求不能恢复已撤销关系",
+    "apis": "M1-A01、M3-A04、M3-A05、M4-A01、M4-A02、M4-A07、M4-A08、M4-A09",
+    "deps": "—",
+    "id": "SC-05-05",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B",
+      "C",
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-02,CC-10）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4 侧撤销后 A01/A02/A07/A08/A09 统一 404、A05 最小 ack、A06 仍可收尾；M1-A01/A02/A03 待 B",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1 授权/撤销端点属 B 未集成；B 媒体策略未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "撤销后的 APP 展示与其他账号",
+    "req": "当前 APP 移除入口并停止展示缓存；不删除成员/报告/记录，不影响其他账号既有授权，不向微晶发停止指令",
+    "apis": "M1-A03",
+    "deps": "—",
+    "id": "SC-05-06",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "M4 侧撤销后 A01/A02/A07/A08/A09 统一 404、A05 最小 ack、A06 仍可收尾；M1-A01/A02/A03 待 B",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "M1 授权/撤销端点属 B 未集成；B 媒体策略未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "云台绑定不能替代成员查看授权",
+    "req": "仅有云台绑定的账号不能直接读取未授权成员资料",
+    "apis": "M2-A06、M3-A04、M4-A01、M4-A09",
+    "deps": "—",
+    "id": "SC-05-07",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B",
+      "C",
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-02,CC-10）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4 侧撤销后 A01/A02/A07/A08/A09 统一 404、A05 最小 ack、A06 仍可收尾；M1-A01/A02/A03 待 B",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1 授权/撤销端点属 B 未集成；B 媒体策略未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "有效记录累计及目标边界",
+    "req": "拆为 K=0、K=N−1、K=N、K>N 子用例；N=10 时 9 未完成、10/11 完成，剩余 max(N−K,0)，实际 K 不截断",
+    "apis": "M4-A05、M4-A08",
+    "deps": "—",
+    "id": "SC-06-01",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-09）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A05 合法记录累计 K=9/10/11 边界/双键去重/异内容 409 回滚/迟到补账；M4-A07/A08/A09 查询权限；完成禁止新执行",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成（记录来源 APP/云台上传）；断网补传联调待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "重复记录、批次重试及内容冲突",
+    "req": "同一有效记录只计一次；同标识不同内容冲突；返回逐记录确认范围",
+    "apis": "M4-A05",
+    "deps": "D04",
+    "id": "SC-06-02",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-09）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A05 合法记录累计 K=9/10/11 边界/双键去重/异内容 409 回滚/迟到补账；M4-A07/A08/A09 查询权限；完成禁止新执行",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成（记录来源 APP/云台上传）；断网补传联调待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "记录归属校验",
+    "req": "成员、微晶、方案、执行或控制端不合法的记录不得串账或计入 K",
+    "apis": "M4-A05",
+    "deps": "D01",
+    "id": "SC-06-03",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-09）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A05 合法记录累计 K=9/10/11 边界/双键去重/异内容 409 回滚/迟到补账；M4-A07/A08/A09 查询权限；完成禁止新执行",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成（记录来源 APP/云台上传）；断网补传联调待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "状态上报与实际次数区分",
+    "req": "启动、下载、指令发送和仅状态变化不计完成；按合法 APP/云台上传的实际次数记录累计",
+    "apis": "M4-A05、M4-A08",
+    "deps": "—",
+    "id": "SC-06-04",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-09）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A05 合法记录累计 K=9/10/11 边界/双键去重/异内容 409 回滚/迟到补账；M4-A07/A08/A09 查询权限；完成禁止新执行",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成（记录来源 APP/云台上传）；断网补传联调待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "断网上传、部分成功与恢复补传",
+    "req": "客户端保留未确认记录，仅清理已确认部分；补传去重，不丢失已接收的合法次数",
+    "apis": "M4-A05",
+    "deps": "D04",
+    "id": "SC-06-05",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D04",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-09）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A05 合法记录累计 K=9/10/11 边界/双键去重/异内容 409 回滚/迟到补账；M4-A07/A08/A09 查询权限；完成禁止新执行",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "B 未集成（记录来源 APP/云台上传）；断网补传联调待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "迟到记录与乱序执行状态",
+    "req": "已结束执行可收合法历史记录；旧 running 状态不能重开执行，迟到次数归原方案",
+    "apis": "M4-A05、M4-A07",
+    "deps": "—",
+    "id": "SC-06-06",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-09）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A05 合法记录累计 K=9/10/11 边界/双键去重/异内容 409 回滚/迟到补账；M4-A07/A08/A09 查询权限；完成禁止新执行",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成（记录来源 APP/云台上传）；断网补传联调待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "方案完成后禁止新执行",
+    "req": "K≥N 后拒绝新的执行登记；合法历史补传仍可接收且不重开执行",
+    "apis": "M4-A03、M4-A05",
+    "deps": "—",
+    "id": "SC-06-07",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-09）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A05 合法记录累计 K=9/10/11 边界/双键去重/异内容 409 回滚/迟到补账；M4-A07/A08/A09 查询权限；完成禁止新执行",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成（记录来源 APP/云台上传）；断网补传联调待办"
+  },
+  {
+    "prio": "P1",
+    "scope": "后端",
+    "title": "进度查询的范围和新鲜度",
+    "req": "APP 须有成员授权，云台须有合法当前执行上下文；仅显示已同步 K 与最后同步信息",
+    "apis": "M4-A08",
+    "deps": "—",
+    "id": "SC-06-08",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-09）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A05 合法记录累计 K=9/10/11 边界/双键去重/异内容 409 回滚/迟到补账；M4-A07/A08/A09 查询权限；完成禁止新执行",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成（记录来源 APP/云台上传）；断网补传联调待办"
+  },
+  {
+    "prio": "P1",
+    "scope": "后端",
+    "title": "护理历史查询及状态表达",
+    "req": "列表按权限、成员和筛选条件返回；执行结束与方案完成分别显示，历史不串人/串方案",
+    "apis": "M4-A09",
+    "deps": "D08",
+    "id": "SC-06-09",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D08",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-09）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A05 合法记录累计 K=9/10/11 边界/双键去重/异内容 409 回滚/迟到补账；M4-A07/A08/A09 查询权限；完成禁止新执行",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "B 未集成（记录来源 APP/云台上传）；断网补传联调待办"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "APP 连接微晶并首次开始",
+    "req": "登记能力，当前人脸核验、方案/占用检查通过，确认微晶实际就绪后本地开始",
+    "apis": "M2-A04、M4-A03",
+    "deps": "D01、D06",
+    "id": "SC-07-01",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B",
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D06",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-08,CC-10）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A06 停止对账条件关闭/占用释放；未停止抢占拒绝；重复收尾/越权/已结束；M4-A07 恢复对账查询",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "APP 端侧控制属设备APP，真实联调待办；B 未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "APP 暂停或停止不等待后端",
+    "req": "端侧直接控制微晶，后端不转发控制指令；随后上传实际状态和次数",
+    "apis": "M4-A05、M4-A06",
+    "deps": "D06",
+    "id": "SC-07-02",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-08,CC-10）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A06 停止对账条件关闭/占用释放；未停止抢占拒绝；重复收尾/越权/已结束；M4-A07 恢复对账查询",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "APP 端侧控制属设备APP，真实联调待办；B 未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "APP 换人、断网与恢复同云台规则",
+    "req": "端侧连续性判断、断网缓存、失效后暂停/停止和在线重验分别验证；不能凭查看授权恢复",
+    "apis": "M4-A04、M4-A05",
+    "deps": "D06",
+    "id": "SC-07-03",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D06",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-08,CC-10）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A06 停止对账条件关闭/占用释放；未停止抢占拒绝；重复收尾/越权/已结束；M4-A07 恢复对账查询",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "APP 端侧控制属设备APP，真实联调待办；B 未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "实际停止后确认关闭并释放占用",
+    "req": "接收合法停止状态且记录对齐后关闭；只有已发送停止或状态未知时不释放占用",
+    "apis": "M4-A06",
+    "deps": "D05",
+    "id": "SC-07-04",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-08,CC-10）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A06 停止对账条件关闭/占用释放；未停止抢占拒绝；重复收尾/越权/已结束；M4-A07 恢复对账查询",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "APP 端侧控制属设备APP，真实联调待办；B 未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "未停止或对账未完成时申请抢占",
+    "req": "原执行占用保持，不允许另一控制端凭过期剩余量启动",
+    "apis": "M4-A03、M4-A06",
+    "deps": "D05",
+    "id": "SC-07-05",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-08,CC-10）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A06 停止对账条件关闭/占用释放；未停止抢占拒绝；重复收尾/越权/已结束；M4-A07 恢复对账查询",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "APP 端侧控制属设备APP，真实联调待办；B 未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "收尾重复、越权或原执行已结束",
+    "req": "合法重复确认不重复释放/计数；非原控制端拒绝；已关闭执行不重开",
+    "apis": "M4-A06",
+    "deps": "D04、D05",
+    "id": "SC-07-06",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04、D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-08,CC-10）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A06 停止对账条件关闭/占用释放；未停止抢占拒绝；重复收尾/越权/已结束；M4-A07 恢复对账查询",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "APP 端侧控制属设备APP，真实联调待办；B 未集成"
+  },
+  {
+    "prio": "P1",
+    "scope": "后端",
+    "title": "执行详情与恢复对账查询",
+    "req": "返回固定归属、已知状态及新鲜度、确认/关闭状态；只有合法控制端或授权 APP 可见",
+    "apis": "M4-A07",
+    "deps": "D05",
+    "id": "SC-07-07",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-08,CC-10）@8b3592e",
+    "applicability": "C 断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M4-A06 停止对账条件关闭/占用释放；未停止抢占拒绝；重复收尾/越权/已结束；M4-A07 恢复对账查询",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "APP 端侧控制属设备APP，真实联调待办；B 未集成"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "受控接口认证、对象隔离与输入有效性",
+    "req": "各受控 API 分别覆盖无效凭据、越权 ID、缺失/非法业务字段；拒绝时不产生业务写入或泄露去重结果",
+    "apis": "全部 27 个 API",
+    "deps": "D01、D04、D08",
+    "id": "SC-C-01",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B",
+      "C",
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01、D04、D08",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-11）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7 + A 基础设施断面 @26d97fb/f6e500e/561c338",
+    "applicability": "C 断面 + CD 链路断面 + 基础设施断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 入库与任务登记一致性；进程退出恢复；重复领取；M3-A01/M4-A01 异步任务；OSS 三类图片存储（A 替身）",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "真实 OSS 存储待办；SC-C-01 逐 API 隔离需逐包端点齐备（B 未集成）"
+  },
+  {
+    "prio": "P1",
+    "scope": "集成",
+    "title": "Web 入库与异步任务登记一致性",
+    "req": "模拟提交失败，业务状态与任务不能一边成功一边丢失；客户端重试仍遵循原请求去重",
+    "apis": "M3-A01、M3-A02、M4-A01",
+    "deps": "D07",
+    "id": "SC-C-02",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D07",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7 + A 基础设施断面 @26d97fb/f6e500e/561c338",
+    "applicability": "CD 链路断面 + 基础设施断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 入库与任务登记一致性；进程退出恢复；重复领取；M3-A01/M4-A01 异步任务；OSS 三类图片存储（A 替身）",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "真实 OSS 存储待办；SC-C-01 逐 API 隔离需逐包端点齐备（B 未集成）"
+  },
+  {
+    "prio": "P1",
+    "scope": "集成",
+    "title": "异步进程退出后恢复任务",
+    "req": "已入库任务不因进程退出丢失；超时任务按约定恢复，已完成结果不重复归档",
+    "apis": "M3-A03、M4-A01",
+    "deps": "D07",
+    "id": "SC-C-03",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D07",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7 + A 基础设施断面 @26d97fb/f6e500e/561c338",
+    "applicability": "CD 链路断面 + 基础设施断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 入库与任务登记一致性；进程退出恢复；重复领取；M3-A01/M4-A01 异步任务；OSS 三类图片存储（A 替身）",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "真实 OSS 存储待办；SC-C-01 逐 API 隔离需逐包端点齐备（B 未集成）"
+  },
+  {
+    "prio": "P1",
+    "scope": "集成",
+    "title": "重复领取/执行异步任务",
+    "req": "并发领取和失败重试不得产生重复报告、重复方案或重复业务通知",
+    "apis": "M3-A03、M4-A01、M5-A01",
+    "deps": "D07、D02",
+    "id": "SC-C-04",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "B",
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D07、D02",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7 + A 基础设施断面 @26d97fb/f6e500e/561c338",
+    "applicability": "CD 链路断面 + 基础设施断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 入库与任务登记一致性；进程退出恢复；重复领取；M3-A01/M4-A01 异步任务；OSS 三类图片存储（A 替身）",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "真实 OSS 存储待办；SC-C-01 逐 API 隔离需逐包端点齐备（B 未集成）"
+  },
+  {
+    "prio": "P1",
+    "scope": "集成",
+    "title": "OSS 三类图片存储与受控读取",
+    "req": "分别验证云台原图、APP 授权/核验照片、测肤结果图保存 OSS；PG 记录正确引用。重启后仍可读取；未授权账号/云台旧任务不能取图，上传或结果图保存失败不得伪报成功",
+    "apis": "M3-A01、M3-A02、M1-A01、M4-A03、M3-A05",
+    "deps": "D06、D07",
+    "id": "SC-C-05",
+    "group": "替身",
+    "matrix_scope": "集成",
+    "owner": [
+      "B",
+      "C",
+      "D"
+    ],
+    "automation_tier": "需替身",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为集成范围，业务实现集成后须经 A 适配端口接入 face/LLM/push/OSS 测试替身；涉及开发对接项：D06、D07",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-11）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-06）@aebccc7 + A 基础设施断面 @26d97fb/f6e500e/561c338",
+    "applicability": "C 断面 + CD 链路断面 + 基础设施断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M3-A01 入库与任务登记一致性；进程退出恢复；重复领取；M3-A01/M4-A01 异步任务；OSS 三类图片存储（A 替身）",
+    "doubles": "doubles_pass：D 提供方/A 存储受控替身；real_pass 需真实算法/OSS/大模型",
+    "gaps": "真实 OSS 存储待办；SC-C-01 逐 API 隔离需逐包端点齐备（B 未集成）"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "配网查询三种绑定状态和手动绑定",
+    "req": "未绑定显示按钮，已绑本人显示状态，已绑他人不可绑定但可联网；查询不产生绑定且不泄露他人账号资料",
+    "apis": "M2-A07、M2-A06",
+    "deps": "D01",
+    "id": "SC-R-01",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "查询未绑定后被其他账号抢先绑定",
+    "req": "提交绑定时再次原子校验；旧查询结果不能覆盖新的绑定",
+    "apis": "M2-A07、M2-A06",
+    "deps": "D01",
+    "id": "SC-R-02",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "原账号解绑后新账号绑定",
+    "req": "只有 A 可解除 A 的绑定；解除后 B 才可绑定；异常通知按新关系选取，不再通知 A",
+    "apis": "M2-A08、M2-A06、M5-A01",
+    "deps": "D01、D02",
+    "id": "SC-R-03",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D01、D02",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "解绑不改变成员资料和当前任务",
+    "req": "A 的原成员授权、报告、方案、K 保留；云台当前任务不因解绑变更，不发送微晶停止指令",
+    "apis": "M2-A08、M1-A02、M3-A06、M4-A08",
+    "deps": "—",
+    "id": "SC-R-04",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B",
+      "C",
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-02,CC-08,CC-10）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-05,CD-06）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "重复解绑与旧请求迟到",
+    "req": "重复解除已解除的自身关系不重复产生副作用；B 已建立新绑定后，A 的旧解绑请求不得解除 B",
+    "apis": "M2-A08、M2-A06",
+    "deps": "D04",
+    "id": "SC-R-05",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "B"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [
+      "B"
+    ],
+    "pending_reason": "B 未集成：关联 M1/M2/M5 端点当前为 501 NOT_IMPLEMENTED stub，端到端不可执行；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04",
+    "evidence": "无（B 未集成；CD-02 记录 11 端点 501）",
+    "applicability": "不适用（B 未集成，dependency_pending）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "断电重启恢复原任务",
+    "req": "后端恢复该云台唯一当前任务，可取得本次结果；不能浏览历史，不自动开始或恢复护理",
+    "apis": "M3-A06、M3-A03、M3-A05、M4-A03、M4-A04",
+    "deps": "D05",
+    "id": "SC-R-06",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C",
+      "D"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-02,CC-08,CC-10）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-05,CD-06）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "当前方案跨次继续且后端保存进度",
+    "req": "N=10、K=3；结束本次护理后下次核验同人，剩余7次；后端/云台重启不清零已上传 K",
+    "apis": "M3-A06、M4-A03、M4-A05、M4-A08",
+    "deps": "D05",
+    "id": "SC-R-07",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C",
+      "D"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-02,CC-08,CC-10）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-05,CD-06）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "新任务受理即替换、处理失败不回退",
+    "req": "乙新任务受理后当前指针立即变更；补拍或算法失败时仍指向乙，不恢复甲的旧任务",
+    "apis": "M3-A01、M3-A02、M3-A06",
+    "deps": "D07",
+    "id": "SC-R-08",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D07",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-05,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "未受理请求及旧提交重放",
+    "req": "无效提交未受理不替换；甲旧请求在乙任务受理后重试不重指向甲，也不泄露甲旧结果",
+    "apis": "M3-A01、M3-A06",
+    "deps": "D04",
+    "id": "SC-R-09",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D04",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-05,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "云台绕过界面访问旧报告/方案",
+    "req": "替换后直接使用旧 taskId/reportId/planId、旧执行申请重放、人脸核验均不能获取旧报告或执行方案；旧执行仅可最小对账",
+    "apis": "M3-A02、M3-A03、M3-A04、M3-A05、M4-A03、M4-A04、M4-A07、M4-A08",
+    "deps": "D01",
+    "id": "SC-R-10",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C",
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-02,CC-08,CC-10）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-05,CD-06）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "多人先后测肤后原使用者返回",
+    "req": "乙取代甲当前任务后，甲在云台须重测；甲已授权 APP 仍能查旧资料并继续原方案，进度不丢失",
+    "apis": "M3-A06、M3-A01、M3-A04、M4-A01、M4-A03",
+    "deps": "—",
+    "id": "SC-R-11",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C",
+      "D"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-02,CC-08,CC-10）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-05,CD-06）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "联调",
+    "title": "护理未结束禁止新测肤",
+    "req": "运行/暂停/停止未确认/对账未完成时不受理新测肤；用户先结束并完成收尾后允许，不要求 K 达到 N，不自动中断护理",
+    "apis": "M3-A01、M4-A05、M4-A06",
+    "deps": "D05",
+    "id": "SC-R-12",
+    "group": "设备APP",
+    "matrix_scope": "联调",
+    "owner": [
+      "C",
+      "D"
+    ],
+    "automation_tier": "需真实设备或APP",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为联调范围，还需真实云台/微晶/APP 参与，模拟通过不能替代；涉及开发对接项：D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-02,CC-08,CC-10）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-05,CD-06）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "real_pass 前提：真实云台/APP+B 端到端；当前仅 test_seed/doubles_pass 上限",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P0",
+    "scope": "后端",
+    "title": "新测肤与新执行并发请求",
+    "req": "当前任务替换、原执行检查、新执行登记保持一致，不出现新任务已替换但旧方案又启动的矛盾状态",
+    "apis": "M3-A01、M4-A03、M3-A06",
+    "deps": "D05",
+    "id": "SC-R-13",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "C",
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D05",
+    "evidence": "C-acceptance-2026-09-11-8b3592e/E-AB-20260911T111832Z-28c4994f（CC-02,CC-08,CC-10）@8b3592e + CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-05,CD-06）@aebccc7",
+    "applicability": "C 断面 + CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  },
+  {
+    "prio": "P1",
+    "scope": "后端",
+    "title": "无当前任务与非本云台请求恢复",
+    "req": "无任务明确返回空状态；其他云台/APP 不能冒充该云台从恢复接口获取结果，不自动创建测肤任务",
+    "apis": "M3-A06",
+    "deps": "D01",
+    "id": "SC-R-14",
+    "group": "后端可自动",
+    "matrix_scope": "后端",
+    "owner": [
+      "D"
+    ],
+    "automation_tier": "现在可自动",
+    "blocked_by": [],
+    "pending_reason": "C/D 已集成（C=8b3592e、D=dc955c0 @ merged aebccc7）；场景级 E2E 步骤待 E 独立验收（见 backend/handoffs/E-CD-acceptance.md）；本场景为后端 HTTP 范围，业务实现集成后可直接黑盒自动执行；涉及开发对接项：D01",
+    "evidence": "CD-chain-2026-09-11-aebccc7/E-CD-20260911T102848Z-73a69cce（CD-03,CD-05,CD-06）@aebccc7",
+    "applicability": "CD 链路断面（全部 doubles_pass/test_seed，非场景级 real_pass）",
+    "backend_steps": "M2-A06/A07/A08 绑定解绑原子性（B 未集成）；M3-A06 当前任务替换/断电恢复；M4-A03/A04/A05/A08 跨次继续/旧请求重放/并发新测肤",
+    "doubles": "doubles_pass：真实 PG/Java（E 专用 55433/18081），无外部设备；real_pass 仍需真实端到端",
+    "gaps": "M1/M2/M3-A06 部分属 B/D 未集成；真实断电重启联调待办；OAS 13 待裁定"
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions/None/observations",
+  "status": 400,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "continuity": false
+  },
+  "response_excerpt": "{\"requestId\": \"1d1a05b8-8f66-44de-b72c-e19cbeeb3692\", \"error\": {\"code\": \"INVALID_INPUT\", \"message\": \"invalid request input\", \"retryable\": false, \"details\": {\"reason\": \"bad_parameter:executionId\"}}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T082605Z-3493e889"
+}

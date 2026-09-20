@@ -1,0 +1,183 @@
+# 版本：见 pom.xml 顶部注释与 backend/deploy/README.md VERSIONS 节。
+# 数据源、端口、Flyway 全部 env 可覆盖；dev 默认指向隔离容器 mvp-a-pg。
+# profiles：dev(默认，测试替身) / test / prod(app.env=production → fail closed)。
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: web-java
+  profiles:
+    # 无显式 profile 启动（本地 jar）= dev：使用隔离测试替身；prod 部署必须显式
+    # SPRING_PROFILES_ACTIVE=prod（app.env=production → fail closed 校验）
+    default: dev
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://127.0.0.1:55432/mvp_a_dev}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:mvp_a_local}
+    hikari:
+      pool-name: web-hikari
+      maximum-pool-size: ${DB_POOL_MAX:10}
+      minimum-idle: ${DB_POOL_MIN:2}
+      connection-timeout: 10000
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+  jackson:
+    deserialization:
+      # 未知业务写字段拒绝（DD 3.1 建议：防拼错字段静默成功）→ 400 INVALID_INPUT
+      fail-on-unknown-properties: true
+  servlet:
+    multipart:
+      # 开发初值：单图 10MiB（DD 12.1）；三图 32MiB 为 B/C/D 批次校验位
+      max-file-size: ${SPRING_MULTIPART_MAX_FILE_SIZE:10MB}
+      max-request-size: ${SPRING_MULTIPART_MAX_REQUEST_SIZE:32MB}
+
+management:
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    redis:
+      # 默认关闭：未配置 Redis 的环境（CI、doubles 隔离测试、其他包联调）不应因
+      # RedisHealthIndicator 让 /actuator/health 变 DOWN。app.state.provider=redis 的部署
+      # 应显式置 true，让健康端点覆盖 Redis（这是一处如实披露的取舍，见
+      # backend/handoffs/B-redis-state-migration.md §7.3）。
+      enabled: ${APP_REDIS_HEALTH_ENABLED:false}
+    group:
+      liveness:
+        include: livenessState
+      readiness:
+        include: readinessState,db
+
+# —— API 文档（B 包 Swagger/springdoc）——
+# fail closed 默认关闭：仅 dev/test profile 覆盖为 true；prod 保持 false。
+# DocsProductionGuard 始终注册，按运行时生产信号（prod profile 或 app.env=production）
+# 对任一开关被开启的情况 fail-closed（不因 app.env 被覆盖而绕过）。
+# 文档端点 /v3/api-docs、/swagger-ui/** 不以 /api/ 开头，天然不被
+# BearerAuthFilter（web/auth/BearerAuthFilter.java:68）拦截，无需改鉴权。
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# —— 应用配置（全部 env 可覆盖）——
+app:
+  # 环境标记：对象 key 前缀 + prod fail-closed 开关（prod profile 置 production）
+  env: ${APP_ENV:dev}
+  providers:
+    # doubles=隔离测试替身(仅 dev/test)；disabled=能力显式关闭→503；real=真实实现
+    mode: ${APP_PROVIDERS_MODE:doubles}
+  state:
+    # 会话（access/refresh）与阿里云短信状态（challenge/核销/尝试计数/限流）的存储后端。
+    # memory=进程内实现，仅供隔离测试与 doubles；redis=跨实例一致、重启不丢，联调与真实
+    # provider 必须用它。生产信号 + app.providers.mode=real 下选 memory 会被
+    # StateStoreConfigGuard 明确拒绝启动（fail closed），不存在内存兜底路径。
+    provider: ${APP_STATE_PROVIDER:memory}
+    redis:
+      # 所有键的命名空间前缀。测试一律用独立随机前缀隔离，清理只删自己前缀（绝不 FLUSHDB）。
+      # 连接参数一律用 Spring Boot 标准 spring.data.redis.*（host/port/password/database/
+      # timeout/connect-timeout/url），本文件不写具体值以免与根的私有 YAML 冲突。
+      # 注意：Redis Cluster 本轮**不支持**（多键 Lua 无共同 hash tag ⇒ 运行期 CROSSSLOT），
+      # 配置 spring.data.redis.cluster.nodes 会被 StateStoreConfigGuard 拒绝启动；
+      # standalone 与 sentinel 均可。
+      key-prefix: ${APP_STATE_REDIS_KEY_PREFIX:mvp:b:}
+    # 安全门（**刻意不提供任何公开运行时开关**）：app.sms.provider=aliyun 搭配内存状态后端会被
+    # StateStoreConfigGuard **无条件拒绝启动**，因为联调与真实 provider 必须跨实例一致
+    # （否则一次性核销与限流会退化为单进程语义、且重启即失效）。
+    # 单元测试改为**不加载该守卫**（直接构造 fake gateway + 内存 store），而不是让生产配置
+    # 为测试开一个一致性后门——这是 Oracle 第二十七轮的裁定，orchestrator 采纳并撤销了
+    # 自己先前引入的 app.state.allow-in-memory-with-real-sms 逃生门。
+  storage:
+    # 共享存储替身根目录（与 Python worker MVP_A_STORAGE_DEV_DIR 同名可共用）；
+    # 布局约定 = <root>/<object_key> 原样（两侧 double 完全一致）
+    dev-dir: ${APP_STORAGE_DEV_DIR:${MVP_A_STORAGE_DEV_DIR:/tmp/mvp-a-storage}}
+    bucket: ${APP_STORAGE_BUCKET:mvp-a-media}
+  limits:
+    image-max-bytes: ${APP_IMAGE_MAX_BYTES:10485760}
+  idempotency:
+    lease-seconds: ${APP_IDEMPOTENCY_LEASE_SECONDS:30}
+  media:
+    # 生产安全默认 deny-all（任何媒体 GET 统一 404，直到 B/C/D @Primary 业务策略）。
+    # dev/test 可用 owner-dev（仅上传者本人，核验用途仍拒绝）或 any-authenticated
+    # 显式开放。app.env=production 下任何非默认模式 / allow-any=true 拒绝启动。
+    access-mode: ${APP_MEDIA_ACCESS_MODE:deny-all}
+    allow-any-authenticated: ${APP_MEDIA_ALLOW_ANY_AUTHENTICATED:false}
+  jobs:
+    # JobEnqueuer 写 async_jobs.max_attempts 的默认值（与 worker 退避/上限语义对齐）
+    max-attempts: ${JOB_MAX_ATTEMPTS:5}
+  testdouble:
+    sms:
+      fixed-code: ${APP_DOUBLE_SMS_CODE:123456}
+    face:
+      classification: ${APP_DOUBLE_FACE:MATCHED}
+  gimbal-ai:
+    # 云台 AI 文本透传（POST /api/v1/gimbal-ai/messages，SSE 响应 → AI 服务
+    # /internal/v1/ai/responses:stream）。安全占位：默认空 = 未配置 → 非生产运行时 503
+    # DEPENDENCY_UNAVAILABLE；生产信号下启动 fail-closed。真实 base-url 与 api-key 一律由
+    # 部署环境经 env 注入，绝不写入仓库。
+    base-url: ${APP_GIMBAL_AI_BASE_URL:}
+    api-key: ${APP_GIMBAL_AI_API_KEY:}
+    connect-timeout-millis: ${APP_GIMBAL_AI_CONNECT_TIMEOUT_MILLIS:3000}
+    read-timeout-millis: ${APP_GIMBAL_AI_READ_TIMEOUT_MILLIS:10000}
+  report-narration:
+    # M3-A07 报告播报真实接入（POST /internal/v1/weijing/reports/assess:stream）。
+    # 安全占位：默认空 = 未配置 → 非生产运行时 503 DEPENDENCY_UNAVAILABLE；
+    # 生产信号下启动 fail-closed。真实 base-url 与 api-key 一律由部署环境经 env 注入，绝不写入仓库。
+    base-url: ${APP_REPORT_NARRATION_BASE_URL:}
+    api-key: ${APP_REPORT_NARRATION_API_KEY:}
+    connect-timeout-millis: ${APP_REPORT_NARRATION_CONNECT_TIMEOUT_MILLIS:3000}
+    read-timeout-millis: ${APP_REPORT_NARRATION_READ_TIMEOUT_MILLIS:30000}
+
+logging:
+  pattern:
+    # 结构化关联：requestId 由 RequestIdFilter 写入 MDC（DD 12.2；不打 token/验证码）
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'} level=%-5level requestId=%X{requestId} logger=%logger{28} msg=%replace(%msg){'[\r\n]+',' '}%ex{short}%n"
+  level:
+    cn.yuanxin.mvp.web: INFO
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+app:
+  env: test
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+app:
+  env: production          # 触发 ProductionFailClosedValidator
+  providers:
+    mode: real             # 必须提供真实实现 bean，否则启动失败
+  state:
+    provider: redis        # 生产必须跨实例一致；memory 会被 StateStoreConfigGuard 拒绝
+springdoc:
+  api-docs:
+    enabled: false         # 生产显式关闭（DocsProductionGuard 兜底 fail-closed）
+  swagger-ui:
+    enabled: false

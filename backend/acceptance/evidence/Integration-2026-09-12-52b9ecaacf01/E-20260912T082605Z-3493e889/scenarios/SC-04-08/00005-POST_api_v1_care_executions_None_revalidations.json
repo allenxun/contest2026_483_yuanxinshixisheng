@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions/None/revalidations",
+  "status": 400,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "original": true
+  },
+  "response_excerpt": "{\"requestId\": \"5b2daa5d-fcb7-498b-b80d-d6bc07d85bea\", \"error\": {\"code\": \"INVALID_INPUT\", \"message\": \"invalid request input\", \"retryable\": false, \"details\": {\"reason\": \"bad_parameter:executionId\"}}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T082605Z-3493e889"
+}

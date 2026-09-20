@@ -1,0 +1,12 @@
+{
+  "method": "GET",
+  "path": "/api/v1/care-executions/af113123-9934-485d-81d0-f8b628f48d5e",
+  "status": 200,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": null,
+  "response_excerpt": "{\"requestId\": \"42fb6bd8-e23f-453f-bb22-cd6412475d2d\", \"data\": {\"executionId\": \"af113123-9934-485d-81d0-f8b628f48d5e\", \"status\": \"admitted\", \"controller\": {\"controllerType\": \"app_account\", \"installationId\": \"e-inst-s002\", \"gimbalId\": null}, \"memberId\": \"fef4659c-8127-49af-a91f-69a4da32fb5f\", \"planId\": \"499234be-5943-4826-89b8-bed81319c2b2\", \"microcrystalId\": \"c56dc10a-142f-4275-9191-578366fa1c63\", \"acceptedCount\": \"0\", \"latestObservation\": null, \"recordWatermark\": {\"epoch\": \"af113123-9934-485d-81d0-f8b628f48d5e\", \"maxSourceSeq\": \"0\", \"acceptedCount\": \"0\"}, \"acknowledgedRecordIds\": null, \"closedAt\": null, \"progress\": {\"targetCount\": \"30\", \"completedCount\": \"0\", \"remainingCount\": \"30\", \"isCompleted\": false, \"progressRevision\": \"0\", \"completedAt\": null}}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-12T12:59:31Z\"}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T124410Z-e13f8055"
+}

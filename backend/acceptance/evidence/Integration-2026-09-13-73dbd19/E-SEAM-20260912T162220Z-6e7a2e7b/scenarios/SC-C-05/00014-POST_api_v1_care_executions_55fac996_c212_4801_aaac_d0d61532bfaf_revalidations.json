@@ -1,0 +1,15 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions/55fac996-c212-4801-aaac-d0d61532bfaf/revalidations",
+  "status": 503,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "inject": "fail-put:revalidation_face",
+    "purpose": "revalidation_face"
+  },
+  "response_excerpt": "{\"requestId\": \"d59d31d0-4b3b-4f22-bb2e-875efa077ed0\", \"error\": {\"code\": \"DEPENDENCY_UNAVAILABLE\", \"message\": \"storage write failed\", \"retryable\": true}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-SEAM-20260912T162220Z-6e7a2e7b"
+}

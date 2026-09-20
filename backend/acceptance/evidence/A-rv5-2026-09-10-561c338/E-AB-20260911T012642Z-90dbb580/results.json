@@ -1,0 +1,119 @@
+{
+  "schema": "e-acceptance-a-rv5/1",
+  "run_id": "E-AB-20260911T012642Z-90dbb580",
+  "mode": "rv5-reverify",
+  "scope": "PARTIAL (RV5-1..RV5-8)",
+  "a_candidate": {
+    "code": "561c338137aaa1da7c8e00969da3c5381207b194",
+    "report": "5ae53b6",
+    "dev": "9b3e4a1",
+    "integrated": "e1d54b92e8b6b20a1e1b5631cc17be95b8d5e2a1"
+  },
+  "expected": 10,
+  "settled": 10,
+  "missing": [],
+  "extra": [],
+  "duplicates": [],
+  "unknown_status": [],
+  "counts": {
+    "pass": 10,
+    "fail": 0,
+    "blocked": 0,
+    "info": 0
+  },
+  "counts_sum": 10,
+  "rows": 10,
+  "final_exit": 0,
+  "results": [
+    {
+      "id": "RV5-1",
+      "title": "从当前源码重建：A 源码==561c338（git diff 空）+ mvn 重建 jar + 启动健康；未用镜像",
+      "status": "PASS",
+      "command": "git diff 561c338 -- web-java worker-python contracts; mvn -DskipTests package; java -jar",
+      "rc": 0,
+      "excerpt": "diff_empty=True HEAD=cce397560ef3 jar=web-java-0.0.1-SNAPSHOT.jar sha256[:16]=c12077b9a8f42924 health_up=True；同源各自重建，jar 哈希可能因构建元数据不同而非字节一致",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV5-2",
+      "title": "GET 创建者可见 + 泄漏点抽查回归：jobId 关联 + 投影仅 closed enum，合成 marker/原始 code 缺席",
+      "status": "PASS",
+      "command": "POST echo → 创建者 GET（jobId 断言）+ SQL marker → GET",
+      "rc": "200/200",
+      "excerpt": "creator=jobId 匹配; lastError=None | marker_seed_rows=1 | jobId 匹配; lastError={'reason': 'internal', 'retryable': True}",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV5-3",
+      "title": "GET 三态统一 404 不可区分：外来/不存在/非 echo——完整公开响应（仅排除 requestId）规范化等值 + 全态无归属/类型/payload 泄露 + 种子回查",
+      "status": "PASS",
+      "command": "三态 GET + 完整 body 规范化逐字节比较 + INSERT RETURNING 回查",
+      "rc": "404/404/404",
+      "excerpt": "accounts_differ=True s1_valid=True s2_valid=True status=404/404/404 public_body_equal=True forbidden_hit=[] seed_ok=True(rows=1) back=51d0e105-2a2c-4beb-9ea3-5e830d4a7245|rv5.non-echo|8ba2d082-0fd9-43e2-a65d-1a56d4ca26dd codes_ok=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV5-4",
+      "title": "未认证/伪造凭据 → 401（基本错误信封检查，非严格 schema）",
+      "status": "PASS",
+      "command": "GET echo job 无 token/伪造 token",
+      "rc": "401/401",
+      "excerpt": "no-token=401/AUTH_REQUIRED forged=401/SESSION_INVALID",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV5-5",
+      "title": "POST dedup 碰撞矩阵（①无键 404 ②keyed 404+T13 rejected ③重放同一拒绝+T13 复验 ④SELECT * 全字段行不变 ⑤无 B 属行 ⑥同主体正例）：统一完整拒绝体等值+防投影",
+      "status": "PASS",
+      "command": "A 显式 body.jobId 建 job → B 同 jobId 无键/keyed 碰撞/重放 + SQL 查证",
+      "rc": "404/404/404/200",
+      "excerpt": "worker_running_during_window=False（本项不启 worker，无并发修改） | no-key: 404/RESOURCE_NOT_VISIBLE | keyed#1: 404 t13=rejected|RESOURCE_NOT_VISIBLE | keyed#2: 404 t13_replay=rejected|RESOURCE_NOT_VISIBLE | deny_body_equal=True forbidden_hit=[] | A_row_full_snapshot_unchanged=True B_owned_rows=0 | positive_replay: 200 same_job=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV5-6",
+      "title": "有界严格响应契约：成功投影走严格 schema（validate_responses）+ selftest 10/10 + samples 50 + OpenAPI；404/401 仅基本信封检查（如实分类）",
+      "status": "PASS",
+      "command": "validate_responses <200 捕获>; --selftest; validate_samples; openapi_spec_validator",
+      "rc": "0/1",
+      "excerpt": "selftest=True samples=True(50) oas=True captured_200_strict=True | 404/401=基本信封检查: 2Z-90dbb580/logs/responses/rv5-6-1.json ok /home/lousuan/lansee/openvela/conte",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV5-7",
+      "title": "已接受限制披露：全局 dedup availability-oracle（碰撞 404 vs 新键 200 仅揭示 dedup 键不可用；完整 POST 存在性不可区分=单独决策，A 未决项 11）",
+      "status": "PASS",
+      "command": "读 decisions-notes.md §11 + A.md 核对该披露",
+      "rc": "0",
+      "excerpt": "decisions_dedup_boundary=True A_md_availability_oracle=True",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "RV5-8",
+      "title": "历史证据台账+SHA 适用范围：既有基础/定向证据存在；f6e500e..561c338 未改 9 处消费点文件 → f6e500e 复核台账仍适用（组合意见=本次有限验证+历史证据）",
+      "status": "PASS",
+      "command": "检查证据目录存在 + git diff --name-only f6e500e 561c338",
+      "rc": 0,
+      "excerpt": "dirs={'A-baseline-2026-09-10': True, 'A-reverify-2026-09-10': True} changed_files=15 consumption_point_files=[]",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CLEANUP",
+      "title": "停进程并按 run 标签删除 mvp-e-pg",
+      "status": "PASS",
+      "command": "docker rm -f -v",
+      "rc": "0",
+      "excerpt": "",
+      "doubles": "doubles_pass"
+    },
+    {
+      "id": "CLEANUP-ports",
+      "title": "端口释放",
+      "status": "PASS",
+      "command": "ss",
+      "rc": "0",
+      "excerpt": "",
+      "doubles": "doubles_pass"
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram id="runtime-components" name="01 · 五个运行组件与外部系统">
+    <mxGraphModel page="1" pageWidth="1900" pageHeight="1890" grid="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="运行组件图｜5 个组件（含 OSS）+ 外部系统" vertex="1" parent="1" style="text;html=1;fontSize=36;fontStyle=1;">
+          <mxGeometry as="geometry" x="40" y="20" width="1800" height="80" />
+        </mxCell>
+        <mxCell id="backend_boundary" value="" vertex="1" parent="1" style="rounded=1;dashed=1;fillColor=#f6f8fc;html=1;">
+          <mxGeometry as="geometry" x="450" y="160" width="980" height="1010" />
+        </mxCell>
+        <mxCell id="scope" value="自建服务范围 · OSS 为独立托管存储" vertex="1" parent="1" style="text;html=1;fontSize=28;">
+          <mxGeometry as="geometry" x="470" y="165" width="940" height="60" />
+        </mxCell>
+        <mxCell id="nginx" value="«component»&lt;br&gt;Nginx&lt;br&gt;HTTPS 入口 / 请求转发&lt;br&gt;托管静态页面" vertex="1" parent="backend_boundary" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+          <mxGeometry as="geometry" x="40" y="120" width="350" height="190" />
+        </mxCell>
+        <mxCell id="web" value="«component»&lt;br&gt;Java Web 后端&lt;br&gt;36 个 HTTP 操作&lt;br&gt;鉴权 / 绑定 / 核验 / 记录" vertex="1" parent="backend_boundary" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+          <mxGeometry as="geometry" x="560" y="120" width="350" height="190" />
+        </mxCell>
+        <mxCell id="pg" value="«database»&lt;br&gt;PostgreSQL（PG）&lt;br&gt;业务状态 / 当前任务 / N/K&lt;br&gt;图片对象引用与归属，不存图片文件" vertex="1" parent="backend_boundary" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+          <mxGeometry as="geometry" x="40" y="610" width="350" height="190" />
+        </mxCell>
+        <mxCell id="worker" value="«component»&lt;br&gt;Python 异步 Worker&lt;br&gt;分析 / 方案 / 离线监测&lt;br&gt;通知投递与重试" vertex="1" parent="backend_boundary" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+          <mxGeometry as="geometry" x="560" y="610" width="350" height="190" />
+        </mxCell>
+        <mxCell id="app" value="«external client»&lt;br&gt;手机 APP&lt;br&gt;账号登录 / 配网与绑定&lt;br&gt;查看资料 / 控制微晶" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+          <mxGeometry as="geometry" x="35" y="280" width="310" height="190" />
+        </mxCell>
+        <mxCell id="gimbal" value="«external device»&lt;br&gt;云台&lt;br&gt;独立认证 / 心跳 / 拍照&lt;br&gt;人脸追踪 / 控制微晶" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+          <mxGeometry as="geometry" x="35" y="670" width="310" height="190" />
+        </mxCell>
+        <mxCell id="micro" value="«external device»&lt;br&gt;微晶&lt;br&gt;执行护理 / 反馈实际次数" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+          <mxGeometry as="geometry" x="35" y="1040" width="310" height="160" />
+        </mxCell>
+        <mxCell id="algo" value="«external service»&lt;br&gt;算法服务&lt;br&gt;人脸匹配 / 照片质量&lt;br&gt;测肤分析" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+          <mxGeometry as="geometry" x="1510" y="280" width="340" height="190" />
+        </mxCell>
+        <mxCell id="llm" value="«external service»&lt;br&gt;大模型服务&lt;br&gt;生成方案与目标次数 N" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+          <mxGeometry as="geometry" x="1510" y="710" width="340" height="170" />
+        </mxCell>
+        <mxCell id="push" value="«external service»&lt;br&gt;阿里移动推送（未接入）&lt;br&gt;向绑定账号 APP 投递" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=27;">
+          <mxGeometry as="geometry" x="1510" y="1060" width="340" height="160" />
+        </mxCell>
+        <mxCell id="app_http" source="app" target="nginx" value="HTTPS · API / APP 拍照上传" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=1;exitY=.5;entryX=0;entryY=.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="gimbal_http" source="gimbal" target="nginx" value="HTTPS · API / 云台拍照上传" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=1;exitY=.5;entryX=0;entryY=.68;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="405" y="765" />
+              <mxPoint x="405" y="410" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="proxy" source="nginx" target="web" value="HTTP · 转发请求" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=1;exitY=.5;entryX=0;entryY=.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="web_pg" source="web" target="pg" value="SQL · 业务写入 + 任务入库" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=.5;exitY=1;entryX=.5;entryY=0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1185" y="555" />
+              <mxPoint x="665" y="555" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="worker_pg" source="worker" target="pg" value="SQL · 领取任务 / 回写结果" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=0;exitY=.5;entryX=1;entryY=.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="web_algo" source="web" target="algo" value="请求时人脸核验" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=1;exitY=.5;entryX=0;entryY=.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="worker_algo" source="worker" target="algo" value="异步测肤分析" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=1;exitY=.35;entryX=0;entryY=.8;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1465" y="835" />
+              <mxPoint x="1465" y="435" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="worker_llm" source="worker" target="llm" value="生成方案 / 校验后入库" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=1;exitY=.6;entryX=0;entryY=.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="worker_push" source="worker" target="push" value="通知请求 / 结果与重试" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=1;exitY=.7;entryX=0;entryY=.5;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1380" y="903" />
+              <mxPoint x="1380" y="1140" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="push_app" source="push" target="app" value="系统推送 → 有效通知目标" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=0;exitY=.65;entryX=0;entryY=.7;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1470" y="1260" />
+              <mxPoint x="15" y="1260" />
+              <mxPoint x="15" y="410" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="app_pair" source="app" target="gimbal" value="本地协助联网" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=.3;exitY=1;entryX=.3;entryY=0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="gimbal_control" source="gimbal" target="micro" value="本地控制 / 次数反馈" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=.5;exitY=1;entryX=.5;entryY=0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="app_control" source="app" target="micro" value="APP 本地控制微晶" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;fontSize=23;exitX=1;exitY=.8;entryX=1;entryY=.5;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="365" y="432" />
+              <mxPoint x="365" y="1120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="notes" value="OSS 保存云台/APP 拍照上传的图片，以及测肤结果中的图片；PG 保存图片引用和业务归属。&lt;br&gt;图示经 Web 接收并写入 OSS、异步程序归档结果图；直传方式由实施设计确定。&lt;br&gt;图片访问检查成员授权或云台当前任务；APP 上传核验照片不等于开放 APP 测肤。" vertex="1" parent="1" style="text;whiteSpace=wrap;html=1;fontSize=27;">
+          <mxGeometry as="geometry" x="60" y="1690" width="1790" height="170" />
+        </mxCell>
+        <mxCell id="oss" value="«managed storage»&lt;br&gt;OSS 对象存储&lt;br&gt;云台 / APP 上传照片&lt;br&gt;测肤结果图片" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=30;">
+          <mxGeometry as="geometry" x="720" y="1360" width="550" height="235" />
+        </mxCell>
+        <mxCell id="web_oss" source="web" target="oss" value="写入上传照片 / 受控读取" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;exitX=0;exitY=1;entryX=.25;entryY=0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="930" y="430" />
+              <mxPoint x="930" y="1300" />
+              <mxPoint x="850" y="1300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="worker_oss" source="worker" target="oss" value="读取原图 / 保存测肤结果图" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;exitX=.83;exitY=1;entryX=.75;entryY=0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1300" y="1020" />
+              <mxPoint x="1390" y="1020" />
+              <mxPoint x="1390" y="1320" />
+              <mxPoint x="1130" y="1320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

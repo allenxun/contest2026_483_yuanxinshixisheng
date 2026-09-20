@@ -1,0 +1,5 @@
+dev+bound positive(attempt 1): A03=201 T07_created=True
+prod-only: rc=1 refused=True sig=real-provider-required evidence='2026-09-11T19:23:48.705Z level=ERROR requestId= logger=o.s.b.d.LoggingFailureAnalysisReporter msg= *************************** APPLICATION FAILED TO START *************************** Description: Parameter 0 of construct'
+prod,dev+bound: rc=1 refused=True sig=real-provider-required evidence='2026-09-11T19:23:52.323Z level=ERROR requestId= logger=o.s.b.d.LoggingFailureAnalysisReporter msg= *************************** APPLICATION FAILED TO START *************************** Description: Parameter 0 of construct'
+dev+APP_ENV=production: rc=1 refused=True sig=ProductionFailClosedValidator evidence='at cn.yuanxin.mvp.web.config.ProductionFailClosedValidator.afterSingletonsInstantiated(ProductionFailClosedValidator.java:64)'
+dev+invalid-bound: rc=1 refused=True sig=uuid_parse_failfast evidence='at cn.yuanxin.mvp.web.care.MemberBindingFaceDouble.parseConfiguredMember(MemberBindingFaceDouble.java:54)'

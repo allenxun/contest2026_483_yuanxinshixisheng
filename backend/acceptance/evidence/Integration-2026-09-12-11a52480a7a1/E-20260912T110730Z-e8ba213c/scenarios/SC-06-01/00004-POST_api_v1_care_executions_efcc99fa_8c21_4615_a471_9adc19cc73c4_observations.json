@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions/efcc99fa-8c21-4615-a471-9adc19cc73c4/observations",
+  "status": 200,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "records": "1..9"
+  },
+  "response_excerpt": "{\"requestId\": \"b61f1d40-c597-41dc-89e0-940d590c6387\", \"data\": {\"acknowledgedRecords\": [{\"recordId\": \"r-efcc99fa-1\", \"disposition\": \"accepted\", \"rejectReason\": null}, {\"recordId\": \"r-efcc99fa-2\", \"disposition\": \"accepted\", \"rejectReason\": null}, {\"recordId\": \"r-efcc99fa-3\", \"disposition\": \"accepted\", \"rejectReason\": null}, {\"recordId\": \"r-efcc99fa-4\", \"disposition\": \"accepted\", \"rejectReason\": null}, {\"recordId\": \"r-efcc99fa-5\", \"disposition\": \"accepted\", \"rejectReason\": null}, {\"recordId\": \"r-efcc99fa-6\", \"disposition\": \"accepted\", \"rejectReason\": null}, {\"recordId\": \"r-efcc99fa-7\", \"disposition\": \"accepted\", \"rejectReason\": null}, {\"recordId\": \"r-efcc99fa-8\", \"disposition\": \"accepted\", \"rejectReason\": null}, {\"recordId\": \"r-efcc99fa-9\", \"disposition\": \"accepted\", \"rejectReason\": null}], \"executionStatus\": \"running\", \"acceptedCount\": \"9\", \"progress\": {\"targetCount\": \"10\", \"completedCount\": \"9\", \"remainingCount\": \"1\", \"isCompleted\": false, \"progressRevision\": \"1\", \"completedAt\": null}}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-12T11:13:52Z\"}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T110730Z-e8ba213c"
+}

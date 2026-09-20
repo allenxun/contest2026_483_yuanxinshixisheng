@@ -1,0 +1,15 @@
+{
+  "method": "POST",
+  "path": "/api/v1/microcrystal-observations",
+  "status": 400,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "serial": "mc-dd12a501",
+    "valid": true
+  },
+  "response_excerpt": "{\"requestId\": \"2123b3e6-8ae0-47a5-8c45-5f4814e4d627\", \"error\": {\"code\": \"INVALID_INPUT\", \"message\": \"capabilities.revision must be an unsigned decimal bigint string\", \"retryable\": false}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T074915Z-7de3a5dc"
+}

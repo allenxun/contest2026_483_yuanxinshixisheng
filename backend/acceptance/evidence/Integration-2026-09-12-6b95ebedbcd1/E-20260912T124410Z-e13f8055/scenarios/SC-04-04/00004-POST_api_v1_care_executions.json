@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/v1/care-executions",
+  "status": 201,
+  "request_id": "",
+  "request_headers": {},
+  "request_json": {
+    "concurrent": "b"
+  },
+  "response_excerpt": "{\"requestId\": \"708b6668-ff39-4ba7-bc96-e51532a96db9\", \"data\": {\"executionId\": \"0b9fdd51-d73a-46e5-98b4-e8e86d4f9f67\", \"status\": \"admitted\", \"controller\": {\"controllerType\": \"app_account\", \"installationId\": \"e-inst-sc0404b\", \"gimbalId\": null}, \"memberId\": \"4838364c-00d1-4107-8341-d81df499189d\", \"planId\": \"abc3a0ea-fc14-499a-a2bd-e2a0f76da045\", \"planExecution\": {\"steps\": [{\"region\": \"forehead\", \"parameters\": {\"duration\": 120, \"intensity\": 40}}, {\"region\": \"left_cheek\", \"parameters\": {\"duration\": 90, \"intensity\": 30}}]}, \"progress\": {\"targetCount\": \"30\", \"completedCount\": \"0\", \"remainingCount\": \"30\", \"isCompleted\": false, \"progressRevision\": \"0\", \"completedAt\": null}, \"verification\": {\"verificationRevision\": \"1\", \"captureId\": \"eb2e75a1-6d62-41bf-984d-fe0fb0cbd2fe\", \"clientContinuityId\": \"cc-1\", \"verifiedAt\": \"2026-09-12T12:48:23Z\", \"validUntil\": null, \"applicablePurpose\": \"admission\", \"replayed\": false}, \"recordStreamEpoch\": \"0b9fdd51-d73a-46e5-98b4-e8e86d4f9f67\"}, \"meta\": {\"replayed\": false, \"serverTime\": \"2026-09-12T12:48:23Z\"}}",
+  "started_at": 0.0,
+  "elapsed_ms": 0.0,
+  "run_id": "E-20260912T124410Z-e13f8055"
+}
