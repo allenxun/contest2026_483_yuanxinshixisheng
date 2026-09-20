@@ -41,11 +41,17 @@ test.gpu2 上对**真实运行服务**活体取证，**不猜测**）：
   旧指标/结果图/叙述/四区。
 - **生命周期**：同内容的多次提交共享同一目录，每次提交在 ``.submissions/{nonce}.json``
   留下**一条独立所有权记录**（POST 前 ``submitting``，拿到 ack 后原子升级为 ``queued``+
-  queue_id；O_EXCL 独占创建 → 无读改写、无需跨进程锁）。``analyze`` **绝不删除**目录：
-  任一 queue 条目的终态都不能证明兄弟条目已取图。唯一清理路径是独立 reaper——仅当该目录
-  **全部**记录都是 ``queued`` 且**每个** queue_id 都被远端确认终态时才精确删除；存在
-  ``submitting``、记录缺失/不可读、或任一 queue 未终态 → ``unresolved`` 保留。**绝不按
-  TTL 猜删**。持久轮转游标防止永久未决目录饿死后面的可清理目录；reaper 需按部署周期运行。
+  queue_id；O_EXCL 独占创建 → 无读改写、无需跨进程锁）。清理分两级：
+  ①**就地清理**——``analyze`` 确认回收结果后，若所有权日志中**恰有本次这一条**记录
+  （唯一所有者，常态），立即删除目录，图片零滞留；②**独立 reaper 兜底**——存在其它记录
+  （同内容兄弟提交、历史未决）时 ``analyze`` **绝不删**，仅当该目录**全部**记录都是
+  ``queued`` 且**每个** queue_id 都被远端确认终态时才精确删除；存在 ``submitting``、记录
+  缺失/不可读、或任一 queue 未终态 → ``unresolved`` 保留。**绝不按 TTL 猜删**（判据始终
+  是显式所有权 + 远端终态，不是时间）。持久轮转游标防止永久未决目录饿死后面的可清理目录；
+  reaper 需按部署周期运行（test.gpu2 上为 15 分钟 systemd timer）。
+  **已知边界（未解决）**：算法侧 Celery ``result_expires=86400``，超过 24 小时后 queue_id
+  永远只返回 ``PENDING``，该目录将**无限期保留**（``unresolved``）。需要一个经批准的重
+  留上限或算法侧按 task_id 查询合同来收口；在此之前只能靠监控 ``unresolved`` 计数告警。
 - 仍阻断激活（需算法侧合同）：①POST 已受理但 ack 丢失 → 记录停在 ``submitting``，现有
   GET-by-queue_id 无法确认消费结束；②``TASK_ID_CONFLICT``/``INTERRUPTED`` 会让内容派生的
   ``task_id`` **永久不可用**，需算法侧提供 task_id 重置或版本化命名空间。二者解决前
@@ -189,9 +195,11 @@ class ShuiguangSkinAdapter:
             raise ShuiguangStagingError(
                 "shuiguang queue ownership persist failed; check " + SHUIGUANG_INPUT_ROOT_ENV
             ) from None
-        # 目录由同内容的所有 queue 条目共享，且排队任务在执行时才读图：**任何单一条目的
-        # 终态都不触发删除**（会饿死兄弟）。清理唯一路径 = reaper 确认全部条目终态。
         groups = self._poll(queue_id)
+        # 已确认回收结果：若本次是该目录的**唯一所有者**（所有权日志只有本条记录）→ 就地
+        # 清理，图片零滞留。存在其它记录（同内容兄弟提交/历史未决）时**绝不删**——排队任务
+        # 在执行时才读图，删了会饿死兄弟；这种情况一律交给 reaper 按"全部 queue 终态"判定。
+        self._cleanup_if_sole_owner(stage_dir, nonce)
         version = f"shuiguang:{_sanitize_source(score_source)}"
         self.model_version = version
         return SkinAnalysisResult(
@@ -299,6 +307,33 @@ class ShuiguangSkinAdapter:
                 os.unlink(tmp)
             except FileNotFoundError:
                 pass
+
+    def _cleanup_if_sole_owner(self, stage_dir: Path, nonce: str) -> None:
+        """结果已确认回收后，**仅当本次是目录唯一所有者**时就地清理暂存图片。
+
+        判据是显式的所有权日志（``.submissions/`` 下恰有一条、且就是本次 nonce），不是从
+        当前照片推断——推断式清理已被 Oracle 第二轮实证为破坏性（会删掉新活跃 job 的暂存）。
+        存在任何其它记录时不删：同内容兄弟提交共享此目录，而算法侧排队任务在**执行时**才
+        读图（``safe_inputs`` 先于幂等判定），删了会让兄弟拿到 ``INVALID_INPUT``。这些情况
+        由 reaper 按"全部 queue_id 均远端终态"统一清理。
+
+        清理失败**绝不影响已成功的结果**（不可让报告重试），残留由 reaper 兜底。
+
+        残余竞态（已评估为良性）：判据检查与 ``rmtree`` 之间若恰好有兄弟提交追加记录，该
+        兄弟会在执行时读不到图 → 算法返回 ``INVALID_INPUT`` → 本项目判为**可重试** → 重试
+        重新暂存（路径由内容确定，故直接命中算法侧幂等缓存，免重跑 GPU）→ 自愈。既不产生
+        错误结果，也不丢数据。
+        """
+        try:
+            records = [
+                item.name for item in (stage_dir / _SUBMISSIONS).iterdir()
+                if item.suffix == ".json"
+            ]
+        except OSError:
+            return  # 日志不可读 → 无法证明唯一所有权 → 保留，交 reaper
+        if records != [nonce + ".json"]:
+            return
+        self._remove_stage(stage_dir)
 
     @staticmethod
     def _remove_stage(stage_dir: Path) -> bool:

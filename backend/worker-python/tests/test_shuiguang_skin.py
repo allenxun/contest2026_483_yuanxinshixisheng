@@ -531,7 +531,9 @@ def test_identical_content_yields_byte_identical_requests(
     assert json.dumps(stub.posts[0], sort_keys=True) == json.dumps(
         stub.posts[1], sort_keys=True
     )
-    assert [p.name for p in tmp_path.iterdir()] == [a._task_id(imgs)]  # 共享同一目录
+    # 两次提交路径完全一致（同一内容确定目录）；各自都是唯一所有者 → 就地清理、零残留
+    assert stub.posts[0]["images"][0]["path"] == stub.posts[1]["images"][0]["path"]
+    assert list(tmp_path.iterdir()) == []
 
 
 # ================================================================ 6) 成功体严格校验
@@ -573,7 +575,7 @@ def test_success_969_consumed_as_is(monkeypatch: Any, tmp_path: Any) -> None:
 
 
 # ================================================================ 7) 端到端（真 HTTP stub）
-def test_end_to_end_success_retains_until_reaper(monkeypatch: Any, tmp_path: Any, stub_server: Any) -> None:
+def test_end_to_end_success_cleans_up_as_sole_owner(monkeypatch: Any, tmp_path: Any, stub_server: Any) -> None:
     stub, url = stub_server
     cfg = _set_env(monkeypatch, url, tmp_path)
     a = ShuiguangSkinAdapter(cfg, sleep=lambda _s: None, clock=lambda: 0.0)
@@ -594,10 +596,43 @@ def test_end_to_end_success_retains_until_reaper(monkeypatch: Any, tmp_path: Any
     assert [i["path"] for i in body["images"]] == [
         f"{stage_id}/front.png", f"{stage_id}/left.png", f"{stage_id}/right.png"
     ]
-    # analyze 绝不自删（目录可能与兄弟 queue 条目共享）；清理只由 reaper 在全部终态后执行
-    assert (tmp_path / stage_id).exists()
-    assert a.reap_staged() == {"checked": 1, "removed": 1, "unresolved": 0}
+    # 唯一所有者（所有权日志只有本次这一条）→ 确认回收结果后**立即**清理，图片零滞留
     assert not (tmp_path / stage_id).exists()
+    assert list(tmp_path.iterdir()) == []  # 不必等 reaper，且无任何残留
+    assert a.reap_staged() == {"checked": 0, "removed": 0, "unresolved": 0}
+
+
+def test_shared_ownership_never_cleans_inline(
+    monkeypatch: Any, tmp_path: Any, stub_server: Any
+) -> None:
+    """存在兄弟所有权记录时，即使本次已确认回收结果也**绝不就地清理**（会饿死兄弟）。
+
+    判别力：把 ``_cleanup_if_sole_owner`` 改成无条件 ``_remove_stage`` → 本测试 FAIL，
+    因为兄弟条目仍在排队、算法侧 ``safe_inputs`` 执行时才读图。
+    """
+    stub, url = stub_server
+    cfg = _set_env(monkeypatch, url, tmp_path)
+    a = ShuiguangSkinAdapter(cfg, sleep=lambda _s: None, clock=lambda: 0.0)
+    imgs = _images()
+    stage = tmp_path / a._task_id(imgs)
+    stage.mkdir(parents=True, exist_ok=True)
+    a._record_submission(stage, uuid.uuid4().hex, "q-sibling")  # 预置兄弟提交
+    assert a.analyze(imgs).v3_groups is not None
+    assert stage.exists()  # 本次已成功回收结果，但**不是唯一所有者** → 不删
+    assert len(list((stage / ".submissions").glob("*.json"))) == 2
+    real = a._do_request
+
+    def gated(method: str, path: str, body: Any) -> tuple[int, Any]:
+        if path.endswith("q-sibling"):
+            return 200, {"status": "pending", "progress": 0}
+        return real(method, path, body)
+
+    a._do_request = gated
+    assert a.reap_staged() == {"checked": 1, "removed": 0, "unresolved": 1}
+    assert stage.exists()  # 兄弟未终态 → reaper 同样保留
+    a._do_request = real
+    assert a.reap_staged() == {"checked": 1, "removed": 1, "unresolved": 0}
+    assert not stage.exists()  # 全部终态后才精确清理
 
 
 def test_repeated_post_same_task_id_yields_distinct_queue_ids(
